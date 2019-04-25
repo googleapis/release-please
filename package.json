@@ -1,0 +1,58 @@
+{
+  "name": "release-please",
+  "version": "1.0.0",
+  "description": "generate release PRs based on the conventionalcommits.org spec",
+  "main": "./build/src/index.js",
+  "bin": "./build/src/bin/release-please.js",
+  "scripts": {
+    "test": "c8 --reporter=html --reporter=text mocha --timeout=5000 build/test",
+    "test:integration": "mocha --timeout=5000 build/test-integration",
+    "test:all": "c8 --reporter=html --reporter=text mocha --teimout=5000 build/test-integration build/test",
+    "clean": "gts clean",
+    "prepare": "npm run compile",
+    "lint": "gts check",
+    "compile": "tsc -p .",
+    "fix": "gts fix",
+    "pretest": "npm run compile"
+  },
+  "files": [
+    "build/src",
+    "!build/src/**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcoe/release-please.git"
+  },
+  "keywords": [
+    "release",
+    "conventional-commits"
+  ],
+  "author": "Google Inc.",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/bcoe/release-please/issues"
+  },
+  "homepage": "https://github.com/bcoe/release-please#readme",
+  "devDependencies": {
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^11.13.6",
+    "@types/semver": "^6.0.0",
+    "c8": "^3.5.0",
+    "chai": "^4.2.0",
+    "gts": "^0.9.0",
+    "mocha": "^6.1.4",
+    "nock": "^10.0.6",
+    "typescript": "^3.4.4"
+  },
+  "dependencies": {
+    "@octokit/rest": "^16.24.1",
+    "concat-stream": "^2.0.0",
+    "conventional-changelog-conventionalcommits": "^1.1.0",
+    "conventional-changelog-writer": "^4.0.3",
+    "conventional-commits-filter": "^2.0.1",
+    "conventional-commits-parser": "^3.0.1",
+    "parse-github-repo-url": "^1.4.1",
+    "semver": "^6.0.0",
+    "yargs": "^13.2.2"
+  }
+}

@@ -1,0 +1,5 @@
+node_modules
+coverage
+.DS_Store
+build/
+test-integration/fixtures/gh/*
