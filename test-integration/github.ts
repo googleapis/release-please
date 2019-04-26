@@ -24,7 +24,7 @@ const nockBack = require('nock').back;
 if (process.env.RECORD) {
   nockBack.setMode('record');
 }
-nockBack.fixtures = resolve(__dirname, './fixtures/gh');
+nockBack.fixtures = resolve(__dirname, '../../test-integration/fixtures/gh');
 
 require('chai').should();
 
@@ -121,61 +121,63 @@ describe('GitHub', () => {
     });
 
     describe('user has write permissions', () => {
-      it('creates branch with updated content, if file in updates array exists', async () => {
-        const version = '7.0.0'
-        const branch = `release-${version}`;
-        const gh = new GitHub({
-          token: process.env.GH_TOKEN,
-          owner: 'bcoe',
-          repo: 'examples-conventional-commits'
-        });
-        const cl = new FakeFileUpdater({
-          path: 'CHANGELOG.md',
-          version: version,
-          changelogEntry: 'fixed all the things'
-        })
-        const ref = await nockBack('open-pr-update-file.json')
-                        .then(async (nbr: NockBackResponse) => {
-                          await gh.openPR({
-                            branch,
-                            sha: '42f90e2646c49a79bb2c98b658021d468ad5e814',
-                            version: version,
-                            updates: [cl]
-                          });
-                          const ref = await gh.refByBranchName(branch);
-                          nbr.nockDone();
-                          return ref;
-                        });
-        ref.should.equal('refs/heads/release-7.0.0')
-      });
+      it('creates branch with updated content, if file in updates array exists',
+         async () => {
+           const version = '7.0.0';
+           const branch = `release-${version}`;
+           const gh = new GitHub({
+             token: process.env.GH_TOKEN,
+             owner: 'bcoe',
+             repo: 'examples-conventional-commits'
+           });
+           const cl = new FakeFileUpdater({
+             path: 'CHANGELOG.md',
+             version,
+             changelogEntry: 'fixed all the things'
+           });
+           const ref = await nockBack('open-pr-update-file.json')
+                           .then(async (nbr: NockBackResponse) => {
+                             await gh.openPR({
+                               branch,
+                               sha: '42f90e2646c49a79bb2c98b658021d468ad5e814',
+                               version,
+                               updates: [cl]
+                             });
+                             const ref = await gh.refByBranchName(branch);
+                             nbr.nockDone();
+                             return ref;
+                           });
+           ref.should.equal('refs/heads/release-7.0.0');
+         });
 
-      it('creates branch with updated content, if file in updates does not exist', async () => {
-        const version = '8.0.0'
-        const branch = `release-${version}`;
-        const gh = new GitHub({
-          token: process.env.GH_TOKEN,
-          owner: 'bcoe',
-          repo: 'examples-conventional-commits'
-        });
-        const cl = new FakeFileUpdater({
-          path: 'CHANGELOG-FOO.md',
-          version: version,
-          changelogEntry: 'fixed all the things'
-        })
-        const ref = await nockBack('open-pr-create-file.json')
-                        .then(async (nbr: NockBackResponse) => {
-                          await gh.openPR({
-                            branch,
-                            sha: '42f90e2646c49a79bb2c98b658021d468ad5e814',
-                            version: version,
-                            updates: [cl]
-                          });
-                          const ref = await gh.refByBranchName(branch);
-                          nbr.nockDone();
-                          return ref;
-                        });
-        ref.should.equal('refs/heads/release-8.0.0')
-      });
-    })
+      it('creates branch with updated content, if file in updates does not exist',
+         async () => {
+           const version = '8.0.0';
+           const branch = `release-${version}`;
+           const gh = new GitHub({
+             token: process.env.GH_TOKEN,
+             owner: 'bcoe',
+             repo: 'examples-conventional-commits'
+           });
+           const cl = new FakeFileUpdater({
+             path: 'CHANGELOG-FOO.md',
+             version,
+             changelogEntry: 'fixed all the things'
+           });
+           const ref = await nockBack('open-pr-create-file.json')
+                           .then(async (nbr: NockBackResponse) => {
+                             await gh.openPR({
+                               branch,
+                               sha: '42f90e2646c49a79bb2c98b658021d468ad5e814',
+                               version,
+                               updates: [cl]
+                             });
+                             const ref = await gh.refByBranchName(branch);
+                             nbr.nockDone();
+                             return ref;
+                           });
+           ref.should.equal('refs/heads/release-8.0.0');
+         });
+    });
   });
 });

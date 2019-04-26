@@ -15,8 +15,8 @@
  */
 
 import * as semver from 'semver';
-import {Readable} from 'stream';
 import {ReleaseType} from 'semver';
+import {Readable} from 'stream';
 
 const concat = require('concat-stream');
 const conventionalCommitsFilter = require('conventional-commits-filter');
@@ -104,7 +104,7 @@ export class ConventionalCommits {
       });
 
       stream.on('end', () => {
-        return resolve(content);
+        return resolve(content.trim());
       });
     });
   }

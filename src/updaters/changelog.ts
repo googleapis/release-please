@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {checkpoint, CheckpointType} from '../checkpoint';
 import {Update, UpdateOptions} from './update';
 
 export class Changelog implements Update {
@@ -23,8 +24,8 @@ export class Changelog implements Update {
   packageName: string|undefined;
   create: boolean;
 
-  constructor(options: UpdateOptions) { 
-    this.create = true
+  constructor(options: UpdateOptions) {
+    this.create = true;
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
@@ -34,14 +35,17 @@ export class Changelog implements Update {
     // the last entry looks something like ## v3.0.0.
     const lastEntryIndex = content.indexOf('\n## ');
     if (lastEntryIndex === -1) {
-      return this.changelogEntry;
+      checkpoint(`${this.path} not found`, CheckpointType.Failure);
+      checkpoint(`creating ${this.path}`, CheckpointType.Success);
+      return `${this.header()}\n${this.changelogEntry}\n`;
     } else {
+      checkpoint(`updating ${this.path}`, CheckpointType.Success);
       const before = content.slice(0, lastEntryIndex);
       const after = content.slice(lastEntryIndex);
-      return `${before}\n${this.changelogEntry}\n${after}`;
+      return `${before}\n${this.changelogEntry}\n${after}`.trim() + '\n';
     }
   }
-  private header () {
+  private header() {
     return `\
 # Changelog
     
