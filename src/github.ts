@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import chalk from 'chalk';
-import {checkpoint, CheckpointType} from './checkpoint';
 import * as Octokit from '@octokit/rest';
 import {ReposListTagsResponseItem} from '@octokit/rest';
+import chalk from 'chalk';
 import * as semver from 'semver';
+
+import {checkpoint, CheckpointType} from './checkpoint';
 import {Update} from './updaters/update';
 
 interface GitHubOptions {
@@ -116,7 +117,8 @@ export class GitHub {
       refName = `refs/heads/${options.branch}`;
     } else {
       try {
-        checkpoint(`branch ${options.branch} already exists`, CheckpointType.Failure);
+        checkpoint(
+            `branch ${options.branch} already exists`, CheckpointType.Failure);
         await this.octokit.git.deleteRef({
           owner: this.owner,
           repo: this.repo,
@@ -154,7 +156,8 @@ export class GitHub {
     await this.updateFiles(options.updates, options.branch, refName);
 
     const title = `[DO NOT LAND] chore: release ${options.version}`;
-    checkpoint(`open pull-request: ${chalk.green(title)}`, CheckpointType.Success);
+    checkpoint(
+        `open pull-request: ${chalk.green(title)}`, CheckpointType.Success);
     await this.octokit.pulls.create({
       owner: this.owner,
       repo: this.repo,

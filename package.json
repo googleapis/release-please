@@ -6,7 +6,7 @@
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
     "test": "cross-env ENVIRONMENT=test c8 --reporter=html --reporter=text mocha --recursive --timeout=5000 build/test",
-    "test:integration": "cross-env ENV=test mocha --timeout=5000 build/test-integration",
+    "test:integration": "cross-env ENVIRONMENT=test mocha --timeout=5000 build/test-integration",
     "test:all": "cross-env ENVIRONMENT=test c8 --reporter=html --reporter=text mocha --recursive --timeout=5000 build/test-integration build/test",
     "test:snap": "SNAPSHOT_UPDATE=1 npm test",
     "clean": "gts clean",
