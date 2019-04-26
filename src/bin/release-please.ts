@@ -33,6 +33,10 @@ yargs
       describe: 'GitHub repo token',
       default: process.env.GH_TOKEN
     })
+    .option('package-name', {
+      describe: 'name of package release is being minted for',
+      required: true
+    })
     .demandCommand(1)
     .strict(true)
     .parse();

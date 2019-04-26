@@ -15,14 +15,17 @@
  */
 
 export interface UpdateOptions {
-  path: string;
   changelogEntry: string;
+  packageName?: string;
+  path: string;
   version: string;
 }
 
 export interface Update {
-  path: string;
   changelogEntry: string;
+  create: boolean;
+  path: string;
+  packageName?: string;
   version: string;
   updateContent(content: string|undefined): string;
 }

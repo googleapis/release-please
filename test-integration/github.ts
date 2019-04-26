@@ -24,7 +24,7 @@ const nockBack = require('nock').back;
 if (process.env.RECORD) {
   nockBack.setMode('record');
 }
-nockBack.fixtures = resolve(__dirname, '../../test-integration/fixtures/gh');
+nockBack.fixtures = resolve(__dirname, './fixtures/gh');
 
 require('chai').should();
 
@@ -40,8 +40,10 @@ class FakeFileUpdater implements Update {
   path: string;
   changelogEntry: string;
   version: string;
+  create: boolean;
 
-  constructor(options: UpdateOptions) { 
+  constructor(options: UpdateOptions) {
+    this.create = true;
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;

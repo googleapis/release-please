@@ -20,13 +20,33 @@ export class Changelog implements Update {
   path: string;
   changelogEntry: string;
   version: string;
+  packageName: string|undefined;
+  create: boolean;
 
   constructor(options: UpdateOptions) { 
+    this.create = true
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
+    this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    return content + this.changelogEntry;
+    // the last entry looks something like ## v3.0.0.
+    const lastEntryIndex = content.indexOf('\n## ');
+    if (lastEntryIndex === -1) {
+      return this.changelogEntry;
+    } else {
+      const before = content.slice(0, lastEntryIndex);
+      const after = content.slice(lastEntryIndex);
+      return `${before}\n${this.changelogEntry}\n${after}`;
+    }
+  }
+  private header () {
+    return `\
+# Changelog
+    
+[npm history][1]
+
+[1]: https://www.npmjs.com/package/${this.packageName}?activeTab=versions`;
   }
 }

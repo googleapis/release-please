@@ -18,6 +18,7 @@ import * as semver from 'semver';
 
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub} from './github';
+import {Changelog} from './updaters/changelog';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
@@ -28,6 +29,7 @@ enum ReleaseType {
 export interface MintReleaseOptions {
   token?: string;
   repoUrl: string;
+  packageName?: string;
   releaseType: ReleaseType;
 }
 
@@ -42,7 +44,6 @@ export class MintRelease {
     this.releaseType = options.releaseType;
   }
   async run () {
-    console.info(this.releaseType);
     switch (this.releaseType) {
       case ReleaseType.Node:
         await this.nodeRelease()
@@ -52,6 +53,8 @@ export class MintRelease {
     }
   }
   private async nodeRelease () {
+    // TODO: refactor this so that we have appropriate information
+    // to pass to CHANGELOG.
     await this.release();
   }
   private async release () {
@@ -93,7 +96,7 @@ export async function mintRelease(options: MintReleaseOptions) {
     const sha = split[split.length - 1].trim();
     await gh.openPR(
         {branch: `release-v${version}`, version, sha, updates:
-    []});
+    []});release
   }
 }
 */

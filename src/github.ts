@@ -174,8 +174,10 @@ export class GitHub {
           ref: refName
         });
       } catch (err) {
-        // if the file doesn't exist, that's okay we'll create it.
         if (err.status !== 404) throw err;
+        // if the file is missing and create = false, just continue
+        // to the next update, otherwise create the file.
+        if (!update.create) continue;
       }
       const contentText = content ? Buffer.from(content.data.content, 'base64').toString('utf8') : undefined;
       const updatedContent = update.updateContent(contentText);
