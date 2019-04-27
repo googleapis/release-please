@@ -75,7 +75,7 @@ export class MintRelease {
     const updates: Update[] = [];
 
     updates.push(new Changelog({
-      path: 'CHANGELOG.md',
+      path: 'CHANGELerG.md',
       changelogEntry,
       version,
       packageName: this.packageName

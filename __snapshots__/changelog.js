@@ -52,3 +52,16 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 01-28-2019 11:05 PST
 
 `
+
+exports['ChangelogUpdater updateContent populates a new CHANGELOG if none exists 1'] = `
+# Changelog
+
+[npm history][1]
+
+[1]: https://www.npmjs.com/package/foo-package?activeTab=versions
+
+## 2.0.0
+
+* added a new foo to bar.
+
+`

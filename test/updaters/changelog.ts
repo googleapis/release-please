@@ -37,5 +37,17 @@ describe('ChangelogUpdater', () => {
          const newContent = changelog.updateContent(oldContent);
          snapshot(newContent);
        });
+
+       it('populates a new CHANGELOG if none exists',
+       async () => {
+         const changelog = new Changelog({
+           path: 'CHANGELOG.md',
+           changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
+           version: '1.0.0',
+           packageName: 'foo-package'
+         });
+         const newContent = changelog.updateContent(undefined);
+         snapshot(newContent);
+       });
   });
 });

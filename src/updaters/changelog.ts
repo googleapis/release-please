@@ -31,7 +31,8 @@ export class Changelog implements Update {
     this.version = options.version;
     this.packageName = options.packageName;
   }
-  updateContent(content: string): string {
+  updateContent(content: string|undefined): string {
+    content = content || ''
     // the last entry looks something like ## v3.0.0.
     const lastEntryIndex = content.indexOf('\n## ');
     if (lastEntryIndex === -1) {
@@ -48,9 +49,10 @@ export class Changelog implements Update {
   private header() {
     return `\
 # Changelog
-    
+
 [npm history][1]
 
-[1]: https://www.npmjs.com/package/${this.packageName}?activeTab=versions`;
+[1]: https://www.npmjs.com/package/${this.packageName}?activeTab=versions
+`;
   }
 }
