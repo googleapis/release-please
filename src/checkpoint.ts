@@ -22,8 +22,9 @@ export enum CheckpointType {
 }
 
 export function checkpoint(msg: string, type: CheckpointType) {
-  const prefix = type === CheckpointType.Success ?
-      chalk.green(`${figures.tick}`) :
-      chalk.red(`${figures.cross}`);
-  if (!process.env.ENVIRONMENT) console.info(`${prefix} ${msg}`);
+  const prefix = type === CheckpointType.Success ? chalk.green(figures.tick) :
+                                                   chalk.red(figures.cross);
+  if (process.env.ENVIRONMENT !== 'test') {
+    console.info(`${prefix} ${msg}`);
+  }
 }
