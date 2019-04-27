@@ -17,7 +17,7 @@
 import {checkpoint, CheckpointType} from '../checkpoint';
 import {Update, UpdateOptions} from './update';
 
-export class Changelog implements Update {
+export class PackageJson implements Update {
   path: string;
   changelogEntry: string;
   version: string;
@@ -25,34 +25,18 @@ export class Changelog implements Update {
   create: boolean;
 
   constructor(options: UpdateOptions) {
-    this.create = true;
+    this.create = false;
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
   }
-  updateContent(content: string|undefined): string {
-    content = content || '';
-    // the last entry looks something like ## v3.0.0.
-    const lastEntryIndex = content.indexOf('\n## ');
-    if (lastEntryIndex === -1) {
-      checkpoint(`${this.path} not found`, CheckpointType.Failure);
-      checkpoint(`creating ${this.path}`, CheckpointType.Success);
-      return `${this.header()}\n${this.changelogEntry}\n`;
-    } else {
-      checkpoint(`updating ${this.path}`, CheckpointType.Success);
-      const before = content.slice(0, lastEntryIndex);
-      const after = content.slice(lastEntryIndex);
-      return `${before}\n${this.changelogEntry}\n${after}`.trim() + '\n';
-    }
-  }
-  private header() {
-    return `\
-# Changelog
-
-[npm history][1]
-
-[1]: https://www.npmjs.com/package/${this.packageName}?activeTab=versions
-`;
+  updateContent(content: string): string {
+    const parsed = JSON.parse(content);
+    checkpoint(
+        `updating ${this.path} from ${parsed.version} to ${this.version}`,
+        CheckpointType.Success);
+    parsed.version = this.version;
+    return JSON.stringify(parsed, null, 2) + '\n';
   }
 }

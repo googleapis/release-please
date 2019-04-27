@@ -20,6 +20,7 @@ import {checkpoint, CheckpointType} from './checkpoint';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag} from './github';
 import {Changelog} from './updaters/changelog';
+import {PackageJson} from './updaters/package-json';
 import {Update} from './updaters/update';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -75,7 +76,14 @@ export class MintRelease {
     const updates: Update[] = [];
 
     updates.push(new Changelog({
-      path: 'CHANGELerG.md',
+      path: 'CHANGELOG.md',
+      changelogEntry,
+      version,
+      packageName: this.packageName
+    }));
+
+    updates.push(new PackageJson({
+      path: 'package.json',
       changelogEntry,
       version,
       packageName: this.packageName

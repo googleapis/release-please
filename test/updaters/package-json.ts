@@ -18,34 +18,19 @@ import {readFileSync} from 'fs';
 import {basename, resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {Changelog} from '../../src/updaters/changelog';
+import {PackageJson} from '../../src/updaters/package-json';
 import {UpdateOptions} from '../../src/updaters/update';
 
 const fixturesPath = './test/updaters/fixtures';
 
-describe('ChangelogUpdater', () => {
+describe('PackageJson', () => {
   describe('updateContent', () => {
-    it('inserts content at appropriate location if CHANGELOG exists',
-       async () => {
-         const oldContent =
-             readFileSync(resolve(fixturesPath, './CHANGELOG.md'), 'utf8');
-         const changelog = new Changelog({
-           path: 'CHANGELOG.md',
-           changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-           version: '1.0.0'
-         });
-         const newContent = changelog.updateContent(oldContent);
-         snapshot(newContent);
-       });
-
-    it('populates a new CHANGELOG if none exists', async () => {
-      const changelog = new Changelog({
-        path: 'CHANGELOG.md',
-        changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-        version: '1.0.0',
-        packageName: 'foo-package'
-      });
-      const newContent = changelog.updateContent(undefined);
+    it('updates the package version', async () => {
+      const oldContent =
+          readFileSync(resolve(fixturesPath, './package.json'), 'utf8');
+      const packageJson = new PackageJson(
+          {path: 'packae.json', changelogEntry: '', version: '14.0.0'});
+      const newContent = packageJson.updateContent(oldContent);
       snapshot(newContent);
     });
   });

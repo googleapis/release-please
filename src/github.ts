@@ -181,7 +181,11 @@ export class GitHub {
         if (err.status !== 404) throw err;
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
-        if (!update.create) continue;
+        if (!update.create) {
+          checkpoint(
+              `file ${update.path} did not exist`, CheckpointType.Failure);
+          continue;
+        }
       }
       const contentText = content ?
           Buffer.from(content.data.content, 'base64').toString('utf8') :
