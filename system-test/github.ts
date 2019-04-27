@@ -24,7 +24,7 @@ const nockBack = require('nock').back;
 if (process.env.RECORD) {
   nockBack.setMode('record');
 }
-nockBack.fixtures = resolve(__dirname, '../../test-integration/fixtures/gh');
+nockBack.fixtures = resolve(__dirname, '../../system-test/fixtures/gh');
 
 require('chai').should();
 
