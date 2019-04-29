@@ -97,7 +97,7 @@ describe('GitHub', () => {
                     });
               });
       commitsSinceSha[0].should.include(
-          'chore(deps): update dependency nyc to v14 (#82)');
+          'chore(deps): update dependency @types/nock to v10');
       commitsSinceSha[commitsSinceSha.length - 1].should.include(
           'define regexp only once in circleci config');
     });
