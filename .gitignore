@@ -3,3 +3,4 @@ coverage
 .DS_Store
 build/
 system-test/fixtures/gh/*
+__pycache__

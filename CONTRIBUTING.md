@@ -1,28 +1,55 @@
-# How to Contribute
+# How to become a contributor and submit your own code
 
-We'd love to accept your patches and contributions to this project. There are
-just a few small guidelines you need to follow.
+**Table of contents**
 
-## Contributor License Agreement
+* [Contributor License Agreements](#contributor-license-agreements)
+* [Contributing a patch](#contributing-a-patch)
+* [Running the tests](#running-the-tests)
+* [Releasing the library](#releasing-the-library)
 
-Contributions to this project must be accompanied by a Contributor License
-Agreement. You (or your employer) retain the copyright to your contribution;
-this simply gives us permission to use and redistribute your contributions as
-part of the project. Head over to <https://cla.developers.google.com/> to see
-your current agreements on file or to sign a new one.
+## Contributor License Agreements
 
-You generally only need to submit a CLA once, so if you've already submitted one
-(even if it was for a different project), you probably don't need to do it
-again.
+We'd love to accept your sample apps and patches! Before we can take them, we
+have to jump a couple of legal hurdles.
 
-## Code reviews
+Please fill out either the individual or corporate Contributor License Agreement
+(CLA).
 
-All submissions, including submissions by project members, require review. We
-use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
-information on using pull requests.
+  * If you are an individual writing original source code and you're sure you
+    own the intellectual property, then you'll need to sign an [individual CLA](https://developers.google.com/open-source/cla/individual).
+  * If you work for a company that wants to allow you to contribute your work,
+    then you'll need to sign a [corporate CLA](https://developers.google.com/open-source/cla/corporate).
 
-## Community Guidelines
+Follow either of the two links above to access the appropriate CLA and
+instructions for how to sign and return it. Once we receive it, we'll be able to
+accept your pull requests.
 
-This project follows
-[Google's Open Source Community Guidelines](https://opensource.google.com/conduct/).
+## Contributing A Patch
+
+1.  Submit an issue describing your proposed change to the repo in question.
+1.  The repo owner will respond to your issue promptly.
+1.  If your proposed change is accepted, and you haven't already done so, sign a
+    Contributor License Agreement (see details above).
+1.  Fork the desired repo, develop and test your code changes.
+1.  Ensure that your code adheres to the existing style in the code to which
+    you are contributing.
+1.  Ensure that your code has an appropriate set of tests which all pass.
+1.  Submit a pull request.
+
+## Running the tests
+
+1.  [Prepare your environment for Node.js setup][setup].
+
+1.  Install dependencies:
+
+        npm install
+
+1.  Run the tests:
+
+        npm test
+
+1.  Lint (and maybe fix) any changes:
+
+        npm run fix
+
+[setup]: https://cloud.google.com/nodejs/docs/setup
