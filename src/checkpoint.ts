@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import chalk from 'chalk';
+import * as figures from 'figures';
 
-export interface UpdateOptions {
-  changelogEntry: string;
-  packageName: string;
-  path: string;
-  version: string;
+export enum CheckpointType {
+  Success = 'success',
+  Failure = 'failure'
 }
 
-export interface Update {
-  changelogEntry: string;
-  create: boolean;
-  path: string;
-  packageName: string;
-  version: string;
-  updateContent(content: string|undefined): string;
+export function checkpoint(msg: string, type: CheckpointType) {
+  const prefix = type === CheckpointType.Success ? chalk.green(figures.tick) :
+                                                   chalk.red(figures.cross);
+  if (process.env.ENVIRONMENT !== 'test') {
+    console.info(`${prefix} ${msg}`);
+  }
 }

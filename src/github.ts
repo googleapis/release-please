@@ -16,7 +16,10 @@
 
 import * as Octokit from '@octokit/rest';
 import {ReposListTagsResponseItem} from '@octokit/rest';
+import chalk from 'chalk';
 import * as semver from 'semver';
+
+import {checkpoint, CheckpointType} from './checkpoint';
 import {Update} from './updaters/update';
 
 interface GitHubOptions {
@@ -114,6 +117,9 @@ export class GitHub {
       refName = `refs/heads/${options.branch}`;
     } else {
       try {
+        checkpoint(
+            `branch ${chalk.red(options.branch)} already exists`,
+            CheckpointType.Failure);
         await this.octokit.git.deleteRef({
           owner: this.owner,
           repo: this.repo,
@@ -121,6 +127,9 @@ export class GitHub {
           // creation be removed; this seems like a bug we should log.
           ref: refName.replace('refs/', '')
         });
+        checkpoint(
+            `branch ${chalk.red(options.branch)} deleted`,
+            CheckpointType.Success);
       } catch (err) {
         if (err.status === 404) {
           // the most likely cause of a 404 during this step is actually
@@ -134,6 +143,9 @@ export class GitHub {
 
     // always create the branch (it was potentially deleted in the prior step).
     try {
+      checkpoint(
+          `creating branch ${chalk.green(options.branch)}`,
+          CheckpointType.Success);
       await this.octokit.git.createRef(
           {owner: this.owner, repo: this.repo, ref: refName, sha: options.sha});
     } catch (err) {
@@ -148,24 +160,21 @@ export class GitHub {
 
     await this.updateFiles(options.updates, options.branch, refName);
 
-    try {
-      await this.octokit.pulls.create({
-        owner: this.owner,
-        repo: this.repo,
-        title: `[DO NOT LAND] chore: release ${options.version}`,
-        head: options.branch,
-        base: 'master'
-      });
-    } catch (err) {
-      console.info(JSON.stringify(err, null, 2))
-      console.info(options.sha)
-      throw err
-    }
+    const title = `[DO NOT LAND] chore: release ${options.version}`;
+    checkpoint(
+        `open pull-request: ${chalk.yellow(title)}`, CheckpointType.Success);
+    await this.octokit.pulls.create({
+      owner: this.owner,
+      repo: this.repo,
+      title,
+      head: options.branch,
+      base: 'master'
+    });
   }
   async updateFiles(updates: Update[], branch: string, refName: string) {
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
-      let content
+      let content;
       try {
         content = await this.octokit.repos.getContents({
           owner: this.owner,
@@ -174,10 +183,19 @@ export class GitHub {
           ref: refName
         });
       } catch (err) {
-        // if the file doesn't exist, that's okay we'll create it.
         if (err.status !== 404) throw err;
+        // if the file is missing and create = false, just continue
+        // to the next update, otherwise create the file.
+        if (!update.create) {
+          checkpoint(
+              `file ${chalk.green(update.path)} did not exist`,
+              CheckpointType.Failure);
+          continue;
+        }
       }
-      const contentText = content ? Buffer.from(content.data.content, 'base64').toString('utf8') : undefined;
+      const contentText = content ?
+          Buffer.from(content.data.content, 'base64').toString('utf8') :
+          undefined;
       const updatedContent = update.updateContent(contentText);
 
       if (content) {
@@ -188,7 +206,7 @@ export class GitHub {
           message: `updated ${update.path}`,
           content: Buffer.from(updatedContent, 'utf8').toString('base64'),
           sha: content.data.sha,
-          branch: branch
+          branch
         });
       } else {
         await this.octokit.repos.createFile({
@@ -197,7 +215,7 @@ export class GitHub {
           path: update.path,
           message: `created ${update.path}`,
           content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-          branch: branch
+          branch
         });
       }
     }

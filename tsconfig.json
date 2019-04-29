@@ -10,7 +10,7 @@
     "src/**/*.ts",
     "test/*.ts",
     "test/**/*.ts",
-    "test-integration/*.ts"
+    "system-test/*.ts"
   ]
 }
 

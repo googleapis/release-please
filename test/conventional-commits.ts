@@ -18,7 +18,7 @@ import {ConventionalCommits} from '../src/conventional-commits';
 
 const {expect} = require('chai');
 
-describe('GitHub', () => {
+describe('ConventionalCommits', () => {
   describe('suggestBump', () => {
     it('suggests minor release for breaking change pre 1.0', async () => {
       const cc = new ConventionalCommits({

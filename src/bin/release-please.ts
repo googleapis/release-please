@@ -24,14 +24,24 @@ const yargs = require('yargs');
 
 yargs
     .command(
-        'mint-release <repo-url> <release-type>', 'mint a new release for a repo', () => {},
+        'mint-release', 'mint a new release for a repo', () => {},
         async (argv: MintReleaseOptions) => {
           const mr = new MintRelease(argv);
           await mr.run();
         })
-    .option('token', {
-      describe: 'GitHub repo token',
-      default: process.env.GH_TOKEN
+    .option(
+        'token', {describe: 'GitHub repo token', default: process.env.GH_TOKEN})
+    .option('package-name', {
+      describe: 'name of package release is being minted for',
+      required: true
+    })
+    .option(
+        'repo-url',
+        {describe: 'GitHub URL to generate release for', required: true})
+    .option('release-type', {
+      describe: 'what type of repo is a release being created for?',
+      options: ['node'],
+      default: 'node'
     })
     .demandCommand(1)
     .strict(true)
