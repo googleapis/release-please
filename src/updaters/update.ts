@@ -16,7 +16,7 @@
 
 export interface UpdateOptions {
   changelogEntry: string;
-  packageName?: string;
+  packageName: string;
   path: string;
   version: string;
 }
@@ -25,7 +25,7 @@ export interface Update {
   changelogEntry: string;
   create: boolean;
   path: string;
-  packageName?: string;
+  packageName: string;
   version: string;
   updateContent(content: string|undefined): string;
 }

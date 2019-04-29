@@ -21,7 +21,7 @@ export class Changelog implements Update {
   path: string;
   changelogEntry: string;
   version: string;
-  packageName: string|undefined;
+  packageName: string;
   create: boolean;
 
   constructor(options: UpdateOptions) {

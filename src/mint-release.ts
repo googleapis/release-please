@@ -21,6 +21,7 @@ import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag} from './github';
 import {Changelog} from './updaters/changelog';
 import {PackageJson} from './updaters/package-json';
+import {SamplesPackageJson} from './updaters/samples-package-json';
 import {Update} from './updaters/update';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -32,7 +33,7 @@ enum ReleaseType {
 export interface MintReleaseOptions {
   token?: string;
   repoUrl: string;
-  packageName?: string;
+  packageName: string;
   releaseType: ReleaseType;
 }
 
@@ -40,7 +41,7 @@ export class MintRelease {
   gh: GitHub;
   repoUrl: string;
   token: string|undefined;
-  packageName: string|undefined;
+  packageName: string;
   releaseType: ReleaseType;
 
   constructor(options: MintReleaseOptions) {
@@ -84,6 +85,13 @@ export class MintRelease {
 
     updates.push(new PackageJson({
       path: 'package.json',
+      changelogEntry,
+      version,
+      packageName: this.packageName
+    }));
+
+    updates.push(new SamplesPackageJson({
+      path: 'samples/package.json',
       changelogEntry,
       version,
       packageName: this.packageName

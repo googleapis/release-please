@@ -17,7 +17,7 @@
 import {checkpoint, CheckpointType} from '../checkpoint';
 import {Update, UpdateOptions} from './update';
 
-export class PackageJson implements Update {
+export class SamplesPackageJson implements Update {
   path: string;
   changelogEntry: string;
   version: string;
@@ -34,9 +34,10 @@ export class PackageJson implements Update {
   updateContent(content: string): string {
     const parsed = JSON.parse(content);
     checkpoint(
-        `updating ${this.path} from ${parsed.version} to ${this.version}`,
+        `updating ${this.packageName} dependency in ${this.path} from ${
+            parsed.version} to ${this.version}`,
         CheckpointType.Success);
-    parsed.version = this.version;
+    parsed.dependencies[this.packageName] = this.version;
     return JSON.stringify(parsed, null, 2) + '\n';
   }
 }

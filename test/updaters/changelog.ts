@@ -32,7 +32,8 @@ describe('ChangelogUpdater', () => {
          const changelog = new Changelog({
            path: 'CHANGELOG.md',
            changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-           version: '1.0.0'
+           version: '1.0.0',
+           packageName: '@google-cloud/foo'
          });
          const newContent = changelog.updateContent(oldContent);
          snapshot(newContent);

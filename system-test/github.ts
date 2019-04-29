@@ -41,12 +41,14 @@ class FakeFileUpdater implements Update {
   changelogEntry: string;
   version: string;
   create: boolean;
+  packageName: string;
 
   constructor(options: UpdateOptions) {
     this.create = true;
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
+    this.packageName = options.packageName;
   }
   updateContent(content: string): string {
     return this.changelogEntry + content;
@@ -133,7 +135,8 @@ describe('GitHub', () => {
            const cl = new FakeFileUpdater({
              path: 'CHANGELOG.md',
              version,
-             changelogEntry: 'fixed all the things'
+             changelogEntry: 'fixed all the things',
+             packageName: '@google-cloud/foo'
            });
            const ref = await nockBack('open-pr-update-file.json')
                            .then(async (nbr: NockBackResponse) => {
@@ -162,7 +165,8 @@ describe('GitHub', () => {
            const cl = new FakeFileUpdater({
              path: 'CHANGELOG-FOO.md',
              version,
-             changelogEntry: 'fixed all the things'
+             changelogEntry: 'fixed all the things',
+             packageName: '@google-cloud/foo'
            });
            const ref = await nockBack('open-pr-create-file.json')
                            .then(async (nbr: NockBackResponse) => {

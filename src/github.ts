@@ -118,7 +118,8 @@ export class GitHub {
     } else {
       try {
         checkpoint(
-            `branch ${options.branch} already exists`, CheckpointType.Failure);
+            `branch ${chalk.red(options.branch)} already exists`,
+            CheckpointType.Failure);
         await this.octokit.git.deleteRef({
           owner: this.owner,
           repo: this.repo,
@@ -126,7 +127,9 @@ export class GitHub {
           // creation be removed; this seems like a bug we should log.
           ref: refName.replace('refs/', '')
         });
-        checkpoint(`branch ${options.branch} deleted`, CheckpointType.Success);
+        checkpoint(
+            `branch ${chalk.red(options.branch)} deleted`,
+            CheckpointType.Success);
       } catch (err) {
         if (err.status === 404) {
           // the most likely cause of a 404 during this step is actually
@@ -140,7 +143,9 @@ export class GitHub {
 
     // always create the branch (it was potentially deleted in the prior step).
     try {
-      checkpoint(`creating branch ${options.branch}`, CheckpointType.Success);
+      checkpoint(
+          `creating branch ${chalk.green(options.branch)}`,
+          CheckpointType.Success);
       await this.octokit.git.createRef(
           {owner: this.owner, repo: this.repo, ref: refName, sha: options.sha});
     } catch (err) {
@@ -157,7 +162,7 @@ export class GitHub {
 
     const title = `[DO NOT LAND] chore: release ${options.version}`;
     checkpoint(
-        `open pull-request: ${chalk.green(title)}`, CheckpointType.Success);
+        `open pull-request: ${chalk.yellow(title)}`, CheckpointType.Success);
     await this.octokit.pulls.create({
       owner: this.owner,
       repo: this.repo,
@@ -183,7 +188,8 @@ export class GitHub {
         // to the next update, otherwise create the file.
         if (!update.create) {
           checkpoint(
-              `file ${update.path} did not exist`, CheckpointType.Failure);
+              `file ${chalk.green(update.path)} did not exist`,
+              CheckpointType.Failure);
           continue;
         }
       }

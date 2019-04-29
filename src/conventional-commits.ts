@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+import chalk from 'chalk';
 import * as semver from 'semver';
 import {ReleaseType} from 'semver';
 import {Readable} from 'stream';
+
+import {checkpoint, CheckpointType} from './checkpoint';
 
 const concat = require('concat-stream');
 const conventionalCommitsFilter = require('conventional-commits-filter');
@@ -74,7 +77,12 @@ export class ConventionalCommits {
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
     const preMajor = semver.lt(version, 'v1.0.0');
-    return this.guessReleaseType(preMajor);
+    const bump: BumpSuggestion = await this.guessReleaseType(preMajor);
+    checkpoint(
+        `release as ${chalk.green(bump.releaseType)}: ${
+            chalk.yellow(bump.reason)}`,
+        CheckpointType.Success);
+    return bump;
   }
   async generateChangelogEntry(options: ChangelogEntryOptions):
       Promise<string> {
