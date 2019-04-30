@@ -109,6 +109,10 @@ export class GitHub {
   }
 
   async addLabel(pr: number, label: string) {
+    checkpoint(
+        `adding label ${chalk.green(label)} to https://github.com/${
+            this.owner}/${this.repo}/pull/${pr}`,
+        CheckpointType.Success);
     await this.octokit.issues.addLabels({
       owner: this.owner,
       repo: this.repo,
