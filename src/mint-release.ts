@@ -31,6 +31,7 @@ enum ReleaseType {
 }
 
 export interface MintReleaseOptions {
+  label: string;
   token?: string;
   repoUrl: string;
   packageName: string;
@@ -38,6 +39,7 @@ export interface MintReleaseOptions {
 }
 
 export class MintRelease {
+  label: string;
   gh: GitHub;
   repoUrl: string;
   token: string|undefined;
@@ -45,6 +47,7 @@ export class MintRelease {
   releaseType: ReleaseType;
 
   constructor(options: MintReleaseOptions) {
+    this.label = options.label;
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
@@ -98,8 +101,9 @@ export class MintRelease {
     }));
 
     const sha = this.shaFromCommits(commits);
-    await this.gh.openPR(
+    const pr: number = await this.gh.openPR(
         {branch: `release-v${version}`, version, sha, updates});
+    await this.gh.addLabel(pr, this.label);
   }
   private async commits(latestTag: GitHubTag): Promise<string[]> {
     const commits = await this.gh.commitsSinceSha(latestTag.sha);

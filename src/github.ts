@@ -15,7 +15,7 @@
  */
 
 import * as Octokit from '@octokit/rest';
-import {ReposListTagsResponseItem} from '@octokit/rest';
+import {PullsCreateResponse, ReposListTagsResponseItem, Response} from '@octokit/rest';
 import chalk from 'chalk';
 import * as semver from 'semver';
 
@@ -108,7 +108,20 @@ export class GitHub {
     return tags;
   }
 
-  async openPR(options: GitHubPR) {
+  async addLabel(pr: number, label: string) {
+    checkpoint(
+        `adding label ${chalk.green(label)} to https://github.com/${
+            this.owner}/${this.repo}/pull/${pr}`,
+        CheckpointType.Success);
+    await this.octokit.issues.addLabels({
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: pr,
+      labels: [label]
+    });
+  }
+
+  async openPR(options: GitHubPR): Promise<number> {
     let refName = await this.refByBranchName(options.branch);
 
     // If the branch exists, we delete it and create a new branch
@@ -163,13 +176,16 @@ export class GitHub {
     const title = `[DO NOT LAND] chore: release ${options.version}`;
     checkpoint(
         `open pull-request: ${chalk.yellow(title)}`, CheckpointType.Success);
-    await this.octokit.pulls.create({
-      owner: this.owner,
-      repo: this.repo,
-      title,
-      head: options.branch,
-      base: 'master'
-    });
+    const resp: Response<PullsCreateResponse> =
+        await this.octokit.pulls.create({
+          owner: this.owner,
+          repo: this.repo,
+          title,
+          head: options.branch,
+          base: 'master'
+        });
+
+    return resp.data.number;
   }
   async updateFiles(updates: Update[], branch: string, refName: string) {
     for (let i = 0; i < updates.length; i++) {

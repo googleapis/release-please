@@ -43,6 +43,10 @@ yargs
       options: ['node'],
       default: 'node'
     })
+    .option('label', {
+      default: 'autorelease: pending',
+      describe: 'label to add to generated PR'
+    })
     .demandCommand(1)
     .strict(true)
     .parse();
