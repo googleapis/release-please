@@ -1,0 +1,39 @@
+title: |-
+  # [Release Please](https://github.com/googleapis/release-please)
+introduction: |-
+  `release-please` generates GitHub PRs for library releases, based on the
+  [conventionalcommits.org](https://www.conventionalcommits.org) commit
+  specification.
+  
+  The generated PR:
+
+  * determines the next version that a library should be released as (based
+    on [SemVer](https://semver.org/)).
+  * updates language-specifc files, `.gemspec`, `package.json`, `setup.py`, etc.,
+    with the appropriate version.
+  * generates a CHANGELOG with information pertinent to library consumers.
+  * adds labels to the PR, providing contextual information to automation tools furhter
+    down the pipeline, e.g., `autorelease: pending`.
+body: |-
+  ## CLI Commands
+
+  When running CLI commands, set the `GH_TOKEN` environment variable to
+  a [token you've generated](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line)
+  with write permissions for the repo you're interacting with.
+
+  ### Minting a Release
+
+  Generates a new release, based on the commit history since the last release
+  that was tagged:
+
+  ```bash
+  release-please mint-release  --repo-url=git@github.com:bcoe/my-fake-repo.git
+    --package-name=@google-cloud/fake --release-type=node
+  ```
+
+  * `--repo-url`: the GitHub URL of the repository the release is being
+    generated for.
+  * `--package-name`: the name of the package that will ultimately be published
+    (to `npm`, `PyPi`, `RubyGems`, etc.).
+  * `--release-type`: what type of release is being created, possible values:
+    * `node`: a simple Node.js repo (not a mono-repo).

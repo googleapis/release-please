@@ -1,0 +1,8 @@
+{
+  "name": "release-please",
+  "name_pretty": "Release Please",
+  "release_level": "alpha",
+  "language": "nodejs",
+  "repo": "googleapis/release-please",
+  "distribution_name": "release-please"
+}
