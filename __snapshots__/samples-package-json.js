@@ -13,7 +13,7 @@ exports['SamplesPackageJson updateContent updates package version in dependencie
     "test": "mocha system-test/*.js --timeout 600000"
   },
   "dependencies": {
-    "@google-cloud/firestore": "14.0.0"
+    "@google-cloud/firestore": "^14.0.0"
   },
   "devDependencies": {
     "@google-cloud/nodejs-repo-tools": "^3.0.0",

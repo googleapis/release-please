@@ -37,7 +37,7 @@ export class SamplesPackageJson implements Update {
         `updating ${this.packageName} dependency in ${this.path} from ${
             parsed.version} to ${this.version}`,
         CheckpointType.Success);
-    parsed.dependencies[this.packageName] = this.version;
+    parsed.dependencies[this.packageName] = `^${this.version}`;
     return JSON.stringify(parsed, null, 2) + '\n';
   }
 }
