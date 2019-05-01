@@ -53,6 +53,30 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 
 `
 
+exports['ChangelogUpdater updateContent inserts content at appropriate location if CHANGELOG exists, and last release was a patch 1'] = `
+# Changelog
+
+[npm history][1]
+
+[1]: https://www.npmjs.com/package/@google-cloud/os-login?activeTab=versions
+
+## 2.0.0
+
+* added a new foo to bar.
+
+### [0.3.3](https://www.github.com/googleapis/nodejs-os-login/compare/v0.3.2...v0.3.3) (2019-04-30)
+
+
+### Bug Fixes
+
+* include 'x-goog-request-params' header in requests ([#167](https://www.github.com/googleapis/nodejs-os-login/issues/167)) ([074051d](https://www.github.com/googleapis/nodejs-os-login/commit/074051d))
+
+## v0.3.2
+
+03-18-2019 13:47 PDT
+
+`
+
 exports['ChangelogUpdater updateContent populates a new CHANGELOG if none exists 1'] = `
 # Changelog
 

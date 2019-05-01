@@ -33,8 +33,8 @@ export class Changelog implements Update {
   }
   updateContent(content: string|undefined): string {
     content = content || '';
-    // the last entry looks something like ## v3.0.0.
-    const lastEntryIndex = content.indexOf('\n## ');
+    // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
+    const lastEntryIndex = content.search(/\n###? v?[0-9[]/s);
     if (lastEntryIndex === -1) {
       checkpoint(`${this.path} not found`, CheckpointType.Failure);
       checkpoint(`creating ${this.path}`, CheckpointType.Success);
