@@ -23,7 +23,7 @@ The generated PR:
 * updates language-specifc files, `.gemspec`, `package.json`, `setup.py`, etc.,
   with the appropriate version.
 * generates a CHANGELOG with information pertinent to library consumers.
-* adds tags to the PR, providing contextual information to automation tools furhter
+* adds labels to the PR, providing contextual information to automation tools furhter
   down the pipeline, e.g., `autorelease: pending`.
 
 
