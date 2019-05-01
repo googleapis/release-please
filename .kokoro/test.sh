@@ -22,6 +22,8 @@ cd $(dirname $0)/..
 
 npm install
 npm test
-./node_modules/nyc/bin/nyc.js report
+# we're experimenting with c8 on this repo,
+# to regenerate edit synth.py.
+# ./node_modules/nyc/bin/nyc.js report
 
 bash $KOKORO_GFILE_DIR/codecov.sh
