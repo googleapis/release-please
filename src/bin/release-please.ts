@@ -43,6 +43,11 @@ yargs
       options: ['node'],
       default: 'node'
     })
+    .option('bump-minor-pre-major', {
+      describe: 'should we bump the semver minor prior to the first major release',
+      default: false,
+      type: 'boolean'
+    })
     .option('label', {
       default: 'autorelease: pending',
       describe: 'label to add to generated PR'
