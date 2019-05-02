@@ -10,6 +10,5 @@ s.copy(templates, excludes=[
   '.prettierignore',
   '.prettierrc',
   '.nycrc',
-  '.kokoro/test.sh',
-  '.kokoro/continuous/node8'
+  '.kokoro/test.sh'
 ])
