@@ -44,7 +44,8 @@ yargs
       default: 'node'
     })
     .option('bump-minor-pre-major', {
-      describe: 'should we bump the semver minor prior to the first major release',
+      describe:
+          'should we bump the semver minor prior to the first major release',
       default: false,
       type: 'boolean'
     })
