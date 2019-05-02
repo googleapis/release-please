@@ -70,7 +70,7 @@ describe('GitHub', () => {
               return res;
             });
           });
-      latestTag.sha.should.match(/[a-z0-9]{40}/)
+      latestTag.sha.should.match(/[a-z0-9]{40}/);
     });
   });
 
@@ -92,7 +92,7 @@ describe('GitHub', () => {
                       return res;
                     });
               });
-      commitsSinceSha.length.should.be.gt(2)
+      commitsSinceSha.length.should.be.gt(2);
     });
   });
 
