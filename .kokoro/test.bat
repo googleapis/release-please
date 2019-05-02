@@ -19,7 +19,6 @@ cd ..
 
 call npm install -g npm@latest || goto :error
 call npm install || goto :error
-call npm run node --version || goto :error
 call npm run test || goto :error
 
 goto :EOF
