@@ -79,7 +79,8 @@ export class ConventionalCommits {
     this.repository = repository;
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
-    const preMajor = this.bumpMinorPreMajor ? semver.lt(version, 'v1.0.0') : false;
+    const preMajor =
+        this.bumpMinorPreMajor ? semver.lt(version, 'v1.0.0') : false;
     const bump: BumpSuggestion = await this.guessReleaseType(preMajor);
     checkpoint(
         `release as ${chalk.green(bump.releaseType)}: ${
