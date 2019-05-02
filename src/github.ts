@@ -173,7 +173,7 @@ export class GitHub {
 
     await this.updateFiles(options.updates, options.branch, refName);
 
-    const title = `[DO NOT LAND] chore: release ${options.version}`;
+    const title = `chore: release ${options.version}`;
     checkpoint(
         `open pull-request: ${chalk.yellow(title)}`, CheckpointType.Success);
     const resp: Response<PullsCreateResponse> =
