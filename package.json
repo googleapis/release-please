@@ -57,5 +57,8 @@
     "parse-github-repo-url": "^1.4.1",
     "semver": "^6.0.0",
     "yargs": "^13.2.2"
+  },
+  "engines": {
+    "node": ">=8.10.0"
   }
 }
