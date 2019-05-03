@@ -23,7 +23,7 @@ cd $(dirname $0)/..
 npm install
 
 # Install and link samples
-if [ -f "samples/package.json" ]; then
+if [ -f samples/package.json ]; then
   cd samples/
   npm link ../
   npm install

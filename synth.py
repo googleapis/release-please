@@ -9,6 +9,5 @@ s.copy(templates, excludes=[
   '.eslintrc.yml',
   '.prettierignore',
   '.prettierrc',
-  '.nycrc',
-  '.kokoro/test.sh'
+  '.nycrc'
 ])
