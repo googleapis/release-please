@@ -28,7 +28,8 @@ describe('ChangelogUpdater', () => {
     it('inserts content at appropriate location if CHANGELOG exists',
        async () => {
          const oldContent =
-             readFileSync(resolve(fixturesPath, './CHANGELOG.md'), 'utf8').replace(/\r\n/g, '\n');
+             readFileSync(resolve(fixturesPath, './CHANGELOG.md'), 'utf8')
+                 .replace(/\r\n/g, '\n');
          const changelog = new Changelog({
            path: 'CHANGELOG.md',
            changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
