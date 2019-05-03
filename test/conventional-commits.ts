@@ -27,7 +27,8 @@ describe('ConventionalCommits', () => {
           'chore: upgrade to Node 7\n\nBREAKING CHANGE: we were on Node 6',
           'feat: awesome feature'
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git'
+        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        bumpMinorPreMajor: true
       });
       const bump = await cc.suggestBump('0.3.0');
       expect(bump.releaseType).to.equal('minor');

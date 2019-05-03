@@ -31,6 +31,7 @@ enum ReleaseType {
 }
 
 export interface MintReleaseOptions {
+  bumpMinorPreMajor?: boolean;
   label: string;
   token?: string;
   repoUrl: string;
@@ -41,12 +42,14 @@ export interface MintReleaseOptions {
 export class MintRelease {
   label: string;
   gh: GitHub;
+  bumpMinorPreMajor?: boolean;
   repoUrl: string;
   token: string|undefined;
   packageName: string;
   releaseType: ReleaseType;
 
   constructor(options: MintReleaseOptions) {
+    this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.label = options.label;
     this.repoUrl = options.repoUrl;
     this.token = options.token;
@@ -68,7 +71,11 @@ export class MintRelease {
     const latestTag: GitHubTag = await this.gh.latestTag();
     const commits: string[] = await this.commits(latestTag);
 
-    const cc = new ConventionalCommits({commits, githubRepoUrl: this.repoUrl});
+    const cc = new ConventionalCommits({
+      commits,
+      githubRepoUrl: this.repoUrl,
+      bumpMinorPreMajor: this.bumpMinorPreMajor
+    });
     const bump = await cc.suggestBump(latestTag.version);
     const version = semver.inc(latestTag.version, bump.releaseType);
 

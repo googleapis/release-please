@@ -1,4 +1,4 @@
-#!/usr/bin/env; node;
+#!/usr/bin/env node
 
 /**
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -42,6 +42,12 @@ yargs
       describe: 'what type of repo is a release being created for?',
       options: ['node'],
       default: 'node'
+    })
+    .option('bump-minor-pre-major', {
+      describe:
+          'should we bump the semver minor prior to the first major release',
+      default: false,
+      type: 'boolean'
     })
     .option('label', {
       default: 'autorelease: pending',

@@ -32,6 +32,7 @@ interface ConventionalCommitsOptions {
   commits: string[];
   githubRepoUrl: string;
   host?: string;
+  bumpMinorPreMajor?: boolean;
 }
 
 interface ChangelogEntryOptions {
@@ -65,18 +66,21 @@ export class ConventionalCommits {
   host: string;
   owner: string;
   repository: string;
+  bumpMinorPreMajor?: boolean;
 
   constructor(options: ConventionalCommitsOptions) {
     const parsedGithubRepoUrl = parseGithubRepoUrl(options.githubRepoUrl);
     if (!parsedGithubRepoUrl) throw Error('could not parse githubRepoUrl');
     const [owner, repository] = parsedGithubRepoUrl;
     this.commits = options.commits;
+    this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.host = options.host || 'https://www.github.com';
     this.owner = owner;
     this.repository = repository;
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
-    const preMajor = semver.lt(version, 'v1.0.0');
+    const preMajor =
+        this.bumpMinorPreMajor ? semver.lt(version, 'v1.0.0') : false;
     const bump: BumpSuggestion = await this.guessReleaseType(preMajor);
     checkpoint(
         `release as ${chalk.green(bump.releaseType)}: ${
