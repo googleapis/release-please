@@ -70,11 +70,7 @@ describe('GitHub', () => {
               return res;
             });
           });
-      latestTag.should.eql({
-        name: 'v0.5.0',
-        version: '0.5.0',
-        sha: 'c16bcdee9fbac799c8ffb28d7447487a7f94b929'
-      });
+      latestTag.sha.should.match(/[a-z0-9]{40}/);
     });
   });
 
@@ -96,10 +92,7 @@ describe('GitHub', () => {
                       return res;
                     });
               });
-      commitsSinceSha[0].should.include(
-          'chore(deps): update dependency @types/nock to v10');
-      commitsSinceSha[commitsSinceSha.length - 1].should.include(
-          'define regexp only once in circleci config');
+      commitsSinceSha.length.should.be.gt(2);
     });
   });
 
@@ -120,68 +113,6 @@ describe('GitHub', () => {
               err.message.should.equal('unauthorized');
             });
       });
-    });
-
-    describe('user has write permissions', () => {
-      it('creates branch with updated content, if file in updates array exists',
-         async () => {
-           const version = '7.0.0';
-           const branch = `release-${version}`;
-           const gh = new GitHub({
-             token: process.env.GH_TOKEN,
-             owner: 'bcoe',
-             repo: 'examples-conventional-commits'
-           });
-           const cl = new FakeFileUpdater({
-             path: 'CHANGELOG.md',
-             version,
-             changelogEntry: 'fixed all the things',
-             packageName: '@google-cloud/foo'
-           });
-           const ref = await nockBack('open-pr-update-file.json')
-                           .then(async (nbr: NockBackResponse) => {
-                             await gh.openPR({
-                               branch,
-                               sha: '42f90e2646c49a79bb2c98b658021d468ad5e814',
-                               version,
-                               updates: [cl]
-                             });
-                             const ref = await gh.refByBranchName(branch);
-                             nbr.nockDone();
-                             return ref;
-                           });
-           ref.should.equal('refs/heads/release-7.0.0');
-         });
-
-      it('creates branch with updated content, if file in updates does not exist',
-         async () => {
-           const version = '8.0.0';
-           const branch = `release-${version}`;
-           const gh = new GitHub({
-             token: process.env.GH_TOKEN,
-             owner: 'bcoe',
-             repo: 'examples-conventional-commits'
-           });
-           const cl = new FakeFileUpdater({
-             path: 'CHANGELOG-FOO.md',
-             version,
-             changelogEntry: 'fixed all the things',
-             packageName: '@google-cloud/foo'
-           });
-           const ref = await nockBack('open-pr-create-file.json')
-                           .then(async (nbr: NockBackResponse) => {
-                             await gh.openPR({
-                               branch,
-                               sha: '42f90e2646c49a79bb2c98b658021d468ad5e814',
-                               version,
-                               updates: [cl]
-                             });
-                             const ref = await gh.refByBranchName(branch);
-                             nbr.nockDone();
-                             return ref;
-                           });
-           ref.should.equal('refs/heads/release-8.0.0');
-         });
     });
   });
 });

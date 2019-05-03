@@ -6,7 +6,9 @@
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
     "test": "cross-env ENVIRONMENT=test c8 --reporter=html --reporter=text mocha --recursive --timeout=5000 build/test",
+    "docs-test": "echo add docs tests",
     "system-test": "cross-env ENVIRONMENT=test mocha --timeout=20000 build/system-test",
+    "presystem-test": "npm run compile",
     "test:all": "cross-env ENVIRONMENT=test c8 --reporter=html --reporter=text mocha --recursive --timeout=20000 build/system-test build/test",
     "test:snap": "SNAPSHOT_UPDATE=1 npm test",
     "clean": "gts clean",
@@ -36,7 +38,7 @@
     "@types/mocha": "^5.2.6",
     "@types/node": "^11.13.6",
     "@types/semver": "^6.0.0",
-    "c8": "^4.0.0-candidate.0",
+    "c8": "^4.1.4",
     "chai": "^4.2.0",
     "cross-env": "^5.2.0",
     "gts": "^0.9.0",
