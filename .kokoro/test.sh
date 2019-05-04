@@ -21,7 +21,11 @@ export NPM_CONFIG_PREFIX=/home/node/.npm-global
 cd $(dirname $0)/..
 
 npm install
+node --version
+npm --version
 npm test
+npm i json -g
+ls -1a .coverage/tmp/* | while read in; do json -f $in result | json -c 'this.url.indexOf("conventional-commits.js") !== -1'; done
 
 COVERAGE_NODE=10
 if npx check-node-version@3.3.0 --silent --node $COVERAGE_NODE; then
