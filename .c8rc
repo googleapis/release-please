@@ -1,9 +1,9 @@
 {
-  "report-dir": "./.coverage",
+  "report-dir": "./coverage",
   "reporter": ["text", "lcov"],
   "exclude": [
     "**/*-test",
-    "**/.coverage",
+    "**/coverage",
     "**/apis",
     "**/benchmark",
     "**/docs",
