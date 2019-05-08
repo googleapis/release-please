@@ -29,8 +29,6 @@ if npx check-node-version@3.3.0 --silent --node $COVERAGE_NODE; then
   if [ -f "$NYC_BIN" ]; then
     $NYC_BIN report
   fi
-  rm -rf ./coverage
-  ls -. ./.coverage
   bash $KOKORO_GFILE_DIR/codecov.sh
 else
   echo "coverage is only reported for Node $COVERAGE_NODE"
