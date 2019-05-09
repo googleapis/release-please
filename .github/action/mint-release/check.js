@@ -48,6 +48,6 @@ if (event.action === 'created' && event.issue.title.indexOf(PARTIALS_ISSUE_TITLE
       process.exit(1);
     });
 } else {
-  console.info(`issue title did not contain: ${partialIssueTitle}`)
+  console.info(`issue title did not contain: ${PARTIALS_ISSUE_TITLE}`)
   process.exit(1);
 }
