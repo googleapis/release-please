@@ -24,9 +24,8 @@ LABEL "com.github.actions.name"="Release Please"
 LABEL "com.github.actions.description"="Automatic releases with conventional commits."
 LABEL "com.github.actions.icon"="book-open"
 LABEL "com.github.actions.color"="green"
-COPY LICENSE.txt README.md /
 
-RUN npm i release-please -g
+RUN npm i release-please json -g
 COPY entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
