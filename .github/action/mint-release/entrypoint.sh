@@ -15,9 +15,7 @@
 
 set -e
 
-ISSUE_TITLE=$(cat $GITHUB_EVENT_PATH | json issue.title)
-
-if [[ $ISSUE_TITLE == *"proposal for next release"* ]]; then
+if node check.js; then
   release-please mint-release --token=$GITHUB_TOKEN \
     --repo-url="git@github.com:$GITHUB_REPOSITORY.git" \
     --package-name=$PACKAGE_NAME
