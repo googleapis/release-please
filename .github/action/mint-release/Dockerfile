@@ -26,6 +26,7 @@ LABEL "com.github.actions.icon"="book-open"
 LABEL "com.github.actions.color"="green"
 
 RUN npm i release-please json -g
+RUN cd /; npm i node-fetch
 COPY entrypoint.sh check.js /
 
 ENTRYPOINT ["/entrypoint.sh"]
