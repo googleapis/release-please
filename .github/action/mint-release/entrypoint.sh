@@ -15,8 +15,10 @@
 
 set -e
 
-cat $GITHUB_EVENT_PATH | json
+ISSUE_TITLE=$(cat $GITHUB_EVENT_PATH | json issue.title)
 
-release-please mint-release --token=$GITHUB_TOKEN \
-  --repo-url="git@github.com:$GITHUB_REPOSITORY.git" \
-  --package-name=$PACKAGE_NAME
+if [[ $ISSUE_TITLE == *"proposal for next release"* ]]; then
+  release-please mint-release --token=$GITHUB_TOKEN \
+    --repo-url="git@github.com:$GITHUB_REPOSITORY.git" \
+    --package-name=$PACKAGE_NAME
+fi
