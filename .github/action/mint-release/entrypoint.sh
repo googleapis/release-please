@@ -16,7 +16,6 @@
 set -e
 
 cat $GITHUB_EVENT_PATH | json
-$echo $GITHUB_ACTOR
 
 release-please mint-release --token=$GITHUB_TOKEN \
   --repo-url="git@github.com:$GITHUB_REPOSITORY.git" \

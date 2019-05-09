@@ -1,5 +1,5 @@
 workflow "Mint Release" {
-  on = "label"
+  on = "issue_comment"
   resolves = ["./.github/action/mint-release"]
 }
 
