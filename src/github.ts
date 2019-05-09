@@ -54,7 +54,8 @@ export class GitHub {
     this.octokit = new Octokit({auth: this.token});
   }
 
-  async commitsSinceSha(sha: string, perPage = 100): Promise<string[]> {
+  async commitsSinceSha(sha: string|undefined, perPage = 100):
+      Promise<string[]> {
     const commits = [];
     for await (const response of this.octokit.paginate.iterator({
       method: 'GET',
@@ -76,9 +77,12 @@ export class GitHub {
     return commits;
   }
 
-  async latestTag(perPage = 100): Promise<GitHubTag> {
+  async latestTag(perPage = 100): Promise<GitHubTag|undefined> {
     const tags: {[version: string]: GitHubTag;} = await this.allTags(perPage);
     const versions = Object.keys(tags);
+    // no tags have been created yet.
+    if (versions.length === 0) return undefined;
+
     // TODO: we can improve the latestTag logic by using
     // this.octokit.repos.getLatestRelease as a sanity check, this should
     // help address concerns that the largest tag might be on a branch

@@ -38,6 +38,10 @@ yargs
     .option(
         'repo-url',
         {describe: 'GitHub URL to generate release for', required: true})
+    .option('release-as', {
+      describe: 'override the semantically determined release version',
+      type: 'string'
+    })
     .option('release-type', {
       describe: 'what type of repo is a release being created for?',
       options: ['node'],

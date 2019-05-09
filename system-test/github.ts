@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {expect} from 'chai';
 import {GitHub, GitHubTag} from '../src/github';
 import {Update, UpdateOptions} from '../src/updaters/update';
 
@@ -58,29 +59,33 @@ class FakeFileUpdater implements Update {
 describe('GitHub', () => {
   describe('latestRelease', () => {
     it('returns the latest semver valid tag', async () => {
-      const gh = new GitHub({
-        token: process.env.GH_TOKEN,
-        owner: 'google',
-        repo: 'js-green-licenses'
-      });
+      const gh = new GitHub({owner: 'google', repo: 'js-green-licenses'});
       const latestTag =
           await nockBack('latest-tag.json').then((nbr: NockBackResponse) => {
-            return gh.latestTag(4).then((res: GitHubTag) => {
+            return gh.latestTag(4).then((res: GitHubTag|undefined) => {
               nbr.nockDone();
               return res;
             });
           });
       latestTag.sha.should.match(/[a-z0-9]{40}/);
     });
+
+    it('returns undefined if no tags exist', async () => {
+      const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
+      const latestTag =
+          await nockBack('latest-tag.json').then((nbr: NockBackResponse) => {
+            return gh.latestTag(4).then((res: GitHubTag|undefined) => {
+              nbr.nockDone();
+              return res;
+            });
+          });
+      expect(latestTag).to.equal(undefined);
+    });
   });
 
   describe('commitsSinceSha', () => {
     it('returns all commits until immediately before SHA', async () => {
-      const gh = new GitHub({
-        token: process.env.GH_TOKEN,
-        owner: 'google',
-        repo: 'js-green-licenses'
-      });
+      const gh = new GitHub({owner: 'google', repo: 'js-green-licenses'});
       const commitsSinceSha =
           await nockBack('commits-since-sha.json')
               .then((nbr: NockBackResponse) => {
@@ -93,6 +98,19 @@ describe('GitHub', () => {
                     });
               });
       commitsSinceSha.length.should.be.gt(2);
+    });
+
+    it('returns all commits if sha is undefined', async () => {
+      const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
+      const commitsSinceSha = await nockBack('commits-since-sha.json')
+                                  .then((nbr: NockBackResponse) => {
+                                    return gh.commitsSinceSha(undefined, 10)
+                                        .then((res: string[]) => {
+                                          nbr.nockDone();
+                                          return res;
+                                        });
+                                  });
+      commitsSinceSha.length.should.be.gte(2);
     });
   });
 
