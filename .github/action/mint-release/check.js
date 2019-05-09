@@ -29,4 +29,3 @@ if (issue.title.indexOf(partialIssueTitle) !== -1) {
   console.info(`issue title did not contain ${partialIssueTitle}`)
   process.exit(1);
 }
-
