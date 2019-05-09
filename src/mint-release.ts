@@ -36,7 +36,13 @@ export interface MintReleaseOptions {
   token?: string;
   repoUrl: string;
   packageName: string;
+  releaseAs?: string;
   releaseType: ReleaseType;
+}
+
+interface ReleaseCandidate {
+  version: string;
+  previousTag?: string;
 }
 
 export class MintRelease {
@@ -46,6 +52,7 @@ export class MintRelease {
   repoUrl: string;
   token: string|undefined;
   packageName: string;
+  releaseAs?: string;
   releaseType: ReleaseType;
 
   constructor(options: MintReleaseOptions) {
@@ -54,6 +61,7 @@ export class MintRelease {
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
+    this.releaseAs = options.releaseAs;
     this.releaseType = options.releaseType;
 
     this.gh = this.gitHubInstance();
@@ -68,59 +76,76 @@ export class MintRelease {
     }
   }
   private async nodeRelease() {
-    const latestTag: GitHubTag = await this.gh.latestTag();
-    const commits: string[] = await this.commits(latestTag);
-
+    const latestTag: GitHubTag|undefined = await this.gh.latestTag();
+    const commits: string[] =
+        await this.commits(latestTag ? latestTag.sha : undefined);
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor
     });
-    const bump = await cc.suggestBump(latestTag.version);
-    const version = semver.inc(latestTag.version, bump.releaseType);
+    const candidate: ReleaseCandidate =
+        await this.coerceReleaseCandidate(cc, latestTag);
 
-    if (!version) throw Error(`failed to increment ${latestTag.version}`);
-
-    const changelogEntry = await cc.generateChangelogEntry(
-        {version, currentTag: `v${version}`, previousTag: latestTag.name});
+    const changelogEntry = await cc.generateChangelogEntry({
+      version: candidate.version,
+      currentTag: `v${candidate.version}`,
+      previousTag: candidate.previousTag
+    });
 
     const updates: Update[] = [];
 
     updates.push(new Changelog({
       path: 'CHANGELOG.md',
       changelogEntry,
-      version,
+      version: candidate.version,
       packageName: this.packageName
     }));
 
     updates.push(new PackageJson({
       path: 'package.json',
       changelogEntry,
-      version,
+      version: candidate.version,
       packageName: this.packageName
     }));
 
     updates.push(new SamplesPackageJson({
       path: 'samples/package.json',
       changelogEntry,
-      version,
+      version: candidate.version,
       packageName: this.packageName
     }));
 
     const sha = this.shaFromCommits(commits);
     const pr: number = await this.gh.openPR(
-        {branch: `release-v${version}`, version, sha, updates});
+        {branch: `release-v${candidate.version}`, version: candidate.version, sha, updates});
     await this.gh.addLabel(pr, this.label);
   }
-  private async commits(latestTag: GitHubTag): Promise<string[]> {
-    const commits = await this.gh.commitsSinceSha(latestTag.sha);
+  private async coerceReleaseCandidate(
+      cc: ConventionalCommits,
+      latestTag: GitHubTag|undefined): Promise<ReleaseCandidate> {
+    const previousTag = latestTag ? latestTag.name : undefined;
+    let version = latestTag ? latestTag.version : '1.0.0';
+
+    if (latestTag && !this.releaseAs) {
+      const bump = await cc.suggestBump(version);
+      const candidate = semver.inc(version, bump.releaseType);
+      if (!candidate) throw Error(`failed to increment ${version}`);
+      version = candidate;
+    } else if (this.releaseAs) {
+      version = this.releaseAs;
+    }
+
+    return {version, previousTag};
+  }
+  private async commits(sha: string|undefined): Promise<string[]> {
+    const commits = await this.gh.commitsSinceSha(sha);
     if (commits.length) {
       checkpoint(
-          `found ${commits.length} commits since ${latestTag.sha}`,
+          `found ${commits.length} commits since ${sha}`,
           CheckpointType.Success);
     } else {
-      checkpoint(
-          `no commits found since ${latestTag.sha}`, CheckpointType.Failure);
+      checkpoint(`no commits found since ${sha}`, CheckpointType.Failure);
     }
     return commits;
   }
