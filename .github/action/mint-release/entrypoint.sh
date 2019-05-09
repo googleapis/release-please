@@ -15,7 +15,7 @@
 
 set -e
 
-if node check.js; then
+if node /check.js; then
   release-please mint-release --token=$GITHUB_TOKEN \
     --repo-url="git@github.com:$GITHUB_REPOSITORY.git" \
     --package-name=$PACKAGE_NAME
