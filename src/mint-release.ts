@@ -117,8 +117,12 @@ export class MintRelease {
     }));
 
     const sha = this.shaFromCommits(commits);
-    const pr: number = await this.gh.openPR(
-        {branch: `release-v${candidate.version}`, version: candidate.version, sha, updates});
+    const pr: number = await this.gh.openPR({
+      branch: `release-v${candidate.version}`,
+      version: candidate.version,
+      sha,
+      updates
+    });
     await this.gh.addLabel(pr, this.label);
   }
   private async coerceReleaseCandidate(
