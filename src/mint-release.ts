@@ -66,16 +66,15 @@ export class MintRelease {
 
     this.gh = this.gitHubInstance();
   }
-  async run() {
+  async run(): Promise<number> {
     switch (this.releaseType) {
       case ReleaseType.Node:
-        await this.nodeRelease();
-        break;
+        return await this.nodeRelease();
       default:
         throw Error('unknown release type');
     }
   }
-  private async nodeRelease() {
+  private async nodeRelease(): Promise<number> {
     const latestTag: GitHubTag|undefined = await this.gh.latestTag();
     const commits: string[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
@@ -117,13 +116,20 @@ export class MintRelease {
     }));
 
     const sha = this.shaFromCommits(commits);
+    const title = `chore: release ${candidate.version}`;
+    const body =
+        `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${
+            changelogEntry}`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${candidate.version}`,
       version: candidate.version,
       sha,
-      updates
+      updates,
+      title,
+      body
     });
     await this.gh.addLabel(pr, this.label);
+    return pr;
   }
   private async coerceReleaseCandidate(
       cc: ConventionalCommits,

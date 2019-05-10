@@ -14,35 +14,33 @@
  * limitations under the License.
  */
 
+import {IssuesListResponseItem} from '@octokit/rest';
 import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './checkpoint';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag} from './github';
 import {ReleaseCandidate, ReleaseType} from './mint-release';
+import {MintRelease, MintReleaseOptions} from './mint-release';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
-export interface CandidateIssueOptions {
-  bumpMinorPreMajor?: boolean;
-  token?: string;
-  repoUrl: string;
-  packageName: string;
-  releaseType: ReleaseType;
-}
-
 const ISSUE_TITLE = 'chore(release): proposal for next release';
+const CHECKBOX = '* [ ] **Should I create this release for you :robot:?**';
+const CHECK_REGEX = /\[x]/;
 
 export class CandidateIssue {
-  bumpMinorPreMajor?: boolean;
+  label: string;
   gh: GitHub;
+  bumpMinorPreMajor?: boolean;
   repoUrl: string;
   token: string|undefined;
   packageName: string;
   releaseType: ReleaseType;
 
-  constructor(options: CandidateIssueOptions) {
+  constructor(options: MintReleaseOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
+    this.label = options.label;
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
@@ -50,6 +48,7 @@ export class CandidateIssue {
 
     this.gh = this.gitHubInstance();
   }
+
   async run() {
     switch (this.releaseType) {
       case ReleaseType.Node:
@@ -78,7 +77,37 @@ export class CandidateIssue {
       previousTag: candidate.previousTag
     });
 
-    await this.gh.openIssue(ISSUE_TITLE, this.bodyTemplate(changelogEntry));
+    const issue: IssuesListResponseItem|undefined =
+        await this.gh.findExistingReleaseIssue(ISSUE_TITLE);
+    let body: string = this.bodyTemplate(changelogEntry);
+
+    if (issue) {
+      if (CHECK_REGEX.test(issue.body)) {
+        // if the checkox has been clicked for a release
+        // mint the release.
+        checkpoint(
+            `release checkbox was checked, creating release`,
+            CheckpointType.Success);
+        const mr = new MintRelease({
+          bumpMinorPreMajor: this.bumpMinorPreMajor,
+          label: this.label,
+          token: this.token,
+          repoUrl: this.repoUrl,
+          packageName: this.packageName,
+          releaseType: this.releaseType
+        });
+        const prNumber = await mr.run();
+        body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
+      } else if (issue.body === body) {
+        // don't update the issue if the content is the same for the release.
+        checkpoint(
+            `skipping update to #${issue.number}, no change to body`,
+            CheckpointType.Failure);
+        return;
+      }
+    }
+
+    await this.gh.openIssue(ISSUE_TITLE, body, issue);
   }
 
   private async coerceReleaseCandidate(
@@ -115,16 +144,16 @@ export class CandidateIssue {
   }
 
   private bodyTemplate(changelogEntry: string): string {
-    return `_:robot: This issue was created by robots! :robot:._
-  
-Its purpose is to show you what the next release of **${
-        this.packageName}** would look like... _If we published it right now._
-
-If you're a maintainer, and would like create a PR for this release, simply comment on this issue.
+    return `_:robot: Here's what the next release of **${
+        this.packageName}** would look like._
 
 ---
 
 ${changelogEntry}
+
+---
+
+${CHECKBOX}
 `;
   }
 }

@@ -19,7 +19,7 @@
 'use strict';
 
 import {MintRelease, MintReleaseOptions} from '../mint-release';
-import {CandidateIssue, CandidateIssueOptions} from '../candidate-issue';
+import {CandidateIssue} from '../candidate-issue';
 
 const yargs = require('yargs');
 
@@ -33,7 +33,7 @@ yargs
     .command(
         'candidate-issue',
         'create an issue that\'s an example of the next release', () => {},
-        async (argv: CandidateIssueOptions) => {
+        async (argv: MintReleaseOptions) => {
           const ci = new CandidateIssue(argv);
           await ci.run();
         })
