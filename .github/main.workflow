@@ -12,7 +12,7 @@ action "./.github/action/mint-release" {
 }
 
 workflow "Candidate Issue" {
-  on = "schedule(*/5 * * * *)"
+  on = "schedule(*/15 * * * *)"
   resolves = ["./.github/action/candidate-issue"]
 }
 
