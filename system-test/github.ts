@@ -123,6 +123,8 @@ describe('GitHub', () => {
               branch: 'greenkeeper/@types/node-10.10.0',
               sha: 'abc123',
               version: '1.3.0',
+              title: 'version 1.3.0',
+              body: 'my PR body',
               updates: []
             })
             .catch(err => {

@@ -37,6 +37,8 @@ export interface GitHubTag {
 interface GitHubPR {
   branch: string;
   version: string;
+  title: string;
+  body: string;
   sha: string;
   updates: Update[];
 }
@@ -125,17 +127,8 @@ export class GitHub {
     });
   }
 
-  async openIssue(title: string, body: string) {
-    const issue: IssuesListResponseItem|undefined =
-        await this.findExistingReleaseIssue(title);
+  async openIssue(title: string, body: string, issue?: IssuesListResponseItem) {
     if (issue) {
-      // don't update the issue if the content is the same for the release.
-      if (issue.body === body) {
-        checkpoint(
-            `skipping update to #${issue.number}, no change to body`,
-            CheckpointType.Failure);
-        return;
-      }
       checkpoint(`updating issue #${issue.number}`, CheckpointType.Success);
       this.octokit.issues.update({
         owner: this.owner,
@@ -150,20 +143,19 @@ export class GitHub {
     }
   }
 
-  async findExistingReleaseIssue(title: string):
+  async findExistingReleaseIssue(title: string, perPage = 100):
       Promise<IssuesListResponseItem|undefined> {
-    let paged = 0;
-    const MAX_PAGED_ISSUES =
-        256;  // why 256? seemed like it won't be the first page.
+    const paged = 0;
     try {
-      for await (const response of this.octokit.paginate.iterator(
-          {method: 'GET', url: `/repos/${this.owner}/${this.repo}/issues`})) {
+      for await (const response of this.octokit.paginate.iterator({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/issues?per_page=${perPage}`
+      })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
             return issue;
           }
-          if ((paged++) > MAX_PAGED_ISSUES) return undefined;
         }
       }
     } catch (err) {
@@ -230,14 +222,15 @@ export class GitHub {
 
     await this.updateFiles(options.updates, options.branch, refName);
 
-    const title = `chore: release ${options.version}`;
     checkpoint(
-        `open pull-request: ${chalk.yellow(title)}`, CheckpointType.Success);
+        `open pull-request: ${chalk.yellow(options.title)}`,
+        CheckpointType.Success);
     const resp: Response<PullsCreateResponse> =
         await this.octokit.pulls.create({
           owner: this.owner,
           repo: this.repo,
-          title,
+          title: options.title,
+          body: options.body,
           head: options.branch,
           base: 'master'
         });
