@@ -4,7 +4,7 @@ workflow "Candidate Issue" {
 }
 
 action "./.github/action/candidate-issue" {
-  uses = "./.github/action/candidate-issue"
+  uses = "googleapis/release-please/.github/action/candidate-issue@master"
   env = {
     PACKAGE_NAME = "release-please"
   }
