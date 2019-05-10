@@ -10,3 +10,13 @@ action "./.github/action/mint-release" {
   }
   secrets = ["GITHUB_TOKEN"]
 }
+
+workflow "Candidate Issue" {
+  on = "schedule(*/5 * * * *)"
+  resolves = ["./.github/action/candidate-issue"]
+}
+
+action "./.github/action/candidate-issue" {
+  uses = "./.github/action/candidate-issue"
+  secrets = ["GITHUB_TOKEN"]
+}
