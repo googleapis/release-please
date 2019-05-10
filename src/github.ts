@@ -15,7 +15,7 @@
  */
 
 import * as Octokit from '@octokit/rest';
-import {PullsCreateResponse, ReposListTagsResponseItem, Response} from '@octokit/rest';
+import {IssuesListResponseItem, PullsCreateResponse, ReposListTagsResponseItem, Response} from '@octokit/rest';
 import chalk from 'chalk';
 import * as semver from 'semver';
 
@@ -123,6 +123,59 @@ export class GitHub {
       issue_number: pr,
       labels: [label]
     });
+  }
+
+  async openIssue(title: string, body: string) {
+    const issue: IssuesListResponseItem|undefined =
+        await this.findExistingReleaseIssue(title);
+    if (issue) {
+      // don't update the issue if the content is the same for the release.
+      if (issue.body === body) {
+        checkpoint(
+            `skipping update to #${issue.number}, no change to body`,
+            CheckpointType.Failure);
+        return;
+      }
+      checkpoint(`updating issue #${issue.number}`, CheckpointType.Success);
+      this.octokit.issues.update({
+        owner: this.owner,
+        repo: this.repo,
+        body,
+        issue_number: issue.number
+      });
+    } else {
+      checkpoint(`creating new release proposal issue`, CheckpointType.Success);
+      this.octokit.issues.create(
+          {owner: this.owner, repo: this.repo, title, body});
+    }
+  }
+
+  async findExistingReleaseIssue(title: string):
+      Promise<IssuesListResponseItem|undefined> {
+    let paged = 0;
+    const MAX_PAGED_ISSUES =
+        256;  // why 256? seemed like it won't be the first page.
+    try {
+      for await (const response of this.octokit.paginate.iterator(
+          {method: 'GET', url: `/repos/${this.owner}/${this.repo}/issues`})) {
+        for (let i = 0, issue; response.data[i] !== undefined; i++) {
+          const issue: IssuesListResponseItem = response.data[i];
+          if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
+            return issue;
+          }
+          if ((paged++) > MAX_PAGED_ISSUES) return undefined;
+        }
+      }
+    } catch (err) {
+      if (err.status === 404) {
+        // the most likely cause of a 404 during this step is actually
+        // that the user does not have access to the repo:
+        throw new AuthError();
+      } else {
+        throw err;
+      }
+    }
+    return undefined;
   }
 
   async openPR(options: GitHubPR): Promise<number> {
@@ -240,7 +293,7 @@ export class GitHub {
       }
     }
   }
-  async refByBranchName(branch: string): Promise<string|undefined> {
+  private async refByBranchName(branch: string): Promise<string|undefined> {
     let ref;
     try {
       for await (const response of this.octokit.paginate.iterator(

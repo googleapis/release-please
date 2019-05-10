@@ -19,49 +19,33 @@ import * as semver from 'semver';
 import {checkpoint, CheckpointType} from './checkpoint';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag} from './github';
-import {Changelog} from './updaters/changelog';
-import {PackageJson} from './updaters/package-json';
-import {SamplesPackageJson} from './updaters/samples-package-json';
-import {Update} from './updaters/update';
+import {ReleaseCandidate, ReleaseType} from './mint-release';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
-export enum ReleaseType {
-  Node = 'node'
-}
-
-export interface MintReleaseOptions {
+export interface CandidateIssueOptions {
   bumpMinorPreMajor?: boolean;
-  label: string;
   token?: string;
   repoUrl: string;
   packageName: string;
-  releaseAs?: string;
   releaseType: ReleaseType;
 }
 
-export interface ReleaseCandidate {
-  version: string;
-  previousTag?: string;
-}
+const ISSUE_TITLE = 'chore(release): proposal for next release';
 
-export class MintRelease {
-  label: string;
-  gh: GitHub;
+export class CandidateIssue {
   bumpMinorPreMajor?: boolean;
+  gh: GitHub;
   repoUrl: string;
   token: string|undefined;
   packageName: string;
-  releaseAs?: string;
   releaseType: ReleaseType;
 
-  constructor(options: MintReleaseOptions) {
+  constructor(options: CandidateIssueOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
-    this.label = options.label;
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
-    this.releaseAs = options.releaseAs;
     this.releaseType = options.releaseType;
 
     this.gh = this.gitHubInstance();
@@ -69,13 +53,14 @@ export class MintRelease {
   async run() {
     switch (this.releaseType) {
       case ReleaseType.Node:
-        await this.nodeRelease();
+        await this.nodeReleaseCandidate();
         break;
       default:
         throw Error('unknown release type');
     }
   }
-  private async nodeRelease() {
+
+  private async nodeReleaseCandidate() {
     const latestTag: GitHubTag|undefined = await this.gh.latestTag();
     const commits: string[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
@@ -87,61 +72,31 @@ export class MintRelease {
     const candidate: ReleaseCandidate =
         await this.coerceReleaseCandidate(cc, latestTag);
 
-    const changelogEntry = await cc.generateChangelogEntry({
+    const changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag
     });
 
-    const updates: Update[] = [];
-
-    updates.push(new Changelog({
-      path: 'CHANGELOG.md',
-      changelogEntry,
-      version: candidate.version,
-      packageName: this.packageName
-    }));
-
-    updates.push(new PackageJson({
-      path: 'package.json',
-      changelogEntry,
-      version: candidate.version,
-      packageName: this.packageName
-    }));
-
-    updates.push(new SamplesPackageJson({
-      path: 'samples/package.json',
-      changelogEntry,
-      version: candidate.version,
-      packageName: this.packageName
-    }));
-
-    const sha = this.shaFromCommits(commits);
-    const pr: number = await this.gh.openPR({
-      branch: `release-v${candidate.version}`,
-      version: candidate.version,
-      sha,
-      updates
-    });
-    await this.gh.addLabel(pr, this.label);
+    await this.gh.openIssue(ISSUE_TITLE, this.bodyTemplate(changelogEntry));
   }
+
   private async coerceReleaseCandidate(
       cc: ConventionalCommits,
       latestTag: GitHubTag|undefined): Promise<ReleaseCandidate> {
     const previousTag = latestTag ? latestTag.name : undefined;
     let version = latestTag ? latestTag.version : '1.0.0';
 
-    if (latestTag && !this.releaseAs) {
+    if (latestTag) {
       const bump = await cc.suggestBump(version);
       const candidate = semver.inc(version, bump.releaseType);
       if (!candidate) throw Error(`failed to increment ${version}`);
       version = candidate;
-    } else if (this.releaseAs) {
-      version = this.releaseAs;
     }
 
     return {version, previousTag};
   }
+
   private async commits(sha: string|undefined): Promise<string[]> {
     const commits = await this.gh.commitsSinceSha(sha);
     if (commits.length) {
@@ -153,16 +108,23 @@ export class MintRelease {
     }
     return commits;
   }
+
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({token: this.token, owner, repo});
   }
-  private shaFromCommits(commits: string[]): string {
-    // The conventional commits parser expects an array of string commit
-    // messages terminated by `-hash-` followed by the commit sha. We
-    // piggyback off of this, and use this sha when choosing a
-    // point to branch from for PRs.
-    const split = commits[0].split('-hash-');
-    return split[split.length - 1].trim();
+
+  private bodyTemplate(changelogEntry: string): string {
+    return `_:robot: This issue was created by robots! :robot:._
+  
+Its purpose is to show you what the next release of **${
+        this.packageName}** would look like... _If we published it right now._
+
+If you're a maintainer, and would like create a PR for this release, simply comment on this issue.
+
+---
+
+${changelogEntry}
+`;
   }
 }

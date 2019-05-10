@@ -73,7 +73,7 @@ describe('GitHub', () => {
     it('returns undefined if no tags exist', async () => {
       const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
       const latestTag =
-          await nockBack('latest-tag.json').then((nbr: NockBackResponse) => {
+          await nockBack('no-tag-exists.json').then((nbr: NockBackResponse) => {
             return gh.latestTag(4).then((res: GitHubTag|undefined) => {
               nbr.nockDone();
               return res;
@@ -102,7 +102,7 @@ describe('GitHub', () => {
 
     it('returns all commits if sha is undefined', async () => {
       const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
-      const commitsSinceSha = await nockBack('commits-since-sha.json')
+      const commitsSinceSha = await nockBack('commits-since-undefined-sha.json')
                                   .then((nbr: NockBackResponse) => {
                                     return gh.commitsSinceSha(undefined, 10)
                                         .then((res: string[]) => {
@@ -131,6 +131,22 @@ describe('GitHub', () => {
               err.message.should.equal('unauthorized');
             });
       });
+    });
+  });
+
+  describe('findExistingReleaseIssue', () => {
+    it('returns an open issue matching the title provided', async () => {
+      const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
+      const issue =
+          await nockBack('find-matching-issue.json')
+              .then((nbr: NockBackResponse) => {
+                return gh.findExistingReleaseIssue('this issue is a fixture')
+                    .then((res) => {
+                      nbr.nockDone();
+                      return res;
+                    });
+              });
+      issue.number.should.be.gt(0);
     });
   });
 });
