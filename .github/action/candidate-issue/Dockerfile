@@ -25,7 +25,7 @@ LABEL "com.github.actions.description"="Automatic releases with conventional com
 LABEL "com.github.actions.icon"="book-open"
 LABEL "com.github.actions.color"="green"
 
-RUN npm i release-please json -g
+RUN npm i release-please@next json -g
 COPY entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
