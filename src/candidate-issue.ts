@@ -144,7 +144,8 @@ export class CandidateIssue {
   }
 
   private bodyTemplate(changelogEntry: string): string {
-    return `_:robot: Here's what the next release of **${this.packageName}** would look like._
+    return `_:robot: Here's what the next release of **${
+        this.packageName}** would look like._
 
 ---
 

@@ -117,7 +117,9 @@ export class MintRelease {
 
     const sha = this.shaFromCommits(commits);
     const title = `chore: release ${candidate.version}`;
-    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}`;
+    const body =
+        `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${
+            changelogEntry}`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${candidate.version}`,
       version: candidate.version,
