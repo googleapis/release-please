@@ -65,6 +65,7 @@ export class GitHub {
     })) {
       for (let i = 0, commit; response.data[i] !== undefined; i++) {
         commit = response.data[i];
+        console.info(JSON.stringify(commit, null, 2));
         if (commit.sha === sha) {
           return commits;
         } else {

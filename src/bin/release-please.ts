@@ -18,25 +18,29 @@
 
 'use strict';
 
-import {MintRelease, MintReleaseOptions} from '../mint-release';
+import {ReleasePR, ReleasePROptions} from '../release-pr';
 import {CandidateIssue} from '../candidate-issue';
 
 const yargs = require('yargs');
 
 yargs
     .command(
-        'mint-release', 'mint a new release for a repo', () => {},
-        async (argv: MintReleaseOptions) => {
-          const mr = new MintRelease(argv);
-          await mr.run();
-        })
-    .command(
         'candidate-issue',
         'create an issue that\'s an example of the next release', () => {},
-        async (argv: MintReleaseOptions) => {
+        async (argv: ReleasePROptions) => {
           const ci = new CandidateIssue(argv);
           await ci.run();
         })
+    .command(
+        'release-pr', 'create a new release PR from a candidate issue',
+        () => {},
+        async (argv: ReleasePROptions) => {
+          const rp = new ReleasePR(argv);
+          await rp.run();
+        })
+    .command(
+        'github-release', 'create a GitHub release from am release PR',
+        () => {}, async (argv: ReleasePROptions) => {})
     .option(
         'token', {describe: 'GitHub repo token', default: process.env.GH_TOKEN})
     .option('package-name', {
