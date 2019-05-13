@@ -20,8 +20,8 @@ import * as semver from 'semver';
 import {checkpoint, CheckpointType} from './checkpoint';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag} from './github';
-import {ReleaseCandidate, ReleaseType} from './mint-release';
-import {MintRelease, MintReleaseOptions} from './mint-release';
+import {ReleaseCandidate, ReleaseType} from './release-pr';
+import {ReleasePR, ReleasePROptions} from './release-pr';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
@@ -38,7 +38,7 @@ export class CandidateIssue {
   packageName: string;
   releaseType: ReleaseType;
 
-  constructor(options: MintReleaseOptions) {
+  constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.label = options.label;
     this.repoUrl = options.repoUrl;
@@ -88,7 +88,7 @@ export class CandidateIssue {
         checkpoint(
             `release checkbox was checked, creating release`,
             CheckpointType.Success);
-        const mr = new MintRelease({
+        const rp = new ReleasePR({
           bumpMinorPreMajor: this.bumpMinorPreMajor,
           label: this.label,
           token: this.token,
@@ -96,7 +96,7 @@ export class CandidateIssue {
           packageName: this.packageName,
           releaseType: this.releaseType
         });
-        const prNumber = await mr.run();
+        const prNumber = await rp.run();
         body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
       } else if (issue.body === body) {
         // don't update the issue if the content is the same for the release.

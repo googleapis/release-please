@@ -30,7 +30,7 @@ export enum ReleaseType {
   Node = 'node'
 }
 
-export interface MintReleaseOptions {
+export interface ReleasePROptions {
   bumpMinorPreMajor?: boolean;
   label: string;
   token?: string;
@@ -45,7 +45,7 @@ export interface ReleaseCandidate {
   previousTag?: string;
 }
 
-export class MintRelease {
+export class ReleasePR {
   label: string;
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
@@ -55,7 +55,7 @@ export class MintRelease {
   releaseAs?: string;
   releaseType: ReleaseType;
 
-  constructor(options: MintReleaseOptions) {
+  constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.label = options.label;
     this.repoUrl = options.repoUrl;
