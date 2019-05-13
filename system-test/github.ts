@@ -151,4 +151,20 @@ describe('GitHub', () => {
       issue.number.should.be.gt(0);
     });
   });
+
+  describe('latestReleasePR', () => {
+    it('returns the latest closed PR with "autorelease: pending" tag',
+       async () => {
+         const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
+         const pr = await nockBack('latest-release-pr.json')
+                        .then((nbr: NockBackResponse) => {
+                          return gh.latestReleasePR('autorelease: pending')
+                              .then((res) => {
+                                nbr.nockDone();
+                                return res;
+                              });
+                        });
+         pr.should.eql({version: 'v1.0.0', number: 3});
+       });
+  });
 });
