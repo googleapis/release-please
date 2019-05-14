@@ -164,7 +164,11 @@ describe('GitHub', () => {
                                 return res;
                               });
                         });
-         pr.should.eql({version: 'v1.0.0', number: 3});
+         pr.should.eql({
+           version: 'v1.0.0',
+           sha: '98fa9aaaf9dad4bcf85cbf0e159ed48e4b96dab3',
+           number: 3
+         });
        });
   });
 });

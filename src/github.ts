@@ -39,6 +39,7 @@ export interface GitHubTag {
 export interface GitHubReleasePR {
   number: number;
   version: string;
+  sha: string;
 }
 
 interface GitHubPR {
@@ -123,8 +124,11 @@ export class GitHub {
           if (!pull.head) continue;
           const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
           if (!match || !match.groups) continue;
-          return {number: pull.number, version: match.groups.version} as
-              GitHubReleasePR;
+          return {
+            number: pull.number,
+            sha: pull.head.sha,
+            version: match.groups.version
+          } as GitHubReleasePR;
         }
       }
     }
