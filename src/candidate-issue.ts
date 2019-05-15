@@ -26,7 +26,7 @@ import {ReleasePR, ReleasePROptions} from './release-pr';
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 const ISSUE_TITLE = 'chore(release): proposal for next release';
-const ISSUE_FOOTER = '[//]: # footer follows.';
+const ISSUE_FOOTER = '----------------';
 const CHECKBOX = '* [ ] **Should I create this release for you :robot:?**';
 const CHECK_REGEX = /\[x]/;
 
@@ -154,8 +154,6 @@ export class CandidateIssue {
 ---
 
 ${changelogEntry}
-
----
 
 ${ISSUE_FOOTER}
 
