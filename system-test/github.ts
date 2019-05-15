@@ -166,7 +166,7 @@ describe('GitHub', () => {
                         });
          pr.should.eql({
            version: 'v1.0.0',
-           sha: '98fa9aaaf9dad4bcf85cbf0e159ed48e4b96dab3',
+           sha: '5a4cdf2c1370937b363ce10962bf30e2ee84202e',
            number: 3
          });
        });

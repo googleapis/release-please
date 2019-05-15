@@ -22,7 +22,7 @@ import * as semver from 'semver';
 import {checkpoint, CheckpointType} from './checkpoint';
 import {Update} from './updaters/update';
 
-const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(?<version>.*)$/;
+const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
 
 interface GitHubOptions {
   token?: string;
@@ -123,11 +123,11 @@ export class GitHub {
           // HEAD matching the format repo:release-v1.0.0.
           if (!pull.head) continue;
           const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-          if (!match || !match.groups) continue;
+          if (!match || !pull.merge_commit_sha) continue;
           return {
             number: pull.number,
-            sha: pull.head.sha,
-            version: match.groups.version
+            sha: pull.merge_commit_sha,
+            version: match[1]
           } as GitHubReleasePR;
         }
       }
@@ -347,6 +347,34 @@ export class GitHub {
       }
     }
     return ref;
+  }
+  async getFileContents(path: string): Promise<string> {
+    const content = await this.octokit.repos.getContents(
+        {owner: this.owner, repo: this.repo, path});
+    return Buffer.from(content.data.content, 'base64').toString('utf8');
+  }
+  async createRelease(version: string, sha: string, releaseNotes: string) {
+    checkpoint(`creating release ${version}`, CheckpointType.Success);
+    await this.octokit.repos.createRelease({
+      owner: this.owner,
+      repo: this.repo,
+      tag_name: version,
+      target_commitish: sha,
+      body: releaseNotes,
+      name: version
+    });
+  }
+  async removeLabel(label: string, prNumber: number) {
+    checkpoint(
+        `removing label ${chalk.green(label)} from ${
+            chalk.green('' + prNumber)}`,
+        CheckpointType.Success);
+    await this.octokit.issues.removeLabel({
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: prNumber,
+      name: label
+    });
   }
 }
 

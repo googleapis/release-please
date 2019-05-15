@@ -1,12 +1,13 @@
 workflow "Candidate Issue" {
   on = "schedule(*/5 * * * *)"
-  resolves = ["./.github/action/candidate-issue"]
+  resolves = ["candidate-issue"]
 }
 
-action "./.github/action/candidate-issue" {
-  uses = "googleapis/release-please/.github/action/candidate-issue@master"
+action "candidate-issue" {
+  uses = "googleapis/release-please/.github/action/release-please@master"
   env = {
     PACKAGE_NAME = "release-please"
+    RELEASE_PLEASE_COMMAND = "candidate-issue"
   }
   secrets = ["GITHUB_TOKEN"]
 }
