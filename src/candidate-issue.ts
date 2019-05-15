@@ -165,9 +165,10 @@ ${CHECKBOX}
 
   static bodySansFooter(body: string): string {
     const footerPosition = body.indexOf(ISSUE_FOOTER);
-    if (footerPosition === -1)
+    if (footerPosition === -1) {
       return body;
-    else
+    } else {
       return body.slice(0, footerPosition);
+    }
   }
 }
