@@ -32,8 +32,8 @@ describe('CandidateIssue', () => {
   describe('bodySansFooter', () => {
     it('returns the body with the footer removed', () => {
       const body = CandidateIssue.bodyTemplate(
-        'Features:\n* deps: upgrade foo\n', '@foo/bar');
+          'Features:\n* deps: upgrade foo\n', '@foo/bar');
       snapshot(CandidateIssue.bodySansFooter(body));
-    })
-  })
+    });
+  });
 });

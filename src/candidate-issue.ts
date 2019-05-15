@@ -100,7 +100,9 @@ export class CandidateIssue {
         });
         const prNumber = await rp.run();
         body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
-      } else if (CandidateIssue.bodySansFooter(issue.body) === CandidateIssue.bodySansFooter(body)) {
+      } else if (
+          CandidateIssue.bodySansFooter(issue.body) ===
+          CandidateIssue.bodySansFooter(body)) {
         // don't update the issue if the content is the same for the release.
         checkpoint(
             `skipping update to #${issue.number}, no change to body`,
@@ -163,7 +165,9 @@ ${CHECKBOX}
 
   static bodySansFooter(body: string): string {
     const footerPosition = body.indexOf(ISSUE_FOOTER);
-    if (footerPosition === -1) return body;
-    else return body.slice(0, footerPosition);
+    if (footerPosition === -1)
+      return body;
+    else
+      return body.slice(0, footerPosition);
   }
 }
