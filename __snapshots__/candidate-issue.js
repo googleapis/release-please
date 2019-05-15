@@ -7,8 +7,6 @@ Features:
 * deps: upgrade foo
 
 
----
-
 
 `
 
@@ -21,9 +19,7 @@ Features:
 * deps: upgrade foo
 
 
----
-
-[//]: # footer follows.
+----------------
 
 * [ ] **Should I create this release for you :robot:?**
 

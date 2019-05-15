@@ -165,9 +165,9 @@ describe('GitHub', () => {
                               });
                         });
          pr.should.eql({
-           version: 'v1.0.0',
-           sha: '5a4cdf2c1370937b363ce10962bf30e2ee84202e',
-           number: 3
+           version: 'v1.1.0',
+           sha: 'f52c585f1319b789ff75e864fe9bf7479f72ae0e',
+           number: 6
          });
        });
   });
