@@ -18,35 +18,56 @@
 
 'use strict';
 
+import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
 import {ReleasePR, ReleasePROptions} from '../release-pr';
 import {CandidateIssue} from '../candidate-issue';
 
 const yargs = require('yargs');
 
+interface YargsOptions {
+  describe: string;
+  demand: boolean;
+}
+
+interface YargsOptionsBuilder {
+  option(opt: string, options: YargsOptions): void;
+}
+
 yargs
     .command(
         'candidate-issue',
-        'create an issue that\'s an example of the next release', () => {},
+        'create an issue that\'s an example of the next release',
+        (yargs: YargsOptionsBuilder) => {
+          yargs.option('package-name', {
+            describe: 'name of package release is being minted for',
+            demand: true
+          });
+        },
         async (argv: ReleasePROptions) => {
           const ci = new CandidateIssue(argv);
           await ci.run();
         })
     .command(
         'release-pr', 'create a new release PR from a candidate issue',
-        () => {},
+        (yargs: YargsOptionsBuilder) => {
+          yargs.option('package-name', {
+            describe: 'name of package release is being minted for',
+            demand: true
+          });
+        },
         async (argv: ReleasePROptions) => {
           const rp = new ReleasePR(argv);
           await rp.run();
         })
     .command(
         'github-release', 'create a GitHub release from am release PR',
-        () => {}, async (argv: ReleasePROptions) => {})
+        () => {},
+        async (argv: GitHubReleaseOptions) => {
+          const gr = new GitHubRelease(argv);
+          await gr.createRelease();
+        })
     .option(
         'token', {describe: 'GitHub repo token', default: process.env.GH_TOKEN})
-    .option('package-name', {
-      describe: 'name of package release is being minted for',
-      required: true
-    })
     .option(
         'repo-url',
         {describe: 'GitHub URL to generate release for', required: true})

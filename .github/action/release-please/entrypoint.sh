@@ -15,6 +15,8 @@
 
 set -e
 
-release-please candidate-issue --token=$GITHUB_TOKEN \
+COMMAND = ${RELEASE_PLEASE_COMMAND:-candidate-issue}
+
+release-please $COMMAND --token=$GITHUB_TOKEN \
   --repo-url="git@github.com:$GITHUB_REPOSITORY.git" \
   --package-name=$PACKAGE_NAME
