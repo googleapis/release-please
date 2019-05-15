@@ -18,6 +18,7 @@
 
 'use strict';
 
+import chalk from 'chalk';
 import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
 import {ReleasePR, ReleasePROptions} from '../release-pr';
 import {CandidateIssue} from '../candidate-issue';
@@ -90,6 +91,8 @@ yargs
           });
         },
         async (argv: ReleasePROptions) => {
+          console.info(chalk.green(
+              '----- put the content below in .github/main.workflow -----'));
           console.info(`workflow "Candidate Issue" {
   on = "schedule(*/5 * * * *)"
   resolves = ["candidate-issue"]
