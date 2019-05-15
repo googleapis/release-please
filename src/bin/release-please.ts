@@ -27,7 +27,8 @@ const yargs = require('yargs');
 
 interface YargsOptions {
   describe: string;
-  demand: boolean;
+  demand?: boolean;
+  default?: string;
 }
 
 interface YargsOptionsBuilder {
@@ -47,6 +48,15 @@ yargs
               .option('repo-url', {
                 describe: 'GitHub URL to generate release for',
                 demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe:
+                    'label that will be added to PR created from candidate issue'
+              })
+              .option('issue-label', {
+                default: 'release-candidate,type: process',
+                describe: 'label(s) to add to candidate issue'
               });
         },
         async (argv: ReleasePROptions) => {
@@ -64,6 +74,10 @@ yargs
               .option('repo-url', {
                 describe: 'GitHub URL to generate release for',
                 demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe: 'label(s) to add to generated PR'
               });
         },
         async (argv: ReleasePROptions) => {
@@ -73,9 +87,15 @@ yargs
     .command(
         'github-release', 'create a GitHub release from am release PR',
         (yargs: YargsOptionsBuilder) => {
-          yargs.option(
-              'repo-url',
-              {describe: 'GitHub URL to generate release for', demand: true});
+          yargs
+              .option('repo-url', {
+                describe: 'GitHub URL to generate release for',
+                demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe: 'label to remove from release PR'
+              });
         },
         async (argv: GitHubReleaseOptions) => {
           const gr = new GitHubRelease(argv);
@@ -138,10 +158,6 @@ action "github-release" {
           'should we bump the semver minor prior to the first major release',
       default: false,
       type: 'boolean'
-    })
-    .option('label', {
-      default: 'autorelease: pending',
-      describe: 'label to add to generated PR'
     })
     .demandCommand(1)
     .strict(true)

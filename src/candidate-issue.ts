@@ -31,17 +31,25 @@ const CHECKBOX = '* [ ] **Should I create this release for you :robot:?**';
 const CHECK_REGEX = /\[x]/;
 
 export class CandidateIssue {
-  label: string;
+  releaseLabel: string;
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   repoUrl: string;
+  issueLabels: string[];
   token: string|undefined;
   packageName: string;
   releaseType: ReleaseType;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
-    this.label = options.label;
+    this.releaseLabel = options.label;
+    // labels to apply to the candidate issue being
+    // created or updated.
+    if (options.issueLabel) {
+      this.issueLabels = options.issueLabel.split(',');
+    } else {
+      this.issueLabels = [];
+    }
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
@@ -92,7 +100,7 @@ export class CandidateIssue {
             CheckpointType.Success);
         const rp = new ReleasePR({
           bumpMinorPreMajor: this.bumpMinorPreMajor,
-          label: this.label,
+          label: this.releaseLabel,
           token: this.token,
           repoUrl: this.repoUrl,
           packageName: this.packageName,

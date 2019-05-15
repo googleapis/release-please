@@ -152,17 +152,13 @@ export class GitHub {
     return tags;
   }
 
-  async addLabel(pr: number, label: string) {
+  async addLabels(pr: number, labels: string[]) {
     checkpoint(
-        `adding label ${chalk.green(label)} to https://github.com/${
+        `adding label ${chalk.green(labels.join(','))} to https://github.com/${
             this.owner}/${this.repo}/pull/${pr}`,
         CheckpointType.Success);
-    await this.octokit.issues.addLabels({
-      owner: this.owner,
-      repo: this.repo,
-      issue_number: pr,
-      labels: [label]
-    });
+    await this.octokit.issues.addLabels(
+        {owner: this.owner, repo: this.repo, issue_number: pr, labels});
   }
 
   async openIssue(title: string, body: string, issue?: IssuesListResponseItem) {
