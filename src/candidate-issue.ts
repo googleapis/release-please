@@ -26,6 +26,7 @@ import {ReleasePR, ReleasePROptions} from './release-pr';
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 const ISSUE_TITLE = 'chore(release): proposal for next release';
+const ISSUE_FOOTER = '[//]: # footer follows.';
 const CHECKBOX = '* [ ] **Should I create this release for you :robot:?**';
 const CHECK_REGEX = /\[x]/;
 
@@ -79,7 +80,8 @@ export class CandidateIssue {
 
     const issue: IssuesListResponseItem|undefined =
         await this.gh.findExistingReleaseIssue(ISSUE_TITLE);
-    let body: string = this.bodyTemplate(changelogEntry);
+    let body: string =
+        CandidateIssue.bodyTemplate(changelogEntry, this.packageName);
 
     if (issue) {
       if (CHECK_REGEX.test(issue.body)) {
@@ -98,7 +100,7 @@ export class CandidateIssue {
         });
         const prNumber = await rp.run();
         body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
-      } else if (issue.body === body) {
+      } else if (CandidateIssue.bodySansFooter(issue.body) === CandidateIssue.bodySansFooter(body)) {
         // don't update the issue if the content is the same for the release.
         checkpoint(
             `skipping update to #${issue.number}, no change to body`,
@@ -143,9 +145,9 @@ export class CandidateIssue {
     return new GitHub({token: this.token, owner, repo});
   }
 
-  private bodyTemplate(changelogEntry: string): string {
+  static bodyTemplate(changelogEntry: string, packageName: string): string {
     return `_:robot: Here's what the next release of **${
-        this.packageName}** would look like._
+        packageName}** would look like._
 
 ---
 
@@ -153,7 +155,15 @@ ${changelogEntry}
 
 ---
 
+${ISSUE_FOOTER}
+
 ${CHECKBOX}
 `;
+  }
+
+  static bodySansFooter(body: string): string {
+    const footerPosition = body.indexOf(ISSUE_FOOTER);
+    if (footerPosition === -1) return body;
+    else return body.slice(0, footerPosition);
   }
 }
