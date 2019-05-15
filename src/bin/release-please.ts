@@ -18,6 +18,7 @@
 
 'use strict';
 
+import chalk from 'chalk';
 import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
 import {ReleasePR, ReleasePROptions} from '../release-pr';
 import {CandidateIssue} from '../candidate-issue';
@@ -30,7 +31,7 @@ interface YargsOptions {
 }
 
 interface YargsOptionsBuilder {
-  option(opt: string, options: YargsOptions): void;
+  option(opt: string, options: YargsOptions): YargsOptionsBuilder;
 }
 
 yargs
@@ -38,10 +39,15 @@ yargs
         'candidate-issue',
         'create an issue that\'s an example of the next release',
         (yargs: YargsOptionsBuilder) => {
-          yargs.option('package-name', {
-            describe: 'name of package release is being minted for',
-            demand: true
-          });
+          yargs
+              .option('package-name', {
+                describe: 'name of package release is being minted for',
+                demand: true
+              })
+              .option('repo-url', {
+                describe: 'GitHub URL to generate release for',
+                demand: true
+              });
         },
         async (argv: ReleasePROptions) => {
           const ci = new CandidateIssue(argv);
@@ -50,10 +56,15 @@ yargs
     .command(
         'release-pr', 'create a new release PR from a candidate issue',
         (yargs: YargsOptionsBuilder) => {
-          yargs.option('package-name', {
-            describe: 'name of package release is being minted for',
-            demand: true
-          });
+          yargs
+              .option('package-name', {
+                describe: 'name of package release is being minted for',
+                demand: true
+              })
+              .option('repo-url', {
+                describe: 'GitHub URL to generate release for',
+                demand: true
+              });
         },
         async (argv: ReleasePROptions) => {
           const rp = new ReleasePR(argv);
@@ -61,16 +72,58 @@ yargs
         })
     .command(
         'github-release', 'create a GitHub release from am release PR',
-        () => {},
+        (yargs: YargsOptionsBuilder) => {
+          yargs.option(
+              'repo-url',
+              {describe: 'GitHub URL to generate release for', demand: true});
+        },
         async (argv: GitHubReleaseOptions) => {
           const gr = new GitHubRelease(argv);
           await gr.createRelease();
         })
+    .command(
+        'generate-action',
+        'outputs the release-please stanzas that should be added to main.workflow',
+        (yargs: YargsOptionsBuilder) => {
+          yargs.option('package-name', {
+            describe: 'name of package release is being minted for',
+            demand: true
+          });
+        },
+        async (argv: ReleasePROptions) => {
+          console.info(chalk.green(
+              '----- put the content below in .github/main.workflow -----'));
+          console.info(`workflow "Candidate Issue" {
+  on = "schedule(*/5 * * * *)"
+  resolves = ["candidate-issue"]
+}
+
+action "candidate-issue" {
+  uses = "googleapis/release-please/.github/action/release-please@master"
+  env = {
+    PACKAGE_NAME = "${argv.packageName}"
+    RELEASE_PLEASE_COMMAND = "candidate-issue"
+  }
+  secrets = ["GITHUB_TOKEN"]
+}
+
+workflow "GitHub Release" {
+  on = "push"
+  resolves = ["github-release"]
+}
+
+action "github-release" {
+  uses = "googleapis/release-please/.github/action/release-please@master"
+  env = {
+    PACKAGE_NAME = "${argv.packageName}"
+    RELEASE_PLEASE_COMMAND = "github-release"
+  }
+  secrets = ["GITHUB_TOKEN"]
+}
+        `);
+        })
     .option(
         'token', {describe: 'GitHub repo token', default: process.env.GH_TOKEN})
-    .option(
-        'repo-url',
-        {describe: 'GitHub URL to generate release for', required: true})
     .option('release-as', {
       describe: 'override the semantically determined release version',
       type: 'string'
