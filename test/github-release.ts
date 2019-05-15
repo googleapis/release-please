@@ -26,7 +26,8 @@ describe('GitHubRelease', () => {
   describe('extractLatestReleaseNotes', () => {
     it('handles CHANGELOG with old and new format entries', () => {
       const changelogContent =
-          readFileSync(resolve(fixturesPath, './CHANGELOG-old-new.md'), 'utf8');
+          readFileSync(resolve(fixturesPath, './CHANGELOG-old-new.md'), 'utf8')
+              .replace(/\r\n/g, '\n');
       const latestReleaseNotes =
           GitHubRelease.extractLatestReleaseNotes(changelogContent, 'v1.0.0');
       snapshot(latestReleaseNotes);
@@ -34,7 +35,8 @@ describe('GitHubRelease', () => {
 
     it('handles CHANGELOG with old format entries', () => {
       const changelogContent =
-          readFileSync(resolve(fixturesPath, './CHANGELOG-old.md'), 'utf8');
+          readFileSync(resolve(fixturesPath, './CHANGELOG-old.md'), 'utf8')
+              .replace(/\r\n/g, '\n');
       const latestReleaseNotes =
           GitHubRelease.extractLatestReleaseNotes(changelogContent, 'v2.1.0');
       snapshot(latestReleaseNotes);
@@ -42,7 +44,8 @@ describe('GitHubRelease', () => {
 
     it('handles CHANGELOG with new format entries', () => {
       const changelogContent =
-          readFileSync(resolve(fixturesPath, './CHANGELOG-new.md'), 'utf8');
+          readFileSync(resolve(fixturesPath, './CHANGELOG-new.md'), 'utf8')
+              .replace(/\r\n/g, '\n');
       const latestReleaseNotes =
           GitHubRelease.extractLatestReleaseNotes(changelogContent, 'v1.2.0');
       snapshot(latestReleaseNotes);
