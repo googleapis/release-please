@@ -61,7 +61,34 @@ yargs
         },
         async (argv: ReleasePROptions) => {
           const ci = new CandidateIssue(argv);
-          await ci.run();
+          await ci.updateOrCreateIssue();
+        })
+    .command(
+        'detect-checked',
+        'has the release checkbox been checked on candidate issue? if so create a PR',
+        (yargs: YargsOptionsBuilder) => {
+          yargs
+              .option('package-name', {
+                describe: 'name of package release is being minted for',
+                demand: true
+              })
+              .option('repo-url', {
+                describe: 'GitHub URL to generate release for',
+                demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe:
+                    'label that will be added to PR created from candidate issue'
+              })
+              .option('issue-label', {
+                default: 'release-candidate,type: process',
+                describe: 'label(s) to add to candidate issue'
+              });
+        },
+        async (argv: ReleasePROptions) => {
+          const ci = new CandidateIssue(argv);
+          await ci.detectChecked();
         })
     .command(
         'release-pr', 'create a new release PR from a candidate issue',

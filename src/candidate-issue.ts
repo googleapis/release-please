@@ -58,17 +58,36 @@ export class CandidateIssue {
     this.gh = this.gitHubInstance();
   }
 
-  async run() {
+  async detectChecked() {
+    const issue: IssuesListResponseItem|undefined =
+        await this.gh.findExistingReleaseIssue(
+            ISSUE_TITLE, this.issueLabels.join(','));
+    if (issue) {
+      checkpoint(
+          `release candidate #${issue.number} found`, CheckpointType.Success);
+      if (CHECK_REGEX.test(issue.body)) {
+        checkpoint('release checkbox was checked', CheckpointType.Success);
+        await this.updateOrCreateIssue(issue);
+      } else {
+        checkpoint(
+            `candidate #${issue.number} not checked`, CheckpointType.Failure);
+      }
+    } else {
+      checkpoint(`no release candidate found`, CheckpointType.Failure);
+    }
+  }
+
+  async updateOrCreateIssue(issue?: IssuesListResponseItem) {
     switch (this.releaseType) {
       case ReleaseType.Node:
-        await this.nodeReleaseCandidate();
+        await this.nodeReleaseCandidate(issue);
         break;
       default:
         throw Error('unknown release type');
     }
   }
 
-  private async nodeReleaseCandidate() {
+  private async nodeReleaseCandidate(issue?: IssuesListResponseItem) {
     const latestTag: GitHubTag|undefined = await this.gh.latestTag();
     const commits: string[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
@@ -86,8 +105,9 @@ export class CandidateIssue {
       previousTag: candidate.previousTag
     });
 
-    const issue: IssuesListResponseItem|undefined =
-        await this.gh.findExistingReleaseIssue(ISSUE_TITLE);
+    issue = issue ||
+        await this.gh.findExistingReleaseIssue(
+            ISSUE_TITLE, this.issueLabels.join(','));
     let body: string =
         CandidateIssue.bodyTemplate(changelogEntry, this.packageName);
 
@@ -119,7 +139,7 @@ export class CandidateIssue {
       }
     }
 
-    await this.gh.openIssue(ISSUE_TITLE, body, issue);
+    await this.gh.openIssue(ISSUE_TITLE, body, this.issueLabels, issue);
   }
 
   private async coerceReleaseCandidate(
