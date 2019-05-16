@@ -4,6 +4,8 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [1.4.1](https://www.github.com/googleapis/release-please/compare/v1.4.0...v1.4.1) (2019-05-16)
+
 ## [1.4.0](https://www.github.com/googleapis/release-please/compare/v1.3.0...v1.4.0) (2019-05-16)
 
 
