@@ -165,7 +165,10 @@ export class GitHub {
       title: string, body: string, labels: string[],
       issue?: IssuesListResponseItem) {
     if (issue) {
-      checkpoint(`updating issue #${issue.number}`, CheckpointType.Success);
+      checkpoint(
+          `updating issue #${issue.number} with labels = ${
+              JSON.stringify(labels)}`,
+          CheckpointType.Success);
       this.octokit.issues.update({
         owner: this.owner,
         repo: this.repo,
@@ -174,7 +177,10 @@ export class GitHub {
         labels
       });
     } else {
-      checkpoint(`creating new release proposal issue`, CheckpointType.Success);
+      checkpoint(
+          `creating new release proposal issue with labels = ${
+              JSON.stringify(labels)}`,
+          CheckpointType.Success);
       this.octokit.issues.create(
           {owner: this.owner, repo: this.repo, title, body, labels});
     }
