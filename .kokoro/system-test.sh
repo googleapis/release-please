@@ -35,7 +35,8 @@ npm install
 
 npm run system-test
 
-# codecov merges coverage collected for samples, system, and unit tests.
+# codecov combines coverage across integration and unit tests. Include
+# the logic below for any environment you wish to collect coverage for:
 COVERAGE_NODE=10
 if npx check-node-version@3.3.0 --silent --node $COVERAGE_NODE; then
   NYC_BIN=./node_modules/nyc/bin/nyc.js
