@@ -27,7 +27,8 @@ const yargs = require('yargs');
 
 interface YargsOptions {
   describe: string;
-  demand: boolean;
+  demand?: boolean;
+  default?: string;
 }
 
 interface YargsOptionsBuilder {
@@ -47,11 +48,47 @@ yargs
               .option('repo-url', {
                 describe: 'GitHub URL to generate release for',
                 demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe:
+                    'label that will be added to PR created from candidate issue'
+              })
+              .option('issue-label', {
+                default: 'release-candidate,type: process',
+                describe: 'label(s) to add to candidate issue'
               });
         },
         async (argv: ReleasePROptions) => {
           const ci = new CandidateIssue(argv);
-          await ci.run();
+          await ci.updateOrCreateIssue();
+        })
+    .command(
+        'detect-checked',
+        'has the release checkbox been checked on candidate issue? if so create a PR',
+        (yargs: YargsOptionsBuilder) => {
+          yargs
+              .option('package-name', {
+                describe: 'name of package release is being minted for',
+                demand: true
+              })
+              .option('repo-url', {
+                describe: 'GitHub URL to generate release for',
+                demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe:
+                    'label that will be added to PR created from candidate issue'
+              })
+              .option('issue-label', {
+                default: 'release-candidate,type: process',
+                describe: 'label(s) to add to candidate issue'
+              });
+        },
+        async (argv: ReleasePROptions) => {
+          const ci = new CandidateIssue(argv);
+          await ci.detectChecked();
         })
     .command(
         'release-pr', 'create a new release PR from a candidate issue',
@@ -64,6 +101,10 @@ yargs
               .option('repo-url', {
                 describe: 'GitHub URL to generate release for',
                 demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe: 'label(s) to add to generated PR'
               });
         },
         async (argv: ReleasePROptions) => {
@@ -73,9 +114,15 @@ yargs
     .command(
         'github-release', 'create a GitHub release from am release PR',
         (yargs: YargsOptionsBuilder) => {
-          yargs.option(
-              'repo-url',
-              {describe: 'GitHub URL to generate release for', demand: true});
+          yargs
+              .option('repo-url', {
+                describe: 'GitHub URL to generate release for',
+                demand: true
+              })
+              .option('label', {
+                default: 'autorelease: pending',
+                describe: 'label to remove from release PR'
+              });
         },
         async (argv: GitHubReleaseOptions) => {
           const gr = new GitHubRelease(argv);
@@ -94,7 +141,7 @@ yargs
           console.info(chalk.green(
               '----- put the content below in .github/main.workflow -----'));
           console.info(`workflow "Candidate Issue" {
-  on = "schedule(*/5 * * * *)"
+  on = "schedule(*/8 * * * *)"
   resolves = ["candidate-issue"]
 }
 
@@ -103,6 +150,20 @@ action "candidate-issue" {
   env = {
     PACKAGE_NAME = "${argv.packageName}"
     RELEASE_PLEASE_COMMAND = "candidate-issue"
+  }
+  secrets = ["GITHUB_TOKEN"]
+}
+
+workflow "Detect Checked" {
+  on = "schedule(*/4 * * * *)"
+  resolves = ["detect-checked"]
+}
+
+action "detect-checked" {
+  uses = "googleapis/release-please/.github/action/release-please@master"
+  env = {
+    PACKAGE_NAME = "${argv.packageName}"
+    RELEASE_PLEASE_COMMAND = "detect-checked"
   }
   secrets = ["GITHUB_TOKEN"]
 }
@@ -138,10 +199,6 @@ action "github-release" {
           'should we bump the semver minor prior to the first major release',
       default: false,
       type: 'boolean'
-    })
-    .option('label', {
-      default: 'autorelease: pending',
-      describe: 'label to add to generated PR'
     })
     .demandCommand(1)
     .strict(true)

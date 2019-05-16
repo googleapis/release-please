@@ -139,15 +139,17 @@ describe('GitHub', () => {
   describe('findExistingReleaseIssue', () => {
     it('returns an open issue matching the title provided', async () => {
       const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
-      const issue =
-          await nockBack('find-matching-issue.json')
-              .then((nbr: NockBackResponse) => {
-                return gh.findExistingReleaseIssue('this issue is a fixture')
-                    .then((res) => {
-                      nbr.nockDone();
-                      return res;
-                    });
-              });
+      const issue = await nockBack('find-matching-issue.json')
+                        .then((nbr: NockBackResponse) => {
+                          return gh
+                              .findExistingReleaseIssue(
+                                  'this issue is a fixture',
+                                  'type: process,release-candidate')
+                              .then((res) => {
+                                nbr.nockDone();
+                                return res;
+                              });
+                        });
       issue.number.should.be.gt(0);
     });
   });

@@ -152,42 +152,42 @@ export class GitHub {
     return tags;
   }
 
-  async addLabel(pr: number, label: string) {
+  async addLabels(pr: number, labels: string[]) {
     checkpoint(
-        `adding label ${chalk.green(label)} to https://github.com/${
+        `adding label ${chalk.green(labels.join(','))} to https://github.com/${
             this.owner}/${this.repo}/pull/${pr}`,
         CheckpointType.Success);
-    await this.octokit.issues.addLabels({
-      owner: this.owner,
-      repo: this.repo,
-      issue_number: pr,
-      labels: [label]
-    });
+    await this.octokit.issues.addLabels(
+        {owner: this.owner, repo: this.repo, issue_number: pr, labels});
   }
 
-  async openIssue(title: string, body: string, issue?: IssuesListResponseItem) {
+  async openIssue(
+      title: string, body: string, labels: string[],
+      issue?: IssuesListResponseItem) {
     if (issue) {
       checkpoint(`updating issue #${issue.number}`, CheckpointType.Success);
       this.octokit.issues.update({
         owner: this.owner,
         repo: this.repo,
         body,
-        issue_number: issue.number
+        issue_number: issue.number,
+        labels
       });
     } else {
       checkpoint(`creating new release proposal issue`, CheckpointType.Success);
       this.octokit.issues.create(
-          {owner: this.owner, repo: this.repo, title, body});
+          {owner: this.owner, repo: this.repo, title, body, labels});
     }
   }
 
-  async findExistingReleaseIssue(title: string, perPage = 100):
+  async findExistingReleaseIssue(title: string, label: string, perPage = 100):
       Promise<IssuesListResponseItem|undefined> {
     const paged = 0;
     try {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/issues?per_page=${perPage}`
+        url: `/repos/${this.owner}/${this.repo}/issues?per_page=${
+            perPage}&labels=${label}`
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];

@@ -33,6 +33,7 @@ export enum ReleaseType {
 export interface ReleasePROptions {
   bumpMinorPreMajor?: boolean;
   label: string;
+  issueLabel?: string;
   token?: string;
   repoUrl: string;
   packageName: string;
@@ -128,7 +129,7 @@ export class ReleasePR {
       title,
       body
     });
-    await this.gh.addLabel(pr, this.label);
+    await this.gh.addLabels(pr, [this.label]);
     return pr;
   }
   private async coerceReleaseCandidate(
