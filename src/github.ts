@@ -139,10 +139,7 @@ export class GitHub {
         });
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
-      // we look for a PR that has autorelease: pending, and type: process; once
-      // a release occurs, the autorelease: pending label is removed.
-      if (pull.labels.map(l => l.name).sort().join(',') ===
-          labels.slice(0).sort().join(',')) {
+      if (this.hasAllLabels(labels, pull.labels.map(l => l.name))) {
         // it's expected that a release PR will have a
         // HEAD matching the format repo:release-v1.0.0.
         if (!pull.head) continue;
@@ -156,6 +153,14 @@ export class GitHub {
       }
     }
     return undefined;
+  }
+
+  private hasAllLabels(labelsA: string[], labelsB: string[]) {
+    let hasAll = true;
+    labelsA.forEach((label) => {
+      if (labelsB.indexOf(label) === -1) hasAll = false;
+    });
+    return hasAll;
   }
 
   async findOpenReleasePRs(labels: string[], perPage = 25):
