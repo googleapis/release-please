@@ -141,7 +141,7 @@ export class GitHub {
       pull = pullsResponse.data[i];
       // we look for a PR that has autorelease: pending, and type: process; once
       // a release occurs, the autorelease: pending label is removed.
-      if (pull.labels.slice(0).sort().join(',') ===
+      if (pull.labels.map(l => l.name).sort().join(',') ===
           labels.slice(0).sort().join(',')) {
         // it's expected that a release PR will have a
         // HEAD matching the format repo:release-v1.0.0.
