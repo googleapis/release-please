@@ -93,16 +93,6 @@ export class ReleasePR {
     const commits: string[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
 
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made.
-    if (commits.length === 0) {
-      checkpoint(
-          `no user facing commits found since ${
-              latestTag ? latestTag.sha : 'beginning of time'}`,
-          CheckpointType.Failure);
-      return undefined;
-    }
-
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
@@ -116,6 +106,17 @@ export class ReleasePR {
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag
     });
+
+    // don't create a release candidate until user facing changes
+    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
+    // one line is a good indicator that there were no interesting commits.
+    if (changelogEntry.split('\n').length === 1) {
+      checkpoint(
+          `no user facing commits found since ${
+              latestTag ? latestTag.sha : 'beginning of time'}`,
+          CheckpointType.Failure);
+      return undefined;
+    }
 
     const updates: Update[] = [];
 
