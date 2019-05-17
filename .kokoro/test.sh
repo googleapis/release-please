@@ -37,7 +37,7 @@ else
 fi
 
 # if the GITHUB_TOKEN is set, we kick off a task to update the release-PR.
-GITHUB_TOKEN=$(cat $KOKORO_KEYSTORE_DIR/73713_yoshi-automation-github-key)
+GITHUB_TOKEN=$(cat $KOKORO_KEYSTORE_DIR/73713_yoshi-automation-github-key) || true
 if [ "$GITHUB_TOKEN" ]; then
   npx release-please release-pr --token=$GITHUB_TOKEN \
     --repo-url=googleapis/release-please \
