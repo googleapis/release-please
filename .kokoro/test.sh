@@ -23,7 +23,6 @@ cd $(dirname $0)/..
 npm install
 npm test
 
-# codecov merges coverage collected for samples, system, and unit tests.
 COVERAGE_NODE=10
 if npx check-node-version@3.3.0 --silent --node $COVERAGE_NODE; then
   NYC_BIN=./node_modules/nyc/bin/nyc.js
