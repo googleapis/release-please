@@ -144,7 +144,7 @@ describe('GitHub', () => {
                           return gh
                               .findExistingReleaseIssue(
                                   'this issue is a fixture',
-                                  'type: process,release-candidate')
+                                  ['type: process', 'release-candidate'])
                               .then((res) => {
                                 nbr.nockDone();
                                 return res;
@@ -158,14 +158,15 @@ describe('GitHub', () => {
     it('returns the latest closed PR with "autorelease: pending" tag',
        async () => {
          const gh = new GitHub({owner: 'bcoe', repo: 'node-25650-bug'});
-         const pr = await nockBack('latest-release-pr.json')
-                        .then((nbr: NockBackResponse) => {
-                          return gh.latestReleasePR('autorelease: pending')
-                              .then((res) => {
-                                nbr.nockDone();
-                                return res;
-                              });
-                        });
+         const pr =
+             await nockBack('latest-release-pr.json')
+                 .then((nbr: NockBackResponse) => {
+                   return gh.findMergedReleasePR(['autorelease: pending'])
+                       .then((res) => {
+                         nbr.nockDone();
+                         return res;
+                       });
+                 });
          pr.should.eql({
            version: 'v1.1.0',
            sha: 'f52c585f1319b789ff75e864fe9bf7479f72ae0e',

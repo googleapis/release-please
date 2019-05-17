@@ -60,8 +60,7 @@ export class CandidateIssue {
 
   async detectChecked() {
     const issue: IssuesListResponseItem|undefined =
-        await this.gh.findExistingReleaseIssue(
-            ISSUE_TITLE, this.issueLabels.join(','));
+        await this.gh.findExistingReleaseIssue(ISSUE_TITLE, this.issueLabels);
     if (issue) {
       checkpoint(
           `release candidate #${issue.number} found`, CheckpointType.Success);
@@ -106,8 +105,7 @@ export class CandidateIssue {
     });
 
     issue = issue ||
-        await this.gh.findExistingReleaseIssue(
-            ISSUE_TITLE, this.issueLabels.join(','));
+        await this.gh.findExistingReleaseIssue(ISSUE_TITLE, this.issueLabels);
     let body: string =
         CandidateIssue.bodyTemplate(changelogEntry, this.packageName);
 

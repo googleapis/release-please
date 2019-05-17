@@ -15,7 +15,7 @@
  */
 
 import * as Octokit from '@octokit/rest';
-import {IssuesListResponseItem, PullsCreateResponse, PullsListResponseItem, ReposListTagsResponseItem, Response} from '@octokit/rest';
+import {IssuesListResponseItem, PullsCreateResponse, PullsListResponseItem, ReposGetLatestReleaseResponse, ReposListTagsResponseItem, Response} from '@octokit/rest';
 import chalk from 'chalk';
 import * as semver from 'semver';
 
@@ -88,24 +88,51 @@ export class GitHub {
   }
 
   async latestTag(perPage = 100): Promise<GitHubTag|undefined> {
+    const latestRelease = await this.latestRelease();
+    if (latestRelease) {
+      checkpoint(
+          `found existing release ${latestRelease.name}`,
+          CheckpointType.Success);
+      return latestRelease;
+    }
+
     const tags: {[version: string]: GitHubTag;} = await this.allTags(perPage);
     const versions = Object.keys(tags);
     // no tags have been created yet.
     if (versions.length === 0) return undefined;
 
-    // TODO: we can improve the latestTag logic by using
-    // this.octokit.repos.getLatestRelease as a sanity check, this should
-    // help address concerns that the largest tag might be on a branch
-    // other than master.
     versions.sort(semver.rcompare);
     return {
       name: tags[versions[0]].name,
       sha: tags[versions[0]].sha,
       version: tags[versions[0]].version
-    } as GitHubTag;
+    };
   }
 
-  async latestReleasePR(releaseLabel: string, perPage = 100):
+  async latestRelease(): Promise<GitHubTag|undefined> {
+    try {
+      const latestRelease: Response<ReposGetLatestReleaseResponse> =
+          await this.octokit.repos.getLatestRelease(
+              {owner: this.owner, repo: this.repo});
+      const version = semver.valid(latestRelease.data.name);
+      if (version) {
+        return {
+          name: latestRelease.data.name,
+          sha: latestRelease.data.target_commitish,
+          version
+        };
+      }
+    } catch (err) {
+      if (err.status === 404) {
+        // fallback to tags if we don't find a GitHub release.
+      } else {
+        throw err;
+      }
+    }
+    return undefined;
+  }
+
+  async findMergedReleasePR(labels: string[], perPage = 25):
       Promise<GitHubReleasePR|undefined> {
     const pullsResponse: Response<PullsListResponseItem[]> =
         await this.octokit.pulls.list({
@@ -118,12 +145,12 @@ export class GitHub {
       pull = pullsResponse.data[i];
       for (let ii = 0, label; ii < pull.labels.length; ii++) {
         label = pull.labels[ii];
-        if (label.name === releaseLabel) {
+        if (labels.indexOf(label.name) !== -1) {
           // it's expected that a release PR will have a
           // HEAD matching the format repo:release-v1.0.0.
           if (!pull.head) continue;
           const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-          if (!match || !pull.merge_commit_sha) continue;
+          if (!match || !pull.merged_at) continue;
           return {
             number: pull.number,
             sha: pull.merge_commit_sha,
@@ -133,6 +160,28 @@ export class GitHub {
       }
     }
     return undefined;
+  }
+
+  async findOpenReleasePRs(labels: string[], perPage = 25):
+      Promise<PullsListResponseItem[]> {
+    const openReleasePRs: PullsListResponseItem[] = [];
+    const pullsResponse: Response<PullsListResponseItem[]> =
+        await this.octokit.pulls.list({
+          owner: this.owner,
+          repo: this.repo,
+          state: 'open',
+          per_page: perPage
+        });
+    for (let i = 0, pull; i < pullsResponse.data.length; i++) {
+      pull = pullsResponse.data[i];
+      for (let ii = 0, label; ii < pull.labels.length; ii++) {
+        label = pull.labels[ii];
+        if (labels.indexOf(label.name) !== -1) {
+          openReleasePRs.push(pull);
+        }
+      }
+    }
+    return openReleasePRs;
   }
 
   private async allTags(perPage = 100):
@@ -186,14 +235,15 @@ export class GitHub {
     }
   }
 
-  async findExistingReleaseIssue(title: string, label: string, perPage = 100):
-      Promise<IssuesListResponseItem|undefined> {
+  async findExistingReleaseIssue(
+      title: string, labels: string[],
+      perPage = 100): Promise<IssuesListResponseItem|undefined> {
     const paged = 0;
     try {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
         url: `/repos/${this.owner}/${this.repo}/issues?per_page=${
-            perPage}&labels=${label}`
+            perPage}&labels=${labels.join(',')}`
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
@@ -281,6 +331,7 @@ export class GitHub {
 
     return resp.data.number;
   }
+
   async updateFiles(updates: Update[], branch: string, refName: string) {
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
@@ -330,6 +381,7 @@ export class GitHub {
       }
     }
   }
+
   private async refByBranchName(branch: string): Promise<string|undefined> {
     let ref;
     try {
@@ -354,11 +406,22 @@ export class GitHub {
     }
     return ref;
   }
+
+  async closePR(prNumber: number) {
+    this.octokit.pulls.update({
+      owner: this.owner,
+      repo: this.repo,
+      number: prNumber,
+      state: 'closed'
+    });
+  }
+
   async getFileContents(path: string): Promise<string> {
     const content = await this.octokit.repos.getContents(
         {owner: this.owner, repo: this.repo, path});
     return Buffer.from(content.data.content, 'base64').toString('utf8');
   }
+
   async createRelease(version: string, sha: string, releaseNotes: string) {
     checkpoint(`creating release ${version}`, CheckpointType.Success);
     await this.octokit.repos.createRelease({
@@ -370,16 +433,19 @@ export class GitHub {
       name: version
     });
   }
-  async removeLabel(label: string, prNumber: number) {
-    checkpoint(
-        `removing label ${chalk.green(label)} from ${
-            chalk.green('' + prNumber)}`,
-        CheckpointType.Success);
-    await this.octokit.issues.removeLabel({
-      owner: this.owner,
-      repo: this.repo,
-      issue_number: prNumber,
-      name: label
+
+  async removeLabels(labels: string[], prNumber: number) {
+    await labels.forEach(async (label) => {
+      checkpoint(
+          `removing label ${chalk.green(label)} from ${
+              chalk.green('' + prNumber)}`,
+          CheckpointType.Success);
+      await this.octokit.issues.removeLabel({
+        owner: this.owner,
+        repo: this.repo,
+        issue_number: prNumber,
+        name: label
+      });
     });
   }
 }
