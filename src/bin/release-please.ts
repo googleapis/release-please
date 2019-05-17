@@ -50,7 +50,7 @@ yargs
                 demand: true
               })
               .option('label', {
-                default: 'autorelease: pending',
+                default: 'autorelease: pending,type: process',
                 describe:
                     'label that will be added to PR created from candidate issue'
               })
@@ -77,7 +77,7 @@ yargs
                 demand: true
               })
               .option('label', {
-                default: 'autorelease: pending',
+                default: 'autorelease: pending,type: process',
                 describe:
                     'label that will be added to PR created from candidate issue'
               })
@@ -103,7 +103,7 @@ yargs
                 demand: true
               })
               .option('label', {
-                default: 'autorelease: pending',
+                default: 'autorelease: pending,type: process',
                 describe: 'label(s) to add to generated PR'
               });
         },
@@ -141,7 +141,7 @@ yargs
           console.info(chalk.green(
               '----- put the content below in .github/main.workflow -----'));
           console.info(`workflow "Candidate Issue" {
-  on = "schedule(*/8 * * * *)"
+  on = "push"
   resolves = ["candidate-issue"]
 }
 

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
+import {IssuesListResponseItem, PullsCreateResponse, PullsListResponseItem, ReposListTagsResponseItem, Response} from '@octokit/rest';
 import chalk from 'chalk';
+
 import {checkpoint, CheckpointType} from './checkpoint';
-// import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubReleasePR} from './github';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -30,12 +31,12 @@ export interface GitHubReleaseOptions {
 export class GitHubRelease {
   changelogPath: string;
   gh: GitHub;
-  label: string;
+  labels: string[];
   repoUrl: string;
   token: string|undefined;
 
   constructor(options: GitHubReleaseOptions) {
-    this.label = options.label;
+    this.labels = options.label.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
 
@@ -46,7 +47,7 @@ export class GitHubRelease {
 
   async createRelease() {
     const gitHubReleasePR: GitHubReleasePR|undefined =
-        await this.gh.latestReleasePR(this.label);
+        await this.gh.findMergedReleasePR(this.labels);
     if (gitHubReleasePR) {
       checkpoint(
           `found release branch ${chalk.green(gitHubReleasePR.version)} at ${
@@ -64,7 +65,7 @@ export class GitHubRelease {
 
       await this.gh.createRelease(
           gitHubReleasePR.version, gitHubReleasePR.sha, latestReleaseNotes);
-      await this.gh.removeLabel(this.label, gitHubReleasePR.number);
+      await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
     } else {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
     }

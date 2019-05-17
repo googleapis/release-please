@@ -60,8 +60,7 @@ export class CandidateIssue {
 
   async detectChecked() {
     const issue: IssuesListResponseItem|undefined =
-        await this.gh.findExistingReleaseIssue(
-            ISSUE_TITLE, this.issueLabels.join(','));
+        await this.gh.findExistingReleaseIssue(ISSUE_TITLE, this.issueLabels);
     if (issue) {
       checkpoint(
           `release candidate #${issue.number} found`, CheckpointType.Success);
@@ -106,8 +105,7 @@ export class CandidateIssue {
     });
 
     issue = issue ||
-        await this.gh.findExistingReleaseIssue(
-            ISSUE_TITLE, this.issueLabels.join(','));
+        await this.gh.findExistingReleaseIssue(ISSUE_TITLE, this.issueLabels);
     let body: string =
         CandidateIssue.bodyTemplate(changelogEntry, this.packageName);
 
@@ -126,8 +124,10 @@ export class CandidateIssue {
           packageName: this.packageName,
           releaseType: this.releaseType
         });
-        const prNumber = await rp.run();
-        body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
+        const prNumber: number|undefined = await rp.run();
+        if (prNumber) {
+          body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
+        }
       } else if (
           CandidateIssue.bodySansFooter(issue.body) ===
           CandidateIssue.bodySansFooter(body)) {

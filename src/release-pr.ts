@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import {PullsListResponseItem} from '@octokit/rest';
 import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './checkpoint';
 import {ConventionalCommits} from './conventional-commits';
-import {GitHub, GitHubTag} from './github';
+import {GitHub, GitHubReleasePR, GitHubTag} from './github';
 import {Changelog} from './updaters/changelog';
 import {PackageJson} from './updaters/package-json';
 import {SamplesPackageJson} from './updaters/samples-package-json';
@@ -47,7 +48,7 @@ export interface ReleaseCandidate {
 }
 
 export class ReleasePR {
-  label: string;
+  labels: string[];
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   repoUrl: string;
@@ -58,7 +59,7 @@ export class ReleasePR {
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
-    this.label = options.label;
+    this.labels = options.label.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
@@ -67,18 +68,41 @@ export class ReleasePR {
 
     this.gh = this.gitHubInstance();
   }
-  async run(): Promise<number> {
-    switch (this.releaseType) {
-      case ReleaseType.Node:
-        return await this.nodeRelease();
-      default:
-        throw Error('unknown release type');
+
+  async run(): Promise<number|undefined> {
+    const pr: GitHubReleasePR|undefined =
+        await this.gh.findMergedReleasePR(this.labels);
+    if (pr) {
+      // a PR already exists in the autorelease: pending state.
+      checkpoint(
+          `pull #${pr.number} ${pr.sha} has not yet been released`,
+          CheckpointType.Failure);
+      return pr.number;
+    } else {
+      switch (this.releaseType) {
+        case ReleaseType.Node:
+          return await this.nodeRelease();
+        default:
+          throw Error('unknown release type');
+      }
     }
   }
-  private async nodeRelease(): Promise<number> {
+
+  private async nodeRelease(): Promise<number|undefined> {
     const latestTag: GitHubTag|undefined = await this.gh.latestTag();
     const commits: string[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
+
+    // don't create a release candidate until user facing changes
+    // (fix, feat, BREAKING CHANGE) have been made.
+    if (commits.length === 0) {
+      checkpoint(
+          `no user facing commits found since ${
+              latestTag ? latestTag.sha : 'beginning of time'}`,
+          CheckpointType.Failure);
+      return undefined;
+    }
+
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
@@ -129,9 +153,24 @@ export class ReleasePR {
       title,
       body
     });
-    await this.gh.addLabels(pr, [this.label]);
+    await this.gh.addLabels(pr, this.labels);
+    await this.closeStaleReleasePRs(pr);
     return pr;
   }
+
+  private async closeStaleReleasePRs(currentPRNumber: number) {
+    const prs: PullsListResponseItem[] =
+        await this.gh.findOpenReleasePRs(this.labels);
+    for (let i = 0, pr: PullsListResponseItem; i < prs.length; i++) {
+      pr = prs[i];
+      // don't close the most up-to-date release PR.
+      if (pr.number !== currentPRNumber) {
+        checkpoint(`closing pull #${pr.number}`, CheckpointType.Failure);
+        await this.gh.closePR(pr.number);
+      }
+    }
+  }
+
   private async coerceReleaseCandidate(
       cc: ConventionalCommits,
       latestTag: GitHubTag|undefined): Promise<ReleaseCandidate> {
@@ -149,6 +188,7 @@ export class ReleasePR {
 
     return {version, previousTag};
   }
+
   private async commits(sha: string|undefined): Promise<string[]> {
     const commits = await this.gh.commitsSinceSha(sha);
     if (commits.length) {
@@ -160,10 +200,12 @@ export class ReleasePR {
     }
     return commits;
   }
+
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({token: this.token, owner, repo});
   }
+
   private shaFromCommits(commits: string[]): string {
     // The conventional commits parser expects an array of string commit
     // messages terminated by `-hash-` followed by the commit sha. We
