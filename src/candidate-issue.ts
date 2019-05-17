@@ -125,8 +125,9 @@ export class CandidateIssue {
           releaseType: this.releaseType
         });
         const prNumber: number|undefined = await rp.run();
-        if (prNumber)
+        if (prNumber) {
           body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
+        }
       } else if (
           CandidateIssue.bodySansFooter(issue.body) ===
           CandidateIssue.bodySansFooter(body)) {
