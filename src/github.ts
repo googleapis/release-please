@@ -139,20 +139,20 @@ export class GitHub {
         });
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
-      for (let ii = 0, label; ii < pull.labels.length; ii++) {
-        label = pull.labels[ii];
-        if (labels.indexOf(label.name) !== -1) {
-          // it's expected that a release PR will have a
-          // HEAD matching the format repo:release-v1.0.0.
-          if (!pull.head) continue;
-          const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-          if (!match || !pull.merged_at) continue;
-          return {
-            number: pull.number,
-            sha: pull.merge_commit_sha,
-            version: match[1]
-          } as GitHubReleasePR;
-        }
+      // we look for a PR that has autorelease: pending, and type: process; once
+      // a release occurs, the autorelease: pending label is removed.
+      if (pull.labels.slice(0).sort().join(',') ===
+          labels.slice(0).sort().join(',')) {
+        // it's expected that a release PR will have a
+        // HEAD matching the format repo:release-v1.0.0.
+        if (!pull.head) continue;
+        const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
+        if (!match || !pull.merged_at) continue;
+        return {
+          number: pull.number,
+          sha: pull.merge_commit_sha,
+          version: match[1]
+        } as GitHubReleasePR;
       }
     }
     return undefined;
