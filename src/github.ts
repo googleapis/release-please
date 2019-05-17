@@ -159,7 +159,7 @@ export class GitHub {
     let hasAll = true;
     labelsA.forEach((label) => {
       if (labelsB.indexOf(label) === -1) hasAll = false;
-    })
+    });
     return hasAll;
   }
 
