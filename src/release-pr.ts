@@ -68,7 +68,8 @@ export class ReleasePR {
 
     this.gh = this.gitHubInstance();
   }
-  async run(): Promise<number> {
+
+  async run(): Promise<number|undefined> {
     const pr: GitHubReleasePR|undefined =
         await this.gh.findMergedReleasePR(this.labels);
     if (pr) {
@@ -86,10 +87,21 @@ export class ReleasePR {
       }
     }
   }
-  private async nodeRelease(): Promise<number> {
+
+  private async nodeRelease(): Promise<number|undefined> {
     const latestTag: GitHubTag|undefined = await this.gh.latestTag();
     const commits: string[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
+
+    // don't create a release candidate until user facing changes
+    // (fix, feat, BREAKING CHANGE) have been made.
+    if (commits.length === 0) {
+      checkpoint(
+          `no user facing commits found since ${
+              latestTag ? latestTag.sha : 'beginning of time'}`,
+          CheckpointType.Failure);
+      return undefined;
+    }
 
     const cc = new ConventionalCommits({
       commits,

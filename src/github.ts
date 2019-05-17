@@ -88,14 +88,6 @@ export class GitHub {
   }
 
   async latestTag(perPage = 100): Promise<GitHubTag|undefined> {
-    const latestRelease = await this.latestRelease();
-    if (latestRelease) {
-      checkpoint(
-          `found existing release ${latestRelease.name}`,
-          CheckpointType.Success);
-      return latestRelease;
-    }
-
     const tags: {[version: string]: GitHubTag;} = await this.allTags(perPage);
     const versions = Object.keys(tags);
     // no tags have been created yet.
@@ -109,6 +101,9 @@ export class GitHub {
     };
   }
 
+  // TODO: investigate why this returns a target_commitish of `master`
+  // even months after the release is created; is there a way to
+  // get the SHA that the release was created at?
   async latestRelease(): Promise<GitHubTag|undefined> {
     try {
       const latestRelease: Response<ReposGetLatestReleaseResponse> =
@@ -116,6 +111,7 @@ export class GitHub {
               {owner: this.owner, repo: this.repo});
       const version = semver.valid(latestRelease.data.name);
       if (version) {
+        console.info(latestRelease.data);
         return {
           name: latestRelease.data.name,
           sha: latestRelease.data.target_commitish,

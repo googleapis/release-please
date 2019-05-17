@@ -124,8 +124,9 @@ export class CandidateIssue {
           packageName: this.packageName,
           releaseType: this.releaseType
         });
-        const prNumber = await rp.run();
-        body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
+        const prNumber: number|undefined = await rp.run();
+        if (prNumber)
+          body = body.replace(CHECKBOX, `**release created at #${prNumber}**`);
       } else if (
           CandidateIssue.bodySansFooter(issue.body) ===
           CandidateIssue.bodySansFooter(body)) {
