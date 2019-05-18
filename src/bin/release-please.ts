@@ -38,7 +38,7 @@ interface YargsOptionsBuilder {
 yargs
     .command(
         'candidate-issue',
-        'create an issue that\'s an example of the next release',
+        'create an issue that\'s an example of the next release (rather than keeping PR open)',
         (yargs: YargsOptionsBuilder) => {
           yargs
               .option('package-name', {
@@ -64,7 +64,7 @@ yargs
           await ci.updateOrCreateIssue();
         })
     .command(
-        'detect-checked',
+        'release-requested',
         'has the release checkbox been checked on candidate issue? if so create a PR',
         (yargs: YargsOptionsBuilder) => {
           yargs
@@ -91,7 +91,7 @@ yargs
           await ci.detectChecked();
         })
     .command(
-        'release-pr', 'create a new release PR from a candidate issue',
+        'release-pr', 'create or update the PR representing the next release',
         (yargs: YargsOptionsBuilder) => {
           yargs
               .option('package-name', {
@@ -133,37 +133,23 @@ yargs
         'outputs the release-please stanzas that should be added to main.workflow',
         (yargs: YargsOptionsBuilder) => {
           yargs.option('package-name', {
-            describe: 'name of package release is being minted for',
+            describe: 'name of package releases will be created for',
             demand: true
           });
         },
         async (argv: ReleasePROptions) => {
           console.info(chalk.green(
               '----- put the content below in .github/main.workflow -----'));
-          console.info(`workflow "Candidate Issue" {
+          console.info(`workflow "Groom Release PR" {
   on = "push"
-  resolves = ["candidate-issue"]
+  resolves = ["release-pr"]
 }
 
-action "candidate-issue" {
+action "release-pr" {
   uses = "googleapis/release-please/.github/action/release-please@master"
   env = {
     PACKAGE_NAME = "${argv.packageName}"
-    RELEASE_PLEASE_COMMAND = "candidate-issue"
-  }
-  secrets = ["GITHUB_TOKEN"]
-}
-
-workflow "Detect Checked" {
-  on = "schedule(*/4 * * * *)"
-  resolves = ["detect-checked"]
-}
-
-action "detect-checked" {
-  uses = "googleapis/release-please/.github/action/release-please@master"
-  env = {
-    PACKAGE_NAME = "${argv.packageName}"
-    RELEASE_PLEASE_COMMAND = "detect-checked"
+    RELEASE_PLEASE_COMMAND = "release-pr"
   }
   secrets = ["GITHUB_TOKEN"]
 }
@@ -184,7 +170,7 @@ action "github-release" {
         `);
         })
     .option(
-        'token', {describe: 'GitHub repo token', default: process.env.GH_TOKEN})
+        'token', {describe: 'GitHub token with repo write permissions'})
     .option('release-as', {
       describe: 'override the semantically determined release version',
       type: 'string'

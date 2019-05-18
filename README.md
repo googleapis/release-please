@@ -14,17 +14,16 @@
 
 `release-please` generates GitHub PRs for library releases, based on the
 [conventionalcommits.org](https://www.conventionalcommits.org) commit
-specification.
+specification and [SemVer](https://semver.org/).
 
-The generated PR:
+_Release Please_ can be configured (using [GitHub Actions](https://github.com/features/actions),
+a cron, or a step during CI/CD) to maintain a PR that represents the next release
+or your libary.
 
-* determines the next version that a library should be released as (based
-  on [SemVer](https://semver.org/)).
-* updates language-specifc files, `.gemspec`, `package.json`, `setup.py`, etc.,
-  with the appropriate version.
-* generates a CHANGELOG with information pertinent to library consumers.
-* adds labels to the PR, providing contextual information to automation tools furhter
-  down the pipeline, e.g., `autorelease: pending`.
+When the candidate PR is merged, _Release Please_ can be configured to create
+a [GitHub Release](https://help.github.com/en/articles/creating-releases).
+
+Here's an [example of Release Please in action](https://github.com/googleapis/nodejs-logging/pull/487).
 
 
 
@@ -56,28 +55,46 @@ Google APIs Client Libraries, in [Client Libraries Explained][explained].
 npm install release-please
 ```
 
-## CLI Commands
+## Maintaining a Release PR
 
-When running CLI commands, set the `GH_TOKEN` environment variable to
-a [token you've generated](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line)
-with write permissions for the repo you're interacting with.
-
-### Minting a Release
-
-Generates a new release, based on the commit history since the last release
-that was tagged:
+To configure _Release Please_ to maintain an up-to-date release
+pull-request on your repository, setup the following command to execute
+when changes are pushed to `master`:
 
 ```bash
-release-please mint-release  --repo-url=git@github.com:bcoe/my-fake-repo.git
-  --package-name=@google-cloud/fake --release-type=node
+release-please release-pr --package-name=@google-cloud/firestore" \
+  --repo-url=googleapis/nodejs-firestore \
+  --token=$GITHUB_TOKEN
 ```
 
-* `--repo-url`: the GitHub URL of the repository the release is being
-  generated for.
-* `--package-name`: the name of the package that will ultimately be published
-  (to `npm`, `PyPi`, `RubyGems`, etc.).
-* `--release-type`: what type of release is being created, possible values:
-  * `node`: a simple Node.js repo (not a mono-repo).
+* `--package-name`: is the name of the package to publish to publish to
+  an upstream registry such as npm.
+* `--repo-url`: is the URL of the repository on GitHub.
+* `--token`: a token with write access to `--repo-url`.
+
+### Creating GitHub Releases
+
+To configure _Release Please_ to generate GitHub Releases when release
+pull-requests are merged to `master`, setup the following command to
+execute when changes are pushed to `master`:
+
+```bash
+release-please github-release --repo-url=googleapis/nodejs-firestore \
+  --token=$GITHUB_TOKEN
+```
+
+* `--repo-url`: is the URL of the repository on GitHub.
+* `--token`: a token with write access to `--repo-url`.
+
+### GitHub Actions
+
+An elegant way to configure `Release Please` is through 
+[GitHub Actions](https://github.com/features/actions). To generate a
+`main.workflow` for `Release Please`, simply run:
+
+```bash
+release-please generate-action --package-name=@google-cloud/firestore"
+```
 
 
 
