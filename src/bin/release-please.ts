@@ -169,8 +169,7 @@ action "github-release" {
 }
         `);
         })
-    .option(
-        'token', {describe: 'GitHub token with repo write permissions'})
+    .option('token', {describe: 'GitHub token with repo write permissions'})
     .option('release-as', {
       describe: 'override the semantically determined release version',
       type: 'string'
