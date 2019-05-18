@@ -1,7 +1,7 @@
 title: |-
   # [Release Please](https://github.com/googleapis/release-please)
 introduction: |-
-  `release-please` generates GitHub PRs for library releases, based on the
+  `release-please` generates GitHub PRs for library releases based on the
   [conventionalcommits.org](https://www.conventionalcommits.org) commit
   specification and [SemVer](https://semver.org/).
 
@@ -54,3 +54,6 @@ body: |-
   ```bash
   release-please generate-action --package-name=@google-cloud/firestore"
   ```
+
+  * `--package-name`: is the name of the package to publish to publish to
+    an upstream registry such as npm.

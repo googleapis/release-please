@@ -5,14 +5,14 @@
 # [Release Please](https://github.com/googleapis/release-please)
 
 
-[![release level](https://img.shields.io/badge/release%20level-alpha-orange.svg?style=flat)](https://cloud.google.com/terms/launch-stages)
+[![release level](https://img.shields.io/badge/release%20level-beta-yellow.svg?style=flat)](https://cloud.google.com/terms/launch-stages)
 [![npm version](https://img.shields.io/npm/v/release-please.svg)](https://www.npmjs.org/package/release-please)
 [![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/master.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
 
 
 
 
-`release-please` generates GitHub PRs for library releases, based on the
+`release-please` generates GitHub PRs for library releases based on the
 [conventionalcommits.org](https://www.conventionalcommits.org) commit
 specification and [SemVer](https://semver.org/).
 
@@ -96,6 +96,9 @@ An elegant way to configure `Release Please` is through
 release-please generate-action --package-name=@google-cloud/firestore"
 ```
 
+* `--package-name`: is the name of the package to publish to publish to
+  an upstream registry such as npm.
+
 
 
 ## Versioning
@@ -104,10 +107,11 @@ This library follows [Semantic Versioning](http://semver.org/).
 
 
 
+This library is considered to be in **beta**. This means it is expected to be
+mostly stable while we work toward a general availability release; however,
+complete stability is not guaranteed. We will address issues and requests
+against beta libraries with a high priority.
 
-This library is considered to be in **alpha**. This means it is still a
-work-in-progress and under active development. Any release is subject to
-backwards-incompatible changes at any time.
 
 
 
