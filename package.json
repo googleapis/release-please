@@ -30,9 +30,9 @@
   "author": "Google Inc.",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/bcoe/release-please/issues"
+    "url": "https://github.com/googleapis/release-please/issues"
   },
-  "homepage": "https://github.com/bcoe/release-please#readme",
+  "homepage": "https://github.com/googleapis/release-please#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
