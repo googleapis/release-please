@@ -16,7 +16,6 @@ exports['SamplesPackageJson updateContent updates package version in dependencie
     "@google-cloud/firestore": "^14.0.0"
   },
   "devDependencies": {
-    "@google-cloud/nodejs-repo-tools": "^3.0.0",
     "mocha": "^6.0.0"
   }
 }
