@@ -80,7 +80,7 @@ export class GitHubRelease {
       string {
     version = version.replace(/^v/, '');
     const latestRe = new RegExp(
-        `## v?\\[?${version}[^\\n]*\\n(.*?)(\\n##\\s|\\n### \\[?[0-9]\\.|($(?![\r\n])))`, 'ms');
+        `## v?\\[?${version}[^\\n]*\\n(.*?)(\\n##\\s|\\n### \\[?[0-9]+\\.|($(?![\r\n])))`, 'ms');
     const match = changelogContents.match(latestRe);
     if (!match) {
       throw Error('could not find changelog entry corresponding to release PR');
