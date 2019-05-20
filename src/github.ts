@@ -49,6 +49,7 @@ interface GitHubPR {
   body: string;
   sha: string;
   updates: Update[];
+  labels: string[];
 }
 
 export class GitHub {
@@ -267,26 +268,58 @@ export class GitHub {
 
   async openPR(options: GitHubPR): Promise<number> {
     let refName = await this.refByBranchName(options.branch);
+    let openReleasePR: PullsListResponseItem|undefined;
 
     // If the branch exists, we delete it and create a new branch
     // with the same name; this results in the existing PR being closed.
     if (!refName) {
       refName = `refs/heads/${options.branch}`;
+
+      // the branch didn't yet exist, so make it.
+      try {
+        checkpoint(
+            `creating branch ${chalk.green(options.branch)}`,
+            CheckpointType.Success);
+        await this.octokit.git.createRef({
+          owner: this.owner,
+          repo: this.repo,
+          ref: refName,
+          sha: options.sha
+        });
+      } catch (err) {
+        if (err.status === 404) {
+          // the most likely cause of a 404 during this step is actually
+          // that the user does not have access to the repo:
+          throw new AuthError();
+        } else {
+          throw err;
+        }
+      }
+
     } else {
       try {
         checkpoint(
             `branch ${chalk.red(options.branch)} already exists`,
             CheckpointType.Failure);
-        await this.octokit.git.deleteRef({
+
+        // check if there's an existing PR, so that we can opt to update it
+        // rather than creating a new PR.
+        (await this.findOpenReleasePRs(options.labels))
+            .forEach((releasePR: PullsListResponseItem) => {
+              if (refName && refName.indexOf(releasePR.head.ref) !== -1) {
+                openReleasePR = releasePR;
+              }
+            });
+
+        await this.octokit.git.updateRef({
           owner: this.owner,
           repo: this.repo,
-          // DELETE requires that the refs/ prefix used during
-          // creation be removed; this seems like a bug we should log.
-          ref: refName.replace('refs/', '')
+          // TODO: remove the replace logic depending on the outcome of:
+          // https://github.com/octokit/rest.js/issues/1039.
+          ref: refName.replace('refs/', ''),
+          sha: options.sha,
+          force: true
         });
-        checkpoint(
-            `branch ${chalk.red(options.branch)} deleted`,
-            CheckpointType.Success);
       } catch (err) {
         if (err.status === 404) {
           // the most likely cause of a 404 during this step is actually
@@ -298,39 +331,41 @@ export class GitHub {
       }
     }
 
-    // always create the branch (it was potentially deleted in the prior step).
-    try {
-      checkpoint(
-          `creating branch ${chalk.green(options.branch)}`,
-          CheckpointType.Success);
-      await this.octokit.git.createRef(
-          {owner: this.owner, repo: this.repo, ref: refName, sha: options.sha});
-    } catch (err) {
-      if (err.status === 404) {
-        // the most likely cause of a 404 during this step is actually
-        // that the user does not have access to the repo:
-        throw new AuthError();
-      } else {
-        throw err;
-      }
-    }
-
     await this.updateFiles(options.updates, options.branch, refName);
 
-    checkpoint(
-        `open pull-request: ${chalk.yellow(options.title)}`,
-        CheckpointType.Success);
-    const resp: Response<PullsCreateResponse> =
-        await this.octokit.pulls.create({
-          owner: this.owner,
-          repo: this.repo,
-          title: options.title,
-          body: options.body,
-          head: options.branch,
-          base: 'master'
-        });
-
-    return resp.data.number;
+    if (openReleasePR) {
+      // TODO: dig into why `updateRef` closes an issue attached
+      // to the branch being updated:
+      // https://github.com/octokit/rest.js/issues/1373
+      checkpoint(
+          `update pull-request #${openReleasePR.number}: ${
+              chalk.yellow(options.title)}`,
+          CheckpointType.Success);
+      await this.octokit.pulls.update({
+        pull_number: openReleasePR.number,
+        owner: this.owner,
+        repo: this.repo,
+        title: options.title,
+        body: options.body,
+        state: 'open',
+        base: 'master'
+      });
+      return openReleasePR.number;
+    } else {
+      checkpoint(
+          `open pull-request: ${chalk.yellow(options.title)}`,
+          CheckpointType.Success);
+      const resp: Response<PullsCreateResponse> =
+          await this.octokit.pulls.create({
+            owner: this.owner,
+            repo: this.repo,
+            title: options.title,
+            body: options.body,
+            head: options.branch,
+            base: 'master'
+          });
+      return resp.data.number;
+    }
   }
 
   async updateFiles(updates: Update[], branch: string, refName: string) {
@@ -436,7 +471,8 @@ export class GitHub {
   }
 
   async removeLabels(labels: string[], prNumber: number) {
-    await labels.forEach(async (label) => {
+    for (let i = 0, label; i < labels.length; i++) {
+      label = labels[i];
       checkpoint(
           `removing label ${chalk.green(label)} from ${
               chalk.green('' + prNumber)}`,
@@ -447,7 +483,7 @@ export class GitHub {
         issue_number: prNumber,
         name: label
       });
-    });
+    }
   }
 }
 

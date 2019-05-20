@@ -125,7 +125,8 @@ describe('GitHub', () => {
               version: '1.3.0',
               title: 'version 1.3.0',
               body: 'my PR body',
-              updates: []
+              updates: [],
+              labels: []
             })
             .catch(err => {
               nbr.nockDone();

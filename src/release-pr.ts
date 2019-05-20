@@ -152,7 +152,8 @@ export class ReleasePR {
       sha,
       updates,
       title,
-      body
+      body,
+      labels: this.labels
     });
     await this.gh.addLabels(pr, this.labels);
     await this.closeStaleReleasePRs(pr);
