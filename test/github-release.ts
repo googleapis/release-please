@@ -50,5 +50,15 @@ describe('GitHubRelease', () => {
           GitHubRelease.extractLatestReleaseNotes(changelogContent, 'v1.2.0');
       snapshot(latestReleaseNotes);
     });
+
+    // see: https://github.com/googleapis/release-please/issues/140
+    it('extracts appropriate release notes when prior release is patch', () => {
+      const changelogContent =
+          readFileSync(resolve(fixturesPath, './CHANGELOG-bug-140.md'), 'utf8')
+              .replace(/\r\n/g, '\n');
+      const latestReleaseNotes =
+          GitHubRelease.extractLatestReleaseNotes(changelogContent, 'v5.0.0');
+      snapshot(latestReleaseNotes);
+    });
   });
 });

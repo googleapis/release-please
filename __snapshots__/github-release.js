@@ -1,3 +1,17 @@
+exports['GitHubRelease extractLatestReleaseNotes extracts appropriate release notes when prior release is patch 1'] = `
+
+
+### ⚠ BREAKING CHANGES
+
+* temp directory now defaults to setting for report directory
+
+### Features
+
+* default temp directory to report directory ([#102](https://www.github.com/bcoe/c8/issues/102)) ([8602f4a](https://www.github.com/bcoe/c8/commit/8602f4a))
+* load .nycrc/.nycrc.json to simplify migration ([#100](https://www.github.com/bcoe/c8/issues/100)) ([bd7484f](https://www.github.com/bcoe/c8/commit/bd7484f))
+
+`
+
 exports['GitHubRelease extractLatestReleaseNotes handles CHANGELOG with new format entries 1'] = `
 
 
