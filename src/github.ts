@@ -98,26 +98,28 @@ export class GitHub {
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
-    const repository = await graphql(
-        `{
-      repository(owner: "${this.owner}", name: "${this.repo}") {
-        defaultBranchRef{
-          target{
-            ... on Commit{
-              history(first: ${perPage}){
-                edges{
-                  node{                            
-                    ... on Commit{
-                      message
-                      oid
-                      associatedPullRequests(first:1) {
-                        edges {
-                          node {
-                            ... on PullRequest {
-                              files(first: ${maxFilesChanged}) {
-                                edges {
-                                  node {
-                                    path
+    const repository = await graphql({
+      query:
+          `query lastCommits($owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int) {
+        repository(owner: $owner, name: $repo) {
+          defaultBranchRef {
+            target{
+              ... on Commit {
+                history(first: $perPage) {
+                  edges{
+                    node {
+                      ... on Commit {
+                        message
+                        oid
+                        associatedPullRequests(first:1) {
+                          edges {
+                            node {
+                              ... on PullRequest {
+                                files(first: $maxFilesChanged) {
+                                  edges {
+                                    node {
+                                      path
+                                    }
                                   }
                                 }
                               }
@@ -132,9 +134,13 @@ export class GitHub {
             }
           }
         }
-      }
-    }`,
-        {headers: {authorization: `token ${this.token}`}});
+      }`,
+      owner: this.owner,
+      repo: this.repo,
+      perPage,
+      maxFilesChanged,
+      headers: {authorization: `token ${this.token}`}
+    });
     return [];
   }
 
