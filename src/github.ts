@@ -117,7 +117,7 @@ export class GitHub {
                               files(first: ${maxFilesChanged}) {
                                 edges {
                                   node {
-                                		path
+                                    path
                                   }
                                 }
                               }
