@@ -48,6 +48,7 @@
     "typescript": "^3.4.4"
   },
   "dependencies": {
+    "@octokit/graphql": "^2.1.2",
     "@octokit/rest": "^16.24.1",
     "chalk": "^2.4.2",
     "concat-stream": "^2.0.0",

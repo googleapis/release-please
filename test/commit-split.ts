@@ -16,22 +16,13 @@
 
 import * as snapshot from 'snap-shot-it';
 
-import {CandidateIssue} from '../src/candidate-issue';
+import {CommitSplit} from '../src/commit-split';
 
-describe('CandidateIssue', () => {
-  describe('bodyTemplate', () => {
-    it('generates body for issue', () => {
-      const body = CandidateIssue.bodyTemplate(
-          'Features:\n* deps: upgrade foo\n', '@foo/bar');
-      snapshot(body);
-    });
-  });
+const fixturesPath = './test/fixtures';
 
-  describe('bodySansFooter', () => {
-    it('returns the body with the footer removed', () => {
-      const body = CandidateIssue.bodyTemplate(
-          'Features:\n* deps: upgrade foo\n', '@foo/bar');
-      snapshot(CandidateIssue.bodySansFooter(body));
-    });
-  });
+describe('CommitSplit', () => {
+  it('partitions commits based on path from root directory, by default',
+     () => {
+
+     });
 });

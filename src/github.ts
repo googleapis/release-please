@@ -22,6 +22,8 @@ import * as semver from 'semver';
 import {checkpoint, CheckpointType} from './checkpoint';
 import {Update} from './updaters/update';
 
+const graphql = require('@octokit/graphql');
+
 const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
 
 interface GitHubOptions {
@@ -77,6 +79,7 @@ export class GitHub {
         if (commit.sha === sha) {
           return commits;
         } else {
+          console.info(commit);
           // conventional commits parser expects:
           // [commit message]
           // -hash-
@@ -86,6 +89,53 @@ export class GitHub {
       }
     }
     return commits;
+  }
+
+  async commitsWithPathSinceSha(
+      sha: string|undefined, perPage = 64,
+      maxFilesChanged = 64): Promise<string[]> {
+    // The GitHub v3 API does not offer an elegant way to fetch commits
+    // in conjucntion with the path that they modify. We lean on the graphql
+    // API for this one task, fetching commits in descending chronological
+    // order along with the file paths attached to them.
+    const repository = await graphql(
+        `{
+      repository(owner: "${this.owner}", name: "${this.repo}") {
+        defaultBranchRef{
+          target{
+            ... on Commit{
+              history(first: ${perPage}){
+                edges{
+                  node{                            
+                    ... on Commit{
+                      message
+                      oid
+                      associatedPullRequests(first:1) {
+                        edges {
+                          node {
+                            ... on PullRequest {
+                              files(first: ${maxFilesChanged}) {
+                                edges {
+                                  node {
+                                		path
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                    	}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`,
+        {headers: {authorization: `token ${this.token}`}});
+    return [];
   }
 
   async latestTag(perPage = 100): Promise<GitHubTag|undefined> {
