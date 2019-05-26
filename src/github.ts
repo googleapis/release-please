@@ -124,7 +124,7 @@ export class GitHub {
                             }
                           }
                         }
-                    	}
+                      }
                     }
                   }
                 }
