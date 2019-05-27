@@ -92,26 +92,26 @@ export class GitHub {
   }
 
   async commitsWithPathSinceSha(
-      sha: string|undefined, perPage = 64,
-      maxFilesChanged = 64): Promise<string[]> {
+      sha: string|undefined, cursor: string|undefined = undefined, perPage = 64, maxFilesChanged = 100, maxPRs = 16): Promise<string[]> {
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
     const repository = await graphql({
       query:
-          `query lastCommits($owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int) {
+          `query lastCommits($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int, $maxPRs: Int) {
         repository(owner: $owner, name: $repo) {
           defaultBranchRef {
             target{
               ... on Commit {
-                history(first: $perPage) {
+                history(first: $perPage, after: $cursor) {
                   edges{
+                    cursor
                     node {
                       ... on Commit {
                         message
                         oid
-                        associatedPullRequests(first:1) {
+                        associatedPullRequests(first: $maxPRs) {
                           edges {
                             node {
                               ... on PullRequest {
@@ -129,16 +129,22 @@ export class GitHub {
                       }
                     }
                   }
+                  pageInfo {
+                    endCursor
+                    hasNextPage
+                  }
                 }
               }
             }
           }
         }
       }`,
-      owner: this.owner,
-      repo: this.repo,
-      perPage,
+      cursor,
       maxFilesChanged,
+      maxPRs,
+      owner: this.owner,
+      perPage,
+      repo: this.repo,
       headers: {authorization: `token ${this.token}`}
     });
     return [];
