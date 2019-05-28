@@ -23,9 +23,14 @@ describe('ConventionalCommits', () => {
     it('suggests minor release for breaking change pre 1.0', async () => {
       const cc = new ConventionalCommits({
         commits: [
-          'fix: addressed issues with foo',
-          'chore: upgrade to Node 7\n\nBREAKING CHANGE: we were on Node 6',
-          'feat: awesome feature'
+          {message: 'fix: addressed issues with foo', sha: 'abc123', files: []},
+          {
+            message:
+                'chore: upgrade to Node 7\n\nBREAKING CHANGE: we were on Node 6',
+            sha: 'abc345',
+            files: []
+          },
+          {message: 'feat: awesome feature', sha: 'abc678', files: []}
         ],
         githubRepoUrl: 'https://github.com/bcoe/release-please.git',
         bumpMinorPreMajor: true

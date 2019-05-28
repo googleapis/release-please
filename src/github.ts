@@ -20,6 +20,7 @@ import chalk from 'chalk';
 import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './checkpoint';
+import {Commit, CommitsResponse, graphqlToCommits, PREdge} from './graphql-to-commits';
 import {Update} from './updaters/update';
 
 const graphql = require('@octokit/graphql');
@@ -68,58 +69,63 @@ export class GitHub {
   }
 
   async commitsSinceSha(sha: string|undefined, perPage = 100):
-      Promise<string[]> {
-    const commits = [];
-    for await (const response of this.octokit.paginate.iterator({
-      method: 'GET',
-      url: `/repos/${this.owner}/${this.repo}/commits?per_page=${perPage}`
-    })) {
-      for (let i = 0, commit; response.data[i] !== undefined; i++) {
-        commit = response.data[i];
+      Promise<Commit[]> {
+    const commits: Commit[] = [];
+
+    let cursor;
+    while (true) {
+      const commitsResponse: CommitsResponse =
+          await this.commitsWithFiles(cursor, perPage);
+      for (let i = 0, commit: Commit; i < commitsResponse.commits.length; i++) {
+        commit = commitsResponse.commits[i];
         if (commit.sha === sha) {
           return commits;
         } else {
-          console.info(commit);
-          // conventional commits parser expects:
-          // [commit message]
-          // -hash-
-          // [commit sha]
-          commits.push(`${commit.commit.message}\n-hash-\n${commit.sha}`);
+          commits.push(commit);
         }
       }
+      if (commitsResponse.hasNextPage === false || !commitsResponse.endCursor) {
+        return commits;
+      } else {
+        cursor = commitsResponse.endCursor;
+      }
     }
-    return commits;
   }
 
-  async commitsWithPathSinceSha(
-      sha: string|undefined, cursor: string|undefined = undefined, perPage = 64, maxFilesChanged = 100, maxPRs = 16): Promise<string[]> {
+  private async commitsWithFiles(
+      cursor: string|undefined = undefined, perPage = 32,
+      maxFilesChanged = 100): Promise<CommitsResponse> {
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
-    const repository = await graphql({
+    const response = await graphql({
       query:
-          `query lastCommits($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int, $maxPRs: Int) {
+          `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int) {
         repository(owner: $owner, name: $repo) {
           defaultBranchRef {
-            target{
+            target {
               ... on Commit {
                 history(first: $perPage, after: $cursor) {
                   edges{
-                    cursor
                     node {
                       ... on Commit {
                         message
                         oid
-                        associatedPullRequests(first: $maxPRs) {
+                        associatedPullRequests(first: 1) {
                           edges {
                             node {
                               ... on PullRequest {
+                                number
                                 files(first: $maxFilesChanged) {
                                   edges {
                                     node {
                                       path
                                     }
+                                  }
+                                  pageInfo {
+                                    endCursor
+                                    hasNextPage
                                   }
                                 }
                               }
@@ -138,16 +144,61 @@ export class GitHub {
             }
           }
         }
+        rateLimit {
+          limit
+          cost
+          remaining
+          resetAt
+        }
       }`,
       cursor,
       maxFilesChanged,
-      maxPRs,
       owner: this.owner,
       perPage,
       repo: this.repo,
       headers: {authorization: `token ${this.token}`}
     });
-    return [];
+    return await graphqlToCommits(this, response);
+  }
+
+  async pullRequestFiles(num: number, cursor: string, maxFilesChanged = 100):
+      Promise<PREdge> {
+    // Used to handle the edge-case in which a PR has more than 100
+    // modified files attached to it.
+    const response = await graphql({
+      query:
+          `query pullRequestFiles($cursor: String, $owner: String!, $repo: String!, $maxFilesChanged: Int, $num: Int!) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $num) {
+              number
+              files(first: $maxFilesChanged, after: $cursor) {
+                edges {
+                  node {
+                    path
+                  }
+                }
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+              }
+            }
+          }
+          rateLimit {
+            limit
+            cost
+            remaining
+            resetAt
+          }
+        }`,
+      cursor,
+      maxFilesChanged,
+      owner: this.owner,
+      repo: this.repo,
+      num,
+      headers: {authorization: `token ${this.token}`}
+    });
+    return {node: response.repository.pullRequest} as PREdge;
   }
 
   async latestTag(perPage = 100): Promise<GitHubTag|undefined> {
@@ -162,33 +213,6 @@ export class GitHub {
       sha: tags[versions[0]].sha,
       version: tags[versions[0]].version
     };
-  }
-
-  // TODO: investigate why this returns a target_commitish of `master`
-  // even months after the release is created; is there a way to
-  // get the SHA that the release was created at?
-  async latestRelease(): Promise<GitHubTag|undefined> {
-    try {
-      const latestRelease: Response<ReposGetLatestReleaseResponse> =
-          await this.octokit.repos.getLatestRelease(
-              {owner: this.owner, repo: this.repo});
-      const version = semver.valid(latestRelease.data.name);
-      if (version) {
-        console.info(latestRelease.data);
-        return {
-          name: latestRelease.data.name,
-          sha: latestRelease.data.target_commitish,
-          version
-        };
-      }
-    } catch (err) {
-      if (err.status === 404) {
-        // fallback to tags if we don't find a GitHub release.
-      } else {
-        throw err;
-      }
-    }
-    return undefined;
   }
 
   async findMergedReleasePR(labels: string[], perPage = 25):

@@ -20,6 +20,7 @@ import {ReleaseType} from 'semver';
 import {Readable} from 'stream';
 
 import {checkpoint, CheckpointType} from './checkpoint';
+import {Commit} from './graphql-to-commits';
 
 const concat = require('concat-stream');
 const conventionalCommitsFilter = require('conventional-commits-filter');
@@ -29,7 +30,7 @@ const parseGithubRepoUrl = require('parse-github-repo-url');
 const presetFactory = require('conventional-changelog-conventionalcommits');
 
 interface ConventionalCommitsOptions {
-  commits: string[];
+  commits: Commit[];
   githubRepoUrl: string;
   host?: string;
   bumpMinorPreMajor?: boolean;
@@ -62,7 +63,7 @@ interface ParsedConventionalCommit {
 }
 
 export class ConventionalCommits {
-  commits: string[];
+  commits: Commit[];
   host: string;
   owner: string;
   repository: string;
@@ -147,9 +148,13 @@ export class ConventionalCommits {
     });
   }
   private commitsReadable(): Readable {
+    // The conventional commits parser expects an array of string commit
+    // messages terminated by `-hash-` followed by the commit sha. We
+    // piggyback off of this, and use this sha when choosing a
+    // point to branch from for PRs.
     const commitsReadable = new Readable();
-    this.commits.forEach(commit => {
-      commitsReadable.push(commit);
+    this.commits.forEach((commit: Commit) => {
+      commitsReadable.push(`${commit.message}\n-hash-\n${commit.sha}`);
     });
     commitsReadable.push(null);
     return commitsReadable;

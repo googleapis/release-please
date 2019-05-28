@@ -20,6 +20,7 @@ import * as semver from 'semver';
 import {checkpoint, CheckpointType} from './checkpoint';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubReleasePR, GitHubTag} from './github';
+import {Commit} from './graphql-to-commits';
 import {Changelog} from './updaters/changelog';
 import {PackageJson} from './updaters/package-json';
 import {SamplesPackageJson} from './updaters/samples-package-json';
@@ -90,7 +91,7 @@ export class ReleasePR {
 
   private async nodeRelease(): Promise<number|undefined> {
     const latestTag: GitHubTag|undefined = await this.gh.latestTag();
-    const commits: string[] =
+    const commits: Commit[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
 
     const cc = new ConventionalCommits({
@@ -141,7 +142,7 @@ export class ReleasePR {
       packageName: this.packageName
     }));
 
-    const sha = this.shaFromCommits(commits);
+    const sha = commits[0].sha;
     const title = `chore: release ${candidate.version}`;
     const body =
         `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${
@@ -191,7 +192,7 @@ export class ReleasePR {
     return {version, previousTag};
   }
 
-  private async commits(sha: string|undefined): Promise<string[]> {
+  private async commits(sha: string|undefined): Promise<Commit[]> {
     const commits = await this.gh.commitsSinceSha(sha);
     if (commits.length) {
       checkpoint(
@@ -206,14 +207,5 @@ export class ReleasePR {
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({token: this.token, owner, repo});
-  }
-
-  private shaFromCommits(commits: string[]): string {
-    // The conventional commits parser expects an array of string commit
-    // messages terminated by `-hash-` followed by the commit sha. We
-    // piggyback off of this, and use this sha when choosing a
-    // point to branch from for PRs.
-    const split = commits[0].split('-hash-');
-    return split[split.length - 1].trim();
   }
 }

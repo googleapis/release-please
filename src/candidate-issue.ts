@@ -20,6 +20,7 @@ import * as semver from 'semver';
 import {checkpoint, CheckpointType} from './checkpoint';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag} from './github';
+import {Commit} from './graphql-to-commits';
 import {ReleaseCandidate, ReleaseType} from './release-pr';
 import {ReleasePR, ReleasePROptions} from './release-pr';
 
@@ -88,7 +89,7 @@ export class CandidateIssue {
 
   private async nodeReleaseCandidate(issue?: IssuesListResponseItem) {
     const latestTag: GitHubTag|undefined = await this.gh.latestTag();
-    const commits: string[] =
+    const commits: Commit[] =
         await this.commits(latestTag ? latestTag.sha : undefined);
     const cc = new ConventionalCommits({
       commits,
@@ -158,7 +159,7 @@ export class CandidateIssue {
     return {version, previousTag};
   }
 
-  private async commits(sha: string|undefined): Promise<string[]> {
+  private async commits(sha: string|undefined): Promise<Commit[]> {
     const commits = await this.gh.commitsSinceSha(sha);
     if (commits.length) {
       checkpoint(
