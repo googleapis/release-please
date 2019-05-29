@@ -90,7 +90,7 @@ release-please github-release --repo-url=googleapis/nodejs-firestore \
 
 ### GitHub Actions
 
-An elegant way to configure `Release Please` is through 
+An elegant way to configure `Release Please` is through
 [GitHub Actions](https://github.com/features/actions). To generate a
 `main.workflow` for `Release Please`, simply run:
 
