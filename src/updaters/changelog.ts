@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {checkpoint, CheckpointType} from '../checkpoint';
-import {Update, UpdateOptions} from './update';
+import { checkpoint, CheckpointType } from '../checkpoint';
+import { Update, UpdateOptions } from './update';
 
 export class Changelog implements Update {
   path: string;
@@ -31,7 +31,7 @@ export class Changelog implements Update {
     this.version = options.version;
     this.packageName = options.packageName;
   }
-  updateContent(content: string|undefined): string {
+  updateContent(content: string | undefined): string {
     content = content || '';
     // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
     const lastEntryIndex = content.search(/\n###? v?[0-9[]/s);

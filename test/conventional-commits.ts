@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-import {ConventionalCommits} from '../src/conventional-commits';
+import { ConventionalCommits } from '../src/conventional-commits';
 
-const {expect} = require('chai');
+const { expect } = require('chai');
 
 describe('ConventionalCommits', () => {
   describe('suggestBump', () => {
     it('suggests minor release for breaking change pre 1.0', async () => {
       const cc = new ConventionalCommits({
         commits: [
-          {message: 'fix: addressed issues with foo', sha: 'abc123', files: []},
+          {
+            message: 'fix: addressed issues with foo',
+            sha: 'abc123',
+            files: [],
+          },
           {
             message:
-                'chore: upgrade to Node 7\n\nBREAKING CHANGE: we were on Node 6',
+              'chore: upgrade to Node 7\n\nBREAKING CHANGE: we were on Node 6',
             sha: 'abc345',
-            files: []
+            files: [],
           },
-          {message: 'feat: awesome feature', sha: 'abc678', files: []}
+          { message: 'feat: awesome feature', sha: 'abc678', files: [] },
         ],
         githubRepoUrl: 'https://github.com/bcoe/release-please.git',
-        bumpMinorPreMajor: true
+        bumpMinorPreMajor: true,
       });
       const bump = await cc.suggestBump('0.3.0');
       expect(bump.releaseType).to.equal('minor');

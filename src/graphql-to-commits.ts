@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {GitHub} from './github';
+import { GitHub } from './github';
 
 // simplified model for working with commits (vs., GraphQL response):
 
@@ -33,7 +33,7 @@ export interface Commit {
 // define what the expected GraphQL response looks like.
 
 interface CommitHistoryGraphQLResponse {
-  repository: {defaultBranchRef: {target: {history: CommitHistory;}}};
+  repository: { defaultBranchRef: { target: { history: CommitHistory } } };
 }
 
 interface CommitHistory {
@@ -43,16 +43,18 @@ interface CommitHistory {
 
 interface CommitEdge {
   node: {
-    message: string; oid: string; associatedPullRequests: {edges: PREdge[];}
+    message: string;
+    oid: string;
+    associatedPullRequests: { edges: PREdge[] };
   };
 }
 
 export interface PREdge {
-  node: {number: number; files: {edges: FileEdge[]; pageInfo: PageInfo;}};
+  node: { number: number; files: { edges: FileEdge[]; pageInfo: PageInfo } };
 }
 
 interface FileEdge {
-  node: {path: string;};
+  node: { path: string };
 }
 
 interface PageInfo {
@@ -61,14 +63,15 @@ interface PageInfo {
 }
 
 export async function graphqlToCommits(
-    github: GitHub,
-    response: CommitHistoryGraphQLResponse): Promise<CommitsResponse> {
+  github: GitHub,
+  response: CommitHistoryGraphQLResponse
+): Promise<CommitsResponse> {
   const commitHistory: CommitHistory =
-      response.repository.defaultBranchRef.target.history;
+    response.repository.defaultBranchRef.target.history;
   const commits: CommitsResponse = {
     endCursor: commitHistory.pageInfo.endCursor,
     hasNextPage: commitHistory.pageInfo.hasNextPage,
-    commits: []
+    commits: [],
   };
   for (let i = 0, commitEdge: CommitEdge; i < commitHistory.edges.length; i++) {
     commitEdge = commitHistory.edges[i];
@@ -79,12 +82,22 @@ export async function graphqlToCommits(
 }
 
 async function graphqlToCommit(
-    github: GitHub, commitEdge: CommitEdge): Promise<Commit> {
+  github: GitHub,
+  commitEdge: CommitEdge
+): Promise<Commit> {
   const commit = {
     sha: commitEdge.node.oid,
     message: commitEdge.node.message,
-    files: []
+    files: [],
   } as Commit;
+
+  // TODO(bcoe): currently, due to limitations with the GitHub v4 API, we
+  // are only able to fetch files associated with a commit if it has
+  // an associated PR; this is a problem for code pushed directly to the
+  // default branch. We should be mindful of this limitation, and fix when the
+  // upstream API changes.
+  if (commitEdge.node.associatedPullRequests.edges.length === 0) return commit;
+
   let prEdge: PREdge = commitEdge.node.associatedPullRequests.edges[0];
 
   // if, on the off chance, there are more than 100 files attached to a
@@ -95,7 +108,9 @@ async function graphqlToCommit(
     }
     if (prEdge.node.files.pageInfo.hasNextPage) {
       prEdge = await github.pullRequestFiles(
-          prEdge.node.number, prEdge.node.files.pageInfo.endCursor);
+        prEdge.node.number,
+        prEdge.node.files.pageInfo.endCursor
+      );
       continue;
     }
     if (prEdge.node.files.pageInfo.hasNextPage === false) break;

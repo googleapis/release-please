@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-import {IssuesListResponseItem, PullsCreateResponse, PullsListResponseItem, ReposListTagsResponseItem, Response} from '@octokit/rest';
+import {
+  IssuesListResponseItem,
+  PullsCreateResponse,
+  PullsListResponseItem,
+  ReposListTagsResponseItem,
+  Response,
+} from '@octokit/rest';
 import chalk from 'chalk';
 
-import {checkpoint, CheckpointType} from './checkpoint';
-import {GitHub, GitHubReleasePR} from './github';
+import { checkpoint, CheckpointType } from './checkpoint';
+import { GitHub, GitHubReleasePR } from './github';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
@@ -33,7 +39,7 @@ export class GitHubRelease {
   gh: GitHub;
   labels: string[];
   repoUrl: string;
-  token: string|undefined;
+  token: string | undefined;
 
   constructor(options: GitHubReleaseOptions) {
     this.labels = options.label.split(',');
@@ -46,25 +52,34 @@ export class GitHubRelease {
   }
 
   async createRelease() {
-    const gitHubReleasePR: GitHubReleasePR|undefined =
-        await this.gh.findMergedReleasePR(this.labels);
+    const gitHubReleasePR:
+      | GitHubReleasePR
+      | undefined = await this.gh.findMergedReleasePR(this.labels);
     if (gitHubReleasePR) {
       checkpoint(
-          `found release branch ${chalk.green(gitHubReleasePR.version)} at ${
-              chalk.green(gitHubReleasePR.sha)}`,
-          CheckpointType.Success);
+        `found release branch ${chalk.green(
+          gitHubReleasePR.version
+        )} at ${chalk.green(gitHubReleasePR.sha)}`,
+        CheckpointType.Success
+      );
 
-      const changelogContents =
-          await this.gh.getFileContents(this.changelogPath);
+      const changelogContents = await this.gh.getFileContents(
+        this.changelogPath
+      );
       const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
-          changelogContents, gitHubReleasePR.version);
+        changelogContents,
+        gitHubReleasePR.version
+      );
       checkpoint(
-          `found release notes: \n---\n${
-              chalk.grey(latestReleaseNotes)}\n---\n`,
-          CheckpointType.Success);
+        `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
+        CheckpointType.Success
+      );
 
       await this.gh.createRelease(
-          gitHubReleasePR.version, gitHubReleasePR.sha, latestReleaseNotes);
+        gitHubReleasePR.version,
+        gitHubReleasePR.sha,
+        latestReleaseNotes
+      );
       await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
     } else {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
@@ -73,16 +88,18 @@ export class GitHubRelease {
 
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
-    return new GitHub({token: this.token, owner, repo});
+    return new GitHub({ token: this.token, owner, repo });
   }
 
-  static extractLatestReleaseNotes(changelogContents: string, version: string):
-      string {
+  static extractLatestReleaseNotes(
+    changelogContents: string,
+    version: string
+  ): string {
     version = version.replace(/^v/, '');
     const latestRe = new RegExp(
-        `## v?\\[?${
-            version}[^\\n]*\\n(.*?)(\\n##\\s|\\n### \\[?[0-9]+\\.|($(?![\r\n])))`,
-        'ms');
+      `## v?\\[?${version}[^\\n]*\\n(.*?)(\\n##\\s|\\n### \\[?[0-9]+\\.|($(?![\r\n])))`,
+      'ms'
+    );
     const match = changelogContents.match(latestRe);
     if (!match) {
       throw Error('could not find changelog entry corresponding to release PR');

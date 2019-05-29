@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-import {PullsListResponseItem} from '@octokit/rest';
+import { PullsListResponseItem } from '@octokit/rest';
 import * as semver from 'semver';
 
-import {checkpoint, CheckpointType} from './checkpoint';
-import {ConventionalCommits} from './conventional-commits';
-import {GitHub, GitHubReleasePR, GitHubTag} from './github';
-import {Commit} from './graphql-to-commits';
-import {Changelog} from './updaters/changelog';
-import {PackageJson} from './updaters/package-json';
-import {SamplesPackageJson} from './updaters/samples-package-json';
-import {Update} from './updaters/update';
+import { checkpoint, CheckpointType } from './checkpoint';
+import { ConventionalCommits } from './conventional-commits';
+import { GitHub, GitHubReleasePR, GitHubTag } from './github';
+import { Commit, graphqlToCommits } from './graphql-to-commits';
+import { CommitSplit } from './commit-split';
+import { Changelog } from './updaters/changelog';
+import { PackageJson } from './updaters/package-json';
+import { SamplesPackageJson } from './updaters/samples-package-json';
+import { Update } from './updaters/update';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export enum ReleaseType {
-  Node = 'node'
+  Node = 'node',
+  PHPYoshi = 'php-yoshi',
 }
 
 export interface ReleasePROptions {
   bumpMinorPreMajor?: boolean;
   label: string;
-  issueLabel?: string;
   token?: string;
   repoUrl: string;
   packageName: string;
@@ -53,7 +54,7 @@ export class ReleasePR {
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   repoUrl: string;
-  token: string|undefined;
+  token: string | undefined;
   packageName: string;
   releaseAs?: string;
   releaseType: ReleaseType;
@@ -70,83 +71,95 @@ export class ReleasePR {
     this.gh = this.gitHubInstance();
   }
 
-  async run(): Promise<number|undefined> {
-    const pr: GitHubReleasePR|undefined =
-        await this.gh.findMergedReleasePR(this.labels);
+  async run() {
+    const pr: GitHubReleasePR | undefined = await this.gh.findMergedReleasePR(
+      this.labels
+    );
     if (pr) {
       // a PR already exists in the autorelease: pending state.
       checkpoint(
-          `pull #${pr.number} ${pr.sha} has not yet been released`,
-          CheckpointType.Failure);
-      return pr.number;
+        `pull #${pr.number} ${pr.sha} has not yet been released`,
+        CheckpointType.Failure
+      );
     } else {
       switch (this.releaseType) {
         case ReleaseType.Node:
-          return await this.nodeRelease();
+          return this.nodeRelease();
+        case ReleaseType.PHPYoshi:
+          return this.phpYoshiRelease();
         default:
           throw Error('unknown release type');
       }
     }
   }
 
-  private async nodeRelease(): Promise<number|undefined> {
-    const latestTag: GitHubTag|undefined = await this.gh.latestTag();
-    const commits: Commit[] =
-        await this.commits(latestTag ? latestTag.sha : undefined);
+  private async nodeRelease() {
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
+    const commits: Commit[] = await this.commits(
+      latestTag ? latestTag.sha : undefined
+    );
 
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
-      bumpMinorPreMajor: this.bumpMinorPreMajor
+      bumpMinorPreMajor: this.bumpMinorPreMajor,
     });
-    const candidate: ReleaseCandidate =
-        await this.coerceReleaseCandidate(cc, latestTag);
+    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
+      cc,
+      latestTag
+    );
 
     const changelogEntry = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag
+      previousTag: candidate.previousTag,
     });
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
-    if (changelogEntry.split('\n').length === 1) {
+    if (changelogEmpty(changelogEntry)) {
       checkpoint(
-          `no user facing commits found since ${
-              latestTag ? latestTag.sha : 'beginning of time'}`,
-          CheckpointType.Failure);
-      return undefined;
+        `no user facing commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return;
     }
 
     const updates: Update[] = [];
 
-    updates.push(new Changelog({
-      path: 'CHANGELOG.md',
-      changelogEntry,
-      version: candidate.version,
-      packageName: this.packageName
-    }));
+    updates.push(
+      new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
 
-    updates.push(new PackageJson({
-      path: 'package.json',
-      changelogEntry,
-      version: candidate.version,
-      packageName: this.packageName
-    }));
+    updates.push(
+      new PackageJson({
+        path: 'package.json',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
 
-    updates.push(new SamplesPackageJson({
-      path: 'samples/package.json',
-      changelogEntry,
-      version: candidate.version,
-      packageName: this.packageName
-    }));
+    updates.push(
+      new SamplesPackageJson({
+        path: 'samples/package.json',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
 
     const sha = commits[0].sha;
     const title = `chore: release ${candidate.version}`;
-    const body =
-        `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${
-            changelogEntry}`;
+    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${candidate.version}`,
       version: candidate.version,
@@ -154,16 +167,49 @@ export class ReleasePR {
       updates,
       title,
       body,
-      labels: this.labels
+      labels: this.labels,
     });
     await this.gh.addLabels(pr, this.labels);
     await this.closeStaleReleasePRs(pr);
-    return pr;
+  }
+
+  private async phpYoshiRelease() {
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
+    const commits: Commit[] = await this.commits(
+      latestTag ? latestTag.sha : undefined
+    );
+
+    const cs = new CommitSplit();
+
+    // partition a set of packages in the mono-repo that need to be
+    // updated since our last release -- the set of string keys
+    // is sorted to ensure consistency in the CHANGELOG.
+    const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
+    const pkgKeys: string[] = Object.keys(commitLookup).sort();
+    for (let i = 0; i < pkgKeys.length; i++) {
+      const pkgKey: string = pkgKeys[i];
+      const cc = new ConventionalCommits({
+        commits: commitLookup[pkgKey],
+        githubRepoUrl: this.repoUrl,
+        bumpMinorPreMajor: this.bumpMinorPreMajor,
+      });
+
+      // some packages in the mono-repo might have only had chores,
+      // build updates, etc., applied.
+      if (
+        !changelogEmpty(await cc.generateChangelogEntry({ version: '0.0.0' }))
+      ) {
+        console.info(`# ${pkgKey}`);
+        console.info(await cc.generateChangelogEntry({ version: '0.0.0' }));
+        console.info('----\n');
+      }
+    }
   }
 
   private async closeStaleReleasePRs(currentPRNumber: number) {
-    const prs: PullsListResponseItem[] =
-        await this.gh.findOpenReleasePRs(this.labels);
+    const prs: PullsListResponseItem[] = await this.gh.findOpenReleasePRs(
+      this.labels
+    );
     for (let i = 0, pr: PullsListResponseItem; i < prs.length; i++) {
       pr = prs[i];
       // don't close the most up-to-date release PR.
@@ -175,8 +221,9 @@ export class ReleasePR {
   }
 
   private async coerceReleaseCandidate(
-      cc: ConventionalCommits,
-      latestTag: GitHubTag|undefined): Promise<ReleaseCandidate> {
+    cc: ConventionalCommits,
+    latestTag: GitHubTag | undefined
+  ): Promise<ReleaseCandidate> {
     const previousTag = latestTag ? latestTag.name : undefined;
     let version = latestTag ? latestTag.version : '1.0.0';
 
@@ -189,15 +236,16 @@ export class ReleasePR {
       version = this.releaseAs;
     }
 
-    return {version, previousTag};
+    return { version, previousTag };
   }
 
-  private async commits(sha: string|undefined): Promise<Commit[]> {
+  private async commits(sha: string | undefined): Promise<Commit[]> {
     const commits = await this.gh.commitsSinceSha(sha);
     if (commits.length) {
       checkpoint(
-          `found ${commits.length} commits since ${sha}`,
-          CheckpointType.Success);
+        `found ${commits.length} commits since ${sha}`,
+        CheckpointType.Success
+      );
     } else {
       checkpoint(`no commits found since ${sha}`, CheckpointType.Failure);
     }
@@ -206,6 +254,10 @@ export class ReleasePR {
 
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
-    return new GitHub({token: this.token, owner, repo});
+    return new GitHub({ token: this.token, owner, repo });
   }
+}
+
+function changelogEmpty(changelogEntry: string) {
+  return changelogEntry.split('\n').length === 1;
 }

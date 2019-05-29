@@ -27,5 +27,5 @@ export interface Update {
   path: string;
   packageName: string;
   version: string;
-  updateContent(content: string|undefined): string;
+  updateContent(content: string | undefined): string;
 }

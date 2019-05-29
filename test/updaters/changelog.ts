@@ -14,53 +14,53 @@
  * limitations under the License.
  */
 
-import {readFileSync} from 'fs';
-import {basename, resolve} from 'path';
+import { readFileSync } from 'fs';
+import { basename, resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {Changelog} from '../../src/updaters/changelog';
-import {UpdateOptions} from '../../src/updaters/update';
+import { Changelog } from '../../src/updaters/changelog';
+import { UpdateOptions } from '../../src/updaters/update';
 
 const fixturesPath = './test/updaters/fixtures';
 
 describe('ChangelogUpdater', () => {
   describe('updateContent', () => {
-    it('inserts content at appropriate location if CHANGELOG exists',
-       async () => {
-         const oldContent =
-             readFileSync(resolve(fixturesPath, './CHANGELOG.md'), 'utf8')
-                 .replace(/\r\n/g, '\n');
-         const changelog = new Changelog({
-           path: 'CHANGELOG.md',
-           changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-           version: '1.0.0',
-           packageName: '@google-cloud/foo'
-         });
-         const newContent = changelog.updateContent(oldContent);
-         snapshot(newContent);
-       });
+    it('inserts content at appropriate location if CHANGELOG exists', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './CHANGELOG.md'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const changelog = new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
+        version: '1.0.0',
+        packageName: '@google-cloud/foo',
+      });
+      const newContent = changelog.updateContent(oldContent);
+      snapshot(newContent);
+    });
 
-    it('inserts content at appropriate location if CHANGELOG exists, and last release was a patch',
-       async () => {
-         const oldContent =
-             readFileSync(resolve(fixturesPath, './CHANGELOG-fix.md'), 'utf8')
-                 .replace(/\r\n/g, '\n');
-         const changelog = new Changelog({
-           path: 'CHANGELOG.md',
-           changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-           version: '1.0.0',
-           packageName: '@google-cloud/foo'
-         });
-         const newContent = changelog.updateContent(oldContent);
-         snapshot(newContent);
-       });
+    it('inserts content at appropriate location if CHANGELOG exists, and last release was a patch', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './CHANGELOG-fix.md'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const changelog = new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
+        version: '1.0.0',
+        packageName: '@google-cloud/foo',
+      });
+      const newContent = changelog.updateContent(oldContent);
+      snapshot(newContent);
+    });
 
     it('populates a new CHANGELOG if none exists', async () => {
       const changelog = new Changelog({
         path: 'CHANGELOG.md',
         changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
         version: '1.0.0',
-        packageName: 'foo-package'
+        packageName: 'foo-package',
       });
       const newContent = changelog.updateContent(undefined);
       snapshot(newContent);

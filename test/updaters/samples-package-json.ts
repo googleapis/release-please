@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-import {readFileSync} from 'fs';
-import {basename, resolve} from 'path';
+import { readFileSync } from 'fs';
+import { basename, resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {SamplesPackageJson} from '../../src/updaters/samples-package-json';
-import {UpdateOptions} from '../../src/updaters/update';
+import { SamplesPackageJson } from '../../src/updaters/samples-package-json';
+import { UpdateOptions } from '../../src/updaters/update';
 
 const fixturesPath = './test/updaters/fixtures';
 
 describe('SamplesPackageJson', () => {
   describe('updateContent', () => {
     it('updates package version in dependencies', async () => {
-      const oldContent =
-          readFileSync(resolve(fixturesPath, './samples-package.json'), 'utf8');
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './samples-package.json'),
+        'utf8'
+      );
       const samplesPackageJson = new SamplesPackageJson({
         path: 'samples/package.json',
         changelogEntry: '',
         version: '14.0.0',
-        packageName: '@google-cloud/firestore'
+        packageName: '@google-cloud/firestore',
       });
       const newContent = samplesPackageJson.updateContent(oldContent);
       snapshot(newContent);

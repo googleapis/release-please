@@ -14,14 +14,32 @@
  * limitations under the License.
  */
 
+import { Commit } from './graphql-to-commits';
+import { relative } from 'path';
+
 interface CommitSplitOptions {
   root?: string;
 }
 
 export class CommitSplit {
   root: string;
-  constructor(commits: string[], opts?: CommitSplitOptions) {
+  constructor(opts?: CommitSplitOptions) {
     opts = opts || {};
     this.root = opts.root || './';
+  }
+  split(commits: Commit[]): { [key: string]: Commit[] } {
+    const splitCommits: { [key: string]: Commit[] } = {};
+    commits.forEach((commit: Commit) => {
+      const dedupe: Set<string> = new Set();
+      for (let i = 0; i < commit.files.length; i++) {
+        const file: string = commit.files[i];
+        const pkgName = relative(this.root, file).split(/[/\\]/)[0];
+        if (dedupe.has(pkgName)) continue;
+        else dedupe.add(pkgName);
+        if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
+        splitCommits[pkgName].push(commit);
+      }
+    });
+    return splitCommits;
   }
 }

@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {CommitSplit} from '../src/commit-split';
+import { CommitSplit } from '../src/commit-split';
+import { GitHub } from '../src/github';
+import { Commit, graphqlToCommits } from '../src/graphql-to-commits';
 
 const fixturesPath = './test/fixtures';
 
-describe('CommitSplit', () => {
-  it('partitions commits based on path from root directory, by default',
-     () => {
+const github = new GitHub({ owner: 'fake', repo: 'fake' });
 
-     });
+describe('CommitSplit', () => {
+  it('partitions commits based on path from root directory by default', async () => {
+    const graphql = JSON.parse(
+      readFileSync(
+        resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
+        'utf8'
+      )
+    );
+    const commits: Commit[] = (await graphqlToCommits(github, graphql)).commits;
+    const cs = new CommitSplit();
+    snapshot(cs.split(commits));
+  });
 });

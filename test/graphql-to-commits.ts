@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {GitHub} from '../src/github';
-import {graphqlToCommits} from '../src/graphql-to-commits';
+import { GitHub } from '../src/github';
+import { graphqlToCommits } from '../src/graphql-to-commits';
 
 const fixturesPath = './test/fixtures';
 
-const github = new GitHub({owner: 'fake', repo: 'fake'});
+const github = new GitHub({ owner: 'fake', repo: 'fake' });
 
 describe('graphqlToCommits', () => {
   it('converts raw graphql response into Commits object', async () => {
-    const graphql = JSON.parse(readFileSync(
-        resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'), 'utf8'));
+    const graphql = JSON.parse(
+      readFileSync(
+        resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
+        'utf8'
+      )
+    );
     const commits = await graphqlToCommits(github, graphql);
     snapshot(commits);
   });
