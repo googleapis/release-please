@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { checkpoint, CheckpointType } from '../checkpoint';
-import { Update, UpdateOptions } from './update';
 import { GitHubFileContents } from '../github';
 
-export class Changelog implements Update {
+import { checkpoint, CheckpointType } from '../checkpoint';
+import { Update, UpdateOptions } from './update';
+
+export class Version implements Update {
   path: string;
   changelogEntry: string;
   version: string;
@@ -27,35 +28,14 @@ export class Changelog implements Update {
   contents?: GitHubFileContents;
 
   constructor(options: UpdateOptions) {
-    this.create = true;
+    this.create = false;
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
+    this.contents = options.contents;
   }
-
-  updateContent(content: string | undefined): string {
-    content = content || '';
-    // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
-    const lastEntryIndex = content.search(/\n###? v?[0-9[]/s);
-    if (lastEntryIndex === -1) {
-      checkpoint(`${this.path} not found`, CheckpointType.Failure);
-      checkpoint(`creating ${this.path}`, CheckpointType.Success);
-      return `${this.header()}\n${this.changelogEntry}\n`;
-    } else {
-      checkpoint(`updating ${this.path}`, CheckpointType.Success);
-      const before = content.slice(0, lastEntryIndex);
-      const after = content.slice(lastEntryIndex);
-      return `${before}\n${this.changelogEntry}\n${after}`.trim() + '\n';
-    }
-  }
-  private header() {
-    return `\
-# Changelog
-
-[npm history][1]
-
-[1]: https://www.npmjs.com/package/${this.packageName}?activeTab=versions
-`;
+  updateContent(content: string): string {
+    return `${this.version}`;
   }
 }

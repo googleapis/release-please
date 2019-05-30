@@ -9,5 +9,6 @@ s.copy(templates, excludes=[
   '.eslintrc.yml',
   '.prettierignore',
   '.prettierrc',
-  '.nycrc'
+  '.nycrc',
+  '.kokoro'
 ])

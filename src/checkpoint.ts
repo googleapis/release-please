@@ -18,12 +18,14 @@ import * as figures from 'figures';
 
 export enum CheckpointType {
   Success = 'success',
-  Failure = 'failure'
+  Failure = 'failure',
 }
 
 export function checkpoint(msg: string, type: CheckpointType) {
-  const prefix = type === CheckpointType.Success ? chalk.green(figures.tick) :
-                                                   chalk.red(figures.cross);
+  const prefix =
+    type === CheckpointType.Success
+      ? chalk.green(figures.tick)
+      : chalk.red(figures.cross);
   if (process.env.ENVIRONMENT !== 'test') {
     console.info(`${prefix} ${msg}`);
   }

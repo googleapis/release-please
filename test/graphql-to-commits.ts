@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {CandidateIssue} from '../src/candidate-issue';
+import { GitHub } from '../src/github';
+import { graphqlToCommits } from '../src/graphql-to-commits';
 
 const fixturesPath = './test/fixtures';
 
-describe('CandidateIssue', () => {
-  describe('bodyTemplate', () => {
-    it('generates body for issue', () => {
-      const body = CandidateIssue.bodyTemplate(
-          'Features:\n* deps: upgrade foo\n', '@foo/bar');
-      snapshot(body);
-    });
-  });
+const github = new GitHub({ owner: 'fake', repo: 'fake' });
 
-  describe('bodySansFooter', () => {
-    it('returns the body with the footer removed', () => {
-      const body = CandidateIssue.bodyTemplate(
-          'Features:\n* deps: upgrade foo\n', '@foo/bar');
-      snapshot(CandidateIssue.bodySansFooter(body));
-    });
+describe('graphqlToCommits', () => {
+  it('converts raw graphql response into Commits object', async () => {
+    const graphql = JSON.parse(
+      readFileSync(
+        resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
+        'utf8'
+      )
+    );
+    const commits = await graphqlToCommits(github, graphql);
+    snapshot(commits);
   });
 });

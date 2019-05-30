@@ -15,29 +15,27 @@
  */
 
 import { readFileSync } from 'fs';
-import { basename, resolve } from 'path';
+import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { PackageJson } from '../../src/updaters/package-json';
-import { UpdateOptions } from '../../src/updaters/update';
+import { CommitSplit } from '../src/commit-split';
+import { GitHub } from '../src/github';
+import { Commit, graphqlToCommits } from '../src/graphql-to-commits';
 
-const fixturesPath = './test/updaters/fixtures';
+const fixturesPath = './test/fixtures';
 
-describe('PackageJson', () => {
-  describe('updateContent', () => {
-    it('updates the package version', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './package.json'),
+const github = new GitHub({ owner: 'fake', repo: 'fake' });
+
+describe('CommitSplit', () => {
+  it('partitions commits based on path from root directory by default', async () => {
+    const graphql = JSON.parse(
+      readFileSync(
+        resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
         'utf8'
-      );
-      const packageJson = new PackageJson({
-        path: 'packae.json',
-        changelogEntry: '',
-        version: '14.0.0',
-        packageName: '@google-cloud/foo',
-      });
-      const newContent = packageJson.updateContent(oldContent);
-      snapshot(newContent);
-    });
+      )
+    );
+    const commits: Commit[] = (await graphqlToCommits(github, graphql)).commits;
+    const cs = new CommitSplit();
+    snapshot(cs.split(commits));
   });
 });

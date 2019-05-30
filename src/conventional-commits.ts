@@ -16,10 +16,11 @@
 
 import chalk from 'chalk';
 import * as semver from 'semver';
-import {ReleaseType} from 'semver';
-import {Readable} from 'stream';
+import { ReleaseType } from 'semver';
+import { Readable } from 'stream';
 
-import {checkpoint, CheckpointType} from './checkpoint';
+import { checkpoint, CheckpointType } from './checkpoint';
+import { Commit } from './graphql-to-commits';
 
 const concat = require('concat-stream');
 const conventionalCommitsFilter = require('conventional-commits-filter');
@@ -29,7 +30,7 @@ const parseGithubRepoUrl = require('parse-github-repo-url');
 const presetFactory = require('conventional-changelog-conventionalcommits');
 
 interface ConventionalCommitsOptions {
-  commits: string[];
+  commits: Commit[];
   githubRepoUrl: string;
   host?: string;
   bumpMinorPreMajor?: boolean;
@@ -49,20 +50,20 @@ interface BumpSuggestion {
 
 interface ParsedConventionalCommit {
   type: string;
-  scope: string|null;
+  scope: string | null;
   subject: string;
-  merge: boolean|null;
+  merge: boolean | null;
   header: string;
-  body: string|null;
-  footer: string|null;
+  body: string | null;
+  footer: string | null;
   notes: object[];
   references: object[];
   mentions: string[];
-  revert: boolean|null;
+  revert: boolean | null;
 }
 
 export class ConventionalCommits {
-  commits: string[];
+  commits: Commit[];
   host: string;
   owner: string;
   repository: string;
@@ -79,17 +80,21 @@ export class ConventionalCommits {
     this.repository = repository;
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
-    const preMajor =
-        this.bumpMinorPreMajor ? semver.lt(version, 'v1.0.0') : false;
+    const preMajor = this.bumpMinorPreMajor
+      ? semver.lt(version, 'v1.0.0')
+      : false;
     const bump: BumpSuggestion = await this.guessReleaseType(preMajor);
     checkpoint(
-        `release as ${chalk.green(bump.releaseType)}: ${
-            chalk.yellow(bump.reason)}`,
-        CheckpointType.Success);
+      `release as ${chalk.green(bump.releaseType)}: ${chalk.yellow(
+        bump.reason
+      )}`,
+      CheckpointType.Success
+    );
     return bump;
   }
-  async generateChangelogEntry(options: ChangelogEntryOptions):
-      Promise<string> {
+  async generateChangelogEntry(
+    options: ChangelogEntryOptions
+  ): Promise<string> {
     const context = {
       host: this.host,
       owner: this.owner,
@@ -97,15 +102,14 @@ export class ConventionalCommits {
       version: options.version,
       previousTag: options.previousTag,
       currentTag: options.currentTag,
-      linkCompare: !!options.previousTag
+      linkCompare: !!options.previousTag,
     };
     const preset = await presetFactory({});
     return new Promise((resolve, reject) => {
       let content = '';
-      const stream =
-          this.commitsReadable()
-              .pipe(conventionalCommitsParser(preset.parserOpts))
-              .pipe(conventionalChangelogWriter(context, preset.writerOpts));
+      const stream = this.commitsReadable()
+        .pipe(conventionalCommitsParser(preset.parserOpts))
+        .pipe(conventionalChangelogWriter(context, preset.writerOpts));
 
       stream.on('error', (err: Error) => {
         return reject(err);
@@ -122,24 +126,28 @@ export class ConventionalCommits {
   }
   private async guessReleaseType(preMajor: boolean): Promise<BumpSuggestion> {
     const VERSIONS = ['major', 'minor', 'patch'];
-    const preset = await presetFactory({preMajor});
+    const preset = await presetFactory({ preMajor });
     return new Promise((resolve: Function, reject: Function) => {
       const stream = this.commitsReadable()
-                         .pipe(conventionalCommitsParser(preset.parserOpts))
-                         .pipe(concat((data: ParsedConventionalCommit[]) => {
-                           const commits = conventionalCommitsFilter(data);
+        .pipe(conventionalCommitsParser(preset.parserOpts))
+        .pipe(
+          concat((data: ParsedConventionalCommit[]) => {
+            const commits = conventionalCommitsFilter(data);
 
-                           let result = preset.recommendedBumpOpts.whatBump(
-                               commits, preset.recommendedBumpOpts);
+            let result = preset.recommendedBumpOpts.whatBump(
+              commits,
+              preset.recommendedBumpOpts
+            );
 
-                           if (result && result.level != null) {
-                             result.releaseType = VERSIONS[result.level];
-                           } else if (result == null) {
-                             result = {};
-                           }
+            if (result && result.level != null) {
+              result.releaseType = VERSIONS[result.level];
+            } else if (result == null) {
+              result = {};
+            }
 
-                           return resolve(result);
-                         }));
+            return resolve(result);
+          })
+        );
 
       stream.on('error', (err: Error) => {
         return reject(err);
@@ -147,9 +155,13 @@ export class ConventionalCommits {
     });
   }
   private commitsReadable(): Readable {
+    // The conventional commits parser expects an array of string commit
+    // messages terminated by `-hash-` followed by the commit sha. We
+    // piggyback off of this, and use this sha when choosing a
+    // point to branch from for PRs.
     const commitsReadable = new Readable();
-    this.commits.forEach(commit => {
-      commitsReadable.push(commit);
+    this.commits.forEach((commit: Commit) => {
+      commitsReadable.push(`${commit.message}\n-hash-\n${commit.sha}`);
     });
     commitsReadable.push(null);
     return commitsReadable;

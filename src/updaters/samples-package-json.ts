@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import {checkpoint, CheckpointType} from '../checkpoint';
-import {Update, UpdateOptions} from './update';
+import { checkpoint, CheckpointType } from '../checkpoint';
+import { Update, UpdateOptions } from './update';
+import { GitHubFileContents } from '../github';
 
 export class SamplesPackageJson implements Update {
   path: string;
@@ -23,6 +24,7 @@ export class SamplesPackageJson implements Update {
   version: string;
   packageName: string;
   create: boolean;
+  contents?: GitHubFileContents;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -34,9 +36,11 @@ export class SamplesPackageJson implements Update {
   updateContent(content: string): string {
     const parsed = JSON.parse(content);
     checkpoint(
-        `updating ${this.packageName} dependency in ${this.path} from ${
-            parsed.dependencies[this.packageName]} to ^${this.version}`,
-        CheckpointType.Success);
+      `updating ${this.packageName} dependency in ${this.path} from ${
+        parsed.dependencies[this.packageName]
+      } to ^${this.version}`,
+      CheckpointType.Success
+    );
     parsed.dependencies[this.packageName] = `^${this.version}`;
     return JSON.stringify(parsed, null, 2) + '\n';
   }

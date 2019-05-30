@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+import { GitHubFileContents } from '../github';
+
 export interface UpdateOptions {
   changelogEntry: string;
   packageName: string;
   path: string;
   version: string;
+  contents?: GitHubFileContents;
 }
 
 export interface Update {
@@ -27,5 +30,6 @@ export interface Update {
   path: string;
   packageName: string;
   version: string;
-  updateContent(content: string|undefined): string;
+  contents?: GitHubFileContents;
+  updateContent(content: string | undefined): string;
 }

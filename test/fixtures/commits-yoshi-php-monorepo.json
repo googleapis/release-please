@@ -1,0 +1,2438 @@
+{
+  "repository": {
+    "defaultBranchRef": {
+      "target": {
+        "history": {
+          "edges": [
+            {
+              "node": {
+                "message": "fix: Update PubSub timeouts. (#1967)",
+                "oid": "0a8477108a26aeb21d7af06e62be4ae5cb00ad42",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1967,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "PubSub/src/V1/resources/subscriber_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "PubSub/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Assorted minor fixes for Cloud Datastore client (#1964)",
+                "oid": "269cf923ea6fd0375abaf0bb19790475693c6f90",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1964,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Datastore/src/Connection/Grpc.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/DatastoreClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/Entity.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/EntityIterator.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/EntityMapper.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/Key.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/Operation.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/TransactionTrait.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "OA",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Prepare v0.102.0 (#1965)",
+                "oid": "da356f004ff891e11a369fd634f55d6abade708f",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1965,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "AutoMl/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Debugger/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Debugger/src/DebuggerClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/FirestoreClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Language/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Language/src/LanguageClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/SpeechClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/src/VisionClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "composer.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/manifest.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "src/ServiceBuilder.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "src/Version.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add Web Security Center Client (#1961)\n\n* add synth script\r\n\r\n* generate web security scanner\r\n\r\n* add to docs site\r\n\r\n* update README\r\n\r\n* update composer\r\n\r\n* remove whitespace in sample\r\n\r\n* add phpunit config\r\n\r\n* add hyperlink\r\n\r\n* autoload tests\r\n\r\n* more autoload fixes",
+                "oid": "fa5761e9e52f36506a72a9292843259d198468b0",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1961,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/.gitattributes"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/.github/pull_request_template.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/CONTRIBUTING.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/LICENSE"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/composer.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/CrawledUrl.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/Finding.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/FindingAddon.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/FindingTypeStats.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanConfigError.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanRun.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanRunErrorTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanRunWarningTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/WebSecurityScanner.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/phpunit.xml.dist"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/CrawledUrl.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/CreateScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/DeleteScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Finding.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/FindingTypeStats.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Form.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Gapic/WebSecurityScannerGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/GetFindingRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/GetScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/GetScanRunRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListCrawledUrlsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListCrawledUrlsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingTypeStatsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingTypeStatsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanConfigsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanConfigsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanRunsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanRunsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/OutdatedLibrary.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Authentication.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Authentication/CustomAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Authentication/GoogleAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/ExportToSecurityCommandCenter.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/RiskLevel.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Schedule.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/TargetPlatform.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/UserAgent.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfigError.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfigError/Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfigError_Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Authentication.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Authentication_CustomAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Authentication_GoogleAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_ExportToSecurityCommandCenter.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_RiskLevel.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Schedule.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_TargetPlatform.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_UserAgent.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun/ExecutionState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun/ResultState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunErrorTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunErrorTrace/Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunErrorTrace_Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunWarningTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunWarningTrace/Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunWarningTrace_Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun_ExecutionState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun_ResultState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/StartScanRunRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/StopScanRunRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/UpdateScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ViolatingResource.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableHeaders.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableHeaders/Header.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableHeaders_Header.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableParameters.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/WebSecurityScannerClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/WebSecurityScannerGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Xss.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/resources/web_security_scanner_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/resources/web_security_scanner_descriptor_config.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/resources/web_security_scanner_rest_client_config.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/synth.metadata"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/synth.py"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/tests/Unit/V1beta/WebSecurityScannerClientTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "composer.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/contents/cloud-web-security-scanner.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/contents/google-cloud.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/manifest.json"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "OTI",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat!: move speech from alpha -> beta (#1962)",
+                "oid": "8db7f3b19c46c873897d79c89ce35b8492e5fe60",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1962,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/README.md"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: correctly label as beta (#1963)",
+                "oid": "52f4fbfa1fc3fde585c84e64ef40571d2b85d72e",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1963,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "AutoMl/README.md"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MQ",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add mp3 encoding and context hint boost support. (#1959)",
+                "oid": "da6e52d956c1e35d19e75e0f2fdba439739ba364",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1959,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Speech/metadata/V1P1Beta1/CloudSpeech.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1p1beta1/RecognitionConfig/AudioEncoding.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1p1beta1/SpeechContext.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "NA",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: language system test (#1958)",
+                "oid": "bf69d0f204474b88b3f8b5a72a392129d16a3929",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1958,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Language/tests/System/AnalyzeTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MQ",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: continue switch targeting warning in PHP 7.3 (#1957)",
+                "oid": "a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1957,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Debugger/src/Agent.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MQ",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add Collection Group Query support (#1944)\n\n* Add Collection Group Query support\r\n\r\n* Fix documentation\r\n\r\n* Address code review\r\n\r\n* Throw from createDocumentReference",
+                "oid": "cf52ec0bcdc777dc9c5e76153d7d253bea95d44b",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1944,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Firestore/src/Connection/Grpc.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/FieldPath.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/FirestoreClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/Query.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/SnapshotTrait.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/CollectionReferenceTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/FieldPathTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/FirestoreClientTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/QueryTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/System/CollectionGroupTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/System/FirestoreTestCase.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/CollectionReferenceTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/FieldPathTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/FirestoreClientTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/QueryTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTU",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "[CHANGE ME] Re-generated Vision to pick up changes in the API or client library generator. (#1954)",
+                "oid": "ad9f0bcd33f33f718d02a916f3777d5a89fa1caa",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1954,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Vision/src/V1/Product.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/src/V1/ProductSearchParams.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mw",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "docs: Documentation updates. (#1956)",
+                "oid": "31ca3ccea630ab5c164a21a30753ee617f5a3978",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1956,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Dialogflow/metadata/V2/Agent.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/metadata/V2/Context.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/metadata/V2/EntityType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/metadata/V2/Intent.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/metadata/V2/Session.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/metadata/V2/SessionEntityType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/src/V2/Intent.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/src/V2/Intent/Message/Platform.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/src/V2/QueryResult.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTA",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add Stackdriver logging config, update documentation. (#1950)",
+                "oid": "f67dc1c24b2704e6b1fd0aea35340691b7ee33c9",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1950,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2/Cloudtasks.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2Beta3/Cloudtasks.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2Beta3/Queue.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/AppEngineHttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/CloudTasksGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/Gapic/CloudTasksGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/ListQueuesRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/ListTasksRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/AppEngineHttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/CloudTasksGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Gapic/CloudTasksGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/HttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/ListQueuesRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/ListTasksRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/OAuthToken.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/OidcToken.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Queue.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/StackdriverLoggingConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Task.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/synth.metadata"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/tests/Unit/V2beta3/CloudTasksClientTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MjE",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add recognition metadata, result end time and language code. (#1949)",
+                "oid": "d323a48a3d6aeb659eb45927e16b1da9532c84a9",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1949,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Speech/metadata/V1/CloudSpeech.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/InteractionType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/MicrophoneDistance.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/OriginalMediaType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/RecordingDeviceType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_InteractionType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_MicrophoneDistance.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_OriginalMediaType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_RecordingDeviceType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/StreamingRecognitionResult.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTM",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Prepare v0.101.1 (#1948)",
+                "oid": "58cf48947669b05e3bde5203b030aaf0b1becd52",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1948,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Asset/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "BigQueryDataTransfer/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Bigtable/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Bigtable/src/BigtableClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Container/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dataproc/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Debugger/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Debugger/src/DebuggerClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dlp/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "ErrorReporting/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/FirestoreClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Iot/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Kms/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Language/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Language/src/LanguageClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Logging/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Logging/src/LoggingClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Monitoring/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "OsLogin/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "PubSub/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "PubSub/src/PubSubClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Redis/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Scheduler/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Spanner/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Spanner/src/SpannerClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/SpeechClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "TextToSpeech/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Trace/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Trace/src/TraceClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "VideoIntelligence/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/src/VisionClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "composer.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/manifest.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "src/ServiceBuilder.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "src/Version.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "NDA",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Skip commit in release builder (#1947)",
+                "oid": "9e71bb94a4de1ebd09ceb1f4177258ccba9d48c8",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1947,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "dev/src/ReleaseBuilder/ReleaseBuilder.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MQ",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Revert \"Add Stackdriver logging config, update documentation. (#1942)\" (#1946)\n\nThis reverts commit 73e2fc4a0e7258329e85cea7e1e9781bdffcaa2c.",
+                "oid": "3ed713a94e29a51ee1b1820de7022556e2152250",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1946,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2/Cloudtasks.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2Beta3/Cloudtasks.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2Beta3/Queue.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/AppEngineHttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/CloudTasksGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/Gapic/CloudTasksGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/ListQueuesRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/ListTasksRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/AppEngineHttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/CloudTasksGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Gapic/CloudTasksGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/HttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/ListQueuesRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/ListTasksRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/OAuthToken.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/OidcToken.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Queue.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/StackdriverLoggingConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Task.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/synth.metadata"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/tests/Unit/V2beta3/CloudTasksClientTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MjE",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Revert \"Add recognition metadata, result end time and language code. (#1941)\" (#1945)\n\nThis reverts commit ed9f34f3e6d7e66e30f85b36d614e5e7b31b1ef7.",
+                "oid": "0b5a29e7297ff7a9c5ab419bd5fe8966dc0c9160",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1945,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Speech/metadata/V1/CloudSpeech.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/InteractionType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/MicrophoneDistance.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/OriginalMediaType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/RecordingDeviceType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_InteractionType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_MicrophoneDistance.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_OriginalMediaType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_RecordingDeviceType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/StreamingRecognitionResult.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTM",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add recognition metadata, result end time and language code. (#1941)",
+                "oid": "ed9f34f3e6d7e66e30f85b36d614e5e7b31b1ef7",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1941,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Speech/metadata/V1/CloudSpeech.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/InteractionType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/MicrophoneDistance.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/OriginalMediaType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata/RecordingDeviceType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_InteractionType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_MicrophoneDistance.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_OriginalMediaType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/RecognitionMetadata_RecordingDeviceType.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/StreamingRecognitionResult.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTM",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "docs: Update documentation. (#1943)",
+                "oid": "4521998bc2189675c796bade005eeb2723752e4c",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1943,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Vision/src/V1/InputConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add Stackdriver logging config, update documentation. (#1942)",
+                "oid": "73e2fc4a0e7258329e85cea7e1e9781bdffcaa2c",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1942,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2/Cloudtasks.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2Beta3/Cloudtasks.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/metadata/V2Beta3/Queue.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/AppEngineHttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/CloudTasksGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/Gapic/CloudTasksGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/ListQueuesRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/ListTasksRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/AppEngineHttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/CloudTasksGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Gapic/CloudTasksGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/HttpRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/ListQueuesRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/ListTasksRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/OAuthToken.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/OidcToken.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Queue.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/StackdriverLoggingConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/Task.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/synth.metadata"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/tests/Unit/V2beta3/CloudTasksClientTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MjE",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1940)",
+                "oid": "bb7e5b98d1ba61945eebd6bf1db62b58f4b1e4a4",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1940,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Scheduler/src/V1/resources/cloud_scheduler_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Scheduler/src/V1beta1/resources/cloud_scheduler_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Scheduler/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mw",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1933)",
+                "oid": "48f9be064ac1ecead7e4c2575557952ff668501b",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1933,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Vision/src/V1/resources/image_annotator_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/src/V1/resources/product_search_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mw",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1932)",
+                "oid": "906ed070241e4d70c8b35bb63a9721f762250a11",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1932,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "VideoIntelligence/src/V1/Gapic/VideoIntelligenceServiceGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "VideoIntelligence/src/V1/resources/video_intelligence_service_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "VideoIntelligence/src/V1beta2/resources/video_intelligence_service_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "VideoIntelligence/synth.metadata"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "VideoIntelligence/tests/System/V1/VideoIntelligenceServiceSmokeTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "VideoIntelligence/tests/Unit/V1/VideoIntelligenceServiceClientTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Ng",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1931)",
+                "oid": "0fbfa6889dbe968eb8e16a9c6b6e5e98de8f7120",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1931,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Trace/src/V2/resources/trace_service_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Trace/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1930)",
+                "oid": "d5e8cfb3fe272173c2c9f758ea469de44d6dc35a",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1930,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "TextToSpeech/src/V1/resources/text_to_speech_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "TextToSpeech/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1929)",
+                "oid": "694ee38f3de591167376e70e2563d94ee5c20e42",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1929,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2/resources/cloud_tasks_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta2/resources/cloud_tasks_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/src/V2beta3/resources/cloud_tasks_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "NA",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1928)",
+                "oid": "9172873c62212de1df612f4ccba3babf44e3d1e1",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1928,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Speech/src/V1/resources/speech_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1p1beta1/resources/speech_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mw",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1927)",
+                "oid": "7059b29494b42d5779f77c65e44d730df6dc0822",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1927,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Spanner/src/Admin/Database/V1/resources/database_admin_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Spanner/src/Admin/Instance/V1/resources/instance_admin_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Spanner/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mw",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1926)",
+                "oid": "8885e309cf69409d6734eb7f41ebd77c729ee290",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1926,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Redis/src/V1/resources/cloud_redis_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Redis/src/V1beta1/resources/cloud_redis_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Redis/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mw",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1925)",
+                "oid": "8c5753c7822219ea99648ea220b1f092742afc34",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1925,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "PubSub/src/V1/resources/publisher_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "PubSub/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Update retry configuration (#1924)",
+                "oid": "f96ed362253b5f552955ec1e6879d2119ce35a35",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1924,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "OsLogin/src/V1/resources/os_login_service_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "OsLogin/src/V1beta/resources/os_login_service_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "OsLogin/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mw",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "pageInfo": {
+            "endCursor": "0a8477108a26aeb21d7af06e62be4ae5cb00ad42 31",
+            "hasNextPage": true
+          }
+        }
+      }
+    }
+  },
+  "rateLimit": {
+    "limit": 5000,
+    "cost": 1,
+    "remaining": 4996,
+    "resetAt": "2019-05-28T02:19:15Z"
+  }
+}

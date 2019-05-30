@@ -15,12 +15,27 @@
  */
 
 import * as Octokit from '@octokit/rest';
-import {IssuesListResponseItem, PullsCreateResponse, PullsListResponseItem, ReposGetLatestReleaseResponse, ReposListTagsResponseItem, Response} from '@octokit/rest';
+import {
+  IssuesListResponseItem,
+  PullsCreateResponse,
+  PullsListResponseItem,
+  ReposGetLatestReleaseResponse,
+  ReposListTagsResponseItem,
+  Response,
+} from '@octokit/rest';
 import chalk from 'chalk';
 import * as semver from 'semver';
 
-import {checkpoint, CheckpointType} from './checkpoint';
-import {Update} from './updaters/update';
+import { checkpoint, CheckpointType } from './checkpoint';
+import {
+  Commit,
+  CommitsResponse,
+  graphqlToCommits,
+  PREdge,
+} from './graphql-to-commits';
+import { Update } from './updaters/update';
+
+const graphql = require('@octokit/graphql');
 
 const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
 
@@ -42,6 +57,12 @@ export interface GitHubReleasePR {
   sha: string;
 }
 
+export interface GitHubFileContents {
+  sha: string;
+  content: string;
+  parsedContent: string;
+}
+
 interface GitHubPR {
   branch: string;
   version: string;
@@ -54,7 +75,7 @@ interface GitHubPR {
 
 export class GitHub {
   octokit: Octokit;
-  token: string|undefined;
+  token: string | undefined;
   owner: string;
   repo: string;
 
@@ -62,34 +83,151 @@ export class GitHub {
     this.token = options.token;
     this.owner = options.owner;
     this.repo = options.repo;
-    this.octokit = new Octokit({auth: this.token});
+    this.octokit = new Octokit({ auth: this.token });
   }
 
-  async commitsSinceSha(sha: string|undefined, perPage = 100):
-      Promise<string[]> {
-    const commits = [];
-    for await (const response of this.octokit.paginate.iterator({
-      method: 'GET',
-      url: `/repos/${this.owner}/${this.repo}/commits?per_page=${perPage}`
-    })) {
-      for (let i = 0, commit; response.data[i] !== undefined; i++) {
-        commit = response.data[i];
+  async commitsSinceSha(
+    sha: string | undefined,
+    perPage = 100
+  ): Promise<Commit[]> {
+    const commits: Commit[] = [];
+
+    let cursor;
+    while (true) {
+      const commitsResponse: CommitsResponse = await this.commitsWithFiles(
+        cursor,
+        perPage
+      );
+      for (let i = 0, commit: Commit; i < commitsResponse.commits.length; i++) {
+        commit = commitsResponse.commits[i];
         if (commit.sha === sha) {
           return commits;
         } else {
-          // conventional commits parser expects:
-          // [commit message]
-          // -hash-
-          // [commit sha]
-          commits.push(`${commit.commit.message}\n-hash-\n${commit.sha}`);
+          commits.push(commit);
         }
       }
+      if (commitsResponse.hasNextPage === false || !commitsResponse.endCursor) {
+        return commits;
+      } else {
+        cursor = commitsResponse.endCursor;
+      }
     }
-    return commits;
   }
 
-  async latestTag(perPage = 100): Promise<GitHubTag|undefined> {
-    const tags: {[version: string]: GitHubTag;} = await this.allTags(perPage);
+  private async commitsWithFiles(
+    cursor: string | undefined = undefined,
+    perPage = 32,
+    maxFilesChanged = 100
+  ): Promise<CommitsResponse> {
+    // The GitHub v3 API does not offer an elegant way to fetch commits
+    // in conjucntion with the path that they modify. We lean on the graphql
+    // API for this one task, fetching commits in descending chronological
+    // order along with the file paths attached to them.
+    const response = await graphql({
+      query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int) {
+        repository(owner: $owner, name: $repo) {
+          defaultBranchRef {
+            target {
+              ... on Commit {
+                history(first: $perPage, after: $cursor) {
+                  edges{
+                    node {
+                      ... on Commit {
+                        message
+                        oid
+                        associatedPullRequests(first: 1) {
+                          edges {
+                            node {
+                              ... on PullRequest {
+                                number
+                                files(first: $maxFilesChanged) {
+                                  edges {
+                                    node {
+                                      path
+                                    }
+                                  }
+                                  pageInfo {
+                                    endCursor
+                                    hasNextPage
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  pageInfo {
+                    endCursor
+                    hasNextPage
+                  }
+                }
+              }
+            }
+          }
+        }
+        rateLimit {
+          limit
+          cost
+          remaining
+          resetAt
+        }
+      }`,
+      cursor,
+      maxFilesChanged,
+      owner: this.owner,
+      perPage,
+      repo: this.repo,
+      headers: { authorization: `token ${this.token}` },
+    });
+    return graphqlToCommits(this, response);
+  }
+
+  async pullRequestFiles(
+    num: number,
+    cursor: string,
+    maxFilesChanged = 100
+  ): Promise<PREdge> {
+    // Used to handle the edge-case in which a PR has more than 100
+    // modified files attached to it.
+    const response = await graphql({
+      query: `query pullRequestFiles($cursor: String, $owner: String!, $repo: String!, $maxFilesChanged: Int, $num: Int!) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $num) {
+              number
+              files(first: $maxFilesChanged, after: $cursor) {
+                edges {
+                  node {
+                    path
+                  }
+                }
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+              }
+            }
+          }
+          rateLimit {
+            limit
+            cost
+            remaining
+            resetAt
+          }
+        }`,
+      cursor,
+      maxFilesChanged,
+      owner: this.owner,
+      repo: this.repo,
+      num,
+      headers: { authorization: `token ${this.token}` },
+    });
+    return { node: response.repository.pullRequest } as PREdge;
+  }
+
+  async latestTag(perPage = 100): Promise<GitHubTag | undefined> {
+    const tags: { [version: string]: GitHubTag } = await this.allTags(perPage);
     const versions = Object.keys(tags);
     // no tags have been created yet.
     if (versions.length === 0) return undefined;
@@ -98,46 +236,22 @@ export class GitHub {
     return {
       name: tags[versions[0]].name,
       sha: tags[versions[0]].sha,
-      version: tags[versions[0]].version
+      version: tags[versions[0]].version,
     };
   }
 
-  // TODO: investigate why this returns a target_commitish of `master`
-  // even months after the release is created; is there a way to
-  // get the SHA that the release was created at?
-  async latestRelease(): Promise<GitHubTag|undefined> {
-    try {
-      const latestRelease: Response<ReposGetLatestReleaseResponse> =
-          await this.octokit.repos.getLatestRelease(
-              {owner: this.owner, repo: this.repo});
-      const version = semver.valid(latestRelease.data.name);
-      if (version) {
-        console.info(latestRelease.data);
-        return {
-          name: latestRelease.data.name,
-          sha: latestRelease.data.target_commitish,
-          version
-        };
-      }
-    } catch (err) {
-      if (err.status === 404) {
-        // fallback to tags if we don't find a GitHub release.
-      } else {
-        throw err;
-      }
-    }
-    return undefined;
-  }
-
-  async findMergedReleasePR(labels: string[], perPage = 25):
-      Promise<GitHubReleasePR|undefined> {
-    const pullsResponse: Response<PullsListResponseItem[]> =
-        await this.octokit.pulls.list({
-          owner: this.owner,
-          repo: this.repo,
-          state: 'closed',
-          per_page: perPage
-        });
+  async findMergedReleasePR(
+    labels: string[],
+    perPage = 25
+  ): Promise<GitHubReleasePR | undefined> {
+    const pullsResponse: Response<
+      PullsListResponseItem[]
+    > = await this.octokit.pulls.list({
+      owner: this.owner,
+      repo: this.repo,
+      state: 'closed',
+      per_page: perPage,
+    });
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       if (this.hasAllLabels(labels, pull.labels.map(l => l.name))) {
@@ -149,7 +263,7 @@ export class GitHub {
         return {
           number: pull.number,
           sha: pull.merge_commit_sha,
-          version: match[1]
+          version: match[1],
         } as GitHubReleasePR;
       }
     }
@@ -158,22 +272,25 @@ export class GitHub {
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {
     let hasAll = true;
-    labelsA.forEach((label) => {
+    labelsA.forEach(label => {
       if (labelsB.indexOf(label) === -1) hasAll = false;
     });
     return hasAll;
   }
 
-  async findOpenReleasePRs(labels: string[], perPage = 25):
-      Promise<PullsListResponseItem[]> {
+  async findOpenReleasePRs(
+    labels: string[],
+    perPage = 25
+  ): Promise<PullsListResponseItem[]> {
     const openReleasePRs: PullsListResponseItem[] = [];
-    const pullsResponse: Response<PullsListResponseItem[]> =
-        await this.octokit.pulls.list({
-          owner: this.owner,
-          repo: this.repo,
-          state: 'open',
-          per_page: perPage
-        });
+    const pullsResponse: Response<
+      PullsListResponseItem[]
+    > = await this.octokit.pulls.list({
+      owner: this.owner,
+      repo: this.repo,
+      state: 'open',
+      per_page: perPage,
+    });
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       for (let ii = 0, label; ii < pull.labels.length; ii++) {
@@ -186,17 +303,19 @@ export class GitHub {
     return openReleasePRs;
   }
 
-  private async allTags(perPage = 100):
-      Promise<{[version: string]: GitHubTag;}> {
-    const tags: {[version: string]: GitHubTag;} = {};
+  private async allTags(
+    perPage = 100
+  ): Promise<{ [version: string]: GitHubTag }> {
+    const tags: { [version: string]: GitHubTag } = {};
     for await (const response of this.octokit.paginate.iterator({
       method: 'GET',
-      url: `/repos/${this.owner}/${this.repo}/tags?per_page=${perPage}`
+      url: `/repos/${this.owner}/${this.repo}/tags`,
+      per_page: 100,
     })) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
         if (version) {
-          tags[version] = {sha: data.commit.sha, name: data.name, version};
+          tags[version] = { sha: data.commit.sha, name: data.name, version };
         }
       });
     }
@@ -205,47 +324,69 @@ export class GitHub {
 
   async addLabels(pr: number, labels: string[]) {
     checkpoint(
-        `adding label ${chalk.green(labels.join(','))} to https://github.com/${
-            this.owner}/${this.repo}/pull/${pr}`,
-        CheckpointType.Success);
-    await this.octokit.issues.addLabels(
-        {owner: this.owner, repo: this.repo, issue_number: pr, labels});
+      `adding label ${chalk.green(labels.join(','))} to https://github.com/${
+        this.owner
+      }/${this.repo}/pull/${pr}`,
+      CheckpointType.Success
+    );
+    await this.octokit.issues.addLabels({
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: pr,
+      labels,
+    });
   }
 
   async openIssue(
-      title: string, body: string, labels: string[],
-      issue?: IssuesListResponseItem) {
+    title: string,
+    body: string,
+    labels: string[],
+    issue?: IssuesListResponseItem
+  ) {
     if (issue) {
       checkpoint(
-          `updating issue #${issue.number} with labels = ${
-              JSON.stringify(labels)}`,
-          CheckpointType.Success);
+        `updating issue #${issue.number} with labels = ${JSON.stringify(
+          labels
+        )}`,
+        CheckpointType.Success
+      );
       this.octokit.issues.update({
         owner: this.owner,
         repo: this.repo,
         body,
         issue_number: issue.number,
-        labels
+        labels,
       });
     } else {
       checkpoint(
-          `creating new release proposal issue with labels = ${
-              JSON.stringify(labels)}`,
-          CheckpointType.Success);
-      this.octokit.issues.create(
-          {owner: this.owner, repo: this.repo, title, body, labels});
+        `creating new release proposal issue with labels = ${JSON.stringify(
+          labels
+        )}`,
+        CheckpointType.Success
+      );
+      this.octokit.issues.create({
+        owner: this.owner,
+        repo: this.repo,
+        title,
+        body,
+        labels,
+      });
     }
   }
 
   async findExistingReleaseIssue(
-      title: string, labels: string[],
-      perPage = 100): Promise<IssuesListResponseItem|undefined> {
+    title: string,
+    labels: string[],
+    perPage = 100
+  ): Promise<IssuesListResponseItem | undefined> {
     const paged = 0;
     try {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/issues?per_page=${
-            perPage}&labels=${labels.join(',')}`
+        url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
+          ','
+        )}`,
+        per_pag: 100,
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
@@ -268,7 +409,7 @@ export class GitHub {
 
   async openPR(options: GitHubPR): Promise<number> {
     let refName = await this.refByBranchName(options.branch);
-    let openReleasePR: PullsListResponseItem|undefined;
+    let openReleasePR: PullsListResponseItem | undefined;
 
     // If the branch exists, we delete it and create a new branch
     // with the same name; this results in the existing PR being closed.
@@ -278,13 +419,14 @@ export class GitHub {
       // the branch didn't yet exist, so make it.
       try {
         checkpoint(
-            `creating branch ${chalk.green(options.branch)}`,
-            CheckpointType.Success);
+          `creating branch ${chalk.green(options.branch)}`,
+          CheckpointType.Success
+        );
         await this.octokit.git.createRef({
           owner: this.owner,
           repo: this.repo,
           ref: refName,
-          sha: options.sha
+          sha: options.sha,
         });
       } catch (err) {
         if (err.status === 404) {
@@ -295,21 +437,22 @@ export class GitHub {
           throw err;
         }
       }
-
     } else {
       try {
         checkpoint(
-            `branch ${chalk.red(options.branch)} already exists`,
-            CheckpointType.Failure);
+          `branch ${chalk.red(options.branch)} already exists`,
+          CheckpointType.Failure
+        );
 
         // check if there's an existing PR, so that we can opt to update it
         // rather than creating a new PR.
-        (await this.findOpenReleasePRs(options.labels))
-            .forEach((releasePR: PullsListResponseItem) => {
-              if (refName && refName.indexOf(releasePR.head.ref) !== -1) {
-                openReleasePR = releasePR;
-              }
-            });
+        (await this.findOpenReleasePRs(options.labels)).forEach(
+          (releasePR: PullsListResponseItem) => {
+            if (refName && refName.indexOf(releasePR.head.ref) !== -1) {
+              openReleasePR = releasePR;
+            }
+          }
+        );
 
         await this.octokit.git.updateRef({
           owner: this.owner,
@@ -318,7 +461,7 @@ export class GitHub {
           // https://github.com/octokit/rest.js/issues/1039.
           ref: refName.replace('refs/', ''),
           sha: options.sha,
-          force: true
+          force: true,
         });
       } catch (err) {
         if (err.status === 404) {
@@ -338,9 +481,11 @@ export class GitHub {
       // to the branch being updated:
       // https://github.com/octokit/rest.js/issues/1373
       checkpoint(
-          `update pull-request #${openReleasePR.number}: ${
-              chalk.yellow(options.title)}`,
-          CheckpointType.Success);
+        `update pull-request #${openReleasePR.number}: ${chalk.yellow(
+          options.title
+        )}`,
+        CheckpointType.Success
+      );
       await this.octokit.pulls.update({
         pull_number: openReleasePR.number,
         owner: this.owner,
@@ -348,22 +493,24 @@ export class GitHub {
         title: options.title,
         body: options.body,
         state: 'open',
-        base: 'master'
+        base: 'master',
       });
       return openReleasePR.number;
     } else {
       checkpoint(
-          `open pull-request: ${chalk.yellow(options.title)}`,
-          CheckpointType.Success);
-      const resp: Response<PullsCreateResponse> =
-          await this.octokit.pulls.create({
-            owner: this.owner,
-            repo: this.repo,
-            title: options.title,
-            body: options.body,
-            head: options.branch,
-            base: 'master'
-          });
+        `open pull-request: ${chalk.yellow(options.title)}`,
+        CheckpointType.Success
+      );
+      const resp: Response<
+        PullsCreateResponse
+      > = await this.octokit.pulls.create({
+        owner: this.owner,
+        repo: this.repo,
+        title: options.title,
+        body: options.body,
+        head: options.branch,
+        base: 'master',
+      });
       return resp.data.number;
     }
   }
@@ -373,26 +520,33 @@ export class GitHub {
       const update = updates[i];
       let content;
       try {
-        content = await this.octokit.repos.getContents({
-          owner: this.owner,
-          repo: this.repo,
-          path: update.path,
-          ref: refName
-        });
+        if (update.contents) {
+          // we already loaded the file contents earlier, let's not
+          // hit GitHub again.
+          content = { data: update.contents };
+        } else {
+          content = await this.octokit.repos.getContents({
+            owner: this.owner,
+            repo: this.repo,
+            path: update.path,
+            ref: refName,
+          });
+        }
       } catch (err) {
         if (err.status !== 404) throw err;
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
         if (!update.create) {
           checkpoint(
-              `file ${chalk.green(update.path)} did not exist`,
-              CheckpointType.Failure);
+            `file ${chalk.green(update.path)} did not exist`,
+            CheckpointType.Failure
+          );
           continue;
         }
       }
-      const contentText = content ?
-          Buffer.from(content.data.content, 'base64').toString('utf8') :
-          undefined;
+      const contentText = content
+        ? Buffer.from(content.data.content, 'base64').toString('utf8')
+        : undefined;
       const updatedContent = update.updateContent(contentText);
 
       if (content) {
@@ -403,7 +557,7 @@ export class GitHub {
           message: `updated ${update.path}`,
           content: Buffer.from(updatedContent, 'utf8').toString('base64'),
           sha: content.data.sha,
-          branch
+          branch,
         });
       } else {
         await this.octokit.repos.createFile({
@@ -412,17 +566,20 @@ export class GitHub {
           path: update.path,
           message: `created ${update.path}`,
           content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-          branch
+          branch,
         });
       }
     }
   }
 
-  private async refByBranchName(branch: string): Promise<string|undefined> {
+  private async refByBranchName(branch: string): Promise<string | undefined> {
     let ref;
     try {
-      for await (const response of this.octokit.paginate.iterator(
-          {method: 'GET', url: `/repos/${this.owner}/${this.repo}/git/refs`})) {
+      for await (const response of this.octokit.paginate.iterator({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/git/refs`,
+        per_page: 100,
+      })) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
           const refRe = new RegExp(`/${branch}$`);
@@ -448,14 +605,21 @@ export class GitHub {
       owner: this.owner,
       repo: this.repo,
       number: prNumber,
-      state: 'closed'
+      state: 'closed',
     });
   }
 
-  async getFileContents(path: string): Promise<string> {
-    const content = await this.octokit.repos.getContents(
-        {owner: this.owner, repo: this.repo, path});
-    return Buffer.from(content.data.content, 'base64').toString('utf8');
+  async getFileContents(path: string): Promise<GitHubFileContents> {
+    const resp = await this.octokit.repos.getContents({
+      owner: this.owner,
+      repo: this.repo,
+      path,
+    });
+    return {
+      parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
+      content: resp.data.content,
+      sha: resp.data.sha,
+    };
   }
 
   async createRelease(version: string, sha: string, releaseNotes: string) {
@@ -466,7 +630,7 @@ export class GitHub {
       tag_name: version,
       target_commitish: sha,
       body: releaseNotes,
-      name: version
+      name: version,
     });
   }
 
@@ -474,14 +638,16 @@ export class GitHub {
     for (let i = 0, label; i < labels.length; i++) {
       label = labels[i];
       checkpoint(
-          `removing label ${chalk.green(label)} from ${
-              chalk.green('' + prNumber)}`,
-          CheckpointType.Success);
+        `removing label ${chalk.green(label)} from ${chalk.green(
+          '' + prNumber
+        )}`,
+        CheckpointType.Success
+      );
       await this.octokit.issues.removeLabel({
         owner: this.owner,
         repo: this.repo,
         issue_number: prNumber,
-        name: label
+        name: label,
       });
     }
   }
