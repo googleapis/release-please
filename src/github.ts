@@ -116,8 +116,8 @@ export class GitHub {
 
   private async commitsWithFiles(
     cursor: string | undefined = undefined,
-    perPage = 32,
-    maxFilesChanged = 100
+    perPage = 16,
+    maxFilesChanged = 32
   ): Promise<CommitsResponse> {
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
