@@ -16,6 +16,7 @@
 
 import { checkpoint, CheckpointType } from '../checkpoint';
 import { Update, UpdateOptions } from './update';
+import { GitHubFileContents } from '../github';
 
 export class Changelog implements Update {
   path: string;
@@ -23,7 +24,7 @@ export class Changelog implements Update {
   version: string;
   packageName: string;
   create: boolean;
-  content?: string;
+  contents?: GitHubFileContents;
 
   constructor(options: UpdateOptions) {
     this.create = true;
@@ -32,6 +33,7 @@ export class Changelog implements Update {
     this.version = options.version;
     this.packageName = options.packageName;
   }
+
   updateContent(content: string | undefined): string {
     content = content || '';
     // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).

@@ -56,32 +56,68 @@ describe('GitHub', () => {
         .reply(200, {
           data: graphql,
         })
-        // support fetching the various VERSION files, used
-        // to determine library versions.
+        // fetch teh current version of each library.
         .get('/repos/googleapis/release-please/contents/AutoMl/VERSION')
         .reply(200, {
           content: Buffer.from('1.8.3', 'utf8').toString('base64'),
+          sha: 'abc123',
         })
         .get('/repos/googleapis/release-please/contents/Datastore/VERSION')
         .reply(200, {
           content: Buffer.from('2.0.0', 'utf8').toString('base64'),
+          sha: 'abc123',
         })
         .get('/repos/googleapis/release-please/contents/PubSub/VERSION')
         .reply(200, {
           content: Buffer.from('1.0.1', 'utf8').toString('base64'),
+          sha: 'abc123',
         })
         .get('/repos/googleapis/release-please/contents/Speech/VERSION')
         .reply(200, {
           content: Buffer.from('1.0.0', 'utf8').toString('base64'),
+          sha: 'abc123',
         })
         .get(
           '/repos/googleapis/release-please/contents/WebSecurityScanner/VERSION'
         )
         .reply(200, {
           content: Buffer.from('0.8.0', 'utf8').toString('base64'),
+          sha: 'abc123',
         })
         .get('/repos/googleapis/release-please/contents/docs/VERSION')
-        .reply(404);
+        .reply(404)
+        // we're on the home stretch I promise ...
+        // fetch prior refs, to determine whether this is an update
+        // to an existing branch or new PR.
+        .get('/repos/googleapis/release-please/git/refs?per_page=100')
+        .reply(200, [])
+        .post('/repos/googleapis/release-please/git/refs')
+        .reply(200)
+        .post('/repos/googleapis/release-please/issues/1/labels')
+        .reply(200, { number: 1 })
+        .put('/repos/googleapis/release-please/contents/AutoMl/VERSION')
+        .reply(200)
+        .put('/repos/googleapis/release-please/contents/Datastore/VERSION')
+        .reply(200)
+        .put('/repos/googleapis/release-please/contents/PubSub/VERSION')
+        .reply(200)
+        .put('/repos/googleapis/release-please/contents/Speech/VERSION')
+        .reply(200)
+        .put(
+          '/repos/googleapis/release-please/contents/WebSecurityScanner/VERSION'
+        )
+        .reply(200)
+        // actually open the darn PR, this is the exciting step,
+        // so we snapshot it:
+        .post('/repos/googleapis/release-please/pulls', (req: object) => {
+          snapshot(req);
+          return true;
+        })
+        .reply(200, { number: 1 })
+        // this step tries to close any existing PRs; just return an empty list.
+        .get('/repos/googleapis/release-please/pulls?state=open&per_page=25')
+        .reply(200, []);
+
       const releasePR = new ReleasePR({
         repoUrl: 'googleapis/release-please',
         label: 'autorelease: pending',

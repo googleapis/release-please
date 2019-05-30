@@ -19,12 +19,18 @@ import * as semver from 'semver';
 
 import { checkpoint, CheckpointType } from './checkpoint';
 import { ConventionalCommits } from './conventional-commits';
-import { GitHub, GitHubReleasePR, GitHubTag } from './github';
+import {
+  GitHub,
+  GitHubReleasePR,
+  GitHubTag,
+  GitHubFileContents,
+} from './github';
 import { Commit, graphqlToCommits } from './graphql-to-commits';
 import { CommitSplit } from './commit-split';
 import { Changelog } from './updaters/changelog';
 import { PackageJson } from './updaters/package-json';
 import { SamplesPackageJson } from './updaters/samples-package-json';
+import { Version } from './updaters/version';
 import { Update } from './updaters/update';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -109,7 +115,7 @@ export class ReleasePR {
       latestTag
     );
 
-    const changelogEntry = await cc.generateChangelogEntry({
+    const changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag,
@@ -157,20 +163,12 @@ export class ReleasePR {
       })
     );
 
-    const sha = commits[0].sha;
-    const title = `chore: release ${candidate.version}`;
-    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}`;
-    const pr: number = await this.gh.openPR({
-      branch: `release-v${candidate.version}`,
-      version: candidate.version,
-      sha,
+    await this.openPR(
+      commits[0].sha,
+      changelogEntry,
       updates,
-      title,
-      body,
-      labels: this.labels,
-    });
-    await this.gh.addLabels(pr, this.labels);
-    await this.closeStaleReleasePRs(pr);
+      candidate.version
+    );
   }
 
   private async phpYoshiRelease() {
@@ -181,11 +179,32 @@ export class ReleasePR {
 
     const cs = new CommitSplit();
 
+    // we create an instance of conventional CHANGELOG for bumping the
+    // top-level tag version we maintain on the mono-repo itself.
+    const ccb = new ConventionalCommits({
+      commits: [
+        {
+          sha: 'abc123',
+          message: 'feat!: creating a release for PHP modules',
+          files: [],
+        },
+      ],
+      githubRepoUrl: this.repoUrl,
+      bumpMinorPreMajor: true,
+    });
+    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
+      ccb,
+      latestTag
+    );
+
     // partition a set of packages in the mono-repo that need to be
     // updated since our last release -- the set of string keys
     // is sorted to ensure consistency in the CHANGELOG.
+    const updates: Update[] = [];
     const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
     const pkgKeys: string[] = Object.keys(commitLookup).sort();
+    let changelogEntry = `## ${candidate.version} release highlights:`;
+
     for (let i = 0; i < pkgKeys.length; i++) {
       const pkgKey: string = pkgKeys[i];
       const cc = new ConventionalCommits({
@@ -200,7 +219,38 @@ export class ReleasePR {
         !changelogEmpty(await cc.generateChangelogEntry({ version: '0.0.0' }))
       ) {
         try {
-          const version = await this.gh.getFileContents(`${pkgKey}/VERSION`);
+          const contents: GitHubFileContents = await this.gh.getFileContents(
+            `${pkgKey}/VERSION`
+          );
+          const bump = await cc.suggestBump(contents.parsedContent);
+          const candidate: string | null = semver.inc(
+            contents.parsedContent,
+            bump.releaseType
+          );
+          if (!candidate) {
+            checkpoint(
+              `failed to update ${pkgKey} version`,
+              CheckpointType.Failure
+            );
+            continue;
+          }
+
+          changelogEntry = updateChangelogEntry(
+            pkgKey,
+            changelogEntry,
+            await cc.generateChangelogEntry({ version: candidate })
+          );
+
+          // checkpoint(`failed to `, CheckpointType.Failure);
+          updates.push(
+            new Version({
+              path: `${pkgKey}/VERSION`,
+              changelogEntry,
+              version: candidate,
+              packageName: this.packageName,
+              contents,
+            })
+          );
         } catch (err) {
           if (err.status === 404) {
             // if the updated path has no VERSION, assume this isn't a
@@ -212,6 +262,13 @@ export class ReleasePR {
         }
       }
     }
+
+    await this.openPR(
+      commits[0].sha,
+      changelogEntry,
+      updates,
+      candidate.version
+    );
   }
 
   private async closeStaleReleasePRs(currentPRNumber: number) {
@@ -237,7 +294,7 @@ export class ReleasePR {
 
     if (latestTag && !this.releaseAs) {
       const bump = await cc.suggestBump(version);
-      const candidate = semver.inc(version, bump.releaseType);
+      const candidate: string | null = semver.inc(version, bump.releaseType);
       if (!candidate) throw Error(`failed to increment ${version}`);
       version = candidate;
     } else if (this.releaseAs) {
@@ -264,8 +321,43 @@ export class ReleasePR {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({ token: this.token, owner, repo });
   }
+
+  private async openPR(
+    sha: string,
+    changelogEntry: string,
+    updates: Update[],
+    version: string
+  ) {
+    const title = `chore: release ${version}`;
+    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}`;
+    const pr: number = await this.gh.openPR({
+      branch: `release-v${version}`,
+      version,
+      sha,
+      updates,
+      title,
+      body,
+      labels: this.labels,
+    });
+    await this.gh.addLabels(pr, this.labels);
+    await this.closeStaleReleasePRs(pr);
+  }
 }
 
 function changelogEmpty(changelogEntry: string) {
   return changelogEntry.split('\n').length === 1;
+}
+
+function updateChangelogEntry(
+  pkgKey: string,
+  changelogEntry: string,
+  entryUpdate: string
+) {
+  return `${changelogEntry}
+
+## ${pkgKey}
+
+${entryUpdate}
+
+----`;
 }

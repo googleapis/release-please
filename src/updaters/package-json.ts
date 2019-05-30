@@ -16,6 +16,7 @@
 
 import { checkpoint, CheckpointType } from '../checkpoint';
 import { Update, UpdateOptions } from './update';
+import { GitHubFileContents } from '../github';
 
 export class PackageJson implements Update {
   path: string;
@@ -23,7 +24,7 @@ export class PackageJson implements Update {
   version: string;
   packageName: string;
   create: boolean;
-  content?: string;
+  contents?: GitHubFileContents;
 
   constructor(options: UpdateOptions) {
     this.create = false;

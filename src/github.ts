@@ -57,6 +57,12 @@ export interface GitHubReleasePR {
   sha: string;
 }
 
+export interface GitHubFileContents {
+  sha: string;
+  content: string;
+  parsedContent: string;
+}
+
 interface GitHubPR {
   branch: string;
   version: string;
@@ -303,7 +309,8 @@ export class GitHub {
     const tags: { [version: string]: GitHubTag } = {};
     for await (const response of this.octokit.paginate.iterator({
       method: 'GET',
-      url: `/repos/${this.owner}/${this.repo}/tags?per_page=${perPage}`,
+      url: `/repos/${this.owner}/${this.repo}/tags`,
+      per_page: 100
     })) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
@@ -378,7 +385,8 @@ export class GitHub {
         method: 'GET',
         url: `/repos/${this.owner}/${
           this.repo
-        }/issues?per_page=${perPage}&labels=${labels.join(',')}`,
+        }/issues?labels=${labels.join(',')}`,
+        per_pag: 100
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
@@ -512,12 +520,18 @@ export class GitHub {
       const update = updates[i];
       let content;
       try {
-        content = await this.octokit.repos.getContents({
-          owner: this.owner,
-          repo: this.repo,
-          path: update.path,
-          ref: refName,
-        });
+        if (update.contents) {
+          // we already loaded the file contents earlier, let's not
+          // hit GitHub again.
+          content = { data: update.contents };
+        } else {
+          content = await this.octokit.repos.getContents({
+            owner: this.owner,
+            repo: this.repo,
+            path: update.path,
+            ref: refName,
+          });
+        }
       } catch (err) {
         if (err.status !== 404) throw err;
         // if the file is missing and create = false, just continue
@@ -564,6 +578,7 @@ export class GitHub {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
         url: `/repos/${this.owner}/${this.repo}/git/refs`,
+        per_page: 100
       })) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
@@ -594,13 +609,17 @@ export class GitHub {
     });
   }
 
-  async getFileContents(path: string): Promise<string> {
-    const content = await this.octokit.repos.getContents({
+  async getFileContents(path: string): Promise<GitHubFileContents> {
+    const resp = await this.octokit.repos.getContents({
       owner: this.owner,
       repo: this.repo,
       path,
     });
-    return Buffer.from(content.data.content, 'base64').toString('utf8');
+    return {
+      parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
+      content: resp.data.content,
+      sha: resp.data.sha,
+    };
   }
 
   async createRelease(version: string, sha: string, releaseNotes: string) {

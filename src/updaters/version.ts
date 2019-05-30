@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
+import { GitHubFileContents } from '../github';
+
 import { checkpoint, CheckpointType } from '../checkpoint';
 import { Update, UpdateOptions } from './update';
 
-export class PackageJson implements Update {
+export class Version implements Update {
   path: string;
   changelogEntry: string;
   version: string;
   packageName: string;
   create: boolean;
-  content?: string;
+  contents?: GitHubFileContents;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -31,7 +33,7 @@ export class PackageJson implements Update {
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
-    this.content = options.content;
+    this.contents = options.contents;
   }
   updateContent(content: string): string {
     return `${this.version}`;
