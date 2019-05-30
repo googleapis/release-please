@@ -310,7 +310,7 @@ export class GitHub {
     for await (const response of this.octokit.paginate.iterator({
       method: 'GET',
       url: `/repos/${this.owner}/${this.repo}/tags`,
-      per_page: 100
+      per_page: 100,
     })) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
@@ -383,10 +383,10 @@ export class GitHub {
     try {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
-        url: `/repos/${this.owner}/${
-          this.repo
-        }/issues?labels=${labels.join(',')}`,
-        per_pag: 100
+        url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
+          ','
+        )}`,
+        per_pag: 100,
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
@@ -578,7 +578,7 @@ export class GitHub {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
         url: `/repos/${this.owner}/${this.repo}/git/refs`,
-        per_page: 100
+        per_page: 100,
       })) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
