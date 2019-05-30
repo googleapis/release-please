@@ -23,6 +23,7 @@ export class Changelog implements Update {
   version: string;
   packageName: string;
   create: boolean;
+  content?: string;
 
   constructor(options: UpdateOptions) {
     this.create = true;

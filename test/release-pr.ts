@@ -55,7 +55,33 @@ describe('GitHub', () => {
         .post('/graphql')
         .reply(200, {
           data: graphql,
-        });
+        })
+        // support fetching the various VERSION files, used
+        // to determine library versions.
+        .get('/repos/googleapis/release-please/contents/AutoMl/VERSION')
+        .reply(200, {
+          content: Buffer.from('1.8.3', 'utf8').toString('base64'),
+        })
+        .get('/repos/googleapis/release-please/contents/Datastore/VERSION')
+        .reply(200, {
+          content: Buffer.from('2.0.0', 'utf8').toString('base64'),
+        })
+        .get('/repos/googleapis/release-please/contents/PubSub/VERSION')
+        .reply(200, {
+          content: Buffer.from('1.0.1', 'utf8').toString('base64'),
+        })
+        .get('/repos/googleapis/release-please/contents/Speech/VERSION')
+        .reply(200, {
+          content: Buffer.from('1.0.0', 'utf8').toString('base64'),
+        })
+        .get(
+          '/repos/googleapis/release-please/contents/WebSecurityScanner/VERSION'
+        )
+        .reply(200, {
+          content: Buffer.from('0.8.0', 'utf8').toString('base64'),
+        })
+        .get('/repos/googleapis/release-please/contents/docs/VERSION')
+        .reply(404);
       const releasePR = new ReleasePR({
         repoUrl: 'googleapis/release-please',
         label: 'autorelease: pending',

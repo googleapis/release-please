@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-export interface UpdateOptions {
-  changelogEntry: string;
-  packageName: string;
-  path: string;
-  version: string;
-  content?: string;
-}
+import { checkpoint, CheckpointType } from '../checkpoint';
+import { Update, UpdateOptions } from './update';
 
-export interface Update {
-  changelogEntry: string;
-  create: boolean;
+export class PackageJson implements Update {
   path: string;
-  packageName: string;
+  changelogEntry: string;
   version: string;
+  packageName: string;
+  create: boolean;
   content?: string;
-  updateContent(content: string | undefined): string;
+
+  constructor(options: UpdateOptions) {
+    this.create = false;
+    this.path = options.path;
+    this.changelogEntry = options.changelogEntry;
+    this.version = options.version;
+    this.packageName = options.packageName;
+    this.content = options.content;
+  }
+  updateContent(content: string): string {
+    return `${this.version}`;
+  }
 }

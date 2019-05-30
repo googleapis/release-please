@@ -185,7 +185,6 @@ export class GitHub {
   ): Promise<PREdge> {
     // Used to handle the edge-case in which a PR has more than 100
     // modified files attached to it.
-    console.info('>>>', this.token);
     const response = await graphql({
       query: `query pullRequestFiles($cursor: String, $owner: String!, $repo: String!, $maxFilesChanged: Int, $num: Int!) {
           repository(owner: $owner, name: $repo) {

@@ -199,9 +199,17 @@ export class ReleasePR {
       if (
         !changelogEmpty(await cc.generateChangelogEntry({ version: '0.0.0' }))
       ) {
-        console.info(`# ${pkgKey}`);
-        console.info(await cc.generateChangelogEntry({ version: '0.0.0' }));
-        console.info('----\n');
+        try {
+          const version = await this.gh.getFileContents(`${pkgKey}/VERSION`);
+        } catch (err) {
+          if (err.status === 404) {
+            // if the updated path has no VERSION, assume this isn't a
+            // module that needs updating.
+            continue;
+          } else {
+            throw err;
+          }
+        }
       }
     }
   }

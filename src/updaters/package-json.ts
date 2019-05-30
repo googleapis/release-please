@@ -23,6 +23,7 @@ export class PackageJson implements Update {
   version: string;
   packageName: string;
   create: boolean;
+  content?: string;
 
   constructor(options: UpdateOptions) {
     this.create = false;
