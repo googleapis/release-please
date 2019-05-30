@@ -48,6 +48,8 @@ export interface ReleasePROptions {
   packageName: string;
   releaseAs?: string;
   releaseType: ReleaseType;
+  apiUrl: string;
+  proxyKey?: string;
 }
 
 export interface ReleaseCandidate {
@@ -56,6 +58,7 @@ export interface ReleaseCandidate {
 }
 
 export class ReleasePR {
+  apiUrl: string;
   labels: string[];
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
@@ -64,6 +67,7 @@ export class ReleasePR {
   packageName: string;
   releaseAs?: string;
   releaseType: ReleaseType;
+  proxyKey?: string;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -73,6 +77,8 @@ export class ReleasePR {
     this.packageName = options.packageName;
     this.releaseAs = options.releaseAs;
     this.releaseType = options.releaseType;
+    this.apiUrl = options.apiUrl;
+    this.proxyKey = options.proxyKey;
 
     this.gh = this.gitHubInstance();
   }
@@ -319,7 +325,13 @@ export class ReleasePR {
 
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
-    return new GitHub({ token: this.token, owner, repo });
+    return new GitHub({
+      token: this.token,
+      owner,
+      repo,
+      apiUrl: this.apiUrl,
+      proxyKey: this.proxyKey,
+    });
   }
 
   private async openPR(

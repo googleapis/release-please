@@ -138,6 +138,15 @@ action "github-release" {
     default: false,
     type: 'boolean',
   })
+  .option('api-url', {
+    describe: 'URL to use when making API requests',
+    default: 'https://api.github.com',
+    type: 'string',
+  })
+  .option('proxy-key', {
+    describe: 'key used by some GitHub proxies',
+    type: 'string',
+  })
   .demandCommand(1)
   .strict(true)
   .parse();

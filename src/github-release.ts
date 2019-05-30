@@ -32,9 +32,11 @@ export interface GitHubReleaseOptions {
   label: string;
   repoUrl: string;
   token: string;
+  apiUrl: string;
 }
 
 export class GitHubRelease {
+  apiUrl: string;
   changelogPath: string;
   gh: GitHub;
   labels: string[];
@@ -42,6 +44,7 @@ export class GitHubRelease {
   token: string | undefined;
 
   constructor(options: GitHubReleaseOptions) {
+    this.apiUrl = options.apiUrl;
     this.labels = options.label.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
@@ -88,7 +91,7 @@ export class GitHubRelease {
 
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
-    return new GitHub({ token: this.token, owner, repo });
+    return new GitHub({ token: this.token, owner, repo, apiUrl: this.apiUrl });
   }
 
   static extractLatestReleaseNotes(

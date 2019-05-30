@@ -43,6 +43,8 @@ interface GitHubOptions {
   token?: string;
   owner: string;
   repo: string;
+  apiUrl?: string;
+  proxyKey?: string;
 }
 
 export interface GitHubTag {
@@ -78,12 +80,18 @@ export class GitHub {
   token: string | undefined;
   owner: string;
   repo: string;
+  apiUrl: string;
+  proxyKey?: string;
+  requestOptions?: object;
 
   constructor(options: GitHubOptions) {
     this.token = options.token;
     this.owner = options.owner;
     this.repo = options.repo;
-    this.octokit = new Octokit({ auth: this.token });
+    this.apiUrl = options.apiUrl || 'https://api.github.com';
+    this.requestOptions = options.proxyKey ? {query: {key: options.proxyKey}} : {};
+    this.octokit = new Octokit({auth: this.token, baseUrl: options.apiUrl});
+    this.proxyKey = options.proxyKey;
   }
 
   async commitsSinceSha(
@@ -167,18 +175,13 @@ export class GitHub {
             }
           }
         }
-        rateLimit {
-          limit
-          cost
-          remaining
-          resetAt
-        }
       }`,
       cursor,
       maxFilesChanged,
       owner: this.owner,
       perPage,
       repo: this.repo,
+      baseUrl: this.apiUrl,
       headers: { authorization: `token ${this.token}` },
     });
     return graphqlToCommits(this, response);
@@ -209,18 +212,13 @@ export class GitHub {
               }
             }
           }
-          rateLimit {
-            limit
-            cost
-            remaining
-            resetAt
-          }
         }`,
       cursor,
       maxFilesChanged,
       owner: this.owner,
       repo: this.repo,
       num,
+      baseUrl: this.apiUrl,
       headers: { authorization: `token ${this.token}` },
     });
     return { node: response.repository.pullRequest } as PREdge;
@@ -246,11 +244,11 @@ export class GitHub {
   ): Promise<GitHubReleasePR | undefined> {
     const pullsResponse: Response<
       PullsListResponseItem[]
-    > = await this.octokit.pulls.list({
-      owner: this.owner,
-      repo: this.repo,
-      state: 'closed',
-      per_page: perPage,
+      > = await this.octokit.paginate.iterator({
+        url: `GET /repos/:owner/:repo/pulls?state=closed&key=${this.proxyKey}&perPage=${perPage}`
+        owner: this.owner,
+        repo: this.repo
+      })
     });
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
