@@ -15,6 +15,7 @@
  */
 
 import * as Octokit from '@octokit/rest';
+const {request} = require('@octokit/request');
 import {
   IssuesListResponseItem,
   PullsCreateResponse,
@@ -82,15 +83,23 @@ export class GitHub {
   repo: string;
   apiUrl: string;
   proxyKey?: string;
-  requestOptions?: object;
+  request: any;
 
   constructor(options: GitHubOptions) {
     this.token = options.token;
     this.owner = options.owner;
     this.repo = options.repo;
     this.apiUrl = options.apiUrl || 'https://api.github.com';
-    this.requestOptions = options.proxyKey ? {query: {key: options.proxyKey}} : {};
     this.octokit = new Octokit({auth: this.token, baseUrl: options.apiUrl});
+    const defaults: { [key: string]: string|object } = {
+      baseUrl: this.apiUrl,
+      headers: {
+        "user-agent": `release-please/${require('../../package.json').version}`,
+        authorization: `token ${this.token}`
+      }
+    }
+    if (options.proxyKey) defaults['key'] = options.proxyKey;
+    this.request = request.defaults(defaults);
     this.proxyKey = options.proxyKey;
   }
 
@@ -125,38 +134,41 @@ export class GitHub {
   private async commitsWithFiles(
     cursor: string | undefined = undefined,
     perPage = 16,
-    maxFilesChanged = 32
+    maxFilesChanged = 32,
+    retries = 0
   ): Promise<CommitsResponse> {
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
-    const response = await graphql({
-      query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int) {
-        repository(owner: $owner, name: $repo) {
-          defaultBranchRef {
-            target {
-              ... on Commit {
-                history(first: $perPage, after: $cursor) {
-                  edges{
-                    node {
-                      ... on Commit {
-                        message
-                        oid
-                        associatedPullRequests(first: 1) {
-                          edges {
-                            node {
-                              ... on PullRequest {
-                                number
-                                files(first: $maxFilesChanged) {
-                                  edges {
-                                    node {
-                                      path
+    try {
+      const response = await graphql({
+        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int) {
+          repository(owner: $owner, name: $repo) {
+            defaultBranchRef {
+              target {
+                ... on Commit {
+                  history(first: $perPage, after: $cursor) {
+                    edges{
+                      node {
+                        ... on Commit {
+                          message
+                          oid
+                          associatedPullRequests(first: 1) {
+                            edges {
+                              node {
+                                ... on PullRequest {
+                                  number
+                                  files(first: $maxFilesChanged) {
+                                    edges {
+                                      node {
+                                        path
+                                      }
                                     }
-                                  }
-                                  pageInfo {
-                                    endCursor
-                                    hasNextPage
+                                    pageInfo {
+                                      endCursor
+                                      hasNextPage
+                                    }
                                   }
                                 }
                               }
@@ -165,26 +177,35 @@ export class GitHub {
                         }
                       }
                     }
-                  }
-                  pageInfo {
-                    endCursor
-                    hasNextPage
+                    pageInfo {
+                      endCursor
+                      hasNextPage
+                    }
                   }
                 }
               }
             }
           }
-        }
-      }`,
-      cursor,
-      maxFilesChanged,
-      owner: this.owner,
-      perPage,
-      repo: this.repo,
-      baseUrl: this.apiUrl,
-      headers: { authorization: `token ${this.token}` },
-    });
-    return graphqlToCommits(this, response);
+        }`,
+        cursor,
+        maxFilesChanged,
+        owner: this.owner,
+        perPage,
+        repo: this.repo,
+        url: `${this.apiUrl}/graphql${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
+        headers: { authorization: `token ${this.token}` },
+      });
+      return graphqlToCommits(this, response);
+    } catch (err) {
+      if (err.status === 502 && retries < 3) {
+        // GraphQL sometimes returns a 502 on the first request,
+        // this seems to relate to a cache being warmed and the
+        // second request generally works.
+        return await this.commitsWithFiles(cursor, perPage, maxFilesChanged, retries++);
+      } else {
+        throw err;
+      }
+    }
   }
 
   async pullRequestFiles(
@@ -218,7 +239,7 @@ export class GitHub {
       owner: this.owner,
       repo: this.repo,
       num,
-      baseUrl: this.apiUrl,
+      url: `${this.apiUrl}/graphql${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
       headers: { authorization: `token ${this.token}` },
     });
     return { node: response.repository.pullRequest } as PREdge;
@@ -242,14 +263,10 @@ export class GitHub {
     labels: string[],
     perPage = 25
   ): Promise<GitHubReleasePR | undefined> {
-    const pullsResponse: Response<
-      PullsListResponseItem[]
-      > = await this.octokit.paginate.iterator({
-        url: `GET /repos/:owner/:repo/pulls?state=closed&key=${this.proxyKey}&perPage=${perPage}`
-        owner: this.owner,
-        repo: this.repo
-      })
-    });
+    const pullsResponse = await this.request(`GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}`, {
+      owner: this.owner,
+      repo: this.repo
+    }) as Response<PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       if (this.hasAllLabels(labels, pull.labels.map(l => l.name))) {
@@ -280,15 +297,11 @@ export class GitHub {
     labels: string[],
     perPage = 25
   ): Promise<PullsListResponseItem[]> {
-    const openReleasePRs: PullsListResponseItem[] = [];
-    const pullsResponse: Response<
-      PullsListResponseItem[]
-    > = await this.octokit.pulls.list({
+    const openReleasePRs: PullsListResponseItem[] = [];    
+    const pullsResponse = await this.request(`GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}`, {
       owner: this.owner,
-      repo: this.repo,
-      state: 'open',
-      per_page: perPage,
-    });
+      repo: this.repo
+    }) as Response<PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       for (let ii = 0, label; ii < pull.labels.length; ii++) {
@@ -307,8 +320,7 @@ export class GitHub {
     const tags: { [version: string]: GitHubTag } = {};
     for await (const response of this.octokit.paginate.iterator({
       method: 'GET',
-      url: `/repos/${this.owner}/${this.repo}/tags`,
-      per_page: 100,
+      url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
     })) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
@@ -327,49 +339,12 @@ export class GitHub {
       }/${this.repo}/pull/${pr}`,
       CheckpointType.Success
     );
-    await this.octokit.issues.addLabels({
+    this.request(`POST /repos/:owner/:repo/issues/:issue_number/labels`, {
       owner: this.owner,
       repo: this.repo,
       issue_number: pr,
       labels,
     });
-  }
-
-  async openIssue(
-    title: string,
-    body: string,
-    labels: string[],
-    issue?: IssuesListResponseItem
-  ) {
-    if (issue) {
-      checkpoint(
-        `updating issue #${issue.number} with labels = ${JSON.stringify(
-          labels
-        )}`,
-        CheckpointType.Success
-      );
-      this.octokit.issues.update({
-        owner: this.owner,
-        repo: this.repo,
-        body,
-        issue_number: issue.number,
-        labels,
-      });
-    } else {
-      checkpoint(
-        `creating new release proposal issue with labels = ${JSON.stringify(
-          labels
-        )}`,
-        CheckpointType.Success
-      );
-      this.octokit.issues.create({
-        owner: this.owner,
-        repo: this.repo,
-        title,
-        body,
-        labels,
-      });
-    }
   }
 
   async findExistingReleaseIssue(
@@ -383,7 +358,7 @@ export class GitHub {
         method: 'GET',
         url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
           ','
-        )}`,
+        )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
         per_pag: 100,
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
@@ -420,7 +395,7 @@ export class GitHub {
           `creating branch ${chalk.green(options.branch)}`,
           CheckpointType.Success
         );
-        await this.octokit.git.createRef({
+        await this.request(`POST /repos/:owner/:repo/git/refs`, {
           owner: this.owner,
           repo: this.repo,
           ref: refName,
@@ -451,8 +426,7 @@ export class GitHub {
             }
           }
         );
-
-        await this.octokit.git.updateRef({
+        await this.request(`PATCH /repos/:owner/:repo/git/refs/:ref`, {
           owner: this.owner,
           repo: this.repo,
           // TODO: remove the replace logic depending on the outcome of:
@@ -484,7 +458,7 @@ export class GitHub {
         )}`,
         CheckpointType.Success
       );
-      await this.octokit.pulls.update({
+      await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number`, {
         pull_number: openReleasePR.number,
         owner: this.owner,
         repo: this.repo,
@@ -499,9 +473,7 @@ export class GitHub {
         `open pull-request: ${chalk.yellow(options.title)}`,
         CheckpointType.Success
       );
-      const resp: Response<
-        PullsCreateResponse
-      > = await this.octokit.pulls.create({
+      const resp = await this.request(`POST /repos/:owner/:repo/pulls`, {
         owner: this.owner,
         repo: this.repo,
         title: options.title,
@@ -523,7 +495,7 @@ export class GitHub {
           // hit GitHub again.
           content = { data: update.contents };
         } else {
-          content = await this.octokit.repos.getContents({
+          content = await this.request(`GET /repos/:owner/:repo/contents/:path`, {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
@@ -548,7 +520,7 @@ export class GitHub {
       const updatedContent = update.updateContent(contentText);
 
       if (content) {
-        await this.octokit.repos.updateFile({
+        await this.request(`PUT /repos/:owner/:repo/contents/:path`, {
           owner: this.owner,
           repo: this.repo,
           path: update.path,
@@ -558,7 +530,7 @@ export class GitHub {
           branch,
         });
       } else {
-        await this.octokit.repos.createFile({
+        await this.request(`PUT /repos/:owner/:repo/contents/:path`, {
           owner: this.owner,
           repo: this.repo,
           path: update.path,
@@ -575,8 +547,7 @@ export class GitHub {
     try {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/git/refs`,
-        per_page: 100,
+        url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${this.proxyKey ? `&key=${this.proxyKey}` : ''}`
       })) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
@@ -599,16 +570,16 @@ export class GitHub {
   }
 
   async closePR(prNumber: number) {
-    this.octokit.pulls.update({
+    await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number`, {
       owner: this.owner,
       repo: this.repo,
-      number: prNumber,
+      pull_number: prNumber,
       state: 'closed',
     });
   }
 
   async getFileContents(path: string): Promise<GitHubFileContents> {
-    const resp = await this.octokit.repos.getContents({
+    const resp = await this.request(`GET /repos/:owner/:repo/contents/:path`, {
       owner: this.owner,
       repo: this.repo,
       path,
@@ -622,7 +593,7 @@ export class GitHub {
 
   async createRelease(version: string, sha: string, releaseNotes: string) {
     checkpoint(`creating release ${version}`, CheckpointType.Success);
-    await this.octokit.repos.createRelease({
+    await this.request(`POST /repos/:owner/:repo/releases`, {
       owner: this.owner,
       repo: this.repo,
       tag_name: version,
@@ -641,7 +612,7 @@ export class GitHub {
         )}`,
         CheckpointType.Success
       );
-      await this.octokit.issues.removeLabel({
+      await this.request(`DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name`, {
         owner: this.owner,
         repo: this.repo,
         issue_number: prNumber,
