@@ -133,8 +133,8 @@ export class GitHub {
 
   private async commitsWithFiles(
     cursor: string | undefined = undefined,
-    perPage = 16,
-    maxFilesChanged = 32,
+    perPage = 32,
+    maxFilesChanged = 64,
     retries = 0
   ): Promise<CommitsResponse> {
     // The GitHub v3 API does not offer an elegant way to fetch commits
