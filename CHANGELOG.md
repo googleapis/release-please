@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [1.7.0](https://www.github.com/googleapis/release-please/compare/v1.6.1...v1.7.0) (2019-05-31)
+
+
+### Bug Fixes
+
+* github commits query timed out in some cases ([4c1242b](https://www.github.com/googleapis/release-please/commit/4c1242b))
+
+
+### Features
+
+* adding support for yoshi-PHP mono-repo to release-pr ([#164](https://www.github.com/googleapis/release-please/issues/164)) ([fc3812d](https://www.github.com/googleapis/release-please/commit/fc3812d))
+
 ### [1.6.1](https://www.github.com/googleapis/release-please/compare/v1.6.0...v1.6.1) (2019-05-20)
 
 
