@@ -96,7 +96,6 @@ export class GitHub {
       headers: {
         "user-agent": `release-please/${require('../../package.json').version}`,
         Authorization: `${this.token}`,
-        'content-type': 'application/json'
       }
     }
     //if (options.proxyKey) defaults['key'] = options.proxyKey;
@@ -194,7 +193,7 @@ export class GitHub {
         perPage,
         repo: this.repo,
         url: `${this.apiUrl}/graphql${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
-        headers: { authorization: `${this.token}` },
+        headers: { authorization: `${this.token}`, 'content-type': 'application/vnd.github.v3+json' },
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -432,8 +431,31 @@ export class GitHub {
             if (refName && refName.indexOf(releasePR.head.ref) !== -1) {
               openReleasePR = releasePR;
             }
-          }
-        );
+          });
+        
+          if (openReleasePR) {
+
+                await this.octokit.pulls.update({
+        pull_number: openReleasePR.number,
+        owner: this.owner,
+        repo: this.repo,
+        title: options.title,
+        body: options.body,
+        state: 'open',
+        base: 'master',
+      });
+
+     await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number?key=${this.proxyKey}`, {
+        pull_number: openReleasePR.number,
+        owner: this.owner,
+        repo: this.repo,
+        title: options.title,
+        body: options.body,
+        state: 'open',
+        base: 'master',
+        });}
+        process.exit(1)
+
         await this.request(`PUT /repos/:owner/:repo/git/refs/:ref?key=${this.proxyKey}`, {
           owner: this.owner,
           repo: this.repo,
@@ -468,7 +490,7 @@ export class GitHub {
         )}`,
         CheckpointType.Success
       );
-      await this.request(`PUT /repos/:owner/:repo/pulls/:pull_number?key=${this.proxyKey}`, {
+      await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number?key=${this.proxyKey}`, {
         pull_number: openReleasePR.number,
         owner: this.owner,
         repo: this.repo,
