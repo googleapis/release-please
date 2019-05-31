@@ -91,16 +91,17 @@ export class GitHub {
     this.repo = options.repo;
     this.apiUrl = options.apiUrl || 'https://api.github.com';
     this.octokit = new Octokit({baseUrl: options.apiUrl});
+    this.proxyKey = options.proxyKey;
     const defaults: { [key: string]: string|object } = {
       baseUrl: this.apiUrl,
       headers: {
         "user-agent": `release-please/${require('../../package.json').version}`,
-        Authorization: `${this.token}`,
+        // some proxies do not require the token prefix.
+        Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`,
       }
     }
     //if (options.proxyKey) defaults['key'] = options.proxyKey;
     this.request = request.defaults(defaults);
-    this.proxyKey = options.proxyKey;
   }
 
   async commitsSinceSha(
@@ -193,7 +194,7 @@ export class GitHub {
         perPage,
         repo: this.repo,
         url: `${this.apiUrl}/graphql${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
-        headers: { authorization: `${this.token}`, 'content-type': 'application/vnd.github.v3+json' },
+        headers: { authorization: `${this.proxyKey ? 'token' : ''}${this.token}`, 'content-type': 'application/vnd.github.v3+json' },
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -240,7 +241,7 @@ export class GitHub {
       repo: this.repo,
       num,
       url: `${this.apiUrl}/graphql${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
-      headers: { authorization: `token ${this.token}` },
+      headers: { authorization: `${this.proxyKey ? 'token' : ''}${this.token}` },
     });
     return { node: response.repository.pullRequest } as PREdge;
   }
@@ -263,10 +264,9 @@ export class GitHub {
     labels: string[],
     perPage = 25
   ): Promise<GitHubReleasePR | undefined> {
-    const pullsResponse = await this.request(`GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}`, {
+    const pullsResponse = await this.request(`GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
-      key: this.proxyKey
     }) as Response<PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
@@ -299,10 +299,9 @@ export class GitHub {
     perPage = 25
   ): Promise<PullsListResponseItem[]> {
     const openReleasePRs: PullsListResponseItem[] = [];    
-    const pullsResponse = await this.request(`GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}`, {
+    const pullsResponse = await this.request(`GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
-      key: this.proxyKey
     }) as Response<PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
@@ -324,7 +323,7 @@ export class GitHub {
       method: 'GET',
       url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
       headers: {
-        Authorization: this.token
+        Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`
       }
     })) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
@@ -344,7 +343,7 @@ export class GitHub {
       }/${this.repo}/pull/${pr}`,
       CheckpointType.Success
     );
-    this.request(`POST /repos/:owner/:repo/issues/:issue_number/labels?key=${this.proxyKey}`, {
+    this.request(`POST /repos/:owner/:repo/issues/:issue_number/labels${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
       issue_number: pr,
@@ -365,7 +364,7 @@ export class GitHub {
           ','
         )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
         per_pag: 100,
-        headers: {Authorization: this.token}
+        headers: {Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`}
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
@@ -433,30 +432,7 @@ export class GitHub {
             }
           });
         
-          if (openReleasePR) {
-
-                await this.octokit.pulls.update({
-        pull_number: openReleasePR.number,
-        owner: this.owner,
-        repo: this.repo,
-        title: options.title,
-        body: options.body,
-        state: 'open',
-        base: 'master',
-      });
-
-     await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number?key=${this.proxyKey}`, {
-        pull_number: openReleasePR.number,
-        owner: this.owner,
-        repo: this.repo,
-        title: options.title,
-        body: options.body,
-        state: 'open',
-        base: 'master',
-        });}
-        process.exit(1)
-
-        await this.request(`PUT /repos/:owner/:repo/git/refs/:ref?key=${this.proxyKey}`, {
+        await this.request(`PATCH /repos/:owner/:repo/git/refs/:ref${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
           owner: this.owner,
           repo: this.repo,
           // TODO: remove the replace logic depending on the outcome of:
@@ -464,7 +440,7 @@ export class GitHub {
           ref: refName.replace('refs/', ''),
           sha: options.sha,
           force: true,
-          headers: {Authorization: this.token}
+          headers: {Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`}
         });
         } catch (err) {
         console.info(err);
@@ -490,7 +466,7 @@ export class GitHub {
         )}`,
         CheckpointType.Success
       );
-      await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number?key=${this.proxyKey}`, {
+      await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
         pull_number: openReleasePR.number,
         owner: this.owner,
         repo: this.repo,
@@ -505,7 +481,7 @@ export class GitHub {
         `open pull-request: ${chalk.yellow(options.title)}`,
         CheckpointType.Success
       );
-      const resp = await this.request(`POST /repos/:owner/:repo/pulls?key=${this.proxyKey}`, {
+      const resp = await this.request(`POST /repos/:owner/:repo/pulls${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
         owner: this.owner,
         repo: this.repo,
         title: options.title,
@@ -527,7 +503,7 @@ export class GitHub {
           // hit GitHub again.
           content = { data: update.contents };
         } else {
-        content = await this.request(`GET /repos/:owner/:repo/contents/:path?key=${this.proxyKey}`, {
+        content = await this.request(`GET /repos/:owner/:repo/contents/:path${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
@@ -552,7 +528,7 @@ export class GitHub {
       const updatedContent = update.updateContent(contentText);
 
       if (content) {
-      await this.request(`PUT /repos/:owner/:repo/contents/:path?key=${this.proxyKey}`, {
+      await this.request(`PUT /repos/:owner/:repo/contents/:path${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
           owner: this.owner,
           repo: this.repo,
           path: update.path,
@@ -580,7 +556,7 @@ export class GitHub {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
         url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
-        headers: {Authorization: this.token}
+        headers: {Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`}
       })) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
@@ -603,7 +579,7 @@ export class GitHub {
   }
 
   async closePR(prNumber: number) {
-    await this.request(`PUT /repos/:owner/:repo/pulls/:pull_number`, {
+    await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number`, {
       owner: this.owner,
       repo: this.repo,
       pull_number: prNumber,
