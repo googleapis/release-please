@@ -124,6 +124,7 @@ describe('GitHub', () => {
         releaseType: ReleaseType.PHPYoshi,
         // not actually used by this type of repo.
         packageName: 'yoshi-php',
+        apiUrl: 'https://api.github.com',
       });
       await releasePR.run();
       req.done();
