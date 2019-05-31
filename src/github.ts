@@ -97,7 +97,7 @@ export class GitHub {
       headers: {
         "user-agent": `release-please/${require('../../package.json').version}`,
         // some proxies do not require the token prefix.
-        Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`,
+        Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
       }
     }
     //if (options.proxyKey) defaults['key'] = options.proxyKey;
@@ -194,7 +194,7 @@ export class GitHub {
         perPage,
         repo: this.repo,
         url: `${this.apiUrl}/graphql${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
-        headers: { authorization: `${this.proxyKey ? 'token' : ''}${this.token}`, 'content-type': 'application/vnd.github.v3+json' },
+        headers: { authorization: `${this.proxyKey ? '' : 'token '}${this.token}`, 'content-type': 'application/vnd.github.v3+json' },
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -241,7 +241,7 @@ export class GitHub {
       repo: this.repo,
       num,
       url: `${this.apiUrl}/graphql${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
-      headers: { authorization: `${this.proxyKey ? 'token' : ''}${this.token}` },
+      headers: { authorization: `${this.proxyKey ? '' : 'token '}${this.token}` },
     });
     return { node: response.repository.pullRequest } as PREdge;
   }
@@ -323,7 +323,7 @@ export class GitHub {
       method: 'GET',
       url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
       headers: {
-        Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`
+        Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`
       }
     })) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
@@ -364,7 +364,7 @@ export class GitHub {
           ','
         )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
         per_pag: 100,
-        headers: {Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`}
+        headers: {Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`}
       })) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
@@ -440,7 +440,7 @@ export class GitHub {
           ref: refName.replace('refs/', ''),
           sha: options.sha,
           force: true,
-          headers: {Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`}
+          headers: {Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`}
         });
         } catch (err) {
         console.info(err);
@@ -556,7 +556,7 @@ export class GitHub {
       for await (const response of this.octokit.paginate.iterator({
         method: 'GET',
         url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
-        headers: {Authorization: `${this.proxyKey ? 'token' : ''}${this.token}`}
+        headers: {Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`}
       })) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
