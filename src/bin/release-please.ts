@@ -87,7 +87,7 @@ yargs
       });
     },
     async (argv: ReleasePROptions) => {
-      console.info(
+      console.error(
         chalk.green(
           '----- put the content below in .github/main.workflow -----'
         )
