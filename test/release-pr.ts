@@ -109,10 +109,17 @@ describe('GitHub', () => {
         .reply(200)
         // actually open the darn PR, this is the exciting step,
         // so we snapshot it:
-        .post('/repos/googleapis/release-please/pulls', (req: object) => {
-          snapshot(req);
-          return true;
-        })
+        .post(
+          '/repos/googleapis/release-please/pulls',
+          (req: { [key: string]: string }) => {
+            const body = req.body.replace(
+              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
+              ''
+            );
+            snapshot(body);
+            return true;
+          }
+        )
         .reply(200, { number: 1 })
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=25')
