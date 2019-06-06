@@ -19,7 +19,7 @@ import * as semver from 'semver';
 import { ReleaseType } from 'semver';
 import { Readable } from 'stream';
 
-import { checkpoint, CheckpointType } from './checkpoint';
+import { checkpoint, CheckpointType } from './util/checkpoint';
 import { Commit } from './graphql-to-commits';
 
 const concat = require('concat-stream');

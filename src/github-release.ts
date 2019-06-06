@@ -23,7 +23,7 @@ import {
 } from '@octokit/rest';
 import chalk from 'chalk';
 
-import { checkpoint, CheckpointType } from './checkpoint';
+import { checkpoint, CheckpointType } from './util/checkpoint';
 import { GitHub, GitHubReleasePR } from './github';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -33,6 +33,7 @@ export interface GitHubReleaseOptions {
   repoUrl: string;
   token: string;
   apiUrl: string;
+  proxyKey?: string;
 }
 
 export class GitHubRelease {
@@ -41,10 +42,12 @@ export class GitHubRelease {
   gh: GitHub;
   labels: string[];
   repoUrl: string;
-  token: string | undefined;
+  token?: string;
+  proxyKey?: string;
 
   constructor(options: GitHubReleaseOptions) {
     this.apiUrl = options.apiUrl;
+    this.proxyKey = options.proxyKey;
     this.labels = options.label.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
@@ -91,7 +94,13 @@ export class GitHubRelease {
 
   private gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
-    return new GitHub({ token: this.token, owner, repo, apiUrl: this.apiUrl });
+    return new GitHub({
+      token: this.token,
+      owner,
+      repo,
+      apiUrl: this.apiUrl,
+      proxyKey: this.proxyKey,
+    });
   }
 
   static extractLatestReleaseNotes(

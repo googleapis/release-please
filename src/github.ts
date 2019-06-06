@@ -27,7 +27,7 @@ import {
 import chalk from 'chalk';
 import * as semver from 'semver';
 
-import { checkpoint, CheckpointType } from './checkpoint';
+import { checkpoint, CheckpointType } from './util/checkpoint';
 import {
   Commit,
   CommitsResponse,
@@ -489,7 +489,6 @@ export class GitHub {
           }
         );
       } catch (err) {
-        console.info(err);
         if (err.status === 404) {
           // the most likely cause of a 404 during this step is actually
           // that the user does not have access to the repo:
@@ -604,14 +603,19 @@ export class GitHub {
           }
         );
       } else {
-        await this.request(`PUT /repos/:owner/:repo/contents/:path`, {
-          owner: this.owner,
-          repo: this.repo,
-          path: update.path,
-          message: `created ${update.path}`,
-          content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-          branch,
-        });
+        await this.request(
+          `PUT /repos/:owner/:repo/contents/:path${
+            this.proxyKey ? `?key=${this.proxyKey}` : ''
+          }`,
+          {
+            owner: this.owner,
+            repo: this.repo,
+            path: update.path,
+            message: `created ${update.path}`,
+            content: Buffer.from(updatedContent, 'utf8').toString('base64'),
+            branch,
+          }
+        );
       }
     }
   }
@@ -649,7 +653,7 @@ export class GitHub {
   }
 
   async closePR(prNumber: number) {
-    await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number`, {
+    await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
       pull_number: prNumber,
@@ -658,7 +662,7 @@ export class GitHub {
   }
 
   async getFileContents(path: string): Promise<GitHubFileContents> {
-    const resp = await this.request(`GET /repos/:owner/:repo/contents/:path`, {
+    const resp = await this.request(`GET /repos/:owner/:repo/contents/:path${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
       path,
@@ -672,7 +676,7 @@ export class GitHub {
 
   async createRelease(version: string, sha: string, releaseNotes: string) {
     checkpoint(`creating release ${version}`, CheckpointType.Success);
-    await this.request(`POST /repos/:owner/:repo/releases`, {
+    await this.request(`POST /repos/:owner/:repo/releases${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
       tag_name: version,
@@ -692,7 +696,7 @@ export class GitHub {
         CheckpointType.Success
       );
       await this.request(
-        `DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name`,
+        `DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
         {
           owner: this.owner,
           repo: this.repo,

@@ -17,7 +17,7 @@
 import { PullsListResponseItem } from '@octokit/rest';
 import * as semver from 'semver';
 
-import { checkpoint, CheckpointType } from './checkpoint';
+import { checkpoint, CheckpointType } from './util/checkpoint';
 import { ConventionalCommits } from './conventional-commits';
 import {
   GitHub,

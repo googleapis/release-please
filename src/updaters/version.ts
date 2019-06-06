@@ -16,7 +16,7 @@
 
 import { GitHubFileContents } from '../github';
 
-import { checkpoint, CheckpointType } from '../checkpoint';
+import { checkpoint, CheckpointType } from '../util/checkpoint';
 import { Update, UpdateOptions } from './update';
 
 export class Version implements Update {
