@@ -603,14 +603,19 @@ export class GitHub {
           }
         );
       } else {
-        await this.request(`PUT /repos/:owner/:repo/contents/:path`, {
-          owner: this.owner,
-          repo: this.repo,
-          path: update.path,
-          message: `created ${update.path}`,
-          content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-          branch,
-        });
+        await this.request(
+          `PUT /repos/:owner/:repo/contents/:path${
+            this.proxyKey ? `?key=${this.proxyKey}` : ''
+          }`,
+          {
+            owner: this.owner,
+            repo: this.repo,
+            path: update.path,
+            message: `created ${update.path}`,
+            content: Buffer.from(updatedContent, 'utf8').toString('base64'),
+            branch,
+          }
+        );
       }
     }
   }

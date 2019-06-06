@@ -164,7 +164,7 @@ action "github-release" {
   .option('debug', {
     describe: 'print verbose errors (use only for local debugging).',
     default: false,
-    type: 'boolean'
+    type: 'boolean',
   })
   .demandCommand(1)
   .strict(true)
@@ -177,7 +177,7 @@ action "github-release" {
 // the request object, don't do this in CI/CD).
 function handleError(err: ErrorObject) {
   let status = '';
-  let command = argv._.length === 0 ? '' : argv._[0]
+  const command = argv._.length === 0 ? '' : argv._[0];
   if (err.status) {
     status = '' + err.status;
   }
@@ -193,10 +193,10 @@ function handleError(err: ErrorObject) {
   process.exitCode = 1;
 }
 
-process.on('unhandledRejection', (err) => {
+process.on('unhandledRejection', err => {
   handleError(err as ErrorObject);
 });
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   handleError(err as ErrorObject);
 });
