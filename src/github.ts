@@ -489,7 +489,6 @@ export class GitHub {
           }
         );
       } catch (err) {
-        console.info(err);
         if (err.status === 404) {
           // the most likely cause of a 404 during this step is actually
           // that the user does not have access to the repo:

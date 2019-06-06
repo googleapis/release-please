@@ -25,6 +25,12 @@ import { ReleasePR, ReleasePROptions } from '../release-pr';
 
 const yargs = require('yargs');
 
+interface ErrorObject {
+  body?: object;
+  status?: number;
+  message: string;
+}
+
 interface YargsOptions {
   describe: string;
   demand?: boolean;
@@ -35,7 +41,7 @@ interface YargsOptionsBuilder {
   option(opt: string, options: YargsOptions): YargsOptionsBuilder;
 }
 
-yargs
+const argv = yargs
   .command(
     'release-pr',
     'create or update a PR representing the next release',
@@ -54,9 +60,9 @@ yargs
           describe: 'label(s) to add to generated PR',
         });
     },
-    async (argv: ReleasePROptions) => {
+    (argv: ReleasePROptions) => {
       const rp = new ReleasePR(argv);
-      await rp.run();
+      rp.run().catch(handleError);
     }
   )
   .command(
@@ -73,9 +79,9 @@ yargs
           describe: 'label to remove from release PR',
         });
     },
-    async (argv: GitHubReleaseOptions) => {
+    (argv: GitHubReleaseOptions) => {
       const gr = new GitHubRelease(argv);
-      await gr.createRelease();
+      gr.createRelease().catch(handleError);
     }
   )
   .command(
@@ -87,7 +93,7 @@ yargs
         demand: true,
       });
     },
-    async (argv: ReleasePROptions) => {
+    (argv: ReleasePROptions) => {
       console.error(
         chalk.green(
           '----- put the content below in .github/main.workflow -----'
@@ -155,6 +161,42 @@ action "github-release" {
     describe: 'key used by some GitHub proxies',
     type: 'string',
   })
+  .option('debug', {
+    describe: 'print verbose errors (use only for local debugging).',
+    default: false,
+    type: 'boolean'
+  })
   .demandCommand(1)
   .strict(true)
   .parse();
+
+// The errors returned by octokit currently contain the
+// request object, this contains information we don't want to
+// leak. For this reason, we capture exceptions and print
+// a less verbose error message (run with --debug to output
+// the request object, don't do this in CI/CD).
+function handleError(err: ErrorObject) {
+  let status = '';
+  let command = argv._.length === 0 ? '' : argv._[0]
+  if (err.status) {
+    status = '' + err.status;
+  }
+  console.error(
+    chalk.red(
+      `command ${command} failed${status ? ` with status ${status}` : ''}`
+    )
+  );
+  if (argv.debug) {
+    console.error('---------');
+    console.error(err);
+  }
+  process.exitCode = 1;
+}
+
+process.on('unhandledRejection', (err) => {
+  handleError(err as ErrorObject);
+});
+
+process.on('uncaughtException', (err) => {
+  handleError(err as ErrorObject);
+});
