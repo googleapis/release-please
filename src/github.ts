@@ -653,7 +653,7 @@ export class GitHub {
   }
 
   async closePR(prNumber: number) {
-    await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number`, {
+    await this.request(`PATCH /repos/:owner/:repo/pulls/:pull_number${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
       pull_number: prNumber,
@@ -662,7 +662,7 @@ export class GitHub {
   }
 
   async getFileContents(path: string): Promise<GitHubFileContents> {
-    const resp = await this.request(`GET /repos/:owner/:repo/contents/:path`, {
+    const resp = await this.request(`GET /repos/:owner/:repo/contents/:path${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
       path,
@@ -676,7 +676,7 @@ export class GitHub {
 
   async createRelease(version: string, sha: string, releaseNotes: string) {
     checkpoint(`creating release ${version}`, CheckpointType.Success);
-    await this.request(`POST /repos/:owner/:repo/releases`, {
+    await this.request(`POST /repos/:owner/:repo/releases${this.proxyKey ? `?key=${this.proxyKey}` : ''}`, {
       owner: this.owner,
       repo: this.repo,
       tag_name: version,
@@ -696,7 +696,7 @@ export class GitHub {
         CheckpointType.Success
       );
       await this.request(
-        `DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name`,
+        `DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name${this.proxyKey ? `?key=${this.proxyKey}` : ''}`,
         {
           owner: this.owner,
           repo: this.repo,
