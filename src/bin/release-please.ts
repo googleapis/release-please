@@ -19,6 +19,7 @@
 'use strict';
 
 import chalk from 'chalk';
+import { coerceOption } from '../util/coerce-option';
 import { GitHubRelease, GitHubReleaseOptions } from '../github-release';
 import { ReleasePR, ReleasePROptions } from '../release-pr';
 
@@ -122,6 +123,13 @@ action "github-release" {
         `);
     }
   )
+  .middleware((argv: GitHubReleaseOptions) => {
+    // allow secrets to be loaded from file path
+    // rather than being passed directly to the bin.
+    if (argv.token) argv.token = coerceOption(argv.token);
+    if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
+    if (argv.proxyKey) argv.proxyKey = coerceOption(argv.proxyKey);
+  })
   .option('token', { describe: 'GitHub token with repo write permissions' })
   .option('release-as', {
     describe: 'override the semantically determined release version',

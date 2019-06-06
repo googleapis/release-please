@@ -27,7 +27,7 @@ import {
 import chalk from 'chalk';
 import * as semver from 'semver';
 
-import { checkpoint, CheckpointType } from './checkpoint';
+import { checkpoint, CheckpointType } from './util/checkpoint';
 import {
   Commit,
   CommitsResponse,
