@@ -16,9 +16,10 @@
 set -e
 
 export COMMAND=${RELEASE_PLEASE_COMMAND:-release-pr}
-export ACTION==$(json "$GITHUB_EVENT_PATH" action)
-export MERGED=$(json "$GITHUB_EVENT_PATH" pull_reuest.merged)
+export ACTION=$(cat "$GITHUB_EVENT_PATH" | json action)
+export MERGED=$(cat "$GITHUB_EVENT_PATH" | json pull_request.merged)
 
+echo "action = $ACTION, merged = $MERGED"
 if [[ "$ACTION" = "closed" ]] && [[ "$MERGED" = "true" ]]; then
   release-please $COMMAND --token=$GITHUB_TOKEN \
     --repo-url="git@github.com:$GITHUB_REPOSITORY.git" \
