@@ -25,8 +25,19 @@ import { ReleasePR, ReleaseType } from '../src/release-pr';
 
 const fixturesPath = './test/fixtures';
 
+interface MochaThis {
+  [skip: string]: Function;
+}
+function requireNode10(this: MochaThis) {
+  const match = process.version.match(/v([0-9]+)/);
+  if (match) {
+    if (Number(match[1]) < 10) this.skip();
+  }
+}
+
 describe('GitHub', () => {
   describe('Yoshi PHP Mono-Repo', () => {
+    before(requireNode10);
     it('generates CHANGELOG and aborts if duplicate', async () => {
       const graphql = JSON.parse(
         readFileSync(
