@@ -10,5 +10,5 @@ s.copy(templates, excludes=[
   '.prettierignore',
   '.prettierrc',
   '.nycrc',
-  '.kokoro'
+  '.kokoro/**',
 ])
