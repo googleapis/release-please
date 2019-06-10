@@ -471,6 +471,18 @@ export class GitHub {
           }
         );
 
+        // short-circuit of there have been no changes to the
+        // pull-request body.
+        if (openReleasePR && openReleasePR.body === options.body) {
+          checkpoint(
+            `PR https://github.com/${this.owner}/${this.repo}/pull/${
+              openReleasePR.number
+            } remained the same`,
+            CheckpointType.Failure
+          );
+          return openReleasePR.number;
+        }
+
         await this.request(
           `PATCH /repos/:owner/:repo/git/refs/:ref${
             this.proxyKey ? `?key=${this.proxyKey}` : ''
