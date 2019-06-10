@@ -351,8 +351,11 @@ export class ReleasePR {
       body,
       labels: this.labels,
     });
-    await this.gh.addLabels(pr, this.labels);
-    await this.closeStaleReleasePRs(pr);
+    // a return of -1 indicates that PR was not updated.
+    if (pr > 0) {
+      await this.gh.addLabels(pr, this.labels);
+      await this.closeStaleReleasePRs(pr);
+    }
   }
 }
 

@@ -480,7 +480,7 @@ export class GitHub {
             } remained the same`,
             CheckpointType.Failure
           );
-          return openReleasePR.number;
+          return -1;
         }
 
         await this.request(
