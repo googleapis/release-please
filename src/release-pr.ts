@@ -171,7 +171,7 @@ export class ReleasePR {
 
     await this.openPR(
       commits[0].sha,
-      changelogEntry,
+      `${changelogEntry}\n---\n`,
       updates,
       candidate.version
     );
@@ -341,7 +341,7 @@ export class ReleasePR {
     version: string
   ) {
     const title = `chore: release ${version}`;
-    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}`;
+    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${version}`,
       version,
@@ -351,8 +351,11 @@ export class ReleasePR {
       body,
       labels: this.labels,
     });
-    await this.gh.addLabels(pr, this.labels);
-    await this.closeStaleReleasePRs(pr);
+    // a return of -1 indicates that PR was not updated.
+    if (pr > 0) {
+      await this.gh.addLabels(pr, this.labels);
+      await this.closeStaleReleasePRs(pr);
+    }
   }
 }
 

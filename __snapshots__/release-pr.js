@@ -61,4 +61,5 @@ exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 
 * Add Web Security Center Client ([#1961](https://www.github.com/googleapis/release-please/issues/1961)) ([fa5761e](https://www.github.com/googleapis/release-please/commit/fa5761e))
 
 ----
+This PR was generated with [Release Please](https://github.com/googleapis/release-please).
 `
