@@ -31,6 +31,7 @@ const parseGithubRepoUrl = require('parse-github-repo-url');
 export interface GitHubReleaseOptions {
   label: string;
   repoUrl: string;
+  packageName: string;
   token: string;
   apiUrl: string;
   proxyKey?: string;
@@ -42,6 +43,7 @@ export class GitHubRelease {
   gh: GitHub;
   labels: string[];
   repoUrl: string;
+  packageName: string;
   token?: string;
   proxyKey?: string;
 
@@ -51,6 +53,7 @@ export class GitHubRelease {
     this.labels = options.label.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
+    this.packageName = options.packageName;
 
     this.changelogPath = 'CHANGELOG.md';
 
@@ -82,6 +85,7 @@ export class GitHubRelease {
       );
 
       await this.gh.createRelease(
+        this.packageName,
         gitHubReleasePR.version,
         gitHubReleasePR.sha,
         latestReleaseNotes

@@ -608,7 +608,7 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `updated ${update.path}`,
+            message: `updated ${update.path} [ci skip]`,
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             sha: content.data.sha,
             branch,
@@ -623,7 +623,7 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `created ${update.path}`,
+            message: `created ${update.path} [ci skip]`,
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             branch,
           }
@@ -696,7 +696,12 @@ export class GitHub {
     };
   }
 
-  async createRelease(version: string, sha: string, releaseNotes: string) {
+  async createRelease(
+    packageName: string,
+    version: string,
+    sha: string,
+    releaseNotes: string
+  ) {
     checkpoint(`creating release ${version}`, CheckpointType.Success);
     await this.request(
       `POST /repos/:owner/:repo/releases${
@@ -708,7 +713,7 @@ export class GitHub {
         tag_name: version,
         target_commitish: sha,
         body: releaseNotes,
-        name: version,
+        name: `${packageName} ${version}`,
       }
     );
   }

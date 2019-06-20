@@ -22,6 +22,7 @@ export class PackageJson implements Update {
   path: string;
   changelogEntry: string;
   version: string;
+  versions?: { [key: string]: string };
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;

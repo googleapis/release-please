@@ -21,6 +21,7 @@ export interface UpdateOptions {
   packageName: string;
   path: string;
   version: string;
+  versions?: { [key: string]: string };
   contents?: GitHubFileContents;
 }
 
@@ -30,6 +31,7 @@ export interface Update {
   path: string;
   packageName: string;
   version: string;
+  versions?: { [key: string]: string };
   contents?: GitHubFileContents;
   updateContent(content: string | undefined): string;
 }

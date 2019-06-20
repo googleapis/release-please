@@ -22,6 +22,7 @@ export class Changelog implements Update {
   path: string;
   changelogEntry: string;
   version: string;
+  versions?: { [key: string]: string };
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
@@ -52,10 +53,6 @@ export class Changelog implements Update {
   private header() {
     return `\
 # Changelog
-
-[npm history][1]
-
-[1]: https://www.npmjs.com/package/${this.packageName}?activeTab=versions
 `;
   }
 }

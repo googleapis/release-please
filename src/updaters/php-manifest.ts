@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-import { GitHubFileContents } from '../github';
-
 import { checkpoint, CheckpointType } from '../util/checkpoint';
 import { Update, UpdateOptions } from './update';
+import { GitHubFileContents } from '../github';
 
-export class Version implements Update {
+interface ManifestModule {
+  name: string;
+  versions: string[];
+}
+
+export class PHPManifest implements Update {
   path: string;
   changelogEntry: string;
   version: string;
@@ -33,10 +37,35 @@ export class Version implements Update {
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
+    this.versions = options.versions;
     this.packageName = options.packageName;
-    this.contents = options.contents;
   }
   updateContent(content: string): string {
-    return `${this.version}`;
+    if (!this.versions || Object.keys(this.versions).length === 0) {
+      checkpoint(
+        `no updates necessary for ${this.path}`,
+        CheckpointType.Failure
+      );
+      return content;
+    }
+    const parsed = JSON.parse(content);
+    Object.keys(this.versions).forEach((key: string) => {
+      if (this.versions) {
+        const version: string = this.versions[key]
+          ? this.versions[key]
+          : '1.0.0';
+        parsed.modules.forEach((module: ManifestModule) => {
+          if (module.name === key) {
+            checkpoint(
+              `adding ${key}@${version} to manifest`,
+              CheckpointType.Success
+            );
+            module.versions.unshift(version);
+          }
+        });
+      }
+    });
+
+    return JSON.stringify(parsed, null, 4) + '\n';
   }
 }

@@ -72,5 +72,19 @@ describe('GitHubRelease', () => {
       );
       snapshot(latestReleaseNotes);
     });
+
+    describe('php-yoshi', () => {
+      it('extracts appropriate release notes, when multiple packages updated', () => {
+        const changelogContent = readFileSync(
+          resolve(fixturesPath, './CHANGELOG-php-yoshi.md'),
+          'utf8'
+        ).replace(/\r\n/g, '\n');
+        const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
+          changelogContent,
+          'v0.105.0'
+        );
+        snapshot(latestReleaseNotes);
+      });
+    });
   });
 });

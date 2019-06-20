@@ -19,7 +19,7 @@ import { GitHubFileContents } from '../github';
 import { checkpoint, CheckpointType } from '../util/checkpoint';
 import { Update, UpdateOptions } from './update';
 
-export class Version implements Update {
+export class PHPClientVersion implements Update {
   path: string;
   changelogEntry: string;
   version: string;
@@ -37,6 +37,9 @@ export class Version implements Update {
     this.contents = options.contents;
   }
   updateContent(content: string): string {
-    return `${this.version}`;
+    return content.replace(
+      /const VERSION = '[0-9]+\.[0-9]+\.[0-9]+'/,
+      `const VERSION = '${this.version}'`
+    );
   }
 }

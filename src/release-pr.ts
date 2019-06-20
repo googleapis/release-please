@@ -29,6 +29,9 @@ import { Commit, graphqlToCommits } from './graphql-to-commits';
 import { CommitSplit } from './commit-split';
 import { Changelog } from './updaters/changelog';
 import { PackageJson } from './updaters/package-json';
+import { PHPClientVersion } from './updaters/php-client-version';
+import { PHPManifest } from './updaters/php-manifest';
+import { RootComposer } from './updaters/root-composer';
 import { SamplesPackageJson } from './updaters/samples-package-json';
 import { Version } from './updaters/version';
 import { Update } from './updaters/update';
@@ -183,8 +186,6 @@ export class ReleasePR {
       latestTag ? latestTag.sha : undefined
     );
 
-    const cs = new CommitSplit();
-
     // we create an instance of conventional CHANGELOG for bumping the
     // top-level tag version we maintain on the mono-repo itself.
     const ccb = new ConventionalCommits({
@@ -207,10 +208,56 @@ export class ReleasePR {
     // updated since our last release -- the set of string keys
     // is sorted to ensure consistency in the CHANGELOG.
     const updates: Update[] = [];
+    let changelogEntry = `## ${candidate.version}`;
+
+    changelogEntry = await this.releaseAllPHPLibraries(
+      commits,
+      updates,
+      changelogEntry
+    );
+
+    updates.push(
+      new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
+
+    ['src/Version.php', 'src/ServiceBuilder.php'].forEach((path: string) => {
+      updates.push(
+        new PHPClientVersion({
+          path,
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
+    await this.openPR(
+      commits[0].sha,
+      changelogEntry,
+      updates,
+      candidate.version
+    );
+  }
+
+  private async releaseAllPHPLibraries(
+    commits: Commit[],
+    updates: Update[],
+    changelogEntry: string
+  ): Promise<string> {
+    const cs = new CommitSplit();
     const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
     const pkgKeys: string[] = Object.keys(commitLookup).sort();
-    let changelogEntry = `## ${candidate.version} release highlights:`;
+    // map of library names that need to be updated in the top level
+    // composer.json and manifest.json.
+    const versionUpdates: { [key: string]: string } = {};
 
+    // walk each individual library updating the VERSION file, and
+    // if necessary the `const VERSION` in the client library.
     for (let i = 0; i < pkgKeys.length; i++) {
       const pkgKey: string = pkgKeys[i];
       const cc = new ConventionalCommits({
@@ -241,13 +288,18 @@ export class ReleasePR {
             continue;
           }
 
-          changelogEntry = updateChangelogEntry(
-            pkgKey,
+          const meta = JSON.parse(
+            (await this.gh.getFileContents(`${pkgKey}/composer.json`))
+              .parsedContent
+          );
+          versionUpdates[meta.name] = candidate;
+
+          changelogEntry = updatePHPChangelogEntry(
+            `${meta.name} ${candidate}`,
             changelogEntry,
             await cc.generateChangelogEntry({ version: candidate })
           );
 
-          // checkpoint(`failed to `, CheckpointType.Failure);
           updates.push(
             new Version({
               path: `${pkgKey}/VERSION`,
@@ -257,6 +309,23 @@ export class ReleasePR {
               contents,
             })
           );
+
+          // extra.component indicates an entry-point class file
+          // that must have its version # updatd.
+          if (
+            meta.extra &&
+            meta.extra.component &&
+            meta.extra.component.entry
+          ) {
+            updates.push(
+              new PHPClientVersion({
+                path: `${pkgKey}/${meta.extra.component.entry}`,
+                changelogEntry,
+                version: candidate,
+                packageName: this.packageName,
+              })
+            );
+          }
         } catch (err) {
           if (err.status === 404) {
             // if the updated path has no VERSION, assume this isn't a
@@ -269,12 +338,29 @@ export class ReleasePR {
       }
     }
 
-    await this.openPR(
-      commits[0].sha,
-      changelogEntry,
-      updates,
-      candidate.version
+    // update the aggregate package information in the root
+    // composer.json and manifest.json.
+    updates.push(
+      new RootComposer({
+        path: 'composer.json',
+        changelogEntry,
+        version: '0.0.0',
+        versions: versionUpdates,
+        packageName: this.packageName,
+      })
     );
+
+    updates.push(
+      new PHPManifest({
+        path: 'docs/manifest.json',
+        changelogEntry,
+        version: '0.0.0',
+        versions: versionUpdates,
+        packageName: this.packageName,
+      })
+    );
+
+    return changelogEntry;
   }
 
   private async closeStaleReleasePRs(currentPRNumber: number) {
@@ -341,7 +427,7 @@ export class ReleasePR {
     version: string
   ) {
     const title = `chore: release ${version}`;
-    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
+    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${version}`,
       version,
@@ -363,16 +449,24 @@ function changelogEmpty(changelogEntry: string) {
   return changelogEntry.split('\n').length === 1;
 }
 
-function updateChangelogEntry(
+function updatePHPChangelogEntry(
   pkgKey: string,
   changelogEntry: string,
   entryUpdate: string
 ) {
+  {
+    // Remove the first line of the entry, in favor of <summary>.
+    // This also allows us to use the same regex for extracting release
+    // notes (since the string "## v0.0.0" doesn't show up multiple times).
+    const entryUpdateSplit: string[] = entryUpdate.split(/\r?\n/);
+    entryUpdateSplit.shift();
+    entryUpdate = entryUpdateSplit.join('\n');
+  }
   return `${changelogEntry}
 
-## ${pkgKey}
+<details><summary>${pkgKey}</summary>
 
 ${entryUpdate}
 
-----`;
+</details>`;
 }

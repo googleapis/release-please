@@ -67,10 +67,24 @@ describe('GitHub', () => {
         .reply(200, {
           data: graphql,
         })
-        // fetch teh current version of each library.
+        // fetch the current version of each library.
+        .get('/repos/googleapis/release-please/contents/AutoMl/composer.json')
+        .reply(200, {
+          content: Buffer.from('{"name": "automl"}', 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
         .get('/repos/googleapis/release-please/contents/AutoMl/VERSION')
         .reply(200, {
           content: Buffer.from('1.8.3', 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
+        .get(
+          '/repos/googleapis/release-please/contents/Datastore/composer.json'
+        )
+        .reply(200, {
+          content: Buffer.from('{"name": "datastore"}', 'utf8').toString(
+            'base64'
+          ),
           sha: 'abc123',
         })
         .get('/repos/googleapis/release-please/contents/Datastore/VERSION')
@@ -78,14 +92,34 @@ describe('GitHub', () => {
           content: Buffer.from('2.0.0', 'utf8').toString('base64'),
           sha: 'abc123',
         })
+        .get('/repos/googleapis/release-please/contents/PubSub/composer.json')
+        .reply(200, {
+          content: Buffer.from('{"name": "pubsub"}', 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
         .get('/repos/googleapis/release-please/contents/PubSub/VERSION')
         .reply(200, {
           content: Buffer.from('1.0.1', 'utf8').toString('base64'),
           sha: 'abc123',
         })
+        .get('/repos/googleapis/release-please/contents/Speech/composer.json')
+        .reply(200, {
+          content: Buffer.from('{"name": "speech"}', 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
         .get('/repos/googleapis/release-please/contents/Speech/VERSION')
         .reply(200, {
           content: Buffer.from('1.0.0', 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
+        .get(
+          '/repos/googleapis/release-please/contents/WebSecurityScanner/composer.json'
+        )
+        .reply(200, {
+          content: Buffer.from(
+            '{"name": "websecurityscanner"}',
+            'utf8'
+          ).toString('base64'),
           sha: 'abc123',
         })
         .get(
@@ -95,8 +129,37 @@ describe('GitHub', () => {
           content: Buffer.from('0.8.0', 'utf8').toString('base64'),
           sha: 'abc123',
         })
+        // besides the composer.json and VERSION files that need to be
+        // processed for each individual module, there are several
+        // overarching meta-information files that need updating.
         .get('/repos/googleapis/release-please/contents/docs/VERSION')
         .reply(404)
+        .get(
+          '/repos/googleapis/release-please/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
+        .reply(404)
+        .get(
+          '/repos/googleapis/release-please/contents/src/Version.php?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
+        .reply(404)
+        .get(
+          '/repos/googleapis/release-please/contents/src/ServiceBuilder.php?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
+        .reply(404)
+        .get(
+          '/repos/googleapis/release-please/contents/composer.json?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
+        .reply(200, {
+          content: Buffer.from('{"replace": {}}', 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
+        .get(
+          '/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
+        .reply(200, {
+          content: Buffer.from('{"modules": []}', 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
         // we're on the home stretch I promise ...
         // fetch prior refs, to determine whether this is an update
         // to an existing branch or new PR.
@@ -118,6 +181,12 @@ describe('GitHub', () => {
           '/repos/googleapis/release-please/contents/WebSecurityScanner/VERSION'
         )
         .reply(200)
+        .put('/repos/googleapis/release-please/contents/composer.json')
+        .reply(200, [])
+        .put('/repos/googleapis/release-please/contents/docs/manifest.json')
+        .reply(200, [])
+        .put('/repos/googleapis/release-please/contents/CHANGELOG.md')
+        .reply(200, [])
         // actually open the darn PR, this is the exciting step,
         // so we snapshot it:
         .post(
