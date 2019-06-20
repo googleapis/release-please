@@ -208,7 +208,7 @@ export class ReleasePR {
     // updated since our last release -- the set of string keys
     // is sorted to ensure consistency in the CHANGELOG.
     const updates: Update[] = [];
-    let changelogEntry = `## ${candidate.version} release highlights:`;
+    let changelogEntry = `## ${candidate.version}`;
 
     changelogEntry = await this.releaseAllPHPLibraries(
       commits,
@@ -295,7 +295,7 @@ export class ReleasePR {
           versionUpdates[meta.name] = candidate;
 
           changelogEntry = updateChangelogEntry(
-            meta.name,
+            `${meta.name} ${candidate}`,
             changelogEntry,
             await cc.generateChangelogEntry({ version: candidate })
           );
@@ -427,7 +427,7 @@ export class ReleasePR {
     version: string
   ) {
     const title = `chore: release ${version}`;
-    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
+    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${version}`,
       version,
@@ -456,9 +456,9 @@ function updateChangelogEntry(
 ) {
   return `${changelogEntry}
 
-## ${pkgKey}
+<details><summary>${pkgKey}</summary>
 
 ${entryUpdate}
 
-----`;
+</details>`;
 }
