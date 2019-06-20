@@ -29,7 +29,9 @@ import { Commit, graphqlToCommits } from './graphql-to-commits';
 import { CommitSplit } from './commit-split';
 import { Changelog } from './updaters/changelog';
 import { PackageJson } from './updaters/package-json';
-import { PHPClassVersions } from './updaters/php-class-versions';
+import { PHPClientVersion } from './updaters/php-client-version';
+import { PHPManifest } from './updaters/php-manifest';
+import { RootComposer } from './updaters/root-composer';
 import { SamplesPackageJson } from './updaters/samples-package-json';
 import { Version } from './updaters/version';
 import { Update } from './updaters/update';
@@ -184,8 +186,6 @@ export class ReleasePR {
       latestTag ? latestTag.sha : undefined
     );
 
-    const cs = new CommitSplit();
-
     // we create an instance of conventional CHANGELOG for bumping the
     // top-level tag version we maintain on the mono-repo itself.
     const ccb = new ConventionalCommits({
@@ -208,10 +208,56 @@ export class ReleasePR {
     // updated since our last release -- the set of string keys
     // is sorted to ensure consistency in the CHANGELOG.
     const updates: Update[] = [];
-    const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
-    const pkgKeys: string[] = Object.keys(commitLookup).sort();
     let changelogEntry = `## ${candidate.version} release highlights:`;
 
+    changelogEntry = await this.releaseAllPHPLibraries(
+      commits,
+      updates,
+      changelogEntry
+    );
+
+    updates.push(
+      new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
+
+    ['src/Version.php', 'src/ServiceBuilder.php'].forEach((path: string) => {
+      updates.push(
+        new PHPClientVersion({
+          path,
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
+    await this.openPR(
+      commits[0].sha,
+      changelogEntry,
+      updates,
+      candidate.version
+    );
+  }
+
+  private async releaseAllPHPLibraries(
+    commits: Commit[],
+    updates: Update[],
+    changelogEntry: string
+  ): Promise<string> {
+    const cs = new CommitSplit();
+    const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
+    const pkgKeys: string[] = Object.keys(commitLookup).sort();
+    // map of library names that need to be updated in the top level
+    // composer.json and manifest.json.
+    const versionUpdates: { [key: string]: string } = {};
+
+    // walk each individual library updating the VERSION file, and
+    // if necessary the `const VERSION` in the client library.
     for (let i = 0; i < pkgKeys.length; i++) {
       const pkgKey: string = pkgKeys[i];
       const cc = new ConventionalCommits({
@@ -242,8 +288,14 @@ export class ReleasePR {
             continue;
           }
 
+          const meta = JSON.parse(
+            (await this.gh.getFileContents(`${pkgKey}/composer.json`))
+              .parsedContent
+          );
+          versionUpdates[meta.name] = candidate;
+
           changelogEntry = updateChangelogEntry(
-            pkgKey,
+            meta.name,
             changelogEntry,
             await cc.generateChangelogEntry({ version: candidate })
           );
@@ -258,14 +310,22 @@ export class ReleasePR {
             })
           );
 
-          updates.push(
-            new PHPClassVersions({
-              path: `${pkgKey}/src/${pkgKey}Client.php`,
-              changelogEntry,
-              version: candidate,
-              packageName: this.packageName,
-            })
-          );
+          // extra.component indicates an entry-point class file
+          // that must have its version # updatd.
+          if (
+            meta.extra &&
+            meta.extra.component &&
+            meta.extra.component.entry
+          ) {
+            updates.push(
+              new PHPClientVersion({
+                path: `${pkgKey}/${meta.extra.component.entry}`,
+                changelogEntry,
+                version: candidate,
+                packageName: this.packageName,
+              })
+            );
+          }
         } catch (err) {
           if (err.status === 404) {
             // if the updated path has no VERSION, assume this isn't a
@@ -278,32 +338,29 @@ export class ReleasePR {
       }
     }
 
+    // update the aggregate package information in the root
+    // composer.json and manifest.json.
     updates.push(
-      new Changelog({
-        path: 'CHANGELOG.md',
+      new RootComposer({
+        path: 'composer.json',
         changelogEntry,
-        version: candidate.version,
+        version: '0.0.0',
+        versions: versionUpdates,
         packageName: this.packageName,
       })
     );
 
-    ['src/Version.php', 'src/ServiceBuilder.php'].forEach((path: string) => {
-      updates.push(
-        new PHPClassVersions({
-          path,
-          changelogEntry,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-    });
-
-    await this.openPR(
-      commits[0].sha,
-      changelogEntry,
-      updates,
-      candidate.version
+    updates.push(
+      new PHPManifest({
+        path: 'docs/manifest.json',
+        changelogEntry,
+        version: '0.0.0',
+        versions: versionUpdates,
+        packageName: this.packageName,
+      })
     );
+
+    return changelogEntry;
   }
 
   private async closeStaleReleasePRs(currentPRNumber: number) {

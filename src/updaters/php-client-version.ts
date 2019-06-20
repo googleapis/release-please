@@ -19,10 +19,11 @@ import { GitHubFileContents } from '../github';
 import { checkpoint, CheckpointType } from '../util/checkpoint';
 import { Update, UpdateOptions } from './update';
 
-export class PHPClassVersions implements Update {
+export class PHPClientVersion implements Update {
   path: string;
   changelogEntry: string;
   version: string;
+  versions?: { [key: string]: string };
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
