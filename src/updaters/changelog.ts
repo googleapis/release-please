@@ -53,9 +53,6 @@ export class Changelog implements Update {
     return `\
 # Changelog
 
-[npm history][1]
-
-[1]: https://www.npmjs.com/package/${this.packageName}?activeTab=versions
 `;
   }
 }
