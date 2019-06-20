@@ -426,7 +426,7 @@ export class ReleasePR {
     updates: Update[],
     version: string
   ) {
-    const title = `[DO NOT LAND] chore: release ${version}`;
+    const title = `chore: release ${version}`;
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${version}`,
