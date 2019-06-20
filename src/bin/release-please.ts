@@ -70,6 +70,10 @@ const argv = yargs
     'create a GitHub release from a release PR',
     (yargs: YargsOptionsBuilder) => {
       yargs
+        .option('package-name', {
+          describe: 'name of package release is being minted for',
+          demand: true,
+        })
         .option('repo-url', {
           describe: 'GitHub URL to generate release for',
           demand: true,
