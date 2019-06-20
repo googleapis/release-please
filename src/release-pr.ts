@@ -29,6 +29,7 @@ import { Commit, graphqlToCommits } from './graphql-to-commits';
 import { CommitSplit } from './commit-split';
 import { Changelog } from './updaters/changelog';
 import { PackageJson } from './updaters/package-json';
+import { PHPClassVersions } from './updaters/php-class-versions';
 import { SamplesPackageJson } from './updaters/samples-package-json';
 import { Version } from './updaters/version';
 import { Update } from './updaters/update';
@@ -247,7 +248,6 @@ export class ReleasePR {
             await cc.generateChangelogEntry({ version: candidate })
           );
 
-          // checkpoint(`failed to `, CheckpointType.Failure);
           updates.push(
             new Version({
               path: `${pkgKey}/VERSION`,
@@ -255,6 +255,15 @@ export class ReleasePR {
               version: candidate,
               packageName: this.packageName,
               contents,
+            })
+          );
+
+          updates.push(
+            new PHPClassVersions({
+              path: `${pkgKey}/src/${pkgKey}Client.php`,
+              changelogEntry,
+              version: candidate,
+              packageName: this.packageName,
             })
           );
         } catch (err) {
@@ -268,6 +277,26 @@ export class ReleasePR {
         }
       }
     }
+
+    updates.push(
+      new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
+
+    ['src/Version.php', 'src/ServiceBuilder.php'].forEach((path: string) => {
+      updates.push(
+        new PHPClassVersions({
+          path,
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
 
     await this.openPR(
       commits[0].sha,
@@ -340,7 +369,7 @@ export class ReleasePR {
     updates: Update[],
     version: string
   ) {
-    const title = `chore: release ${version}`;
+    const title = `[DO NOT LAND] chore: release ${version}`;
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
       branch: `release-v${version}`,
