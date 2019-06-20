@@ -5,7 +5,6 @@ exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 
 
 <details><summary>automl 1.8.4</summary>
 
-### 1.8.4 
 
 
 ### Bug Fixes
@@ -16,7 +15,6 @@ exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 
 
 <details><summary>datastore 2.0.1</summary>
 
-### 2.0.1 
 
 
 ### Bug Fixes
@@ -27,7 +25,6 @@ exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 
 
 <details><summary>pubsub 1.0.2</summary>
 
-### 1.0.2 
 
 
 ### Bug Fixes
@@ -38,7 +35,6 @@ exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 
 
 <details><summary>speech 2.0.0</summary>
 
-## 2.0.0 
 
 
 ### ⚠ BREAKING CHANGES
@@ -53,7 +49,6 @@ exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 
 
 <details><summary>websecurityscanner 0.9.0</summary>
 
-## 0.9.0 
 
 
 ### Features

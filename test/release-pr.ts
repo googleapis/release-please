@@ -78,9 +78,13 @@ describe('GitHub', () => {
           content: Buffer.from('1.8.3', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/Datastore/composer.json')
+        .get(
+          '/repos/googleapis/release-please/contents/Datastore/composer.json'
+        )
         .reply(200, {
-          content: Buffer.from('{"name": "datastore"}', 'utf8').toString('base64'),
+          content: Buffer.from('{"name": "datastore"}', 'utf8').toString(
+            'base64'
+          ),
           sha: 'abc123',
         })
         .get('/repos/googleapis/release-please/contents/Datastore/VERSION')
@@ -108,9 +112,14 @@ describe('GitHub', () => {
           content: Buffer.from('1.0.0', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/WebSecurityScanner/composer.json')
+        .get(
+          '/repos/googleapis/release-please/contents/WebSecurityScanner/composer.json'
+        )
         .reply(200, {
-          content: Buffer.from('{"name": "websecurityscanner"}', 'utf8').toString('base64'),
+          content: Buffer.from(
+            '{"name": "websecurityscanner"}',
+            'utf8'
+          ).toString('base64'),
           sha: 'abc123',
         })
         .get(
@@ -125,18 +134,28 @@ describe('GitHub', () => {
         // overarching meta-information files that need updating.
         .get('/repos/googleapis/release-please/contents/docs/VERSION')
         .reply(404)
-        .get('/repos/googleapis/release-please/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.21.0')
+        .get(
+          '/repos/googleapis/release-please/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
         .reply(404)
-        .get('/repos/googleapis/release-please/contents/src/Version.php?ref=refs%2Fheads%2Frelease-v0.21.0')
+        .get(
+          '/repos/googleapis/release-please/contents/src/Version.php?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
         .reply(404)
-        .get('/repos/googleapis/release-please/contents/src/ServiceBuilder.php?ref=refs%2Fheads%2Frelease-v0.21.0')
+        .get(
+          '/repos/googleapis/release-please/contents/src/ServiceBuilder.php?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
         .reply(404)
-        .get('/repos/googleapis/release-please/contents/composer.json?ref=refs%2Fheads%2Frelease-v0.21.0')
+        .get(
+          '/repos/googleapis/release-please/contents/composer.json?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
         .reply(200, {
           content: Buffer.from('{"replace": {}}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Frelease-v0.21.0')
+        .get(
+          '/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Frelease-v0.21.0'
+        )
         .reply(200, {
           content: Buffer.from('{"modules": []}', 'utf8').toString('base64'),
           sha: 'abc123',

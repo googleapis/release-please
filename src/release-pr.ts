@@ -294,7 +294,7 @@ export class ReleasePR {
           );
           versionUpdates[meta.name] = candidate;
 
-          changelogEntry = updateChangelogEntry(
+          changelogEntry = updatePHPChangelogEntry(
             `${meta.name} ${candidate}`,
             changelogEntry,
             await cc.generateChangelogEntry({ version: candidate })
@@ -449,11 +449,19 @@ function changelogEmpty(changelogEntry: string) {
   return changelogEntry.split('\n').length === 1;
 }
 
-function updateChangelogEntry(
+function updatePHPChangelogEntry(
   pkgKey: string,
   changelogEntry: string,
   entryUpdate: string
 ) {
+  {
+    // Remove the first line of the entry, in favor of <summary>.
+    // This also allows us to use the same regex for extracting release
+    // notes (since the string "## v0.0.0" doesn't show up multiple times).
+    const entryUpdateSplit: string[] = entryUpdate.split(/\r?\n/);
+    entryUpdateSplit.shift();
+    entryUpdate = entryUpdateSplit.join('\n');
+  }
   return `${changelogEntry}
 
 <details><summary>${pkgKey}</summary>
