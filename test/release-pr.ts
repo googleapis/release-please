@@ -189,7 +189,9 @@ describe('GitHub', () => {
         .put(
           '/repos/googleapis/release-please/contents/docs/manifest.json',
           (req: { [key: string]: string }) => {
-            const manifest = Buffer.from(req.content, 'base64').toString('utf8')
+            const manifest = Buffer.from(req.content, 'base64').toString(
+              'utf8'
+            );
             snapshot(manifest);
             return true;
           }

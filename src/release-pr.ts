@@ -220,7 +220,7 @@ export class ReleasePR {
       updates,
       changelogEntry
     );
-    changelogEntry = bulkUpdate.changelogEntry; 
+    changelogEntry = bulkUpdate.changelogEntry;
 
     // update the aggregate package information in the root
     // composer.json and manifest.json.
@@ -366,7 +366,7 @@ export class ReleasePR {
       }
     }
 
-    return {changelogEntry, versionUpdates};
+    return { changelogEntry, versionUpdates };
   }
 
   private async closeStaleReleasePRs(currentPRNumber: number) {
