@@ -60,6 +60,11 @@ export interface ReleaseCandidate {
   previousTag?: string;
 }
 
+interface PHPYoshiBulkUpdate {
+  changelogEntry: string;
+  versionUpdates: { [key: string]: string };
+}
+
 export class ReleasePR {
   apiUrl: string;
   labels: string[];
@@ -210,10 +215,33 @@ export class ReleasePR {
     const updates: Update[] = [];
     let changelogEntry = `## ${candidate.version}`;
 
-    changelogEntry = await this.releaseAllPHPLibraries(
+    const bulkUpdate: PHPYoshiBulkUpdate = await this.releaseAllPHPLibraries(
       commits,
       updates,
       changelogEntry
+    );
+    changelogEntry = bulkUpdate.changelogEntry; 
+
+    // update the aggregate package information in the root
+    // composer.json and manifest.json.
+    updates.push(
+      new RootComposer({
+        path: 'composer.json',
+        changelogEntry,
+        version: candidate.version,
+        versions: bulkUpdate.versionUpdates,
+        packageName: this.packageName,
+      })
+    );
+
+    updates.push(
+      new PHPManifest({
+        path: 'docs/manifest.json',
+        changelogEntry,
+        version: candidate.version,
+        versions: bulkUpdate.versionUpdates,
+        packageName: this.packageName,
+      })
     );
 
     updates.push(
@@ -248,7 +276,7 @@ export class ReleasePR {
     commits: Commit[],
     updates: Update[],
     changelogEntry: string
-  ): Promise<string> {
+  ): Promise<PHPYoshiBulkUpdate> {
     const cs = new CommitSplit();
     const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
     const pkgKeys: string[] = Object.keys(commitLookup).sort();
@@ -338,29 +366,7 @@ export class ReleasePR {
       }
     }
 
-    // update the aggregate package information in the root
-    // composer.json and manifest.json.
-    updates.push(
-      new RootComposer({
-        path: 'composer.json',
-        changelogEntry,
-        version: '0.0.0',
-        versions: versionUpdates,
-        packageName: this.packageName,
-      })
-    );
-
-    updates.push(
-      new PHPManifest({
-        path: 'docs/manifest.json',
-        changelogEntry,
-        version: '0.0.0',
-        versions: versionUpdates,
-        packageName: this.packageName,
-      })
-    );
-
-    return changelogEntry;
+    return {changelogEntry, versionUpdates};
   }
 
   private async closeStaleReleasePRs(currentPRNumber: number) {

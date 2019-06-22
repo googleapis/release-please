@@ -157,7 +157,10 @@ describe('GitHub', () => {
           '/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Frelease-v0.21.0'
         )
         .reply(200, {
-          content: Buffer.from('{"modules": []}', 'utf8').toString('base64'),
+          content: Buffer.from(
+            '{"modules": [{"name": "google/cloud", "versions": []}, {"name": "datastore", "versions": []}]}',
+            'utf8'
+          ).toString('base64'),
           sha: 'abc123',
         })
         // we're on the home stretch I promise ...
@@ -183,7 +186,14 @@ describe('GitHub', () => {
         .reply(200)
         .put('/repos/googleapis/release-please/contents/composer.json')
         .reply(200, [])
-        .put('/repos/googleapis/release-please/contents/docs/manifest.json')
+        .put(
+          '/repos/googleapis/release-please/contents/docs/manifest.json',
+          (req: { [key: string]: string }) => {
+            const manifest = Buffer.from(req.content, 'base64').toString('utf8')
+            snapshot(manifest);
+            return true;
+          }
+        )
         .reply(200, [])
         .put('/repos/googleapis/release-please/contents/CHANGELOG.md')
         .reply(200, [])

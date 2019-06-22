@@ -49,20 +49,24 @@ export class PHPManifest implements Update {
       return content;
     }
     const parsed = JSON.parse(content);
-    Object.keys(this.versions).forEach((key: string) => {
-      if (this.versions) {
+    parsed.modules.forEach((module: ManifestModule) => {
+      Object.keys(this.versions ? this.versions : []).forEach((key: string) => {
+        if (!this.versions) return;
         const version: string = this.versions[key]
           ? this.versions[key]
           : '1.0.0';
-        parsed.modules.forEach((module: ManifestModule) => {
-          if (module.name === key) {
-            checkpoint(
-              `adding ${key}@${version} to manifest`,
-              CheckpointType.Success
-            );
-            module.versions.unshift(version);
-          }
-        });
+        if (module.name === key) {
+          checkpoint(
+            `adding ${key}@${version} to manifest`,
+            CheckpointType.Success
+          );
+          module.versions.unshift(`v${version}`);
+        }
+      });
+      // the mono-repo's own API version should be added to the
+      // google/cloud key:
+      if (module.name === 'google/cloud') {
+        module.versions.unshift(`v${this.version}`);
       }
     });
 
