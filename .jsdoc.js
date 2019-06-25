@@ -41,5 +41,8 @@ module.exports = {
     sourceFiles: false,
     systemName: 'release-please',
     theme: 'lumen'
+  },
+  markdown: {
+    idInHeadings: true
   }
 };
