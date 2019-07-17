@@ -29,7 +29,7 @@ describe('JavaAuthReadme', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './java-auth-readme.md'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const javaAuthReadme = new JavaAuthReadme({
         path: 'README.md',
         changelogEntry: '',

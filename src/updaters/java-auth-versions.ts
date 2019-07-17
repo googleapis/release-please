@@ -37,7 +37,7 @@ export class JavaAuthVersions implements Update {
   updateContent(content: string): string {
     if (this.version.includes('SNAPSHOT')) {
       return content.replace(
-        /:[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?\n/g,
+        /:[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?[\r\n]/g,
         `:${this.version}\n`
       );
     } else {

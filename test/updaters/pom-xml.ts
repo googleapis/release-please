@@ -29,7 +29,7 @@ describe('PomXML', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './pom.xml'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const pomXML = new PomXML({
         path: 'pom.xml',
         changelogEntry: '',
