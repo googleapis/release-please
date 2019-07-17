@@ -44,7 +44,7 @@ export class JavaAuthVersions implements Update {
       return content.replace(
         /:[0-9]+\.[0-9]+\.[0-9]+:[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?/g,
         `:${this.version}:${this.version}`
-      );  
+      );
     }
   }
 }
