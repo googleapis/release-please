@@ -29,7 +29,7 @@ describe('JavaAuthVersions', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const javaAuthVersions = new JavaAuthVersions({
         path: 'versions.txt',
         changelogEntry: '',
@@ -44,7 +44,7 @@ describe('JavaAuthVersions', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const javaAuthVersions = new JavaAuthVersions({
         path: 'versions.txt',
         changelogEntry: '',
