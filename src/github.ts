@@ -475,9 +475,7 @@ export class GitHub {
         // pull-request body.
         if (openReleasePR && openReleasePR.body === options.body) {
           checkpoint(
-            `PR https://github.com/${this.owner}/${this.repo}/pull/${
-              openReleasePR.number
-            } remained the same`,
+            `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
             CheckpointType.Failure
           );
           return -1;
