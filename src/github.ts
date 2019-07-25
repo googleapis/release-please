@@ -276,7 +276,7 @@ export class GitHub {
 
   async findMergedReleasePR(
     labels: string[],
-    perPage = 25
+    perPage = 100
   ): Promise<GitHubReleasePR | undefined> {
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
