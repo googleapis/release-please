@@ -194,13 +194,7 @@ export class ReleasePR {
     // we create an instance of conventional CHANGELOG for bumping the
     // top-level tag version we maintain on the mono-repo itself.
     const ccb = new ConventionalCommits({
-      commits: [
-        {
-          sha: 'abc123',
-          message: 'feat!: creating a release for PHP modules',
-          files: [],
-        },
-      ],
+      commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: true,
     });
