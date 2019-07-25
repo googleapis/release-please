@@ -276,7 +276,7 @@ export class GitHub {
 
   async findMergedReleasePR(
     labels: string[],
-    perPage = 25
+    perPage = 100
   ): Promise<GitHubReleasePR | undefined> {
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
@@ -475,9 +475,7 @@ export class GitHub {
         // pull-request body.
         if (openReleasePR && openReleasePR.body === options.body) {
           checkpoint(
-            `PR https://github.com/${this.owner}/${this.repo}/pull/${
-              openReleasePR.number
-            } remained the same`,
+            `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
             CheckpointType.Failure
           );
           return -1;

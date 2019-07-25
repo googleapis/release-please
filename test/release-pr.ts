@@ -48,7 +48,7 @@ describe('GitHub', () => {
       const req = nock('https://api.github.com')
         // check to see if this PR was already landed and we're
         // just waiting on the autorelease.
-        .get('/repos/googleapis/release-please/pulls?state=closed&per_page=25')
+        .get('/repos/googleapis/release-please/pulls?state=closed&per_page=100')
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
