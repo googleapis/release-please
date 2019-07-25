@@ -194,7 +194,7 @@ export class ReleasePR {
     // we create an instance of conventional CHANGELOG for bumping the
     // top-level tag version we maintain on the mono-repo itself.
     const ccb = new ConventionalCommits({
-      commits: commits,
+      commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: true,
     });
