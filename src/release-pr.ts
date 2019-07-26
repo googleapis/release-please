@@ -389,7 +389,7 @@ export class ReleasePR {
           },
         ]
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
-    let prSHA = commits[0].sha
+    let prSHA = commits[0].sha;
 
     const cc = new ConventionalCommits({
       commits,
@@ -405,7 +405,7 @@ export class ReleasePR {
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag,
     });
-    
+
     // snapshot entries are special:
     // 1. they don't update the README or CHANGELOG.
     // 2. they always update a patch with the -SNAPSHOT suffix.
@@ -413,7 +413,8 @@ export class ReleasePR {
     if (this.snapshot) {
       prSHA = latestTag!.sha;
       candidate.version = `${candidate.version}-SNAPSHOT`;
-      changelogEntry = '### Updating meta-information for bleeding-edge SNAPSHOT release.';
+      changelogEntry =
+        '### Updating meta-information for bleeding-edge SNAPSHOT release.';
     }
 
     // don't create a release candidate until user facing changes

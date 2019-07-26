@@ -35,7 +35,7 @@ interface YargsOptions {
   describe: string;
   demand?: boolean;
   type?: string;
-  default?: string|boolean;
+  default?: string | boolean;
 }
 
 interface YargsOptionsBuilder {
@@ -63,7 +63,7 @@ const argv = yargs
         .option('snapshot', {
           describe: 'is it a snapshot (or pre-release) being generated?',
           type: 'boolean',
-          default: false
+          default: false,
         });
     },
     (argv: ReleasePROptions) => {
