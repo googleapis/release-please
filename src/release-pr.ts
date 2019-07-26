@@ -411,10 +411,9 @@ export class ReleasePR {
     // 2. they always update a patch with the -SNAPSHOT suffix.
     // 3. they're haunted.
     if (this.snapshot) {
-      const lastCommit = (await this.commits(latestTag ? latestTag.sha : undefined, 1, true))[0];
-      prSHA = lastCommit.sha;
+      prSHA = latestTag!.sha;
       candidate.version = `${candidate.version}-SNAPSHOT`;
-      changelogEntry = '\nUpdating meta-information for bleeding-edge SNAPSHOT release.';
+      changelogEntry = '### Updating meta-information for bleeding-edge SNAPSHOT release.';
     }
 
     // don't create a release candidate until user facing changes
