@@ -106,13 +106,15 @@ export class GitHub {
 
   async commitsSinceSha(
     sha: string | undefined,
-    perPage = 100
+    perPage = 100,
+    labels = false
   ): Promise<Commit[]> {
     const commits: Commit[] = [];
+    const method = labels ? 'commitsWithLabels' : 'commitsWithFiles';
 
     let cursor;
     while (true) {
-      const commitsResponse: CommitsResponse = await this.commitsWithFiles(
+      const commitsResponse: CommitsResponse = await this[method](
         cursor,
         perPage
       );
@@ -213,6 +215,80 @@ export class GitHub {
           maxFilesChanged,
           retries++
         );
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  private async commitsWithLabels(
+    cursor: string | undefined = undefined,
+    perPage = 32,
+    maxLabels = 16,
+    retries = 0
+  ): Promise<CommitsResponse> {
+    try {
+      const response = await graphql({
+        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxLabels: Int) {
+          repository(owner: $owner, name: $repo) {
+            defaultBranchRef {
+              target {
+                ... on Commit {
+                  history(first: $perPage, after: $cursor) {
+                    edges{
+                      node {
+                        ... on Commit {
+                          message
+                          oid
+                          associatedPullRequests(first: 1) {
+                            edges {
+                              node {
+                                ... on PullRequest {
+                                  number
+                                  labels(first: $maxLabels) {
+                                    edges {
+                                      node {
+                                        name
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    pageInfo {
+                      endCursor
+                      hasNextPage
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }`,
+        cursor,
+        maxLabels,
+        owner: this.owner,
+        perPage,
+        repo: this.repo,
+        url: `${this.apiUrl}/graphql${
+          this.proxyKey ? `?key=${this.proxyKey}` : ''
+        }`,
+        headers: {
+          authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+          'content-type': 'application/vnd.github.v3+json',
+        },
+      });
+      return graphqlToCommits(this, response);
+    } catch (err) {
+      if (err.status === 502 && retries < 3) {
+        // GraphQL sometimes returns a 502 on the first request,
+        // this seems to relate to a cache being warmed and the
+        // second request generally works.
+        return this.commitsWithLabels(cursor, perPage, maxLabels, retries++);
       } else {
         throw err;
       }

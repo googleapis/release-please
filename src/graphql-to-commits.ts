@@ -16,6 +16,8 @@
 
 import { GitHub } from './github';
 
+const CONVENTIONAL_COMMIT_REGEX = /^[\w]+(\(\w+\))?!?: /;
+
 // simplified model for working with commits (vs., GraphQL response):
 
 export interface CommitsResponse {
@@ -50,11 +52,19 @@ interface CommitEdge {
 }
 
 export interface PREdge {
-  node: { number: number; files: { edges: FileEdge[]; pageInfo: PageInfo } };
+  node: {
+    number: number;
+    files: { edges: FileEdge[]; pageInfo: PageInfo };
+    labels: { edges: LabelEdge[] };
+  };
 }
 
 interface FileEdge {
   node: { path: string };
+}
+
+interface LabelEdge {
+  node: { name: string };
 }
 
 interface PageInfo {
@@ -102,7 +112,7 @@ async function graphqlToCommit(
 
   // if, on the off chance, there are more than 100 files attached to a
   // PR, paginate in the additional files.
-  while (true) {
+  while (true && prEdge.node.files) {
     for (let i = 0, fileEdge; i < prEdge.node.files.edges.length; i++) {
       commit.files.push(prEdge.node.files.edges[i].node.path);
     }
@@ -116,5 +126,37 @@ async function graphqlToCommit(
     if (prEdge.node.files.pageInfo.hasNextPage === false) break;
   }
 
+  // to help some language teams transition to conventional commits, we allow
+  // a label to be used as an alternative to a commit prefix.
+  if (
+    prEdge.node.labels &&
+    CONVENTIONAL_COMMIT_REGEX.test(commit.message) === false
+  ) {
+    const prefix = prefixFromLabel(prEdge.node.labels.edges);
+    if (prefix) {
+      commit.message = `${prefix}${commit.message}`;
+    }
+  }
   return commit;
+}
+
+function prefixFromLabel(labels: LabelEdge[]): string | undefined {
+  let prefix = undefined;
+  let breaking = false;
+  for (let i = 0, labelEdge; i < labels.length; i++) {
+    labelEdge = labels[i];
+    if (labelEdge.node.name === 'feature') {
+      prefix = 'feat';
+    } else if (labelEdge.node.name === 'fix') {
+      prefix = 'fix';
+    } else if (labelEdge.node.name === 'semver: major') {
+      breaking = true;
+    }
+  }
+
+  if (prefix) {
+    prefix = `${prefix}${breaking ? '!' : ''}: `;
+  }
+
+  return prefix;
 }
