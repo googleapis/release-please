@@ -36,8 +36,8 @@ export class PomXML implements Update {
   }
   updateContent(content: string): string {
     return content.replace(
-      /<version>.*<\/version>/,
-      `<version>${this.version}</version>`
+      /<version>.*<\/version>(.*x-version-update.*)/,
+      `<version>${this.version}</version>$1`
     );
   }
 }

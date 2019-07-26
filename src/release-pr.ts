@@ -27,20 +27,30 @@ import {
 } from './github';
 import { Commit, graphqlToCommits } from './graphql-to-commits';
 import { CommitSplit } from './commit-split';
+
+// Generic
 import { Changelog } from './updaters/changelog';
+// JavaScript
 import { PackageJson } from './updaters/package-json';
+import { SamplesPackageJson } from './updaters/samples-package-json';
+// Yoshi PHP Monorepo
 import { PHPClientVersion } from './updaters/php-client-version';
 import { PHPManifest } from './updaters/php-manifest';
 import { RootComposer } from './updaters/root-composer';
-import { SamplesPackageJson } from './updaters/samples-package-json';
 import { Version } from './updaters/version';
 import { Update } from './updaters/update';
+// Java
+import { PomXML } from './updaters/pom-xml';
+// Yoshi Java Auth Library
+import { JavaAuthVersions } from './updaters/java-auth-versions';
+import { JavaAuthReadme } from './updaters/java-auth-readme';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export enum ReleaseType {
   Node = 'node',
   PHPYoshi = 'php-yoshi',
+  JavaAuthYoshi = 'java-auth-yoshi',
 }
 
 export interface ReleasePROptions {
@@ -53,6 +63,7 @@ export interface ReleasePROptions {
   releaseType: ReleaseType;
   apiUrl: string;
   proxyKey?: string;
+  snapshot?: boolean;
 }
 
 export interface ReleaseCandidate {
@@ -76,6 +87,7 @@ export class ReleasePR {
   releaseAs?: string;
   releaseType: ReleaseType;
   proxyKey?: string;
+  snapshot?: boolean;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -87,6 +99,7 @@ export class ReleasePR {
     this.releaseType = options.releaseType;
     this.apiUrl = options.apiUrl;
     this.proxyKey = options.proxyKey;
+    this.snapshot = options.snapshot;
 
     this.gh = this.gitHubInstance();
   }
@@ -107,6 +120,8 @@ export class ReleasePR {
           return this.nodeRelease();
         case ReleaseType.PHPYoshi:
           return this.phpYoshiRelease();
+        case ReleaseType.JavaAuthYoshi:
+          return this.javaAuthYoshiRelease();
         default:
           throw Error('unknown release type');
       }
@@ -363,6 +378,114 @@ export class ReleasePR {
     return { changelogEntry, versionUpdates };
   }
 
+  private async javaAuthYoshiRelease() {
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
+    const commits: Commit[] = this.snapshot
+      ? [
+          {
+            sha: 'abc123',
+            message: 'fix: ',
+            files: [],
+          },
+        ]
+      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
+    let prSHA = commits[0].sha
+
+    const cc = new ConventionalCommits({
+      commits,
+      githubRepoUrl: this.repoUrl,
+      bumpMinorPreMajor: this.bumpMinorPreMajor,
+    });
+    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
+      cc,
+      latestTag
+    );
+    let changelogEntry: string = await cc.generateChangelogEntry({
+      version: candidate.version,
+      currentTag: `v${candidate.version}`,
+      previousTag: candidate.previousTag,
+    });
+    
+    // snapshot entries are special:
+    // 1. they don't update the README or CHANGELOG.
+    // 2. they always update a patch with the -SNAPSHOT suffix.
+    // 3. they're haunted.
+    if (this.snapshot) {
+      const lastCommit = (await this.commits(latestTag ? latestTag.sha : undefined, 1, true))[0];
+      prSHA = lastCommit.sha;
+      candidate.version = `${candidate.version}-SNAPSHOT`;
+      changelogEntry = '\nUpdating meta-information for bleeding-edge SNAPSHOT release.';
+    }
+
+    // don't create a release candidate until user facing changes
+    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
+    // one line is a good indicator that there were no interesting commits.
+    if (changelogEmpty(changelogEntry) && !this.snapshot) {
+      checkpoint(
+        `no user facing commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return;
+    }
+
+    const updates: Update[] = [];
+
+    if (!this.snapshot) {
+      updates.push(
+        new Changelog({
+          path: 'CHANGELOG.md',
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+
+      updates.push(
+        new JavaAuthReadme({
+          path: 'README.md',
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    }
+
+    updates.push(
+      new JavaAuthVersions({
+        path: 'versions.txt',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
+
+    [
+      'appengine/pom.xml',
+      'bom/pom.xml',
+      'credentials/pom.xml',
+      'oauth2_http/pom.xml',
+      'pom.xml',
+    ].forEach(path => {
+      updates.push(
+        new PomXML({
+          path,
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
+    await this.openPR(
+      prSHA,
+      `${changelogEntry}\n---\n`,
+      updates,
+      candidate.version
+    );
+  }
+
   private async closeStaleReleasePRs(currentPRNumber: number) {
     const prs: PullsListResponseItem[] = await this.gh.findOpenReleasePRs(
       this.labels
@@ -396,8 +519,12 @@ export class ReleasePR {
     return { version, previousTag };
   }
 
-  private async commits(sha: string | undefined): Promise<Commit[]> {
-    const commits = await this.gh.commitsSinceSha(sha);
+  private async commits(
+    sha?: string,
+    perPage = 100,
+    labels = false
+  ): Promise<Commit[]> {
+    const commits = await this.gh.commitsSinceSha(sha, perPage, labels);
     if (commits.length) {
       checkpoint(
         `found ${commits.length} commits since ${sha}`,

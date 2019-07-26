@@ -36,4 +36,12 @@ describe('graphqlToCommits', () => {
     const commits = await graphqlToCommits(github, graphql);
     snapshot(commits);
   });
+
+  it('uses label for conventional commit prefix, if no prefix provided', async () => {
+    const graphql = JSON.parse(
+      readFileSync(resolve(fixturesPath, 'commits-with-labels.json'), 'utf8')
+    );
+    const commits = await graphqlToCommits(github, graphql);
+    snapshot(commits);
+  });
 });

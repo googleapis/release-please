@@ -34,7 +34,8 @@ interface ErrorObject {
 interface YargsOptions {
   describe: string;
   demand?: boolean;
-  default?: string;
+  type?: string;
+  default?: string|boolean;
 }
 
 interface YargsOptionsBuilder {
@@ -58,6 +59,11 @@ const argv = yargs
         .option('label', {
           default: 'autorelease: pending,type: process',
           describe: 'label(s) to add to generated PR',
+        })
+        .option('snapshot', {
+          describe: 'is it a snapshot (or pre-release) being generated?',
+          type: 'boolean',
+          default: false
         });
     },
     (argv: ReleasePROptions) => {
@@ -147,7 +153,7 @@ action "github-release" {
   })
   .option('release-type', {
     describe: 'what type of repo is a release being created for?',
-    options: ['node', 'php-yoshi'],
+    choices: ['node', 'php-yoshi', 'java-auth-yoshi'],
     default: 'node',
   })
   .option('bump-minor-pre-major', {
