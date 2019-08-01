@@ -44,7 +44,7 @@ describe('SamplesPackageJson', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './samples-package-json-no-dep.json'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const samplesPackageJson = new SamplesPackageJson({
         path: 'samples/package.json',
         changelogEntry: '',
