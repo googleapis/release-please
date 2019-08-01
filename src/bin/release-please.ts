@@ -29,6 +29,7 @@ interface ErrorObject {
   body?: object;
   status?: number;
   message: string;
+  stack: string;
 }
 
 interface YargsOptions {
@@ -198,7 +199,7 @@ function handleError(err: ErrorObject) {
   );
   if (argv.debug) {
     console.error('---------');
-    console.error(err);
+    console.error(err.stack);
   }
   process.exitCode = 1;
 }
