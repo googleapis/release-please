@@ -45,9 +45,7 @@ export class SamplesPackageJson implements Update {
       } to ^${this.version}`,
       CheckpointType.Success
     );
-    if (parsed.dependencies[this.packageName]) {
-      parsed.dependencies[this.packageName] = `^${this.version}`;
-    }
+    parsed.dependencies[this.packageName] = `^${this.version}`;
     return JSON.stringify(parsed, null, 2) + '\n';
   }
 }
