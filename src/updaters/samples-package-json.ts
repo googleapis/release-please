@@ -36,15 +36,16 @@ export class SamplesPackageJson implements Update {
   }
   updateContent(content: string): string {
     const parsed = JSON.parse(content);
+    if (!parsed.dependencies || !parsed.dependencies[this.packageName]) {
+      return content;
+    }
     checkpoint(
       `updating ${this.packageName} dependency in ${this.path} from ${
         parsed.dependencies[this.packageName]
       } to ^${this.version}`,
       CheckpointType.Success
     );
-    if (parsed.dependencies[this.packageName]) {
-      parsed.dependencies[this.packageName] = `^${this.version}`;
-    }
+    parsed.dependencies[this.packageName] = `^${this.version}`;
     return JSON.stringify(parsed, null, 2) + '\n';
   }
 }

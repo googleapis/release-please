@@ -39,5 +39,20 @@ describe('SamplesPackageJson', () => {
       const newContent = samplesPackageJson.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('does not fail when top level package does not exist in dependencies', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './samples-package-json-no-dep.json'),
+        'utf8'
+      );
+      const samplesPackageJson = new SamplesPackageJson({
+        path: 'samples/package.json',
+        changelogEntry: '',
+        version: '14.0.0',
+        packageName: '@google-cloud/firestore',
+      });
+      const newContent = samplesPackageJson.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
