@@ -53,13 +53,9 @@ exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 
 
 </details>
 
-<details><summary>speech 2.0.0</summary>
+<details><summary>speech 1.1.0</summary>
 
 
-
-### ⚠ BREAKING CHANGES
-
-* move speech from alpha -> beta (#1962)
 
 ### Features
 

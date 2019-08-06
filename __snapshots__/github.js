@@ -145,7 +145,7 @@ exports['GitHub commitsSinceSha returns commits immediately before sha 1'] = [
   },
   {
     "sha": "8db7f3b19c46c873897d79c89ce35b8492e5fe60",
-    "message": "feat!: move speech from alpha -> beta (#1962)",
+    "message": "feat: move speech from alpha -> beta (#1962)",
     "files": [
       "README.md",
       "Speech/README.md"

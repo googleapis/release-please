@@ -145,6 +145,12 @@ export class ConventionalCommits {
               result = {};
             }
 
+            // we have slightly different logic than the default of conventional commits,
+            // the minor should be bumped when features are introduced for pre 1.x.x libs:
+            if (result.reason.indexOf(' 0 features') === -1 && result.releaseType === 'patch') {
+              result.releaseType = 'minor';
+            }
+
             return resolve(result);
           })
         );
