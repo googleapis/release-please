@@ -46,7 +46,7 @@ export class RubyYoshi extends ReleasePR {
       const changelogEntry: string = await cc.generateChangelogEntry({
         version: candidate.version,
         currentTag: `v${candidate.version}`,
-        previousTag: candidate.previousTag,
+        previousTag: undefined,
       });
 
       // don't create a release candidate until user facing changes
