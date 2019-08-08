@@ -103,7 +103,10 @@ export class ReleasePR {
     throw Error('must be implemented by subclass');
   }
 
-  private async closeStaleReleasePRs(currentPRNumber: number) {
+  private async closeStaleReleasePRs(
+    currentPRNumber: number,
+    includePackageName = false
+  ) {
     const prs: PullsListResponseItem[] = await this.gh.findOpenReleasePRs(
       this.labels
     );
@@ -111,6 +114,11 @@ export class ReleasePR {
       pr = prs[i];
       // don't close the most up-to-date release PR.
       if (pr.number !== currentPRNumber) {
+        // on mono repos that maintain multiple open release PRs, we use the
+        // pull request title to differentiate between PRs:
+        if (includePackageName && !pr.title.includes(this.packageName)) {
+          continue;
+        }
         checkpoint(`closing pull #${pr.number}`, CheckpointType.Failure);
         await this.gh.closePR(pr.number);
       }
@@ -168,12 +176,17 @@ export class ReleasePR {
     sha: string,
     changelogEntry: string,
     updates: Update[],
-    version: string
+    version: string,
+    includePackageName = false
   ) {
-    const title = `chore: release ${version}`;
+    const title = includePackageName
+      ? `chore: release ${this.packageName}@${version}`
+      : `chore: release ${version}`;
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
-      branch: `release-v${version}`,
+      branch: includePackageName
+        ? `release-${this.packageName}-v${version}`
+        : `release-v${version}`,
       version,
       sha,
       updates,
@@ -184,7 +197,7 @@ export class ReleasePR {
     // a return of -1 indicates that PR was not updated.
     if (pr > 0) {
       await this.gh.addLabels(pr, this.labels);
-      await this.closeStaleReleasePRs(pr);
+      await this.closeStaleReleasePRs(pr, includePackageName);
     }
   }
 

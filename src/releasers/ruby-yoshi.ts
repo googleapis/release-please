@@ -7,12 +7,16 @@ import { Update } from '../updaters/update';
 import { Commit } from '../graphql-to-commits';
 import { CommitSplit } from '../commit-split';
 
+import { Changelog } from '../updaters/changelog';
+import { VersionRB } from '../updaters/version-rb';
+
 export class RubyYoshi extends ReleasePR {
   protected async _run() {
-    if (!this.lastPackageVersion)
+    if (!this.lastPackageVersion) {
       throw Error(
         'last library version must be provided for ruby-yoshi release type'
       );
+    }
     const lastReleaseSha = await this.gh.getTagSha(
       `${this.packageName}/v${this.lastPackageVersion}`
     );
@@ -24,6 +28,7 @@ export class RubyYoshi extends ReleasePR {
         `no commits found since ${lastReleaseSha}`,
         CheckpointType.Failure
       );
+      return;
     } else {
       const pkgCommits = commitLookup[this.packageName];
       const cc = new ConventionalCommits({
@@ -58,6 +63,37 @@ export class RubyYoshi extends ReleasePR {
       }
 
       const updates: Update[] = [];
+
+      updates.push(
+        new Changelog({
+          path: `${this.packageName}/CHANGELOG.md`,
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+
+      updates.push(
+        new VersionRB({
+          path: `${
+            this.packageName
+          }/lib/google/cloud/${this.packageName.replace(
+            'google-cloud-',
+            ''
+          )}/version.rb`,
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+
+      await this.openPR(
+        commits[0].sha,
+        `${changelogEntry}\n---\n`,
+        updates,
+        candidate.version,
+        true
+      );
     }
   }
 }
