@@ -55,6 +55,21 @@ describe('ChangelogUpdater', () => {
       snapshot(newContent);
     });
 
+    it('inserts content at appropriate location in yoshi-ruby style CHANGELOG', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './CHANGELOG-ruby.md'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const changelog = new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry: '## 0.7.0\n\n* added a new foo to bar.',
+        version: '0.7.0',
+        packageName: '@google-cloud/foo',
+      });
+      const newContent = changelog.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
     it('populates a new CHANGELOG if none exists', async () => {
       const changelog = new Changelog({
         path: 'CHANGELOG.md',

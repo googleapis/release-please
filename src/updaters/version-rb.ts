@@ -17,7 +17,7 @@
 import { Update, UpdateOptions } from './update';
 import { GitHubFileContents } from '../github';
 
-export class PomXML implements Update {
+export class VersionRB implements Update {
   path: string;
   changelogEntry: string;
   version: string;
@@ -35,8 +35,8 @@ export class PomXML implements Update {
   }
   updateContent(content: string): string {
     return content.replace(
-      /<version>.*<\/version>(.*x-version-update.*)/,
-      `<version>${this.version}</version>$1`
+      /"[0-9]+\.[0-9]+\.[0-9](-\w+)?"/,
+      `"${this.version}"`
     );
   }
 }

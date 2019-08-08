@@ -17,6 +17,7 @@
 import * as Octokit from '@octokit/rest';
 const { request } = require('@octokit/request');
 import {
+  AnyResponse,
   IssuesListResponseItem,
   PullsCreateResponse,
   PullsListResponseItem,
@@ -334,6 +335,20 @@ export class GitHub {
       },
     });
     return { node: response.repository.pullRequest } as PREdge;
+  }
+
+  async getTagSha(name: string): Promise<string> {
+    const refResponse = (await this.request(
+      `GET /repos/:owner/:repo/git/refs/tags/:name${
+        this.proxyKey ? `?key=${this.proxyKey}` : ''
+      }`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+        name,
+      }
+    )) as AnyResponse;
+    return refResponse.data.object.sha;
   }
 
   async latestTag(perPage = 100): Promise<GitHubTag | undefined> {

@@ -19,31 +19,9 @@ import * as semver from 'semver';
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
 import { ConventionalCommits } from './conventional-commits';
-import {
-  GitHub,
-  GitHubReleasePR,
-  GitHubTag,
-  GitHubFileContents,
-} from './github';
-import { Commit, graphqlToCommits } from './graphql-to-commits';
-import { CommitSplit } from './commit-split';
-
-// Generic
-import { Changelog } from './updaters/changelog';
-// JavaScript
-import { PackageJson } from './updaters/package-json';
-import { SamplesPackageJson } from './updaters/samples-package-json';
-// Yoshi PHP Monorepo
-import { PHPClientVersion } from './updaters/php-client-version';
-import { PHPManifest } from './updaters/php-manifest';
-import { RootComposer } from './updaters/root-composer';
-import { Version } from './updaters/version';
+import { GitHub, GitHubReleasePR, GitHubTag } from './github';
+import { Commit } from './graphql-to-commits';
 import { Update } from './updaters/update';
-// Java
-import { PomXML } from './updaters/pom-xml';
-// Yoshi Java Auth Library
-import { JavaAuthVersions } from './updaters/java-auth-versions';
-import { JavaAuthReadme } from './updaters/java-auth-readme';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
@@ -51,6 +29,7 @@ export enum ReleaseType {
   Node = 'node',
   PHPYoshi = 'php-yoshi',
   JavaAuthYoshi = 'java-auth-yoshi',
+  RubyYoshi = 'ruby-yoshi',
 }
 
 export interface ReleasePROptions {
@@ -64,16 +43,12 @@ export interface ReleasePROptions {
   apiUrl: string;
   proxyKey?: string;
   snapshot?: boolean;
+  lastPackageVersion?: string;
 }
 
 export interface ReleaseCandidate {
   version: string;
   previousTag?: string;
-}
-
-interface PHPYoshiBulkUpdate {
-  changelogEntry: string;
-  versionUpdates: { [key: string]: string };
 }
 
 export class ReleasePR {
@@ -88,6 +63,7 @@ export class ReleasePR {
   releaseType: ReleaseType;
   proxyKey?: string;
   snapshot?: boolean;
+  lastPackageVersion?: string;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -100,6 +76,10 @@ export class ReleasePR {
     this.apiUrl = options.apiUrl;
     this.proxyKey = options.proxyKey;
     this.snapshot = options.snapshot;
+    // drop a `v` prefix if provided:
+    this.lastPackageVersion = options.lastPackageVersion
+      ? options.lastPackageVersion.replace(/^v/, '')
+      : undefined;
 
     this.gh = this.gitHubInstance();
   }
@@ -115,375 +95,12 @@ export class ReleasePR {
         CheckpointType.Failure
       );
     } else {
-      switch (this.releaseType) {
-        case ReleaseType.Node:
-          return this.nodeRelease();
-        case ReleaseType.PHPYoshi:
-          return this.phpYoshiRelease();
-        case ReleaseType.JavaAuthYoshi:
-          return this.javaAuthYoshiRelease();
-        default:
-          throw Error('unknown release type');
-      }
+      return this._run();
     }
   }
 
-  private async nodeRelease() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
-    );
-
-    const cc = new ConventionalCommits({
-      commits,
-      githubRepoUrl: this.repoUrl,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (changelogEmpty(changelogEntry)) {
-      checkpoint(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
-      );
-      return;
-    }
-
-    const updates: Update[] = [];
-
-    updates.push(
-      new Changelog({
-        path: 'CHANGELOG.md',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
-
-    updates.push(
-      new PackageJson({
-        path: 'package.json',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
-
-    updates.push(
-      new SamplesPackageJson({
-        path: 'samples/package.json',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
-
-    await this.openPR(
-      commits[0].sha,
-      `${changelogEntry}\n---\n`,
-      updates,
-      candidate.version
-    );
-  }
-
-  private async phpYoshiRelease() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
-    );
-
-    // we create an instance of conventional CHANGELOG for bumping the
-    // top-level tag version we maintain on the mono-repo itself.
-    const ccb = new ConventionalCommits({
-      commits,
-      githubRepoUrl: this.repoUrl,
-      bumpMinorPreMajor: true,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      ccb,
-      latestTag
-    );
-
-    // partition a set of packages in the mono-repo that need to be
-    // updated since our last release -- the set of string keys
-    // is sorted to ensure consistency in the CHANGELOG.
-    const updates: Update[] = [];
-    let changelogEntry = `## ${candidate.version}`;
-
-    const bulkUpdate: PHPYoshiBulkUpdate = await this.releaseAllPHPLibraries(
-      commits,
-      updates,
-      changelogEntry
-    );
-    changelogEntry = bulkUpdate.changelogEntry;
-
-    // update the aggregate package information in the root
-    // composer.json and manifest.json.
-    updates.push(
-      new RootComposer({
-        path: 'composer.json',
-        changelogEntry,
-        version: candidate.version,
-        versions: bulkUpdate.versionUpdates,
-        packageName: this.packageName,
-      })
-    );
-
-    updates.push(
-      new PHPManifest({
-        path: 'docs/manifest.json',
-        changelogEntry,
-        version: candidate.version,
-        versions: bulkUpdate.versionUpdates,
-        packageName: this.packageName,
-      })
-    );
-
-    updates.push(
-      new Changelog({
-        path: 'CHANGELOG.md',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
-
-    ['src/Version.php', 'src/ServiceBuilder.php'].forEach((path: string) => {
-      updates.push(
-        new PHPClientVersion({
-          path,
-          changelogEntry,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-    });
-
-    await this.openPR(
-      commits[0].sha,
-      changelogEntry,
-      updates,
-      candidate.version
-    );
-  }
-
-  private async releaseAllPHPLibraries(
-    commits: Commit[],
-    updates: Update[],
-    changelogEntry: string
-  ): Promise<PHPYoshiBulkUpdate> {
-    const cs = new CommitSplit();
-    const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
-    const pkgKeys: string[] = Object.keys(commitLookup).sort();
-    // map of library names that need to be updated in the top level
-    // composer.json and manifest.json.
-    const versionUpdates: { [key: string]: string } = {};
-
-    // walk each individual library updating the VERSION file, and
-    // if necessary the `const VERSION` in the client library.
-    for (let i = 0; i < pkgKeys.length; i++) {
-      const pkgKey: string = pkgKeys[i];
-      const cc = new ConventionalCommits({
-        commits: commitLookup[pkgKey],
-        githubRepoUrl: this.repoUrl,
-        bumpMinorPreMajor: this.bumpMinorPreMajor,
-      });
-
-      // some packages in the mono-repo might have only had chores,
-      // build updates, etc., applied.
-      if (
-        !changelogEmpty(await cc.generateChangelogEntry({ version: '0.0.0' }))
-      ) {
-        try {
-          const contents: GitHubFileContents = await this.gh.getFileContents(
-            `${pkgKey}/VERSION`
-          );
-          const bump = await cc.suggestBump(contents.parsedContent);
-          const candidate: string | null = semver.inc(
-            contents.parsedContent,
-            bump.releaseType
-          );
-          if (!candidate) {
-            checkpoint(
-              `failed to update ${pkgKey} version`,
-              CheckpointType.Failure
-            );
-            continue;
-          }
-
-          const meta = JSON.parse(
-            (await this.gh.getFileContents(`${pkgKey}/composer.json`))
-              .parsedContent
-          );
-          versionUpdates[meta.name] = candidate;
-
-          changelogEntry = updatePHPChangelogEntry(
-            `${meta.name} ${candidate}`,
-            changelogEntry,
-            await cc.generateChangelogEntry({ version: candidate })
-          );
-
-          updates.push(
-            new Version({
-              path: `${pkgKey}/VERSION`,
-              changelogEntry,
-              version: candidate,
-              packageName: this.packageName,
-              contents,
-            })
-          );
-
-          // extra.component indicates an entry-point class file
-          // that must have its version # updatd.
-          if (
-            meta.extra &&
-            meta.extra.component &&
-            meta.extra.component.entry
-          ) {
-            updates.push(
-              new PHPClientVersion({
-                path: `${pkgKey}/${meta.extra.component.entry}`,
-                changelogEntry,
-                version: candidate,
-                packageName: this.packageName,
-              })
-            );
-          }
-        } catch (err) {
-          if (err.status === 404) {
-            // if the updated path has no VERSION, assume this isn't a
-            // module that needs updating.
-            continue;
-          } else {
-            throw err;
-          }
-        }
-      }
-    }
-
-    return { changelogEntry, versionUpdates };
-  }
-
-  private async javaAuthYoshiRelease() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = this.snapshot
-      ? [
-          {
-            sha: 'abc123',
-            message: 'fix: ',
-            files: [],
-          },
-        ]
-      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
-    let prSHA = commits[0].sha;
-
-    const cc = new ConventionalCommits({
-      commits,
-      githubRepoUrl: this.repoUrl,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-    let changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
-
-    // snapshot entries are special:
-    // 1. they don't update the README or CHANGELOG.
-    // 2. they always update a patch with the -SNAPSHOT suffix.
-    // 3. they're haunted.
-    if (this.snapshot) {
-      prSHA = latestTag!.sha;
-      candidate.version = `${candidate.version}-SNAPSHOT`;
-      changelogEntry =
-        '### Updating meta-information for bleeding-edge SNAPSHOT release.';
-    }
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (changelogEmpty(changelogEntry) && !this.snapshot) {
-      checkpoint(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
-      );
-      return;
-    }
-
-    const updates: Update[] = [];
-
-    if (!this.snapshot) {
-      updates.push(
-        new Changelog({
-          path: 'CHANGELOG.md',
-          changelogEntry,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-
-      updates.push(
-        new JavaAuthReadme({
-          path: 'README.md',
-          changelogEntry,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-    }
-
-    updates.push(
-      new JavaAuthVersions({
-        path: 'versions.txt',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
-
-    [
-      'appengine/pom.xml',
-      'bom/pom.xml',
-      'credentials/pom.xml',
-      'oauth2_http/pom.xml',
-      'pom.xml',
-    ].forEach(path => {
-      updates.push(
-        new PomXML({
-          path,
-          changelogEntry,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-    });
-
-    await this.openPR(
-      prSHA,
-      `${changelogEntry}\n---\n`,
-      updates,
-      candidate.version
-    );
+  protected async _run() {
+    throw Error('must be implemented by subclass');
   }
 
   private async closeStaleReleasePRs(currentPRNumber: number) {
@@ -500,7 +117,7 @@ export class ReleasePR {
     }
   }
 
-  private async coerceReleaseCandidate(
+  protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined
   ): Promise<ReleaseCandidate> {
@@ -519,7 +136,7 @@ export class ReleasePR {
     return { version, previousTag };
   }
 
-  private async commits(
+  protected async commits(
     sha?: string,
     perPage = 100,
     labels = false
@@ -536,7 +153,7 @@ export class ReleasePR {
     return commits;
   }
 
-  private gitHubInstance(): GitHub {
+  protected gitHubInstance(): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({
       token: this.token,
@@ -547,7 +164,7 @@ export class ReleasePR {
     });
   }
 
-  private async openPR(
+  protected async openPR(
     sha: string,
     changelogEntry: string,
     updates: Update[],
@@ -570,30 +187,8 @@ export class ReleasePR {
       await this.closeStaleReleasePRs(pr);
     }
   }
-}
 
-function changelogEmpty(changelogEntry: string) {
-  return changelogEntry.split('\n').length === 1;
-}
-
-function updatePHPChangelogEntry(
-  pkgKey: string,
-  changelogEntry: string,
-  entryUpdate: string
-) {
-  {
-    // Remove the first line of the entry, in favor of <summary>.
-    // This also allows us to use the same regex for extracting release
-    // notes (since the string "## v0.0.0" doesn't show up multiple times).
-    const entryUpdateSplit: string[] = entryUpdate.split(/\r?\n/);
-    entryUpdateSplit.shift();
-    entryUpdate = entryUpdateSplit.join('\n');
+  protected changelogEmpty(changelogEntry: string) {
+    return changelogEntry.split('\n').length === 1;
   }
-  return `${changelogEntry}
-
-<details><summary>${pkgKey}</summary>
-
-${entryUpdate}
-
-</details>`;
 }
