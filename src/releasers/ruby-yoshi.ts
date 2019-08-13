@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { ReleasePR, ReleaseCandidate } from '../release-pr';
 
 import { ConventionalCommits } from '../conventional-commits';
@@ -30,11 +32,23 @@ export class RubyYoshi extends ReleasePR {
       );
       return;
     } else {
-      const pkgCommits = commitLookup[this.packageName];
+      const pkgCommits = processCommits(commitLookup[this.packageName]);
       const cc = new ConventionalCommits({
         commits: pkgCommits,
         githubRepoUrl: this.repoUrl,
         bumpMinorPreMajor: this.bumpMinorPreMajor,
+        commitPartial: readFileSync(
+          resolve(__dirname, '../../../templates/commit.hbs'),
+          'utf8'
+        ),
+        headerPartial: readFileSync(
+          resolve(__dirname, '../../../templates/header.hbs'),
+          'utf8'
+        ),
+        mainTemplate: readFileSync(
+          resolve(__dirname, '../../../templates/template.hbs'),
+          'utf8'
+        ),
       });
       const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
         cc,
@@ -96,4 +110,28 @@ export class RubyYoshi extends ReleasePR {
       );
     }
   }
+}
+
+function processCommits(commits: Commit[]): Commit[] {
+  let hasDocs = false;
+  // indent each line of the commit body, so that it looks
+  // pretty in our template.
+  commits.forEach(commit => {
+    const message = commit.message;
+    if (/^docs/.test(message)) hasDocs = true;
+    commit.message = '';
+    message.split('\n').forEach((line, i) => {
+      if (i !== 0) line = `  ${line}`;
+      commit.message += `${line}\n`;
+    });
+  });
+  // if we saw any doc updates, add a top level note about updating
+  // documents.
+  commits.push({
+    sha: 'abc123',
+    message: 'fix: updates documentation',
+    files: [],
+  });
+
+  return commits;
 }

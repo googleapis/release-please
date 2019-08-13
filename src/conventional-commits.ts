@@ -34,6 +34,10 @@ interface ConventionalCommitsOptions {
   githubRepoUrl: string;
   host?: string;
   bumpMinorPreMajor?: boolean;
+  // allow for customized commit template.
+  commitPartial?: string;
+  headerPartial?: string;
+  mainTemplate?: string;
 }
 
 interface ChangelogEntryOptions {
@@ -69,6 +73,11 @@ export class ConventionalCommits {
   repository: string;
   bumpMinorPreMajor?: boolean;
 
+  // allow for customized commit template.
+  commitPartial?: string;
+  headerPartial?: string;
+  mainTemplate?: string;
+
   constructor(options: ConventionalCommitsOptions) {
     const parsedGithubRepoUrl = parseGithubRepoUrl(options.githubRepoUrl);
     if (!parsedGithubRepoUrl) throw Error('could not parse githubRepoUrl');
@@ -78,6 +87,11 @@ export class ConventionalCommits {
     this.host = options.host || 'https://www.github.com';
     this.owner = owner;
     this.repository = repository;
+    // we allow some languages (currently Ruby) to provide their own
+    // template style:
+    this.commitPartial = options.commitPartial;
+    this.headerPartial = options.headerPartial;
+    this.mainTemplate = options.mainTemplate;
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
     const preMajor = this.bumpMinorPreMajor
@@ -104,7 +118,15 @@ export class ConventionalCommits {
       currentTag: options.currentTag,
       linkCompare: !!options.previousTag,
     };
+
     const preset = await presetFactory({});
+    preset.writerOpts.commitPartial =
+      this.commitPartial || preset.writerOpts.commitPartial;
+    preset.writerOpts.headerPartial =
+      this.headerPartial || preset.writerOpts.headerPartial;
+    preset.writerOpts.mainTemplate =
+      this.mainTemplate || preset.writerOpts.mainTemplate;
+
     return new Promise((resolve, reject) => {
       let content = '';
       const stream = this.commitsReadable()
