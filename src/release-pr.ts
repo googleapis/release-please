@@ -147,9 +147,10 @@ export class ReleasePR {
   protected async commits(
     sha?: string,
     perPage = 100,
-    labels = false
+    labels = false,
+    path: string | null = null
   ): Promise<Commit[]> {
-    const commits = await this.gh.commitsSinceSha(sha, perPage, labels);
+    const commits = await this.gh.commitsSinceSha(sha, perPage, labels, path);
     if (commits.length) {
       checkpoint(
         `found ${commits.length} commits since ${sha}`,

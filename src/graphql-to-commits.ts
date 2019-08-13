@@ -54,6 +54,7 @@ interface CommitEdge {
 export interface PREdge {
   node: {
     number: number;
+    mergeCommit: { oid: string };
     files: { edges: FileEdge[]; pageInfo: PageInfo };
     labels: { edges: LabelEdge[] };
   };
@@ -85,8 +86,15 @@ export async function graphqlToCommits(
   };
   for (let i = 0, commitEdge: CommitEdge; i < commitHistory.edges.length; i++) {
     commitEdge = commitHistory.edges[i];
-    const commit: Commit = await graphqlToCommit(github, commitEdge);
-    commits.commits.push(commit);
+    const commit: Commit | undefined = await graphqlToCommit(
+      github,
+      commitEdge
+    );
+    // if the commit and its associated PR do not share a sha, we assume
+    // that the commit was a push to master and disregard it.
+    if (commit) {
+      commits.commits.push(commit);
+    }
   }
   return commits;
 }
@@ -94,7 +102,7 @@ export async function graphqlToCommits(
 async function graphqlToCommit(
   github: GitHub,
   commitEdge: CommitEdge
-): Promise<Commit> {
+): Promise<Commit | undefined> {
   const commit = {
     sha: commitEdge.node.oid,
     message: commitEdge.node.message,
@@ -109,6 +117,12 @@ async function graphqlToCommit(
   if (commitEdge.node.associatedPullRequests.edges.length === 0) return commit;
 
   let prEdge: PREdge = commitEdge.node.associatedPullRequests.edges[0];
+
+  // if the commit.sha and mergeCommit.oid do not match, assume that this
+  // was a push to master and drop the commit.
+  if (commit.sha !== prEdge.node.mergeCommit.oid) {
+    return undefined;
+  }
 
   // if, on the off chance, there are more than 100 files attached to a
   // PR, paginate in the additional files.

@@ -14,27 +14,26 @@ import { VersionRB } from '../updaters/version-rb';
 
 export class RubyYoshi extends ReleasePR {
   protected async _run() {
-    if (!this.lastPackageVersion) {
-      throw Error(
-        'last library version must be provided for ruby-yoshi release type'
-      );
-    }
-    const lastReleaseSha = await this.gh.getTagSha(
-      `${this.packageName}/v${this.lastPackageVersion}`
+    const lastReleaseSha: string | undefined = this.lastPackageVersion
+      ? await this.gh.getTagSha(
+          `${this.packageName}/v${this.lastPackageVersion}`
+        )
+      : undefined;
+    const commits: Commit[] = await this.commits(
+      lastReleaseSha,
+      100,
+      false,
+      this.packageName
     );
-    const commits: Commit[] = await this.commits(lastReleaseSha);
-    const cs = new CommitSplit();
-    const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
-    if (commitLookup[this.packageName] === undefined) {
+    if (commits.length === 0) {
       checkpoint(
         `no commits found since ${lastReleaseSha}`,
         CheckpointType.Failure
       );
       return;
     } else {
-      const pkgCommits = processCommits(commitLookup[this.packageName]);
       const cc = new ConventionalCommits({
-        commits: pkgCommits,
+        commits: processCommits(commits),
         githubRepoUrl: this.repoUrl,
         bumpMinorPreMajor: this.bumpMinorPreMajor,
         commitPartial: readFileSync(
@@ -125,11 +124,12 @@ function processCommits(commits: Commit[]): Commit[] {
       commit.message += `${line}\n`;
     });
   });
+
   // if we saw any doc updates, add a top level note about updating
   // documents.
   commits.push({
     sha: 'abc123',
-    message: 'fix: updates documentation',
+    message: 'feat: updates documentation',
     files: [],
   });
 

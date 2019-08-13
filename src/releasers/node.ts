@@ -13,7 +13,7 @@ import { PackageJson } from '../updaters/package-json';
 import { SamplesPackageJson } from '../updaters/samples-package-json';
 
 export class Node extends ReleasePR {
-  private async nodeRelease() {
+  protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = await this.commits(
       latestTag ? latestTag.sha : undefined
