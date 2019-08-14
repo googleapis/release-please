@@ -17,6 +17,7 @@
 import * as Octokit from '@octokit/rest';
 const { request } = require('@octokit/request');
 import {
+  AnyResponse,
   IssuesListResponseItem,
   PullsCreateResponse,
   PullsListResponseItem,
@@ -107,7 +108,8 @@ export class GitHub {
   async commitsSinceSha(
     sha: string | undefined,
     perPage = 100,
-    labels = false
+    labels = false,
+    path: string | null = null
   ): Promise<Commit[]> {
     const commits: Commit[] = [];
     const method = labels ? 'commitsWithLabels' : 'commitsWithFiles';
@@ -116,7 +118,8 @@ export class GitHub {
     while (true) {
       const commitsResponse: CommitsResponse = await this[method](
         cursor,
-        perPage
+        perPage,
+        path
       );
       for (let i = 0, commit: Commit; i < commitsResponse.commits.length; i++) {
         commit = commitsResponse.commits[i];
@@ -137,6 +140,7 @@ export class GitHub {
   private async commitsWithFiles(
     cursor: string | undefined = undefined,
     perPage = 32,
+    path: string | null = null,
     maxFilesChanged = 64,
     retries = 0
   ): Promise<CommitsResponse> {
@@ -146,12 +150,12 @@ export class GitHub {
     // order along with the file paths attached to them.
     try {
       const response = await graphql({
-        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int) {
+        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
             defaultBranchRef {
               target {
                 ... on Commit {
-                  history(first: $perPage, after: $cursor) {
+                  history(first: $perPage, after: $cursor, path: $path) {
                     edges{
                       node {
                         ... on Commit {
@@ -162,6 +166,9 @@ export class GitHub {
                               node {
                                 ... on PullRequest {
                                   number
+                                  mergeCommit {
+                                    oid
+                                  }
                                   files(first: $maxFilesChanged) {
                                     edges {
                                       node {
@@ -193,6 +200,7 @@ export class GitHub {
         cursor,
         maxFilesChanged,
         owner: this.owner,
+        path,
         perPage,
         repo: this.repo,
         url: `${this.apiUrl}/graphql${
@@ -212,6 +220,7 @@ export class GitHub {
         return this.commitsWithFiles(
           cursor,
           perPage,
+          path,
           maxFilesChanged,
           retries++
         );
@@ -224,17 +233,18 @@ export class GitHub {
   private async commitsWithLabels(
     cursor: string | undefined = undefined,
     perPage = 32,
+    path: string | null = null,
     maxLabels = 16,
     retries = 0
   ): Promise<CommitsResponse> {
     try {
       const response = await graphql({
-        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxLabels: Int) {
+        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxLabels: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
             defaultBranchRef {
               target {
                 ... on Commit {
-                  history(first: $perPage, after: $cursor) {
+                  history(first: $perPage, after: $cursor, path: $path) {
                     edges{
                       node {
                         ... on Commit {
@@ -245,6 +255,9 @@ export class GitHub {
                               node {
                                 ... on PullRequest {
                                   number
+                                  mergeCommit {
+                                    oid
+                                  }
                                   labels(first: $maxLabels) {
                                     edges {
                                       node {
@@ -272,6 +285,7 @@ export class GitHub {
         cursor,
         maxLabels,
         owner: this.owner,
+        path,
         perPage,
         repo: this.repo,
         url: `${this.apiUrl}/graphql${
@@ -288,7 +302,13 @@ export class GitHub {
         // GraphQL sometimes returns a 502 on the first request,
         // this seems to relate to a cache being warmed and the
         // second request generally works.
-        return this.commitsWithLabels(cursor, perPage, maxLabels, retries++);
+        return this.commitsWithLabels(
+          cursor,
+          perPage,
+          path,
+          maxLabels,
+          retries++
+        );
       } else {
         throw err;
       }
@@ -334,6 +354,20 @@ export class GitHub {
       },
     });
     return { node: response.repository.pullRequest } as PREdge;
+  }
+
+  async getTagSha(name: string): Promise<string> {
+    const refResponse = (await this.request(
+      `GET /repos/:owner/:repo/git/refs/tags/:name${
+        this.proxyKey ? `?key=${this.proxyKey}` : ''
+      }`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+        name,
+      }
+    )) as AnyResponse;
+    return refResponse.data.object.sha;
   }
 
   async latestTag(perPage = 100): Promise<GitHubTag | undefined> {

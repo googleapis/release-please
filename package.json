@@ -20,6 +20,7 @@
   },
   "files": [
     "build/src",
+    "templates",
     "!build/src/**/*.map"
   ],
   "repository": "googleapis/release-please",

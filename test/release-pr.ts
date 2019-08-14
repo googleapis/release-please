@@ -21,7 +21,8 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { ReleasePR, ReleaseType } from '../src/release-pr';
+import { ReleaseType } from '../src/release-pr';
+import { PHPYoshi } from '../src/releasers/php-yoshi';
 
 const fixturesPath = './test/fixtures';
 
@@ -217,7 +218,7 @@ describe('GitHub', () => {
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=25')
         .reply(200, []);
 
-      const releasePR = new ReleasePR({
+      const releasePR = new PHPYoshi({
         repoUrl: 'googleapis/release-please',
         label: 'autorelease: pending',
         releaseType: ReleaseType.PHPYoshi,

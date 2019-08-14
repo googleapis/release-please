@@ -21,7 +21,12 @@
 import chalk from 'chalk';
 import { coerceOption } from '../util/coerce-option';
 import { GitHubRelease, GitHubReleaseOptions } from '../github-release';
-import { ReleasePR, ReleasePROptions } from '../release-pr';
+import { ReleasePR, ReleasePROptions, ReleaseType } from '../release-pr';
+
+import { JavaAuthYoshi } from '../releasers/java-auth-yoshi';
+import { Node } from '../releasers/node';
+import { PHPYoshi } from '../releasers/php-yoshi';
+import { RubyYoshi } from '../releasers/ruby-yoshi';
 
 const yargs = require('yargs');
 
@@ -53,6 +58,9 @@ const argv = yargs
           describe: 'name of package release is being minted for',
           demand: true,
         })
+        .option('last-package-version', {
+          describe: 'last version # that package was released as',
+        })
         .option('repo-url', {
           describe: 'GitHub URL to generate release for',
           demand: true,
@@ -68,7 +76,24 @@ const argv = yargs
         });
     },
     (argv: ReleasePROptions) => {
-      const rp = new ReleasePR(argv);
+      let rp: ReleasePR;
+      switch (argv.releaseType) {
+        case ReleaseType.Node:
+          rp = new Node(argv);
+          break;
+        case ReleaseType.PHPYoshi:
+          rp = new PHPYoshi(argv);
+          break;
+        case ReleaseType.JavaAuthYoshi:
+          rp = new JavaAuthYoshi(argv);
+          break;
+        case ReleaseType.RubyYoshi:
+          rp = new RubyYoshi(argv);
+          break;
+        default:
+          throw Error('unknown release type');
+      }
+
       rp.run().catch(handleError);
     }
   )
@@ -154,7 +179,7 @@ action "github-release" {
   })
   .option('release-type', {
     describe: 'what type of repo is a release being created for?',
-    choices: ['node', 'php-yoshi', 'java-auth-yoshi'],
+    choices: ['node', 'php-yoshi', 'java-auth-yoshi', 'ruby-yoshi'],
     default: 'node',
   })
   .option('bump-minor-pre-major', {

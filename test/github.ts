@@ -41,7 +41,7 @@ describe('GitHub', () => {
           data: graphql,
         });
       const commitsSinceSha = await github.commitsSinceSha(
-        '9e71bb94a4de1ebd09ceb1f4177258ccba9d48c8'
+        'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b'
       );
       snapshot(commitsSinceSha);
       req.done();
