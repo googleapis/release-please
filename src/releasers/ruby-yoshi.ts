@@ -172,7 +172,7 @@ function postProcessCommits(commits: Commit[]): Commit[] {
 
   commits.push({
     sha: DOC_UPDATE_SHA,
-    message: 'feat: updates documentation',
+    message: 'feat: Update documentation',
     files: [],
   });
 
