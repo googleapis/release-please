@@ -21,12 +21,14 @@ import { ReleasePR, ReleaseCandidate } from '../release-pr';
 import { ConventionalCommits } from '../conventional-commits';
 import { GitHubTag } from '../github';
 import { checkpoint, CheckpointType } from '../util/checkpoint';
+import { indentCommit } from '../util/indent-commit';
 import { Update } from '../updaters/update';
 import { Commit } from '../graphql-to-commits';
-import { CommitSplit } from '../commit-split';
 
 import { Changelog } from '../updaters/changelog';
 import { VersionRB } from '../updaters/version-rb';
+
+const DOC_UPDATE_SHA = 'abc123';
 
 export class RubyYoshi extends ReleasePR {
   protected async _run() {
@@ -49,7 +51,7 @@ export class RubyYoshi extends ReleasePR {
       return;
     } else {
       const cc = new ConventionalCommits({
-        commits: processCommits(commits),
+        commits: postProcessCommits(commits),
         githubRepoUrl: this.repoUrl,
         bumpMinorPreMajor: this.bumpMinorPreMajor,
         commitPartial: readFileSync(
@@ -118,33 +120,58 @@ export class RubyYoshi extends ReleasePR {
 
       await this.openPR(
         commits[0].sha,
-        `${changelogEntry}\n---\n`,
+        `${changelogEntry}\n---\n${this.summarizeCommits(
+          lastReleaseSha,
+          commits
+        )}\n`,
         updates,
         candidate.version,
         true
       );
     }
   }
+  // create a summary of the commits landed since the last release,
+  // for the benefit of the release PR.
+  private summarizeCommits(
+    lastReleaseSha: string | undefined,
+    commits: Commit[]
+  ): string {
+    // summarize the commits that landed:
+    let summary = `### Commits since last release:\n\n`;
+    const updatedFiles: { [key: string]: boolean } = {};
+    commits.forEach(commit => {
+      if (commit.sha === DOC_UPDATE_SHA) return;
+      const splitMessage = commit.message.split('\n');
+      summary += `* [${splitMessage[0]}](https://github.com/${this.repoUrl}/commit/${commit.sha})\n`;
+      if (splitMessage.length > 2) {
+        summary = `${summary}<pre><code>${splitMessage
+          .slice(1)
+          .join('\n')}</code></pre>\n`;
+      }
+      commit.files.forEach(file => {
+        if (file.startsWith(this.packageName)) {
+          updatedFiles[file] = true;
+        }
+      });
+    });
+    // summarize the files that changed:
+    summary = `${summary}\n### Files edited since last release:\n\n<pre><code>`;
+    Object.keys(updatedFiles).forEach(file => {
+      summary += `${file}\n`;
+    });
+    return `${summary}</code></pre>\n[Compare Changes](https://github.com/${this.repoUrl}/compare/${lastReleaseSha}...HEAD)\n`;
+  }
 }
 
-function processCommits(commits: Commit[]): Commit[] {
+function postProcessCommits(commits: Commit[]): Commit[] {
   let hasDocs = false;
-  // indent each line of the commit body, so that it looks
-  // pretty in our template.
   commits.forEach(commit => {
-    const message = commit.message;
-    if (/^docs/.test(message)) hasDocs = true;
-    commit.message = '';
-    message.split('\n').forEach((line, i) => {
-      if (i !== 0) line = `  ${line}`;
-      commit.message += `${line}\n`;
-    });
+    if (/^docs/.test(commit.message)) hasDocs = true;
+    commit.message = indentCommit(commit);
   });
 
-  // if we saw any doc updates, add a top level note about updating
-  // documents.
   commits.push({
-    sha: 'abc123',
+    sha: DOC_UPDATE_SHA,
     message: 'feat: updates documentation',
     files: [],
   });
