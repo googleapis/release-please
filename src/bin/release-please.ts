@@ -27,6 +27,7 @@ import { JavaAuthYoshi } from '../releasers/java-auth-yoshi';
 import { Node } from '../releasers/node';
 import { PHPYoshi } from '../releasers/php-yoshi';
 import { RubyYoshi } from '../releasers/ruby-yoshi';
+import { JavaYoshi } from '../releasers/java-yoshi';
 
 const yargs = require('yargs');
 
@@ -85,7 +86,11 @@ const argv = yargs
           rp = new PHPYoshi(argv);
           break;
         case ReleaseType.JavaAuthYoshi:
+          // TODO: coerce this to the generic Java release
           rp = new JavaAuthYoshi(argv);
+          break;
+        case ReleaseType.JavaYoshi:
+          rp = new JavaYoshi(argv);
           break;
         case ReleaseType.RubyYoshi:
           rp = new RubyYoshi(argv);

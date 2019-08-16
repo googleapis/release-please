@@ -25,10 +25,10 @@ import { Commit } from '../graphql-to-commits';
 // Generic
 import { Changelog } from '../updaters/changelog';
 // Java
-import { PomXML } from '../updaters/pom-xml';
+import { PomXML } from '../updaters/java/pom-xml';
 // Yoshi Java Auth Library
-import { JavaAuthVersions } from '../updaters/java-auth-versions';
-import { JavaAuthReadme } from '../updaters/java-auth-readme';
+import { VersionsManifest } from '../updaters/java/versions-manifest';
+import { Readme } from '../updaters/java/readme';
 
 export class JavaAuthYoshi extends ReleasePR {
   protected async _run() {
@@ -96,7 +96,7 @@ export class JavaAuthYoshi extends ReleasePR {
       );
 
       updates.push(
-        new JavaAuthReadme({
+        new Readme({
           path: 'README.md',
           changelogEntry,
           version: candidate.version,
@@ -106,7 +106,7 @@ export class JavaAuthYoshi extends ReleasePR {
     }
 
     updates.push(
-      new JavaAuthVersions({
+      new VersionsManifest({
         path: 'versions.txt',
         changelogEntry,
         version: candidate.version,
