@@ -181,7 +181,7 @@ export class ReleasePR {
     includePackageName = false
   ) {
     const title = includePackageName
-      ? `chore: release ${this.packageName}@${version}`
+      ? `Release ${this.packageName} ${version}`
       : `chore: release ${version}`;
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
