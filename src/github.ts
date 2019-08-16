@@ -876,6 +876,15 @@ export class GitHub {
       );
     }
   }
+
+  async findFilesByFilename(filename: string) {
+    const response = await this.octokit.search.code({
+      q: `filename:${filename}+repo:${this.repo}`,
+    });
+    return response.data.items.map(file => {
+      return file.path;
+    });
+  }
 }
 
 class AuthError extends Error {
