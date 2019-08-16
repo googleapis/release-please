@@ -106,7 +106,6 @@ export class GitHub {
           Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
         },
       };
-      //if (options.proxyKey) defaults['key'] = options.proxyKey;
       this.request = request.defaults(defaults);
       this.graphql = graphql;
     } else {
