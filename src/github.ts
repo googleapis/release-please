@@ -881,7 +881,7 @@ export class GitHub {
     const response = await this.octokit.search.code({
       q: `filename:${filename}+repo:${this.repo}`,
     });
-    return response.data.items.map(file => {
+    return response.data.items.map((file: any) => {
       return file.path;
     });
   }

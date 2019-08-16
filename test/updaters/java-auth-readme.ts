@@ -18,7 +18,7 @@ import { readFileSync } from 'fs';
 import { basename, resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { JavaAuthReadme } from '../../src/updaters/java-auth-readme';
+import { Readme } from '../../src/updaters/java/readme';
 import { UpdateOptions } from '../../src/updaters/update';
 
 const fixturesPath = './test/updaters/fixtures';
@@ -30,7 +30,7 @@ describe('JavaAuthReadme', () => {
         resolve(fixturesPath, './java-auth-readme.md'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const javaAuthReadme = new JavaAuthReadme({
+      const javaAuthReadme = new Readme({
         path: 'README.md',
         changelogEntry: '',
         version: '0.20.0',

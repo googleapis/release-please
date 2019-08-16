@@ -18,7 +18,7 @@ import { readFileSync } from 'fs';
 import { basename, resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { JavaAuthVersions } from '../../src/updaters/java-auth-versions';
+import { VersionsManifest } from '../../src/updaters/java/versions-manifest';
 import { UpdateOptions } from '../../src/updaters/update';
 
 const fixturesPath = './test/updaters/fixtures';
@@ -30,7 +30,7 @@ describe('JavaAuthVersions', () => {
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const javaAuthVersions = new JavaAuthVersions({
+      const javaAuthVersions = new VersionsManifest({
         path: 'versions.txt',
         changelogEntry: '',
         version: '0.25.0',
@@ -45,7 +45,7 @@ describe('JavaAuthVersions', () => {
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const javaAuthVersions = new JavaAuthVersions({
+      const javaAuthVersions = new VersionsManifest({
         path: 'versions.txt',
         changelogEntry: '',
         version: '0.16.2-SNAPSHOT',

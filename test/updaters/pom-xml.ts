@@ -18,7 +18,7 @@ import { readFileSync } from 'fs';
 import { basename, resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { PomXML } from '../../src/updaters/pom-xml';
+import { PomXML } from '../../src/updaters/java/pom-xml';
 import { UpdateOptions } from '../../src/updaters/update';
 
 const fixturesPath = './test/updaters/fixtures';
