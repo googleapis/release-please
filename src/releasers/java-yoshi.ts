@@ -113,7 +113,7 @@ export class JavaYoshi extends ReleasePR {
       })
     );
 
-    const pomFiles: string[] = await this.gh.findFilesByFilename('pom.xml');
+    const pomFiles = await this.gh.findFilesByFilename('pom.xml');
     pomFiles.forEach(path => {
       updates.push(
         new PomXML({

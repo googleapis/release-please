@@ -885,7 +885,7 @@ export class GitHub {
     }
   }
 
-  async findFilesByFilename(filename: string) {
+  async findFilesByFilename(filename: string): Promise<string[]> {
     const response: Octokit.Response<
       FileSearchResponse
     > = await this.octokit.search.code({
