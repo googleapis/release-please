@@ -23,6 +23,8 @@ import { GitHub, GitHubReleasePR, GitHubTag } from './github';
 import { Commit } from './graphql-to-commits';
 import { Update } from './updaters/update';
 
+import * as Octokit from '@octokit/rest';
+
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export enum ReleaseType {
@@ -44,6 +46,7 @@ export interface ReleasePROptions {
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
+  octokitInstance?: Octokit;
 }
 
 export interface ReleaseCandidate {
@@ -81,7 +84,7 @@ export class ReleasePR {
       ? options.lastPackageVersion.replace(/^v/, '')
       : undefined;
 
-    this.gh = this.gitHubInstance();
+    this.gh = this.gitHubInstance(options.octokitInstance);
   }
 
   async run() {
@@ -162,7 +165,7 @@ export class ReleasePR {
     return commits;
   }
 
-  protected gitHubInstance(): GitHub {
+  protected gitHubInstance(octokitInstance?: Octokit): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({
       token: this.token,
@@ -170,6 +173,7 @@ export class ReleasePR {
       repo,
       apiUrl: this.apiUrl,
       proxyKey: this.proxyKey,
+      octokitInstance
     });
   }
 
