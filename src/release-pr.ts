@@ -19,11 +19,9 @@ import * as semver from 'semver';
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
 import { ConventionalCommits } from './conventional-commits';
-import { GitHub, GitHubReleasePR, GitHubTag } from './github';
+import { GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs } from './github';
 import { Commit } from './graphql-to-commits';
 import { Update } from './updaters/update';
-
-import * as Octokit from '@octokit/rest';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
@@ -46,7 +44,7 @@ export interface ReleasePROptions {
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
-  octokitInstance?: Octokit;
+  octokitAPIs?: OctokitAPIs;
 }
 
 export interface ReleaseCandidate {
@@ -84,7 +82,7 @@ export class ReleasePR {
       ? options.lastPackageVersion.replace(/^v/, '')
       : undefined;
 
-    this.gh = this.gitHubInstance(options.octokitInstance);
+    this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
   async run() {
@@ -165,7 +163,7 @@ export class ReleasePR {
     return commits;
   }
 
-  protected gitHubInstance(octokitInstance?: Octokit): GitHub {
+  protected gitHubInstance(octokitAPIs?: OctokitAPIs): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({
       token: this.token,
@@ -173,7 +171,7 @@ export class ReleasePR {
       repo,
       apiUrl: this.apiUrl,
       proxyKey: this.proxyKey,
-      octokitInstance
+      octokitAPIs,
     });
   }
 

@@ -37,9 +37,15 @@ import {
 } from './graphql-to-commits';
 import { Update } from './updaters/update';
 
-const {graphql} = require('@octokit/graphql');
+const { graphql } = require('@octokit/graphql');
 
 const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
+
+export interface OctokitAPIs {
+  graphql: Function;
+  request: Function;
+  octokit: Octokit;
+}
 
 interface GitHubOptions {
   token?: string;
@@ -47,7 +53,7 @@ interface GitHubOptions {
   repo: string;
   apiUrl?: string;
   proxyKey?: string;
-  octokitInstance?: Octokit;
+  octokitAPIs?: OctokitAPIs;
 }
 
 export interface GitHubTag {
@@ -80,13 +86,13 @@ interface GitHubPR {
 
 export class GitHub {
   octokit: Octokit;
+  request: Function;
+  graphql: Function;
   token: string | undefined;
   owner: string;
   repo: string;
   apiUrl: string;
   proxyKey?: string;
-  request: Function;
-  graphql: Function;
   probotMode?: boolean;
 
   constructor(options: GitHubOptions) {
@@ -96,12 +102,14 @@ export class GitHub {
     this.apiUrl = options.apiUrl || 'https://api.github.com';
     this.proxyKey = options.proxyKey;
 
-    if (options.octokitInstance === undefined) {
+    if (options.octokitAPIs === undefined) {
       this.octokit = new Octokit({ baseUrl: options.apiUrl });
       const defaults: { [key: string]: string | object } = {
         baseUrl: this.apiUrl,
         headers: {
-          'user-agent': `release-please/${require('../../package.json').version}`,
+          'user-agent': `release-please/${
+            require('../../package.json').version
+          }`,
           // some proxies do not require the token prefix.
           Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
         },
@@ -112,14 +120,15 @@ export class GitHub {
       // for the benefit of probot applications, we allow a configured instance
       // of octokit to be passed in as a parameter.
       this.probotMode = true;
-      this.octokit = options.octokitInstance;
-      this.request = options.octokitInstance.request;
-      // @ts-ignore // probot adds a graphql parameter to its instance.
-      this.graphql = options.octokitInstance.graphql;
+      this.octokit = options.octokitAPIs.octokit;
+      this.request = options.octokitAPIs.request;
+      this.graphql = options.octokitAPIs.graphql;
     }
   }
 
-  private async graphqlRequest (_opts: {[key: string]: string|number|null|undefined}) {
+  private async graphqlRequest(_opts: {
+    [key: string]: string | number | null | undefined;
+  }) {
     let opts = Object.assign({}, _opts);
     if (this.probotMode === undefined) {
       opts = Object.assign(opts, {
@@ -129,20 +138,22 @@ export class GitHub {
         headers: {
           authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
           'content-type': 'application/vnd.github.v3+json',
-        }
-      })
+        },
+      });
     }
-    return this.graphql(opts)
+    return this.graphql(opts);
   }
 
-  private decoratePaginateOpts (opts: {[key: string]: string|number}): {[key: string]: string|number} {
+  private decoratePaginateOpts(opts: {
+    [key: string]: string | number;
+  }): { [key: string]: string | number } {
     if (this.probotMode) {
       return opts;
     } else {
       return Object.assign(opts, {
         headers: {
           Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-        }
+        },
       });
     }
   }
@@ -244,7 +255,7 @@ export class GitHub {
         owner: this.owner,
         path,
         perPage,
-        repo: this.repo
+        repo: this.repo,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -322,7 +333,7 @@ export class GitHub {
         owner: this.owner,
         path,
         perPage,
-        repo: this.repo
+        repo: this.repo,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -373,7 +384,7 @@ export class GitHub {
       maxFilesChanged,
       owner: this.owner,
       repo: this.repo,
-      num
+      num,
     });
     return { node: response.repository.pullRequest } as PREdge;
   }
@@ -475,12 +486,14 @@ export class GitHub {
     perPage = 100
   ): Promise<{ [version: string]: GitHubTag }> {
     const tags: { [version: string]: GitHubTag } = {};
-    for await (const response of this.octokit.paginate.iterator(this.decoratePaginateOpts({
-      method: 'GET',
-      url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
-        this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }`
-    }))) {
+    for await (const response of this.octokit.paginate.iterator(
+      this.decoratePaginateOpts({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
+          this.proxyKey ? `&key=${this.proxyKey}` : ''
+        }`,
+      })
+    )) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
         if (version) {
@@ -518,13 +531,15 @@ export class GitHub {
   ): Promise<IssuesListResponseItem | undefined> {
     const paged = 0;
     try {
-      for await (const response of this.octokit.paginate.iterator(this.decoratePaginateOpts({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
-          ','
-        )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
-        per_pag: 100
-      }))) {
+      for await (const response of this.octokit.paginate.iterator(
+        this.decoratePaginateOpts({
+          method: 'GET',
+          url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
+            ','
+          )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
+          per_pag: 100,
+        })
+      )) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
@@ -571,12 +586,14 @@ export class GitHub {
             key: this.proxyKey,
           }
         );
+        console.info('we get this far, i.e., created a branch');
       } catch (err) {
         if (err.status === 404) {
           // the most likely cause of a 404 during this step is actually
           // that the user does not have access to the repo:
           throw new AuthError();
         } else {
+          console.info('>>>>', err.stack);
           throw err;
         }
       }
@@ -618,7 +635,7 @@ export class GitHub {
             // https://github.com/octokit/rest.js/issues/1039.
             ref: refName.replace('refs/', ''),
             sha: options.sha,
-            force: true
+            force: true,
           }
         );
       } catch (err) {
@@ -756,12 +773,14 @@ export class GitHub {
   private async refByBranchName(branch: string): Promise<string | undefined> {
     let ref;
     try {
-      for await (const response of this.octokit.paginate.iterator(this.decoratePaginateOpts({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${
-          this.proxyKey ? `&key=${this.proxyKey}` : ''
-        }`
-      }))) {
+      for await (const response of this.octokit.paginate.iterator(
+        this.decoratePaginateOpts({
+          method: 'GET',
+          url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${
+            this.proxyKey ? `&key=${this.proxyKey}` : ''
+          }`,
+        })
+      )) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
           const refRe = new RegExp(`/${branch}$`);
