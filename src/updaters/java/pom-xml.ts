@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Update, UpdateOptions } from './update';
-import { GitHubFileContents } from '../github';
+import { Update, UpdateOptions } from '../update';
+import { GitHubFileContents } from '../../github';
 
 export class PomXML implements Update {
   path: string;

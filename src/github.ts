@@ -84,6 +84,14 @@ interface GitHubPR {
   labels: string[];
 }
 
+interface FileSearchResponse {
+  items: FileSearchResponseFile[];
+}
+
+interface FileSearchResponseFile {
+  path: string;
+}
+
 let probotMode = false;
 
 export class GitHub {
@@ -875,6 +883,17 @@ export class GitHub {
         }
       );
     }
+  }
+
+  async findFilesByFilename(filename: string): Promise<string[]> {
+    const response: Octokit.Response<
+      FileSearchResponse
+    > = await this.octokit.search.code({
+      q: `filename:${filename}+repo:${this.repo}`,
+    });
+    return response.data.items.map(file => {
+      return file.path;
+    });
   }
 }
 

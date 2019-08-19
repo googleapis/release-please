@@ -183,3 +183,11 @@ exports['GitHub commitsSinceSha returns commits immediately before sha 1'] = [
     ]
   }
 ]
+
+exports['GitHub findFilesByfilename returns files matching the requested pattern 1'] = [
+  "appengine/pom.xml",
+  "bom/pom.xml",
+  "credentials/pom.xml",
+  "oauth2_http/pom.xml",
+  "pom.xml"
+]

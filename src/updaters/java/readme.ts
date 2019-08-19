@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, UpdateOptions } from './update';
-import { GitHubFileContents } from '../github';
+import { Update, UpdateOptions } from '../update';
+import { GitHubFileContents } from '../../github';
 
-export class JavaAuthReadme implements Update {
+export class Readme implements Update {
   path: string;
   changelogEntry: string;
   version: string;

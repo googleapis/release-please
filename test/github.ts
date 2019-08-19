@@ -47,4 +47,18 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
+  describe('findFilesByfilename', () => {
+    it('returns files matching the requested pattern', async () => {
+      const fileSearchResponse = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'pom-file-search.json'), 'utf8')
+      );
+      const req = nock('https://api.github.com')
+        .get('/search/code?q=filename%3Apom.xml+repo%3Afake')
+        .reply(200, fileSearchResponse);
+      const pomFiles = await github.findFilesByFilename('pom.xml');
+      snapshot(pomFiles);
+      req.done();
+    });
+  });
 });

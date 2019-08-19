@@ -26,11 +26,10 @@ import { Commit } from '../graphql-to-commits';
 import { Changelog } from '../updaters/changelog';
 // Java
 import { PomXML } from '../updaters/java/pom-xml';
-// Yoshi Java Auth Library
 import { VersionsManifest } from '../updaters/java/versions-manifest';
 import { Readme } from '../updaters/java/readme';
 
-export class JavaAuthYoshi extends ReleasePR {
+export class JavaYoshi extends ReleasePR {
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot
@@ -114,13 +113,8 @@ export class JavaAuthYoshi extends ReleasePR {
       })
     );
 
-    [
-      'appengine/pom.xml',
-      'bom/pom.xml',
-      'credentials/pom.xml',
-      'oauth2_http/pom.xml',
-      'pom.xml',
-    ].forEach(path => {
+    const pomFiles = await this.gh.findFilesByFilename('pom.xml');
+    pomFiles.forEach(path => {
       updates.push(
         new PomXML({
           path,

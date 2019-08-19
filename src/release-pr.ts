@@ -29,6 +29,7 @@ export enum ReleaseType {
   Node = 'node',
   PHPYoshi = 'php-yoshi',
   JavaAuthYoshi = 'java-auth-yoshi',
+  JavaYoshi = 'java-yoshi',
   RubyYoshi = 'ruby-yoshi',
 }
 
