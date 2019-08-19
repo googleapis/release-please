@@ -31,13 +31,15 @@ describe('indentCommit', () => {
     );
   });
 
-  it('ignores empty lines', () => {
+  it('only adds lines prefixed with * to CHANGELOG', () => {
     snapshot(
       indentCommit({
         message: `feat: my awesome commit message
-* testing one line
 
-* testing second line`,
+* testing one line
+* testing second line
+
+[Fixes #32]`,
         sha: 'abc123',
         files: [],
       })

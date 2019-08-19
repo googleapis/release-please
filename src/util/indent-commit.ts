@@ -19,9 +19,11 @@ import { Commit } from '../graphql-to-commits';
 export function indentCommit(commit: Commit): string {
   const reduced: string[] = [];
   commit.message.split(/\r?\n/).forEach((line, i) => {
-    if (line.trim() === '') return;
     if (i !== 0) line = `  ${line}`;
-    reduced.push(line);
+    // to show up in CHANGELOG lines must start with '*'.
+    if (/^\s*\*/.test(line) || i === 0) {
+      reduced.push(line);
+    }
   });
   return reduced.join('\n');
 }
