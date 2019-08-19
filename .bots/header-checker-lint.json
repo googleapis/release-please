@@ -1,0 +1,6 @@
+{
+  "ignoreFiles": [
+    "**/__snapshots__/*"
+  ]
+}
+

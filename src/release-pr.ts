@@ -19,7 +19,7 @@ import * as semver from 'semver';
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
 import { ConventionalCommits } from './conventional-commits';
-import { GitHub, GitHubReleasePR, GitHubTag } from './github';
+import { GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs } from './github';
 import { Commit } from './graphql-to-commits';
 import { Update } from './updaters/update';
 
@@ -44,6 +44,7 @@ export interface ReleasePROptions {
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
+  octokitAPIs?: OctokitAPIs;
 }
 
 export interface ReleaseCandidate {
@@ -81,7 +82,7 @@ export class ReleasePR {
       ? options.lastPackageVersion.replace(/^v/, '')
       : undefined;
 
-    this.gh = this.gitHubInstance();
+    this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
   async run() {
@@ -162,7 +163,7 @@ export class ReleasePR {
     return commits;
   }
 
-  protected gitHubInstance(): GitHub {
+  protected gitHubInstance(octokitAPIs?: OctokitAPIs): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({
       token: this.token,
@@ -170,6 +171,7 @@ export class ReleasePR {
       repo,
       apiUrl: this.apiUrl,
       proxyKey: this.proxyKey,
+      octokitAPIs,
     });
   }
 

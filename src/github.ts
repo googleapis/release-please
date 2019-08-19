@@ -37,9 +37,15 @@ import {
 } from './graphql-to-commits';
 import { Update } from './updaters/update';
 
-const graphql = require('@octokit/graphql');
+const { graphql } = require('@octokit/graphql');
 
 const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
+
+export interface OctokitAPIs {
+  graphql: Function;
+  request: Function;
+  octokit: Octokit;
+}
 
 interface GitHubOptions {
   token?: string;
@@ -47,6 +53,7 @@ interface GitHubOptions {
   repo: string;
   apiUrl?: string;
   proxyKey?: string;
+  octokitAPIs?: OctokitAPIs;
 }
 
 export interface GitHubTag {
@@ -77,32 +84,79 @@ interface GitHubPR {
   labels: string[];
 }
 
+let probotMode = false;
+
 export class GitHub {
   octokit: Octokit;
+  request: Function;
+  graphql: Function;
   token: string | undefined;
   owner: string;
   repo: string;
   apiUrl: string;
   proxyKey?: string;
-  request: Function;
 
   constructor(options: GitHubOptions) {
     this.token = options.token;
     this.owner = options.owner;
     this.repo = options.repo;
     this.apiUrl = options.apiUrl || 'https://api.github.com';
-    this.octokit = new Octokit({ baseUrl: options.apiUrl });
     this.proxyKey = options.proxyKey;
-    const defaults: { [key: string]: string | object } = {
-      baseUrl: this.apiUrl,
-      headers: {
-        'user-agent': `release-please/${require('../../package.json').version}`,
-        // some proxies do not require the token prefix.
-        Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-      },
-    };
-    //if (options.proxyKey) defaults['key'] = options.proxyKey;
-    this.request = request.defaults(defaults);
+
+    if (options.octokitAPIs === undefined) {
+      this.octokit = new Octokit({ baseUrl: options.apiUrl });
+      const defaults: { [key: string]: string | object } = {
+        baseUrl: this.apiUrl,
+        headers: {
+          'user-agent': `release-please/${
+            require('../../package.json').version
+          }`,
+          // some proxies do not require the token prefix.
+          Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+        },
+      };
+      this.request = request.defaults(defaults);
+      this.graphql = graphql;
+    } else {
+      // for the benefit of probot applications, we allow a configured instance
+      // of octokit to be passed in as a parameter.
+      probotMode = true;
+      this.octokit = options.octokitAPIs.octokit;
+      this.request = options.octokitAPIs.request;
+      this.graphql = options.octokitAPIs.graphql;
+    }
+  }
+
+  private async graphqlRequest(_opts: {
+    [key: string]: string | number | null | undefined;
+  }) {
+    let opts = Object.assign({}, _opts);
+    if (!probotMode) {
+      opts = Object.assign(opts, {
+        url: `${this.apiUrl}/graphql${
+          this.proxyKey ? `?key=${this.proxyKey}` : ''
+        }`,
+        headers: {
+          authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+          'content-type': 'application/vnd.github.v3+json',
+        },
+      });
+    }
+    return this.graphql(opts);
+  }
+
+  private decoratePaginateOpts(opts: {
+    [key: string]: string | number;
+  }): { [key: string]: string | number } {
+    if (probotMode) {
+      return opts;
+    } else {
+      return Object.assign(opts, {
+        headers: {
+          Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+        },
+      });
+    }
   }
 
   async commitsSinceSha(
@@ -149,7 +203,7 @@ export class GitHub {
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
     try {
-      const response = await graphql({
+      const response = await this.graphqlRequest({
         query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
             defaultBranchRef {
@@ -203,13 +257,6 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
-        url: `${this.apiUrl}/graphql${
-          this.proxyKey ? `?key=${this.proxyKey}` : ''
-        }`,
-        headers: {
-          authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-          'content-type': 'application/vnd.github.v3+json',
-        },
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -238,7 +285,7 @@ export class GitHub {
     retries = 0
   ): Promise<CommitsResponse> {
     try {
-      const response = await graphql({
+      const response = await this.graphqlRequest({
         query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxLabels: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
             defaultBranchRef {
@@ -288,13 +335,6 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
-        url: `${this.apiUrl}/graphql${
-          this.proxyKey ? `?key=${this.proxyKey}` : ''
-        }`,
-        headers: {
-          authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-          'content-type': 'application/vnd.github.v3+json',
-        },
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -322,7 +362,7 @@ export class GitHub {
   ): Promise<PREdge> {
     // Used to handle the edge-case in which a PR has more than 100
     // modified files attached to it.
-    const response = await graphql({
+    const response = await this.graphqlRequest({
       query: `query pullRequestFiles($cursor: String, $owner: String!, $repo: String!, $maxFilesChanged: Int, $num: Int!) {
           repository(owner: $owner, name: $repo) {
             pullRequest(number: $num) {
@@ -346,12 +386,6 @@ export class GitHub {
       owner: this.owner,
       repo: this.repo,
       num,
-      url: `${this.apiUrl}/graphql${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
-      headers: {
-        authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-      },
     });
     return { node: response.repository.pullRequest } as PREdge;
   }
@@ -453,15 +487,14 @@ export class GitHub {
     perPage = 100
   ): Promise<{ [version: string]: GitHubTag }> {
     const tags: { [version: string]: GitHubTag } = {};
-    for await (const response of this.octokit.paginate.iterator({
-      method: 'GET',
-      url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
-        this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }`,
-      headers: {
-        Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-      },
-    })) {
+    for await (const response of this.octokit.paginate.iterator(
+      this.decoratePaginateOpts({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
+          this.proxyKey ? `&key=${this.proxyKey}` : ''
+        }`,
+      })
+    )) {
       response.data.forEach((data: ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
         if (version) {
@@ -499,16 +532,15 @@ export class GitHub {
   ): Promise<IssuesListResponseItem | undefined> {
     const paged = 0;
     try {
-      for await (const response of this.octokit.paginate.iterator({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
-          ','
-        )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
-        per_pag: 100,
-        headers: {
-          Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-        },
-      })) {
+      for await (const response of this.octokit.paginate.iterator(
+        this.decoratePaginateOpts({
+          method: 'GET',
+          url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
+            ','
+          )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
+          per_page: 100,
+        })
+      )) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
           const issue: IssuesListResponseItem = response.data[i];
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
@@ -603,9 +635,6 @@ export class GitHub {
             ref: refName.replace('refs/', ''),
             sha: options.sha,
             force: true,
-            headers: {
-              Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-            },
           }
         );
       } catch (err) {
@@ -743,15 +772,14 @@ export class GitHub {
   private async refByBranchName(branch: string): Promise<string | undefined> {
     let ref;
     try {
-      for await (const response of this.octokit.paginate.iterator({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${
-          this.proxyKey ? `&key=${this.proxyKey}` : ''
-        }`,
-        headers: {
-          Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-        },
-      })) {
+      for await (const response of this.octokit.paginate.iterator(
+        this.decoratePaginateOpts({
+          method: 'GET',
+          url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${
+            this.proxyKey ? `&key=${this.proxyKey}` : ''
+          }`,
+        })
+      )) {
         for (let i = 0, r; response.data[i] !== undefined; i++) {
           r = response.data[i];
           const refRe = new RegExp(`/${branch}$`);
