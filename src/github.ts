@@ -84,6 +84,8 @@ interface GitHubPR {
   labels: string[];
 }
 
+let probotMode = false;
+
 export class GitHub {
   octokit: Octokit;
   request: Function;
@@ -93,7 +95,6 @@ export class GitHub {
   repo: string;
   apiUrl: string;
   proxyKey?: string;
-  probotMode?: boolean;
 
   constructor(options: GitHubOptions) {
     this.token = options.token;
@@ -119,7 +120,7 @@ export class GitHub {
     } else {
       // for the benefit of probot applications, we allow a configured instance
       // of octokit to be passed in as a parameter.
-      this.probotMode = true;
+      probotMode = true;
       this.octokit = options.octokitAPIs.octokit;
       this.request = options.octokitAPIs.request;
       this.graphql = options.octokitAPIs.graphql;
@@ -130,7 +131,7 @@ export class GitHub {
     [key: string]: string | number | null | undefined;
   }) {
     let opts = Object.assign({}, _opts);
-    if (this.probotMode === undefined) {
+    if (probotMode === undefined) {
       opts = Object.assign(opts, {
         url: `${this.apiUrl}/graphql${
           this.proxyKey ? `?key=${this.proxyKey}` : ''
@@ -147,7 +148,7 @@ export class GitHub {
   private decoratePaginateOpts(opts: {
     [key: string]: string | number;
   }): { [key: string]: string | number } {
-    if (this.probotMode) {
+    if (probotMode) {
       return opts;
     } else {
       return Object.assign(opts, {
@@ -537,7 +538,7 @@ export class GitHub {
           url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
             ','
           )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
-          per_pag: 100,
+          per_page: 100,
         })
       )) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
@@ -586,14 +587,12 @@ export class GitHub {
             key: this.proxyKey,
           }
         );
-        console.info('we get this far, i.e., created a branch');
       } catch (err) {
         if (err.status === 404) {
           // the most likely cause of a 404 during this step is actually
           // that the user does not have access to the repo:
           throw new AuthError();
         } else {
-          console.info('>>>>', err.stack);
           throw err;
         }
       }
