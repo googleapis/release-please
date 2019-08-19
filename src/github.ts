@@ -131,7 +131,7 @@ export class GitHub {
     [key: string]: string | number | null | undefined;
   }) {
     let opts = Object.assign({}, _opts);
-    if (probotMode === undefined) {
+    if (!probotMode) {
       opts = Object.assign(opts, {
         url: `${this.apiUrl}/graphql${
           this.proxyKey ? `?key=${this.proxyKey}` : ''
