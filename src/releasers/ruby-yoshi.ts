@@ -117,7 +117,7 @@ export class RubyYoshi extends ReleasePR {
       );
 
       await this.openPR(
-        commits[0].sha,
+        commits[0].sha!,
         `${changelogEntry}\n---\n${this.summarizeCommits(
           lastReleaseSha,
           commits
