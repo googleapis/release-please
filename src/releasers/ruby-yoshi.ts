@@ -164,7 +164,7 @@ export class RubyYoshi extends ReleasePR {
 }
 
 function postProcessCommits(commits: Commit[]): Commit[] {
-  let hasDocs = undefined;
+  let hasDocs = false;
   let docLevel = 'fix';
   commits.forEach(commit => {
     if (/^docs/.test(commit.message)) hasDocs = true;
