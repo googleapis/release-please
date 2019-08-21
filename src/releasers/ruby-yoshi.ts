@@ -173,7 +173,7 @@ function postProcessCommits(commits: Commit[]): Commit[] {
   if (hasDocs) {
     commits.push({
       sha: null,
-      message: `${docLevel}: Update documentationblerg`,
+      message: `${docLevel}: Update documentation`,
       files: [],
     });
   }
