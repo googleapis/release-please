@@ -164,17 +164,21 @@ export class RubyYoshi extends ReleasePR {
 }
 
 function postProcessCommits(commits: Commit[]): Commit[] {
-  let hasDocs = false;
+  let hasDocs = undefined;
+  let docLevel = 'fix';
   commits.forEach(commit => {
     if (/^docs/.test(commit.message)) hasDocs = true;
+    if (/^feat/.test(commit.message)) docLevel = 'feat';
     commit.message = indentCommit(commit);
   });
 
-  commits.push({
-    sha: DOC_UPDATE_SHA,
-    message: 'feat: Update documentation',
-    files: [],
-  });
+  if (hasDocs) {
+    commits.push({
+      sha: DOC_UPDATE_SHA,
+      message: `${docLevel}: Update documentation`,
+      files: [],
+    });
+  }
 
   return commits;
 }
