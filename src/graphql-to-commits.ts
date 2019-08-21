@@ -27,7 +27,7 @@ export interface CommitsResponse {
 }
 
 export interface Commit {
-  sha: string;
+  sha: string | null;
   message: string;
   files: string[];
 }

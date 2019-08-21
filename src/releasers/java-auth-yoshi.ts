@@ -132,7 +132,7 @@ export class JavaAuthYoshi extends ReleasePR {
     });
 
     await this.openPR(
-      prSHA,
+      prSHA!,
       `${changelogEntry}\n---\n`,
       updates,
       candidate.version
