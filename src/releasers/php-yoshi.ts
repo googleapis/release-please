@@ -112,7 +112,7 @@ export class PHPYoshi extends ReleasePR {
     });
 
     await this.openPR(
-      commits[0].sha,
+      commits[0].sha!,
       changelogEntry,
       updates,
       candidate.version

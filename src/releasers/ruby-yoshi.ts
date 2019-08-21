@@ -28,8 +28,6 @@ import { Commit } from '../graphql-to-commits';
 import { Changelog } from '../updaters/changelog';
 import { VersionRB } from '../updaters/version-rb';
 
-const DOC_UPDATE_SHA = 'abc123';
-
 export class RubyYoshi extends ReleasePR {
   protected async _run() {
     const lastReleaseSha: string | undefined = this.lastPackageVersion
@@ -119,7 +117,7 @@ export class RubyYoshi extends ReleasePR {
       );
 
       await this.openPR(
-        commits[0].sha,
+        commits[0].sha!,
         `${changelogEntry}\n---\n${this.summarizeCommits(
           lastReleaseSha,
           commits
@@ -140,7 +138,7 @@ export class RubyYoshi extends ReleasePR {
     let summary = `### Commits since last release:\n\n`;
     const updatedFiles: { [key: string]: boolean } = {};
     commits.forEach(commit => {
-      if (commit.sha === DOC_UPDATE_SHA) return;
+      if (commit.sha === null) return;
       const splitMessage = commit.message.split('\n');
       summary += `* [${splitMessage[0]}](https://github.com/${this.repoUrl}/commit/${commit.sha})\n`;
       if (splitMessage.length > 2) {
@@ -165,16 +163,20 @@ export class RubyYoshi extends ReleasePR {
 
 function postProcessCommits(commits: Commit[]): Commit[] {
   let hasDocs = false;
+  let docLevel = 'fix';
   commits.forEach(commit => {
     if (/^docs/.test(commit.message)) hasDocs = true;
+    if (/^feat/.test(commit.message)) docLevel = 'feat';
     commit.message = indentCommit(commit);
   });
 
-  commits.push({
-    sha: DOC_UPDATE_SHA,
-    message: 'feat: Update documentation',
-    files: [],
-  });
+  if (hasDocs) {
+    commits.push({
+      sha: null,
+      message: `${docLevel}: Update documentationblerg`,
+      files: [],
+    });
+  }
 
   return commits;
 }

@@ -126,7 +126,7 @@ export class JavaYoshi extends ReleasePR {
     });
 
     await this.openPR(
-      prSHA,
+      prSHA!,
       `${changelogEntry}\n---\n`,
       updates,
       candidate.version

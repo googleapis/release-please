@@ -94,7 +94,7 @@ export class Node extends ReleasePR {
     );
 
     await this.openPR(
-      commits[0].sha,
+      commits[0].sha!,
       `${changelogEntry}\n---\n`,
       updates,
       candidate.version
