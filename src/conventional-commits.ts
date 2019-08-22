@@ -38,6 +38,13 @@ interface ConventionalCommitsOptions {
   commitPartial?: string;
   headerPartial?: string;
   mainTemplate?: string;
+  changelogSections?: ChangelogSection[];
+}
+
+interface ChangelogSection {
+  type: string;
+  section: string;
+  hidden?: boolean;
 }
 
 interface ChangelogEntryOptions {
@@ -77,6 +84,7 @@ export class ConventionalCommits {
   commitPartial?: string;
   headerPartial?: string;
   mainTemplate?: string;
+  changelogSections?: ChangelogSection[];
 
   constructor(options: ConventionalCommitsOptions) {
     const parsedGithubRepoUrl = parseGithubRepoUrl(options.githubRepoUrl);
@@ -92,6 +100,7 @@ export class ConventionalCommits {
     this.commitPartial = options.commitPartial;
     this.headerPartial = options.headerPartial;
     this.mainTemplate = options.mainTemplate;
+    this.changelogSections = options.changelogSections;
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
     const preMajor = this.bumpMinorPreMajor
@@ -119,7 +128,14 @@ export class ConventionalCommits {
       linkCompare: !!options.previousTag,
     };
 
-    const preset = await presetFactory({});
+    // allows the sections displayed in the CHANGELOG to be configured
+    // as an example, Ruby displays docs:
+    const config: { [key: string]: ChangelogSection[] } = {};
+    if (this.changelogSections) {
+      config.types = this.changelogSections;
+    }
+
+    const preset = await presetFactory(config);
     preset.writerOpts.commitPartial =
       this.commitPartial || preset.writerOpts.commitPartial;
     preset.writerOpts.headerPartial =

@@ -215,7 +215,7 @@ describe('GitHub', () => {
         )
         .reply(200, { number: 1 })
         // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/release-please/pulls?state=open&per_page=25')
+        .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
         .reply(200, []);
 
       const releasePR = new PHPYoshi({

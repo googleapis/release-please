@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -467,7 +467,7 @@ export class GitHub {
 
   async findOpenReleasePRs(
     labels: string[],
-    perPage = 25
+    perPage = 100
   ): Promise<PullsListResponseItem[]> {
     const openReleasePRs: PullsListResponseItem[] = [];
     const pullsResponse = (await this.request(
