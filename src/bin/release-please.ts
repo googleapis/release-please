@@ -67,7 +67,6 @@ const argv = yargs
           demand: true,
         })
         .option('label', {
-          default: 'autorelease: pending,type: process',
           describe: 'label(s) to add to generated PR',
         })
         .option('snapshot', {

@@ -35,7 +35,7 @@ export enum ReleaseType {
 
 export interface ReleasePROptions {
   bumpMinorPreMajor?: boolean;
-  label: string;
+  label?: string;
   token?: string;
   repoUrl: string;
   packageName: string;
@@ -53,6 +53,8 @@ export interface ReleaseCandidate {
   previousTag?: string;
 }
 
+const DEFAULT_LABELS = 'autorelease: pending,type: process';
+
 export class ReleasePR {
   apiUrl: string;
   labels: string[];
@@ -69,7 +71,9 @@ export class ReleasePR {
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
-    this.labels = options.label.split(',');
+    this.labels = options.label
+      ? options.label.split(',')
+      : DEFAULT_LABELS.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
