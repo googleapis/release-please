@@ -42,8 +42,8 @@ interface ConventionalCommitsOptions {
 }
 
 interface ChangelogSection {
-  type: string,
-  section: string,
+  type: string;
+  section: string;
   hidden?: boolean;
 }
 
@@ -130,7 +130,7 @@ export class ConventionalCommits {
 
     // allows the sections displayed in the CHANGELOG to be configured
     // as an example, Ruby displays docs:
-    let config: {[key: string]:ChangelogSection[]} = {};
+    const config: { [key: string]: ChangelogSection[] } = {};
     if (this.changelogSections) {
       config.types = this.changelogSections;
     }

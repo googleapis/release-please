@@ -78,7 +78,7 @@ export class RubyYoshi extends ReleasePR {
           resolve(__dirname, '../../../templates/template.hbs'),
           'utf8'
         ),
-        changelogSections: CHANGELOG_SECTIONS
+        changelogSections: CHANGELOG_SECTIONS,
       });
       const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
         cc,
@@ -119,9 +119,10 @@ export class RubyYoshi extends ReleasePR {
 
       updates.push(
         new VersionRB({
-          path: `${
-            this.packageName
-          }/lib/${this.packageName.replace(/-/g, '/')}/version.rb`,
+          path: `${this.packageName}/lib/${this.packageName.replace(
+            /-/g,
+            '/'
+          )}/version.rb`,
           changelogEntry,
           version: candidate.version,
           packageName: this.packageName,
