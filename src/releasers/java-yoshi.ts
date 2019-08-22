@@ -45,7 +45,6 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class JavaYoshi extends ReleasePR {
-
   constructor(options: ReleasePROptions) {
     if (!options.label && options.snapshot) {
       options.label = 'type: process';
