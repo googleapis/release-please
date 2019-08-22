@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ReleasePR, ReleaseCandidate } from '../release-pr';
+import { ReleasePR, ReleasePROptions, ReleaseCandidate } from '../release-pr';
 
 import { ConventionalCommits } from '../conventional-commits';
 import { GitHubTag } from '../github';
@@ -45,6 +45,14 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class JavaYoshi extends ReleasePR {
+
+  constructor(options: ReleasePROptions) {
+    if (!options.label && options.snapshot) {
+      options.label = 'type: process';
+    }
+    super(options);
+  }
+
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot
