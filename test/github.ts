@@ -54,7 +54,7 @@ describe('GitHub', () => {
         readFileSync(resolve(fixturesPath, 'pom-file-search.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
-        .get('/search/code?q=filename%3Apom.xml+repo%3Afake')
+        .get('/search/code?q=filename%3Apom.xml+repo%3Afake%2Ffake')
         .reply(200, fileSearchResponse);
       const pomFiles = await github.findFilesByFilename('pom.xml');
       snapshot(pomFiles);
