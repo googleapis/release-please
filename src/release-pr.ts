@@ -118,7 +118,7 @@ export class ReleasePR {
       if (pr.number !== currentPRNumber) {
         // on mono repos that maintain multiple open release PRs, we use the
         // pull request title to differentiate between PRs:
-        if (includePackageName && !pr.title.includes(this.packageName)) {
+        if (includePackageName && !pr.title.includes(` ${this.packageName} `)) {
           continue;
         }
         checkpoint(`closing pull #${pr.number}`, CheckpointType.Failure);

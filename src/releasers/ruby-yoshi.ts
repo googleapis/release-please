@@ -129,6 +129,16 @@ export class RubyYoshi extends ReleasePR {
         })
       );
 
+      // edge cases like grafeas-client, where there is no client folder:
+      updates.push(
+        new VersionRB({
+          path: `${this.packageName}/lib/${this.packageName.split('-')[0]}/version.rb`,
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+
       await this.openPR(
         commits[0].sha!,
         `${changelogEntry}\n---\n${this.summarizeCommits(
