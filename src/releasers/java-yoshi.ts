@@ -29,6 +29,21 @@ import { PomXML } from '../updaters/java/pom-xml';
 import { VersionsManifest } from '../updaters/java/versions-manifest';
 import { Readme } from '../updaters/java/readme';
 
+const CHANGELOG_SECTIONS = [
+  { type: 'feat', section: 'Features' },
+  { type: 'fix', section: 'Bug Fixes' },
+  { type: 'perf', section: 'Performance Improvements' },
+  { type: 'deps', section: 'Dependencies' },
+  { type: 'revert', section: 'Reverts' },
+  { type: 'docs', section: 'Documentation' },
+  { type: 'style', section: 'Styles', hidden: true },
+  { type: 'chore', section: 'Miscellaneous Chores', hidden: true },
+  { type: 'refactor', section: 'Code Refactoring', hidden: true },
+  { type: 'test', section: 'Tests', hidden: true },
+  { type: 'build', section: 'Build System', hidden: true },
+  { type: 'ci', section: 'Continuous Integration', hidden: true },
+];
+
 export class JavaYoshi extends ReleasePR {
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
@@ -47,6 +62,7 @@ export class JavaYoshi extends ReleasePR {
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: CHANGELOG_SECTIONS,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,
