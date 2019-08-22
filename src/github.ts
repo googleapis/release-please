@@ -467,7 +467,7 @@ export class GitHub {
 
   async findOpenReleasePRs(
     labels: string[],
-    perPage = 25
+    perPage = 100
   ): Promise<PullsListResponseItem[]> {
     const openReleasePRs: PullsListResponseItem[] = [];
     const pullsResponse = (await this.request(
