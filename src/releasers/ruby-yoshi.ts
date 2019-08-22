@@ -28,6 +28,20 @@ import { Commit } from '../graphql-to-commits';
 import { Changelog } from '../updaters/changelog';
 import { VersionRB } from '../updaters/version-rb';
 
+const CHANGELOG_SECTIONS = [
+  { type: 'feat', section: 'Features' },
+  { type: 'fix', section: 'Bug Fixes' },
+  { type: 'perf', section: 'Performance Improvements' },
+  { type: 'revert', section: 'Reverts' },
+  { type: 'docs', section: 'Documentation' },
+  { type: 'style', section: 'Styles', hidden: true },
+  { type: 'chore', section: 'Miscellaneous Chores', hidden: true },
+  { type: 'refactor', section: 'Code Refactoring', hidden: true },
+  { type: 'test', section: 'Tests', hidden: true },
+  { type: 'build', section: 'Build System', hidden: true },
+  { type: 'ci', section: 'Continuous Integration', hidden: true },
+];
+
 export class RubyYoshi extends ReleasePR {
   protected async _run() {
     const lastReleaseSha: string | undefined = this.lastPackageVersion
@@ -64,6 +78,7 @@ export class RubyYoshi extends ReleasePR {
           resolve(__dirname, '../../../templates/template.hbs'),
           'utf8'
         ),
+        changelogSections: CHANGELOG_SECTIONS
       });
       const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
         cc,
@@ -106,10 +121,7 @@ export class RubyYoshi extends ReleasePR {
         new VersionRB({
           path: `${
             this.packageName
-          }/lib/google/cloud/${this.packageName.replace(
-            'google-cloud-',
-            ''
-          )}/version.rb`,
+          }/lib/${this.packageName.replace(/-/g, '/')}/version.rb`,
           changelogEntry,
           version: candidate.version,
           packageName: this.packageName,
@@ -163,20 +175,23 @@ export class RubyYoshi extends ReleasePR {
 
 function postProcessCommits(commits: Commit[]): Commit[] {
   let hasDocs = false;
-  let docLevel = 'fix';
-  commits.forEach(commit => {
-    if (/^docs/.test(commit.message)) hasDocs = true;
-    if (/^feat/.test(commit.message)) docLevel = 'feat';
+  const filteredCommits = commits.filter(commit => {
     commit.message = indentCommit(commit);
+    if (/^docs/.test(commit.message)) {
+      hasDocs = true;
+      return false;
+    } else {
+      return true;
+    }
   });
 
   if (hasDocs) {
-    commits.push({
+    filteredCommits.push({
       sha: null,
-      message: `${docLevel}: Update documentation`,
+      message: 'docs: Update documentation',
       files: [],
     });
   }
 
-  return commits;
+  return filteredCommits;
 }
