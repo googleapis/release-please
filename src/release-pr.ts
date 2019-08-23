@@ -23,6 +23,12 @@ import { GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs } from './github';
 import { Commit } from './graphql-to-commits';
 import { Update } from './updaters/update';
 
+import { JavaAuthYoshi } from './releasers/java-auth-yoshi';
+import { Node } from './releasers/node';
+import { PHPYoshi } from './releasers/php-yoshi';
+import { RubyYoshi } from './releasers/ruby-yoshi';
+import { JavaYoshi } from './releasers/java-yoshi';
+
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export enum ReleaseType {
@@ -33,19 +39,22 @@ export enum ReleaseType {
   RubyYoshi = 'ruby-yoshi',
 }
 
-export interface ReleasePROptions {
+interface BuildOptions {
   bumpMinorPreMajor?: boolean;
   label?: string;
   token?: string;
   repoUrl: string;
   packageName: string;
   releaseAs?: string;
-  releaseType: ReleaseType;
   apiUrl: string;
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
   octokitAPIs?: OctokitAPIs;
+}
+
+export interface ReleasePROptions extends BuildOptions {
+  releaseType: ReleaseType;
 }
 
 export interface ReleaseCandidate {
@@ -64,7 +73,6 @@ export class ReleasePR {
   token: string | undefined;
   packageName: string;
   releaseAs?: string;
-  releaseType: ReleaseType;
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
@@ -78,7 +86,6 @@ export class ReleasePR {
     this.token = options.token;
     this.packageName = options.packageName;
     this.releaseAs = options.releaseAs;
-    this.releaseType = options.releaseType;
     this.apiUrl = options.apiUrl;
     this.proxyKey = options.proxyKey;
     this.snapshot = options.snapshot;
@@ -88,6 +95,28 @@ export class ReleasePR {
       : undefined;
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
+  }
+
+  public static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
+    const releaseOptions: ReleasePROptions = {
+      ...options,
+      ...{releaseType}
+    };
+    switch (releaseType) {
+      case ReleaseType.Node:
+        return new Node(releaseOptions);
+      case ReleaseType.PHPYoshi:
+        return new PHPYoshi(releaseOptions);
+      case ReleaseType.JavaAuthYoshi:
+        // TODO: coerce this to the generic Java release
+        return new JavaAuthYoshi(releaseOptions);
+      case ReleaseType.JavaYoshi:
+        return new JavaYoshi(releaseOptions);
+      case ReleaseType.RubyYoshi:
+        return new RubyYoshi(releaseOptions);
+      default:
+        throw Error('unknown release type');
+    }
   }
 
   async run() {
