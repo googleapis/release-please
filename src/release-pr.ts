@@ -33,14 +33,13 @@ export enum ReleaseType {
   RubyYoshi = 'ruby-yoshi',
 }
 
-export interface ReleasePROptions {
+export interface BuildOptions {
   bumpMinorPreMajor?: boolean;
-  label: string;
+  label?: string;
   token?: string;
   repoUrl: string;
   packageName: string;
   releaseAs?: string;
-  releaseType: ReleaseType;
   apiUrl: string;
   proxyKey?: string;
   snapshot?: boolean;
@@ -48,10 +47,16 @@ export interface ReleasePROptions {
   octokitAPIs?: OctokitAPIs;
 }
 
+export interface ReleasePROptions extends BuildOptions {
+  releaseType: ReleaseType;
+}
+
 export interface ReleaseCandidate {
   version: string;
   previousTag?: string;
 }
+
+const DEFAULT_LABELS = 'autorelease: pending,type: process';
 
 export class ReleasePR {
   apiUrl: string;
@@ -62,19 +67,19 @@ export class ReleasePR {
   token: string | undefined;
   packageName: string;
   releaseAs?: string;
-  releaseType: ReleaseType;
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
-    this.labels = options.label.split(',');
+    this.labels = options.label
+      ? options.label.split(',')
+      : DEFAULT_LABELS.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
     this.releaseAs = options.releaseAs;
-    this.releaseType = options.releaseType;
     this.apiUrl = options.apiUrl;
     this.proxyKey = options.proxyKey;
     this.snapshot = options.snapshot;

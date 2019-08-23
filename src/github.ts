@@ -889,7 +889,7 @@ export class GitHub {
     const response: Octokit.Response<
       FileSearchResponse
     > = await this.octokit.search.code({
-      q: `filename:${filename}+repo:${this.repo}`,
+      q: `filename:${filename}+repo:${this.owner}/${this.repo}`,
     });
     return response.data.items.map(file => {
       return file.path;
