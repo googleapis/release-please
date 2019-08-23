@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { BuildOptions, ReleaseType, ReleasePR, ReleasePROptions } from './release-pr';
+import {
+  BuildOptions,
+  ReleaseType,
+  ReleasePR,
+  ReleasePROptions,
+} from './release-pr';
 import { JavaAuthYoshi } from './releasers/java-auth-yoshi';
 import { Node } from './releasers/node';
 import { PHPYoshi } from './releasers/php-yoshi';
@@ -22,10 +27,10 @@ import { RubyYoshi } from './releasers/ruby-yoshi';
 import { JavaYoshi } from './releasers/java-yoshi';
 
 export class ReleasePRFactory {
-  public static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
+  static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
     const releaseOptions: ReleasePROptions = {
       ...options,
-      ...{releaseType}
+      ...{ releaseType },
     };
     switch (releaseType) {
       case ReleaseType.Node:
