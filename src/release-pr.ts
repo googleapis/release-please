@@ -33,19 +33,22 @@ export enum ReleaseType {
   RubyYoshi = 'ruby-yoshi',
 }
 
-export interface ReleasePROptions {
+export interface BuildOptions {
   bumpMinorPreMajor?: boolean;
   label?: string;
   token?: string;
   repoUrl: string;
   packageName: string;
   releaseAs?: string;
-  releaseType: ReleaseType;
   apiUrl: string;
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
   octokitAPIs?: OctokitAPIs;
+}
+
+export interface ReleasePROptions extends BuildOptions {
+  releaseType: ReleaseType;
 }
 
 export interface ReleaseCandidate {
@@ -64,7 +67,6 @@ export class ReleasePR {
   token: string | undefined;
   packageName: string;
   releaseAs?: string;
-  releaseType: ReleaseType;
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
@@ -78,7 +80,6 @@ export class ReleasePR {
     this.token = options.token;
     this.packageName = options.packageName;
     this.releaseAs = options.releaseAs;
-    this.releaseType = options.releaseType;
     this.apiUrl = options.apiUrl;
     this.proxyKey = options.proxyKey;
     this.snapshot = options.snapshot;
