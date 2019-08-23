@@ -23,12 +23,6 @@ import { GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs } from './github';
 import { Commit } from './graphql-to-commits';
 import { Update } from './updaters/update';
 
-import { JavaAuthYoshi } from './releasers/java-auth-yoshi';
-import { Node } from './releasers/node';
-import { PHPYoshi } from './releasers/php-yoshi';
-import { RubyYoshi } from './releasers/ruby-yoshi';
-import { JavaYoshi } from './releasers/java-yoshi';
-
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export enum ReleaseType {
@@ -39,7 +33,7 @@ export enum ReleaseType {
   RubyYoshi = 'ruby-yoshi',
 }
 
-interface BuildOptions {
+export interface BuildOptions {
   bumpMinorPreMajor?: boolean;
   label?: string;
   token?: string;
@@ -95,28 +89,6 @@ export class ReleasePR {
       : undefined;
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
-  }
-
-  public static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
-    const releaseOptions: ReleasePROptions = {
-      ...options,
-      ...{releaseType}
-    };
-    switch (releaseType) {
-      case ReleaseType.Node:
-        return new Node(releaseOptions);
-      case ReleaseType.PHPYoshi:
-        return new PHPYoshi(releaseOptions);
-      case ReleaseType.JavaAuthYoshi:
-        // TODO: coerce this to the generic Java release
-        return new JavaAuthYoshi(releaseOptions);
-      case ReleaseType.JavaYoshi:
-        return new JavaYoshi(releaseOptions);
-      case ReleaseType.RubyYoshi:
-        return new RubyYoshi(releaseOptions);
-      default:
-        throw Error('unknown release type');
-    }
   }
 
   async run() {

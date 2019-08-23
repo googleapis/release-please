@@ -21,7 +21,8 @@
 import chalk from 'chalk';
 import { coerceOption } from '../util/coerce-option';
 import { GitHubRelease, GitHubReleaseOptions } from '../github-release';
-import { ReleasePR, ReleasePROptions, ReleaseType } from '../release-pr';
+import { ReleasePROptions } from '../release-pr';
+import { ReleasePRFactory } from '../release-pr-factory';
 
 const yargs = require('yargs');
 
@@ -70,7 +71,7 @@ const argv = yargs
         });
     },
     (argv: ReleasePROptions) => {
-      const rp = ReleasePR.build(argv.releaseType, argv);
+      const rp = ReleasePRFactory.build(argv.releaseType, argv);
       rp.run().catch(handleError);
     }
   )
