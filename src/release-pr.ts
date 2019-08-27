@@ -132,12 +132,16 @@ export class ReleasePR {
     }
   }
 
+  protected defaultInitialVersion(): string {
+    return '1.0.0';
+  }
+
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined
   ): Promise<ReleaseCandidate> {
     const previousTag = latestTag ? latestTag.name : undefined;
-    let version = latestTag ? latestTag.version : '1.0.0';
+    let version = latestTag ? latestTag.version : this.defaultInitialVersion();
 
     if (latestTag && !this.releaseAs) {
       const bump = await cc.suggestBump(version);

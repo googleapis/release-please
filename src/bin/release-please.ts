@@ -157,7 +157,13 @@ action "github-release" {
   })
   .option('release-type', {
     describe: 'what type of repo is a release being created for?',
-    choices: ['node', 'php-yoshi', 'java-auth-yoshi', 'ruby-yoshi'],
+    choices: [
+      'node',
+      'php-yoshi',
+      'java-auth-yoshi',
+      'java-yoshi',
+      'ruby-yoshi',
+    ],
     default: 'node',
   })
   .option('bump-minor-pre-major', {
