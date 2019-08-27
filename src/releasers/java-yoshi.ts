@@ -155,4 +155,8 @@ export class JavaYoshi extends ReleasePR {
       candidate.version
     );
   }
+
+  protected defaultInitialVersion(): string {
+    return '0.1.0';
+  }
 }
