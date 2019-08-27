@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ export class ReleasePR {
       if (pr.number !== currentPRNumber) {
         // on mono repos that maintain multiple open release PRs, we use the
         // pull request title to differentiate between PRs:
-        if (includePackageName && !pr.title.includes(this.packageName)) {
+        if (includePackageName && !pr.title.includes(` ${this.packageName} `)) {
           continue;
         }
         checkpoint(`closing pull #${pr.number}`, CheckpointType.Failure);
