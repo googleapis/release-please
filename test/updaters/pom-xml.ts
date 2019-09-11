@@ -39,5 +39,20 @@ describe('PomXML', () => {
       const newContent = pomXML.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('handles specific versions in pom.xml', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './pom-multiple-versions.xml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const pomXML = new PomXML({
+        path: 'pom.xml',
+        changelogEntry: '',
+        version: '0.19.0',
+        packageName: 'google-cloud-trace',
+      });
+      const newContent = pomXML.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
