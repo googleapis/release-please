@@ -4,19 +4,15 @@ exports['PomXML updateContent updates version in pom.xml 1'] = `
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
-  </parent>
-
-  <parent>
     <groupId>com.google.auth</groupId>
     <artifactId>google-auth-library-parent</artifactId>
     <version>0.19.0</version><!-- {x-version-update:google-auth-library-parent:current} -->
     <relativePath>../pom.xml</relativePath>
   </parent>
 
+  <groupId>com.google.auth</groupId>
   <artifactId>google-auth-library-appengine</artifactId>
+  <version>0.19.0</version><!-- {x-version-update:google-auth-library-parent:current} -->
   <name>Google Auth Library for Java - Google App Engine</name>
 
   <distributionManagement>
