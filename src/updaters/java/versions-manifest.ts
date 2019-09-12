@@ -21,7 +21,7 @@ export class VersionsManifest implements Update {
   path: string;
   changelogEntry: string;
   version: string;
-  versions?: { [key: string]: string };
+  versions?: VersionsMap;
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
@@ -48,6 +48,13 @@ export class VersionsManifest implements Update {
   }
 
   static parseVersions(content: string): VersionsMap {
-    return {};
+    const versions: VersionsMap = {};
+    content.split(/\r?\n/).forEach(line => {
+      let match = line.match(/^([\w\-_]+):(.+):(.+)/);
+      if (match) {
+        versions[match[1]] = match[2];
+      }
+    });
+    return versions;
   }
 }
