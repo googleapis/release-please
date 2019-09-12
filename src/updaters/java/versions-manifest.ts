@@ -57,4 +57,10 @@ export class VersionsManifest implements Update {
     });
     return versions;
   }
+
+  static needsSnapshot(content: string): boolean {
+    return !content.split(/\r?\n/).some(line => {
+      return !!line.match(/^[\w\-_]+:.+:.+-SNAPSHOT/);
+    });
+  }
 }

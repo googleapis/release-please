@@ -19,6 +19,7 @@ import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
 import { VersionsManifest } from '../../src/updaters/java/versions-manifest';
+import { expect } from 'chai';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -32,5 +33,23 @@ describe('VersionManifest', () => {
       const versionsMap = VersionsManifest.parseVersions(content);
       snapshot(versionsMap);
     });
+  });
+
+  describe('needsSnapshot', () => {
+    it('parses detects a release version', async () => {
+      const content = readFileSync(
+        resolve(fixturesPath, './versions-release.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      expect(VersionsManifest.needsSnapshot(content)).to.equal(true);
+    });
+
+    it('parses detects an existing snapshot version', async () => {
+      const content = readFileSync(
+        resolve(fixturesPath, './versions.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      expect(VersionsManifest.needsSnapshot(content)).to.equal(false);
+    })
   });
 });
