@@ -30,7 +30,7 @@ export class PomXML implements Update {
     this.create = false;
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
-    this.versions = new Map<string,string>();
+    this.versions = new Map<string, string>();
     if (options.versions) {
       this.versions = options.versions;
     } else if (options.version) {
@@ -46,10 +46,17 @@ export class PomXML implements Update {
     });
     return newContent;
   }
-  updateSingleVersion(content: string, packageName: string, version: string): string {
+  updateSingleVersion(
+    content: string,
+    packageName: string,
+    version: string
+  ): string {
     console.log('replacing', packageName, version);
     return content.replace(
-      new RegExp(`<version>.*</version>(.*x-version-update:${packageName}:.*)`, 'g'),
+      new RegExp(
+        `<version>.*</version>(.*x-version-update:${packageName}:.*)`,
+        'g'
+      ),
       `<version>${version}</version>$1`
     );
   }

@@ -53,6 +53,6 @@ describe('VersionManifest', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       expect(VersionsManifest.needsSnapshot(content)).to.equal(false);
-    })
+    });
   });
 });

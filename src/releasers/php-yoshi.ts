@@ -129,7 +129,7 @@ export class PHPYoshi extends ReleasePR {
     const pkgKeys: string[] = Object.keys(commitLookup).sort();
     // map of library names that need to be updated in the top level
     // composer.json and manifest.json.
-    const versionUpdates: VersionsMap = new Map<string,string>();
+    const versionUpdates: VersionsMap = new Map<string, string>();
 
     // walk each individual library updating the VERSION file, and
     // if necessary the `const VERSION` in the client library.

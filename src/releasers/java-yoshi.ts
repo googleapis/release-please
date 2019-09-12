@@ -53,9 +53,15 @@ export class JavaYoshi extends ReleasePR {
   }
 
   protected async _run() {
-    const versionsManifestContent = await this.gh.getFileContents('versions.txt');
-    const currentVersions = VersionsManifest.parseVersions(versionsManifestContent.parsedContent);
-    this.snapshot = VersionsManifest.needsSnapshot(versionsManifestContent.parsedContent);
+    const versionsManifestContent = await this.gh.getFileContents(
+      'versions.txt'
+    );
+    const currentVersions = VersionsManifest.parseVersions(
+      versionsManifestContent.parsedContent
+    );
+    this.snapshot = VersionsManifest.needsSnapshot(
+      versionsManifestContent.parsedContent
+    );
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot
@@ -166,8 +172,11 @@ export class JavaYoshi extends ReleasePR {
     return '0.1.0';
   }
 
-  protected coerceVersions(cc: ConventionalCommits, currentVersions: VersionsMap): VersionsMap {
-    const newVersions: VersionsMap = new Map<string,string>();
+  protected coerceVersions(
+    cc: ConventionalCommits,
+    currentVersions: VersionsMap
+  ): VersionsMap {
+    const newVersions: VersionsMap = new Map<string, string>();
     return newVersions;
   }
 }
