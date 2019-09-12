@@ -45,7 +45,7 @@ describe('JavaAuthReadme', () => {
         resolve(fixturesPath, './java-multiple-versions-readme.md'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const versions = new Map<string,string>();
+      const versions = new Map<string, string>();
       versions.set('google-auth-library-oauth2-http', '0.20.0');
       versions.set('google-auth-library-credentials', '0.30.0');
       const javaAuthReadme = new Readme({
@@ -53,7 +53,7 @@ describe('JavaAuthReadme', () => {
         changelogEntry: '',
         versions,
         version: 'unused',
-        packageName: 'unused'
+        packageName: 'unused',
       });
       const newContent = javaAuthReadme.updateContent(oldContent);
       snapshot(newContent);

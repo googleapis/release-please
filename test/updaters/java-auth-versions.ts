@@ -60,7 +60,7 @@ describe('JavaAuthVersions', () => {
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const versions = new Map<string,string>();
+      const versions = new Map<string, string>();
       versions.set('google-auth-library', '0.25.0');
       versions.set('google-auth-library-oauth2-http', '0.16.2-SNAPSHOT');
       const javaAuthVersions = new VersionsManifest({
