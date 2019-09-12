@@ -16,12 +16,16 @@
 
 import { GitHubFileContents } from '../github';
 
+export interface VersionsMap {
+  [key: string]: string
+}
+
 export interface UpdateOptions {
   changelogEntry: string;
   packageName: string;
   path: string;
   version: string;
-  versions?: { [key: string]: string };
+  versions?: VersionsMap;
   contents?: GitHubFileContents;
 }
 
@@ -31,7 +35,7 @@ export interface Update {
   path: string;
   packageName: string;
   version: string;
-  versions?: { [key: string]: string };
+  versions?: VersionsMap;
   contents?: GitHubFileContents;
   updateContent(content: string | undefined): string;
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Update, UpdateOptions } from '../update';
+import { Update, UpdateOptions, VersionsMap } from '../update';
 import { GitHubFileContents } from '../../github';
 
 export class VersionsManifest implements Update {
@@ -45,5 +45,9 @@ export class VersionsManifest implements Update {
         `:${this.version}:${this.version}`
       );
     }
+  }
+
+  static parseVersions(content: string): VersionsMap {
+    return {};
   }
 }
