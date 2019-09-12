@@ -34,7 +34,7 @@ describe('PomXML', () => {
         path: 'pom.xml',
         changelogEntry: '',
         version: '0.19.0',
-        packageName: 'google-auth-library-java',
+        packageName: 'google-auth-library-parent',
       });
       const newContent = pomXML.updateContent(oldContent);
       snapshot(newContent);
