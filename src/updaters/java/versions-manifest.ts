@@ -48,11 +48,11 @@ export class VersionsManifest implements Update {
   }
 
   static parseVersions(content: string): VersionsMap {
-    const versions: VersionsMap = {};
+    const versions = new Map<string, string>();
     content.split(/\r?\n/).forEach(line => {
       let match = line.match(/^([\w\-_]+):(.+):(.+)/);
       if (match) {
-        versions[match[1]] = match[2];
+        versions.set(match[1], match[2]);
       }
     });
     return versions;

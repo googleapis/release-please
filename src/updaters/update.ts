@@ -16,9 +16,7 @@
 
 import { GitHubFileContents } from '../github';
 
-export interface VersionsMap {
-  [key: string]: string
-}
+export type VersionsMap = Map<string, string>;
 
 export interface UpdateOptions {
   changelogEntry: string;

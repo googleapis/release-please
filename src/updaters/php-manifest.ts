@@ -15,7 +15,7 @@
  */
 
 import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, UpdateOptions } from './update';
+import { Update, UpdateOptions, VersionsMap } from './update';
 import { GitHubFileContents } from '../github';
 
 interface ManifestModule {
@@ -27,7 +27,7 @@ export class PHPManifest implements Update {
   path: string;
   changelogEntry: string;
   version: string;
-  versions?: { [key: string]: string };
+  versions?: VersionsMap;
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
@@ -41,7 +41,7 @@ export class PHPManifest implements Update {
     this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    if (!this.versions || Object.keys(this.versions).length === 0) {
+    if (!this.versions || this.versions.size === 0) {
       checkpoint(
         `no updates necessary for ${this.path}`,
         CheckpointType.Failure
@@ -50,11 +50,8 @@ export class PHPManifest implements Update {
     }
     const parsed = JSON.parse(content);
     parsed.modules.forEach((module: ManifestModule) => {
-      Object.keys(this.versions ? this.versions : []).forEach((key: string) => {
-        if (!this.versions) return;
-        const version: string = this.versions[key]
-          ? this.versions[key]
-          : '1.0.0';
+      if (!this.versions) return;
+      this.versions.forEach((version, key) => {
         if (module.name === key) {
           checkpoint(
             `adding ${key}@${version} to manifest`,
@@ -63,6 +60,7 @@ export class PHPManifest implements Update {
           module.versions.unshift(`v${version}`);
         }
       });
+
       // the mono-repo's own API version should be added to the
       // google/cloud key:
       if (module.name === 'google/cloud') {

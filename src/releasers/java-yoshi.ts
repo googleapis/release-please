@@ -53,6 +53,10 @@ export class JavaYoshi extends ReleasePR {
   }
 
   protected async _run() {
+    const versionsManifestContent = await this.gh.getFileContents('versions.txt');
+    const currentVersions = VersionsManifest.parseVersions(versionsManifestContent.parsedContent);
+    this.snapshot = VersionsManifest.needsSnapshot(versionsManifestContent.parsedContent);
+
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot
       ? [
@@ -65,10 +69,6 @@ export class JavaYoshi extends ReleasePR {
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
     let prSHA = commits[0].sha;
 
-    const versionsManifestContent = await this.gh.getFileContents('versions.txt');
-    const currentVersions = VersionsManifest.parseVersions(versionsManifestContent.parsedContent);
-    this.snapshot = VersionsManifest.needsSnapshot(versionsManifestContent.parsedContent);
-
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
@@ -79,6 +79,7 @@ export class JavaYoshi extends ReleasePR {
       cc,
       latestTag
     );
+    const candidateVersions = await this.coerceVersions(cc, currentVersions);
     let changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
@@ -163,5 +164,10 @@ export class JavaYoshi extends ReleasePR {
 
   protected defaultInitialVersion(): string {
     return '0.1.0';
+  }
+
+  protected coerceVersions(cc: ConventionalCommits, currentVersions: VersionsMap): VersionsMap {
+    const newVersions: VersionsMap = new Map<string,string>();
+    return newVersions;
   }
 }

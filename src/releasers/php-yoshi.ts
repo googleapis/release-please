@@ -19,7 +19,7 @@ import { ReleasePR, ReleaseCandidate } from '../release-pr';
 import { ConventionalCommits } from '../conventional-commits';
 import { GitHubTag, GitHubFileContents } from '../github';
 import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update } from '../updaters/update';
+import { Update, VersionsMap } from '../updaters/update';
 import { Commit } from '../graphql-to-commits';
 import { CommitSplit } from '../commit-split';
 import * as semver from 'semver';
@@ -34,7 +34,7 @@ import { Version } from '../updaters/version';
 
 interface PHPYoshiBulkUpdate {
   changelogEntry: string;
-  versionUpdates: { [key: string]: string };
+  versionUpdates: VersionsMap;
 }
 
 export class PHPYoshi extends ReleasePR {
@@ -129,7 +129,7 @@ export class PHPYoshi extends ReleasePR {
     const pkgKeys: string[] = Object.keys(commitLookup).sort();
     // map of library names that need to be updated in the top level
     // composer.json and manifest.json.
-    const versionUpdates: { [key: string]: string } = {};
+    const versionUpdates: VersionsMap = new Map<string,string>();
 
     // walk each individual library updating the VERSION file, and
     // if necessary the `const VERSION` in the client library.
@@ -169,7 +169,7 @@ export class PHPYoshi extends ReleasePR {
             (await this.gh.getFileContents(`${pkgKey}/composer.json`))
               .parsedContent
           );
-          versionUpdates[meta.name] = candidate;
+          versionUpdates.set(meta.name, candidate);
 
           changelogEntry = updatePHPChangelogEntry(
             `${meta.name} ${candidate}`,

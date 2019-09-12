@@ -16,7 +16,6 @@
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import * as snapshot from 'snap-shot-it';
 
 import { VersionsManifest } from '../../src/updaters/java/versions-manifest';
 import { expect } from 'chai';
@@ -31,7 +30,11 @@ describe('VersionManifest', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const versionsMap = VersionsManifest.parseVersions(content);
-      snapshot(versionsMap);
+      expect(versionsMap.get('google-cloud-trace')).to.equal('0.108.0-beta');
+      expect(versionsMap.get('grpc-google-cloud-trace-v1')).to.equal('0.73.0');
+      expect(versionsMap.get('grpc-google-cloud-trace-v2')).to.equal('0.73.0');
+      expect(versionsMap.get('proto-google-cloud-trace-v1')).to.equal('0.73.0');
+      expect(versionsMap.get('grpc-google-cloud-trace-v2')).to.equal('0.73.0');
     });
   });
 
