@@ -39,5 +39,24 @@ describe('JavaAuthReadme', () => {
       const newContent = javaAuthReadme.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('updates multiple version examples in README.md', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './java-multiple-versions-readme.md'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string,string>();
+      versions.set('google-auth-library-oauth2-http', '0.20.0');
+      versions.set('google-auth-library-credentials', '0.30.0');
+      const javaAuthReadme = new Readme({
+        path: 'README.md',
+        changelogEntry: '',
+        versions,
+        version: 'unused',
+        packageName: 'unused'
+      });
+      const newContent = javaAuthReadme.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
