@@ -16,19 +16,4 @@
 
 import { JavaUpdate } from './java_update';
 
-export class Readme extends JavaUpdate {
-  updateContent(content: string): string {
-    content = content.replace(
-      /<version>.*<\/version>/,
-      `<version>${this.version}</version>`
-    );
-    content = content.replace(
-      /'com.google.auth:google-auth-library-oauth2-http:[^']+'/,
-      `'com.google.auth:google-auth-library-oauth2-http:${this.version}'`
-    );
-    return content.replace(
-      /"com.google.auth" % "google-auth-library-oauth2-http" % "[^"]+"/,
-      `"com.google.auth" % "google-auth-library-oauth2-http" % "${this.version}"`
-    );
-  }
-}
+export class Readme extends JavaUpdate {}

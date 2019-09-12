@@ -17,6 +17,11 @@
 import { Update, VersionsMap, UpdateOptions } from "../update";
 import { GitHubFileContents } from "../../github";
 
+const INLINE_UPDATE_REGEX = /{x-version-update:([\w\-_]+):(current|released)}/;
+const BLOCK_START_REGEX = /{x-version-update-start:([\w\-_]+):(current|released)}/
+const BLOCK_END_REGEX = /{x-version-update-end}/
+const VERSION_REGEX = /\d+\.\d+\.\d+(-\w+)?(-SNAPSHOT)?/
+
 export class JavaUpdate implements Update {
   path: string;
   changelogEntry: string;
@@ -41,17 +46,34 @@ export class JavaUpdate implements Update {
     }
   }
   updateContent(content: string): string {
-    let newContent = content;
-    this.versions!.forEach((version, packageName) => {
-      newContent = this.updateSingleVersion(content, packageName, version);
+    const newLines: string[] = [];
+    let blockPackageName: string|null = null;
+    content.split(/\r?\n/).forEach(line => {
+      let match;
+      if (match = line.match(INLINE_UPDATE_REGEX)) {
+        const newVersion = this.versions!.get(match[1]);
+        if (newVersion) {
+          newLines.push(line.replace(VERSION_REGEX, newVersion));
+        } else {
+          newLines.push(line);
+        }
+      } else if (blockPackageName) {
+        const newVersion = this.versions!.get(blockPackageName);
+        if (newVersion) {
+          newLines.push(line.replace(VERSION_REGEX, newVersion));
+        } else {
+          newLines.push(line);
+        }
+        if (line.match(BLOCK_END_REGEX)) {
+          blockPackageName = null;
+        }
+      } else if (match = line.match(BLOCK_START_REGEX)) {
+        blockPackageName = match[1];
+        newLines.push(line);
+      } else {
+        newLines.push(line);
+      }
     });
-    return newContent;
-  }
-  protected updateSingleVersion(
-    content: string,
-    packageName: string,
-    version: string
-  ): string {
-    return content;
+    return newLines.join("\n");
   }
 }

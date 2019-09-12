@@ -34,7 +34,7 @@ describe('JavaAuthReadme', () => {
         path: 'README.md',
         changelogEntry: '',
         version: '0.20.0',
-        packageName: 'google-auth-library-java',
+        packageName: 'google-auth-library-oauth2-http',
       });
       const newContent = javaAuthReadme.updateContent(oldContent);
       snapshot(newContent);

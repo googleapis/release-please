@@ -18,6 +18,13 @@ import { VersionsMap } from '../update';
 import { JavaUpdate } from './java_update';
 
 export class VersionsManifest extends JavaUpdate {
+  updateContent(content: string): string {
+    let newContent = content;
+    this.versions!.forEach((version, packageName) => {
+      newContent = this.updateSingleVersion(content, packageName, version);
+    });
+    return newContent;
+  }
   protected updateSingleVersion(
     content: string,
     packageName: string,

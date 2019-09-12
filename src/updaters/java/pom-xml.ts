@@ -16,18 +16,4 @@
 
 import { JavaUpdate } from './java_update';
 
-export class PomXML extends JavaUpdate {
-  protected updateSingleVersion(
-    content: string,
-    packageName: string,
-    version: string
-  ): string {
-    return content.replace(
-      new RegExp(
-        `<version>.*</version>(.*x-version-update:${packageName}:.*)`,
-        'g'
-      ),
-      `<version>${version}</version>$1`
-    );
-  }
-}
+export class PomXML extends JavaUpdate {}
