@@ -19,7 +19,7 @@ import { ReleasePR, ReleasePROptions, ReleaseCandidate } from '../release-pr';
 import { ConventionalCommits } from '../conventional-commits';
 import { GitHubTag } from '../github';
 import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update } from '../updaters/update';
+import { Update, VersionsMap } from '../updaters/update';
 import { Commit } from '../graphql-to-commits';
 
 // Generic
@@ -64,6 +64,10 @@ export class JavaYoshi extends ReleasePR {
         ]
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
     let prSHA = commits[0].sha;
+
+    const versionsManifestContent = await this.gh.getFileContents('versions.txt');
+    const currentVersions = VersionsManifest.parseVersions(versionsManifestContent.parsedContent);
+    this.snapshot = VersionsManifest.needsSnapshot(versionsManifestContent.parsedContent);
 
     const cc = new ConventionalCommits({
       commits,
@@ -133,6 +137,7 @@ export class JavaYoshi extends ReleasePR {
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
+        contents: versionsManifestContent,
       })
     );
 
