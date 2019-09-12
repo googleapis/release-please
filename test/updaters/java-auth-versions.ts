@@ -34,7 +34,7 @@ describe('JavaAuthVersions', () => {
         path: 'versions.txt',
         changelogEntry: '',
         version: '0.25.0',
-        packageName: 'google-auth-library-java',
+        packageName: 'google-auth-library',
       });
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);
@@ -49,7 +49,7 @@ describe('JavaAuthVersions', () => {
         path: 'versions.txt',
         changelogEntry: '',
         version: '0.16.2-SNAPSHOT',
-        packageName: 'google-auth-library-java',
+        packageName: 'google-auth-library-oauth2-http',
       });
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);

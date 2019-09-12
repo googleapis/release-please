@@ -14,35 +14,30 @@
  * limitations under the License.
  */
 
-import { Update, UpdateOptions, VersionsMap } from '../update';
-import { GitHubFileContents } from '../../github';
+import { VersionsMap } from '../update';
+import { JavaUpdate } from './java_update';
 
-export class VersionsManifest implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
-  updateContent(content: string): string {
-    if (this.version.includes('SNAPSHOT')) {
+export class VersionsManifest extends JavaUpdate {
+  protected updateSingleVersion(
+    content: string,
+    packageName: string,
+    version: string
+  ): string {
+    if (version.includes('SNAPSHOT')) {
       return content.replace(
-        /:[0-9]+\.[0-9]+\.[0-9]+(-\w+)?(-SNAPSHOT)?[\r\n]/g,
-        `:${this.version}\n`
+        new RegExp(
+          `${packageName}:(.*):[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?[\\r\\n]`,
+          'g'
+        ),
+        `${packageName}:$1:${version}\n`
       );
     } else {
       return content.replace(
-        /:[0-9]+\.[0-9]+\.[0-9]+:[0-9]+\.[0-9]+\.[0-9]+(-\w+)?(-SNAPSHOT)?/g,
-        `:${this.version}:${this.version}`
+        new RegExp(
+          `${packageName}:[0-9]+\\.[0-9]+\\.[0-9]+:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
+          'g'
+        ),
+        `${packageName}:${version}:${version}`
       );
     }
   }
