@@ -21,7 +21,7 @@ export class VersionsManifest extends JavaUpdate {
   updateContent(content: string): string {
     let newContent = content;
     this.versions!.forEach((version, packageName) => {
-      newContent = this.updateSingleVersion(content, packageName, version);
+      newContent = this.updateSingleVersion(newContent, packageName, version);
     });
     return newContent;
   }

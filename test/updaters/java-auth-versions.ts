@@ -54,5 +54,24 @@ describe('JavaAuthVersions', () => {
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('updates multiple versions in versions.txt', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './java-auth-versions.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string,string>();
+      versions.set('google-auth-library', '0.25.0');
+      versions.set('google-auth-library-oauth2-http', '0.16.2-SNAPSHOT');
+      const javaAuthVersions = new VersionsManifest({
+        path: 'versions.txt',
+        changelogEntry: '',
+        versions,
+        version: 'unused',
+        packageName: 'used',
+      });
+      const newContent = javaAuthVersions.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
