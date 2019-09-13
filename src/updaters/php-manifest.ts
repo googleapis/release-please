@@ -51,7 +51,7 @@ export class PHPManifest implements Update {
     const parsed = JSON.parse(content);
     parsed.modules.forEach((module: ManifestModule) => {
       if (!this.versions) return;
-      this.versions.forEach((version, key) => {
+      for (const [key, version] of this.versions) {
         if (module.name === key) {
           checkpoint(
             `adding ${key}@${version} to manifest`,
@@ -59,7 +59,7 @@ export class PHPManifest implements Update {
           );
           module.versions.unshift(`v${version}`);
         }
-      });
+      }
 
       // the mono-repo's own API version should be added to the
       // google/cloud key:
