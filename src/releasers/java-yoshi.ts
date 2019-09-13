@@ -55,7 +55,13 @@ export class Version {
   extra: string;
   snapshot: boolean;
 
-  constructor(major: number, minor: number, patch: number, extra: string, snapshot: boolean) {
+  constructor(
+    major: number,
+    minor: number,
+    patch: number,
+    extra: string,
+    snapshot: boolean
+  ) {
     this.major = major;
     this.minor = minor;
     this.patch = patch;
@@ -87,7 +93,7 @@ export class Version {
   }
 
   bump(bumpType: BumpType) {
-    switch(bumpType) {
+    switch (bumpType) {
       case 'major':
         this.major += 1;
         this.minor = 0;
@@ -113,7 +119,9 @@ export class Version {
   }
 
   toString(): string {
-    return `${this.major}.${this.minor}.${this.patch}${this.extra}${this.snapshot ? '-SNAPSHOT' : ''}`
+    return `${this.major}.${this.minor}.${this.patch}${this.extra}${
+      this.snapshot ? '-SNAPSHOT' : ''
+    }`;
   }
 }
 
@@ -267,7 +275,7 @@ export class JavaYoshi extends ReleasePR {
     if (this.snapshot) {
       return 'snapshot';
     }
-    switch(releaseType) {
+    switch (releaseType) {
       case 'major':
       case 'minor':
       case 'patch':

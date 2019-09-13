@@ -17,8 +17,7 @@
 import { Version } from '../../src/releasers/java-yoshi';
 import { expect } from 'chai';
 
-describe('JavaYoshi', () => {
-});
+describe('JavaYoshi', () => {});
 
 describe('Version', () => {
   describe('parse', () => {
