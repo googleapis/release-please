@@ -15,14 +15,14 @@
  */
 
 import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, UpdateOptions } from './update';
+import { Update, UpdateOptions, VersionsMap } from './update';
 import { GitHubFileContents } from '../github';
 
 export class PackageJson implements Update {
   path: string;
   changelogEntry: string;
   version: string;
-  versions?: { [key: string]: string };
+  versions?: VersionsMap;
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;

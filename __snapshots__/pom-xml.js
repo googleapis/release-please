@@ -81,3 +81,59 @@ exports['PomXML updateContent updates version in pom.xml 1'] = `
   </dependencies>
 </project>
 `
+
+exports['PomXML updateContent handles specific versions in pom.xml 1'] = `
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.google.api.grpc</groupId>
+  <artifactId>proto-google-cloud-trace-v1</artifactId>
+  <version>0.73.1-SNAPSHOT</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
+  <name>proto-google-cloud-trace-v1</name>
+  <description>PROTO library for proto-google-cloud-trace-v1</description>
+  <parent>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>google-cloud-trace-parent</artifactId>
+    <version>0.19.0</version><!-- {x-version-update:google-cloud-trace:current} -->
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api.grpc</groupId>
+      <artifactId>proto-google-common-protos</artifactId>
+    </dependency>
+  </dependencies>
+</project>
+`
+
+exports['PomXML updateContent handles multiple versions in pom.xml 1'] = `
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.google.api.grpc</groupId>
+  <artifactId>proto-google-cloud-trace-v1</artifactId>
+  <version>0.25.0</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
+  <name>proto-google-cloud-trace-v1</name>
+  <description>PROTO library for proto-google-cloud-trace-v1</description>
+  <parent>
+    <groupId>com.google.cloud</groupId>
+    <artifactId>google-cloud-trace-parent</artifactId>
+    <version>0.16.2-SNAPSHOT</version><!-- {x-version-update:google-cloud-trace:current} -->
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api.grpc</groupId>
+      <artifactId>proto-google-common-protos</artifactId>
+    </dependency>
+  </dependencies>
+</project>
+`

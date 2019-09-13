@@ -15,11 +15,12 @@
  */
 
 import { ReleasePR, ReleasePROptions, ReleaseCandidate } from '../release-pr';
+import * as semver from 'semver';
 
 import { ConventionalCommits } from '../conventional-commits';
 import { GitHubTag } from '../github';
 import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update } from '../updaters/update';
+import { Update, VersionsMap } from '../updaters/update';
 import { Commit } from '../graphql-to-commits';
 
 // Generic
@@ -53,6 +54,16 @@ export class JavaYoshi extends ReleasePR {
   }
 
   protected async _run() {
+    const versionsManifestContent = await this.gh.getFileContents(
+      'versions.txt'
+    );
+    const currentVersions = VersionsManifest.parseVersions(
+      versionsManifestContent.parsedContent
+    );
+    this.snapshot = VersionsManifest.needsSnapshot(
+      versionsManifestContent.parsedContent
+    );
+
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot
       ? [
@@ -75,6 +86,7 @@ export class JavaYoshi extends ReleasePR {
       cc,
       latestTag
     );
+    const candidateVersions = await this.coerceVersions(cc, currentVersions);
     let changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
@@ -112,6 +124,7 @@ export class JavaYoshi extends ReleasePR {
         new Changelog({
           path: 'CHANGELOG.md',
           changelogEntry,
+          versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
         })
@@ -121,6 +134,7 @@ export class JavaYoshi extends ReleasePR {
         new Readme({
           path: 'README.md',
           changelogEntry,
+          versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
         })
@@ -131,8 +145,10 @@ export class JavaYoshi extends ReleasePR {
       new VersionsManifest({
         path: 'versions.txt',
         changelogEntry,
+        versions: candidateVersions,
         version: candidate.version,
         packageName: this.packageName,
+        contents: versionsManifestContent,
       })
     );
 
@@ -142,6 +158,7 @@ export class JavaYoshi extends ReleasePR {
         new PomXML({
           path,
           changelogEntry,
+          versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
         })
@@ -158,5 +175,22 @@ export class JavaYoshi extends ReleasePR {
 
   protected defaultInitialVersion(): string {
     return '0.1.0';
+  }
+
+  protected async coerceVersions(
+    cc: ConventionalCommits,
+    currentVersions: VersionsMap
+  ): Promise<VersionsMap> {
+    const newVersions: VersionsMap = new Map<string, string>();
+    for (const [k, version] of currentVersions) {
+      const bump = await cc.suggestBump(version);
+      const candidate: string | null = semver.inc(version, bump.releaseType);
+      if (candidate) {
+        newVersions.set(k, candidate);
+      } else {
+        throw Error(`failed to increment ${k} @ ${version}`);
+      }
+    }
+    return newVersions;
   }
 }

@@ -15,14 +15,14 @@
  */
 
 import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, UpdateOptions } from './update';
+import { Update, UpdateOptions, VersionsMap } from './update';
 import { GitHubFileContents } from '../github';
 
 export class RootComposer implements Update {
   path: string;
   changelogEntry: string;
   version: string;
-  versions?: { [key: string]: string };
+  versions?: VersionsMap;
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
@@ -46,9 +46,7 @@ export class RootComposer implements Update {
     const parsed = JSON.parse(content);
     Object.keys(this.versions).forEach((key: string) => {
       if (this.versions) {
-        const version: string = this.versions[key]
-          ? this.versions[key]
-          : '1.0.0';
+        const version: string = this.versions.get(key) || '1.0.0';
         checkpoint(
           `updating ${key} from ${parsed.replace[key]} to ${version}`,
           CheckpointType.Success

@@ -14,29 +14,6 @@
  * limitations under the License.
  */
 
-import { Update, UpdateOptions } from '../update';
-import { GitHubFileContents } from '../../github';
+import { JavaUpdate } from './java_update';
 
-export class PomXML implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: { [key: string]: string };
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
-  updateContent(content: string): string {
-    return content.replace(
-      /<version>.*<\/version>(.*x-version-update.*)/g,
-      `<version>${this.version}</version>$1`
-    );
-  }
-}
+export class PomXML extends JavaUpdate {}
