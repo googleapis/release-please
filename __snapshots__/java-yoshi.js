@@ -1,4 +1,4 @@
-exports['JavaYoshi creates a release PR 1'] = `
+exports['CHANGELOG'] = `
 # Changelog
 
 ### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (2019-09-13)
@@ -10,7 +10,7 @@ exports['JavaYoshi creates a release PR 1'] = `
 
 `
 
-exports['JavaYoshi creates a release PR 2'] = `
+exports['README'] = `
 � �ॢ�Ij���'���+J֜����ӭ�%�ډب��bq�bz{_���i��+ޭ:�q�-i��+ޯ�kiǌj����i���!��]�*?��ޟ���ڗ��r����%y�h��࢈%{�%��~���z����i���!��]�*?��ޟ���ڗ��r����%y�h��࢈%{�%��~���z�����v�-�.���jب���q﩮�nrߝ��>
 X����n���:�g���b�{kiǾrX��ߥ�����\r�ד�+�'��+��)��� ��,jwfk*q�"�v��)����rL��>�w(�����^r����'$�֫�������*'��]j׾�֫�
 (�W�rZ.w�kiǫzW���H*.j���)�1�ޝ�]�������h��~)^�i]z��u���
@@ -18,7 +18,7 @@ X����n���:�g���b�{kiǾrX��ߥ�����\r�ד�
 (�W������ ������q�5��>m�Z!����޺ȧ� Si�m�+-�*.�שzw^�Ȟ�'��bn���7�zw^�Ȟ�
 `
 
-exports['JavaYoshi creates a release PR 3'] = `
+exports['versions'] = `
 # Format:
 # module:released-version:current-version
 
@@ -29,7 +29,7 @@ proto-google-cloud-trace-v1:0.73.1:0.73.1
 proto-google-cloud-trace-v2:0.73.1:0.73.1
 `
 
-exports['JavaYoshi creates a release PR 4'] = `
+exports['pom'] = `
 <?xml version='1.0' encoding='UTF-8'?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -381,7 +381,7 @@ exports['JavaYoshi creates a release PR 4'] = `
 </project>
 `
 
-exports['JavaYoshi creates a release PR 5'] = `
+exports['PR body'] = `
 :robot: I have created a release \\*beep\\* \\*boop\\* 
 ---
 ### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) 

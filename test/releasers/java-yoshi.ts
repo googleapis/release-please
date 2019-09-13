@@ -94,7 +94,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/CHANGELOG.md',
         (req: { [key: string]: string }) => {
-          snapshot(Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot('CHANGELOG', Buffer.from(req.content, 'base64').toString('utf8'));
           return true;
         }
       )
@@ -107,7 +107,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/README.md',
         (req: { [key: string]: string }) => {
-          snapshot(Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot('README', Buffer.from(req.content, 'base64').toString('utf8'));
           return true;
         }
       )
@@ -123,7 +123,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/versions.txt',
         (req: { [key: string]: string }) => {
-          snapshot(Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot('versions', Buffer.from(req.content, 'base64').toString('utf8'));
           return true;
         }
       )
@@ -139,7 +139,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/pom.xml',
         (req: { [key: string]: string }) => {
-          snapshot(Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot('pom', Buffer.from(req.content, 'base64').toString('utf8'));
           return true;
         }
       )
@@ -149,7 +149,7 @@ describe('JavaYoshi', () => {
         '/repos/googleapis/java-trace/pulls',
         (req: { [key: string]: string }) => {
           const body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-          snapshot(body);
+          snapshot('PR body', body);
           return true;
         }
       )
