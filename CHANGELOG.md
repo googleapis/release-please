@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [2.7.2](https://www.github.com/googleapis/release-please/compare/v2.7.1...v2.7.2) (2019-09-13)
+
+
+### Bug Fixes
+
+* **docs:** stop linking reference documents to anchor ([d2d0f45](https://www.github.com/googleapis/release-please/commit/d2d0f45))
+* replace all version update tags ([#260](https://www.github.com/googleapis/release-please/issues/260)) ([54e0cd3](https://www.github.com/googleapis/release-please/commit/54e0cd3))
+* treat docs like any other section of CHANGELOG ([#255](https://www.github.com/googleapis/release-please/issues/255)) ([254597f](https://www.github.com/googleapis/release-please/commit/254597f))
+
 ### [2.7.1](https://www.github.com/googleapis/release-please/compare/v2.7.0...v2.7.1) (2019-08-27)
 
 
