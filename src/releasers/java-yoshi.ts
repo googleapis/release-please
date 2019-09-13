@@ -15,6 +15,7 @@
  */
 
 import { ReleasePR, ReleasePROptions, ReleaseCandidate } from '../release-pr';
+import * as semver from 'semver';
 
 import { ConventionalCommits } from '../conventional-commits';
 import { GitHubTag } from '../github';
@@ -123,6 +124,7 @@ export class JavaYoshi extends ReleasePR {
         new Changelog({
           path: 'CHANGELOG.md',
           changelogEntry,
+          versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
         })
@@ -132,6 +134,7 @@ export class JavaYoshi extends ReleasePR {
         new Readme({
           path: 'README.md',
           changelogEntry,
+          versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
         })
@@ -142,6 +145,7 @@ export class JavaYoshi extends ReleasePR {
       new VersionsManifest({
         path: 'versions.txt',
         changelogEntry,
+        versions: candidateVersions,
         version: candidate.version,
         packageName: this.packageName,
         contents: versionsManifestContent,
@@ -154,6 +158,7 @@ export class JavaYoshi extends ReleasePR {
         new PomXML({
           path,
           changelogEntry,
+          versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
         })
@@ -172,11 +177,20 @@ export class JavaYoshi extends ReleasePR {
     return '0.1.0';
   }
 
-  protected coerceVersions(
+  protected async coerceVersions(
     cc: ConventionalCommits,
     currentVersions: VersionsMap
-  ): VersionsMap {
+  ): Promise<VersionsMap> {
     const newVersions: VersionsMap = new Map<string, string>();
+    for (const [k, version] of currentVersions) {
+      const bump = await cc.suggestBump(version);
+      const candidate: string | null = semver.inc(version, bump.releaseType);
+      if (candidate) {
+        newVersions.set(k, candidate);
+      } else {
+        throw Error(`failed to increment ${k} @ ${version}`);
+      }
+    }
     return newVersions;
   }
 }
