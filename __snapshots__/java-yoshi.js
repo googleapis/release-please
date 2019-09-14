@@ -1,7 +1,7 @@
 exports['CHANGELOG'] = `
 # Changelog
 
-### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (2019-09-13)
+### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) 
 
 
 ### Bug Fixes

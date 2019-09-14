@@ -94,7 +94,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/CHANGELOG.md',
         (req: { [key: string]: string }) => {
-          snapshot('CHANGELOG', Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot('CHANGELOG', Buffer.from(req.content, 'base64').toString('utf8').replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, ''));
           return true;
         }
       )

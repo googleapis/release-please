@@ -743,7 +743,6 @@ export class GitHub {
         ? Buffer.from(content.data.content, 'base64').toString('utf8')
         : undefined;
       const updatedContent = update.updateContent(contentText);
-      console.log(updatedContent);
 
       if (content) {
         await this.request(
