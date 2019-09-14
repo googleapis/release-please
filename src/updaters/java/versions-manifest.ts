@@ -33,7 +33,7 @@ export class VersionsManifest extends JavaUpdate {
     if (version.includes('SNAPSHOT')) {
       return content.replace(
         new RegExp(
-          `${packageName}:(.*):[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?[\\r\\n]`,
+          `${packageName}:(.*):[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?\\r?\\n`,
           'g'
         ),
         `${packageName}:$1:${version}\n`
@@ -41,10 +41,10 @@ export class VersionsManifest extends JavaUpdate {
     } else {
       return content.replace(
         new RegExp(
-          `${packageName}:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
+          `${packageName}:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?\\r?\\n`,
           'g'
         ),
-        `${packageName}:${version}:${version}`
+        `${packageName}:${version}:${version}\n`
       );
     }
   }
