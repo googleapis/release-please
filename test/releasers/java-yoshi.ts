@@ -108,7 +108,9 @@ describe('JavaYoshi', () => {
       .get(
         '/repos/googleapis/java-trace/contents/README.md?ref=refs%2Fheads%2Frelease-v0.20.4'
       )
-      .reply(200, { content: Buffer.from(readmeContent, 'utf8').toString('base64') })
+      .reply(200, {
+        content: Buffer.from(readmeContent, 'utf8').toString('base64'),
+      })
       .put(
         '/repos/googleapis/java-trace/contents/README.md',
         (req: { [key: string]: string }) => {
