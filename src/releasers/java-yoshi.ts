@@ -113,8 +113,6 @@ export class Version {
         this.patch += 1;
         this.snapshot = true;
         break;
-      default:
-        throw Error(`unsupported bump type: ${bumpType}`);
     }
   }
 
