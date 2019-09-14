@@ -94,7 +94,12 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/CHANGELOG.md',
         (req: { [key: string]: string }) => {
-          snapshot('CHANGELOG', Buffer.from(req.content, 'base64').toString('utf8').replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, ''));
+          snapshot(
+            'CHANGELOG',
+            Buffer.from(req.content, 'base64')
+              .toString('utf8')
+              .replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '')
+          );
           return true;
         }
       )
@@ -107,7 +112,10 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/README.md',
         (req: { [key: string]: string }) => {
-          snapshot('README', Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot(
+            'README',
+            Buffer.from(req.content, 'base64').toString('utf8')
+          );
           return true;
         }
       )
@@ -123,7 +131,10 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/versions.txt',
         (req: { [key: string]: string }) => {
-          snapshot('versions', Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot(
+            'versions',
+            Buffer.from(req.content, 'base64').toString('utf8')
+          );
           return true;
         }
       )
