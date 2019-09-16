@@ -33,24 +33,28 @@ export class VersionsManifest extends JavaUpdate {
     const newLines: string[] = [];
     content.split(/\r?\n/).forEach(line => {
       if (version.includes('SNAPSHOT')) {
-        newLines.push(line.replace(
-          new RegExp(
-            `${packageName}:(.*):[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
-            'g'
-          ),
-          `${packageName}:$1:${version}`
-        ));
+        newLines.push(
+          line.replace(
+            new RegExp(
+              `${packageName}:(.*):[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
+              'g'
+            ),
+            `${packageName}:$1:${version}`
+          )
+        );
       } else {
-        newLines.push(line.replace(
-          new RegExp(
-            `${packageName}:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
-            'g'
-          ),
-          `${packageName}:${version}:${version}`
-        ));
+        newLines.push(
+          line.replace(
+            new RegExp(
+              `${packageName}:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
+              'g'
+            ),
+            `${packageName}:${version}:${version}`
+          )
+        );
       }
     });
-    return newLines.join("\n");
+    return newLines.join('\n');
   }
 
   static parseVersions(content: string): VersionsMap {
