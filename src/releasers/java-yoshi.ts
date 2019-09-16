@@ -30,6 +30,8 @@ import { PomXML } from '../updaters/java/pom-xml';
 import { VersionsManifest } from '../updaters/java/versions-manifest';
 import { Readme } from '../updaters/java/readme';
 
+type BumpType = 'major' | 'minor' | 'patch' | 'snapshot';
+
 const CHANGELOG_SECTIONS = [
   { type: 'feat', section: 'Features' },
   { type: 'fix', section: 'Bug Fixes' },
@@ -44,6 +46,84 @@ const CHANGELOG_SECTIONS = [
   { type: 'build', section: 'Build System', hidden: true },
   { type: 'ci', section: 'Continuous Integration', hidden: true },
 ];
+
+const VERSION_REGEX = /(\d+)\.(\d+)\.(\d+)(-\w+)?(-SNAPSHOT)?/;
+export class Version {
+  major: number;
+  minor: number;
+  patch: number;
+  extra: string;
+  snapshot: boolean;
+
+  constructor(
+    major: number,
+    minor: number,
+    patch: number,
+    extra: string,
+    snapshot: boolean
+  ) {
+    this.major = major;
+    this.minor = minor;
+    this.patch = patch;
+    this.extra = extra;
+    this.snapshot = snapshot;
+  }
+
+  static parse(version: string): Version {
+    const match = version.match(VERSION_REGEX);
+    if (!match) {
+      throw Error(`unable to parse version string: ${version}`);
+    }
+    const major = Number(match[1]);
+    const minor = Number(match[2]);
+    const patch = Number(match[3]);
+    let extra = '';
+    let snapshot = false;
+    if (match[5]) {
+      extra = match[4];
+      snapshot = match[5] === '-SNAPSHOT';
+    } else if (match[4]) {
+      if (match[4] === '-SNAPSHOT') {
+        snapshot = true;
+      } else {
+        extra = match[4];
+      }
+    }
+    return new Version(major, minor, patch, extra, snapshot);
+  }
+
+  bump(bumpType: BumpType) {
+    switch (bumpType) {
+      case 'major':
+        this.major += 1;
+        this.minor = 0;
+        this.patch = 0;
+        this.snapshot = false;
+        break;
+      case 'minor':
+        this.minor += 1;
+        this.patch = 0;
+        this.snapshot = false;
+        break;
+      case 'patch':
+        this.patch += 1;
+        this.snapshot = false;
+        break;
+      case 'snapshot':
+        this.patch += 1;
+        this.snapshot = true;
+        break;
+      default:
+        throw Error(`unsupported bump type: ${bumpType}`);
+    }
+  }
+
+  toString(): string {
+    return `${this.major}.${this.minor}.${this.patch}${this.extra}${
+      this.snapshot ? '-SNAPSHOT' : ''
+    }`;
+  }
+}
 
 export class JavaYoshi extends ReleasePR {
   constructor(options: ReleasePROptions) {
@@ -184,13 +264,24 @@ export class JavaYoshi extends ReleasePR {
     const newVersions: VersionsMap = new Map<string, string>();
     for (const [k, version] of currentVersions) {
       const bump = await cc.suggestBump(version);
-      const candidate: string | null = semver.inc(version, bump.releaseType);
-      if (candidate) {
-        newVersions.set(k, candidate);
-      } else {
-        throw Error(`failed to increment ${k} @ ${version}`);
-      }
+      const newVersion = Version.parse(version);
+      newVersion.bump(this.coerceBumpType(bump.releaseType));
+      newVersions.set(k, newVersion.toString());
     }
     return newVersions;
+  }
+
+  private coerceBumpType(releaseType: semver.ReleaseType): BumpType {
+    if (this.snapshot) {
+      return 'snapshot';
+    }
+    switch (releaseType) {
+      case 'major':
+      case 'minor':
+      case 'patch':
+        return releaseType;
+      default:
+        throw Error(`unsupported release type ${releaseType}`);
+    }
   }
 }
