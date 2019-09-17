@@ -35,7 +35,7 @@ export class SetupPy implements Update {
   }
   updateContent(content: string): string {
     return content.replace(
-      /version ?= ?"[0-9]+\.[0-9]+\.[0-9](-\w+)?"/,
+      /version ?= ?["'][0-9]+\.[0-9]+\.[0-9](-\w+)?["']/,
       `version = "${this.version}"`
     );
   }
