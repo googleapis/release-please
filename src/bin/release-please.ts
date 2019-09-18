@@ -162,6 +162,7 @@ action "github-release" {
       'php-yoshi',
       'java-auth-yoshi',
       'java-yoshi',
+      'python',
       'ruby-yoshi',
     ],
     default: 'node',
