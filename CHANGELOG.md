@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [2.10.0](https://www.github.com/googleapis/release-please/compare/v2.9.0...v2.10.0) (2019-09-18)
+
+
+### Features
+
+* add initial support for Python libraries ([#270](https://www.github.com/googleapis/release-please/issues/270)) ([00eeb32](https://www.github.com/googleapis/release-please/commit/00eeb32))
+
 ## [2.9.0](https://www.github.com/googleapis/release-please/compare/v2.8.0...v2.9.0) (2019-09-16)
 
 
