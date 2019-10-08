@@ -36,7 +36,7 @@ export class RootComposer implements Update {
     this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    if (!this.versions || Object.keys(this.versions).length === 0) {
+    if (!this.versions || this.versions.size === 0) {
       checkpoint(
         `no updates necessary for ${this.path}`,
         CheckpointType.Failure
