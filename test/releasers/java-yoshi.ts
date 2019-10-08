@@ -262,7 +262,10 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/pom.xml',
         (req: { [key: string]: string }) => {
-          snapshot('pom-snapshot', Buffer.from(req.content, 'base64').toString('utf8'));
+          snapshot(
+            'pom-snapshot',
+            Buffer.from(req.content, 'base64').toString('utf8')
+          );
           return true;
         }
       )
