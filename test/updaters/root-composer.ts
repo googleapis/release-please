@@ -32,14 +32,14 @@ describe('composer.json', () => {
         resolve(fixturesPath, './composer.json'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const version = new RootComposer({
+      const composer = new RootComposer({
         path: 'version.rb',
         version: '1.0.0',
         changelogEntry: '',
         versions,
         packageName: '',
       });
-      const newContent = version.updateContent(oldContent);
+      const newContent = composer.updateContent(oldContent);
       snapshot(newContent);
     });
   });
