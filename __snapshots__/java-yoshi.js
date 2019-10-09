@@ -6,7 +6,7 @@ exports['CHANGELOG'] = `
 
 ### Bug Fixes
 
-* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13))
+* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))
 
 `
 
@@ -484,7 +484,7 @@ exports['PR body'] = `
 
 ### Bug Fixes
 
-* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13))
+* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))
 ---
 
 
