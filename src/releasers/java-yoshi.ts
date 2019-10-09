@@ -126,13 +126,6 @@ export class Version {
 }
 
 export class JavaYoshi extends ReleasePR {
-  constructor(options: ReleasePROptions) {
-    if (!options.label && options.snapshot) {
-      options.label = 'type: process';
-    }
-    super(options);
-  }
-
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
@@ -143,6 +136,9 @@ export class JavaYoshi extends ReleasePR {
     this.snapshot = VersionsManifest.needsSnapshot(
       versionsManifestContent.parsedContent
     );
+    if (this.snapshot) {
+      this.labels = ['type: process'];
+    }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot
