@@ -36,7 +36,7 @@ export class RootComposer implements Update {
     this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    if (!this.versions || Object.keys(this.versions).length === 0) {
+    if (!this.versions || this.versions.size === 0) {
       checkpoint(
         `no updates necessary for ${this.path}`,
         CheckpointType.Failure
@@ -44,17 +44,16 @@ export class RootComposer implements Update {
       return content;
     }
     const parsed = JSON.parse(content);
-    Object.keys(this.versions).forEach((key: string) => {
-      if (this.versions) {
-        const version: string = this.versions.get(key) || '1.0.0';
+    if (this.versions) {
+      for (let [key, version] of this.versions.entries()) {
+        version = version || '1.0.0';
         checkpoint(
           `updating ${key} from ${parsed.replace[key]} to ${version}`,
           CheckpointType.Success
         );
         parsed.replace[key] = version;
       }
-    });
-
+    }
     return JSON.stringify(parsed, null, 4) + '\n';
   }
 }
