@@ -18,7 +18,7 @@ specification and [SemVer](https://semver.org/).
 
 _Release Please_ can be configured (using [GitHub Actions](https://github.com/features/actions),
 a cron, or a step during CI/CD) to maintain a PR that represents the next release
-or your library.
+of your library.
 
 When the candidate PR is merged, _Release Please_ can be configured to create
 a [GitHub Release](https://help.github.com/en/articles/creating-releases).
