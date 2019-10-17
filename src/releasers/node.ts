@@ -17,7 +17,7 @@
 import { ReleasePR, ReleaseCandidate } from '../release-pr';
 
 import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag } from '../github';
+import { GitHubTag, GitHubFileContents } from '../github';
 import { checkpoint, CheckpointType } from '../util/checkpoint';
 import { Update } from '../updaters/update';
 import { Commit } from '../graphql-to-commits';
@@ -66,6 +66,14 @@ export class Node extends ReleasePR {
 
     const updates: Update[] = [];
 
+    // Make an effort to populate packageName from the contents of
+    // the package.json, rather than forcing this to be set:
+    const contents: GitHubFileContents = await this.gh.getFileContents(
+      `package.json`
+    );
+    const pkg = JSON.parse(contents.parsedContent);
+    if (pkg.name) this.packageName = pkg.name;
+
     updates.push(
       new Changelog({
         path: 'CHANGELOG.md',
@@ -81,6 +89,7 @@ export class Node extends ReleasePR {
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
+        contents,
       })
     );
 
