@@ -72,7 +72,7 @@ export class Node extends ReleasePR {
       `package.json`
     );
     const pkg = JSON.parse(contents.parsedContent);
-    if (pkg.name) this.packageName = pkg.name
+    if (pkg.name) this.packageName = pkg.name;
 
     updates.push(
       new Changelog({
@@ -89,7 +89,7 @@ export class Node extends ReleasePR {
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
-        contents
+        contents,
       })
     );
 
