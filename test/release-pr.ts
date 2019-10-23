@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
+const { expect } = require('chai');
 const nock = require('nock');
 nock.disableNetConnect();
+
+import { ConventionalCommits } from '../src/conventional-commits';
+import { GitHubTag } from '../src/github';
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { ReleaseType } from '../src/release-pr';
+import { ReleaseCandidate, ReleaseType, ReleasePR } from '../src/release-pr';
 import { PHPYoshi } from '../src/releasers/php-yoshi';
 
 const fixturesPath = './test/fixtures';
@@ -228,6 +232,83 @@ describe('GitHub', () => {
       });
       await releasePR.run();
       req.done();
+    });
+  });
+
+  describe('coerceReleaseCandidate', () => {
+    class TestableReleasePR extends ReleasePR {
+      async coerceReleaseCandidate(
+        cc: ConventionalCommits,
+        latestTag?: GitHubTag
+      ): Promise<ReleaseCandidate> {
+        return super.coerceReleaseCandidate(cc, latestTag);
+      }
+    }
+
+    it('suggests next version #, based on commit types', async () => {
+      const rp = new TestableReleasePR({
+        repoUrl: 'googleapis/nodejs',
+        packageName: '@google-cloud/nodejs',
+        apiUrl: 'github.com',
+        releaseType: ReleaseType.Node,
+      });
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            sha: 'abc123',
+            message: 'fix: addresses issues with library',
+            files: [],
+          },
+          {
+            sha: 'abc124',
+            message: 'feat!: adds a slick new feature',
+            files: [],
+          },
+          {
+            sha: 'abc125',
+            message: 'fix: another fix',
+            files: [],
+          },
+        ],
+        githubRepoUrl: 'googleapis/nodejs',
+      });
+      const candidate = await rp.coerceReleaseCandidate(cc, {
+        name: 'tag',
+        sha: 'abc123',
+        version: '2.0.0',
+      });
+      expect(candidate.version).to.equal('3.0.0');
+    });
+
+    it('reads release-as footer, and allows it to override recommended bump', async () => {
+      const rp = new TestableReleasePR({
+        repoUrl: 'googleapis/nodejs',
+        packageName: '@google-cloud/nodejs',
+        apiUrl: 'github.com',
+        releaseType: ReleaseType.Node,
+      });
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            sha: 'abc123',
+            message: 'fix: addresses issues with library',
+            files: [],
+          },
+          {
+            sha: 'abc124',
+            message: 'feat: adds a slick new feature\nRelease-As: 2.0.0',
+            files: [],
+          },
+          {
+            sha: 'abc125',
+            message: 'fix: another fix\n\nRelease-As: 3.0.0',
+            files: [],
+          },
+        ],
+        githubRepoUrl: 'googleapis/nodejs',
+      });
+      const candidate = await rp.coerceReleaseCandidate(cc);
+      expect(candidate.version).to.equal('2.0.0');
     });
   });
 });

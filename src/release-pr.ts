@@ -141,10 +141,24 @@ export class ReleasePR {
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined
   ): Promise<ReleaseCandidate> {
+    const releaseAsRe = /release-as: v?([0-9]+\.[0-9]+\.[0-9a-z-])+$/i;
     const previousTag = latestTag ? latestTag.name : undefined;
     let version = latestTag ? latestTag.version : this.defaultInitialVersion();
 
-    if (latestTag && !this.releaseAs) {
+    // If a commit contains the footer release-as: 1.x.x, we use this version
+    // from the commit footer rather than the version returned by suggestBump().
+    const releaseAsCommit = cc.commits.find((element: Commit) => {
+      if (element.message.match(releaseAsRe)) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    if (releaseAsCommit) {
+      const match = releaseAsCommit.message.match(releaseAsRe);
+      version = match![1];
+    } else if (latestTag && !this.releaseAs) {
       const bump = await cc.suggestBump(version);
       const candidate: string | null = semver.inc(version, bump.releaseType);
       if (!candidate) throw Error(`failed to increment ${version}`);
