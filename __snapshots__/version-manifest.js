@@ -1,7 +1,10 @@
-exports['VersionManifest parseVersions parses multiple versions in versions.txt 1'] = {
-  "google-cloud-trace": "0.108.0-beta",
-  "grpc-google-cloud-trace-v1": "0.73.0",
-  "grpc-google-cloud-trace-v2": "0.73.0",
-  "proto-google-cloud-trace-v1": "0.73.0",
-  "proto-google-cloud-trace-v2": "0.73.0"
-}
+exports['VersionManifest updateContent updates versions.txt with snapshot released version 1'] = `
+# Format:
+# module:released-version:current-version
+
+google-cloud-trace:0.109.0:0.109.0
+grpc-google-cloud-trace-v1:0.74.0:0.74.0
+grpc-google-cloud-trace-v2:0.73.1-SNAPSHOT:0.73.1-SNAPSHOT
+proto-google-cloud-trace-v1:0.73.1-SNAPSHOT:0.73.1-SNAPSHOT
+proto-google-cloud-trace-v2:0.73.1-SNAPSHOT:0.73.1-SNAPSHOT
+`

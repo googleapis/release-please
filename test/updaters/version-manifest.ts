@@ -16,6 +16,7 @@
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import * as snapshot from 'snap-shot-it';
 
 import { VersionsManifest } from '../../src/updaters/java/versions-manifest';
 import { expect } from 'chai';
@@ -53,6 +54,27 @@ describe('VersionManifest', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       expect(VersionsManifest.needsSnapshot(content)).to.equal(false);
+    });
+  });
+
+  describe('updateContent', () => {
+    it('updates versions.txt with snapshot released version', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './versions-double-snapshot.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, string>();
+      versions.set('google-cloud-trace', '0.109.0');
+      versions.set('grpc-google-cloud-trace-v1', '0.74.0');
+      const javaAuthVersions = new VersionsManifest({
+        path: 'versions.txt',
+        changelogEntry: '',
+        versions,
+        version: 'unused',
+        packageName: 'used',
+      });
+      const newContent = javaAuthVersions.updateContent(oldContent);
+      snapshot(newContent);
     });
   });
 });
