@@ -163,6 +163,7 @@ action "github-release" {
       'java-auth-yoshi',
       'java-yoshi',
       'python',
+      'ruby',
       'ruby-yoshi',
     ],
     default: 'node',
