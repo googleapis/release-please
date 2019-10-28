@@ -31,6 +31,7 @@ export enum ReleaseType {
   JavaAuthYoshi = 'java-auth-yoshi',
   JavaYoshi = 'java-yoshi',
   Python = 'python',
+  Ruby = 'ruby',
   RubyYoshi = 'ruby-yoshi',
 }
 

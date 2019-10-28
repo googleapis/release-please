@@ -20,6 +20,7 @@ import {
   ReleasePR,
   ReleasePROptions,
 } from './release-pr';
+import { Ruby, RubyReleasePROptions } from './releasers/ruby';
 import { JavaAuthYoshi } from './releasers/java-auth-yoshi';
 import { Node } from './releasers/node';
 import { PHPYoshi } from './releasers/php-yoshi';
@@ -45,6 +46,8 @@ export class ReleasePRFactory {
         return new JavaYoshi(releaseOptions);
       case ReleaseType.Python:
         return new Python(releaseOptions);
+      case ReleaseType.Ruby:
+        return new Ruby(releaseOptions as RubyReleasePROptions);
       case ReleaseType.RubyYoshi:
         return new RubyYoshi(releaseOptions);
       default:

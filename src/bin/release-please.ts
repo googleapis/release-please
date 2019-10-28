@@ -54,6 +54,9 @@ const argv = yargs
           describe: 'name of package release is being minted for',
           demand: true,
         })
+        .option('version-file', {
+          describe: 'path to version file to update, e.g., version.rb',
+        })
         .option('last-package-version', {
           describe: 'last version # that package was released as',
         })
@@ -163,6 +166,7 @@ action "github-release" {
       'java-auth-yoshi',
       'java-yoshi',
       'python',
+      'ruby',
       'ruby-yoshi',
     ],
     default: 'node',
