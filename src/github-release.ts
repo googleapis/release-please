@@ -24,7 +24,7 @@ import {
 import chalk from 'chalk';
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
-import { GitHub, GitHubReleasePR } from './github';
+import { GitHub, GitHubReleasePR, OctokitAPIs } from './github';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
@@ -32,9 +32,10 @@ export interface GitHubReleaseOptions {
   label: string;
   repoUrl: string;
   packageName: string;
-  token: string;
+  token?: string;
   apiUrl: string;
   proxyKey?: string;
+  octokitAPIs?: OctokitAPIs;
 }
 
 export class GitHubRelease {
@@ -57,7 +58,7 @@ export class GitHubRelease {
 
     this.changelogPath = 'CHANGELOG.md';
 
-    this.gh = this.gitHubInstance();
+    this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
   async createRelease() {
@@ -96,7 +97,7 @@ export class GitHubRelease {
     }
   }
 
-  private gitHubInstance(): GitHub {
+  private gitHubInstance(octokitAPIs?: OctokitAPIs): GitHub {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({
       token: this.token,
@@ -104,6 +105,7 @@ export class GitHubRelease {
       repo,
       apiUrl: this.apiUrl,
       proxyKey: this.proxyKey,
+      octokitAPIs,
     });
   }
 
