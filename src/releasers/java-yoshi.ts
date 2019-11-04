@@ -26,6 +26,7 @@ import { Commit } from '../graphql-to-commits';
 // Generic
 import { Changelog } from '../updaters/changelog';
 // Java
+import { GoogleUtils } from '../updaters/java/google-utils';
 import { PomXML } from '../updaters/java/pom-xml';
 import { VersionsManifest } from '../updaters/java/versions-manifest';
 import { Readme } from '../updaters/java/readme';
@@ -213,6 +214,19 @@ export class JavaYoshi extends ReleasePR {
           versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
+        })
+      );
+
+      updates.push(
+        new GoogleUtils({
+          // TODO(@chingor): should this use search like pom.xml?
+          path:
+            'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidate.version,
+          packageName: this.packageName,
+          contents: versionsManifestContent,
         })
       );
     }

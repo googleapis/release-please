@@ -48,6 +48,10 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
+    const googleUtilsContent = readFileSync(
+      resolve(fixturesPath, 'GoogleUtils.java'),
+      'utf8'
+    );
     const graphql = JSON.parse(
       readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
     );
@@ -157,6 +161,25 @@ describe('JavaYoshi', () => {
         }
       )
       .reply(200)
+      // Update GoogleUtils.java
+      .get(
+        '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java?ref=refs%2Fheads%2Frelease-v0.20.4'
+      )
+      .reply(200, {
+        content: Buffer.from(googleUtilsContent, 'utf8').toString('base64'),
+        sha: 'abc123',
+      })
+      .put(
+        '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
+        (req: { [key: string]: string }) => {
+          snapshot(
+            'GoogleUtils',
+            Buffer.from(req.content, 'base64').toString('utf8')
+          );
+          return true;
+        }
+      )
+      .reply(200)
       // create release
       .post(
         '/repos/googleapis/java-trace/pulls',
@@ -193,14 +216,7 @@ describe('JavaYoshi', () => {
       resolve(fixturesPath, 'released-versions.txt'),
       'utf8'
     );
-    const readmeContent = readFileSync(
-      resolve(fixturesPath, 'README.md'),
-      'utf8'
-    );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
-    const graphql = JSON.parse(
-      readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
-    );
     const req = nock('https://api.github.com')
       .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
       .reply(200, undefined)
