@@ -51,7 +51,7 @@ describe('JavaYoshi', () => {
     const googleUtilsContent = readFileSync(
       resolve(fixturesPath, 'GoogleUtils.java'),
       'utf8'
-    );
+    ).replace(/\r\n/g, '\n');
     const graphql = JSON.parse(
       readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
     );
