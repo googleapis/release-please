@@ -131,6 +131,7 @@ export class JavaYoshi extends ReleasePR {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
     );
+    console.info('version.txt content', versionsManifestContent.parsedContent);
     const currentVersions = VersionsManifest.parseVersions(
       versionsManifestContent.parsedContent
     );
@@ -163,12 +164,14 @@ export class JavaYoshi extends ReleasePR {
       cc,
       latestTag
     );
+    console.info('current package versions:', currentVersions);
     const candidateVersions = await this.coerceVersions(cc, currentVersions);
     let changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag,
     });
+    console.info('candidate package versions:', candidateVersions);
 
     // snapshot entries are special:
     // 1. they don't update the README or CHANGELOG.
