@@ -61,7 +61,7 @@
     "figures": "^3.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^6.0.0",
-    "yargs": "^14.0.0"
+    "yargs": "^15.0.0"
   },
   "engines": {
     "node": ">=10.12.0"
