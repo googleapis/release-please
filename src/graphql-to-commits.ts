@@ -120,7 +120,7 @@ async function graphqlToCommit(
 
   // if the commit.sha and mergeCommit.oid do not match, assume that this
   // was a push to master and drop the commit.
-  if (commit.sha !== prEdge.node.mergeCommit.oid) {
+  if (!prEdge.node.mergeCommit || commit.sha !== prEdge.node.mergeCommit.oid) {
     return undefined;
   }
 
