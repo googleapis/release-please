@@ -439,7 +439,12 @@ export class GitHub {
     )) as Response<PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
-      if (this.hasAllLabels(labels, pull.labels.map(l => l.name))) {
+      if (
+        this.hasAllLabels(
+          labels,
+          pull.labels.map(l => l.name)
+        )
+      ) {
         // it's expected that a release PR will have a
         // HEAD matching the format repo:release-v1.0.0.
         if (!pull.head) continue;
@@ -884,11 +889,11 @@ export class GitHub {
   }
 
   async findFilesByFilename(filename: string): Promise<string[]> {
-    const response: Octokit.Response<
-      FileSearchResponse
-    > = await this.octokit.search.code({
-      q: `filename:${filename}+repo:${this.owner}/${this.repo}`,
-    });
+    const response: Octokit.Response<FileSearchResponse> = await this.octokit.search.code(
+      {
+        q: `filename:${filename}+repo:${this.owner}/${this.repo}`,
+      }
+    );
     return response.data.items.map(file => {
       return file.path;
     });
