@@ -46,7 +46,7 @@
     "mocha": "^6.1.4",
     "nock": "^11.0.0",
     "snap-shot-it": "^7.0.0",
-    "typescript": "^3.4.4"
+    "typescript": "3.6.4"
   },
   "dependencies": {
     "@octokit/graphql": "^4.0.0",
