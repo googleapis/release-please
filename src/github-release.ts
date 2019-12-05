@@ -71,9 +71,9 @@ export class GitHubRelease {
         CheckpointType.Success
       );
 
-      const changelogContents = (await this.gh.getFileContents(
-        this.changelogPath
-      )).parsedContent;
+      const changelogContents = (
+        await this.gh.getFileContents(this.changelogPath)
+      ).parsedContent;
       const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
         changelogContents,
         gitHubReleasePR.version
