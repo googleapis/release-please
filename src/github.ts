@@ -1,18 +1,16 @@
-/**
- * Copyright 2019 Google LLC.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import * as Octokit from '@octokit/rest';
 const { request } = require('@octokit/request');
@@ -441,7 +439,12 @@ export class GitHub {
     )) as Response<PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
-      if (this.hasAllLabels(labels, pull.labels.map(l => l.name))) {
+      if (
+        this.hasAllLabels(
+          labels,
+          pull.labels.map(l => l.name)
+        )
+      ) {
         // it's expected that a release PR will have a
         // HEAD matching the format repo:release-v1.0.0.
         if (!pull.head) continue;
@@ -886,11 +889,11 @@ export class GitHub {
   }
 
   async findFilesByFilename(filename: string): Promise<string[]> {
-    const response: Octokit.Response<
-      FileSearchResponse
-    > = await this.octokit.search.code({
-      q: `filename:${filename}+repo:${this.owner}/${this.repo}`,
-    });
+    const response: Octokit.Response<FileSearchResponse> = await this.octokit.search.code(
+      {
+        q: `filename:${filename}+repo:${this.owner}/${this.repo}`,
+      }
+    );
     return response.data.items.map(file => {
       return file.path;
     });

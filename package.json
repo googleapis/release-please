@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "2.16.0",
+  "version": "2.16.1",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -46,7 +46,7 @@
     "mocha": "^6.1.4",
     "nock": "^11.0.0",
     "snap-shot-it": "^7.0.0",
-    "typescript": "^3.4.4"
+    "typescript": "3.6.4"
   },
   "dependencies": {
     "@octokit/graphql": "^4.0.0",
@@ -61,7 +61,7 @@
     "figures": "^3.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^6.0.0",
-    "yargs": "^14.0.0"
+    "yargs": "^15.0.0"
   },
   "engines": {
     "node": ">=10.12.0"
