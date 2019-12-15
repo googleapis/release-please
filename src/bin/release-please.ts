@@ -14,9 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { coerceOption } from '../util/coerce-option';
 import { GitHubRelease, GitHubReleaseOptions } from '../github-release';
 import { ReleasePROptions } from '../release-pr';

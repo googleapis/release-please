@@ -52,7 +52,7 @@
     "@octokit/graphql": "^4.0.0",
     "@octokit/request": "^5.0.0",
     "@octokit/rest": "^16.24.1",
-    "chalk": "^2.4.2",
+    "chalk": "^3.0.0",
     "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.0.0",
     "conventional-changelog-writer": "^4.0.6",
