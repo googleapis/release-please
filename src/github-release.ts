@@ -12,14 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  IssuesListResponseItem,
-  PullsCreateResponse,
-  PullsListResponseItem,
-  ReposListTagsResponseItem,
-  Response,
-} from '@octokit/rest';
-import chalk from 'chalk';
+import chalk = require('chalk');
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
 import { GitHub, GitHubReleasePR, OctokitAPIs } from './github';

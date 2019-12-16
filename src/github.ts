@@ -17,13 +17,11 @@ const { request } = require('@octokit/request');
 import {
   AnyResponse,
   IssuesListResponseItem,
-  PullsCreateResponse,
   PullsListResponseItem,
-  ReposGetLatestReleaseResponse,
   ReposListTagsResponseItem,
   Response,
 } from '@octokit/rest';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import * as semver from 'semver';
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
