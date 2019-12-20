@@ -92,5 +92,4 @@ export class Python extends ReleasePR {
   protected defaultInitialVersion(): string {
     return '0.1.0';
   }
-
 }
