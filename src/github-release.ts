@@ -18,6 +18,7 @@ import { checkpoint, CheckpointType } from './util/checkpoint';
 import { GitHub, GitHubReleasePR, OctokitAPIs } from './github';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
+const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
 export interface GitHubReleaseOptions {
   label: string;
@@ -82,6 +83,11 @@ export class GitHubRelease {
         gitHubReleasePR.sha,
         latestReleaseNotes
       );
+      // Add a label indicating that a release has been created on GitHub,
+      // but a publication has not yet occurred.
+      await this.gh.addLabels([GITHUB_RELEASE_LABEL], gitHubReleasePR.number);
+      // Remove 'autorelease: pending' which indicates a GitHub release
+      // has not yet been created.
       await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
     } else {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
