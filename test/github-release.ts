@@ -50,10 +50,13 @@ describe('GitHubRelease', () => {
         })
         .post('/repos/googleapis/foo/releases')
         .reply(200)
-        .post('/repos/googleapis/foo/issues/1/labels', (body: { [key: string]: string }) => {
-          snapshot(body);
-          return true;
-        })
+        .post(
+          '/repos/googleapis/foo/issues/1/labels',
+          (body: { [key: string]: string }) => {
+            snapshot(body);
+            return true;
+          }
+        )
         .reply(200)
         .delete('/repos/googleapis/foo/issues/1/labels/autorelease:%20pending')
         .reply(200);
