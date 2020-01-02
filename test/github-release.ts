@@ -13,14 +13,59 @@
 // limitations under the License.
 
 import { readFileSync } from 'fs';
-import { basename, resolve } from 'path';
+import { resolve } from 'path';
 import * as snapshot from 'snap-shot-it';
+
+import * as nock from 'nock';
+nock.disableNetConnect();
 
 import { GitHubRelease } from '../src/github-release';
 
 const fixturesPath = './test/fixtures';
 
 describe('GitHubRelease', () => {
+  describe('createRelease', () => {
+    it('creates and labels release on GitHub', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        packageName: 'foo',
+        apiUrl: 'https://api.github.com',
+      });
+      const requests = nock('https://api.github.com')
+        .get('/repos/googleapis/foo/pulls?state=closed&per_page=100')
+        .reply(200, [
+          {
+            labels: [{ name: 'autorelease: pending' }],
+            head: {
+              label: 'head:release-v1.0.3',
+            },
+            number: 1,
+            merged_at: new Date().toISOString(),
+          },
+        ])
+        .get('/repos/googleapis/foo/contents/CHANGELOG.md')
+        .reply(200, {
+          content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
+        })
+        .post('/repos/googleapis/foo/releases')
+        .reply(200)
+        .post(
+          '/repos/googleapis/foo/issues/1/labels',
+          (body: { [key: string]: string }) => {
+            snapshot(body);
+            return true;
+          }
+        )
+        .reply(200)
+        .delete('/repos/googleapis/foo/issues/1/labels/autorelease:%20pending')
+        .reply(200);
+
+      await release.createRelease();
+      requests.done();
+    });
+  });
+
   describe('extractLatestReleaseNotes', () => {
     it('handles CHANGELOG with old and new format entries', () => {
       const changelogContent = readFileSync(

@@ -223,7 +223,7 @@ export class ReleasePR {
     });
     // a return of -1 indicates that PR was not updated.
     if (pr > 0) {
-      await this.gh.addLabels(pr, this.labels);
+      await this.gh.addLabels(this.labels, pr);
       await this.closeStaleReleasePRs(pr, includePackageName);
     }
   }

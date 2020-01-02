@@ -514,14 +514,14 @@ export class GitHub {
     return tags;
   }
 
-  async addLabels(pr: number, labels: string[]) {
+  async addLabels(labels: string[], pr: number) {
     checkpoint(
       `adding label ${chalk.green(labels.join(','))} to https://github.com/${
         this.owner
       }/${this.repo}/pull/${pr}`,
       CheckpointType.Success
     );
-    this.request(
+    return this.request(
       `POST /repos/:owner/:repo/issues/:issue_number/labels${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
       }`,
