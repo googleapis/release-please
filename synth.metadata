@@ -299,6 +299,9 @@
       "path": "src/releasers/java-yoshi.ts"
     },
     {
+      "path": "src/releasers/terraform-module.ts"
+    },
+    {
       "path": "src/releasers/node.ts"
     },
     {

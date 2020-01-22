@@ -29,6 +29,7 @@ export enum ReleaseType {
   JavaAuthYoshi = 'java-auth-yoshi',
   JavaYoshi = 'java-yoshi',
   Python = 'python',
+  TerraformModule = 'terraform-module',
   Ruby = 'ruby',
   RubyYoshi = 'ruby-yoshi',
 }

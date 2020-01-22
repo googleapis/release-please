@@ -162,6 +162,7 @@ action "github-release" {
       'java-auth-yoshi',
       'java-yoshi',
       'python',
+      'terraform-module',
       'ruby',
       'ruby-yoshi',
     ],
