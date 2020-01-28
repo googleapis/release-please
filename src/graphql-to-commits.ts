@@ -129,10 +129,18 @@ async function graphqlToCommit(
       commit.files.push(prEdge.node.files.edges[i].node.path);
     }
     if (prEdge.node.files.pageInfo.hasNextPage) {
-      prEdge = await github.pullRequestFiles(
-        prEdge.node.number,
-        prEdge.node.files.pageInfo.endCursor
-      );
+      try {
+        prEdge = await github.pullRequestFiles(
+          prEdge.node.number,
+          prEdge.node.files.pageInfo.endCursor
+        );
+      } catch (err) {
+        // TODO: figure out why prEdge.node.number sometimes links to
+        // data in GitHub that no longer exists, this would only cause
+        // issues for mono-repos that use commit-split.
+        console.warn(err);
+        break;
+      }
       continue;
     }
     if (prEdge.node.files.pageInfo.hasNextPage === false) break;
