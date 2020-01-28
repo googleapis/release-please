@@ -25,6 +25,7 @@ import { PHPYoshi } from './releasers/php-yoshi';
 import { Python } from './releasers/python';
 import { RubyYoshi } from './releasers/ruby-yoshi';
 import { JavaYoshi } from './releasers/java-yoshi';
+import { TerraformModule } from './releasers/terraform-module';
 
 export class ReleasePRFactory {
   static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
@@ -42,6 +43,8 @@ export class ReleasePRFactory {
         return new JavaAuthYoshi(releaseOptions);
       case ReleaseType.JavaYoshi:
         return new JavaYoshi(releaseOptions);
+      case ReleaseType.TerraformModule:
+        return new TerraformModule(releaseOptions);
       case ReleaseType.Python:
         return new Python(releaseOptions);
       case ReleaseType.Ruby:
