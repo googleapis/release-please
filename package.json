@@ -36,7 +36,7 @@
   "homepage": "https://github.com/googleapis/release-please#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.6",
+    "@types/mocha": "^7.0.0",
     "@types/node": "^11.13.6",
     "@types/semver": "^7.0.0",
     "c8": "^7.0.0",
