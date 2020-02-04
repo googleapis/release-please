@@ -49,9 +49,9 @@
     "typescript": "3.6.4"
   },
   "dependencies": {
-    "@octokit/graphql": "^4.0.0",
-    "@octokit/request": "^5.0.0",
-    "@octokit/rest": "^16.24.1",
+    "@octokit/graphql": "^4.3.1",
+    "@octokit/request": "^5.3.1",
+    "@octokit/rest": "^16.43.1",
     "chalk": "^3.0.0",
     "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.0.0",

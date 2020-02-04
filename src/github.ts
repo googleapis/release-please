@@ -12,15 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as Octokit from '@octokit/rest';
+import { Octokit } from '@octokit/rest';
 const { request } = require('@octokit/request');
-import {
-  AnyResponse,
-  IssuesListResponseItem,
-  PullsListResponseItem,
-  ReposListTagsResponseItem,
-  Response,
-} from '@octokit/rest';
 import chalk = require('chalk');
 import * as semver from 'semver';
 
@@ -404,7 +397,7 @@ export class GitHub {
         repo: this.repo,
         name,
       }
-    )) as AnyResponse;
+    )) as Octokit.AnyResponse;
     return refResponse.data.object.sha;
   }
 
@@ -434,7 +427,7 @@ export class GitHub {
         owner: this.owner,
         repo: this.repo,
       }
-    )) as Response<PullsListResponseItem[]>;
+    )) as Octokit.Response<Octokit.PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       if (
@@ -469,8 +462,8 @@ export class GitHub {
   async findOpenReleasePRs(
     labels: string[],
     perPage = 100
-  ): Promise<PullsListResponseItem[]> {
-    const openReleasePRs: PullsListResponseItem[] = [];
+  ): Promise<Octokit.PullsListResponseItem[]> {
+    const openReleasePRs: Octokit.PullsListResponseItem[] = [];
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
@@ -479,7 +472,7 @@ export class GitHub {
         owner: this.owner,
         repo: this.repo,
       }
-    )) as Response<PullsListResponseItem[]>;
+    )) as Octokit.Response<Octokit.PullsListResponseItem[]>;
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       for (let ii = 0, label; ii < pull.labels.length; ii++) {
@@ -504,7 +497,7 @@ export class GitHub {
         }`,
       })
     )) {
-      response.data.forEach((data: ReposListTagsResponseItem) => {
+      response.data.forEach((data: Octokit.ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
         if (version) {
           tags[version] = { sha: data.commit.sha, name: data.name, version };
@@ -538,7 +531,7 @@ export class GitHub {
     title: string,
     labels: string[],
     perPage = 100
-  ): Promise<IssuesListResponseItem | undefined> {
+  ): Promise<Octokit.IssuesListResponseItem | undefined> {
     const paged = 0;
     try {
       for await (const response of this.octokit.paginate.iterator(
@@ -551,7 +544,7 @@ export class GitHub {
         })
       )) {
         for (let i = 0, issue; response.data[i] !== undefined; i++) {
-          const issue: IssuesListResponseItem = response.data[i];
+          const issue: Octokit.IssuesListResponseItem = response.data[i];
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
             return issue;
           }
@@ -571,7 +564,7 @@ export class GitHub {
 
   async openPR(options: GitHubPR): Promise<number> {
     let refName = await this.refByBranchName(options.branch);
-    let openReleasePR: PullsListResponseItem | undefined;
+    let openReleasePR: Octokit.PullsListResponseItem | undefined;
 
     // If the branch exists, we delete it and create a new branch
     // with the same name; this results in the existing PR being closed.
@@ -615,7 +608,7 @@ export class GitHub {
         // check if there's an existing PR, so that we can opt to update it
         // rather than creating a new PR.
         (await this.findOpenReleasePRs(options.labels)).forEach(
-          (releasePR: PullsListResponseItem) => {
+          (releasePR: Octokit.PullsListResponseItem) => {
             if (refName && refName.indexOf(releasePR.head.ref) !== -1) {
               openReleasePR = releasePR;
             }

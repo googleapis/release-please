@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { PullsListResponseItem } from '@octokit/rest';
+import { Octokit } from '@octokit/rest';
 import * as semver from 'semver';
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
@@ -115,10 +115,10 @@ export class ReleasePR {
     currentPRNumber: number,
     includePackageName = false
   ) {
-    const prs: PullsListResponseItem[] = await this.gh.findOpenReleasePRs(
+    const prs: Octokit.PullsListResponseItem[] = await this.gh.findOpenReleasePRs(
       this.labels
     );
-    for (let i = 0, pr: PullsListResponseItem; i < prs.length; i++) {
+    for (let i = 0, pr: Octokit.PullsListResponseItem; i < prs.length; i++) {
       pr = prs[i];
       // don't close the most up-to-date release PR.
       if (pr.number !== currentPRNumber) {
