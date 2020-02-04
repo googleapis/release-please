@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -36,7 +36,7 @@
   "homepage": "https://github.com/googleapis/release-please#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.6",
+    "@types/mocha": "^7.0.0",
     "@types/node": "^11.13.6",
     "@types/semver": "^7.0.0",
     "c8": "^7.0.0",

@@ -30,6 +30,20 @@ import { PHPManifest } from '../updaters/php-manifest';
 import { RootComposer } from '../updaters/root-composer';
 import { Version } from '../updaters/version';
 
+const CHANGELOG_SECTIONS = [
+  { type: 'feat', section: 'Features' },
+  { type: 'fix', section: 'Bug Fixes' },
+  { type: 'perf', section: 'Performance Improvements' },
+  { type: 'revert', section: 'Reverts' },
+  { type: 'docs', section: 'Documentation' },
+  { type: 'chore', section: 'Miscellaneous Chores' },
+  { type: 'style', section: 'Styles', hidden: true },
+  { type: 'refactor', section: 'Code Refactoring', hidden: true },
+  { type: 'test', section: 'Tests', hidden: true },
+  { type: 'build', section: 'Build System', hidden: true },
+  { type: 'ci', section: 'Continuous Integration', hidden: true },
+];
+
 interface PHPYoshiBulkUpdate {
   changelogEntry: string;
   versionUpdates: VersionsMap;
@@ -48,6 +62,7 @@ export class PHPYoshi extends ReleasePR {
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: true,
+      changelogSections: CHANGELOG_SECTIONS,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       ccb,
