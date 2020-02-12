@@ -473,14 +473,18 @@ export class GitHub {
         repo: this.repo,
       }
     )) as Octokit.Response<Octokit.PullsListResponseItem[]>;
-    for (let i = 0, pull; i < pullsResponse.data.length; i++) {
-      pull = pullsResponse.data[i];
-      for (let ii = 0, label; ii < pull.labels.length; ii++) {
-        label = pull.labels[ii];
-        if (labels.indexOf(label.name) !== -1) {
-          openReleasePRs.push(pull);
+    for (const pull of pullsResponse.data) {
+      let hasAllLabels = false;
+      const observedLabels = pull.labels.map(l => l.name);
+      for (const expectedLabel of labels) {
+        if (observedLabels.includes(expectedLabel)) {
+          hasAllLabels = true;
+        } else {
+          hasAllLabels = false;
+          break;
         }
       }
+      if (hasAllLabels) openReleasePRs.push(pull);
     }
     return openReleasePRs;
   }

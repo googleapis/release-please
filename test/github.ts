@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as nock from 'nock';
+import { expect } from 'chai';
 nock.disableNetConnect();
 
 import { readFileSync } from 'fs';
@@ -56,6 +57,51 @@ describe('GitHub', () => {
         .reply(200, fileSearchResponse);
       const pomFiles = await github.findFilesByFilename('pom.xml');
       snapshot(pomFiles);
+      req.done();
+    });
+  });
+
+  describe('findOpenReleasePRs', () => {
+    it('returns PRs that have all release labels', async () => {
+      const req = nock('https://api.github.com')
+        .get('/repos/fake/fake/pulls?state=open&per_page=100')
+        .reply(200, [
+          {
+            number: 99,
+            labels: [{ name: 'autorelease: pending' }, { name: 'process' }],
+          },
+          {
+            number: 100,
+            labels: [{ name: 'autorelease: pending' }],
+          },
+        ]);
+      const prs = await github.findOpenReleasePRs([
+        'autorelease: pending',
+        'process',
+      ]);
+      const numbers = prs.map(pr => pr.number);
+      expect(numbers).to.include(99);
+      expect(numbers).to.not.include(100);
+      req.done();
+    });
+
+    it('returns PRs when only one release label is configured', async () => {
+      const req = nock('https://api.github.com')
+        .get('/repos/fake/fake/pulls?state=open&per_page=100')
+        .reply(200, [
+          {
+            number: 99,
+            labels: [{ name: 'autorelease: pending' }, { name: 'process' }],
+          },
+          {
+            number: 100,
+            labels: [{ name: 'autorelease: pending' }],
+          },
+        ]);
+      const prs = await github.findOpenReleasePRs(['autorelease: pending']);
+      const numbers = prs.map(pr => pr.number);
+      expect(numbers).to.include(99);
+      expect(numbers).to.include(100);
       req.done();
     });
   });
