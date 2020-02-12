@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [3.2.1](https://www.github.com/googleapis/release-please/compare/v3.2.0...v3.2.1) (2020-02-12)
+
+
+### Bug Fixes
+
+* process label was causing PRs to be closed ([#358](https://www.github.com/googleapis/release-please/issues/358)) ([de3d557](https://www.github.com/googleapis/release-please/commit/de3d557c49dbded349a630fa6f5aa8cd5a2a2112))
+* release version of library with up-to-date octokit deps ([#355](https://www.github.com/googleapis/release-please/issues/355)) ([b8709f1](https://www.github.com/googleapis/release-please/commit/b8709f1a89e1baedb74e86057b27ab70b62677f6))
+
 ## [3.2.0](https://www.github.com/googleapis/release-please/compare/v3.1.1...v3.2.0) (2020-02-03)
 
 
