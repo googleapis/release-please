@@ -493,8 +493,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 
 exports['labels'] = {
   "labels": [
-    "autorelease: pending",
-    "type: process"
+    "autorelease: pending"
   ]
 }
 

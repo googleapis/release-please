@@ -57,7 +57,7 @@ export interface ReleaseCandidate {
   previousTag?: string;
 }
 
-const DEFAULT_LABELS = 'autorelease: pending,type: process';
+const DEFAULT_LABELS = 'autorelease: pending';
 
 export class ReleasePR {
   apiUrl: string;
@@ -127,7 +127,10 @@ export class ReleasePR {
         if (includePackageName && !pr.title.includes(` ${this.packageName} `)) {
           continue;
         }
-        checkpoint(`closing pull #${pr.number}`, CheckpointType.Failure);
+        checkpoint(
+          `closing pull #${pr.number} on ${this.repoUrl}`,
+          CheckpointType.Failure
+        );
         await this.gh.closePR(pr.number);
       }
     }
@@ -225,6 +228,10 @@ export class ReleasePR {
     // a return of -1 indicates that PR was not updated.
     if (pr > 0) {
       await this.gh.addLabels(this.labels, pr);
+      checkpoint(
+        `${this.repoUrl} find stale PRs with label "${this.labels.join(',')}"`,
+        CheckpointType.Success
+      );
       await this.closeStaleReleasePRs(pr, includePackageName);
     }
   }
