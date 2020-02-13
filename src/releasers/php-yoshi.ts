@@ -152,6 +152,7 @@ export class PHPYoshi extends ReleasePR {
         commits: commitLookup[pkgKey],
         githubRepoUrl: this.repoUrl,
         bumpMinorPreMajor: this.bumpMinorPreMajor,
+        changelogSections: CHANGELOG_SECTIONS,
       });
 
       // some packages in the mono-repo might have only had chores,
