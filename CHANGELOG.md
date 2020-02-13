@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [3.2.2](https://www.github.com/googleapis/release-please/compare/v3.2.1...v3.2.2) (2020-02-13)
+
+
+### Bug Fixes
+
+* support changelog types for PHP components ([#359](https://www.github.com/googleapis/release-please/issues/359)) ([c73dc13](https://www.github.com/googleapis/release-please/commit/c73dc131041c8d6bfaa887ffb3144ed4f8e5415f))
+
 ### [3.2.1](https://www.github.com/googleapis/release-please/compare/v3.2.0...v3.2.1) (2020-02-12)
 
 
