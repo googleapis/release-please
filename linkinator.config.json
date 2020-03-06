@@ -4,5 +4,7 @@
     "https://codecov.io/gh/googleapis/",
     "www.googleapis.com",
     "img.shields.io"
-  ]
+  ],
+  "silent": true,
+  "concurrency": 10
 }
