@@ -144,7 +144,7 @@ export class ReleasePR {
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined
   ): Promise<ReleaseCandidate> {
-    const releaseAsRe = /release-as: v?([0-9]+\.[0-9]+\.[0-9a-z-])+$/i;
+    const releaseAsRe = /release-as: v?([0-9]+\.[0-9]+\.[0-9a-z-])+\s*/i;
     const previousTag = latestTag ? latestTag.name : undefined;
     let version = latestTag ? latestTag.version : this.defaultInitialVersion();
 
