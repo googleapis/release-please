@@ -308,5 +308,37 @@ describe('GitHub', () => {
       const candidate = await rp.coerceReleaseCandidate(cc);
       expect(candidate.version).to.equal('2.0.0');
     });
+
+    it('it handles additional content after release-as: footer', async () => {
+      const rp = new TestableReleasePR({
+        repoUrl: 'googleapis/nodejs',
+        packageName: '@google-cloud/nodejs',
+        apiUrl: 'github.com',
+        releaseType: ReleaseType.Node,
+      });
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            sha: 'abc123',
+            message: 'fix: addresses issues with library',
+            files: [],
+          },
+          {
+            sha: 'abc124',
+            message:
+              'feat: adds a slick new feature\nRelease-As: 2.0.0\r\nSecond Footer: hello',
+            files: [],
+          },
+          {
+            sha: 'abc125',
+            message: 'fix: another fix\n\nRelease-As: 3.0.0',
+            files: [],
+          },
+        ],
+        githubRepoUrl: 'googleapis/nodejs',
+      });
+      const candidate = await rp.coerceReleaseCandidate(cc);
+      expect(candidate.version).to.equal('2.0.0');
+    });
   });
 });
