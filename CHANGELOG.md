@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [3.2.3](https://www.github.com/googleapis/release-please/compare/v3.2.2...v3.2.3) (2020-03-16)
+
+
+### Bug Fixes
+
+* handle additional content after release-as: footer ([#369](https://www.github.com/googleapis/release-please/issues/369)) ([dcdc054](https://www.github.com/googleapis/release-please/commit/dcdc054beb0ad0944e08bba41c5da6d36236a6cf))
+
 ### [3.2.2](https://www.github.com/googleapis/release-please/compare/v3.2.1...v3.2.2) (2020-02-13)
 
 
