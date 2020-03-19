@@ -73,7 +73,6 @@ export class Python extends ReleasePR {
       })
     );
 
-
     updates.push(
       new SetupCfg({
         path: 'setup.cfg',
