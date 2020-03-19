@@ -1,3 +1,4 @@
+exports['setup.cfg updateContent updates version in setup.cfg 1'] = `
 # Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
 
 [metadata]
 name = google-crc32c
-version = 0.1.0
+version = 0.6.0
 description = A python wrapper of the C library 'Google CRC32C'
 url = https://github.com/googleapis/python-crc32c
 long_description = file: README.md
@@ -42,3 +43,5 @@ python_requires = >=3.5
 [options.extras_require]
 testing = pytest
 
+
+`
