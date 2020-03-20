@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [3.3.0](https://www.github.com/googleapis/release-please/compare/v3.2.3...v3.3.0) (2020-03-20)
+
+
+### Features
+
+* **python:** Add support to change version in setup.cfg ([#374](https://www.github.com/googleapis/release-please/issues/374)) ([4a9ef3d](https://www.github.com/googleapis/release-please/commit/4a9ef3dc7d846e3f0a137cc2ab89f843ab602355))
+
 ### [3.2.3](https://www.github.com/googleapis/release-please/compare/v3.2.2...v3.2.3) (2020-03-16)
 
 
