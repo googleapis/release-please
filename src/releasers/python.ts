@@ -24,6 +24,7 @@ import { Commit } from '../graphql-to-commits';
 import { Changelog } from '../updaters/changelog';
 // Python specific.
 import { SetupPy } from '../updaters/python/setup-py';
+import { SetupCfg } from '../updaters/python/setup-cfg';
 
 export class Python extends ReleasePR {
   protected async _run() {
@@ -72,6 +73,14 @@ export class Python extends ReleasePR {
       })
     );
 
+    updates.push(
+      new SetupCfg({
+        path: 'setup.cfg',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
     updates.push(
       new SetupPy({
         path: 'setup.py',
