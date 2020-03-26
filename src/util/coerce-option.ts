@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync, statSync, Stats } from 'fs';
+import {readFileSync, statSync, Stats} from 'fs';
 
 // if an option looks like a file path, assume it's a
 // path to a key and load it.

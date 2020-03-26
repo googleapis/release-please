@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Octokit } from '@octokit/rest';
-const { request } = require('@octokit/request');
+import {Octokit} from '@octokit/rest';
+const {request} = require('@octokit/request');
 import chalk = require('chalk');
 import * as semver from 'semver';
 
-import { checkpoint, CheckpointType } from './util/checkpoint';
+import {checkpoint, CheckpointType} from './util/checkpoint';
 import {
   Commit,
   CommitsResponse,
   graphqlToCommits,
   PREdge,
 } from './graphql-to-commits';
-import { Update } from './updaters/update';
+import {Update} from './updaters/update';
 
-const { graphql } = require('@octokit/graphql');
+const {graphql} = require('@octokit/graphql');
 
 const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
 
@@ -101,8 +101,8 @@ export class GitHub {
     this.proxyKey = options.proxyKey;
 
     if (options.octokitAPIs === undefined) {
-      this.octokit = new Octokit({ baseUrl: options.apiUrl });
-      const defaults: { [key: string]: string | object } = {
+      this.octokit = new Octokit({baseUrl: options.apiUrl});
+      const defaults: {[key: string]: string | object} = {
         baseUrl: this.apiUrl,
         headers: {
           'user-agent': `release-please/${
@@ -144,7 +144,7 @@ export class GitHub {
 
   private decoratePaginateOpts(opts: {
     [key: string]: string | number;
-  }): { [key: string]: string | number } {
+  }): {[key: string]: string | number} {
     if (probotMode) {
       return opts;
     } else {
@@ -384,7 +384,7 @@ export class GitHub {
       repo: this.repo,
       num,
     });
-    return { node: response.repository.pullRequest } as PREdge;
+    return {node: response.repository.pullRequest} as PREdge;
   }
 
   async getTagSha(name: string): Promise<string> {
@@ -402,7 +402,7 @@ export class GitHub {
   }
 
   async latestTag(perPage = 100): Promise<GitHubTag | undefined> {
-    const tags: { [version: string]: GitHubTag } = await this.allTags(perPage);
+    const tags: {[version: string]: GitHubTag} = await this.allTags(perPage);
     const versions = Object.keys(tags);
     // no tags have been created yet.
     if (versions.length === 0) return undefined;
@@ -491,8 +491,8 @@ export class GitHub {
 
   private async allTags(
     perPage = 100
-  ): Promise<{ [version: string]: GitHubTag }> {
-    const tags: { [version: string]: GitHubTag } = {};
+  ): Promise<{[version: string]: GitHubTag}> {
+    const tags: {[version: string]: GitHubTag} = {};
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
         method: 'GET',
@@ -504,7 +504,7 @@ export class GitHub {
       response.data.forEach((data: Octokit.ReposListTagsResponseItem) => {
         const version = semver.valid(data.name);
         if (version) {
-          tags[version] = { sha: data.commit.sha, name: data.name, version };
+          tags[version] = {sha: data.commit.sha, name: data.name, version};
         }
       });
     }
@@ -711,7 +711,7 @@ export class GitHub {
         if (update.contents) {
           // we already loaded the file contents earlier, let's not
           // hit GitHub again.
-          content = { data: update.contents };
+          content = {data: update.contents};
         } else {
           content = await this.request(
             `GET /repos/:owner/:repo/contents/:path${

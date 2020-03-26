@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Octokit } from '@octokit/rest';
+import {Octokit} from '@octokit/rest';
 import * as semver from 'semver';
 
-import { checkpoint, CheckpointType } from './util/checkpoint';
-import { ConventionalCommits } from './conventional-commits';
-import { GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs } from './github';
-import { Commit } from './graphql-to-commits';
-import { Update } from './updaters/update';
+import {checkpoint, CheckpointType} from './util/checkpoint';
+import {ConventionalCommits} from './conventional-commits';
+import {GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs} from './github';
+import {Commit} from './graphql-to-commits';
+import {Update} from './updaters/update';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
@@ -170,7 +170,7 @@ export class ReleasePR {
       version = this.releaseAs;
     }
 
-    return { version, previousTag };
+    return {version, previousTag};
   }
 
   protected async commits(

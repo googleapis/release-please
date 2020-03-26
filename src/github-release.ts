@@ -14,8 +14,8 @@
 
 import chalk = require('chalk');
 
-import { checkpoint, CheckpointType } from './util/checkpoint';
-import { GitHub, GitHubReleasePR, OctokitAPIs } from './github';
+import {checkpoint, CheckpointType} from './util/checkpoint';
+import {GitHub, GitHubReleasePR, OctokitAPIs} from './github';
 
 const parseGithubRepoUrl = require('parse-github-repo-url');
 const GITHUB_RELEASE_LABEL = 'autorelease: tagged';

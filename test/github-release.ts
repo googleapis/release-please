@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
 import * as nock from 'nock';
 nock.disableNetConnect();
 
-import { GitHubRelease } from '../src/github-release';
+import {GitHubRelease} from '../src/github-release';
 
 const fixturesPath = './test/fixtures';
 
@@ -36,7 +36,7 @@ describe('GitHubRelease', () => {
         .get('/repos/googleapis/foo/pulls?state=closed&per_page=100')
         .reply(200, [
           {
-            labels: [{ name: 'autorelease: pending' }],
+            labels: [{name: 'autorelease: pending'}],
             head: {
               label: 'head:release-v1.0.3',
             },
@@ -52,7 +52,7 @@ describe('GitHubRelease', () => {
         .reply(200)
         .post(
           '/repos/googleapis/foo/issues/1/labels',
-          (body: { [key: string]: string }) => {
+          (body: {[key: string]: string}) => {
             snapshot(body);
             return true;
           }

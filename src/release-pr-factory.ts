@@ -18,20 +18,20 @@ import {
   ReleasePR,
   ReleasePROptions,
 } from './release-pr';
-import { Ruby, RubyReleasePROptions } from './releasers/ruby';
-import { JavaAuthYoshi } from './releasers/java-auth-yoshi';
-import { Node } from './releasers/node';
-import { PHPYoshi } from './releasers/php-yoshi';
-import { Python } from './releasers/python';
-import { RubyYoshi } from './releasers/ruby-yoshi';
-import { JavaYoshi } from './releasers/java-yoshi';
-import { TerraformModule } from './releasers/terraform-module';
+import {Ruby, RubyReleasePROptions} from './releasers/ruby';
+import {JavaAuthYoshi} from './releasers/java-auth-yoshi';
+import {Node} from './releasers/node';
+import {PHPYoshi} from './releasers/php-yoshi';
+import {Python} from './releasers/python';
+import {RubyYoshi} from './releasers/ruby-yoshi';
+import {JavaYoshi} from './releasers/java-yoshi';
+import {TerraformModule} from './releasers/terraform-module';
 
 export class ReleasePRFactory {
   static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
     const releaseOptions: ReleasePROptions = {
       ...options,
-      ...{ releaseType },
+      ...{releaseType},
     };
     switch (releaseType) {
       case ReleaseType.Node:

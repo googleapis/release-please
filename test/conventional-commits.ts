@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ConventionalCommits } from '../src/conventional-commits';
+import {ConventionalCommits} from '../src/conventional-commits';
 
-const { expect } = require('chai');
+const {expect} = require('chai');
 
 describe('ConventionalCommits', () => {
   describe('suggestBump', () => {
@@ -32,7 +32,7 @@ describe('ConventionalCommits', () => {
             sha: 'abc345',
             files: [],
           },
-          { message: 'feat: awesome feature', sha: 'abc678', files: [] },
+          {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
         githubRepoUrl: 'https://github.com/bcoe/release-please.git',
         bumpMinorPreMajor: true,

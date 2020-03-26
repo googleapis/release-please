@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const { expect } = require('chai');
+const {expect} = require('chai');
 const nock = require('nock');
 nock.disableNetConnect();
 
-import { ConventionalCommits } from '../src/conventional-commits';
-import { GitHubTag } from '../src/github';
+import {ConventionalCommits} from '../src/conventional-commits';
+import {GitHubTag} from '../src/github';
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { ReleaseCandidate, ReleaseType, ReleasePR } from '../src/release-pr';
-import { PHPYoshi } from '../src/releasers/php-yoshi';
+import {ReleaseCandidate, ReleaseType, ReleasePR} from '../src/release-pr';
+import {PHPYoshi} from '../src/releasers/php-yoshi';
 
 const fixturesPath = './test/fixtures';
 
@@ -174,7 +174,7 @@ describe('GitHub', () => {
         .post('/repos/googleapis/release-please/git/refs')
         .reply(200)
         .post('/repos/googleapis/release-please/issues/1/labels')
-        .reply(200, { number: 1 })
+        .reply(200, {number: 1})
         .put('/repos/googleapis/release-please/contents/AutoMl/VERSION')
         .reply(200)
         .put('/repos/googleapis/release-please/contents/Datastore/VERSION')
@@ -191,7 +191,7 @@ describe('GitHub', () => {
         .reply(200, [])
         .put(
           '/repos/googleapis/release-please/contents/docs/manifest.json',
-          (req: { [key: string]: string }) => {
+          (req: {[key: string]: string}) => {
             const manifest = Buffer.from(req.content, 'base64').toString(
               'utf8'
             );
@@ -206,7 +206,7 @@ describe('GitHub', () => {
         // so we snapshot it:
         .post(
           '/repos/googleapis/release-please/pulls',
-          (req: { [key: string]: string }) => {
+          (req: {[key: string]: string}) => {
             const body = req.body.replace(
               /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
               ''
@@ -215,7 +215,7 @@ describe('GitHub', () => {
             return true;
           }
         )
-        .reply(200, { number: 1 })
+        .reply(200, {number: 1})
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
         .reply(200, []);

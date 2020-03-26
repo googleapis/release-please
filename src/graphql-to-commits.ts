@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { GitHub } from './github';
+import {GitHub} from './github';
 
 const CONVENTIONAL_COMMIT_REGEX = /^[\w]+(\(\w+\))?!?: /;
 
@@ -33,7 +33,7 @@ export interface Commit {
 // define what the expected GraphQL response looks like.
 
 interface CommitHistoryGraphQLResponse {
-  repository: { defaultBranchRef: { target: { history: CommitHistory } } };
+  repository: {defaultBranchRef: {target: {history: CommitHistory}}};
 }
 
 interface CommitHistory {
@@ -45,25 +45,25 @@ interface CommitEdge {
   node: {
     message: string;
     oid: string;
-    associatedPullRequests: { edges: PREdge[] };
+    associatedPullRequests: {edges: PREdge[]};
   };
 }
 
 export interface PREdge {
   node: {
     number: number;
-    mergeCommit: { oid: string };
-    files: { edges: FileEdge[]; pageInfo: PageInfo };
-    labels: { edges: LabelEdge[] };
+    mergeCommit: {oid: string};
+    files: {edges: FileEdge[]; pageInfo: PageInfo};
+    labels: {edges: LabelEdge[]};
   };
 }
 
 interface FileEdge {
-  node: { path: string };
+  node: {path: string};
 }
 
 interface LabelEdge {
-  node: { name: string };
+  node: {name: string};
 }
 
 interface PageInfo {

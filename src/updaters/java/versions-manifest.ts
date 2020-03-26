@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { VersionsMap } from '../update';
-import { JavaUpdate } from './java_update';
+import {VersionsMap} from '../update';
+import {JavaUpdate} from './java_update';
 
 export class VersionsManifest extends JavaUpdate {
   updateContent(content: string): string {

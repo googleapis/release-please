@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { expect } from 'chai';
+import {expect} from 'chai';
 
-import { GitHub, GitHubTag } from '../src/github';
-import { Commit } from '../src/graphql-to-commits';
-import { Update, UpdateOptions } from '../src/updaters/update';
+import {GitHub, GitHubTag} from '../src/github';
+import {Commit} from '../src/graphql-to-commits';
+import {Update, UpdateOptions} from '../src/updaters/update';
 
-const { readFileSync } = require('fs');
-const { resolve } = require('path');
+const {readFileSync} = require('fs');
+const {resolve} = require('path');
 
 const token = readFileSync(process.env.TOKEN_PATH, 'utf8').trim();
 const apiUrl = readFileSync(process.env.API_URL_PATH, 'utf8').trim();

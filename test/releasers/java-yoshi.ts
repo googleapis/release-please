@@ -15,11 +15,11 @@
 const nock = require('nock');
 nock.disableNetConnect();
 
-import { Version, JavaYoshi } from '../../src/releasers/java-yoshi';
-import { expect } from 'chai';
-import { ReleaseType } from '../../src/release-pr';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {Version, JavaYoshi} from '../../src/releasers/java-yoshi';
+import {expect} from 'chai';
+import {ReleaseType} from '../../src/release-pr';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
 const fixturesPath = './test/releasers/fixtures';
@@ -80,11 +80,11 @@ describe('JavaYoshi', () => {
       .get('/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-trace')
       .reply(200, {
         total_count: 1,
-        items: [{ name: 'pom.xml', path: 'pom.xml' }],
+        items: [{name: 'pom.xml', path: 'pom.xml'}],
       })
       // getting the latest tag
       .get('/repos/googleapis/java-trace/git/refs?per_page=100')
-      .reply(200, [{ ref: 'refs/tags/v0.20.3' }])
+      .reply(200, [{ref: 'refs/tags/v0.20.3'}])
       // creating a new branch
       .post('/repos/googleapis/java-trace/git/refs')
       .reply(200)
@@ -95,7 +95,7 @@ describe('JavaYoshi', () => {
       .reply(404)
       .put(
         '/repos/googleapis/java-trace/contents/CHANGELOG.md',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot(
             'CHANGELOG',
             Buffer.from(req.content, 'base64')
@@ -115,7 +115,7 @@ describe('JavaYoshi', () => {
       })
       .put(
         '/repos/googleapis/java-trace/contents/README.md',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot(
             'README',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -134,7 +134,7 @@ describe('JavaYoshi', () => {
       })
       .put(
         '/repos/googleapis/java-trace/contents/versions.txt',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot(
             'versions',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -153,7 +153,7 @@ describe('JavaYoshi', () => {
       })
       .put(
         '/repos/googleapis/java-trace/contents/pom.xml',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot('pom', Buffer.from(req.content, 'base64').toString('utf8'));
           return true;
         }
@@ -169,7 +169,7 @@ describe('JavaYoshi', () => {
       })
       .put(
         '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot(
             'GoogleUtils',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -181,16 +181,16 @@ describe('JavaYoshi', () => {
       // create release
       .post(
         '/repos/googleapis/java-trace/pulls',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           const body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
           snapshot('PR body', body);
           return true;
         }
       )
-      .reply(200, { number: 1 })
+      .reply(200, {number: 1})
       .post(
         '/repos/googleapis/java-trace/issues/1/labels',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot('labels', req);
           return true;
         }
@@ -238,11 +238,11 @@ describe('JavaYoshi', () => {
       .get('/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-trace')
       .reply(200, {
         total_count: 1,
-        items: [{ name: 'pom.xml', path: 'pom.xml' }],
+        items: [{name: 'pom.xml', path: 'pom.xml'}],
       })
       // getting the latest tag
       .get('/repos/googleapis/java-trace/git/refs?per_page=100')
-      .reply(200, [{ ref: 'refs/tags/v0.20.3' }])
+      .reply(200, [{ref: 'refs/tags/v0.20.3'}])
       // creating a new branch
       .post('/repos/googleapis/java-trace/git/refs')
       .reply(200)
@@ -256,7 +256,7 @@ describe('JavaYoshi', () => {
       })
       .put(
         '/repos/googleapis/java-trace/contents/versions.txt',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot(
             'versions-snapshot',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -275,7 +275,7 @@ describe('JavaYoshi', () => {
       })
       .put(
         '/repos/googleapis/java-trace/contents/pom.xml',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot(
             'pom-snapshot',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -287,16 +287,16 @@ describe('JavaYoshi', () => {
       // create release
       .post(
         '/repos/googleapis/java-trace/pulls',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           const body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
           snapshot('PR body-snapshot', body);
           return true;
         }
       )
-      .reply(200, { number: 1 })
+      .reply(200, {number: 1})
       .post(
         '/repos/googleapis/java-trace/issues/1/labels',
-        (req: { [key: string]: string }) => {
+        (req: {[key: string]: string}) => {
           snapshot('labels-snapshot', req);
           return true;
         }

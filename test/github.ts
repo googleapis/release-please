@@ -13,15 +13,15 @@
 // limitations under the License.
 
 import * as nock from 'nock';
-import { expect } from 'chai';
+import {expect} from 'chai';
 nock.disableNetConnect();
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import { GitHub } from '../src/github';
-const github = new GitHub({ owner: 'fake', repo: 'fake' });
+import {GitHub} from '../src/github';
+const github = new GitHub({owner: 'fake', repo: 'fake'});
 
 const fixturesPath = './test/fixtures';
 
@@ -34,11 +34,9 @@ describe('GitHub', () => {
           'utf8'
         )
       );
-      const req = nock('https://api.github.com')
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        });
+      const req = nock('https://api.github.com').post('/graphql').reply(200, {
+        data: graphql,
+      });
       const commitsSinceSha = await github.commitsSinceSha(
         'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b'
       );
@@ -68,11 +66,11 @@ describe('GitHub', () => {
         .reply(200, [
           {
             number: 99,
-            labels: [{ name: 'autorelease: pending' }, { name: 'process' }],
+            labels: [{name: 'autorelease: pending'}, {name: 'process'}],
           },
           {
             number: 100,
-            labels: [{ name: 'autorelease: pending' }],
+            labels: [{name: 'autorelease: pending'}],
           },
         ]);
       const prs = await github.findOpenReleasePRs([
@@ -91,11 +89,11 @@ describe('GitHub', () => {
         .reply(200, [
           {
             number: 99,
-            labels: [{ name: 'autorelease: pending' }, { name: 'process' }],
+            labels: [{name: 'autorelease: pending'}, {name: 'process'}],
           },
           {
             number: 100,
-            labels: [{ name: 'autorelease: pending' }],
+            labels: [{name: 'autorelease: pending'}],
           },
         ]);
       const prs = await github.findOpenReleasePRs(['autorelease: pending']);

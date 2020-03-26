@@ -14,11 +14,11 @@
 
 import chalk = require('chalk');
 import * as semver from 'semver';
-import { ReleaseType } from 'semver';
-import { Readable } from 'stream';
+import {ReleaseType} from 'semver';
+import {Readable} from 'stream';
 
-import { checkpoint, CheckpointType } from './util/checkpoint';
-import { Commit } from './graphql-to-commits';
+import {checkpoint, CheckpointType} from './util/checkpoint';
+import {Commit} from './graphql-to-commits';
 
 const concat = require('concat-stream');
 const conventionalCommitsFilter = require('conventional-commits-filter');
@@ -128,7 +128,7 @@ export class ConventionalCommits {
 
     // allows the sections displayed in the CHANGELOG to be configured
     // as an example, Ruby displays docs:
-    const config: { [key: string]: ChangelogSection[] } = {};
+    const config: {[key: string]: ChangelogSection[]} = {};
     if (this.changelogSections) {
       config.types = this.changelogSections;
     }
@@ -162,7 +162,7 @@ export class ConventionalCommits {
   }
   private async guessReleaseType(preMajor: boolean): Promise<BumpSuggestion> {
     const VERSIONS = ['major', 'minor', 'patch'];
-    const preset = await presetFactory({ preMajor });
+    const preset = await presetFactory({preMajor});
     return new Promise((resolve: Function, reject: Function) => {
       const stream = this.commitsReadable()
         .pipe(conventionalCommitsParser(preset.parserOpts))

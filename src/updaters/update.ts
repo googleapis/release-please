@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { GitHubFileContents } from '../github';
+import {GitHubFileContents} from '../github';
 
 export type VersionsMap = Map<string, string>;
 

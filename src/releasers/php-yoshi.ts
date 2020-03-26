@@ -12,36 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReleasePR, ReleaseCandidate } from '../release-pr';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag, GitHubFileContents } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, VersionsMap } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
-import { CommitSplit } from '../commit-split';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag, GitHubFileContents} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update, VersionsMap} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
+import {CommitSplit} from '../commit-split';
 import * as semver from 'semver';
 
 // Generic
-import { Changelog } from '../updaters/changelog';
+import {Changelog} from '../updaters/changelog';
 // Yoshi PHP Monorepo
-import { PHPClientVersion } from '../updaters/php-client-version';
-import { PHPManifest } from '../updaters/php-manifest';
-import { RootComposer } from '../updaters/root-composer';
-import { Version } from '../updaters/version';
+import {PHPClientVersion} from '../updaters/php-client-version';
+import {PHPManifest} from '../updaters/php-manifest';
+import {RootComposer} from '../updaters/root-composer';
+import {Version} from '../updaters/version';
 
 const CHANGELOG_SECTIONS = [
-  { type: 'feat', section: 'Features' },
-  { type: 'fix', section: 'Bug Fixes' },
-  { type: 'perf', section: 'Performance Improvements' },
-  { type: 'revert', section: 'Reverts' },
-  { type: 'docs', section: 'Documentation' },
-  { type: 'chore', section: 'Miscellaneous Chores' },
-  { type: 'style', section: 'Styles', hidden: true },
-  { type: 'refactor', section: 'Code Refactoring', hidden: true },
-  { type: 'test', section: 'Tests', hidden: true },
-  { type: 'build', section: 'Build System', hidden: true },
-  { type: 'ci', section: 'Continuous Integration', hidden: true },
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'revert', section: 'Reverts'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'chore', section: 'Miscellaneous Chores'},
+  {type: 'style', section: 'Styles', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
 interface PHPYoshiBulkUpdate {
@@ -138,7 +138,7 @@ export class PHPYoshi extends ReleasePR {
     changelogEntry: string
   ): Promise<PHPYoshiBulkUpdate> {
     const cs = new CommitSplit();
-    const commitLookup: { [key: string]: Commit[] } = cs.split(commits);
+    const commitLookup: {[key: string]: Commit[]} = cs.split(commits);
     const pkgKeys: string[] = Object.keys(commitLookup).sort();
     // map of library names that need to be updated in the top level
     // composer.json and manifest.json.
@@ -159,7 +159,7 @@ export class PHPYoshi extends ReleasePR {
       // build updates, etc., applied.
       if (
         !this.changelogEmpty(
-          await cc.generateChangelogEntry({ version: '0.0.0' })
+          await cc.generateChangelogEntry({version: '0.0.0'})
         )
       ) {
         try {
@@ -188,7 +188,7 @@ export class PHPYoshi extends ReleasePR {
           changelogEntry = updatePHPChangelogEntry(
             `${meta.name} ${candidate}`,
             changelogEntry,
-            await cc.generateChangelogEntry({ version: candidate })
+            await cc.generateChangelogEntry({version: candidate})
           );
 
           updates.push(
@@ -229,7 +229,7 @@ export class PHPYoshi extends ReleasePR {
       }
     }
 
-    return { changelogEntry, versionUpdates };
+    return {changelogEntry, versionUpdates};
   }
 }
 
