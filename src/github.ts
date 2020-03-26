@@ -404,7 +404,8 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  async latestTag(): Promise<GitHubTag | undefined> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async latestTag(perPage = 100): Promise<GitHubTag | undefined> {
     const tags: {[version: string]: GitHubTag} = await this.allTags();
     const versions = Object.keys(tags);
     // no tags have been created yet.

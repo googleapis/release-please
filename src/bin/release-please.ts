@@ -20,7 +20,8 @@ import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
 import {ReleasePROptions} from '../release-pr';
 import {ReleasePRFactory} from '../release-pr-factory';
 
-import * as yargs from 'yargs';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const yargs = require('yargs');
 
 interface ErrorObject {
   body?: object;
