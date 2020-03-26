@@ -14,7 +14,6 @@
 
 import {GitHubFileContents} from '../github';
 
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 
 export class Version implements Update {
@@ -34,6 +33,7 @@ export class Version implements Update {
     this.packageName = options.packageName;
     this.contents = options.contents;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   updateContent(content: string): string {
     return `${this.version}`;
   }

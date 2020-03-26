@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -175,9 +176,9 @@ export class ConventionalCommits {
               preset.recommendedBumpOpts
             );
 
-            if (result && result.level != null) {
+            if (result && result.level !== null) {
               result.releaseType = VERSIONS[result.level];
-            } else if (result == null) {
+            } else if (result === null) {
               result = {};
             }
 

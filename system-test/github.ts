@@ -12,43 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect} from 'chai';
+import {GitHub} from '../src/github';
+import {describe, it} from 'mocha';
+import {readFileSync} from 'fs';
 
-import {GitHub, GitHubTag} from '../src/github';
-import {Commit} from '../src/graphql-to-commits';
-import {Update, UpdateOptions} from '../src/updaters/update';
-
-const {readFileSync} = require('fs');
-const {resolve} = require('path');
-
-const token = readFileSync(process.env.TOKEN_PATH, 'utf8').trim();
-const apiUrl = readFileSync(process.env.API_URL_PATH, 'utf8').trim();
-const proxyKey = readFileSync(process.env.PROXY_KEY_PATH, 'utf8').trim();
+const token = readFileSync(process.env.TOKEN_PATH!, 'utf8').trim();
+const apiUrl = readFileSync(process.env.API_URL_PATH!, 'utf8').trim();
+const proxyKey = readFileSync(process.env.PROXY_KEY_PATH!, 'utf8').trim();
 
 require('chai').should();
-
-// Updaters update files such as CHANGELOG,
-// package.json, setup.py; we use a fake updater
-// in tests so that changes to our updateContent
-// method don't break fixtures.
-class FakeFileUpdater implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  create: boolean;
-  packageName: string;
-
-  constructor(options: UpdateOptions) {
-    this.create = true;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
-  updateContent(content: string): string {
-    return this.changelogEntry + content;
-  }
-}
 
 describe('GitHub', () => {
   describe('latestRelease', () => {

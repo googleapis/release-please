@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleasePROptions, ReleaseCandidate} from '../release-pr';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 import * as semver from 'semver';
 
 import {ConventionalCommits} from '../conventional-commits';

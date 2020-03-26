@@ -19,6 +19,7 @@ nock.disableNetConnect();
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
+import {describe, it} from 'mocha';
 
 import {GitHub} from '../src/github';
 const github = new GitHub({owner: 'fake', repo: 'fake'});

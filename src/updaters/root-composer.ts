@@ -43,6 +43,7 @@ export class RootComposer implements Update {
     }
     const parsed = JSON.parse(content);
     if (this.versions) {
+      // eslint-disable-next-line prefer-const
       for (let [key, version] of this.versions.entries()) {
         version = version || '1.0.0';
         checkpoint(

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {Octokit} from '@octokit/rest';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const {request} = require('@octokit/request');
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -26,6 +27,7 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const {graphql} = require('@octokit/graphql');
 
 const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
@@ -166,6 +168,7 @@ export class GitHub {
     const method = labels ? 'commitsWithLabels' : 'commitsWithFiles';
 
     let cursor;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const commitsResponse: CommitsResponse = await this[method](
         cursor,
@@ -401,8 +404,8 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  async latestTag(perPage = 100): Promise<GitHubTag | undefined> {
-    const tags: {[version: string]: GitHubTag} = await this.allTags(perPage);
+  async latestTag(): Promise<GitHubTag | undefined> {
+    const tags: {[version: string]: GitHubTag} = await this.allTags();
     const versions = Object.keys(tags);
     // no tags have been created yet.
     if (versions.length === 0) return undefined;
@@ -489,9 +492,7 @@ export class GitHub {
     return openReleasePRs;
   }
 
-  private async allTags(
-    perPage = 100
-  ): Promise<{[version: string]: GitHubTag}> {
+  private async allTags(): Promise<{[version: string]: GitHubTag}> {
     const tags: {[version: string]: GitHubTag} = {};
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
@@ -533,10 +534,8 @@ export class GitHub {
 
   async findExistingReleaseIssue(
     title: string,
-    labels: string[],
-    perPage = 100
+    labels: string[]
   ): Promise<Octokit.IssuesListResponseItem | undefined> {
-    const paged = 0;
     try {
       for await (const response of this.octokit.paginate.iterator(
         this.decoratePaginateOpts({
@@ -547,7 +546,7 @@ export class GitHub {
           per_page: 100,
         })
       )) {
-        for (let i = 0, issue; response.data[i] !== undefined; i++) {
+        for (let i = 0; response.data[i] !== undefined; i++) {
           const issue: Octokit.IssuesListResponseItem = response.data[i];
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
             return issue;

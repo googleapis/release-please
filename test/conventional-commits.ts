@@ -13,8 +13,9 @@
 // limitations under the License.
 
 import {ConventionalCommits} from '../src/conventional-commits';
+import {describe, it} from 'mocha';
 
-const {expect} = require('chai');
+import {expect} from 'chai';
 
 describe('ConventionalCommits', () => {
   describe('suggestBump', () => {

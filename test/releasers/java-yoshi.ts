@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const nock = require('nock');
+import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {Version, JavaYoshi} from '../../src/releasers/java-yoshi';
@@ -21,6 +21,7 @@ import {ReleaseType} from '../../src/release-pr';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
+import {describe, it} from 'mocha';
 
 const fixturesPath = './test/releasers/fixtures';
 
@@ -35,6 +36,7 @@ function requireNode10(this: MochaThis) {
 }
 
 describe('JavaYoshi', () => {
+  // eslint-disable-next-line no-undef
   before(requireNode10);
   it('creates a release PR', async () => {
     const versionsContent = readFileSync(
@@ -360,6 +362,7 @@ describe('Version', () => {
   describe('bump', () => {
     let version: Version;
     describe('for snapshot version', () => {
+      // eslint-disable-next-line no-undef
       beforeEach(() => {
         version = Version.parse('1.23.45-beta-SNAPSHOT');
       });
@@ -397,6 +400,7 @@ describe('Version', () => {
       });
     });
     describe('for non-snapshot version', () => {
+      // eslint-disable-next-line no-undef
       beforeEach(() => {
         version = Version.parse('1.23.45-beta');
       });

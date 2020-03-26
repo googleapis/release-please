@@ -17,6 +17,7 @@ import chalk = require('chalk');
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {GitHub, GitHubReleasePR, OctokitAPIs} from './github';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 

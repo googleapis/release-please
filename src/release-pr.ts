@@ -21,6 +21,7 @@ import {GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs} from './github';
 import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export enum ReleaseType {

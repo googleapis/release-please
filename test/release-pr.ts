@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const {expect} = require('chai');
-const nock = require('nock');
+import {expect} from 'chai';
+import * as nock from 'nock';
 nock.disableNetConnect();
+import {describe, it} from 'mocha';
 
 import {ConventionalCommits} from '../src/conventional-commits';
 import {GitHubTag} from '../src/github';
@@ -40,6 +41,7 @@ function requireNode10(this: MochaThis) {
 
 describe('GitHub', () => {
   describe('Yoshi PHP Mono-Repo', () => {
+    // eslint-disable-next-line no-undef
     before(requireNode10);
     it('generates CHANGELOG and aborts if duplicate', async () => {
       const graphql = JSON.parse(

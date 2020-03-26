@@ -125,7 +125,7 @@ async function graphqlToCommit(
   // if, on the off chance, there are more than 100 files attached to a
   // PR, paginate in the additional files.
   while (true && prEdge.node.files) {
-    for (let i = 0, fileEdge; i < prEdge.node.files.edges.length; i++) {
+    for (let i = 0; i < prEdge.node.files.edges.length; i++) {
       commit.files.push(prEdge.node.files.edges[i].node.path);
     }
     if (prEdge.node.files.pageInfo.hasNextPage) {

@@ -14,8 +14,9 @@
 
 import {coerceOption} from '../../src/util/coerce-option';
 import {resolve} from 'path';
+import {describe, it} from 'mocha';
 
-const {expect} = require('chai');
+import {expect} from 'chai';
 const fixturesPath = './test/fixtures';
 
 describe('coerceOption', () => {

@@ -20,7 +20,7 @@ import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
 import {ReleasePROptions} from '../release-pr';
 import {ReleasePRFactory} from '../release-pr-factory';
 
-const yargs = require('yargs');
+import * as yargs from 'yargs';
 
 interface ErrorObject {
   body?: object;

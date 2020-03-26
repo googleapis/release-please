@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import {readFileSync} from 'fs';
-import {basename, resolve} from 'path';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
 import {SamplesPackageJson} from '../../src/updaters/samples-package-json';
-import {UpdateOptions} from '../../src/updaters/update';
+import {describe, it} from 'mocha';
 
 const fixturesPath = './test/updaters/fixtures';
 
