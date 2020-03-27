@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [4.0.1](https://www.github.com/googleapis/release-please/compare/v4.0.0...v4.0.1) (2020-03-27)
+
+
+### Bug Fixes
+
+* we were not compiling src/bin ([#384](https://www.github.com/googleapis/release-please/issues/384)) ([5d86054](https://www.github.com/googleapis/release-please/commit/5d86054ddfe13b2e9b13bed9f2a99235e21a5f47))
+
 ## [4.0.0](https://www.github.com/googleapis/release-please/compare/v3.3.0...v4.0.0) (2020-03-27)
 
 
