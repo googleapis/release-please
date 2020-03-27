@@ -4,6 +4,17 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [4.0.0](https://www.github.com/googleapis/release-please/compare/v3.3.0...v4.0.0) (2020-03-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade octokit/gts/typescript (#381)
+
+### Code Refactoring
+
+* upgrade octokit/gts/typescript ([#381](https://www.github.com/googleapis/release-please/issues/381)) ([4e0bf11](https://www.github.com/googleapis/release-please/commit/4e0bf11b7f4217b5c6b8cd1aa9ea4db1bce06b89))
+
 ## [3.3.0](https://www.github.com/googleapis/release-please/compare/v3.2.3...v3.3.0) (2020-03-20)
 
 
