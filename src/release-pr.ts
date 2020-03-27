@@ -12,7 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// See: https://github.com/octokit/rest.js/issues/1624
+//  https://github.com/octokit/types.ts/issues/25.
 import { Octokit } from '@octokit/rest';
+import { PromiseValue } from 'type-fest'
+type PullsListResponseItems = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
+>['data']
+type PullsListResponseItem = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['pulls']['get']>
+>['data']
+
 import * as semver from 'semver';
 
 import { checkpoint, CheckpointType } from './util/checkpoint';
@@ -115,10 +125,10 @@ export class ReleasePR {
     currentPRNumber: number,
     includePackageName = false
   ) {
-    const prs: Octokit.PullsListResponseItem[] = await this.gh.findOpenReleasePRs(
+    const prs: PullsListResponseItems = await this.gh.findOpenReleasePRs(
       this.labels
     );
-    for (let i = 0, pr: Octokit.PullsListResponseItem; i < prs.length; i++) {
+    for (let i = 0, pr; i < prs.length; i++) {
       pr = prs[i];
       // don't close the most up-to-date release PR.
       if (pr.number !== currentPRNumber) {

@@ -35,6 +35,7 @@
   },
   "homepage": "https://github.com/googleapis/release-please#readme",
   "devDependencies": {
+    "@octokit/types": "^2.5.1",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^7.0.0",
     "@types/node": "^11.13.6",
@@ -46,12 +47,13 @@
     "mocha": "^7.0.0",
     "nock": "^12.0.0",
     "snap-shot-it": "^7.0.0",
+    "type-fest": "^0.12.0",
     "typescript": "3.6.4"
   },
   "dependencies": {
     "@octokit/graphql": "^4.3.1",
-    "@octokit/request": "^5.3.1",
-    "@octokit/rest": "^16.43.1",
+    "@octokit/request": "^5.3.4",
+    "@octokit/rest": "^17.1.4",
     "chalk": "^3.0.0",
     "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.0.0",
