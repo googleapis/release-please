@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Update, UpdateOptions, VersionsMap } from '../update';
-import { GitHubFileContents } from '../../github';
+import {Update, UpdateOptions, VersionsMap} from '../update';
+import {GitHubFileContents} from '../../github';
 
 export class GoogleUtils implements Update {
   path: string;

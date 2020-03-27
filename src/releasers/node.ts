@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReleasePR, ReleaseCandidate } from '../release-pr';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag, GitHubFileContents } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag, GitHubFileContents} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
 
 // Generic
-import { Changelog } from '../updaters/changelog';
+import {Changelog} from '../updaters/changelog';
 // JavaScript
-import { PackageJson } from '../updaters/package-json';
-import { SamplesPackageJson } from '../updaters/samples-package-json';
+import {PackageJson} from '../updaters/package-json';
+import {SamplesPackageJson} from '../updaters/samples-package-json';
 
 export class Node extends ReleasePR {
   protected async _run() {

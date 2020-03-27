@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReleasePR, ReleaseCandidate } from '../release-pr';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
 
 // Generic
-import { Changelog } from '../updaters/changelog';
+import {Changelog} from '../updaters/changelog';
 // Java
-import { PomXML } from '../updaters/java/pom-xml';
+import {PomXML} from '../updaters/java/pom-xml';
 // Yoshi Java Auth Library
-import { VersionsManifest } from '../updaters/java/versions-manifest';
-import { Readme } from '../updaters/java/readme';
+import {VersionsManifest} from '../updaters/java/versions-manifest';
+import {Readme} from '../updaters/java/readme';
 
 export class JavaAuthYoshi extends ReleasePR {
   protected async _run() {

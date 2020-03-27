@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Commit } from './graphql-to-commits';
-import { relative } from 'path';
+import {Commit} from './graphql-to-commits';
+import {relative} from 'path';
 
 interface CommitSplitOptions {
   root?: string;
@@ -25,8 +25,8 @@ export class CommitSplit {
     opts = opts || {};
     this.root = opts.root || './';
   }
-  split(commits: Commit[]): { [key: string]: Commit[] } {
-    const splitCommits: { [key: string]: Commit[] } = {};
+  split(commits: Commit[]): {[key: string]: Commit[]} {
+    const splitCommits: {[key: string]: Commit[]} = {};
     commits.forEach((commit: Commit) => {
       const dedupe: Set<string> = new Set();
       for (let i = 0; i < commit.files.length; i++) {

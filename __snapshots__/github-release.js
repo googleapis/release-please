@@ -1,10 +1,12 @@
-exports['GitHubRelease createRelease creates and labels release on GitHub 1'] = {
-  "labels": [
-    "autorelease: tagged"
-  ]
-}
+exports[
+  'GitHubRelease createRelease creates and labels release on GitHub 1'
+] = {
+  labels: ['autorelease: tagged'],
+};
 
-exports['GitHubRelease extractLatestReleaseNotes handles CHANGELOG with old and new format entries 1'] = `
+exports[
+  'GitHubRelease extractLatestReleaseNotes handles CHANGELOG with old and new format entries 1'
+] = `
 
 
 ### Bug Fixes
@@ -27,9 +29,11 @@ exports['GitHubRelease extractLatestReleaseNotes handles CHANGELOG with old and 
 * **deps:** this will ship async/await with the generated code.
 * upgrade engines field to >=8.10.0 (#71)
 
-`
+`;
 
-exports['GitHubRelease extractLatestReleaseNotes handles CHANGELOG with old format entries 1'] = `
+exports[
+  'GitHubRelease extractLatestReleaseNotes handles CHANGELOG with old format entries 1'
+] = `
 
 03-22-2019 10:34 PDT
 
@@ -40,9 +44,11 @@ exports['GitHubRelease extractLatestReleaseNotes handles CHANGELOG with old form
 - chore: publish to npm using wombat ([#218](https://github.com/googleapis/nodejs-language/pull/218))
 - build: use per-repo npm publish token ([#216](https://github.com/googleapis/nodejs-language/pull/216))
 
-`
+`;
 
-exports['GitHubRelease extractLatestReleaseNotes handles CHANGELOG with new format entries 1'] = `
+exports[
+  'GitHubRelease extractLatestReleaseNotes handles CHANGELOG with new format entries 1'
+] = `
 
 
 ### Bug Fixes
@@ -55,9 +61,11 @@ exports['GitHubRelease extractLatestReleaseNotes handles CHANGELOG with new form
 * add GitHub action for generating candidate issue ([#69](https://www.github.com/googleapis/release-please/issues/69)) ([6373aed](https://www.github.com/googleapis/release-please/commit/6373aed))
 * checkbox based releases ([#77](https://www.github.com/googleapis/release-please/issues/77)) ([1e4193c](https://www.github.com/googleapis/release-please/commit/1e4193c))
 
-`
+`;
 
-exports['GitHubRelease extractLatestReleaseNotes extracts appropriate release notes when prior release is patch 1'] = `
+exports[
+  'GitHubRelease extractLatestReleaseNotes extracts appropriate release notes when prior release is patch 1'
+] = `
 
 
 ### ⚠ BREAKING CHANGES
@@ -69,9 +77,11 @@ exports['GitHubRelease extractLatestReleaseNotes extracts appropriate release no
 * default temp directory to report directory ([#102](https://www.github.com/bcoe/c8/issues/102)) ([8602f4a](https://www.github.com/bcoe/c8/commit/8602f4a))
 * load .nycrc/.nycrc.json to simplify migration ([#100](https://www.github.com/bcoe/c8/issues/100)) ([bd7484f](https://www.github.com/bcoe/c8/commit/bd7484f))
 
-`
+`;
 
-exports['GitHubRelease extractLatestReleaseNotes php-yoshi extracts appropriate release notes, when multiple packages updated 1'] = `
+exports[
+  'GitHubRelease extractLatestReleaseNotes php-yoshi extracts appropriate release notes, when multiple packages updated 1'
+] = `
 
 <details><summary>google/cloud-bigquerydatatransfer 0.11.1</summary>
 
@@ -103,4 +113,4 @@ exports['GitHubRelease extractLatestReleaseNotes php-yoshi extracts appropriate 
 
 </details>
 
-`
+`;

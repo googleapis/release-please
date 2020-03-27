@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { GitHubFileContents } from '../github';
+import {GitHubFileContents} from '../github';
 
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, UpdateOptions, VersionsMap } from './update';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update, UpdateOptions, VersionsMap} from './update';
 
 export class PHPClientVersion implements Update {
   path: string;

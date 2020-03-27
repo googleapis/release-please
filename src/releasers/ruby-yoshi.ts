@@ -12,32 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import { ReleasePR, ReleaseCandidate } from '../release-pr';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { indentCommit } from '../util/indent-commit';
-import { Update } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {indentCommit} from '../util/indent-commit';
+import {Update} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
 
-import { Changelog } from '../updaters/changelog';
-import { VersionRB } from '../updaters/version-rb';
+import {Changelog} from '../updaters/changelog';
+import {VersionRB} from '../updaters/version-rb';
 
 const CHANGELOG_SECTIONS = [
-  { type: 'feat', section: 'Features' },
-  { type: 'fix', section: 'Bug Fixes' },
-  { type: 'perf', section: 'Performance Improvements' },
-  { type: 'revert', section: 'Reverts' },
-  { type: 'docs', section: 'Documentation' },
-  { type: 'style', section: 'Styles', hidden: true },
-  { type: 'chore', section: 'Miscellaneous Chores', hidden: true },
-  { type: 'refactor', section: 'Code Refactoring', hidden: true },
-  { type: 'test', section: 'Tests', hidden: true },
-  { type: 'build', section: 'Build System', hidden: true },
-  { type: 'ci', section: 'Continuous Integration', hidden: true },
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'revert', section: 'Reverts'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'style', section: 'Styles', hidden: true},
+  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
 export class RubyYoshi extends ReleasePR {
@@ -147,7 +147,7 @@ export class RubyYoshi extends ReleasePR {
   ): string {
     // summarize the commits that landed:
     let summary = `### Commits since last release:\n\n`;
-    const updatedFiles: { [key: string]: boolean } = {};
+    const updatedFiles: {[key: string]: boolean} = {};
     commits.forEach(commit => {
       if (commit.sha === null) return;
       const splitMessage = commit.message.split('\n');

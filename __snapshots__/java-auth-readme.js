@@ -1,4 +1,6 @@
-exports['JavaAuthReadme updateContent updates version examples in README.md 1'] = `
+exports[
+  'JavaAuthReadme updateContent updates version examples in README.md 1'
+] = `
 ## Quickstart
 
 If you are using Maven, add this to your pom.xml file (notice that you can replace
@@ -33,9 +35,11 @@ libraryDependencies += "com.google.auth" % "google-auth-library-oauth2-http" % "
 \`\`\`
 [//]: # ({x-version-update-end})
 
-`
+`;
 
-exports['JavaAuthReadme updateContent updates multiple version examples in README.md 1'] = `
+exports[
+  'JavaAuthReadme updateContent updates multiple version examples in README.md 1'
+] = `
 ## Quickstart
 
 If you are using Maven, add this to your pom.xml file (notice that you can replace
@@ -98,4 +102,4 @@ libraryDependencies += "com.google.auth" % "google-auth-library-credentials" % "
 \`\`\`
 [//]: # ({x-version-update-end})
 
-`
+`;

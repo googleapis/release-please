@@ -1,4 +1,6 @@
-exports['ChangelogUpdater updateContent inserts content at appropriate location if CHANGELOG exists 1'] = `
+exports[
+  'ChangelogUpdater updateContent inserts content at appropriate location if CHANGELOG exists 1'
+] = `
 # Changelog
 
 [npm history][1]
@@ -51,9 +53,11 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 
 01-28-2019 11:05 PST
 
-`
+`;
 
-exports['ChangelogUpdater updateContent inserts content at appropriate location if CHANGELOG exists, and last release was a patch 1'] = `
+exports[
+  'ChangelogUpdater updateContent inserts content at appropriate location if CHANGELOG exists, and last release was a patch 1'
+] = `
 # Changelog
 
 [npm history][1]
@@ -75,18 +79,22 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 
 03-18-2019 13:47 PDT
 
-`
+`;
 
-exports['ChangelogUpdater updateContent populates a new CHANGELOG if none exists 1'] = `
+exports[
+  'ChangelogUpdater updateContent populates a new CHANGELOG if none exists 1'
+] = `
 # Changelog
 
 ## 2.0.0
 
 * added a new foo to bar.
 
-`
+`;
 
-exports['ChangelogUpdater updateContent inserts content at appropriate location in yoshi-ruby style CHANGELOG 1'] = `
+exports[
+  'ChangelogUpdater updateContent inserts content at appropriate location in yoshi-ruby style CHANGELOG 1'
+] = `
 # Release History
 
 ## 0.7.0
@@ -138,4 +146,4 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 
 * Initial release
 
-`
+`;

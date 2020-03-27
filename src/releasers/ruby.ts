@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReleasePROptions, ReleasePR, ReleaseCandidate } from '../release-pr';
+import {ReleasePROptions, ReleasePR, ReleaseCandidate} from '../release-pr';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { indentCommit } from '../util/indent-commit';
-import { Update } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {indentCommit} from '../util/indent-commit';
+import {Update} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
 
 // Generic
-import { Changelog } from '../updaters/changelog';
+import {Changelog} from '../updaters/changelog';
 
 // Ruby
-import { VersionRB } from '../updaters/version-rb';
+import {VersionRB} from '../updaters/version-rb';
 
 export interface RubyReleasePROptions extends ReleasePROptions {
   // should be full path to version.rb file.

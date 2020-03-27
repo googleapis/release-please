@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { coerceOption } from '../../src/util/coerce-option';
-import { resolve } from 'path';
+import {coerceOption} from '../../src/util/coerce-option';
+import {resolve} from 'path';
+import {describe, it} from 'mocha';
+import {expect} from 'chai';
 
-const { expect } = require('chai');
 const fixturesPath = './test/fixtures';
 
 describe('coerceOption', () => {

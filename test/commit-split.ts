@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
+import {describe, it} from 'mocha';
 
-import { CommitSplit } from '../src/commit-split';
-import { GitHub } from '../src/github';
-import { Commit, graphqlToCommits } from '../src/graphql-to-commits';
+import {CommitSplit} from '../src/commit-split';
+import {GitHub} from '../src/github';
+import {Commit, graphqlToCommits} from '../src/graphql-to-commits';
 
 const fixturesPath = './test/fixtures';
 
-const github = new GitHub({ owner: 'fake', repo: 'fake' });
+const github = new GitHub({owner: 'fake', repo: 'fake'});
 
 describe('CommitSplit', () => {
   it('partitions commits based on path from root directory by default', async () => {

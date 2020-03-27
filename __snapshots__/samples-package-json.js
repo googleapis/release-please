@@ -1,4 +1,6 @@
-exports['SamplesPackageJson updateContent updates package version in dependencies 1'] = `
+exports[
+  'SamplesPackageJson updateContent updates package version in dependencies 1'
+] = `
 {
   "name": "@google-cloud/firestore-samples",
   "version": "0.0.1",
@@ -20,9 +22,11 @@ exports['SamplesPackageJson updateContent updates package version in dependencie
   }
 }
 
-`
+`;
 
-exports['SamplesPackageJson updateContent does not fail when top level package does not exist in dependencies 1'] = `
+exports[
+  'SamplesPackageJson updateContent does not fail when top level package does not exist in dependencies 1'
+] = `
 {
   "name": "@google-cloud/firestore-samples",
   "version": "0.0.1",
@@ -41,4 +45,4 @@ exports['SamplesPackageJson updateContent does not fail when top level package d
   }
 }
 
-`
+`;

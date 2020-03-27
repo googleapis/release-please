@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Commit } from '../graphql-to-commits';
+import {Commit} from '../graphql-to-commits';
 
 export function indentCommit(commit: Commit): string {
   const reduced: string[] = [];

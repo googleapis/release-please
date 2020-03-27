@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../github';
-
-export type VersionsMap = Map<string, string>;
-
-export interface UpdateOptions {
-  changelogEntry: string;
-  packageName: string;
-  path: string;
-  version: string;
-  versions?: VersionsMap;
-  contents?: GitHubFileContents;
-}
-
-export interface Update {
-  changelogEntry: string;
-  create: boolean;
-  path: string;
-  packageName: string;
-  version: string;
-  versions?: VersionsMap;
-  contents?: GitHubFileContents;
-  updateContent(content: string | undefined): string;
+module.exports = {
+  ...require('gts/.prettierrc.json')
 }

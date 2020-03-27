@@ -47,4 +47,4 @@ exports['PackageJson updateContent updates the package version 1'] = `
   }
 }
 
-`
+`;
