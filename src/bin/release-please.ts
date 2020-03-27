@@ -15,12 +15,11 @@
 // limitations under the License.
 
 import chalk = require('chalk');
-import { coerceOption } from '../util/coerce-option';
-import { GitHubRelease, GitHubReleaseOptions } from '../github-release';
-import { ReleasePROptions } from '../release-pr';
-import { ReleasePRFactory } from '../release-pr-factory';
-
-const yargs = require('yargs');
+import {coerceOption} from '../util/coerce-option';
+import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
+import {ReleasePROptions} from '../release-pr';
+import {ReleasePRFactory} from '../release-pr-factory';
+import * as yargs from 'yargs';
 
 interface ErrorObject {
   body?: object;
@@ -149,7 +148,7 @@ action "github-release" {
     if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
     if (argv.proxyKey) argv.proxyKey = coerceOption(argv.proxyKey);
   })
-  .option('token', { describe: 'GitHub token with repo write permissions' })
+  .option('token', {describe: 'GitHub token with repo write permissions'})
   .option('release-as', {
     describe: 'override the semantically determined release version',
     type: 'string',

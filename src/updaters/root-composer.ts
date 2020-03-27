@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, UpdateOptions, VersionsMap } from './update';
-import { GitHubFileContents } from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update, UpdateOptions, VersionsMap} from './update';
+import {GitHubFileContents} from '../github';
 
 export class RootComposer implements Update {
   path: string;
@@ -43,6 +43,7 @@ export class RootComposer implements Update {
     }
     const parsed = JSON.parse(content);
     if (this.versions) {
+      // eslint-disable-next-line prefer-const
       for (let [key, version] of this.versions.entries()) {
         version = version || '1.0.0';
         checkpoint(

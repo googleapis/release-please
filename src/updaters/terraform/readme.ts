@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Update, UpdateOptions, VersionsMap } from '../update';
-import { GitHubFileContents } from '../../github';
+import {Update, UpdateOptions, VersionsMap} from '../update';
+import {GitHubFileContents} from '../../github';
 
 export class ReadMe implements Update {
   path: string;
@@ -32,10 +32,7 @@ export class ReadMe implements Update {
     this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    const minorVersion = this.version
-      .split('.')
-      .slice(0, 2)
-      .join('.');
+    const minorVersion = this.version.split('.').slice(0, 2).join('.');
     return content.replace(
       /version = "~> [\d]+.[\d]+"/,
       `version = "~> ${minorVersion}"`

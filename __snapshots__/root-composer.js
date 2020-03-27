@@ -1,4 +1,6 @@
-exports['composer.json updateContent updates all versions in root composer file 1'] = `
+exports[
+  'composer.json updateContent updates all versions in root composer file 1'
+] = `
 {
     "name": "google/cloud",
     "type": "library",
@@ -255,4 +257,4 @@ exports['composer.json updateContent updates all versions in root composer file 
     }
 }
 
-`
+`;

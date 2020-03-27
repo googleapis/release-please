@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
-
-import { VersionsManifest } from '../../src/updaters/java/versions-manifest';
-import { expect } from 'chai';
+import {describe, it} from 'mocha';
+import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
+import {expect} from 'chai';
 
 const fixturesPath = './test/updaters/fixtures';
 

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Update, VersionsMap, UpdateOptions } from '../update';
-import { GitHubFileContents } from '../../github';
+import {Update, VersionsMap, UpdateOptions} from '../update';
+import {GitHubFileContents} from '../../github';
 
 const INLINE_UPDATE_REGEX = /{x-version-update:([\w\-_]+):(current|released)}/;
 const BLOCK_START_REGEX = /{x-version-update-start:([\w\-_]+):(current|released)}/;

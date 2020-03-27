@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
-
-import { PomXML } from '../../src/updaters/java/pom-xml';
+import {describe, it} from 'mocha';
+import {PomXML} from '../../src/updaters/java/pom-xml';
 
 const fixturesPath = './test/updaters/fixtures';
 

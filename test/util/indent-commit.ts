@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { indentCommit } from '../../src/util/indent-commit';
-
+import {indentCommit} from '../../src/util/indent-commit';
+import {describe, it} from 'mocha';
 import * as snapshot from 'snap-shot-it';
 
 describe('indentCommit', () => {

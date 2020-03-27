@@ -14,23 +14,24 @@
 
 // See: https://github.com/octokit/rest.js/issues/1624
 //  https://github.com/octokit/types.ts/issues/25.
-import { Octokit } from '@octokit/rest';
-import { PromiseValue } from 'type-fest'
+import {Octokit} from '@octokit/rest';
+import {PromiseValue} from 'type-fest';
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
->['data']
+>['data'];
 type PullsListResponseItem = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['get']>
->['data']
+>['data'];
 
 import * as semver from 'semver';
 
-import { checkpoint, CheckpointType } from './util/checkpoint';
-import { ConventionalCommits } from './conventional-commits';
-import { GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs } from './github';
-import { Commit } from './graphql-to-commits';
-import { Update } from './updaters/update';
+import {checkpoint, CheckpointType} from './util/checkpoint';
+import {ConventionalCommits} from './conventional-commits';
+import {GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs} from './github';
+import {Commit} from './graphql-to-commits';
+import {Update} from './updaters/update';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export enum ReleaseType {
@@ -180,7 +181,7 @@ export class ReleasePR {
       version = this.releaseAs;
     }
 
-    return { version, previousTag };
+    return {version, previousTag};
   }
 
   protected async commits(

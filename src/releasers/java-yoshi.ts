@@ -12,38 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReleasePR, ReleasePROptions, ReleaseCandidate } from '../release-pr';
+import {ReleasePR, ReleasePROptions, ReleaseCandidate} from '../release-pr';
 import * as semver from 'semver';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update, VersionsMap } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update, VersionsMap} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
 
 // Generic
-import { Changelog } from '../updaters/changelog';
+import {Changelog} from '../updaters/changelog';
 // Java
-import { GoogleUtils } from '../updaters/java/google-utils';
-import { PomXML } from '../updaters/java/pom-xml';
-import { VersionsManifest } from '../updaters/java/versions-manifest';
-import { Readme } from '../updaters/java/readme';
+import {GoogleUtils} from '../updaters/java/google-utils';
+import {PomXML} from '../updaters/java/pom-xml';
+import {VersionsManifest} from '../updaters/java/versions-manifest';
+import {Readme} from '../updaters/java/readme';
 
 type BumpType = 'major' | 'minor' | 'patch' | 'snapshot';
 
 const CHANGELOG_SECTIONS = [
-  { type: 'feat', section: 'Features' },
-  { type: 'fix', section: 'Bug Fixes' },
-  { type: 'perf', section: 'Performance Improvements' },
-  { type: 'deps', section: 'Dependencies' },
-  { type: 'revert', section: 'Reverts' },
-  { type: 'docs', section: 'Documentation' },
-  { type: 'style', section: 'Styles', hidden: true },
-  { type: 'chore', section: 'Miscellaneous Chores', hidden: true },
-  { type: 'refactor', section: 'Code Refactoring', hidden: true },
-  { type: 'test', section: 'Tests', hidden: true },
-  { type: 'build', section: 'Build System', hidden: true },
-  { type: 'ci', section: 'Continuous Integration', hidden: true },
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'deps', section: 'Dependencies'},
+  {type: 'revert', section: 'Reverts'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'style', section: 'Styles', hidden: true},
+  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
 const VERSION_REGEX = /(\d+)\.(\d+)\.(\d+)(-\w+)?(-SNAPSHOT)?/;

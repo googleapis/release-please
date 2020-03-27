@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReleasePR, ReleaseCandidate } from '../release-pr';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
 
 // Generic
-import { Changelog } from '../updaters/changelog';
+import {Changelog} from '../updaters/changelog';
 // Python specific.
-import { SetupPy } from '../updaters/python/setup-py';
-import { SetupCfg } from '../updaters/python/setup-cfg';
+import {SetupPy} from '../updaters/python/setup-py';
+import {SetupCfg} from '../updaters/python/setup-cfg';
 
 export class Python extends ReleasePR {
   protected async _run() {
