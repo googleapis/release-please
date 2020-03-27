@@ -141,7 +141,8 @@ action "github-release" {
         `);
     }
   )
-  .middleware((argv: GitHubReleaseOptions) => {
+  .middleware((_argv) => {
+    const argv = _argv as GitHubReleaseOptions;
     // allow secrets to be loaded from file path
     // rather than being passed directly to the bin.
     if (argv.token) argv.token = coerceOption(argv.token);
