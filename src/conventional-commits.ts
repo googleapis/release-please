@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-/* eslint-disable @typescript-eslint/no-var-requires */
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -22,10 +21,15 @@ import {checkpoint, CheckpointType} from './util/checkpoint';
 import {Commit} from './graphql-to-commits';
 
 const concat = require('concat-stream');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsFilter = require('conventional-commits-filter');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsParser = require('conventional-commits-parser');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalChangelogWriter = require('conventional-changelog-writer');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const presetFactory = require('conventional-changelog-conventionalcommits');
 
 interface ConventionalCommitsOptions {
