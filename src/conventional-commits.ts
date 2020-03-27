@@ -20,6 +20,7 @@ import {Readable} from 'stream';
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {Commit} from './graphql-to-commits';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const concat = require('concat-stream');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsFilter = require('conventional-commits-filter');

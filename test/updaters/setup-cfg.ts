@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {readFileSync} from 'fs';
-import {basename, resolve} from 'path';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
