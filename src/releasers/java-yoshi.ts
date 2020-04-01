@@ -150,7 +150,7 @@ export class JavaYoshi extends ReleasePR {
           },
         ]
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
-    let prSHA = commits[0].sha;
+    const prSHA = commits[0].sha;
 
     const cc = new ConventionalCommits({
       commits,
@@ -176,7 +176,6 @@ export class JavaYoshi extends ReleasePR {
     // 2. they always update a patch with the -SNAPSHOT suffix.
     // 3. they're haunted.
     if (this.snapshot) {
-      prSHA = latestTag!.sha;
       candidate.version = `${candidate.version}-SNAPSHOT`;
       changelogEntry =
         '### Updating meta-information for bleeding-edge SNAPSHOT release.';
