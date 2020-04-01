@@ -112,6 +112,9 @@ export class ReleasePR {
   }
 
   async run() {
+    // TODO: this temporarily resolves a race condition between creating a release
+    // and updating tags on the release PR. This should be replaced by a queuing
+    // mechanism to delay/retry this request.
     if (this.snapshot) {
       await this.delay({ms: 10000});
     }
