@@ -67,7 +67,7 @@ export class Node extends ReleasePR {
     // Make an effort to populate packageName from the contents of
     // the package.json, rather than forcing this to be set:
     const contents: GitHubFileContents = await this.gh.getFileContents(
-      `package.json`
+      'package.json'
     );
     const pkg = JSON.parse(contents.parsedContent);
     if (pkg.name) this.packageName = pkg.name;
