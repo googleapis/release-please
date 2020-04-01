@@ -103,7 +103,18 @@ export class ReleasePR {
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
+  async delay({ms = 3000}) {
+    new Promise((resolve, reject) => {
+      setTimeout(() => {
+        return resolve();
+      }, ms);
+    });
+  }
+
   async run() {
+    if (this.snapshot) {
+      await this.delay({ms: 10000});
+    }
     const pr: GitHubReleasePR | undefined = await this.gh.findMergedReleasePR(
       this.labels
     );
