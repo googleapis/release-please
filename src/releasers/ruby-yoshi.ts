@@ -146,7 +146,7 @@ export class RubyYoshi extends ReleasePR {
     commits: Commit[]
   ): string {
     // summarize the commits that landed:
-    let summary = `### Commits since last release:\n\n`;
+    let summary = '### Commits since last release:\n\n';
     const updatedFiles: {[key: string]: boolean} = {};
     commits.forEach(commit => {
       if (commit.sha === null) return;
