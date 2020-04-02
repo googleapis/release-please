@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [4.0.2](https://www.github.com/googleapis/release-please/compare/v4.0.1...v4.0.2) (2020-04-02)
+
+
+### Bug Fixes
+
+* **java:** fix git base sha for snapshot releases ([#388](https://www.github.com/googleapis/release-please/issues/388)) ([7e75f7f](https://www.github.com/googleapis/release-please/commit/7e75f7f3c91b08452262c1d2e3ce4218f607b3b7))
+* delay snapshots temporarily ([#391](https://www.github.com/googleapis/release-please/issues/391)) ([77ba820](https://www.github.com/googleapis/release-please/commit/77ba820f08188f62578b2ed4bc435d46ba5ddf55))
+
 ### [4.0.1](https://www.github.com/googleapis/release-please/compare/v4.0.0...v4.0.1) (2020-03-27)
 
 
