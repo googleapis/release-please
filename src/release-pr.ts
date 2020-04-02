@@ -103,7 +103,26 @@ export class ReleasePR {
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
+  async delay({ms = 3000}) {
+    new Promise((resolve, reject) => {
+      setTimeout(() => {
+        return resolve();
+      }, ms);
+    });
+  }
+
   async run() {
+    // TODO: this temporarily resolves a race condition between creating a release
+    // and updating tags on the release PR. This should be replaced by a queuing
+    // mechanism to delay/retry this request.
+    if (this.snapshot) {
+      checkpoint(
+        'snapshot: sleeping for 10 seconds...',
+        CheckpointType.Success
+      );
+      await this.delay({ms: 10000});
+      checkpoint('snapshot: finished sleeping', CheckpointType.Success);
+    }
     const pr: GitHubReleasePR | undefined = await this.gh.findMergedReleasePR(
       this.labels
     );
