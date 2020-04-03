@@ -124,6 +124,15 @@ export class Version {
   }
 }
 
+async function delay({ms = 3000}) {
+  console.log(process.env.NODE_ENV);
+  new Promise(resolve => {
+    setTimeout(() => {
+      return resolve();
+    }, ms);
+  });
+}
+
 export class JavaYoshi extends ReleasePR {
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
@@ -138,6 +147,17 @@ export class JavaYoshi extends ReleasePR {
     );
     if (this.snapshot) {
       this.labels = ['type: process'];
+      // TODO: this temporarily resolves a race condition between creating a release
+      // and updating tags on the release PR. This should be replaced by a queuing
+      // mechanism to delay/retry this request.
+      if (this.snapshot) {
+        checkpoint(
+          'snapshot: sleeping for 15 seconds...',
+          CheckpointType.Success
+        );
+        await delay({ms: 15000});
+        checkpoint('snapshot: finished sleeping', CheckpointType.Success);
+      }
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
@@ -150,7 +170,7 @@ export class JavaYoshi extends ReleasePR {
           },
         ]
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
-    const prSHA = commits[0].sha;
+    let prSHA = commits[0].sha;
 
     const cc = new ConventionalCommits({
       commits,
@@ -176,6 +196,7 @@ export class JavaYoshi extends ReleasePR {
     // 2. they always update a patch with the -SNAPSHOT suffix.
     // 3. they're haunted.
     if (this.snapshot) {
+      prSHA = latestTag!.sha;
       candidate.version = `${candidate.version}-SNAPSHOT`;
       changelogEntry =
         '### Updating meta-information for bleeding-edge SNAPSHOT release.';
@@ -255,6 +276,9 @@ export class JavaYoshi extends ReleasePR {
       );
     });
 
+    console.info(
+      `attempting to open PR latestTagSha = ${latestTag!.sha} prSha = ${prSHA}`
+    );
     await this.openPR(
       prSHA!,
       `${changelogEntry}\n---\n`,
