@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [4.0.3](https://www.github.com/googleapis/release-please/compare/v4.0.2...v4.0.3) (2020-04-03)
+
+
+### Bug Fixes
+
+* **deps:** update dependency chalk to v4 ([#392](https://www.github.com/googleapis/release-please/issues/392)) ([a56ea70](https://www.github.com/googleapis/release-please/commit/a56ea70feb124d1db66f25327b8db291d4815351))
+* continue using latestTag.sha as base; make delay actually work ([#394](https://www.github.com/googleapis/release-please/issues/394)) ([9e9acb0](https://www.github.com/googleapis/release-please/commit/9e9acb09e1dbdb2333007dba84ffc1fe25710298))
+
 ### [4.0.2](https://www.github.com/googleapis/release-please/compare/v4.0.1...v4.0.2) (2020-04-02)
 
 
