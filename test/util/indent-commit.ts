@@ -43,4 +43,19 @@ describe('indentCommit', () => {
       })
     );
   });
+
+  it('handles multiple lines of multi-line text', () => {
+    snapshot(
+      indentCommit({
+        message: `feat: my awesome commit message
+* testing one line
+  this is a second line of text
+  this is a third line
+* testing second line
+  this is a second line`,
+        sha: 'abc123',
+        files: [],
+      })
+    );
+  });
 });
