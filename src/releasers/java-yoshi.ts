@@ -125,7 +125,7 @@ export class Version {
 }
 
 async function delay({ms = 3000}) {
-  console.log(process.env.NODE_ENV);
+  if (process.env.ENVIRONMENT === 'test') return;
   new Promise(resolve => {
     setTimeout(() => {
       return resolve();
