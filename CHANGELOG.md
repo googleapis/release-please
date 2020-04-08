@@ -4,6 +4,20 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [4.1.0](https://www.github.com/googleapis/release-please/compare/v4.0.3...v4.1.0) (2020-04-08)
+
+
+### Features
+
+* handle multiline bulleted commit messages ([#396](https://www.github.com/googleapis/release-please/issues/396)) ([670d872](https://www.github.com/googleapis/release-please/commit/670d872bebdb72fc6bd490caefdd3210a39ef64e))
+
+
+### Bug Fixes
+
+* **deps:** update dependency type-fest to ^0.13.0 ([#398](https://www.github.com/googleapis/release-please/issues/398)) ([09c5966](https://www.github.com/googleapis/release-please/commit/09c5966bbd1196f290ba65a7cb37517b770ebe78))
+* don't sleep in test ([#395](https://www.github.com/googleapis/release-please/issues/395)) ([0e2c74e](https://www.github.com/googleapis/release-please/commit/0e2c74e9f6dd098b015cb85b8a6b919e0370d281))
+* snapshots will now be taken from the latest commit ([#400](https://www.github.com/googleapis/release-please/issues/400)) ([274f852](https://www.github.com/googleapis/release-please/commit/274f8527d7ba7553daa41742d56ff55f0e21d1e8))
+
 ### [4.0.3](https://www.github.com/googleapis/release-please/compare/v4.0.2...v4.0.3) (2020-04-03)
 
 
