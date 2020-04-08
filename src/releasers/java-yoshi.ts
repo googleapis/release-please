@@ -171,6 +171,15 @@ export class JavaYoshi extends ReleasePR {
         ]
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
     let prSHA = commits[0].sha;
+    // Snapshots populate a fake "fix:"" commit, so that they will always
+    // result in a patch update. We still need to know the HEAD sba, so that
+    // we can use this as a starting point for the snapshot PR:
+    if (this.snapshot) {
+      const latestCommit = (
+        await this.commits(latestTag ? latestTag.sha : undefined, 1, true)
+      )[0];
+      prSHA = latestCommit.sha;
+    }
 
     const cc = new ConventionalCommits({
       commits,
@@ -182,21 +191,18 @@ export class JavaYoshi extends ReleasePR {
       cc,
       latestTag
     );
-    console.info('current package versions:', currentVersions);
     const candidateVersions = await this.coerceVersions(cc, currentVersions);
     let changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag,
     });
-    console.info('candidate package versions:', candidateVersions);
 
     // snapshot entries are special:
     // 1. they don't update the README or CHANGELOG.
     // 2. they always update a patch with the -SNAPSHOT suffix.
     // 3. they're haunted.
     if (this.snapshot) {
-      prSHA = latestTag!.sha;
       candidate.version = `${candidate.version}-SNAPSHOT`;
       changelogEntry =
         '### Updating meta-information for bleeding-edge SNAPSHOT release.';
