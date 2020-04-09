@@ -151,13 +151,15 @@ export class ReleasePR {
     return '1.0.0';
   }
 
-  protected async coerceReleaseCandidate(
+  static async buildReleaseCandidate(
     cc: ConventionalCommits,
-    latestTag: GitHubTag | undefined
+    latestTag: GitHubTag | undefined,
+    defaultInitialVersion: string,
+    forcedReleaseVersion?: string
   ): Promise<ReleaseCandidate> {
     const releaseAsRe = /release-as: v?([0-9]+\.[0-9]+\.[0-9a-z-])+\s*/i;
     const previousTag = latestTag ? latestTag.name : undefined;
-    let version = latestTag ? latestTag.version : this.defaultInitialVersion();
+    let version = latestTag ? latestTag.version : defaultInitialVersion;
 
     // If a commit contains the footer release-as: 1.x.x, we use this version
     // from the commit footer rather than the version returned by suggestBump().
@@ -172,16 +174,28 @@ export class ReleasePR {
     if (releaseAsCommit) {
       const match = releaseAsCommit.message.match(releaseAsRe);
       version = match![1];
-    } else if (latestTag && !this.releaseAs) {
+    } else if (latestTag && !forcedReleaseVersion) {
       const bump = await cc.suggestBump(version);
       const candidate: string | null = semver.inc(version, bump.releaseType);
       if (!candidate) throw Error(`failed to increment ${version}`);
       version = candidate;
-    } else if (this.releaseAs) {
-      version = this.releaseAs;
+    } else if (forcedReleaseVersion) {
+      version = forcedReleaseVersion;
     }
 
     return {version, previousTag};
+  }
+
+  protected async coerceReleaseCandidate(
+    cc: ConventionalCommits,
+    latestTag: GitHubTag | undefined
+  ): Promise<ReleaseCandidate> {
+    return ReleasePR.buildReleaseCandidate(
+      cc,
+      latestTag,
+      this.defaultInitialVersion(),
+      this.releaseAs
+    );
   }
 
   protected async commits(

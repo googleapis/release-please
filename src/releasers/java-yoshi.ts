@@ -16,7 +16,7 @@ import {ReleasePR, ReleasePROptions, ReleaseCandidate} from '../release-pr';
 import * as semver from 'semver';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag} from '../github';
+import {GitHubTag, GitHub} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, VersionsMap} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -91,7 +91,7 @@ export class Version {
     return new Version(major, minor, patch, extra, snapshot);
   }
 
-  bump(bumpType: BumpType) {
+  bump(bumpType: BumpType): Version {
     switch (bumpType) {
       case 'major':
         this.major += 1;
@@ -115,6 +115,7 @@ export class Version {
       default:
         throw Error(`unsupported bump type: ${bumpType}`);
     }
+    return this;
   }
 
   toString(): string {
@@ -133,8 +134,169 @@ async function delay({ms = 3000}) {
   });
 }
 
+interface Strategy {
+  getUpdates(
+    candidateVersions: VersionsMap,
+    candidateVersion: string,
+    packageName: string,
+    gh: GitHub
+  ): Promise<Update[]>;
+  getChangelogEntry(): Promise<string>;
+  getLabels(): string[];
+  getBumpType(): Promise<BumpType>;
+}
+
+class ReleaseStrategy implements Strategy {
+  cc: ConventionalCommits;
+  latestTag: GitHubTag | undefined;
+  constructor(cc: ConventionalCommits, latestTag: GitHubTag | undefined) {
+    this.cc = cc;
+    this.latestTag = latestTag;
+  }
+  async getUpdates(
+    candidateVersions: VersionsMap,
+    candidateVersion: string,
+    packageName: string,
+    gh: GitHub
+  ): Promise<Update[]> {
+    let updates: Update[] = [];
+    const changelogEntry = await this.getChangelogEntry();
+
+    updates.push(
+      new Changelog({
+        path: 'CHANGELOG.md',
+        changelogEntry,
+        versions: candidateVersions,
+        version: candidateVersion,
+        packageName: packageName,
+      })
+    );
+
+    updates.push(
+      new Readme({
+        path: 'README.md',
+        changelogEntry,
+        versions: candidateVersions,
+        version: candidateVersion,
+        packageName: packageName,
+      })
+    );
+
+    updates.push(
+      new GoogleUtils({
+        // TODO(@chingor): should this use search like pom.xml?
+        path:
+          'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
+        changelogEntry,
+        versions: candidateVersions,
+        version: candidateVersion,
+        packageName: packageName,
+      })
+    );
+
+    updates.push(
+      new VersionsManifest({
+        path: 'versions.txt',
+        changelogEntry,
+        versions: candidateVersions,
+        version: candidateVersion,
+        packageName: packageName,
+      })
+    );
+
+    const pomFiles = await gh.findFilesByFilename('pom.xml');
+    pomFiles.forEach(path => {
+      updates.push(
+        new PomXML({
+          path,
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidateVersion,
+          packageName: packageName,
+        })
+      );
+    });
+    return updates;
+  }
+  async getChangelogEntry(): Promise<string> {
+    const releaseCandidate = await ReleasePR.buildReleaseCandidate(
+      this.cc,
+      this.latestTag,
+      '0.1.0',
+      undefined
+    );
+    return await this.cc.generateChangelogEntry({
+      version: releaseCandidate.version,
+      currentTag: `v${releaseCandidate.version}`,
+      previousTag: releaseCandidate.previousTag,
+    });
+  }
+  getLabels(): string[] {
+    return ['autorelease: pending'];
+  }
+  async getBumpType(): Promise<BumpType> {
+    const bump = await this.cc.suggestBump('0.1.0');
+    switch (bump.releaseType) {
+      case 'major':
+      case 'minor':
+      case 'patch':
+        return bump.releaseType;
+      default:
+        throw Error(`unsupported release type ${bump.releaseType}`);
+    }
+  }
+}
+
+class SnapshotStrategy implements Strategy {
+  async getUpdates(
+    candidateVersions: VersionsMap,
+    candidateVersion: string,
+    packageName: string,
+    gh: GitHub
+  ): Promise<Update[]> {
+    let updates: Update[] = [];
+    updates.push(
+      new VersionsManifest({
+        path: 'versions.txt',
+        changelogEntry: 'unused',
+        versions: candidateVersions,
+        version: candidateVersion,
+        packageName: packageName,
+      })
+    );
+
+    const pomFiles = await gh.findFilesByFilename('pom.xml');
+    pomFiles.forEach(path => {
+      updates.push(
+        new PomXML({
+          path,
+          changelogEntry: 'unused',
+          versions: candidateVersions,
+          version: candidateVersion,
+          packageName: packageName,
+        })
+      );
+    });
+    return updates;
+  }
+  async getChangelogEntry(): Promise<string> {
+    return '### Updating meta-information for bleeding-edge SNAPSHOT release.';
+  }
+  getLabels(): string[] {
+    return ['type: process'];
+  }
+  async getBumpType(): Promise<BumpType> {
+    return 'snapshot';
+  }
+}
+
 export class JavaYoshi extends ReleasePR {
+  constructor(options: ReleasePROptions) {
+    super(options);
+  }
   protected async _run() {
+    // Load versions manifest
+    // Detect snapshot
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
     );
@@ -145,68 +307,37 @@ export class JavaYoshi extends ReleasePR {
     this.snapshot = VersionsManifest.needsSnapshot(
       versionsManifestContent.parsedContent
     );
+
+    // TODO: this temporarily resolves a race condition between creating a release
+    // and updating tags on the release PR. This should be replaced by a queuing
+    // mechanism to delay/retry this request.
     if (this.snapshot) {
-      this.labels = ['type: process'];
-      // TODO: this temporarily resolves a race condition between creating a release
-      // and updating tags on the release PR. This should be replaced by a queuing
-      // mechanism to delay/retry this request.
-      if (this.snapshot) {
-        checkpoint(
-          'snapshot: sleeping for 15 seconds...',
-          CheckpointType.Success
-        );
-        await delay({ms: 15000});
-        checkpoint('snapshot: finished sleeping', CheckpointType.Success);
-      }
+      checkpoint(
+        'snapshot: sleeping for 15 seconds...',
+        CheckpointType.Success
+      );
+      await delay({ms: 15000});
+      checkpoint('snapshot: finished sleeping', CheckpointType.Success);
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = this.snapshot
-      ? [
-          {
-            sha: 'abc123',
-            message: 'fix: ',
-            files: [],
-          },
-        ]
-      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
-    let prSHA = commits[0].sha;
-    // Snapshots populate a fake "fix:"" commit, so that they will always
-    // result in a patch update. We still need to know the HEAD sba, so that
-    // we can use this as a starting point for the snapshot PR:
-    if (this.snapshot) {
-      const latestCommit = (
-        await this.commits(latestTag ? latestTag.sha : undefined, 1, true)
-      )[0];
-      prSHA = latestCommit.sha;
-    }
 
-    const cc = new ConventionalCommits({
-      commits,
-      githubRepoUrl: this.repoUrl,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      changelogSections: CHANGELOG_SECTIONS,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
+    const commits: Commit[] = await this.commits(
+      latestTag ? latestTag.sha : undefined,
+      100,
+      true
     );
-    const candidateVersions = await this.coerceVersions(cc, currentVersions);
-    let changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
+    const prSHA = commits[0].sha;
 
-    // snapshot entries are special:
-    // 1. they don't update the README or CHANGELOG.
-    // 2. they always update a patch with the -SNAPSHOT suffix.
-    // 3. they're haunted.
-    if (this.snapshot) {
-      candidate.version = `${candidate.version}-SNAPSHOT`;
-      changelogEntry =
-        '### Updating meta-information for bleeding-edge SNAPSHOT release.';
-    }
+    const strategy = this.getStrategy(commits, latestTag);
+    this.labels = strategy.getLabels();
+    const bumpType = await strategy.getBumpType();
+    const changelogEntry = await strategy.getChangelogEntry();
+    const candidateVersions = this.bumpVersions(bumpType, currentVersions);
+
+    let candidateVersion = latestTag
+      ? Version.parse(latestTag.name).bump(bumpType).toString()
+      : this.defaultInitialVersion();
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
@@ -221,66 +352,12 @@ export class JavaYoshi extends ReleasePR {
       return;
     }
 
-    const updates: Update[] = [];
-
-    if (!this.snapshot) {
-      updates.push(
-        new Changelog({
-          path: 'CHANGELOG.md',
-          changelogEntry,
-          versions: candidateVersions,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-
-      updates.push(
-        new Readme({
-          path: 'README.md',
-          changelogEntry,
-          versions: candidateVersions,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-
-      updates.push(
-        new GoogleUtils({
-          // TODO(@chingor): should this use search like pom.xml?
-          path:
-            'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
-          changelogEntry,
-          versions: candidateVersions,
-          version: candidate.version,
-          packageName: this.packageName,
-          contents: versionsManifestContent,
-        })
-      );
-    }
-
-    updates.push(
-      new VersionsManifest({
-        path: 'versions.txt',
-        changelogEntry,
-        versions: candidateVersions,
-        version: candidate.version,
-        packageName: this.packageName,
-        contents: versionsManifestContent,
-      })
+    const updates = await strategy.getUpdates(
+      candidateVersions,
+      candidateVersion,
+      this.packageName,
+      this.gh
     );
-
-    const pomFiles = await this.gh.findFilesByFilename('pom.xml');
-    pomFiles.forEach(path => {
-      updates.push(
-        new PomXML({
-          path,
-          changelogEntry,
-          versions: candidateVersions,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-    });
 
     console.info(
       `attempting to open PR latestTagSha = ${latestTag!.sha} prSha = ${prSHA}`
@@ -289,39 +366,39 @@ export class JavaYoshi extends ReleasePR {
       prSHA!,
       `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
+      candidateVersion
     );
+  }
+
+  protected getStrategy(
+    commits: Commit[],
+    latestTag: GitHubTag | undefined
+  ): Strategy {
+    const cc = new ConventionalCommits({
+      commits,
+      githubRepoUrl: this.repoUrl,
+      bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: CHANGELOG_SECTIONS,
+    });
+    return this.snapshot
+      ? new SnapshotStrategy()
+      : new ReleaseStrategy(cc, latestTag);
   }
 
   protected defaultInitialVersion(): string {
     return '0.1.0';
   }
 
-  protected async coerceVersions(
-    cc: ConventionalCommits,
+  protected bumpVersions(
+    bumpType: BumpType,
     currentVersions: VersionsMap
-  ): Promise<VersionsMap> {
+  ): VersionsMap {
     const newVersions: VersionsMap = new Map<string, string>();
     for (const [k, version] of currentVersions) {
-      const bump = await cc.suggestBump(version);
       const newVersion = Version.parse(version);
-      newVersion.bump(this.coerceBumpType(bump.releaseType));
+      newVersion.bump(bumpType);
       newVersions.set(k, newVersion.toString());
     }
     return newVersions;
-  }
-
-  private coerceBumpType(releaseType: semver.ReleaseType): BumpType {
-    if (this.snapshot) {
-      return 'snapshot';
-    }
-    switch (releaseType) {
-      case 'major':
-      case 'minor':
-      case 'patch':
-        return releaseType;
-      default:
-        throw Error(`unsupported release type ${releaseType}`);
-    }
   }
 }
