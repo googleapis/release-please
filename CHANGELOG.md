@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [4.1.1](https://www.github.com/googleapis/release-please/compare/v4.1.0...v4.1.1) (2020-04-10)
+
+
+### Bug Fixes
+
+* stop parsing BREAKING CHANGE message after two newlines ([#404](https://www.github.com/googleapis/release-please/issues/404)) ([32d07cb](https://www.github.com/googleapis/release-please/commit/32d07cb00f455f50e877cc4050521be934d59718))
+
 ## [4.1.0](https://www.github.com/googleapis/release-please/compare/v4.0.3...v4.1.0) (2020-04-08)
 
 
