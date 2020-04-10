@@ -106,4 +106,93 @@ describe('JavaBom', () => {
       expect(versionMap.get('com.example.foo:my-artifact')).to.equal('v1.2.3');
     });
   });
+  describe('isNonPatchVersion', () => {
+    it('should parse a major version bump', async () => {
+      const commit = {
+        sha: 'abcd',
+        message: 'deps: update dependency com.example.foo:my-artifact to v2',
+        files: [],
+      };
+      expect(JavaBom.isNonPatchVersion(commit)).to.equal(true);
+    });
+    it('should parse a minor version bump', async () => {
+      const commit = {
+        sha: 'abcd',
+        message:
+          'deps: update dependency com.example.foo:my-artifact to v1.2.0',
+        files: [],
+      };
+      expect(JavaBom.isNonPatchVersion(commit)).to.equal(true);
+    });
+    it('should parse a minor version bump', async () => {
+      const commit = {
+        sha: 'abcd',
+        message:
+          'deps: update dependency com.example.foo:my-artifact to v1.2.3',
+        files: [],
+      };
+      expect(JavaBom.isNonPatchVersion(commit)).to.equal(false);
+    });
+    it('should ignore a non conforming commit', async () => {
+      const commit = {
+        sha: 'abcd',
+        message: 'some message',
+        files: [],
+      };
+      expect(JavaBom.isNonPatchVersion(commit)).to.equal(false);
+    });
+  });
+  describe('determineBumpType', () => {
+    it('should return patch for patch-only bumps', () => {
+      const commits = [
+        {
+          sha: 'abcd',
+          message:
+            'deps: update dependency com.example.foo:my-artifact to v1.2.3',
+          files: [],
+        },
+        {
+          sha: 'abcd',
+          message:
+            'deps: update dependency com.example.foo:another-artifact to v2.3.4',
+          files: [],
+        },
+      ];
+      expect(JavaBom.determineBumpType(commits)).to.equal('patch');
+    });
+    it('should return minor for bumps that include a minor', () => {
+      const commits = [
+        {
+          sha: 'abcd',
+          message:
+            'deps: update dependency com.example.foo:my-artifact to v1.2.3',
+          files: [],
+        },
+        {
+          sha: 'abcd',
+          message:
+            'deps: update dependency com.example.foo:another-artifact to v2.3.0',
+          files: [],
+        },
+      ];
+      expect(JavaBom.determineBumpType(commits)).to.equal('minor');
+    });
+    it('should return minor for bumps that include a major', () => {
+      const commits = [
+        {
+          sha: 'abcd',
+          message:
+            'deps: update dependency com.example.foo:my-artifact to v1.2.3',
+          files: [],
+        },
+        {
+          sha: 'abcd',
+          message:
+            'deps: update dependency com.example.foo:another-artifact to v2',
+          files: [],
+        },
+      ];
+      expect(JavaBom.determineBumpType(commits)).to.equal('minor');
+    });
+  });
 });

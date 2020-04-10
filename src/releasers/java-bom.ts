@@ -24,7 +24,6 @@ import {Commit} from '../graphql-to-commits';
 // Generic
 import {Changelog} from '../updaters/changelog';
 // Java
-import {GoogleUtils} from '../updaters/java/google-utils';
 import {PomXML} from '../updaters/java/pom-xml';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
@@ -46,6 +45,7 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)$/;
+const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
 async function delay({ms = 3000}) {
   if (process.env.ENVIRONMENT === 'test') return;
@@ -239,18 +239,31 @@ export class JavaBom extends ReleasePR {
     const versionsMap = new Map();
     commits.forEach(commit => {
       const match = commit.message.match(DEPENDENCY_UPDATE_REGEX);
-      if (!match) {
-        console.log('no match!');
-        return;
-      }
+      if (!match) return;
 
-      if (versionsMap.has(match[1])) {
-        // commits are sorted by latest first, so if there is a collision,
-        // then we've already recorded the latest version
-      } else {
-        versionsMap.set(match[1], match[2]);
-      }
+      // commits are sorted by latest first, so if there is a collision,
+      // then we've already recorded the latest version
+      if (versionsMap.has(match[1])) return;
+
+      versionsMap.set(match[1], match[2]);
     });
     return versionsMap;
+  }
+
+  static isNonPatchVersion(commit: Commit) {
+    let match = commit.message.match(DEPENDENCY_UPDATE_REGEX);
+    if (!match) return false;
+
+    match = match[2].match(DEPENDENCY_PATCH_VERSION_REGEX);
+    if (!match) return true;
+
+    return false;
+  }
+
+  static determineBumpType(commits: Commit[]): BumpType {
+    if (commits.some(this.isNonPatchVersion)) {
+      return 'minor';
+    }
+    return 'patch';
   }
 }
