@@ -12,4 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as semver from 'semver';
+
 export type BumpType = 'major' | 'minor' | 'patch' | 'snapshot';
+
+export function maxBumpType(bumpTypes: BumpType[]): BumpType {
+  if (bumpTypes.some(bumpType => bumpType == 'major')) {
+    return 'major';
+  }
+  if (bumpTypes.some(bumpType => bumpType == 'minor')) {
+    return 'minor';
+  }
+  return 'patch';
+}
+
+export function fromSemverReleaseType(releaseType: semver.ReleaseType) {
+  switch (releaseType) {
+    case 'major':
+    case 'minor':
+    case 'patch':
+      return releaseType;
+    default:
+      throw Error(`unsupported release type ${releaseType}`);
+  }
+}

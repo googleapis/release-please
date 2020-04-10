@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleasePROptions, ReleaseCandidate} from '../release-pr';
-import * as semver from 'semver';
+import {ReleasePR} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
@@ -27,14 +26,14 @@ import {Changelog} from '../updaters/changelog';
 import {PomXML} from '../updaters/java/pom-xml';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
-import {BumpType} from './java/bump_type';
+import {BumpType, maxBumpType, fromSemverReleaseType} from './java/bump_type';
 import {Version} from './java/version';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
   {type: 'fix', section: 'Bug Fixes'},
   {type: 'perf', section: 'Performance Improvements'},
-  {type: 'deps', section: 'Dependencies'},
+  {type: 'deps', section: 'Dependencies', hidden: true},
   {type: 'revert', section: 'Reverts'},
   {type: 'docs', section: 'Documentation'},
   {type: 'style', section: 'Styles', hidden: true},
@@ -91,9 +90,25 @@ export class JavaBom extends ReleasePR {
       true
     );
     const prSHA = commits[0].sha;
+    const cc = new ConventionalCommits({
+      commits,
+      githubRepoUrl: this.repoUrl,
+      bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: CHANGELOG_SECTIONS,
+    });
+
     const bumpType = this.snapshot
       ? 'snapshot'
-      : JavaBom.determineBumpType(commits);
+      : maxBumpType([
+          JavaBom.determineBumpType(commits),
+          fromSemverReleaseType(
+            (
+              await cc.suggestBump(
+                latestTag?.sha || this.defaultInitialVersion()
+              )
+            ).releaseType
+          ),
+        ]);
 
     const candidate = {
       version: latestTag
@@ -103,11 +118,13 @@ export class JavaBom extends ReleasePR {
     };
     const changelogEntry = this.snapshot
       ? '### Updating meta-information for bleeding-edge SNAPSHOT release.'
-      : JavaBom.generateChangelogEntry(
-          this.repoUrl,
-          candidate.version,
-          candidate.previousTag,
-          commits
+      : this.appendDependencies(
+          commits,
+          await cc.generateChangelogEntry({
+            version: candidate.version,
+            currentTag: `v${candidate.version}`,
+            previousTag: candidate.previousTag,
+          })
         );
 
     // don't create a release candidate until user facing changes
@@ -187,31 +204,27 @@ export class JavaBom extends ReleasePR {
     );
   }
 
-  protected defaultInitialVersion(): string {
-    return '0.1.0';
-  }
-
-  static generateChangelogEntry(
-    repoUrl: string,
-    newVersion: string,
-    previousVersion: string | undefined,
-    commits: Commit[]
-  ): string {
-    const dependencies = this.dependencyUpdates(commits);
+  private appendDependencies(commits: Commit[], changelog: string): string {
+    const dependencies = JavaBom.dependencyUpdates(commits);
+    if (dependencies.size == 0) {
+      return changelog;
+    }
     const entries: string[] = [];
     dependencies.forEach((artifact: string, version: string) => {
       entries.push(`* Update dependency ${artifact} to ${version}`);
     });
-    const header = previousVersion
-      ? `### [${newVersion}](${repoUrl}/compare/v${previousVersion}...v${newVersion}) `
-      : `### ${newVersion}`;
-
-    return `${header}
+    const newDependenciesSection = `
 
 
 ### Dependencies
-    
+
 ${entries.join('\n')}`;
+
+    return changelog + newDependenciesSection;
+  }
+
+  protected defaultInitialVersion(): string {
+    return '0.1.0';
   }
 
   static bumpAllVersions(

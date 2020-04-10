@@ -29,7 +29,7 @@ import {PomXML} from '../updaters/java/pom-xml';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
 import {Version} from './java/version';
-import {BumpType} from './java/bump_type';
+import {BumpType, fromSemverReleaseType} from './java/bump_type';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -227,23 +227,11 @@ export class JavaYoshi extends ReleasePR {
     for (const [k, version] of currentVersions) {
       const bump = await cc.suggestBump(version);
       const newVersion = Version.parse(version);
-      newVersion.bump(this.coerceBumpType(bump.releaseType));
+      newVersion.bump(
+        this.snapshot ? 'snapshot' : fromSemverReleaseType(bump.releaseType)
+      );
       newVersions.set(k, newVersion.toString());
     }
     return newVersions;
-  }
-
-  private coerceBumpType(releaseType: semver.ReleaseType): BumpType {
-    if (this.snapshot) {
-      return 'snapshot';
-    }
-    switch (releaseType) {
-      case 'major':
-      case 'minor':
-      case 'patch':
-        return releaseType;
-      default:
-        throw Error(`unsupported release type ${releaseType}`);
-    }
   }
 }
