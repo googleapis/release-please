@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleasePROptions, ReleaseCandidate} from '../release-pr';
-import * as semver from 'semver';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
@@ -29,7 +28,7 @@ import {PomXML} from '../updaters/java/pom-xml';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
 import {Version} from './java/version';
-import {BumpType, fromSemverReleaseType} from './java/bump_type';
+import {fromSemverReleaseType} from './java/bump_type';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
