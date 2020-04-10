@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import {GoogleUtils} from '../updaters/java/google-utils';
 import {PomXML} from '../updaters/java/pom-xml';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
-import {Version} from './java/version';
 import {BumpType} from './java/bump_type';
+import {Version} from './java/version';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -45,6 +45,7 @@ const CHANGELOG_SECTIONS = [
   {type: 'build', section: 'Build System', hidden: true},
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
+const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)$/;
 
 async function delay({ms = 3000}) {
   if (process.env.ENVIRONMENT === 'test') return;
@@ -55,7 +56,7 @@ async function delay({ms = 3000}) {
   });
 }
 
-export class JavaYoshi extends ReleasePR {
+export class JavaBom extends ReleasePR {
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
@@ -165,19 +166,6 @@ export class JavaYoshi extends ReleasePR {
           packageName: this.packageName,
         })
       );
-
-      updates.push(
-        new GoogleUtils({
-          // TODO(@chingor): should this use search like pom.xml?
-          path:
-            'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
-          changelogEntry,
-          versions: candidateVersions,
-          version: candidate.version,
-          packageName: this.packageName,
-          contents: versionsManifestContent,
-        })
-      );
     }
 
     updates.push(
@@ -245,5 +233,24 @@ export class JavaYoshi extends ReleasePR {
       default:
         throw Error(`unsupported release type ${releaseType}`);
     }
+  }
+
+  static dependencyUpdates(commits: Commit[]): VersionsMap {
+    const versionsMap = new Map();
+    commits.forEach(commit => {
+      const match = commit.message.match(DEPENDENCY_UPDATE_REGEX);
+      if (!match) {
+        console.log('no match!');
+        return;
+      }
+
+      if (versionsMap.has(match[1])) {
+        // commits are sorted by latest first, so if there is a collision,
+        // then we've already recorded the latest version
+      } else {
+        versionsMap.set(match[1], match[2]);
+      }
+    });
+    return versionsMap;
   }
 }
