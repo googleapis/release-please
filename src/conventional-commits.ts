@@ -63,6 +63,11 @@ interface BumpSuggestion {
   level: number;
 }
 
+interface Note {
+  title: string;
+  text: string;
+}
+
 interface ParsedConventionalCommit {
   type: string;
   scope: string | null;
@@ -71,10 +76,28 @@ interface ParsedConventionalCommit {
   header: string;
   body: string | null;
   footer: string | null;
-  notes: object[];
+  notes: Note[];
   references: object[];
   mentions: string[];
   revert: boolean | null;
+}
+
+// Perform some post processing on the commits parsed by conventional commits:
+// 1. don't allow BREAKING CHANGES to have two newlines:
+import {Transform} from 'stream';
+
+class PostProcessCommits extends Transform {
+  _transform(
+    chunk: ParsedConventionalCommit,
+    _encoding: string,
+    done: Function
+  ) {
+    chunk.notes.forEach(note => {
+      note.text = note.text.split(/\r?\n/)[0];
+    });
+    this.push(JSON.stringify(chunk, null, 4) + '\n');
+    done();
+  }
 }
 
 export class ConventionalCommits {
@@ -151,6 +174,7 @@ export class ConventionalCommits {
       let content = '';
       const stream = this.commitsReadable()
         .pipe(conventionalCommitsParser(preset.parserOpts))
+        .pipe(new PostProcessCommits({objectMode: true}))
         .pipe(conventionalChangelogWriter(context, preset.writerOpts));
 
       stream.on('error', (err: Error) => {
