@@ -1,6 +1,12 @@
 {
-  "updateTime": "2020-03-22T12:00:42.974758Z",
   "sources": [
+    {
+      "git": {
+        "name": ".",
+        "remote": "https://github.com/googleapis/release-please.git",
+        "sha": "cec602e83c31dccc5f72cde0c5f7ea2ffe62988c"
+      }
+    },
     {
       "git": {
         "name": "synthtool",
