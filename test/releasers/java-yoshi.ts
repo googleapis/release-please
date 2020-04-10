@@ -22,7 +22,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
-const fixturesPath = './test/releasers/fixtures';
+const fixturesPath = './test/releasers/fixtures/java-yoshi';
 
 interface MochaThis {
   [skip: string]: Function;

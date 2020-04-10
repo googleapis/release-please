@@ -59,7 +59,7 @@ export class Version {
     return new Version(major, minor, patch, extra, snapshot);
   }
 
-  bump(bumpType: BumpType) {
+  bump(bumpType: BumpType): Version {
     switch (bumpType) {
       case 'major':
         this.major += 1;
@@ -83,6 +83,7 @@ export class Version {
       default:
         throw Error(`unsupported bump type: ${bumpType}`);
     }
+    return this;
   }
 
   toString(): string {

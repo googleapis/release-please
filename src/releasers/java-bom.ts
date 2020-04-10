@@ -84,52 +84,31 @@ export class JavaBom extends ReleasePR {
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = this.snapshot
-      ? [
-          {
-            sha: 'abc123',
-            message: 'fix: ',
-            files: [],
-          },
-        ]
-      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
-    let prSHA = commits[0].sha;
-    // Snapshots populate a fake "fix:"" commit, so that they will always
-    // result in a patch update. We still need to know the HEAD sba, so that
-    // we can use this as a starting point for the snapshot PR:
-    if (this.snapshot) {
-      const latestCommit = (
-        await this.commits(latestTag ? latestTag.sha : undefined, 1, true)
-      )[0];
-      prSHA = latestCommit.sha;
-    }
 
-    const cc = new ConventionalCommits({
-      commits,
-      githubRepoUrl: this.repoUrl,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      changelogSections: CHANGELOG_SECTIONS,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
+    const commits = await this.commits(
+      latestTag ? latestTag.sha : undefined,
+      this.snapshot ? 1 : 100,
+      true
     );
-    const candidateVersions = await this.coerceVersions(cc, currentVersions);
-    let changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
+    const prSHA = commits[0].sha;
+    const bumpType = this.snapshot
+      ? 'snapshot'
+      : JavaBom.determineBumpType(commits);
 
-    // snapshot entries are special:
-    // 1. they don't update the README or CHANGELOG.
-    // 2. they always update a patch with the -SNAPSHOT suffix.
-    // 3. they're haunted.
-    if (this.snapshot) {
-      candidate.version = `${candidate.version}-SNAPSHOT`;
-      changelogEntry =
-        '### Updating meta-information for bleeding-edge SNAPSHOT release.';
-    }
+    const candidate = {
+      version: latestTag
+        ? Version.parse(latestTag.version).bump(bumpType).toString()
+        : this.defaultInitialVersion(),
+      previousTag: latestTag?.version,
+    };
+    const changelogEntry = this.snapshot
+      ? '### Updating meta-information for bleeding-edge SNAPSHOT release.'
+      : JavaBom.generateChangelogEntry(
+          this.repoUrl,
+          candidate.version,
+          candidate.previousTag,
+          commits
+        );
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
@@ -143,6 +122,11 @@ export class JavaBom extends ReleasePR {
       );
       return;
     }
+
+    const candidateVersions = JavaBom.bumpAllVersions(
+      bumpType,
+      currentVersions
+    );
 
     const updates: Update[] = [];
 
@@ -207,32 +191,38 @@ export class JavaBom extends ReleasePR {
     return '0.1.0';
   }
 
-  protected async coerceVersions(
-    cc: ConventionalCommits,
-    currentVersions: VersionsMap
-  ): Promise<VersionsMap> {
-    const newVersions: VersionsMap = new Map<string, string>();
-    for (const [k, version] of currentVersions) {
-      const bump = await cc.suggestBump(version);
-      const newVersion = Version.parse(version);
-      newVersion.bump(this.coerceBumpType(bump.releaseType));
-      newVersions.set(k, newVersion.toString());
-    }
-    return newVersions;
+  static generateChangelogEntry(
+    repoUrl: string,
+    newVersion: string,
+    previousVersion: string | undefined,
+    commits: Commit[]
+  ): string {
+    const dependencies = this.dependencyUpdates(commits);
+    const entries: string[] = [];
+    dependencies.forEach((artifact: string, version: string) => {
+      entries.push(`* Update dependency ${artifact} to ${version}`);
+    });
+    const header = previousVersion
+      ? `### [${newVersion}](${repoUrl}/compare/v${previousVersion}...v${newVersion}) `
+      : `### ${newVersion}`;
+
+    return `${header}
+
+
+### Dependencies
+    
+${entries.join('\n')}`;
   }
 
-  private coerceBumpType(releaseType: semver.ReleaseType): BumpType {
-    if (this.snapshot) {
-      return 'snapshot';
+  static bumpAllVersions(
+    bumpType: BumpType,
+    currentVersions: VersionsMap
+  ): VersionsMap {
+    const newVersions: VersionsMap = new Map<string, string>();
+    for (const [k, version] of currentVersions) {
+      newVersions.set(k, Version.parse(version).bump(bumpType).toString());
     }
-    switch (releaseType) {
-      case 'major':
-      case 'minor':
-      case 'patch':
-        return releaseType;
-      default:
-        throw Error(`unsupported release type ${releaseType}`);
-    }
+    return newVersions;
   }
 
   static dependencyUpdates(commits: Commit[]): VersionsMap {
