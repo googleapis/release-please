@@ -20,6 +20,7 @@ import {
 } from './release-pr';
 import {Ruby, RubyReleasePROptions} from './releasers/ruby';
 import {JavaAuthYoshi} from './releasers/java-auth-yoshi';
+import {JavaBom} from './releasers/java-bom';
 import {Node} from './releasers/node';
 import {PHPYoshi} from './releasers/php-yoshi';
 import {Python} from './releasers/python';
@@ -41,6 +42,8 @@ export class ReleasePRFactory {
       case ReleaseType.JavaAuthYoshi:
         // TODO: coerce this to the generic Java release
         return new JavaAuthYoshi(releaseOptions);
+      case ReleaseType.JavaBom:
+        return new JavaBom(releaseOptions);
       case ReleaseType.JavaYoshi:
         return new JavaYoshi(releaseOptions);
       case ReleaseType.TerraformModule:
