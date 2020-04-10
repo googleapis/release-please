@@ -206,7 +206,7 @@ export class JavaBom extends ReleasePR {
 
   private appendDependencies(commits: Commit[], changelog: string): string {
     const dependencies = JavaBom.dependencyUpdates(commits);
-    if (dependencies.size == 0) {
+    if (dependencies.size === 0) {
       return changelog;
     }
     const entries: string[] = [];

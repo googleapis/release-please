@@ -17,10 +17,10 @@ import * as semver from 'semver';
 export type BumpType = 'major' | 'minor' | 'patch' | 'snapshot';
 
 export function maxBumpType(bumpTypes: BumpType[]): BumpType {
-  if (bumpTypes.some(bumpType => bumpType == 'major')) {
+  if (bumpTypes.some(bumpType => bumpType === 'major')) {
     return 'major';
   }
-  if (bumpTypes.some(bumpType => bumpType == 'minor')) {
+  if (bumpTypes.some(bumpType => bumpType === 'minor')) {
     return 'minor';
   }
   return 'patch';
