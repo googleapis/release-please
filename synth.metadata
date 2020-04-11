@@ -4,7 +4,7 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/release-please.git",
-        "sha": "cec602e83c31dccc5f72cde0c5f7ea2ffe62988c"
+        "sha": "4e0bf11b7f4217b5c6b8cd1aa9ea4db1bce06b89"
       }
     },
     {
