@@ -64,7 +64,7 @@ describe('ConventionalCommits', () => {
       const cl = await cc.generateChangelogEntry({
         version: 'v1.0.0',
       });
-      snapshot(cl);
+      snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
     });
   });
 });
