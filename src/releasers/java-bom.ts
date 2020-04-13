@@ -33,7 +33,7 @@ const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
   {type: 'fix', section: 'Bug Fixes'},
   {type: 'perf', section: 'Performance Improvements'},
-  {type: 'deps', section: 'Dependencies', hidden: true},
+  {type: 'deps', section: 'Dependencies'},
   {type: 'revert', section: 'Reverts'},
   {type: 'docs', section: 'Documentation'},
   {type: 'style', section: 'Styles', hidden: true},
@@ -43,7 +43,7 @@ const CHANGELOG_SECTIONS = [
   {type: 'build', section: 'Build System', hidden: true},
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
-const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)$/;
+const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
 const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
 async function delay({ms = 3000}) {
@@ -118,14 +118,11 @@ export class JavaBom extends ReleasePR {
     };
     const changelogEntry = this.snapshot
       ? '### Updating meta-information for bleeding-edge SNAPSHOT release.'
-      : this.appendDependencies(
-          commits,
-          await cc.generateChangelogEntry({
-            version: candidate.version,
-            currentTag: `v${candidate.version}`,
-            previousTag: candidate.previousTag,
-          })
-        );
+      : await cc.generateChangelogEntry({
+          version: candidate.version,
+          currentTag: `v${candidate.version}`,
+          previousTag: candidate.previousTag,
+        });
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
@@ -202,25 +199,6 @@ export class JavaBom extends ReleasePR {
       updates,
       candidate.version
     );
-  }
-
-  private appendDependencies(commits: Commit[], changelog: string): string {
-    const dependencies = JavaBom.dependencyUpdates(commits);
-    if (dependencies.size === 0) {
-      return changelog;
-    }
-    const entries: string[] = [];
-    dependencies.forEach((artifact: string, version: string) => {
-      entries.push(`* Update dependency ${artifact} to ${version}`);
-    });
-    const newDependenciesSection = `
-
-
-### Dependencies
-
-${entries.join('\n')}`;
-
-    return changelog + newDependenciesSection;
   }
 
   protected defaultInitialVersion(): string {

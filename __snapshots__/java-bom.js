@@ -6,8 +6,8 @@ exports['CHANGELOG-bom'] = `
 
 ### Dependencies
 
-* Update dependency v1.120.0 to com.google.cloud:google-cloud-storage
-* Update dependency v1.50.0 to com.google.cloud:google-cloud-spanner
+* update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
+* update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
 
 `
 
@@ -827,8 +827,8 @@ exports['PR body-bom'] = `
 
 ### Dependencies
 
-* Update dependency v1.120.0 to com.google.cloud:google-cloud-storage
-* Update dependency v1.50.0 to com.google.cloud:google-cloud-spanner
+* update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
+* update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
 ---
 
 
@@ -1632,7 +1632,7 @@ exports['CHANGELOG-bom-feature'] = `
 
 ### Dependencies
 
-* Update dependency v1.120.1 to com.google.cloud:google-cloud-storage
+* update dependency com.google.cloud:google-cloud-storage to v1.120.1 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
 
 `
 
@@ -2457,7 +2457,7 @@ exports['PR body-bom-feature'] = `
 
 ### Dependencies
 
-* Update dependency v1.120.1 to com.google.cloud:google-cloud-storage
+* update dependency com.google.cloud:google-cloud-storage to v1.120.1 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
 ---
 
 
