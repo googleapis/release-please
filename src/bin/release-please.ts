@@ -160,6 +160,7 @@ action "github-release" {
       'node',
       'php-yoshi',
       'java-auth-yoshi',
+      'java-bom',
       'java-yoshi',
       'python',
       'terraform-module',
