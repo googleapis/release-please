@@ -38,6 +38,7 @@ export enum ReleaseType {
   Node = 'node',
   PHPYoshi = 'php-yoshi',
   JavaAuthYoshi = 'java-auth-yoshi',
+  JavaBom = 'java-bom',
   JavaYoshi = 'java-yoshi',
   Python = 'python',
   TerraformModule = 'terraform-module',

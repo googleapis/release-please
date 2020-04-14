@@ -3,3 +3,4 @@
 build/
 docs/
 protos/
+__snapshots__/

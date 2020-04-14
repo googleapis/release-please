@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePR} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
@@ -23,12 +23,11 @@ import {Commit} from '../graphql-to-commits';
 // Generic
 import {Changelog} from '../updaters/changelog';
 // Java
-import {GoogleUtils} from '../updaters/java/google-utils';
 import {PomXML} from '../updaters/java/pom-xml';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
+import {BumpType, maxBumpType, fromSemverReleaseType} from './java/bump_type';
 import {Version} from './java/version';
-import {fromSemverReleaseType} from './java/bump_type';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -44,6 +43,8 @@ const CHANGELOG_SECTIONS = [
   {type: 'build', section: 'Build System', hidden: true},
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
+const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
+const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
 async function delay({ms = 3000}) {
   if (process.env.ENVIRONMENT === 'test') return;
@@ -54,7 +55,7 @@ async function delay({ms = 3000}) {
   });
 }
 
-export class JavaYoshi extends ReleasePR {
+export class JavaBom extends ReleasePR {
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
@@ -82,52 +83,46 @@ export class JavaYoshi extends ReleasePR {
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = this.snapshot
-      ? [
-          {
-            sha: 'abc123',
-            message: 'fix: ',
-            files: [],
-          },
-        ]
-      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
-    let prSHA = commits[0].sha;
-    // Snapshots populate a fake "fix:"" commit, so that they will always
-    // result in a patch update. We still need to know the HEAD sba, so that
-    // we can use this as a starting point for the snapshot PR:
-    if (this.snapshot) {
-      const latestCommit = (
-        await this.commits(latestTag ? latestTag.sha : undefined, 1, true)
-      )[0];
-      prSHA = latestCommit.sha;
-    }
 
+    const commits = await this.commits(
+      latestTag ? latestTag.sha : undefined,
+      this.snapshot ? 1 : 100,
+      true
+    );
+    const prSHA = commits[0].sha;
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: CHANGELOG_SECTIONS,
     });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-    const candidateVersions = await this.coerceVersions(cc, currentVersions);
-    let changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
 
-    // snapshot entries are special:
-    // 1. they don't update the README or CHANGELOG.
-    // 2. they always update a patch with the -SNAPSHOT suffix.
-    // 3. they're haunted.
-    if (this.snapshot) {
-      candidate.version = `${candidate.version}-SNAPSHOT`;
-      changelogEntry =
-        '### Updating meta-information for bleeding-edge SNAPSHOT release.';
-    }
+    const bumpType = this.snapshot
+      ? 'snapshot'
+      : maxBumpType([
+          JavaBom.determineBumpType(commits),
+          fromSemverReleaseType(
+            (
+              await cc.suggestBump(
+                latestTag?.sha || this.defaultInitialVersion()
+              )
+            ).releaseType
+          ),
+        ]);
+
+    const candidate = {
+      version: latestTag
+        ? Version.parse(latestTag.version).bump(bumpType).toString()
+        : this.defaultInitialVersion(),
+      previousTag: latestTag?.version,
+    };
+    const changelogEntry = this.snapshot
+      ? '### Updating meta-information for bleeding-edge SNAPSHOT release.'
+      : await cc.generateChangelogEntry({
+          version: candidate.version,
+          currentTag: `v${candidate.version}`,
+          previousTag: candidate.previousTag,
+        });
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
@@ -141,6 +136,11 @@ export class JavaYoshi extends ReleasePR {
       );
       return;
     }
+
+    const candidateVersions = JavaBom.bumpAllVersions(
+      bumpType,
+      currentVersions
+    );
 
     const updates: Update[] = [];
 
@@ -162,19 +162,6 @@ export class JavaYoshi extends ReleasePR {
           versions: candidateVersions,
           version: candidate.version,
           packageName: this.packageName,
-        })
-      );
-
-      updates.push(
-        new GoogleUtils({
-          // TODO(@chingor): should this use search like pom.xml?
-          path:
-            'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
-          changelogEntry,
-          versions: candidateVersions,
-          version: candidate.version,
-          packageName: this.packageName,
-          contents: versionsManifestContent,
         })
       );
     }
@@ -218,19 +205,46 @@ export class JavaYoshi extends ReleasePR {
     return '0.1.0';
   }
 
-  protected async coerceVersions(
-    cc: ConventionalCommits,
+  static bumpAllVersions(
+    bumpType: BumpType,
     currentVersions: VersionsMap
-  ): Promise<VersionsMap> {
+  ): VersionsMap {
     const newVersions: VersionsMap = new Map<string, string>();
     for (const [k, version] of currentVersions) {
-      const bump = await cc.suggestBump(version);
-      const newVersion = Version.parse(version);
-      newVersion.bump(
-        this.snapshot ? 'snapshot' : fromSemverReleaseType(bump.releaseType)
-      );
-      newVersions.set(k, newVersion.toString());
+      newVersions.set(k, Version.parse(version).bump(bumpType).toString());
     }
     return newVersions;
+  }
+
+  static dependencyUpdates(commits: Commit[]): VersionsMap {
+    const versionsMap = new Map();
+    commits.forEach(commit => {
+      const match = commit.message.match(DEPENDENCY_UPDATE_REGEX);
+      if (!match) return;
+
+      // commits are sorted by latest first, so if there is a collision,
+      // then we've already recorded the latest version
+      if (versionsMap.has(match[1])) return;
+
+      versionsMap.set(match[1], match[2]);
+    });
+    return versionsMap;
+  }
+
+  static isNonPatchVersion(commit: Commit) {
+    let match = commit.message.match(DEPENDENCY_UPDATE_REGEX);
+    if (!match) return false;
+
+    match = match[2].match(DEPENDENCY_PATCH_VERSION_REGEX);
+    if (!match) return true;
+
+    return false;
+  }
+
+  static determineBumpType(commits: Commit[]): BumpType {
+    if (commits.some(this.isNonPatchVersion)) {
+      return 'minor';
+    }
+    return 'patch';
   }
 }
