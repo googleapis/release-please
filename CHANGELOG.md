@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [4.2.0](https://www.github.com/googleapis/release-please/compare/v4.1.1...v4.2.0) (2020-04-14)
+
+
+### Features
+
+* add Java BOM versioning strategy ([#407](https://www.github.com/googleapis/release-please/issues/407)) ([8a971cd](https://www.github.com/googleapis/release-please/commit/8a971cd5b65ddcda306eacdace1e2da8e6144548))
+
 ### [4.1.1](https://www.github.com/googleapis/release-please/compare/v4.1.0...v4.1.1) (2020-04-10)
 
 
