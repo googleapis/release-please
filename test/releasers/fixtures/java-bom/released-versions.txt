@@ -1,0 +1,4 @@
+# Format:
+# module:released-version:current-version
+
+google-cloud-bom:0.123.4:0.123.4
