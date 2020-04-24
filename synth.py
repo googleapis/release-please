@@ -1,5 +1,6 @@
 import synthtool as s
 import synthtool.gcp as gcp
+import synthtool.languages.node as node
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -17,3 +18,5 @@ s.copy(templates, excludes=[
   '.kokoro/continuous/node10/system-test.cfg',
   '.kokoro/system-test.sh'
 ])
+node.install()
+node.fix()

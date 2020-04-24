@@ -16,7 +16,8 @@
     "lint": "gts check",
     "compile": "tsc -p .",
     "fix": "gts fix",
-    "pretest": "npm run compile"
+    "pretest": "npm run compile",
+    "precompile": "gts clean"
   },
   "files": [
     "build/src",
