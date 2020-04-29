@@ -104,7 +104,7 @@ export class JavaBom extends ReleasePR {
           fromSemverReleaseType(
             (
               await cc.suggestBump(
-                latestTag?.sha || this.defaultInitialVersion()
+                latestTag?.version || this.defaultInitialVersion()
               )
             ).releaseType
           ),
