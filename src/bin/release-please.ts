@@ -66,6 +66,10 @@ const argv = yargs
           describe: 'is it a snapshot (or pre-release) being generated?',
           type: 'boolean',
           default: false,
+        })
+        .option('base-branch', {
+          describe: 'the base branch to check against for releases',
+          default: 'master',
         });
     },
     (argv: ReleasePROptions) => {

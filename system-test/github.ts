@@ -62,8 +62,9 @@ describe('GitHub', () => {
         token,
         apiUrl,
         proxyKey,
+        baseBranch: 'master',
       });
-      const latestTag = await gh.latestTag(4);
+      const latestTag = await gh.latestTag();
       if (latestTag === undefined) throw Error('latestTag not found');
       latestTag.sha.should.match(/[a-z0-9]{40}/);
     });
@@ -77,6 +78,7 @@ describe('GitHub', () => {
         token,
         apiUrl,
         proxyKey,
+        baseBranch: 'master',
       });
       const commitsSinceSha = await gh.commitsSinceSha(
         'c16bcdee9fbac799c8ffb28d7447487a7f94b929',
@@ -92,6 +94,7 @@ describe('GitHub', () => {
         token,
         apiUrl,
         proxyKey,
+        baseBranch: 'master',
       });
       const commitsSinceSha = await gh.commitsSinceSha(undefined, 20);
       commitsSinceSha.length.should.be.gte(2);

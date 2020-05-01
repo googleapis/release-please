@@ -21,7 +21,7 @@ import {graphqlToCommits} from '../src/graphql-to-commits';
 
 const fixturesPath = './test/fixtures';
 
-const github = new GitHub({owner: 'fake', repo: 'fake'});
+const github = new GitHub({owner: 'fake', repo: 'fake', baseBranch: 'fake'});
 
 describe('graphqlToCommits', () => {
   it('converts raw graphql response into Commits object', async () => {

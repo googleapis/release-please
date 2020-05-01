@@ -29,6 +29,7 @@ export interface GitHubReleaseOptions {
   apiUrl: string;
   proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
+  baseBranch?: string;
 }
 
 export class GitHubRelease {
@@ -40,6 +41,7 @@ export class GitHubRelease {
   packageName: string;
   token?: string;
   proxyKey?: string;
+  baseBranch?: string;
 
   constructor(options: GitHubReleaseOptions) {
     this.apiUrl = options.apiUrl;
@@ -48,6 +50,7 @@ export class GitHubRelease {
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
+    this.baseBranch = options.baseBranch;
 
     this.changelogPath = 'CHANGELOG.md';
 
@@ -104,6 +107,7 @@ export class GitHubRelease {
       apiUrl: this.apiUrl,
       proxyKey: this.proxyKey,
       octokitAPIs,
+      baseBranch: this.baseBranch || 'master',
     });
   }
 

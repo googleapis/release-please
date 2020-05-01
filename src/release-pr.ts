@@ -58,6 +58,7 @@ export interface BuildOptions {
   snapshot?: boolean;
   lastPackageVersion?: string;
   octokitAPIs?: OctokitAPIs;
+  baseBranch?: string;
 }
 
 export interface ReleasePROptions extends BuildOptions {
@@ -83,6 +84,7 @@ export class ReleasePR {
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
+  baseBranch?: string;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -100,6 +102,7 @@ export class ReleasePR {
     this.lastPackageVersion = options.lastPackageVersion
       ? options.lastPackageVersion.replace(/^v/, '')
       : undefined;
+    this.baseBranch = options.baseBranch;
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
@@ -212,6 +215,7 @@ export class ReleasePR {
       apiUrl: this.apiUrl,
       proxyKey: this.proxyKey,
       octokitAPIs,
+      baseBranch: this.baseBranch || 'master',
     });
   }
 

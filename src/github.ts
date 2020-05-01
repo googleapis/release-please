@@ -53,7 +53,7 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 
-const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
+const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)$/;
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -68,6 +68,7 @@ interface GitHubOptions {
   apiUrl?: string;
   proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
+  baseBranch: string;
 }
 
 export interface GitHubTag {
@@ -113,6 +114,8 @@ export class GitHub {
   repo: string;
   apiUrl: string;
   proxyKey?: string;
+  baseBranch: string;
+  baseLabel: string;
 
   constructor(options: GitHubOptions) {
     this.token = options.token;
@@ -120,6 +123,8 @@ export class GitHub {
     this.repo = options.repo;
     this.apiUrl = options.apiUrl || 'https://api.github.com';
     this.proxyKey = options.proxyKey;
+    this.baseBranch = options.baseBranch;
+    this.baseLabel = `${this.owner}:${this.baseBranch}`;
 
     if (options.octokitAPIs === undefined) {
       this.octokit = new Octokit({baseUrl: options.apiUrl});
@@ -220,34 +225,38 @@ export class GitHub {
     // order along with the file paths attached to them.
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
+        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            defaultBranchRef {
-              target {
-                ... on Commit {
-                  history(first: $perPage, after: $cursor, path: $path) {
-                    edges{
-                      node {
-                        ... on Commit {
-                          message
-                          oid
-                          associatedPullRequests(first: 1) {
-                            edges {
-                              node {
-                                ... on PullRequest {
-                                  number
-                                  mergeCommit {
-                                    oid
-                                  }
-                                  files(first: $maxFilesChanged) {
-                                    edges {
-                                      node {
-                                        path
+            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch) {
+              edges {
+                node {
+                  target {
+                    ... on Commit {
+                      history(first: $perPage, after: $cursor, path: $path) {
+                        edges{
+                          node {
+                            ... on Commit {
+                              message
+                              oid
+                              associatedPullRequests(first: 1) {
+                                edges {
+                                  node {
+                                    ... on PullRequest {
+                                      number
+                                      mergeCommit {
+                                        oid
                                       }
-                                    }
-                                    pageInfo {
-                                      endCursor
-                                      hasNextPage
+                                      files(first: $maxFilesChanged) {
+                                        edges {
+                                          node {
+                                            path
+                                          }
+                                        }
+                                        pageInfo {
+                                          endCursor
+                                          hasNextPage
+                                        }
+                                      }
                                     }
                                   }
                                 }
@@ -255,11 +264,11 @@ export class GitHub {
                             }
                           }
                         }
+                        pageInfo {
+                          endCursor
+                          hasNextPage
+                        }
                       }
-                    }
-                    pageInfo {
-                      endCursor
-                      hasNextPage
                     }
                   }
                 }
@@ -273,6 +282,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
+        baseBranch: this.baseBranch,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -302,29 +312,33 @@ export class GitHub {
   ): Promise<CommitsResponse> {
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxLabels: Int, $path: String) {
+        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxLabels: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            defaultBranchRef {
-              target {
-                ... on Commit {
-                  history(first: $perPage, after: $cursor, path: $path) {
-                    edges{
-                      node {
-                        ... on Commit {
-                          message
-                          oid
-                          associatedPullRequests(first: 1) {
-                            edges {
-                              node {
-                                ... on PullRequest {
-                                  number
-                                  mergeCommit {
-                                    oid
-                                  }
-                                  labels(first: $maxLabels) {
-                                    edges {
-                                      node {
-                                        name
+            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch) {
+              edges {
+                node {
+                  target {
+                    ... on Commit {
+                      history(first: $perPage, after: $cursor, path: $path) {
+                        edges {
+                          node {
+                            ... on Commit {
+                              message
+                              oid
+                              associatedPullRequests(first: 1) {
+                                edges {
+                                  node {
+                                    ... on PullRequest {
+                                      number
+                                      mergeCommit {
+                                        oid
+                                      }
+                                      labels(first: $maxLabels) {
+                                        edges {
+                                          node {
+                                            name
+                                          }
+                                        }
                                       }
                                     }
                                   }
@@ -333,11 +347,11 @@ export class GitHub {
                             }
                           }
                         }
+                        pageInfo {
+                          endCursor
+                          hasNextPage
+                        }
                       }
-                    }
-                    pageInfo {
-                      endCursor
-                      hasNextPage
                     }
                   }
                 }
@@ -351,6 +365,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
+        baseBranch: this.baseBranch,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -420,18 +435,17 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  async latestTag(perPage = 100): Promise<GitHubTag | undefined> {
-    const tags: {[version: string]: GitHubTag} = await this.allTags(perPage);
-    const versions = Object.keys(tags);
-    // no tags have been created yet.
-    if (versions.length === 0) return undefined;
+  async latestTag(): Promise<GitHubTag | undefined> {
+    const pull = await this.findMergedReleasePR([]);
+    if (!pull) return undefined;
 
-    versions.sort(semver.rcompare);
-    return {
-      name: tags[versions[0]].name,
-      sha: tags[versions[0]].sha,
-      version: tags[versions[0]].version,
-    };
+    const tag = {
+      name: `v${pull.version}`,
+      sha: pull.sha,
+      version: pull.version,
+    } as GitHubTag;
+
+    return tag;
   }
 
   async findMergedReleasePR(
@@ -441,7 +455,7 @@ export class GitHub {
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }`,
+      }&sort=updated&direction=desc`,
       {
         owner: this.owner,
         repo: this.repo,
@@ -450,6 +464,7 @@ export class GitHub {
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       if (
+        labels.length === 0 ||
         this.hasAllLabels(
           labels,
           pull.labels.map(l => l.name)
@@ -458,6 +473,10 @@ export class GitHub {
         // it's expected that a release PR will have a
         // HEAD matching the format repo:release-v1.0.0.
         if (!pull.head) continue;
+
+        // Verify that this PR was based against our base branch of interest.
+        if (!pull.base || pull.base.label !== this.baseLabel) continue;
+
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
         return {
@@ -493,6 +512,9 @@ export class GitHub {
       }
     )) as {data: PullsListResponseItems};
     for (const pull of pullsResponse.data) {
+      // Verify that this PR was based against our base branch of interest.
+      if (!pull.base || pull.base.label !== this.baseLabel) continue;
+
       let hasAllLabels = false;
       const observedLabels = pull.labels.map(l => l.name);
       for (const expectedLabel of labels) {
@@ -694,7 +716,7 @@ export class GitHub {
           title: options.title,
           body: options.body,
           state: 'open',
-          base: 'master',
+          base: this.baseBranch,
         }
       );
       return openReleasePR.number;
@@ -713,7 +735,7 @@ export class GitHub {
           title: options.title,
           body: options.body,
           head: options.branch,
-          base: 'master',
+          base: this.baseBranch,
         }
       );
       return resp.data.number;

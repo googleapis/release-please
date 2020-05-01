@@ -23,7 +23,7 @@ import {Commit, graphqlToCommits} from '../src/graphql-to-commits';
 
 const fixturesPath = './test/fixtures';
 
-const github = new GitHub({owner: 'fake', repo: 'fake'});
+const github = new GitHub({owner: 'fake', repo: 'fake', baseBranch: 'fake'});
 
 describe('CommitSplit', () => {
   it('partitions commits based on path from root directory by default', async () => {
