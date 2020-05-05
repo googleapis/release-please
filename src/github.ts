@@ -422,7 +422,10 @@ export class GitHub {
 
   async latestTag(perPage = 100): Promise<GitHubTag | undefined> {
     const tags: {[version: string]: GitHubTag} = await this.allTags(perPage);
-    const versions = Object.keys(tags);
+    const versions = Object.keys(tags).filter(t => {
+      // remove any pre-releases from the list:
+      return !t.includes('-');
+    });
     // no tags have been created yet.
     if (versions.length === 0) return undefined;
 
