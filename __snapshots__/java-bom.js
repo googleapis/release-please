@@ -836,8 +836,8 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['labels-bom'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
@@ -1614,8 +1614,8 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['labels-bom-snapshot'] = {
-  "labels": [
-    "type: process"
+  'labels': [
+    'type: process'
   ]
 }
 
@@ -2465,7 +2465,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['labels-bom-feature'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
