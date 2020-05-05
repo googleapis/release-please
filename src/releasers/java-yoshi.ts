@@ -204,7 +204,9 @@ export class JavaYoshi extends ReleasePR {
     });
 
     console.info(
-      `attempting to open PR latestTagSha = ${latestTag!.sha} prSha = ${prSHA}`
+      `attempting to open PR latestTagSha = ${
+        latestTag ? latestTag.sha : 'none'
+      } prSha = ${prSHA}`
     );
     await this.openPR(
       prSHA!,
