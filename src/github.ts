@@ -40,6 +40,9 @@ type IssuesListResponseItem = PromiseValue<
 type FileSearchResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['search']['code']>
 >['data'];
+export type ReleaseCreateResponse = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
+>['data'];
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -864,21 +867,23 @@ export class GitHub {
     version: string,
     sha: string,
     releaseNotes: string
-  ) {
+  ): Promise<ReleaseCreateResponse> {
     checkpoint(`creating release ${version}`, CheckpointType.Success);
-    await this.request(
-      `POST /repos/:owner/:repo/releases${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        tag_name: version,
-        target_commitish: sha,
-        body: releaseNotes,
-        name: `${packageName} ${version}`,
-      }
-    );
+    return (
+      await this.request(
+        `POST /repos/:owner/:repo/releases${
+          this.proxyKey ? `?key=${this.proxyKey}` : ''
+        }`,
+        {
+          owner: this.owner,
+          repo: this.repo,
+          tag_name: version,
+          target_commitish: sha,
+          body: releaseNotes,
+          name: `${packageName} ${version}`,
+        }
+      )
+    ).data;
   }
 
   async removeLabels(labels: string[], prNumber: number) {

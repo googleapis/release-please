@@ -15,7 +15,12 @@
 import chalk = require('chalk');
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import {GitHub, GitHubReleasePR, OctokitAPIs} from './github';
+import {
+  GitHub,
+  GitHubReleasePR,
+  OctokitAPIs,
+  ReleaseCreateResponse,
+} from './github';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -54,7 +59,7 @@ export class GitHubRelease {
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
-  async createRelease() {
+  async createRelease(): Promise<ReleaseCreateResponse | undefined> {
     const gitHubReleasePR:
       | GitHubReleasePR
       | undefined = await this.gh.findMergedReleasePR(this.labels);
@@ -78,7 +83,7 @@ export class GitHubRelease {
         CheckpointType.Success
       );
 
-      await this.gh.createRelease(
+      const release = await this.gh.createRelease(
         this.packageName,
         gitHubReleasePR.version,
         gitHubReleasePR.sha,
@@ -90,8 +95,10 @@ export class GitHubRelease {
       // Remove 'autorelease: pending' which indicates a GitHub release
       // has not yet been created.
       await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
+      return release;
     } else {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
+      return undefined;
     }
   }
 
