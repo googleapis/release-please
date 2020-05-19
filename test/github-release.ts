@@ -20,7 +20,6 @@ import * as nock from 'nock';
 import {strictEqual} from 'assert';
 nock.disableNetConnect();
 
-import {ReleaseType} from '../src/release-pr';
 import {GitHubRelease} from '../src/github-release';
 
 const fixturesPath = './test/fixtures';
@@ -79,7 +78,7 @@ describe('GitHubRelease', () => {
         label: 'autorelease: pending',
         repoUrl: 'googleapis/foo',
         apiUrl: 'https://api.github.com',
-        releaseType: ReleaseType.Node,
+        releaseType: 'node',
       });
       const requests = nock('https://api.github.com')
         .get('/repos/googleapis/foo/pulls?state=closed&per_page=100')

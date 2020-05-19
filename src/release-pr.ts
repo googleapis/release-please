@@ -34,19 +34,6 @@ import {Update} from './updaters/update';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
-export enum ReleaseType {
-  Node = 'node',
-  PHPYoshi = 'php-yoshi',
-  JavaAuthYoshi = 'java-auth-yoshi',
-  JavaBom = 'java-bom',
-  JavaYoshi = 'java-yoshi',
-  Python = 'python',
-  TerraformModule = 'terraform-module',
-  Ruby = 'ruby',
-  RubyYoshi = 'ruby-yoshi',
-  Simple = 'simple',
-}
-
 export interface BuildOptions {
   bumpMinorPreMajor?: boolean;
   label?: string;
@@ -62,7 +49,7 @@ export interface BuildOptions {
 }
 
 export interface ReleasePROptions extends BuildOptions {
-  releaseType: ReleaseType;
+  releaseType: string;
 }
 
 export interface ReleaseCandidate {
@@ -73,6 +60,8 @@ export interface ReleaseCandidate {
 const DEFAULT_LABELS = 'autorelease: pending';
 
 export class ReleasePR {
+  static releaserName = 'base';
+
   apiUrl: string;
   labels: string[];
   gh: GitHub;

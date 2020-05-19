@@ -15,7 +15,6 @@
 import chalk = require('chalk');
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import {ReleaseType} from './release-pr';
 import {ReleasePRFactory} from './release-pr-factory';
 import {
   GitHub,
@@ -36,7 +35,7 @@ export interface GitHubReleaseOptions {
   apiUrl: string;
   proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
-  releaseType?: ReleaseType;
+  releaseType?: string;
 }
 
 export class GitHubRelease {
@@ -48,7 +47,7 @@ export class GitHubRelease {
   packageName?: string;
   token?: string;
   proxyKey?: string;
-  releaseType?: ReleaseType;
+  releaseType?: string;
 
   constructor(options: GitHubReleaseOptions) {
     this.apiUrl = options.apiUrl;

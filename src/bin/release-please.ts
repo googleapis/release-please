@@ -19,6 +19,7 @@ import {coerceOption} from '../util/coerce-option';
 import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
 import {ReleasePROptions} from '../release-pr';
 import {ReleasePRFactory} from '../release-pr-factory';
+import {getReleaserNames} from '../releasers';
 import * as yargs from 'yargs';
 
 interface ErrorObject {
@@ -92,17 +93,7 @@ const argv = yargs
         })
         .option('release-type', {
           describe: 'what type of repo is a release being created for?',
-          choices: [
-            'node',
-            'php-yoshi',
-            'java-auth-yoshi',
-            'java-bom',
-            'java-yoshi',
-            'python',
-            'terraform-module',
-            'ruby',
-            'ruby-yoshi',
-          ],
+          choices: getReleaserNames(),
           default: 'node',
         });
     },
@@ -171,17 +162,7 @@ action "github-release" {
   })
   .option('release-type', {
     describe: 'what type of repo is a release being created for?',
-    choices: [
-      'node',
-      'php-yoshi',
-      'java-auth-yoshi',
-      'java-bom',
-      'java-yoshi',
-      'python',
-      'terraform-module',
-      'ruby',
-      'ruby-yoshi',
-    ],
+    choices: getReleaserNames(),
     default: 'node',
   })
   .option('bump-minor-pre-major', {

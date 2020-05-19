@@ -27,6 +27,7 @@ import {PackageJson} from '../updaters/package-json';
 import {SamplesPackageJson} from '../updaters/samples-package-json';
 
 export class Node extends ReleasePR {
+  static releaserName = 'node';
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = await this.commits(

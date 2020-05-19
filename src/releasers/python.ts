@@ -27,6 +27,7 @@ import {SetupPy} from '../updaters/python/setup-py';
 import {SetupCfg} from '../updaters/python/setup-cfg';
 
 export class Python extends ReleasePR {
+  static releaserName = 'python';
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = await this.commits(

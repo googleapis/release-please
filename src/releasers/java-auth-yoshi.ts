@@ -29,6 +29,7 @@ import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
 
 export class JavaAuthYoshi extends ReleasePR {
+  static releaserName = 'java-auth-yoshi';
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot

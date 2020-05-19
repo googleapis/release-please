@@ -17,7 +17,6 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {JavaYoshi} from '../../src/releasers/java-yoshi';
-import {ReleaseType} from '../../src/release-pr';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
@@ -201,7 +200,7 @@ describe('JavaYoshi', () => {
       .reply(200, []);
     const releasePR = new JavaYoshi({
       repoUrl: 'googleapis/java-trace',
-      releaseType: ReleaseType.JavaYoshi,
+      releaseType: 'java-yoshi',
       // not actually used by this type of repo.
       packageName: 'java-trace',
       apiUrl: 'https://api.github.com',
@@ -315,7 +314,7 @@ describe('JavaYoshi', () => {
       .reply(200, []);
     const releasePR = new JavaYoshi({
       repoUrl: 'googleapis/java-trace',
-      releaseType: ReleaseType.JavaYoshi,
+      releaseType: 'java-yoshi',
       // not actually used by this type of repo.
       packageName: 'java-trace',
       apiUrl: 'https://api.github.com',
