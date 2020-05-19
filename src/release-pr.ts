@@ -153,7 +153,7 @@ export class ReleasePR {
     return '1.0.0';
   }
 
-  // A releaser can implement this method if they wish to automatically detect
+  // A releaser can implement this method to automatically detect
   // the release name when creating a GitHub release, for instance by returning
   // name in package.json, or setup.py.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -108,10 +108,9 @@ export class Node extends ReleasePR {
     );
   }
 
-  // A releaser can implement this method if they wish to automatically detect
+  // A releaser can implement this method to automatically detect
   // the release name when creating a GitHub release, for instance by returning
   // name in package.json, or setup.py.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async lookupPackageName(gh: GitHub): Promise<string | undefined> {
     // Make an effort to populate packageName from the contents of
     // the package.json, rather than forcing this to be set:
