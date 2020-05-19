@@ -50,8 +50,6 @@ describe('GitHubRelease', () => {
         .reply(200, {
           content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
         })
-        .post('/repos/googleapis/foo/releases')
-        .reply(200, {tag_name: 'v1.0.2'})
         .post(
           '/repos/googleapis/foo/releases',
           (body: {[key: string]: string}) => {
@@ -59,7 +57,7 @@ describe('GitHubRelease', () => {
             return true;
           }
         )
-        .reply(200)
+        .reply(200, {tag_name: 'v1.0.2'})
         .post(
           '/repos/googleapis/foo/issues/1/labels',
           (body: {[key: string]: string}) => {
@@ -110,7 +108,7 @@ describe('GitHubRelease', () => {
             return true;
           }
         )
-        .reply(200)
+        .reply(200, {tag_name: 'v1.0.2'})
         .post(
           '/repos/googleapis/foo/issues/1/labels',
           (body: {[key: string]: string}) => {
@@ -121,7 +119,6 @@ describe('GitHubRelease', () => {
         .reply(200)
         .delete('/repos/googleapis/foo/issues/1/labels/autorelease:%20pending')
         .reply(200);
-
       const created = await release.createRelease();
       strictEqual(created!.tag_name, 'v1.0.2');
       requests.done();

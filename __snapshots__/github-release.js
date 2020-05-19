@@ -1,24 +1,12 @@
-exports['GitHubRelease createRelease creates and labels release on GitHub 1'] = {
-  'tag_name': 'v1.0.3',
-  'body': '\n* entry',
-  'name': 'foo v1.0.3'
-}
-
 exports['GitHubRelease createRelease attempts to guess package name for release 1'] = {
-  'tag_name': 'v1.0.3',
-  'body': '\n* entry',
-  'name': '@google-cloud/foo v1.0.3'
-}
-
-exports['GitHubRelease createRelease creates and labels release on GitHub 2'] = {
-  'labels': [
-    'autorelease: tagged'
-  ]
+  "tag_name": "v1.0.3",
+  "body": "\n* entry",
+  "name": "@google-cloud/foo v1.0.3"
 }
 
 exports['GitHubRelease createRelease attempts to guess package name for release 2'] = {
-  'labels': [
-    'autorelease: tagged'
+  "labels": [
+    "autorelease: tagged"
   ]
 }
 
@@ -122,3 +110,15 @@ exports['GitHubRelease extractLatestReleaseNotes php-yoshi extracts appropriate 
 </details>
 
 `
+
+exports['GitHubRelease createRelease creates and labels release on GitHub 1'] = {
+  "tag_name": "v1.0.3",
+  "body": "\n* entry",
+  "name": "foo v1.0.3"
+}
+
+exports['GitHubRelease createRelease creates and labels release on GitHub 2'] = {
+  "labels": [
+    "autorelease: tagged"
+  ]
+}

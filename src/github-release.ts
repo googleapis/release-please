@@ -15,6 +15,8 @@
 import chalk = require('chalk');
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
+import {ReleaseType} from './release-pr';
+import {ReleasePRFactory} from './release-pr-factory';
 import {
   GitHub,
   GitHubReleasePR,
