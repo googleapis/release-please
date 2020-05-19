@@ -29,11 +29,12 @@ const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 export interface GitHubReleaseOptions {
   label: string;
   repoUrl: string;
-  packageName: string;
+  packageName?: string;
   token?: string;
   apiUrl: string;
   proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
+  releaseType?: ReleaseType;
 }
 
 export class GitHubRelease {
@@ -42,9 +43,10 @@ export class GitHubRelease {
   gh: GitHub;
   labels: string[];
   repoUrl: string;
-  packageName: string;
+  packageName?: string;
   token?: string;
   proxyKey?: string;
+  releaseType?: ReleaseType;
 
   constructor(options: GitHubReleaseOptions) {
     this.apiUrl = options.apiUrl;
@@ -53,6 +55,7 @@ export class GitHubRelease {
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
+    this.releaseType = options.releaseType;
 
     this.changelogPath = 'CHANGELOG.md';
 
@@ -82,6 +85,17 @@ export class GitHubRelease {
         `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
         CheckpointType.Success
       );
+
+      // Attempt to lookup the package name from a well known location, such
+      // as package.json, if none is provided:
+      if (this.packageName === undefined && this.releaseType) {
+        this.packageName = await ReleasePRFactory.class(
+          this.releaseType
+        ).lookupPackageName(this.gh);
+      }
+      if (this.packageName === undefined) {
+        throw Error('could not determine package name for release');
+      }
 
       const release = await this.gh.createRelease(
         this.packageName,

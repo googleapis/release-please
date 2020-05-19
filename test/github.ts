@@ -128,6 +128,7 @@ describe('GitHub', () => {
         ]);
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.3.0');
+      req.done();
     });
 
     it('does not return pre-releases as latest tag', async () => {
@@ -152,6 +153,7 @@ describe('GitHub', () => {
         ]);
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.2.0');
+      req.done();
     });
   });
 });

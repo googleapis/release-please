@@ -15,7 +15,7 @@
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag, GitHubFileContents} from '../github';
+import {GitHub, GitHubTag, GitHubFileContents} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -106,5 +106,20 @@ export class Node extends ReleasePR {
       updates,
       candidate.version
     );
+  }
+
+  // A releaser can implement this method if they wish to automatically detect
+  // the release name when creating a GitHub release, for instance by returning
+  // name in package.json, or setup.py.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  static async lookupPackageName(gh: GitHub): Promise<string | undefined> {
+    // Make an effort to populate packageName from the contents of
+    // the package.json, rather than forcing this to be set:
+    const contents: GitHubFileContents = await gh.getFileContents(
+      'package.json'
+    );
+    const pkg = JSON.parse(contents.parsedContent);
+    if (pkg.name) return pkg.name;
+    else return undefined;
   }
 }

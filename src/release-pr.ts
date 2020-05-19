@@ -153,6 +153,14 @@ export class ReleasePR {
     return '1.0.0';
   }
 
+  // A releaser can implement this method if they wish to automatically detect
+  // the release name when creating a GitHub release, for instance by returning
+  // name in package.json, or setup.py.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  static async lookupPackageName(gh: GitHub): Promise<string | undefined> {
+    return Promise.resolve(undefined);
+  }
+
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined

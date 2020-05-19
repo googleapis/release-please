@@ -18,7 +18,7 @@ import {
   ReleasePR,
   ReleasePROptions,
 } from './release-pr';
-import {Ruby, RubyReleasePROptions} from './releasers/ruby';
+import {Ruby} from './releasers/ruby';
 import {JavaAuthYoshi} from './releasers/java-auth-yoshi';
 import {JavaBom} from './releasers/java-bom';
 import {Node} from './releasers/node';
@@ -34,26 +34,29 @@ export class ReleasePRFactory {
       ...options,
       ...{releaseType},
     };
+    return new (ReleasePRFactory.class(releaseType))(releaseOptions);
+  }
+  static class(releaseType: ReleaseType): typeof ReleasePR {
     switch (releaseType) {
       case ReleaseType.Node:
-        return new Node(releaseOptions);
+        return Node;
       case ReleaseType.PHPYoshi:
-        return new PHPYoshi(releaseOptions);
+        return PHPYoshi;
       case ReleaseType.JavaAuthYoshi:
         // TODO: coerce this to the generic Java release
-        return new JavaAuthYoshi(releaseOptions);
+        return JavaAuthYoshi;
       case ReleaseType.JavaBom:
-        return new JavaBom(releaseOptions);
+        return JavaBom;
       case ReleaseType.JavaYoshi:
-        return new JavaYoshi(releaseOptions);
+        return JavaYoshi;
       case ReleaseType.TerraformModule:
-        return new TerraformModule(releaseOptions);
+        return TerraformModule;
       case ReleaseType.Python:
-        return new Python(releaseOptions);
+        return Python;
       case ReleaseType.Ruby:
-        return new Ruby(releaseOptions as RubyReleasePROptions);
+        return Ruby;
       case ReleaseType.RubyYoshi:
-        return new RubyYoshi(releaseOptions);
+        return RubyYoshi;
       default:
         throw Error('unknown release type');
     }

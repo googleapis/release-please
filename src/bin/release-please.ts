@@ -30,6 +30,7 @@ interface ErrorObject {
 
 interface YargsOptions {
   describe: string;
+  choices?: string[];
   demand?: boolean;
   type?: string;
   default?: string | boolean;
@@ -80,7 +81,6 @@ const argv = yargs
       yargs
         .option('package-name', {
           describe: 'name of package release is being minted for',
-          demand: true,
         })
         .option('repo-url', {
           describe: 'GitHub URL to generate release for',
@@ -89,6 +89,21 @@ const argv = yargs
         .option('label', {
           default: 'autorelease: pending',
           describe: 'label to remove from release PR',
+        })
+        .option('release-type', {
+          describe: 'what type of repo is a release being created for?',
+          choices: [
+            'node',
+            'php-yoshi',
+            'java-auth-yoshi',
+            'java-bom',
+            'java-yoshi',
+            'python',
+            'terraform-module',
+            'ruby',
+            'ruby-yoshi',
+          ],
+          default: 'node',
         });
     },
     (argv: GitHubReleaseOptions) => {

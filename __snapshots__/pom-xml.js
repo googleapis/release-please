@@ -80,7 +80,7 @@ exports['PomXML updateContent updates version in pom.xml 1'] = `
     </dependency>
   </dependencies>
 </project>
-`;
+`
 
 exports['PomXML updateContent handles specific versions in pom.xml 1'] = `
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -108,7 +108,7 @@ exports['PomXML updateContent handles specific versions in pom.xml 1'] = `
     </dependency>
   </dependencies>
 </project>
-`;
+`
 
 exports['PomXML updateContent handles multiple versions in pom.xml 1'] = `
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -136,4 +136,4 @@ exports['PomXML updateContent handles multiple versions in pom.xml 1'] = `
     </dependency>
   </dependencies>
 </project>
-`;
+`

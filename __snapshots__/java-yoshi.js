@@ -8,7 +8,7 @@ exports['CHANGELOG'] = `
 
 * Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))
 
-`;
+`
 
 exports['README'] = `
 # Google Cloud Java Client for Stackdriver Trace
@@ -111,7 +111,7 @@ Java 11 | [![Kokoro CI](https://storage.googleapis.com/cloud-devrel-public/java/
 [trace-product-docs]: https://cloud.google.com/trace/docs/
 [trace-client-lib-docs]: https://googleapis.dev/java/google-cloud-clients/latest/index.html?com/google/cloud/trace/v1/package-summary.html
 
-`;
+`
 
 exports['versions'] = `
 # Format:
@@ -122,7 +122,7 @@ grpc-google-cloud-trace-v1:0.73.1:0.73.1
 grpc-google-cloud-trace-v2:0.73.1:0.73.1
 proto-google-cloud-trace-v1:0.73.1:0.73.1
 proto-google-cloud-trace-v2:0.73.1:0.73.1
-`;
+`
 
 exports['pom'] = `
 <?xml version='1.0' encoding='UTF-8'?>
@@ -474,7 +474,7 @@ exports['pom'] = `
     </plugins>
   </reporting>
 </project>
-`;
+`
 
 exports['PR body'] = `
 :robot: I have created a release \\*beep\\* \\*boop\\* 
@@ -489,11 +489,13 @@ exports['PR body'] = `
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`;
+`
 
 exports['labels'] = {
-  labels: ['autorelease: pending'],
-};
+  'labels': [
+    'autorelease: pending'
+  ]
+}
 
 exports['versions-snapshot'] = `
 # Format:
@@ -504,7 +506,7 @@ grpc-google-cloud-trace-v1:0.73.0:0.73.1-SNAPSHOT
 grpc-google-cloud-trace-v2:0.73.0:0.73.1-SNAPSHOT
 proto-google-cloud-trace-v1:0.73.0:0.73.1-SNAPSHOT
 proto-google-cloud-trace-v2:0.73.0:0.73.1-SNAPSHOT
-`;
+`
 
 exports['pom-snapshot'] = `
 <?xml version='1.0' encoding='UTF-8'?>
@@ -856,7 +858,7 @@ exports['pom-snapshot'] = `
     </plugins>
   </reporting>
 </project>
-`;
+`
 
 exports['PR body-snapshot'] = `
 :robot: I have created a release \\*beep\\* \\*boop\\* 
@@ -866,11 +868,13 @@ exports['PR body-snapshot'] = `
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`;
+`
 
 exports['labels-snapshot'] = {
-  labels: ['type: process'],
-};
+  'labels': [
+    'type: process'
+  ]
+}
 
 exports['GoogleUtils'] = `
 /*
@@ -968,4 +972,4 @@ public final class GoogleUtils {
 
   private GoogleUtils() {}
 }
-`;
+`
