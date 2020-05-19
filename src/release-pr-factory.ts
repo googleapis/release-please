@@ -24,11 +24,10 @@ export class ReleasePRFactory {
     return new (ReleasePRFactory.class(releaseType))(releaseOptions);
   }
   static class(releaseType: string): typeof ReleasePR {
-    for (const releaser of releasers) {
-      if (releaser.releaserName === releaseType) {
-        return releaser;
-      }
+    const releaser = releasers[releaseType];
+    if (!releaser) {
+      throw Error('unknown release type');
     }
-    throw Error('unknown release type');
+    return releaser;
   }
 }
