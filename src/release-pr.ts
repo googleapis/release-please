@@ -44,6 +44,7 @@ export enum ReleaseType {
   TerraformModule = 'terraform-module',
   Ruby = 'ruby',
   RubyYoshi = 'ruby-yoshi',
+  Simple = 'simple',
 }
 
 export interface BuildOptions {
