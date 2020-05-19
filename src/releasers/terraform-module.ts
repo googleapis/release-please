@@ -26,6 +26,7 @@ import {Changelog} from '../updaters/changelog';
 import {ReadMe} from '../updaters/terraform/readme';
 
 export class TerraformModule extends ReleasePR {
+  static releaserName = 'terraform-module';
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = await this.commits(

@@ -423,8 +423,8 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  async latestTag(perPage = 100): Promise<GitHubTag | undefined> {
-    const tags: {[version: string]: GitHubTag} = await this.allTags(perPage);
+  async latestTag(): Promise<GitHubTag | undefined> {
+    const tags: {[version: string]: GitHubTag} = await this.allTags();
     const versions = Object.keys(tags).filter(t => {
       // remove any pre-releases from the list:
       return !t.includes('-');
@@ -514,9 +514,7 @@ export class GitHub {
     return openReleasePRs;
   }
 
-  private async allTags(
-    perPage = 100
-  ): Promise<{[version: string]: GitHubTag}> {
+  private async allTags(): Promise<{[version: string]: GitHubTag}> {
     const tags: {[version: string]: GitHubTag} = {};
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
@@ -558,10 +556,8 @@ export class GitHub {
 
   async findExistingReleaseIssue(
     title: string,
-    labels: string[],
-    perPage = 100
+    labels: string[]
   ): Promise<IssuesListResponseItem | undefined> {
-    const paged = 0;
     try {
       for await (const response of this.octokit.paginate.iterator(
         this.decoratePaginateOpts({
@@ -572,7 +568,7 @@ export class GitHub {
           per_page: 100,
         })
       )) {
-        for (let i = 0, issue; response.data[i] !== undefined; i++) {
+        for (let i = 0; response.data[i] !== undefined; i++) {
           const issue = response.data[i] as IssuesListResponseItem;
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
             return issue;

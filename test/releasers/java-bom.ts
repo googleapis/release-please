@@ -20,7 +20,6 @@ import {JavaBom} from '../../src/releasers/java-bom';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
-import {ReleaseType} from '../../src/release-pr';
 
 const fixturesPath = './test/releasers/fixtures/java-bom';
 
@@ -190,7 +189,7 @@ describe('JavaBom', () => {
         .reply(200, []);
       const releasePR = new JavaBom({
         repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: ReleaseType.JavaBom,
+        releaseType: 'java-bom',
         // not actually used by this type of repo.
         packageName: 'java-cloud-bom',
         apiUrl: 'https://api.github.com',
@@ -312,7 +311,7 @@ describe('JavaBom', () => {
         .reply(200, []);
       const releasePR = new JavaBom({
         repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: ReleaseType.JavaBom,
+        releaseType: 'java-bom',
         // not actually used by this type of repo.
         packageName: 'java-cloud-bom',
         apiUrl: 'https://api.github.com',
@@ -473,7 +472,7 @@ describe('JavaBom', () => {
         .reply(200, []);
       const releasePR = new JavaBom({
         repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: ReleaseType.JavaBom,
+        releaseType: 'java-bom',
         // not actually used by this type of repo.
         packageName: 'java-cloud-bom',
         apiUrl: 'https://api.github.com',

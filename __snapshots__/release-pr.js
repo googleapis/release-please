@@ -1,6 +1,4 @@
-exports[
-  'GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 1'
-] = `
+exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 1'] = `
 {
     "modules": [
         {
@@ -18,11 +16,9 @@ exports[
     ]
 }
 
-`;
+`
 
-exports[
-  'GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 2'
-] = `
+exports['GitHub Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 2'] = `
 :robot: I have created a release \\*beep\\* \\*boop\\* 
 ---
 ## 0.21.0
@@ -78,4 +74,4 @@ exports[
 </details>
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`;
+`

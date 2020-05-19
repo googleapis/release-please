@@ -18,7 +18,6 @@ import {Simple} from '../../src/releasers/simple';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
-import {ReleaseType} from '../../src/release-pr';
 
 const fixturesPath = './test/releasers/fixtures/simple';
 
@@ -137,7 +136,7 @@ describe('Simple', () => {
         .reply(200, []);
       const releasePR = new Simple({
         repoUrl: 'googleapis/simple-test-repo',
-        releaseType: ReleaseType.Simple,
+        releaseType: 'simple',
         // not actually used by this type of repo.
         packageName: 'simple-test-repo',
         apiUrl: 'https://api.github.com',

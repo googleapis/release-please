@@ -12,50 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  BuildOptions,
-  ReleaseType,
-  ReleasePR,
-  ReleasePROptions,
-} from './release-pr';
-import {Ruby, RubyReleasePROptions} from './releasers/ruby';
-import {JavaAuthYoshi} from './releasers/java-auth-yoshi';
-import {JavaBom} from './releasers/java-bom';
-import {Node} from './releasers/node';
-import {PHPYoshi} from './releasers/php-yoshi';
-import {Python} from './releasers/python';
-import {RubyYoshi} from './releasers/ruby-yoshi';
-import {JavaYoshi} from './releasers/java-yoshi';
-import {TerraformModule} from './releasers/terraform-module';
+import {BuildOptions, ReleasePR, ReleasePROptions} from './release-pr';
+import releasers from './releasers';
 
 export class ReleasePRFactory {
-  static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
+  static build(releaseType: string, options: BuildOptions): ReleasePR {
     const releaseOptions: ReleasePROptions = {
       ...options,
       ...{releaseType},
     };
-    switch (releaseType) {
-      case ReleaseType.Node:
-        return new Node(releaseOptions);
-      case ReleaseType.PHPYoshi:
-        return new PHPYoshi(releaseOptions);
-      case ReleaseType.JavaAuthYoshi:
-        // TODO: coerce this to the generic Java release
-        return new JavaAuthYoshi(releaseOptions);
-      case ReleaseType.JavaBom:
-        return new JavaBom(releaseOptions);
-      case ReleaseType.JavaYoshi:
-        return new JavaYoshi(releaseOptions);
-      case ReleaseType.TerraformModule:
-        return new TerraformModule(releaseOptions);
-      case ReleaseType.Python:
-        return new Python(releaseOptions);
-      case ReleaseType.Ruby:
-        return new Ruby(releaseOptions as RubyReleasePROptions);
-      case ReleaseType.RubyYoshi:
-        return new RubyYoshi(releaseOptions);
-      default:
-        throw Error('unknown release type');
+    return new (ReleasePRFactory.class(releaseType))(releaseOptions);
+  }
+  static class(releaseType: string): typeof ReleasePR {
+    const releaser = releasers[releaseType];
+    if (!releaser) {
+      throw Error('unknown release type');
     }
+    return releaser;
   }
 }

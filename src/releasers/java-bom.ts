@@ -56,6 +56,7 @@ async function delay({ms = 3000}) {
 }
 
 export class JavaBom extends ReleasePR {
+  static releaserName = 'java-bom';
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'

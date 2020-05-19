@@ -14,7 +14,6 @@
 
 import {GitHubFileContents} from '../github';
 
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 
 export class PHPClientVersion implements Update {
