@@ -19,26 +19,30 @@ import {dirname} from 'path';
 
 // dynamically load all the releasers in the folder, and index based on their
 // releaserName property:
-const releasers: {[key: string]: typeof ReleasePR} = {};
-const root = dirname(require.resolve('./'));
-for (const file of readdirSync(root, {withFileTypes: true})) {
-  if (
-    file.isFile() &&
-    !file.name.match(/.*\.ts.*/) &&
-    !file.name.match(/.*\.map$/) &&
-    !file.name.match(/index\.js/)
-  ) {
-    const obj = require(`./${file.name}`) as {[key: string]: typeof ReleasePR};
-    const releaser = obj[Object.keys(obj)[0]];
-    releasers[releaser.releaserName] = releaser;
+export function getReleasers(): {[key: string]: typeof ReleasePR} {
+  const releasers: {[key: string]: typeof ReleasePR} = {};
+  const root = dirname(require.resolve('./'));
+  for (const file of readdirSync(root, {withFileTypes: true})) {
+    if (
+      file.isFile() &&
+      !file.name.match(/.*\.ts.*/) &&
+      !file.name.match(/.*\.map$/) &&
+      !file.name.match(/index\.js/)
+    ) {
+      const obj = require(`./${file.name}`) as {
+        [key: string]: typeof ReleasePR;
+      };
+      const releaser = obj[Object.keys(obj)[0]];
+      releasers[releaser.releaserName] = releaser;
+    }
   }
+  return releasers;
 }
 
 export function getReleaserNames(): string[] {
+  const releasers = getReleasers();
   return Object.keys(releasers).map(key => {
     const releaser = releasers[key];
     return releaser.releaserName;
   });
 }
-
-export default releasers;
