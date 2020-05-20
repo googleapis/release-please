@@ -30,7 +30,7 @@ export class VersionTxt implements Update {
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
-    this.skipCi = options.skipCi ?? true;
+    this.skipCi = options.skipCi;
   }
 
   updateContent(): string {

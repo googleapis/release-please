@@ -95,6 +95,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/CHANGELOG.md',
         (req: {[key: string]: string}) => {
+          snapshot('CHANGELOG-message', req.message);
           snapshot(
             'CHANGELOG',
             Buffer.from(req.content, 'base64')
@@ -115,6 +116,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/README.md',
         (req: {[key: string]: string}) => {
+          snapshot('README-message', req.message);
           snapshot(
             'README',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -134,6 +136,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/versions.txt',
         (req: {[key: string]: string}) => {
+          snapshot('versions-message', req.message);
           snapshot(
             'versions',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -153,6 +156,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/pom.xml',
         (req: {[key: string]: string}) => {
+          snapshot('pom-message', req.message);
           snapshot('pom', Buffer.from(req.content, 'base64').toString('utf8'));
           return true;
         }
@@ -169,6 +173,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
         (req: {[key: string]: string}) => {
+          snapshot('GoogleUtils-message', req.message);
           snapshot(
             'GoogleUtils',
             Buffer.from(req.content, 'base64').toString('utf8')

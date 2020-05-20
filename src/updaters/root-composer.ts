@@ -24,6 +24,7 @@ export class RootComposer implements Update {
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -32,7 +33,9 @@ export class RootComposer implements Update {
     this.version = options.version;
     this.versions = options.versions;
     this.packageName = options.packageName;
+    this.skipCi = options.skipCi;
   }
+
   updateContent(content: string): string {
     if (!this.versions || this.versions.size === 0) {
       checkpoint(

@@ -723,6 +723,24 @@ export class GitHub {
   }
 
   async updateFiles(updates: Update[], branch: string, refName: string) {
+    // does the user care about skipping CI at all?
+    const skipCiEverSet = updates.some(
+      upd => typeof upd.skipCi !== 'undefined'
+    );
+    if (skipCiEverSet) {
+      // if skipCi was set for some of the updates, disable CI for others
+      updates.forEach(upd => {
+        if (typeof upd.skipCi === 'undefined') {
+          upd.skipCi = true;
+        }
+      });
+    }
+    if (!skipCiEverSet && updates.length > 0) {
+      // if skipCi was not set for any of the files, disable CI for all files except the last one
+      updates.forEach(upd => (upd.skipCi = true));
+      updates[updates.length - 1].skipCi = false;
+    }
+
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
       let content;

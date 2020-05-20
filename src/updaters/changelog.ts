@@ -32,7 +32,7 @@ export class Changelog implements Update {
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
-    this.skipCi = options.skipCi ?? true;
+    this.skipCi = options.skipCi;
   }
 
   updateContent(content: string | undefined): string {

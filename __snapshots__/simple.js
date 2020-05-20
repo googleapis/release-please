@@ -33,8 +33,8 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['labels-simple'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
