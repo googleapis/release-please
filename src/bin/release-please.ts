@@ -102,51 +102,6 @@ const argv = yargs
       gr.createRelease().catch(handleError);
     }
   )
-  .command(
-    'generate-action',
-    'outputs the release-please stanzas that should be added to main.workflow',
-    (yargs: YargsOptionsBuilder) => {
-      yargs.option('package-name', {
-        describe: 'name of package releases will be created for',
-        demand: true,
-      });
-    },
-    (argv: ReleasePROptions) => {
-      console.error(
-        chalk.green(
-          '----- put the content below in .github/main.workflow -----'
-        )
-      );
-      console.info(`workflow "Groom Release PR" {
-  on = "pull_request"
-  resolves = ["release-pr"]
-}
-
-action "release-pr" {
-  uses = "googleapis/release-please/.github/action/release-please@master"
-  env = {
-    PACKAGE_NAME = "${argv.packageName}"
-    RELEASE_PLEASE_COMMAND = "release-pr"
-  }
-  secrets = ["GITHUB_TOKEN"]
-}
-
-workflow "GitHub Release" {
-  on = "pull_request"
-  resolves = ["github-release"]
-}
-
-action "github-release" {
-  uses = "googleapis/release-please/.github/action/release-please@master"
-  env = {
-    PACKAGE_NAME = "${argv.packageName}"
-    RELEASE_PLEASE_COMMAND = "github-release"
-  }
-  secrets = ["GITHUB_TOKEN"]
-}
-        `);
-    }
-  )
   .middleware(_argv => {
     const argv = _argv as GitHubReleaseOptions;
     // allow secrets to be loaded from file path
