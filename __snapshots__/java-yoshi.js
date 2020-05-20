@@ -973,3 +973,23 @@ public final class GoogleUtils {
   private GoogleUtils() {}
 }
 `
+
+exports['CHANGELOG-message'] = `
+created CHANGELOG.md [ci skip]
+`
+
+exports['README-message'] = `
+updated README.md [ci skip]
+`
+
+exports['GoogleUtils-message'] = `
+updated google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java [ci skip]
+`
+
+exports['versions-message'] = `
+updated versions.txt [ci skip]
+`
+
+exports['pom-message'] = `
+updated pom.xml
+`

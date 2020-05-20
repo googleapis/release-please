@@ -37,3 +37,11 @@ exports['labels-simple'] = {
     'autorelease: pending'
   ]
 }
+
+exports['CHANGELOG-simple-message'] = `
+created CHANGELOG.md [ci skip]
+`
+
+exports['version-txt-simple-message'] = `
+updated version.txt
+`
