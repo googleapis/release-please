@@ -81,6 +81,7 @@ describe('Simple', () => {
         .put(
           '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md',
           (req: {[key: string]: string}) => {
+            snapshot('CHANGELOG-simple-message', req.message);
             snapshot(
               'CHANGELOG-simple',
               Buffer.from(req.content, 'base64')
@@ -102,6 +103,7 @@ describe('Simple', () => {
         .put(
           '/repos/googleapis/simple-test-repo/contents/version.txt',
           (req: {[key: string]: string}) => {
+            snapshot('version-txt-simple-message', req.message);
             snapshot(
               'version-txt-simple',
               Buffer.from(req.content, 'base64').toString('utf8')

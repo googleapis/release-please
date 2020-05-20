@@ -28,6 +28,8 @@ export class JavaUpdate implements Update {
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
+
   constructor(options: UpdateOptions) {
     this.create = false;
     this.path = options.path;
@@ -35,6 +37,7 @@ export class JavaUpdate implements Update {
     this.versions = new Map<string, string>();
     this.version = 'unused';
     this.packageName = 'unused';
+    this.skipCi = options.skipCi;
     if (options.versions) {
       this.versions = options.versions;
     } else if (options.version) {
@@ -43,6 +46,7 @@ export class JavaUpdate implements Update {
       this.packageName = options.packageName;
     }
   }
+
   updateContent(content: string): string {
     const newLines: string[] = [];
     let blockPackageName: string | null = null;

@@ -23,6 +23,7 @@ export class ReadMe implements Update {
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -30,7 +31,9 @@ export class ReadMe implements Update {
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
+    this.skipCi = options.skipCi;
   }
+
   updateContent(content: string): string {
     const minorVersion = this.version.split('.').slice(0, 2).join('.');
     return content.replace(

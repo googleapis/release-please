@@ -22,6 +22,7 @@ export class VersionTxt implements Update {
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -29,6 +30,7 @@ export class VersionTxt implements Update {
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
+    this.skipCi = options.skipCi;
   }
 
   updateContent(): string {

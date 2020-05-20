@@ -723,6 +723,24 @@ export class GitHub {
   }
 
   async updateFiles(updates: Update[], branch: string, refName: string) {
+    // does the user care about skipping CI at all?
+    const skipCiEverSet = updates.some(
+      upd => typeof upd.skipCi !== 'undefined'
+    );
+    if (skipCiEverSet) {
+      // if skipCi was set for some of the updates, disable CI for others
+      updates.forEach(upd => {
+        if (typeof upd.skipCi === 'undefined') {
+          upd.skipCi = true;
+        }
+      });
+    }
+    if (!skipCiEverSet && updates.length > 0) {
+      // if skipCi was not set for any of the files, disable CI for all files except the last one
+      updates.forEach(upd => (upd.skipCi = true));
+      updates[updates.length - 1].skipCi = false;
+    }
+
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
       let content;
@@ -770,7 +788,8 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `updated ${update.path} [ci skip]`,
+            message:
+              `updated ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             sha: content.data.sha,
             branch,
@@ -785,7 +804,8 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `created ${update.path} [ci skip]`,
+            message:
+              `created ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             branch,
           }
