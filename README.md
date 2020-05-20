@@ -8,7 +8,7 @@
 Release Please automates CHANGELOG generation, the creation of GitHub releases,
 and version bumps for your projects. 
 
-Release Please does so by parsing your
+It does so by parsing your
 git history, looking for [Conventional Commit messages](https://www.conventionalcommits.org/),
 and creating release PRs.
 
