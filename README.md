@@ -45,7 +45,7 @@ Release Please automates releases for the following flavors of repositories:
 | terraform-module  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
 | simple            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 
-## Adding additional releaase types
+## Adding additional release types
 
 To add a new release type, simply use the existing [releasers](https://github.com/googleapis/release-please/tree/master/src/releasers) and [updaters](https://github.com/googleapis/release-please/tree/master/src/updaters)
 as a starting point.
