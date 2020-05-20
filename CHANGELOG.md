@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [5.1.0](https://www.github.com/googleapis/release-please/compare/v5.0.0...v5.1.0) (2020-05-20)
+
+
+### Features
+
+* introduce static factory helper ([#442](https://www.github.com/googleapis/release-please/issues/442)) ([2f1e09c](https://www.github.com/googleapis/release-please/commit/2f1e09c4f2bf435f3a797aaa2c7afa8d03983617))
+
 ## [5.0.0](https://www.github.com/googleapis/release-please/compare/v4.2.2...v5.0.0) (2020-05-19)
 
 
