@@ -29,7 +29,9 @@ export function getReleasers(): {[key: string]: typeof ReleasePR} {
       !file.name.match(/.*\.map$/) &&
       !file.name.match(/index\.js/)
     ) {
-      const obj = require(`./${file.name}`) as {[key: string]: typeof ReleasePR};
+      const obj = require(`./${file.name}`) as {
+        [key: string]: typeof ReleasePR;
+      };
       const releaser = obj[Object.keys(obj)[0]];
       releasers[releaser.releaserName] = releaser;
     }

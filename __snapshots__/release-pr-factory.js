@@ -33,8 +33,8 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['ReleasePRFactory build returns instance of dynamically loaded releaser 4'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
@@ -73,7 +73,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['ReleasePRFactory buildStatic returns an instance of a statically loaded releaser 4'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
