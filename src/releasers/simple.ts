@@ -84,6 +84,7 @@ export class Simple extends ReleasePR {
         version: candidate.version,
         packageName: this.packageName,
         contents,
+        skipCi: false,
       })
     );
 

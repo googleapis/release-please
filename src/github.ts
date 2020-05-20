@@ -770,7 +770,8 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `updated ${update.path} [ci skip]`,
+            message:
+              `updated ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             sha: content.data.sha,
             branch,
@@ -785,7 +786,8 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `created ${update.path} [ci skip]`,
+            message:
+              `created ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             branch,
           }

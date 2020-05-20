@@ -33,7 +33,15 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['labels-simple'] = {
-  'labels': [
-    'autorelease: pending'
+  "labels": [
+    "autorelease: pending"
   ]
 }
+
+exports['CHANGELOG-simple-message'] = `
+created CHANGELOG.md [ci skip]
+`
+
+exports['version-txt-simple-message'] = `
+updated version.txt
+`
