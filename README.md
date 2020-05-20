@@ -1,67 +1,102 @@
-[//]: # "This README.md file is auto-generated, all changes to this file will be lost."
-[//]: # "To regenerate it, use `python -m synthtool`."
 <img src="https://avatars2.githubusercontent.com/u/2810941?v=3&s=96" alt="Google Cloud Platform logo" title="Google Cloud Platform" align="right" height="96" width="96"/>
 
 # [Release Please](https://github.com/googleapis/release-please)
 
-
-[![release level](https://img.shields.io/badge/release%20level-beta-yellow.svg?style=flat)](https://cloud.google.com/terms/launch-stages)
 [![npm version](https://img.shields.io/npm/v/release-please.svg)](https://www.npmjs.org/package/release-please)
 [![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/master.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
 
+Release Please automates CHANGELOG generation, the creation of GitHub releases,
+and version bumps for your projects. 
 
+Release Please does so by parsing your
+git history, looking for [Conventional Commit messages](https://www.conventionalcommits.org/),
+and creating release PRs.
 
+## What's a Release PR?
 
-`release-please` generates GitHub PRs for library releases based on the
-[conventionalcommits.org](https://www.conventionalcommits.org) commit
-specification and [SemVer](https://semver.org/).
+Rather than continuously releasing what's landed to your default branch,
+release-please maintains Release PRs:
 
-_Release Please_ can be configured (using [GitHub Actions](https://github.com/features/actions),
-a cron, or a step during CI/CD) to maintain a PR that represents the next release
-of your library.
+<img width="400" src="/screen.png">
 
-When the candidate PR is merged, _Release Please_ can be configured to create
-a [GitHub Release](https://help.github.com/en/articles/creating-releases).
+These Release PRs are kept up-to-date as additional work is merged. When you're
+ready to tag a release, simply merge the release PR.
 
-Here's an [example of Release Please in action](https://github.com/googleapis/nodejs-logging/pull/487).
+## How should I write my commits?
 
-### The _Release Please_ Repository:
+Release Please assumes you are using [Conventional Commit messages](https://www.conventionalcommits.org/).
 
+The most important prefixes you should have in mind are:
 
+* `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/) 
+  patch.
+* `feat:` which represents a new feature, and correlates to a SemVer minor.
+* `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
+  (indicated by the `!`) and will result in a SemVer major.
 
+## Release types supported
 
-* [github.com/googleapis/release-please](https://github.com/googleapis/release-please)
+Release Please automates releases for the following flavors of repositories:
 
-Read more about the client libraries for Cloud APIs, including the older
-Google APIs Client Libraries, in [Client Libraries Explained][explained].
+| release type            | description
+|-------------------|---------------------------------------------------------|
+| node              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
+| python            | [A Python repository, with a setup.py, setup.cfg, and CHANGELOG.md](https://github.com/googleapis/java-storage) |
+| terraform-module  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
+| simple            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 
-[explained]: https://cloud.google.com/apis/docs/client-libraries-explained
+## Adding additional releaase types
 
-**Table of contents:**
+To add a new release type, simply use the existing [releasers](https://github.com/googleapis/release-please/tree/master/src/releasers) and [updaters](https://github.com/googleapis/release-please/tree/master/src/updaters)
+as a starting point.
 
+**releasers** describe the files that should be updated for a release.
 
-* [Quickstart](#quickstart)
+**updaters** describe how to update the version in these files.
 
-  * [Installing the client library](#installing-the-client-library)
+## Setting up Release Please
 
+There are a variety of ways you can deploy release-please: 
 
-* [Versioning](#versioning)
-* [Contributing](#contributing)
-* [License](#license)
+### GitHub Action (recommended)
 
-## Quickstart
+The easiest way to run release please is as a GitHub action:
 
-### Installing the client library
+1. If you haven't already done so, create a `.github/workflows` folder in your
+  repository (_this is where your actions will live_).
+2. Now create a `.github/workflows/release-please.yml` file with these contents:
+
+   ```yaml
+    on:
+      push:
+        branches:
+          - master
+    name: release-please
+    jobs:
+      release-please:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: bcoe/release-please-action@v1.0.1
+            with:
+              token: ${{ secrets.GITHUB_TOKEN }}
+              release-type: node
+              package-name: release-please-action
+    ```
+
+3. Merge the above action into your repository and make sure new commits follow
+  the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+  convention, [release-please](https://github.com/googleapis/release-please)
+  will start creating Release PRs for you.
+
+### Running as CLI
+
+Install release-please globally:
 
 ```bash
-npm install release-please
+npm i release-please -g
 ```
 
-## Maintaining a Release PR
-
-To configure _Release Please_ to maintain an up-to-date release
-pull-request on your repository, setup the following command to execute
-when changes are pushed to `master`:
+### Creating/updating release PRs
 
 ```bash
 release-please release-pr --package-name=@google-cloud/firestore" \
@@ -69,39 +104,31 @@ release-please release-pr --package-name=@google-cloud/firestore" \
   --token=$GITHUB_TOKEN
 ```
 
-* `--package-name`: is the name of the package to publish to publish to
-  an upstream registry such as npm.
-* `--repo-url`: is the URL of the repository on GitHub.
-* `--token`: a token with write access to `--repo-url`.
+| option            | description                                             |
+|-------------------|---------------------------------------------------------|
+| `--package-name`  | is the name of the package to publish to publish to  an upstream registry such as npm. |
+| `--repo-url`      | is the URL of the repository on GitHub.                 |
+| `--token`         | a token with write access to `--repo-url`.              |
 
-### Creating GitHub Releases
-
-To configure _Release Please_ to generate GitHub Releases when release
-pull-requests are merged to `master`, setup the following command to
-execute when changes are pushed to `master`:
+### Creating a release on GitHub
 
 ```bash
 release-please github-release --repo-url=googleapis/nodejs-firestore \
   --token=$GITHUB_TOKEN
 ```
 
-* `--repo-url`: is the URL of the repository on GitHub.
-* `--token`: a token with write access to `--repo-url`.
+| option            | description                                             |
+|-------------------|---------------------------------------------------------|
+| `--package-name`  | is the name of the package to publish to publish to  an upstream registry such as npm. |
+| `--repo-url`      | is the URL of the repository on GitHub.                 |
+| `--token`         | a token with write access to `--repo-url`.              |
 
-### GitHub Actions
+### Running as a GitHub App
 
-An elegant way to configure `Release Please` is through
-[GitHub Actions](https://github.com/features/actions). To generate a
-`main.workflow` for `Release Please`, simply run:
+There is a probot application availble, which allows you to deploy Release
+Please as a GitHub App:
 
-```bash
-release-please generate-action --package-name=@google-cloud/firestore"
-```
-
-* `--package-name`: is the name of the package to publish to publish to
-  an upstream registry such as npm.
-
-
+* [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/master/packages/release-please).
 
 ## Supported Node.js Versions
 
@@ -128,20 +155,6 @@ _Legacy Node.js versions are supported as a best effort:_
 
 This library follows [Semantic Versioning](http://semver.org/).
 
-
-
-This library is considered to be in **beta**. This means it is expected to be
-mostly stable while we work toward a general availability release; however,
-complete stability is not guaranteed. We will address issues and requests
-against beta libraries with a high priority.
-
-
-
-
-More Information: [Google Cloud Platform Launch Stages][launch_stages]
-
-[launch_stages]: https://cloud.google.com/terms/launch-stages
-
 ## Contributing
 
 Contributions welcome! See the [Contributing Guide](https://github.com/googleapis/release-please/blob/master/CONTRIBUTING.md).
@@ -157,11 +170,3 @@ to its template in this
 Apache Version 2.0
 
 See [LICENSE](https://github.com/googleapis/release-please/blob/master/LICENSE)
-
-
-
-[shell_img]: https://gstatic.com/cloudssh/images/open-btn.png
-[projects]: https://console.cloud.google.com/project
-[billing]: https://support.google.com/cloud/answer/6293499#enable-billing
-
-[auth]: https://cloud.google.com/docs/authentication/getting-started
