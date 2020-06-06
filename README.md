@@ -167,7 +167,7 @@ release-please github-release --repo-url=googleapis/nodejs-firestore \
 
 ### Running as a GitHub App
 
-There is a probot application availble, which allows you to deploy Release
+There is a probot application available, which allows you to deploy Release
 Please as a GitHub App:
 
 * [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/master/packages/release-please).
@@ -178,7 +178,7 @@ Our client libraries follow the [Node.js release schedule](https://nodejs.org/en
 Libraries are compatible with all current _active_ and _maintenance_ versions of
 Node.js.
 
-Client libraries targetting some end-of-life versions of Node.js are available, and
+Client libraries targeting some end-of-life versions of Node.js are available, and
 can be installed via npm [dist-tags](https://docs.npmjs.com/cli/dist-tag).
 The dist-tags follow the naming convention `legacy-(version)`.
 
