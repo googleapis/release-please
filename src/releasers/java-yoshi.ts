@@ -194,6 +194,9 @@ export class JavaYoshi extends ReleasePR {
 
     const pomFilesSearch = this.gh.findFilesByFilename('pom.xml');
     const buildFilesSearch = this.gh.findFilesByFilename('build.gradle');
+    const dependenciesSearch = this.gh.findFilesByFilename(
+      'dependencies.properties'
+    );
 
     const pomFiles = await pomFilesSearch;
     pomFiles.forEach(path => {
@@ -221,15 +224,18 @@ export class JavaYoshi extends ReleasePR {
       );
     });
 
-    updates.push(
-      new JavaUpdate({
-        path: 'dependencies.properties',
-        changelogEntry,
-        versions: candidateVersions,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
+    const dependenciesFiles = await dependenciesSearch;
+    dependenciesFiles.forEach(path => {
+      updates.push(
+        new JavaUpdate({
+          path,
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
 
     console.info(
       `attempting to open PR latestTagSha = ${

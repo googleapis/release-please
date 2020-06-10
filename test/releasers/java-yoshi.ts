@@ -89,6 +89,14 @@ describe('JavaYoshi', () => {
         total_count: 0,
         items: [],
       })
+      // finding dependencies.properties files
+      .get(
+        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
+      )
+      .reply(200, {
+        total_count: 0,
+        items: [],
+      })
       // getting the latest tag
       .get('/repos/googleapis/java-trace/git/refs?per_page=100')
       .reply(200, [{ref: 'refs/tags/v0.20.3'}])
@@ -263,6 +271,14 @@ describe('JavaYoshi', () => {
       // finding build.gradle files
       .get(
         '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
+      )
+      .reply(200, {
+        total_count: 0,
+        items: [],
+      })
+      // finding dependencies.properties files
+      .get(
+        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
       )
       .reply(200, {
         total_count: 0,
