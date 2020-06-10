@@ -82,7 +82,9 @@ describe('JavaYoshi', () => {
         items: [{name: 'pom.xml', path: 'pom.xml'}],
       })
       // finding build.gradle files
-      .get('/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace')
+      .get(
+        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
+      )
       .reply(200, {
         total_count: 0,
         items: [],
@@ -259,7 +261,9 @@ describe('JavaYoshi', () => {
         items: [{name: 'pom.xml', path: 'pom.xml'}],
       })
       // finding build.gradle files
-      .get('/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace')
+      .get(
+        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
+      )
       .reply(200, {
         total_count: 0,
         items: [],

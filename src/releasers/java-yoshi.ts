@@ -29,7 +29,7 @@ import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
 import {Version} from './java/version';
 import {fromSemverReleaseType} from './java/bump_type';
-import { JavaUpdate } from '../updaters/java/java_update';
+import {JavaUpdate} from '../updaters/java/java_update';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
