@@ -29,6 +29,7 @@ import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
 import {Version} from './java/version';
 import {fromSemverReleaseType} from './java/bump_type';
+import {JavaUpdate} from '../updaters/java/java_update';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -191,10 +192,42 @@ export class JavaYoshi extends ReleasePR {
       })
     );
 
-    const pomFiles = await this.gh.findFilesByFilename('pom.xml');
+    const pomFilesSearch = this.gh.findFilesByFilename('pom.xml');
+    const buildFilesSearch = this.gh.findFilesByFilename('build.gradle');
+    const dependenciesSearch = this.gh.findFilesByFilename(
+      'dependencies.properties'
+    );
+
+    const pomFiles = await pomFilesSearch;
     pomFiles.forEach(path => {
       updates.push(
         new PomXML({
+          path,
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
+    const buildFiles = await buildFilesSearch;
+    buildFiles.forEach(path => {
+      updates.push(
+        new JavaUpdate({
+          path,
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
+    const dependenciesFiles = await dependenciesSearch;
+    dependenciesFiles.forEach(path => {
+      updates.push(
+        new JavaUpdate({
           path,
           changelogEntry,
           versions: candidateVersions,
