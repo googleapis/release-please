@@ -819,21 +819,12 @@ exports['pom-bom'] = `
 </project>
 `
 
-exports['PR body-bom'] = `
-:robot: I have created a release \\*beep\\* \\*boop\\* 
----
-## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) 
-
-
-### Dependencies
-
-* update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
-* update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
----
-
-
-This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`
+exports['PR body-bom'] = {
+  'title': 'chore: release 0.124.0',
+  'body': ':robot: I have created a release \\*beep\\* \\*boop\\* \n---\n## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) \n\n\n### Dependencies\n\n* update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))\n* update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).',
+  'head': 'release-v0.124.0',
+  'base': 'main'
+}
 
 exports['labels-bom'] = {
   'labels': [
@@ -1603,15 +1594,12 @@ exports['pom-bom-snapshot'] = `
 </project>
 `
 
-exports['PR body-bom-snapshot'] = `
-:robot: I have created a release \\*beep\\* \\*boop\\* 
----
-### Updating meta-information for bleeding-edge SNAPSHOT release.
----
-
-
-This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`
+exports['PR body-bom-snapshot'] = {
+  'title': 'chore: release 0.123.5-SNAPSHOT',
+  'body': ':robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).',
+  'head': 'release-v0.123.5-SNAPSHOT',
+  'base': 'main'
+}
 
 exports['labels-bom-snapshot'] = {
   'labels': [
@@ -2444,25 +2432,12 @@ exports['pom-bom-feature'] = `
 </project>
 `
 
-exports['PR body-bom-feature'] = `
-:robot: I have created a release \\*beep\\* \\*boop\\* 
----
-## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) 
-
-
-### Features
-
-* import google-cloud-game-servers ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
-
-
-### Dependencies
-
-* update dependency com.google.cloud:google-cloud-storage to v1.120.1 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
----
-
-
-This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`
+exports['PR body-bom-feature'] = {
+  'title': 'chore: release 0.124.0',
+  'body': ':robot: I have created a release \\*beep\\* \\*boop\\* \n---\n## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) \n\n\n### Features\n\n* import google-cloud-game-servers ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))\n\n\n### Dependencies\n\n* update dependency com.google.cloud:google-cloud-storage to v1.120.1 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).',
+  'head': 'release-v0.124.0',
+  'base': 'master'
+}
 
 exports['labels-bom-feature'] = {
   'labels': [

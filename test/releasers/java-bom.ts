@@ -163,15 +163,16 @@ describe('JavaBom', () => {
           }
         )
         .reply(200)
+        // check for default branch
+        .get('/repos/googleapis/java-cloud-bom')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
         // create release
         .post(
           '/repos/googleapis/java-cloud-bom/pulls',
           (req: {[key: string]: string}) => {
-            const body = req.body.replace(
-              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
-              ''
-            );
-            snapshot('PR body-bom', body);
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot('PR body-bom', req);
             return true;
           }
         )
@@ -285,15 +286,16 @@ describe('JavaBom', () => {
           }
         )
         .reply(200)
+        // check for default branch
+        .get('/repos/googleapis/java-cloud-bom')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
         // create release
         .post(
           '/repos/googleapis/java-cloud-bom/pulls',
           (req: {[key: string]: string}) => {
-            const body = req.body.replace(
-              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
-              ''
-            );
-            snapshot('PR body-bom-snapshot', body);
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot('PR body-bom-snapshot', req);
             return true;
           }
         )
@@ -446,15 +448,16 @@ describe('JavaBom', () => {
           }
         )
         .reply(200)
+        // check for default branch
+        .get('/repos/googleapis/java-cloud-bom')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
         // create release
         .post(
           '/repos/googleapis/java-cloud-bom/pulls',
           (req: {[key: string]: string}) => {
-            const body = req.body.replace(
-              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
-              ''
-            );
-            snapshot('PR body-bom-feature', body);
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot('PR body-bom-feature', req);
             return true;
           }
         )

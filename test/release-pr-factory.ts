@@ -99,15 +99,16 @@ describe('ReleasePRFactory', () => {
           }
         )
         .reply(200)
+        // check for default branch
+        .get('/repos/googleapis/simple-test-repo')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../test/fixtures/repo-get-2.json'))
         // create release
         .post(
           '/repos/googleapis/simple-test-repo/pulls',
           (req: {[key: string]: string}) => {
-            const body = req.body.replace(
-              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
-              ''
-            );
-            snapshot(body);
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot(req);
             return true;
           }
         )
@@ -207,15 +208,16 @@ describe('ReleasePRFactory', () => {
           }
         )
         .reply(200)
+        // check for default branch
+        .get('/repos/googleapis/simple-test-repo')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../test/fixtures/repo-get-2.json'))
         // create release
         .post(
           '/repos/googleapis/simple-test-repo/pulls',
           (req: {[key: string]: string}) => {
-            const body = req.body.replace(
-              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
-              ''
-            );
-            snapshot(body);
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot(req);
             return true;
           }
         )

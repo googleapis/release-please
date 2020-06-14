@@ -476,20 +476,12 @@ exports['pom'] = `
 </project>
 `
 
-exports['PR body'] = `
-:robot: I have created a release \\*beep\\* \\*boop\\* 
----
-### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) 
-
-
-### Bug Fixes
-
-* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))
----
-
-
-This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`
+exports['PR body'] = {
+  'title': 'chore: release 0.20.4',
+  'body': ':robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) \n\n\n### Bug Fixes\n\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).',
+  'head': 'release-v0.20.4',
+  'base': 'master'
+}
 
 exports['labels'] = {
   'labels': [
@@ -860,15 +852,12 @@ exports['pom-snapshot'] = `
 </project>
 `
 
-exports['PR body-snapshot'] = `
-:robot: I have created a release \\*beep\\* \\*boop\\* 
----
-### Updating meta-information for bleeding-edge SNAPSHOT release.
----
-
-
-This PR was generated with [Release Please](https://github.com/googleapis/release-please).
-`
+exports['PR body-snapshot'] = {
+  'title': 'chore: release 0.20.4-SNAPSHOT',
+  'body': ':robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).',
+  'head': 'release-v0.20.4-SNAPSHOT',
+  'base': 'main'
+}
 
 exports['labels-snapshot'] = {
   'labels': [

@@ -94,8 +94,6 @@ export async function graphqlToCommits(
       commitEdge,
       observedSHAs
     );
-    // if the commit and its associated PR do not share a sha, we assume
-    // that the commit was a push to master and disregard it.
     if (commit) {
       commits.commits.push(commit);
     }
@@ -124,7 +122,7 @@ async function graphqlToCommit(
   let prEdge: PREdge = commitEdge.node.associatedPullRequests.edges[0];
 
   // if the commit.sha and mergeCommit.oid do not match, assume that this
-  // was a push to master and drop the commit.
+  // was a push directl to the default branch.
   //
   // TODO: investigate our motivations for skipping commits when
   // commitEdge.node.oid and prEdge.node.mergeCommit.oid do not match (this
