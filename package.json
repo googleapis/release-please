@@ -53,7 +53,7 @@
   "dependencies": {
     "@octokit/graphql": "^4.3.1",
     "@octokit/request": "^5.3.4",
-    "@octokit/rest": "^17.1.4",
+    "@octokit/rest": "^18.0.0",
     "chalk": "^4.0.0",
     "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.0.0",
