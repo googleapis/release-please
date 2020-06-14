@@ -93,6 +93,15 @@ export class Node extends ReleasePR {
     );
 
     updates.push(
+      new PackageJson({
+        path: 'package-lock.json',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
+
+    updates.push(
       new SamplesPackageJson({
         path: 'samples/package.json',
         changelogEntry,
