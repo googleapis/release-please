@@ -203,16 +203,17 @@ describe('GitHub', () => {
         .reply(200, [])
         .put('/repos/googleapis/release-please/contents/CHANGELOG.md')
         .reply(200, [])
+        // check for default branch
+        .get('/repos/googleapis/release-please')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../test/fixtures/repo-get-1.json'))
         // actually open the darn PR, this is the exciting step,
         // so we snapshot it:
         .post(
           '/repos/googleapis/release-please/pulls',
           (req: {[key: string]: string}) => {
-            const body = req.body.replace(
-              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
-              ''
-            );
-            snapshot(body);
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot(req);
             return true;
           }
         )

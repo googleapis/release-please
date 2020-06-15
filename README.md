@@ -151,6 +151,7 @@ release-please release-pr --package-name=@google-cloud/firestore" \
 | `--package-name`  | is the name of the package to publish to publish to  an upstream registry such as npm. |
 | `--repo-url`      | is the URL of the repository on GitHub.                 |
 | `--token`         | a token with write access to `--repo-url`.              |
+| `--default-branch`| branch to open pull release PR against (detected by default). |
 
 ### Creating a release on GitHub
 

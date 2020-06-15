@@ -68,6 +68,10 @@ const argv = yargs
           describe: 'is it a snapshot (or pre-release) being generated?',
           type: 'boolean',
           default: false,
+        })
+        .option('default-branch', {
+          describe: 'default branch to open release PR against',
+          type: 'string',
         });
     },
     (argv: ReleasePROptions) => {
@@ -139,6 +143,10 @@ const argv = yargs
     describe: 'print verbose errors (use only for local debugging).',
     default: false,
     type: 'boolean',
+  })
+  .option('default-branch', {
+    describe: '',
+    type: 'string',
   })
   .demandCommand(1)
   .strict(true)
