@@ -65,6 +65,7 @@ export interface OctokitAPIs {
 }
 
 interface GitHubOptions {
+  defaultBranch?: string;
   token?: string;
   owner: string;
   repo: string;
@@ -108,6 +109,7 @@ interface FileSearchResponseFile {
 let probotMode = false;
 
 export class GitHub {
+  defaultBranch?: string;
   octokit: OctokitType;
   request: Function;
   graphql: Function;
@@ -118,6 +120,7 @@ export class GitHub {
   proxyKey?: string;
 
   constructor(options: GitHubOptions) {
+    this.defaultBranch = options.defaultBranch;
     this.token = options.token;
     this.owner = options.owner;
     this.repo = options.repo;
@@ -674,7 +677,7 @@ export class GitHub {
     }
 
     await this.updateFiles(options.updates, options.branch, refName);
-
+    const base = await this.getDefaultBranch(this.owner, this.repo);
     if (openReleasePR) {
       // TODO: dig into why `updateRef` closes an issue attached
       // to the branch being updated:
@@ -696,7 +699,7 @@ export class GitHub {
           title: options.title,
           body: options.body,
           state: 'open',
-          base: 'master',
+          base,
         }
       );
       return openReleasePR.number;
@@ -715,11 +718,23 @@ export class GitHub {
           title: options.title,
           body: options.body,
           head: options.branch,
-          base: 'master',
+          base,
         }
       );
       return resp.data.number;
     }
+  }
+
+  private async getDefaultBranch(owner: string, repo: string): Promise<string> {
+    if (this.defaultBranch) {
+      return this.defaultBranch;
+    }
+    const {data} = await this.octokit.repos.get({
+      repo,
+      owner,
+    });
+    this.defaultBranch = data.default_branch;
+    return this.defaultBranch;
   }
 
   async updateFiles(updates: Update[], branch: string, refName: string) {

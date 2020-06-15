@@ -36,6 +36,7 @@ const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export interface BuildOptions {
   bumpMinorPreMajor?: boolean;
+  defaultBranch?: string;
   label?: string;
   token?: string;
   repoUrl: string;
@@ -63,6 +64,7 @@ export class ReleasePR {
   static releaserName = 'base';
 
   apiUrl: string;
+  defaultBranch?: string;
   labels: string[];
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
@@ -76,6 +78,7 @@ export class ReleasePR {
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
+    this.defaultBranch = options.defaultBranch;
     this.labels = options.label
       ? options.label.split(',')
       : DEFAULT_LABELS.split(',');
@@ -205,6 +208,7 @@ export class ReleasePR {
     const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
     return new GitHub({
       token: this.token,
+      defaultBranch: this.defaultBranch,
       owner,
       repo,
       apiUrl: this.apiUrl,
