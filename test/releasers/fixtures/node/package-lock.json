@@ -1,0 +1,7 @@
+{
+  "name": "node-test-repo",
+  "version": "0.123.4",
+  "lockfileVersion": 1,
+  "requires": true,
+  "dependencies": {}
+}
