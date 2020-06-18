@@ -4,6 +4,82 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [5.4.0](https://www.github.com/googleapis/release-please/compare/v5.3.0...v5.4.0) (2020-06-17)
+
+
+### Features
+
+* detect default branch ([#468](https://www.github.com/googleapis/release-please/issues/468)) ([301a08a](https://www.github.com/googleapis/release-please/commit/301a08a1afdac48fd81b55816316f14d42aba23c))
+* **node:** update version number in package-lock.json ([#467](https://www.github.com/googleapis/release-please/issues/467)) ([2d69956](https://www.github.com/googleapis/release-please/commit/2d69956bb80619097f92c6d5eb809f8083381acb))
+
+
+### Bug Fixes
+
+* list commits of type `docs` for python ([#460](https://www.github.com/googleapis/release-please/issues/460)) ([ba06649](https://www.github.com/googleapis/release-please/commit/ba06649fc17843d3dcff16bef5cdf0f33f0d5fc4)), closes [#459](https://www.github.com/googleapis/release-please/issues/459)
+* **deps:** update dependency @octokit/rest to v18 ([#465](https://www.github.com/googleapis/release-please/issues/465)) ([ffbf2eb](https://www.github.com/googleapis/release-please/commit/ffbf2eb1109897fb0d7d98a9056fb8052a5cc4f9))
+
+## [5.3.0](https://www.github.com/googleapis/release-please/compare/v5.2.1...v5.3.0) (2020-06-11)
+
+
+### Features
+
+* **java-yoshi:** handle build.gradle and dependencies.properties files ([#457](https://www.github.com/googleapis/release-please/issues/457)) ([c8094f8](https://www.github.com/googleapis/release-please/commit/c8094f84134ee2ada28e9abf83ebbd13f6036dba))
+
+### [5.2.1](https://www.github.com/googleapis/release-please/compare/v5.2.0...v5.2.1) (2020-06-06)
+
+
+### Bug Fixes
+
+* **deps:** update dependency type-fest to ^0.14.0 ([#447](https://www.github.com/googleapis/release-please/issues/447)) ([7b618e8](https://www.github.com/googleapis/release-please/commit/7b618e86b485e1e10c26f1a92315586d2664afa3))
+* **deps:** update dependency type-fest to ^0.15.0 ([#450](https://www.github.com/googleapis/release-please/issues/450)) ([ed5e462](https://www.github.com/googleapis/release-please/commit/ed5e4626ec5c47c89090a0d38eda8629c5cc07ea))
+* merge commits now handled ([#452](https://www.github.com/googleapis/release-please/issues/452)) ([8f89e74](https://www.github.com/googleapis/release-please/commit/8f89e74e5f32d78e027f949ab1e6cbab32187a4e))
+
+## [5.2.0](https://www.github.com/googleapis/release-please/compare/v5.1.0...v5.2.0) (2020-05-20)
+
+
+### Features
+
+* a flag to skip CI ([#443](https://www.github.com/googleapis/release-please/issues/443)) ([17e0636](https://www.github.com/googleapis/release-please/commit/17e063656079c0f76dba7343f58f7595b132d7e3))
+
+## [5.1.0](https://www.github.com/googleapis/release-please/compare/v5.0.0...v5.1.0) (2020-05-20)
+
+
+### Features
+
+* introduce static factory helper ([#442](https://www.github.com/googleapis/release-please/issues/442)) ([2f1e09c](https://www.github.com/googleapis/release-please/commit/2f1e09c4f2bf435f3a797aaa2c7afa8d03983617))
+
+## [5.0.0](https://www.github.com/googleapis/release-please/compare/v4.2.2...v5.0.0) (2020-05-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* dynamically load releasers in ./releasers directory (#439)
+
+### Features
+
+* return the release created by createRelease() ([#438](https://www.github.com/googleapis/release-please/issues/438)) ([a270337](https://www.github.com/googleapis/release-please/commit/a270337f8195359fb7ae869d3225ab38ae282ae9))
+* simple version.txt releaser ([#436](https://www.github.com/googleapis/release-please/issues/436)) ([83e8165](https://www.github.com/googleapis/release-please/commit/83e8165b3dd78459a97c444878e69705e66bdcb8))
+
+
+### Code Refactoring
+
+* dynamically load releasers in ./releasers directory ([#439](https://www.github.com/googleapis/release-please/issues/439)) ([e3b13a9](https://www.github.com/googleapis/release-please/commit/e3b13a98d20856f506afdef634a808bdaf09ac08))
+
+### [4.2.2](https://www.github.com/googleapis/release-please/compare/v4.2.1...v4.2.2) (2020-05-05)
+
+
+### Bug Fixes
+
+* **java:** logging message should not crash when there's no latestTag ([#424](https://www.github.com/googleapis/release-please/issues/424)) ([860c613](https://www.github.com/googleapis/release-please/commit/860c613cf770fe594536ca6ef89483982a8db502))
+* don't include pre-release in latestTag calculation ([#427](https://www.github.com/googleapis/release-please/issues/427)) ([1ddb18a](https://www.github.com/googleapis/release-please/commit/1ddb18a5d38940fe5bcc6f73f520635bab0f6e9b))
+
+### [4.2.1](https://www.github.com/googleapis/release-please/compare/v4.2.0...v4.2.1) (2020-04-29)
+
+
+### Bug Fixes
+
+* version should be passed to to cc.suggestBump ([#417](https://www.github.com/googleapis/release-please/issues/417)) ([878bebe](https://www.github.com/googleapis/release-please/commit/878bebe429530c42f45580cf79a0f1d2ecbcd8bb))
+
 ## [4.2.0](https://www.github.com/googleapis/release-please/compare/v4.1.1...v4.2.0) (2020-04-14)
 
 

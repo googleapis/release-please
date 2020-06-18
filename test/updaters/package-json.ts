@@ -17,7 +17,6 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {PackageJson} from '../../src/updaters/package-json';
-import {UpdateOptions} from '../../src/updaters/update';
 
 const fixturesPath = './test/updaters/fixtures';
 

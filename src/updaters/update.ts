@@ -23,6 +23,7 @@ export interface UpdateOptions {
   version: string;
   versions?: VersionsMap;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
 }
 
 export interface Update {
@@ -33,5 +34,6 @@ export interface Update {
   version: string;
   versions?: VersionsMap;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
   updateContent(content: string | undefined): string;
 }

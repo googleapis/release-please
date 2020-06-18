@@ -1,6 +1,4 @@
-exports[
-  'ConventionalCommits generateChangelogEntry does not include content two newlines after BREAKING CHANGE 1'
-] = `
+exports['ConventionalCommits generateChangelogEntry does not include content two newlines after BREAKING CHANGE 1'] = `
 ## v1.0.0 (1665-10-10)
 
 
@@ -16,4 +14,4 @@ exports[
 ### Miscellaneous Chores
 
 * upgrade to Node 7 ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
-`;
+`

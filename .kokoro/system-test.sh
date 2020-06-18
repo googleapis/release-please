@@ -37,7 +37,6 @@ fi
 
 npm install
 
-GITHUB_TOKEN=$(cat $KOKORO_KEYSTORE_DIR/73713_yoshi-automation-github-key) || true
 npm run system-test
 
 # codecov combines coverage across integration and unit tests. Include

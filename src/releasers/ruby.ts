@@ -33,6 +33,7 @@ export interface RubyReleasePROptions extends ReleasePROptions {
 }
 
 export class Ruby extends ReleasePR {
+  static releaserName = 'ruby';
   versionFile: string;
   constructor(options: RubyReleasePROptions) {
     super(options as ReleasePROptions);

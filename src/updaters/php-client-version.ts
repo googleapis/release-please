@@ -14,7 +14,6 @@
 
 import {GitHubFileContents} from '../github';
 
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 
 export class PHPClientVersion implements Update {
@@ -25,6 +24,7 @@ export class PHPClientVersion implements Update {
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -33,7 +33,9 @@ export class PHPClientVersion implements Update {
     this.version = options.version;
     this.packageName = options.packageName;
     this.contents = options.contents;
+    this.skipCi = options.skipCi;
   }
+
   updateContent(content: string): string {
     return content.replace(
       /const VERSION = '[0-9]+\.[0-9]+\.[0-9]+'/,

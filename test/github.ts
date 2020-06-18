@@ -104,4 +104,56 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
+  describe('latestTag', () => {
+    it('returns the largest tag, even if sorting is off', async () => {
+      const req = nock('https://api.github.com')
+        .get('/repos/fake/fake/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v1.2.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.2.0',
+          },
+          {
+            name: 'v1.3.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.3.0',
+          },
+          {
+            name: 'v1.1.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.1.0',
+          },
+        ]);
+      const latestTag = await github.latestTag();
+      expect(latestTag!.version).to.equal('1.3.0');
+      req.done();
+    });
+
+    it('does not return pre-releases as latest tag', async () => {
+      const req = nock('https://api.github.com')
+        .get('/repos/fake/fake/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v1.2.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.2.0',
+          },
+          {
+            name: 'v1.3.0-beta.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.3.0',
+          },
+          {
+            name: 'v1.1.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.1.0',
+          },
+        ]);
+      const latestTag = await github.latestTag();
+      expect(latestTag!.version).to.equal('1.2.0');
+      req.done();
+    });
+  });
 });

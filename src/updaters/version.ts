@@ -13,8 +13,6 @@
 // limitations under the License.
 
 import {GitHubFileContents} from '../github';
-
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 
 export class Version implements Update {
@@ -25,6 +23,7 @@ export class Version implements Update {
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
+  skipCi?: boolean;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -33,8 +32,10 @@ export class Version implements Update {
     this.version = options.version;
     this.packageName = options.packageName;
     this.contents = options.contents;
+    this.skipCi = options.skipCi;
   }
-  updateContent(content: string): string {
+
+  updateContent(): string {
     return `${this.version}`;
   }
 }

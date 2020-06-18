@@ -29,6 +29,7 @@ import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Readme} from '../updaters/java/readme';
 import {Version} from './java/version';
 import {fromSemverReleaseType} from './java/bump_type';
+import {JavaUpdate} from '../updaters/java/java_update';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -55,6 +56,7 @@ async function delay({ms = 3000}) {
 }
 
 export class JavaYoshi extends ReleasePR {
+  static releaserName = 'java-yoshi';
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
@@ -190,7 +192,13 @@ export class JavaYoshi extends ReleasePR {
       })
     );
 
-    const pomFiles = await this.gh.findFilesByFilename('pom.xml');
+    const pomFilesSearch = this.gh.findFilesByFilename('pom.xml');
+    const buildFilesSearch = this.gh.findFilesByFilename('build.gradle');
+    const dependenciesSearch = this.gh.findFilesByFilename(
+      'dependencies.properties'
+    );
+
+    const pomFiles = await pomFilesSearch;
     pomFiles.forEach(path => {
       updates.push(
         new PomXML({
@@ -203,8 +211,36 @@ export class JavaYoshi extends ReleasePR {
       );
     });
 
+    const buildFiles = await buildFilesSearch;
+    buildFiles.forEach(path => {
+      updates.push(
+        new JavaUpdate({
+          path,
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
+    const dependenciesFiles = await dependenciesSearch;
+    dependenciesFiles.forEach(path => {
+      updates.push(
+        new JavaUpdate({
+          path,
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
     console.info(
-      `attempting to open PR latestTagSha = ${latestTag!.sha} prSha = ${prSHA}`
+      `attempting to open PR latestTagSha = ${
+        latestTag ? latestTag.sha : 'none'
+      } prSha = ${prSHA}`
     );
     await this.openPR(
       prSHA!,

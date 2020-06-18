@@ -19,6 +19,7 @@ import {coerceOption} from '../util/coerce-option';
 import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
 import {ReleasePROptions} from '../release-pr';
 import {ReleasePRFactory} from '../release-pr-factory';
+import {getReleaserNames} from '../releasers';
 import * as yargs from 'yargs';
 
 interface ErrorObject {
@@ -30,6 +31,7 @@ interface ErrorObject {
 
 interface YargsOptions {
   describe: string;
+  choices?: string[];
   demand?: boolean;
   type?: string;
   default?: string | boolean;
@@ -67,9 +69,9 @@ const argv = yargs
           type: 'boolean',
           default: false,
         })
-        .option('base-branch', {
-          describe: 'the base branch to check against for releases',
-          default: 'master',
+        .option('default-branch', {
+          describe: 'default branch to open release PR against',
+          type: 'string',
         });
     },
     (argv: ReleasePROptions) => {
@@ -84,7 +86,6 @@ const argv = yargs
       yargs
         .option('package-name', {
           describe: 'name of package release is being minted for',
-          demand: true,
         })
         .option('repo-url', {
           describe: 'GitHub URL to generate release for',
@@ -93,56 +94,16 @@ const argv = yargs
         .option('label', {
           default: 'autorelease: pending',
           describe: 'label to remove from release PR',
+        })
+        .option('release-type', {
+          describe: 'what type of repo is a release being created for?',
+          choices: getReleaserNames(),
+          default: 'node',
         });
     },
     (argv: GitHubReleaseOptions) => {
       const gr = new GitHubRelease(argv);
       gr.createRelease().catch(handleError);
-    }
-  )
-  .command(
-    'generate-action',
-    'outputs the release-please stanzas that should be added to main.workflow',
-    (yargs: YargsOptionsBuilder) => {
-      yargs.option('package-name', {
-        describe: 'name of package releases will be created for',
-        demand: true,
-      });
-    },
-    (argv: ReleasePROptions) => {
-      console.error(
-        chalk.green(
-          '----- put the content below in .github/main.workflow -----'
-        )
-      );
-      console.info(`workflow "Groom Release PR" {
-  on = "pull_request"
-  resolves = ["release-pr"]
-}
-
-action "release-pr" {
-  uses = "googleapis/release-please/.github/action/release-please@master"
-  env = {
-    PACKAGE_NAME = "${argv.packageName}"
-    RELEASE_PLEASE_COMMAND = "release-pr"
-  }
-  secrets = ["GITHUB_TOKEN"]
-}
-
-workflow "GitHub Release" {
-  on = "pull_request"
-  resolves = ["github-release"]
-}
-
-action "github-release" {
-  uses = "googleapis/release-please/.github/action/release-please@master"
-  env = {
-    PACKAGE_NAME = "${argv.packageName}"
-    RELEASE_PLEASE_COMMAND = "github-release"
-  }
-  secrets = ["GITHUB_TOKEN"]
-}
-        `);
     }
   )
   .middleware(_argv => {
@@ -160,17 +121,7 @@ action "github-release" {
   })
   .option('release-type', {
     describe: 'what type of repo is a release being created for?',
-    choices: [
-      'node',
-      'php-yoshi',
-      'java-auth-yoshi',
-      'java-bom',
-      'java-yoshi',
-      'python',
-      'terraform-module',
-      'ruby',
-      'ruby-yoshi',
-    ],
+    choices: getReleaserNames(),
     default: 'node',
   })
   .option('bump-minor-pre-major', {
@@ -192,6 +143,10 @@ action "github-release" {
     describe: 'print verbose errors (use only for local debugging).',
     default: false,
     type: 'boolean',
+  })
+  .option('default-branch', {
+    describe: '',
+    type: 'string',
   })
   .demandCommand(1)
   .strict(true)

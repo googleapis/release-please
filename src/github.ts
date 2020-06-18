@@ -40,6 +40,9 @@ type IssuesListResponseItem = PromiseValue<
 type FileSearchResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['search']['code']>
 >['data'];
+export type ReleaseCreateResponse = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
+>['data'];
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -62,13 +65,13 @@ export interface OctokitAPIs {
 }
 
 interface GitHubOptions {
+  defaultBranch?: string;
   token?: string;
   owner: string;
   repo: string;
   apiUrl?: string;
   proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
-  baseBranch: string;
 }
 
 export interface GitHubTag {
@@ -106,6 +109,7 @@ interface FileSearchResponseFile {
 let probotMode = false;
 
 export class GitHub {
+  defaultBranch?: string;
   octokit: OctokitType;
   request: Function;
   graphql: Function;
@@ -114,17 +118,14 @@ export class GitHub {
   repo: string;
   apiUrl: string;
   proxyKey?: string;
-  baseBranch: string;
-  baseLabel: string;
 
   constructor(options: GitHubOptions) {
+    this.defaultBranch = options.defaultBranch;
     this.token = options.token;
     this.owner = options.owner;
     this.repo = options.repo;
     this.apiUrl = options.apiUrl || 'https://api.github.com';
     this.proxyKey = options.proxyKey;
-    this.baseBranch = options.baseBranch;
-    this.baseLabel = `${this.owner}:${this.baseBranch}`;
 
     if (options.octokitAPIs === undefined) {
       this.octokit = new Octokit({baseUrl: options.apiUrl});
@@ -219,6 +220,8 @@ export class GitHub {
     maxFilesChanged = 64,
     retries = 0
   ): Promise<CommitsResponse> {
+    const baseBranch = await this.getDefaultBranch(this.owner, this.repo);
+
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
@@ -282,7 +285,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
-        baseBranch: this.baseBranch,
+        baseBranch,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -310,6 +313,7 @@ export class GitHub {
     maxLabels = 16,
     retries = 0
   ): Promise<CommitsResponse> {
+    const baseBranch = await this.getDefaultBranch(this.owner, this.repo);
     try {
       const response = await this.graphqlRequest({
         query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxLabels: Int, $path: String) {
@@ -365,7 +369,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
-        baseBranch: this.baseBranch,
+        baseBranch,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -452,6 +456,8 @@ export class GitHub {
     labels: string[],
     perPage = 100
   ): Promise<GitHubReleasePR | undefined> {
+    const baseLabel = await this.getBaseLabel(this.owner, this.repo);
+
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
@@ -475,7 +481,10 @@ export class GitHub {
         if (!pull.head) continue;
 
         // Verify that this PR was based against our base branch of interest.
-        if (!pull.base || pull.base.label !== this.baseLabel) continue;
+        if (!pull.base || pull.base.label !== baseLabel) continue;
+
+        // remove any pre-releases from the list:
+        if (!pull.head.label.includes('-')) continue;
 
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
@@ -501,6 +510,8 @@ export class GitHub {
     labels: string[],
     perPage = 100
   ): Promise<PullsListResponseItems> {
+    const baseLabel = await this.getBaseLabel(this.owner, this.repo);
+
     const openReleasePRs: PullsListResponseItems = [];
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}${
@@ -513,7 +524,7 @@ export class GitHub {
     )) as {data: PullsListResponseItems};
     for (const pull of pullsResponse.data) {
       // Verify that this PR was based against our base branch of interest.
-      if (!pull.base || pull.base.label !== this.baseLabel) continue;
+      if (!pull.base || pull.base.label !== baseLabel) continue;
 
       let hasAllLabels = false;
       const observedLabels = pull.labels.map(l => l.name);
@@ -530,9 +541,7 @@ export class GitHub {
     return openReleasePRs;
   }
 
-  private async allTags(
-    perPage = 100
-  ): Promise<{[version: string]: GitHubTag}> {
+  private async allTags(): Promise<{[version: string]: GitHubTag}> {
     const tags: {[version: string]: GitHubTag} = {};
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
@@ -574,10 +583,8 @@ export class GitHub {
 
   async findExistingReleaseIssue(
     title: string,
-    labels: string[],
-    perPage = 100
+    labels: string[]
   ): Promise<IssuesListResponseItem | undefined> {
-    const paged = 0;
     try {
       for await (const response of this.octokit.paginate.iterator(
         this.decoratePaginateOpts({
@@ -588,7 +595,7 @@ export class GitHub {
           per_page: 100,
         })
       )) {
-        for (let i = 0, issue; response.data[i] !== undefined; i++) {
+        for (let i = 0; response.data[i] !== undefined; i++) {
           const issue = response.data[i] as IssuesListResponseItem;
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
             return issue;
@@ -694,7 +701,7 @@ export class GitHub {
     }
 
     await this.updateFiles(options.updates, options.branch, refName);
-
+    const base = await this.getDefaultBranch(this.owner, this.repo);
     if (openReleasePR) {
       // TODO: dig into why `updateRef` closes an issue attached
       // to the branch being updated:
@@ -716,7 +723,7 @@ export class GitHub {
           title: options.title,
           body: options.body,
           state: 'open',
-          base: this.baseBranch,
+          base,
         }
       );
       return openReleasePR.number;
@@ -735,14 +742,50 @@ export class GitHub {
           title: options.title,
           body: options.body,
           head: options.branch,
-          base: this.baseBranch,
+          base,
         }
       );
       return resp.data.number;
     }
   }
 
+  private async getDefaultBranch(owner: string, repo: string): Promise<string> {
+    if (this.defaultBranch) {
+      return this.defaultBranch;
+    }
+    const {data} = await this.octokit.repos.get({
+      repo,
+      owner,
+    });
+    this.defaultBranch = data.default_branch;
+    return this.defaultBranch;
+  }
+
+  // The base label is basically the default branch, attached to the owner.
+  private async getBaseLabel(owner: string, repo: string): Promise<string> {
+    const baseBranch = await this.getDefaultBranch(owner, repo);
+    return `${owner}:${baseBranch}`;
+  }
+
   async updateFiles(updates: Update[], branch: string, refName: string) {
+    // does the user care about skipping CI at all?
+    const skipCiEverSet = updates.some(
+      upd => typeof upd.skipCi !== 'undefined'
+    );
+    if (skipCiEverSet) {
+      // if skipCi was set for some of the updates, disable CI for others
+      updates.forEach(upd => {
+        if (typeof upd.skipCi === 'undefined') {
+          upd.skipCi = true;
+        }
+      });
+    }
+    if (!skipCiEverSet && updates.length > 0) {
+      // if skipCi was not set for any of the files, disable CI for all files except the last one
+      updates.forEach(upd => (upd.skipCi = true));
+      updates[updates.length - 1].skipCi = false;
+    }
+
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
       let content;
@@ -790,7 +833,8 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `updated ${update.path} [ci skip]`,
+            message:
+              `updated ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             sha: content.data.sha,
             branch,
@@ -805,7 +849,8 @@ export class GitHub {
             owner: this.owner,
             repo: this.repo,
             path: update.path,
-            message: `created ${update.path} [ci skip]`,
+            message:
+              `created ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             branch,
           }
@@ -883,21 +928,23 @@ export class GitHub {
     version: string,
     sha: string,
     releaseNotes: string
-  ) {
+  ): Promise<ReleaseCreateResponse> {
     checkpoint(`creating release ${version}`, CheckpointType.Success);
-    await this.request(
-      `POST /repos/:owner/:repo/releases${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        tag_name: version,
-        target_commitish: sha,
-        body: releaseNotes,
-        name: `${packageName} ${version}`,
-      }
-    );
+    return (
+      await this.request(
+        `POST /repos/:owner/:repo/releases${
+          this.proxyKey ? `?key=${this.proxyKey}` : ''
+        }`,
+        {
+          owner: this.owner,
+          repo: this.repo,
+          tag_name: version,
+          target_commitish: sha,
+          body: releaseNotes,
+          name: `${packageName} ${version}`,
+        }
+      )
+    ).data;
   }
 
   async removeLabels(labels: string[], prNumber: number) {

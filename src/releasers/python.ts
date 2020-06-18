@@ -26,7 +26,19 @@ import {Changelog} from '../updaters/changelog';
 import {SetupPy} from '../updaters/python/setup-py';
 import {SetupCfg} from '../updaters/python/setup-cfg';
 
+const CHANGELOG_SECTIONS = [
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
+];
+
 export class Python extends ReleasePR {
+  static releaserName = 'python';
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = await this.commits(
@@ -37,6 +49,7 @@ export class Python extends ReleasePR {
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: CHANGELOG_SECTIONS,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,

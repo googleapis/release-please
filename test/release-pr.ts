@@ -24,7 +24,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {ReleaseCandidate, ReleaseType, ReleasePR} from '../src/release-pr';
+import {ReleaseCandidate, ReleasePR} from '../src/release-pr';
 import {PHPYoshi} from '../src/releasers/php-yoshi';
 
 const fixturesPath = './test/fixtures';
@@ -203,16 +203,17 @@ describe('GitHub', () => {
         .reply(200, [])
         .put('/repos/googleapis/release-please/contents/CHANGELOG.md')
         .reply(200, [])
+        // check for default branch
+        .get('/repos/googleapis/release-please')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../test/fixtures/repo-get-1.json'))
         // actually open the darn PR, this is the exciting step,
         // so we snapshot it:
         .post(
           '/repos/googleapis/release-please/pulls',
           (req: {[key: string]: string}) => {
-            const body = req.body.replace(
-              /\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g,
-              ''
-            );
-            snapshot(body);
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot(req);
             return true;
           }
         )
@@ -224,7 +225,7 @@ describe('GitHub', () => {
       const releasePR = new PHPYoshi({
         repoUrl: 'googleapis/release-please',
         label: 'autorelease: pending',
-        releaseType: ReleaseType.PHPYoshi,
+        releaseType: 'php-yoshi',
         // not actually used by this type of repo.
         packageName: 'yoshi-php',
         apiUrl: 'https://api.github.com',
@@ -249,7 +250,7 @@ describe('GitHub', () => {
         repoUrl: 'googleapis/nodejs',
         packageName: '@google-cloud/nodejs',
         apiUrl: 'github.com',
-        releaseType: ReleaseType.Node,
+        releaseType: 'node',
       });
       const cc = new ConventionalCommits({
         commits: [
@@ -284,7 +285,7 @@ describe('GitHub', () => {
         repoUrl: 'googleapis/nodejs',
         packageName: '@google-cloud/nodejs',
         apiUrl: 'github.com',
-        releaseType: ReleaseType.Node,
+        releaseType: 'node',
       });
       const cc = new ConventionalCommits({
         commits: [
@@ -315,7 +316,7 @@ describe('GitHub', () => {
         repoUrl: 'googleapis/nodejs',
         packageName: '@google-cloud/nodejs',
         apiUrl: 'github.com',
-        releaseType: ReleaseType.Node,
+        releaseType: 'node',
       });
       const cc = new ConventionalCommits({
         commits: [

@@ -41,6 +41,7 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class RubyYoshi extends ReleasePR {
+  static releaserName = 'ruby-yoshi';
   protected async _run() {
     const lastReleaseSha: string | undefined = this.lastPackageVersion
       ? await this.gh.getTagSha(

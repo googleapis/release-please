@@ -1,13 +1,13 @@
 {
   "name": "release-please",
-  "version": "4.2.0",
+  "version": "5.4.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
     "test": "cross-env ENVIRONMENT=test c8 mocha --recursive --timeout=5000 build/test",
     "docs-test": "echo add docs tests",
-    "system-test": "cross-env ENVIRONMENT=test c8 mocha --timeout=20000 build/system-test",
+    "system-test": "echo 'no system tests'",
     "presystem-test": "npm run compile",
     "test:all": "cross-env ENVIRONMENT=test c8 mocha --recursive --timeout=20000 build/system-test build/test",
     "test:snap": "SNAPSHOT_UPDATE=1 npm test",
@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/googleapis/release-please#readme",
   "devDependencies": {
-    "@octokit/types": "^2.5.1",
+    "@octokit/types": "^5.0.0",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^7.0.0",
     "@types/node": "^11.13.6",
@@ -44,8 +44,8 @@
     "c8": "^7.0.0",
     "chai": "^4.2.0",
     "cross-env": "^7.0.0",
-    "gts": "^2.0.0-alpha.8",
-    "mocha": "^7.0.0",
+    "gts": "^2.0.0",
+    "mocha": "^8.0.0",
     "nock": "^12.0.0",
     "snap-shot-it": "^7.0.0",
     "typescript": "^3.8.3"
@@ -53,7 +53,7 @@
   "dependencies": {
     "@octokit/graphql": "^4.3.1",
     "@octokit/request": "^5.3.4",
-    "@octokit/rest": "^17.1.4",
+    "@octokit/rest": "^18.0.0",
     "chalk": "^4.0.0",
     "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.0.0",
@@ -63,7 +63,7 @@
     "figures": "^3.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
-    "type-fest": "^0.13.0",
+    "type-fest": "^0.15.0",
     "yargs": "^15.0.0"
   },
   "engines": {

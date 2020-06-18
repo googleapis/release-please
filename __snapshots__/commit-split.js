@@ -1,21 +1,19 @@
-exports[
-  'CommitSplit partitions commits based on path from root directory by default 1'
-] = {
-  PubSub: [
+exports['CommitSplit partitions commits based on path from root directory by default 1'] = {
+  'PubSub': [
     {
-      sha: '0a8477108a26aeb21d7af06e62be4ae5cb00ad42',
-      message: 'fix: Update PubSub timeouts. (#1967)',
-      files: [
+      'sha': '0a8477108a26aeb21d7af06e62be4ae5cb00ad42',
+      'message': 'fix: Update PubSub timeouts. (#1967)',
+      'files': [
         'PubSub/src/V1/resources/subscriber_client_config.json',
-        'PubSub/synth.metadata',
-      ],
-    },
+        'PubSub/synth.metadata'
+      ]
+    }
   ],
-  Datastore: [
+  'Datastore': [
     {
-      sha: '269cf923ea6fd0375abaf0bb19790475693c6f90',
-      message: 'fix: Assorted minor fixes for Cloud Datastore client (#1964)',
-      files: [
+      'sha': '269cf923ea6fd0375abaf0bb19790475693c6f90',
+      'message': 'fix: Assorted minor fixes for Cloud Datastore client (#1964)',
+      'files': [
         'Datastore/src/Connection/Grpc.php',
         'Datastore/src/DatastoreClient.php',
         'Datastore/src/Entity.php',
@@ -23,15 +21,15 @@ exports[
         'Datastore/src/EntityMapper.php',
         'Datastore/src/Key.php',
         'Datastore/src/Operation.php',
-        'Datastore/src/TransactionTrait.php',
-      ],
-    },
+        'Datastore/src/TransactionTrait.php'
+      ]
+    }
   ],
-  AutoMl: [
+  'AutoMl': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -49,20 +47,22 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
+        'src/Version.php'
+      ]
     },
     {
-      sha: '52f4fbfa1fc3fde585c84e64ef40571d2b85d72e',
-      message: 'fix: correctly label as beta (#1963)',
-      files: ['AutoMl/README.md'],
-    },
+      'sha': '52f4fbfa1fc3fde585c84e64ef40571d2b85d72e',
+      'message': 'fix: correctly label as beta (#1963)',
+      'files': [
+        'AutoMl/README.md'
+      ]
+    }
   ],
-  Debugger: [
+  'Debugger': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -80,20 +80,22 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
+        'src/Version.php'
+      ]
     },
     {
-      sha: 'a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f',
-      message: 'fix: continue switch targeting warning in PHP 7.3 (#1957)',
-      files: ['Debugger/src/Agent.php'],
-    },
+      'sha': 'a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f',
+      'message': 'fix: continue switch targeting warning in PHP 7.3 (#1957)',
+      'files': [
+        'Debugger/src/Agent.php'
+      ]
+    }
   ],
-  Dialogflow: [
+  'Dialogflow': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -111,15 +113,15 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
-    },
+        'src/Version.php'
+      ]
+    }
   ],
-  Firestore: [
+  'Firestore': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -137,14 +139,13 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
+        'src/Version.php'
+      ]
     },
     {
-      sha: 'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b',
-      message:
-        'feat: Add Collection Group Query support (#1944)\n\n* Add Collection Group Query support\r\n\r\n* Fix documentation\r\n\r\n* Address code review\r\n\r\n* Throw from createDocumentReference',
-      files: [
+      'sha': 'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b',
+      'message': 'feat: Add Collection Group Query support (#1944)\n\n* Add Collection Group Query support\r\n\r\n* Fix documentation\r\n\r\n* Address code review\r\n\r\n* Throw from createDocumentReference',
+      'files': [
         'Firestore/src/Connection/Grpc.php',
         'Firestore/src/FieldPath.php',
         'Firestore/src/FirestoreClient.php',
@@ -159,15 +160,15 @@ exports[
         'Firestore/tests/Unit/CollectionReferenceTest.php',
         'Firestore/tests/Unit/FieldPathTest.php',
         'Firestore/tests/Unit/FirestoreClientTest.php',
-        'Firestore/tests/Unit/QueryTest.php',
-      ],
-    },
+        'Firestore/tests/Unit/QueryTest.php'
+      ]
+    }
   ],
-  Language: [
+  'Language': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -185,20 +186,22 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
+        'src/Version.php'
+      ]
     },
     {
-      sha: 'bf69d0f204474b88b3f8b5a72a392129d16a3929',
-      message: 'fix: language system test (#1958)',
-      files: ['Language/tests/System/AnalyzeTest.php'],
-    },
+      'sha': 'bf69d0f204474b88b3f8b5a72a392129d16a3929',
+      'message': 'fix: language system test (#1958)',
+      'files': [
+        'Language/tests/System/AnalyzeTest.php'
+      ]
+    }
   ],
-  Speech: [
+  'Speech': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -216,30 +219,33 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
+        'src/Version.php'
+      ]
     },
     {
-      sha: '8db7f3b19c46c873897d79c89ce35b8492e5fe60',
-      message: 'feat: move speech from alpha -> beta (#1962)',
-      files: ['README.md', 'Speech/README.md'],
+      'sha': '8db7f3b19c46c873897d79c89ce35b8492e5fe60',
+      'message': 'feat: move speech from alpha -> beta (#1962)',
+      'files': [
+        'README.md',
+        'Speech/README.md'
+      ]
     },
     {
-      sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-      message: 'feat: Add mp3 encoding and context hint boost support. (#1959)',
-      files: [
+      'sha': 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+      'message': 'feat: Add mp3 encoding and context hint boost support. (#1959)',
+      'files': [
         'Speech/metadata/V1P1Beta1/CloudSpeech.php',
         'Speech/src/V1p1beta1/RecognitionConfig/AudioEncoding.php',
         'Speech/src/V1p1beta1/SpeechContext.php',
-        'Speech/synth.metadata',
-      ],
-    },
+        'Speech/synth.metadata'
+      ]
+    }
   ],
-  Tasks: [
+  'Tasks': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -257,15 +263,15 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
-    },
+        'src/Version.php'
+      ]
+    }
   ],
-  Vision: [
+  'Vision': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -283,15 +289,15 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
-    },
+        'src/Version.php'
+      ]
+    }
   ],
-  WebSecurityScanner: [
+  'WebSecurityScanner': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -309,14 +315,13 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
+        'src/Version.php'
+      ]
     },
     {
-      sha: 'fa5761e9e52f36506a72a9292843259d198468b0',
-      message:
-        'feat: Add Web Security Center Client (#1961)\n\n* add synth script\r\n\r\n* generate web security scanner\r\n\r\n* add to docs site\r\n\r\n* update README\r\n\r\n* update composer\r\n\r\n* remove whitespace in sample\r\n\r\n* add phpunit config\r\n\r\n* add hyperlink\r\n\r\n* autoload tests\r\n\r\n* more autoload fixes',
-      files: [
+      'sha': 'fa5761e9e52f36506a72a9292843259d198468b0',
+      'message': 'feat: Add Web Security Center Client (#1961)\n\n* add synth script\r\n\r\n* generate web security scanner\r\n\r\n* add to docs site\r\n\r\n* update README\r\n\r\n* update composer\r\n\r\n* remove whitespace in sample\r\n\r\n* add phpunit config\r\n\r\n* add hyperlink\r\n\r\n* autoload tests\r\n\r\n* more autoload fixes',
+      'files': [
         'README.md',
         'WebSecurityScanner/.gitattributes',
         'WebSecurityScanner/.github/pull_request_template.md',
@@ -408,15 +413,15 @@ exports[
         'composer.json',
         'docs/contents/cloud-web-security-scanner.json',
         'docs/contents/google-cloud.json',
-        'docs/manifest.json',
-      ],
-    },
+        'docs/manifest.json'
+      ]
+    }
   ],
-  docs: [
+  'docs': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -434,14 +439,13 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
+        'src/Version.php'
+      ]
     },
     {
-      sha: 'fa5761e9e52f36506a72a9292843259d198468b0',
-      message:
-        'feat: Add Web Security Center Client (#1961)\n\n* add synth script\r\n\r\n* generate web security scanner\r\n\r\n* add to docs site\r\n\r\n* update README\r\n\r\n* update composer\r\n\r\n* remove whitespace in sample\r\n\r\n* add phpunit config\r\n\r\n* add hyperlink\r\n\r\n* autoload tests\r\n\r\n* more autoload fixes',
-      files: [
+      'sha': 'fa5761e9e52f36506a72a9292843259d198468b0',
+      'message': 'feat: Add Web Security Center Client (#1961)\n\n* add synth script\r\n\r\n* generate web security scanner\r\n\r\n* add to docs site\r\n\r\n* update README\r\n\r\n* update composer\r\n\r\n* remove whitespace in sample\r\n\r\n* add phpunit config\r\n\r\n* add hyperlink\r\n\r\n* autoload tests\r\n\r\n* more autoload fixes',
+      'files': [
         'README.md',
         'WebSecurityScanner/.gitattributes',
         'WebSecurityScanner/.github/pull_request_template.md',
@@ -533,15 +537,15 @@ exports[
         'composer.json',
         'docs/contents/cloud-web-security-scanner.json',
         'docs/contents/google-cloud.json',
-        'docs/manifest.json',
-      ],
-    },
+        'docs/manifest.json'
+      ]
+    }
   ],
-  src: [
+  'src': [
     {
-      sha: 'da356f004ff891e11a369fd634f55d6abade708f',
-      message: 'Prepare v0.102.0 (#1965)',
-      files: [
+      'sha': 'da356f004ff891e11a369fd634f55d6abade708f',
+      'message': 'Prepare v0.102.0 (#1965)',
+      'files': [
         'AutoMl/VERSION',
         'Debugger/VERSION',
         'Debugger/src/DebuggerClient.php',
@@ -559,8 +563,8 @@ exports[
         'composer.json',
         'docs/manifest.json',
         'src/ServiceBuilder.php',
-        'src/Version.php',
-      ],
-    },
-  ],
-};
+        'src/Version.php'
+      ]
+    }
+  ]
+}

@@ -15,7 +15,13 @@
 import chalk = require('chalk');
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import {GitHub, GitHubReleasePR, OctokitAPIs} from './github';
+import {ReleasePRFactory} from './release-pr-factory';
+import {
+  GitHub,
+  GitHubReleasePR,
+  OctokitAPIs,
+  ReleaseCreateResponse,
+} from './github';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -24,12 +30,12 @@ const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 export interface GitHubReleaseOptions {
   label: string;
   repoUrl: string;
-  packageName: string;
+  packageName?: string;
   token?: string;
   apiUrl: string;
   proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
-  baseBranch?: string;
+  releaseType?: string;
 }
 
 export class GitHubRelease {
@@ -38,10 +44,10 @@ export class GitHubRelease {
   gh: GitHub;
   labels: string[];
   repoUrl: string;
-  packageName: string;
+  packageName?: string;
   token?: string;
   proxyKey?: string;
-  baseBranch?: string;
+  releaseType?: string;
 
   constructor(options: GitHubReleaseOptions) {
     this.apiUrl = options.apiUrl;
@@ -50,14 +56,14 @@ export class GitHubRelease {
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.packageName = options.packageName;
-    this.baseBranch = options.baseBranch;
+    this.releaseType = options.releaseType;
 
     this.changelogPath = 'CHANGELOG.md';
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
-  async createRelease() {
+  async createRelease(): Promise<ReleaseCreateResponse | undefined> {
     const gitHubReleasePR:
       | GitHubReleasePR
       | undefined = await this.gh.findMergedReleasePR(this.labels);
@@ -81,7 +87,18 @@ export class GitHubRelease {
         CheckpointType.Success
       );
 
-      await this.gh.createRelease(
+      // Attempt to lookup the package name from a well known location, such
+      // as package.json, if none is provided:
+      if (this.packageName === undefined && this.releaseType) {
+        this.packageName = await ReleasePRFactory.class(
+          this.releaseType
+        ).lookupPackageName(this.gh);
+      }
+      if (this.packageName === undefined) {
+        throw Error('could not determine package name for release');
+      }
+
+      const release = await this.gh.createRelease(
         this.packageName,
         gitHubReleasePR.version,
         gitHubReleasePR.sha,
@@ -93,8 +110,10 @@ export class GitHubRelease {
       // Remove 'autorelease: pending' which indicates a GitHub release
       // has not yet been created.
       await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
+      return release;
     } else {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
+      return undefined;
     }
   }
 
@@ -107,7 +126,6 @@ export class GitHubRelease {
       apiUrl: this.apiUrl,
       proxyKey: this.proxyKey,
       octokitAPIs,
-      baseBranch: this.baseBranch || 'master',
     });
   }
 

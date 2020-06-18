@@ -17,7 +17,6 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {JavaYoshi} from '../../src/releasers/java-yoshi';
-import {ReleaseType} from '../../src/release-pr';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
@@ -82,6 +81,22 @@ describe('JavaYoshi', () => {
         total_count: 1,
         items: [{name: 'pom.xml', path: 'pom.xml'}],
       })
+      // finding build.gradle files
+      .get(
+        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
+      )
+      .reply(200, {
+        total_count: 0,
+        items: [],
+      })
+      // finding dependencies.properties files
+      .get(
+        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
+      )
+      .reply(200, {
+        total_count: 0,
+        items: [],
+      })
       // getting the latest tag
       .get('/repos/googleapis/java-trace/git/refs?per_page=100')
       .reply(200, [{ref: 'refs/tags/v0.20.3'}])
@@ -96,6 +111,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/CHANGELOG.md',
         (req: {[key: string]: string}) => {
+          snapshot('CHANGELOG-message', req.message);
           snapshot(
             'CHANGELOG',
             Buffer.from(req.content, 'base64')
@@ -116,6 +132,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/README.md',
         (req: {[key: string]: string}) => {
+          snapshot('README-message', req.message);
           snapshot(
             'README',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -135,6 +152,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/versions.txt',
         (req: {[key: string]: string}) => {
+          snapshot('versions-message', req.message);
           snapshot(
             'versions',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -154,6 +172,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/pom.xml',
         (req: {[key: string]: string}) => {
+          snapshot('pom-message', req.message);
           snapshot('pom', Buffer.from(req.content, 'base64').toString('utf8'));
           return true;
         }
@@ -170,6 +189,7 @@ describe('JavaYoshi', () => {
       .put(
         '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
         (req: {[key: string]: string}) => {
+          snapshot('GoogleUtils-message', req.message);
           snapshot(
             'GoogleUtils',
             Buffer.from(req.content, 'base64').toString('utf8')
@@ -178,12 +198,16 @@ describe('JavaYoshi', () => {
         }
       )
       .reply(200)
+      // check for default branch
+      .get('/repos/googleapis/java-trace')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      .reply(200, require('../../../test/fixtures/repo-get-1.json'))
       // create release
       .post(
         '/repos/googleapis/java-trace/pulls',
         (req: {[key: string]: string}) => {
-          const body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-          snapshot('PR body', body);
+          req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+          snapshot('PR body', req);
           return true;
         }
       )
@@ -201,7 +225,7 @@ describe('JavaYoshi', () => {
       .reply(200, []);
     const releasePR = new JavaYoshi({
       repoUrl: 'googleapis/java-trace',
-      releaseType: ReleaseType.JavaYoshi,
+      releaseType: 'java-yoshi',
       // not actually used by this type of repo.
       packageName: 'java-trace',
       apiUrl: 'https://api.github.com',
@@ -248,6 +272,22 @@ describe('JavaYoshi', () => {
         total_count: 1,
         items: [{name: 'pom.xml', path: 'pom.xml'}],
       })
+      // finding build.gradle files
+      .get(
+        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
+      )
+      .reply(200, {
+        total_count: 0,
+        items: [],
+      })
+      // finding dependencies.properties files
+      .get(
+        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
+      )
+      .reply(200, {
+        total_count: 0,
+        items: [],
+      })
       // getting the latest tag
       .get('/repos/googleapis/java-trace/git/refs?per_page=100')
       .reply(200, [{ref: 'refs/tags/v0.20.3'}])
@@ -292,12 +332,16 @@ describe('JavaYoshi', () => {
         }
       )
       .reply(200)
+      // check for default branch
+      .get('/repos/googleapis/java-trace')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      .reply(200, require('../../../test/fixtures/repo-get-2.json'))
       // create release
       .post(
         '/repos/googleapis/java-trace/pulls',
         (req: {[key: string]: string}) => {
-          const body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-          snapshot('PR body-snapshot', body);
+          req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+          snapshot('PR body-snapshot', req);
           return true;
         }
       )
@@ -315,7 +359,7 @@ describe('JavaYoshi', () => {
       .reply(200, []);
     const releasePR = new JavaYoshi({
       repoUrl: 'googleapis/java-trace',
-      releaseType: ReleaseType.JavaYoshi,
+      releaseType: 'java-yoshi',
       // not actually used by this type of repo.
       packageName: 'java-trace',
       apiUrl: 'https://api.github.com',

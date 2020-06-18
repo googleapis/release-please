@@ -44,4 +44,4 @@ python_requires = >=3.5
 testing = pytest
 
 
-`;
+`

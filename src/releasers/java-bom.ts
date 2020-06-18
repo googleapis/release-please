@@ -56,6 +56,7 @@ async function delay({ms = 3000}) {
 }
 
 export class JavaBom extends ReleasePR {
+  static releaserName = 'java-bom';
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
@@ -104,7 +105,7 @@ export class JavaBom extends ReleasePR {
           fromSemverReleaseType(
             (
               await cc.suggestBump(
-                latestTag?.sha || this.defaultInitialVersion()
+                latestTag?.version || this.defaultInitialVersion()
               )
             ).releaseType
           ),

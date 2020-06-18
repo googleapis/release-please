@@ -12,48 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  BuildOptions,
-  ReleaseType,
-  ReleasePR,
-  ReleasePROptions,
-} from './release-pr';
-import {Ruby, RubyReleasePROptions} from './releasers/ruby';
-import {JavaAuthYoshi} from './releasers/java-auth-yoshi';
-import {JavaBom} from './releasers/java-bom';
+import {BuildOptions, ReleasePR, ReleasePROptions} from './release-pr';
+import {RubyReleasePROptions} from './releasers/ruby';
+import {getReleasers} from './releasers';
+
 import {Node} from './releasers/node';
-import {PHPYoshi} from './releasers/php-yoshi';
 import {Python} from './releasers/python';
-import {RubyYoshi} from './releasers/ruby-yoshi';
-import {JavaYoshi} from './releasers/java-yoshi';
+import {Simple} from './releasers/simple';
 import {TerraformModule} from './releasers/terraform-module';
 
 export class ReleasePRFactory {
-  static build(releaseType: ReleaseType, options: BuildOptions): ReleasePR {
+  static build(releaseType: string, options: BuildOptions): ReleasePR {
+    const releaseOptions: ReleasePROptions | RubyReleasePROptions = {
+      ...options,
+      ...{releaseType},
+    };
+    return new (ReleasePRFactory.class(releaseType))(releaseOptions);
+  }
+  // Return a ReleasePR class, based on the release type, e.g., node, python:
+  static class(releaseType: string): typeof ReleasePR {
+    const releasers = getReleasers();
+    const releaser = releasers[releaseType];
+    if (!releaser) {
+      throw Error('unknown release type');
+    }
+    return releaser;
+  }
+  // For the benefit of WebPack, we provide a static factory for a subset
+  // of the releasers available in the release please GitHub action:
+  static buildStatic(releaseType: string, options: BuildOptions) {
     const releaseOptions: ReleasePROptions = {
       ...options,
       ...{releaseType},
     };
     switch (releaseType) {
-      case ReleaseType.Node:
+      case 'node':
         return new Node(releaseOptions);
-      case ReleaseType.PHPYoshi:
-        return new PHPYoshi(releaseOptions);
-      case ReleaseType.JavaAuthYoshi:
-        // TODO: coerce this to the generic Java release
-        return new JavaAuthYoshi(releaseOptions);
-      case ReleaseType.JavaBom:
-        return new JavaBom(releaseOptions);
-      case ReleaseType.JavaYoshi:
-        return new JavaYoshi(releaseOptions);
-      case ReleaseType.TerraformModule:
-        return new TerraformModule(releaseOptions);
-      case ReleaseType.Python:
+      case 'python':
         return new Python(releaseOptions);
-      case ReleaseType.Ruby:
-        return new Ruby(releaseOptions as RubyReleasePROptions);
-      case ReleaseType.RubyYoshi:
-        return new RubyYoshi(releaseOptions);
+      case 'simple':
+        return new Simple(releaseOptions);
+      case 'terraform-module':
+        return new TerraformModule(releaseOptions);
       default:
         throw Error('unknown release type');
     }
