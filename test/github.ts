@@ -22,7 +22,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
 import {GitHub} from '../src/github';
-const github = new GitHub({owner: 'fake', repo: 'fake', baseBranch: 'fake'});
+const github = new GitHub({owner: 'fake', repo: 'fake'});
 
 const fixturesPath = './test/fixtures';
 
