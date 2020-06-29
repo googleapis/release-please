@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [5.4.1](https://www.github.com/googleapis/release-please/compare/v5.4.0...v5.4.1) (2020-06-29)
+
+
+### Bug Fixes
+
+* update node issue template ([#472](https://www.github.com/googleapis/release-please/issues/472)) ([746f088](https://www.github.com/googleapis/release-please/commit/746f088b7c7c0a6ed7f118f39fa3cd4b825dc429))
+
 ## [5.4.0](https://www.github.com/googleapis/release-please/compare/v5.3.0...v5.4.0) (2020-06-17)
 
 
