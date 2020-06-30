@@ -137,4 +137,8 @@ export class JavaAuthYoshi extends ReleasePR {
       candidate.version
     );
   }
+
+  protected supportsSnapshots(): boolean {
+    return true;
+  }
 }

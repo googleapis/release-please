@@ -250,6 +250,10 @@ export class JavaYoshi extends ReleasePR {
     );
   }
 
+  protected supportsSnapshots(): boolean {
+    return true;
+  }
+
   protected defaultInitialVersion(): string {
     return '0.1.0';
   }
