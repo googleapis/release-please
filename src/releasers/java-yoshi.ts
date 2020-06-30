@@ -46,15 +46,6 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-async function delay({ms = 3000}) {
-  if (process.env.ENVIRONMENT === 'test') return;
-  new Promise(resolve => {
-    setTimeout(() => {
-      return resolve();
-    }, ms);
-  });
-}
-
 export class JavaYoshi extends ReleasePR {
   static releaserName = 'java-yoshi';
   protected async _run() {
@@ -70,15 +61,11 @@ export class JavaYoshi extends ReleasePR {
     );
     if (this.snapshot) {
       this.labels = ['type: process'];
-      // TODO: this temporarily resolves a race condition between creating a release
-      // and updating tags on the release PR. This should be replaced by a queuing
-      // mechanism to delay/retry this request.
       if (this.snapshot) {
         checkpoint(
           'snapshot: sleeping for 15 seconds...',
           CheckpointType.Success
         );
-        await delay({ms: 15000});
         checkpoint('snapshot: finished sleeping', CheckpointType.Success);
       }
     }
