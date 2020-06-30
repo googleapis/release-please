@@ -317,7 +317,9 @@ describe('JavaBom', () => {
         // not actually used by this type of repo.
         packageName: 'java-cloud-bom',
         apiUrl: 'https://api.github.com',
-        snapshot: true,
+        // we will detect that a snapshot is needed, and still perform a
+        // snapshot release:
+        snapshot: false,
       });
       await releasePR.run();
       req.done();
