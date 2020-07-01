@@ -190,5 +190,16 @@ describe('Node', () => {
       await releasePR.run();
       req.done();
     });
+    it('does not support snapshot releases', async () => {
+      const releasePR = new Node({
+        repoUrl: 'googleapis/node-test-repo',
+        releaseType: 'node',
+        // not actually used by this type of repo.
+        packageName: 'node-test-repo',
+        apiUrl: 'https://api.github.com',
+        snapshot: true,
+      });
+      await releasePR.run();
+    });
   });
 });
