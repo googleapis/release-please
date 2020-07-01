@@ -363,6 +363,7 @@ describe('JavaYoshi', () => {
       // not actually used by this type of repo.
       packageName: 'java-trace',
       apiUrl: 'https://api.github.com',
+      snapshot: true,
     });
     await releasePR.run();
     req.done();

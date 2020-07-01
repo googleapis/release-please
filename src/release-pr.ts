@@ -98,6 +98,13 @@ export class ReleasePR {
   }
 
   async run() {
+    if (this.snapshot && !this.supportsSnapshots()) {
+      checkpoint(
+        'snapshot releases not supported for this releaser',
+        CheckpointType.Failure
+      );
+      return;
+    }
     const pr: GitHubReleasePR | undefined = await this.gh.findMergedReleasePR(
       this.labels
     );
@@ -114,6 +121,10 @@ export class ReleasePR {
 
   protected async _run() {
     throw Error('must be implemented by subclass');
+  }
+
+  protected supportsSnapshots(): boolean {
+    return false;
   }
 
   private async closeStaleReleasePRs(
