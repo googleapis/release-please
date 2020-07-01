@@ -368,4 +368,52 @@ describe('JavaYoshi', () => {
     await releasePR.run();
     req.done();
   });
+  it('ignores a snapshot release if no snapshot needed', async () => {
+    const versionsContent = readFileSync(
+      resolve(fixturesPath, 'versions.txt'),
+      'utf8'
+    );
+    const req = nock('https://api.github.com')
+      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .reply(200, undefined)
+      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .reply(200, {
+        content: Buffer.from(versionsContent, 'utf8').toString('base64'),
+        sha: 'abc123',
+      });
+    const releasePR = new JavaYoshi({
+      repoUrl: 'googleapis/java-trace',
+      releaseType: 'java-yoshi',
+      // not actually used by this type of repo.
+      packageName: 'java-trace',
+      apiUrl: 'https://api.github.com',
+      snapshot: true,
+    });
+    await releasePR.run();
+    req.done();
+  });
+  it('ignores an explicit release if a snapshot needed', async () => {
+    const versionsContent = readFileSync(
+      resolve(fixturesPath, 'released-versions.txt'),
+      'utf8'
+    );
+    const req = nock('https://api.github.com')
+      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .reply(200, undefined)
+      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .reply(200, {
+        content: Buffer.from(versionsContent, 'utf8').toString('base64'),
+        sha: 'abc123',
+      });
+    const releasePR = new JavaYoshi({
+      repoUrl: 'googleapis/java-trace',
+      releaseType: 'java-yoshi',
+      // not actually used by this type of repo.
+      packageName: 'java-trace',
+      apiUrl: 'https://api.github.com',
+      snapshot: false,
+    });
+    await releasePR.run();
+    req.done();
+  });
 });
