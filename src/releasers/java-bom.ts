@@ -65,9 +65,17 @@ export class JavaBom extends ReleasePR {
     const currentVersions = VersionsManifest.parseVersions(
       versionsManifestContent.parsedContent
     );
-    this.snapshot = VersionsManifest.needsSnapshot(
+
+    const snapshotNeeded = VersionsManifest.needsSnapshot(
       versionsManifestContent.parsedContent
     );
+    if (this.snapshot === undefined) {
+      this.snapshot = snapshotNeeded;
+    } else if (this.snapshot !== snapshotNeeded) {
+      checkpoint('release asked for a snapshot, but no snapshot is needed', CheckpointType.Failure);
+      return;
+    }
+
     if (this.snapshot) {
       this.labels = ['type: process'];
       // TODO: this temporarily resolves a race condition between creating a release
