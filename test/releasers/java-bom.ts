@@ -322,6 +322,54 @@ describe('JavaBom', () => {
       await releasePR.run();
       req.done();
     });
+    it('ignores a snapshot release if no snapshot needed', async () => {
+      const versionsContent = readFileSync(
+        resolve(fixturesPath, 'versions.txt'),
+        'utf8'
+      );
+      const req = nock('https://api.github.com')
+        .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
+        .reply(200, undefined)
+        .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
+        .reply(200, {
+          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
+          sha: 'abc123',
+        });
+      const releasePR = new JavaBom({
+        repoUrl: 'googleapis/java-cloud-bom',
+        releaseType: 'java-bom',
+        // not actually used by this type of repo.
+        packageName: 'java-cloud-bom',
+        apiUrl: 'https://api.github.com',
+        snapshot: true,
+      });
+      await releasePR.run();
+      req.done();
+    });
+    it('ignores an explicit release if no snapshot needed', async () => {
+      const versionsContent = readFileSync(
+        resolve(fixturesPath, 'released-versions.txt'),
+        'utf8'
+      );
+      const req = nock('https://api.github.com')
+        .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
+        .reply(200, undefined)
+        .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
+        .reply(200, {
+          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
+          sha: 'abc123',
+        });
+      const releasePR = new JavaBom({
+        repoUrl: 'googleapis/java-cloud-bom',
+        releaseType: 'java-bom',
+        // not actually used by this type of repo.
+        packageName: 'java-cloud-bom',
+        apiUrl: 'https://api.github.com',
+        snapshot: false,
+      });
+      await releasePR.run();
+      req.done();
+    });
     it('merges conventional commit messages', async () => {
       const versionsContent = readFileSync(
         resolve(fixturesPath, 'versions.txt'),
