@@ -46,15 +46,6 @@ const CHANGELOG_SECTIONS = [
 const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
 const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
-async function delay({ms = 3000}) {
-  if (process.env.ENVIRONMENT === 'test') return;
-  new Promise(resolve => {
-    setTimeout(() => {
-      return resolve();
-    }, ms);
-  });
-}
-
 export class JavaBom extends ReleasePR {
   static releaserName = 'java-bom';
   protected async _run() {
@@ -81,15 +72,11 @@ export class JavaBom extends ReleasePR {
 
     if (this.snapshot) {
       this.labels = ['type: process'];
-      // TODO: this temporarily resolves a race condition between creating a release
-      // and updating tags on the release PR. This should be replaced by a queuing
-      // mechanism to delay/retry this request.
       if (this.snapshot) {
         checkpoint(
           'snapshot: sleeping for 15 seconds...',
           CheckpointType.Success
         );
-        await delay({ms: 15000});
         checkpoint('snapshot: finished sleeping', CheckpointType.Success);
       }
     }
