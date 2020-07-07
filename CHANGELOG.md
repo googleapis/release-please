@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [5.5.1](https://www.github.com/googleapis/release-please/compare/v5.5.0...v5.5.1) (2020-07-07)
+
+
+### Bug Fixes
+
+* exception was thrown when 0 commits found ([#484](https://www.github.com/googleapis/release-please/issues/484)) ([ae26670](https://www.github.com/googleapis/release-please/commit/ae26670b51c0d7a221c1becf147a4cb839374554))
+
 ## [5.5.0](https://www.github.com/googleapis/release-please/compare/v5.4.0...v5.5.0) (2020-07-01)
 
 
