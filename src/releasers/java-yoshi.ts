@@ -91,6 +91,15 @@ export class JavaYoshi extends ReleasePR {
           },
         ]
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
+    if (commits.length === 0) {
+      checkpoint(
+        `no commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return;
+    }
     let prSHA = commits[0].sha;
     // Snapshots populate a fake "fix:"" commit, so that they will always
     // result in a patch update. We still need to know the HEAD sba, so that
