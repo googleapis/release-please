@@ -88,6 +88,15 @@ export class JavaBom extends ReleasePR {
       this.snapshot ? 1 : 100,
       true
     );
+    if (commits.length === 0) {
+      checkpoint(
+        `no commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return;
+    }
     const prSHA = commits[0].sha;
     const cc = new ConventionalCommits({
       commits,

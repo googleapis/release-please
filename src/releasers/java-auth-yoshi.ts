@@ -41,6 +41,15 @@ export class JavaAuthYoshi extends ReleasePR {
           },
         ]
       : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
+    if (commits.length === 0) {
+      checkpoint(
+        `no commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return;
+    }
     let prSHA = commits[0].sha;
 
     const cc = new ConventionalCommits({
