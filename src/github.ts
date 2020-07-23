@@ -732,6 +732,9 @@ export class GitHub {
     const {data} = await this.octokit.repos.get({
       repo,
       owner,
+      headers: {
+        Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+      },
     });
     this.defaultBranch = data.default_branch;
     return this.defaultBranch;
