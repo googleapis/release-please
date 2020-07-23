@@ -964,21 +964,21 @@ public final class GoogleUtils {
 `
 
 exports['CHANGELOG-message'] = `
-created CHANGELOG.md [ci skip]
+chore: created CHANGELOG.md [ci skip]
 `
 
 exports['README-message'] = `
-updated README.md [ci skip]
+chore: updated README.md [ci skip]
 `
 
 exports['GoogleUtils-message'] = `
-updated google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java [ci skip]
+chore: updated google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java [ci skip]
 `
 
 exports['versions-message'] = `
-updated versions.txt [ci skip]
+chore: updated versions.txt [ci skip]
 `
 
 exports['pom-message'] = `
-updated pom.xml
+chore: updated pom.xml
 `

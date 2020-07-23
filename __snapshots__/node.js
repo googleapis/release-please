@@ -10,7 +10,7 @@ exports['papckage-lock-json-node-with'] = `
 `
 
 exports['CHANGELOG-node-message-no-package-lock'] = `
-created CHANGELOG.md [ci skip]
+chore: created CHANGELOG.md [ci skip]
 `
 
 exports['CHANGELOG-node-no-package-lock'] = `
@@ -27,7 +27,7 @@ exports['CHANGELOG-node-no-package-lock'] = `
 `
 
 exports['package-json-node-message-no-package-lock'] = `
-updated package.json
+chore: updated package.json
 `
 
 exports['package-json-node-no-package-lock'] = `
@@ -42,7 +42,7 @@ exports['package-json-node-no-package-lock'] = `
 `
 
 exports['CHANGELOG-node-message-with-package-lock'] = `
-created CHANGELOG.md [ci skip]
+chore: created CHANGELOG.md [ci skip]
 `
 
 exports['CHANGELOG-node-with-package-lock'] = `
@@ -59,7 +59,7 @@ exports['CHANGELOG-node-with-package-lock'] = `
 `
 
 exports['package-json-node-message-with-package-lock'] = `
-updated package.json
+chore: updated package.json
 `
 
 exports['package-json-node-with-package-lock'] = `
@@ -74,7 +74,7 @@ exports['package-json-node-with-package-lock'] = `
 `
 
 exports['package-lock-json-node-message'] = `
-updated package-lock.json [ci skip]
+chore: updated package-lock.json [ci skip]
 `
 
 exports['PR body-node-no-package-lock'] = `
