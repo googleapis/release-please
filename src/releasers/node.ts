@@ -74,6 +74,24 @@ export class Node extends ReleasePR {
     if (pkg.name) this.packageName = pkg.name;
 
     updates.push(
+      new PackageJson({
+        path: 'package-lock.json',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
+
+    updates.push(
+      new SamplesPackageJson({
+        path: 'samples/package.json',
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
+    );
+
+    updates.push(
       new Changelog({
         path: 'CHANGELOG.md',
         changelogEntry,
@@ -89,24 +107,6 @@ export class Node extends ReleasePR {
         version: candidate.version,
         packageName: this.packageName,
         contents,
-      })
-    );
-
-    updates.push(
-      new PackageJson({
-        path: 'package-lock.json',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
-
-    updates.push(
-      new SamplesPackageJson({
-        path: 'samples/package.json',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
       })
     );
 
