@@ -27,7 +27,7 @@ exports['CHANGELOG-node-no-package-lock'] = `
 `
 
 exports['package-json-node-message-no-package-lock'] = `
-updated package.json [ci skip]
+updated package.json
 `
 
 exports['package-json-node-no-package-lock'] = `
@@ -59,7 +59,7 @@ exports['CHANGELOG-node-with-package-lock'] = `
 `
 
 exports['package-json-node-message-with-package-lock'] = `
-updated package.json [ci skip]
+updated package.json
 `
 
 exports['package-json-node-with-package-lock'] = `
