@@ -30,9 +30,9 @@ exports['labels-simple'] = {
 }
 
 exports['CHANGELOG-simple-message'] = `
-created CHANGELOG.md [ci skip]
+chore: created CHANGELOG.md [ci skip]
 `
 
 exports['version-txt-simple-message'] = `
-updated version.txt
+chore: updated version.txt
 `

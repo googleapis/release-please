@@ -807,7 +807,8 @@ export class GitHub {
             repo: this.repo,
             path: update.path,
             message:
-              `updated ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
+              `chore: updated ${update.path}` +
+              (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             sha: content.data.sha,
             branch,
@@ -823,7 +824,8 @@ export class GitHub {
             repo: this.repo,
             path: update.path,
             message:
-              `created ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
+              `chore: created ${update.path}` +
+              (update.skipCi ? ' [ci skip]' : ''),
             content: Buffer.from(updatedContent, 'utf8').toString('base64'),
             branch,
           }
