@@ -16,7 +16,9 @@
     "lint": "gts check",
     "compile": "tsc -p .",
     "fix": "gts fix",
-    "pretest": "npm run compile"
+    "pretest": "npm run compile",
+    "api-extractor": "api-extractor run --local",
+    "api-documenter": "api-documenter yaml --input-folder=temp"
   },
   "files": [
     "build/src",
@@ -48,7 +50,9 @@
     "mocha": "^8.0.0",
     "nock": "^13.0.0",
     "snap-shot-it": "^7.0.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "@microsoft/api-documenter": "^7.8.10",
+    "@microsoft/api-extractor": "^7.8.10"
   },
   "dependencies": {
     "@octokit/graphql": "^4.3.1",
