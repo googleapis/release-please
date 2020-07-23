@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [5.5.2](https://www.github.com/googleapis/release-please/compare/v5.5.1...v5.5.2) (2020-07-23)
+
+
+### Bug Fixes
+
+* missing authorization header for repos.get() ([#490](https://www.github.com/googleapis/release-please/issues/490)) ([895b91c](https://www.github.com/googleapis/release-please/commit/895b91c5ff42d01fa96499f7021fa5ede98ff52e)), closes [#474](https://www.github.com/googleapis/release-please/issues/474)
+* **node:** reorder files added, so that skip logic works ([#495](https://www.github.com/googleapis/release-please/issues/495)) ([55d7be6](https://www.github.com/googleapis/release-please/commit/55d7be6fdba12b83285462c8946426a8618f4d2b))
+* use conventional commits for our own commits ([#498](https://www.github.com/googleapis/release-please/issues/498)) ([7c63bbf](https://www.github.com/googleapis/release-please/commit/7c63bbf978d4cf88d12c95de2412ab1124c748dc))
+
 ### [5.5.1](https://www.github.com/googleapis/release-please/compare/v5.5.0...v5.5.1) (2020-07-07)
 
 
