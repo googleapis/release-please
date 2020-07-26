@@ -148,10 +148,12 @@ release-please release-pr --package-name=@google-cloud/firestore" \
 
 | option            | description                                             |
 |-------------------|---------------------------------------------------------|
-| `--package-name`  | is the name of the package to publish to publish to  an upstream registry such as npm. |
+| `--package-name`  | is the name of the package to publish to publish to an upstream registry such as npm. |
 | `--repo-url`      | is the URL of the repository on GitHub.                 |
 | `--token`         | a token with write access to `--repo-url`.              |
 | `--default-branch`| branch to open pull release PR against (detected by default). |
+| `--path`          | create a release from a path other than the repository's root |
+| `--monorepo-tags` | add prefix to tags and branches, allowing multiple libraries to be released from the same repository. |
 
 ### Creating a release on GitHub
 
@@ -165,6 +167,7 @@ release-please github-release --repo-url=googleapis/nodejs-firestore \
 | `--package-name`  | is the name of the package to publish to publish to  an upstream registry such as npm. |
 | `--repo-url`      | is the URL of the repository on GitHub.                 |
 | `--token`         | a token with write access to `--repo-url`.              |
+| `--path`          | create a release from a path other than the repository's root |
 
 ### Running as a GitHub App
 

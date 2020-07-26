@@ -90,7 +90,10 @@ export class JavaYoshi extends ReleasePR {
             files: [],
           },
         ]
-      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
+      : await this.commits({
+          sha: latestTag ? latestTag.sha : undefined,
+          labels: true,
+        });
     if (commits.length === 0) {
       checkpoint(
         `no commits found since ${
@@ -106,7 +109,11 @@ export class JavaYoshi extends ReleasePR {
     // we can use this as a starting point for the snapshot PR:
     if (this.snapshot) {
       const latestCommit = (
-        await this.commits(latestTag ? latestTag.sha : undefined, 1, true)
+        await this.commits({
+          sha: latestTag ? latestTag.sha : undefined,
+          perPage: 1,
+          labels: true,
+        })
       )[0];
       prSHA = latestCommit.sha;
     }
@@ -249,12 +256,13 @@ export class JavaYoshi extends ReleasePR {
         latestTag ? latestTag.sha : 'none'
       } prSha = ${prSHA}`
     );
-    await this.openPR(
-      prSHA!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: prSHA!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 
   protected supportsSnapshots(): boolean {

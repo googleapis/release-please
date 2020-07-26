@@ -23,6 +23,7 @@ type PullsListResponseItem = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['get']>
 >['data'];
 
+import {join} from 'path';
 import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
@@ -41,6 +42,10 @@ export interface BuildOptions {
   token?: string;
   repoUrl: string;
   packageName: string;
+  // When releasing multiple libraries from one repository, include a prefix
+  // on tags and branch names:
+  monorepoTags?: boolean;
+  path?: string;
   releaseAs?: string;
   apiUrl: string;
   proxyKey?: string;
@@ -58,6 +63,21 @@ export interface ReleaseCandidate {
   previousTag?: string;
 }
 
+interface GetCommitsOptions {
+  sha?: string;
+  perPage?: number;
+  labels?: boolean;
+  path?: string;
+}
+
+interface OpenPROptions {
+  sha: string;
+  changelogEntry: string;
+  updates: Update[];
+  version: string;
+  includePackageName: boolean;
+}
+
 const DEFAULT_LABELS = 'autorelease: pending';
 
 export class ReleasePR {
@@ -70,7 +90,9 @@ export class ReleasePR {
   bumpMinorPreMajor?: boolean;
   repoUrl: string;
   token: string | undefined;
+  path?: string;
   packageName: string;
+  monorepoTags: boolean;
   releaseAs?: string;
   proxyKey?: string;
   snapshot?: boolean;
@@ -84,7 +106,9 @@ export class ReleasePR {
       : DEFAULT_LABELS.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
+    this.path = options.path;
     this.packageName = options.packageName;
+    this.monorepoTags = options.monorepoTags || false;
     this.releaseAs = options.releaseAs;
     this.apiUrl = options.apiUrl;
     this.proxyKey = options.proxyKey;
@@ -197,16 +221,17 @@ export class ReleasePR {
     return {version, previousTag};
   }
 
-  protected async commits(
-    sha?: string,
-    perPage = 100,
-    labels = false,
-    path: string | null = null
-  ): Promise<Commit[]> {
+  protected async commits(opts: GetCommitsOptions): Promise<Commit[]> {
+    const sha = opts.sha;
+    const perPage = opts.perPage || 100;
+    const labels = opts.labels || false;
+    const path = opts.path || undefined;
     const commits = await this.gh.commitsSinceSha(sha, perPage, labels, path);
     if (commits.length) {
       checkpoint(
-        `found ${commits.length} commits since ${sha}`,
+        `found ${commits.length} commits since ${
+          sha ? sha : 'beginning of time'
+        }`,
         CheckpointType.Success
       );
     } else {
@@ -228,13 +253,13 @@ export class ReleasePR {
     });
   }
 
-  protected async openPR(
-    sha: string,
-    changelogEntry: string,
-    updates: Update[],
-    version: string,
-    includePackageName = false
-  ) {
+  protected async openPR(options: OpenPROptions) {
+    const sha = options.sha;
+    const changelogEntry = options.changelogEntry;
+    const updates = options.updates;
+    const version = options.version;
+    const includePackageName = options.includePackageName;
+
     const title = includePackageName
       ? `Release ${this.packageName} ${version}`
       : `chore: release ${version}`;
@@ -263,5 +288,13 @@ export class ReleasePR {
 
   protected changelogEmpty(changelogEntry: string) {
     return changelogEntry.split('\n').length === 1;
+  }
+
+  addPath(file: string) {
+    if (this.path === undefined) {
+      return file;
+    } else {
+      return join(this.path, `./${file}`);
+    }
   }
 }

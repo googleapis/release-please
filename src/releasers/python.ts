@@ -40,10 +40,13 @@ const CHANGELOG_SECTIONS = [
 export class Python extends ReleasePR {
   static releaserName = 'python';
   protected async _run() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}-` : undefined
     );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
+    });
 
     const cc = new ConventionalCommits({
       commits,
@@ -79,7 +82,7 @@ export class Python extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: 'CHANGELOG.md',
+        path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
@@ -88,7 +91,7 @@ export class Python extends ReleasePR {
 
     updates.push(
       new SetupCfg({
-        path: 'setup.cfg',
+        path: this.addPath('setup.cfg'),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
@@ -96,19 +99,20 @@ export class Python extends ReleasePR {
     );
     updates.push(
       new SetupPy({
-        path: 'setup.py',
+        path: this.addPath('setup.py'),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
       })
     );
 
-    await this.openPR(
-      commits[0].sha!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 
   protected defaultInitialVersion(): string {

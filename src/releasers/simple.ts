@@ -28,10 +28,13 @@ import {VersionTxt} from '../updaters/version-txt';
 export class Simple extends ReleasePR {
   static releaserName = 'simple';
   protected async _run() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}-` : undefined
     );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
+    });
 
     const cc = new ConventionalCommits({
       commits,
@@ -88,11 +91,12 @@ export class Simple extends ReleasePR {
       })
     );
 
-    await this.openPR(
-      commits[0].sha!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 }

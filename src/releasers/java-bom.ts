@@ -83,11 +83,11 @@ export class JavaBom extends ReleasePR {
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
 
-    const commits = await this.commits(
-      latestTag ? latestTag.sha : undefined,
-      this.snapshot ? 1 : 100,
-      true
-    );
+    const commits = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      perPage: this.snapshot ? 1 : 100,
+      labels: true,
+    });
     if (commits.length === 0) {
       checkpoint(
         `no commits found since ${
@@ -201,12 +201,13 @@ export class JavaBom extends ReleasePR {
     console.info(
       `attempting to open PR latestTagSha = ${latestTag!.sha} prSha = ${prSHA}`
     );
-    await this.openPR(
-      prSHA!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: prSHA!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 
   protected supportsSnapshots(): boolean {

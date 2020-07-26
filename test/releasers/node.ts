@@ -25,7 +25,7 @@ interface MochaThis {
   [skip: string]: Function;
 }
 
-function mockRequest(snapName: string) {
+function mockRequest(snapName: string, requestPrefix = '') {
   const packageContent = readFileSync(
     resolve(fixturesPath, 'package.json'),
     'utf8'
@@ -33,7 +33,6 @@ function mockRequest(snapName: string) {
   const graphql = JSON.parse(
     readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
   );
-
   const req = nock('https://api.github.com')
     // check for default branch
     .get('/repos/googleapis/node-test-repo')
@@ -41,7 +40,9 @@ function mockRequest(snapName: string) {
     .reply(200, require('../../../test/fixtures/repo-get-1.json'))
     .get('/repos/googleapis/node-test-repo/pulls?state=closed&per_page=100')
     .reply(200, undefined)
-    .get('/repos/googleapis/node-test-repo/contents/package.json')
+    .get(
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}package.json`
+    )
     .reply(200, {
       content: Buffer.from(packageContent, 'utf8').toString('base64'),
       sha: 'abc123',
@@ -69,11 +70,11 @@ function mockRequest(snapName: string) {
     .reply(200)
     // check for CHANGELOG
     .get(
-      '/repos/googleapis/node-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.123.5'
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.123.5`
     )
     .reply(404)
     .put(
-      '/repos/googleapis/node-test-repo/contents/CHANGELOG.md',
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}CHANGELOG.md`,
       (req: {[key: string]: string}) => {
         snapshot(`CHANGELOG-node-message-${snapName}`, req.message);
         snapshot(
@@ -88,14 +89,14 @@ function mockRequest(snapName: string) {
     .reply(201)
     // update package.json
     .get(
-      '/repos/googleapis/node-test-repo/contents/package.json?ref=refs%2Fheads%2Frelease-v0.123.5'
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}package.json?ref=refs%2Fheads%2Frelease-v0.123.5`
     )
     .reply(200, {
       content: Buffer.from(packageContent, 'utf8').toString('base64'),
       sha: 'abc123',
     })
     .put(
-      '/repos/googleapis/node-test-repo/contents/package.json',
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}package.json`,
       (req: {[key: string]: string}) => {
         snapshot(`package-json-node-message-${snapName}`, req.message);
         snapshot(
@@ -107,7 +108,7 @@ function mockRequest(snapName: string) {
     )
     .reply(200)
     .get(
-      '/repos/googleapis/node-test-repo/contents/samples/package.json?ref=refs%2Fheads%2Frelease-v0.123.5'
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}samples/package.json?ref=refs%2Fheads%2Frelease-v0.123.5`
     )
     .reply(404)
     // create release
@@ -138,7 +139,7 @@ function mockRequest(snapName: string) {
 describe('Node', () => {
   describe('run', () => {
     it('creates a release PR without package-lock.json', async () => {
-      const req = mockRequest('no-package-lock')
+      const req = mockRequest('')
         .get(
           '/repos/googleapis/node-test-repo/contents/package-lock.json?ref=refs%2Fheads%2Frelease-v0.123.5'
         )
@@ -148,7 +149,7 @@ describe('Node', () => {
         repoUrl: 'googleapis/node-test-repo',
         releaseType: 'node',
         // not actually used by this type of repo.
-        packageName: 'node-test-repo',
+        packageName: 'node-testno-package-lock-repo',
         apiUrl: 'https://api.github.com',
       });
       await releasePR.run();
@@ -186,6 +187,24 @@ describe('Node', () => {
         // not actually used by this type of repo.
         packageName: 'node-test-repo',
         apiUrl: 'https://api.github.com',
+      });
+      await releasePR.run();
+      req.done();
+    });
+    it('creates release PR relative to a path', async () => {
+      const req = mockRequest('with-path', 'packages/foo/')
+        .get(
+          '/repos/googleapis/node-test-repo/contents/packages/foo/package-lock.json?ref=refs%2Fheads%2Frelease-v0.123.5'
+        )
+        .reply(404);
+
+      const releasePR = new Node({
+        repoUrl: 'googleapis/node-test-repo',
+        releaseType: 'node',
+        // not actually used by this type of repo.
+        packageName: 'node-test-repo',
+        apiUrl: 'https://api.github.com',
+        path: 'packages/foo',
       });
       await releasePR.run();
       req.done();

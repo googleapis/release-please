@@ -48,12 +48,10 @@ export class RubyYoshi extends ReleasePR {
           `${this.packageName}/v${this.lastPackageVersion}`
         )
       : undefined;
-    const commits: Commit[] = await this.commits(
-      lastReleaseSha,
-      100,
-      false,
-      this.packageName
-    );
+    const commits: Commit[] = await this.commits({
+      sha: lastReleaseSha,
+      path: this.packageName,
+    });
     if (commits.length === 0) {
       checkpoint(
         `no commits found since ${lastReleaseSha}`,
@@ -128,16 +126,16 @@ export class RubyYoshi extends ReleasePR {
         })
       );
 
-      await this.openPR(
-        commits[0].sha!,
-        `${changelogEntry}\n---\n${this.summarizeCommits(
+      await this.openPR({
+        sha: commits[0].sha!,
+        changelogEntry: `${changelogEntry}\n---\n${this.summarizeCommits(
           lastReleaseSha,
           commits
         )}\n`,
         updates,
-        candidate.version,
-        true
-      );
+        version: candidate.version,
+        includePackageName: true,
+      });
     }
   }
   // create a summary of the commits landed since the last release,

@@ -40,7 +40,10 @@ export class JavaAuthYoshi extends ReleasePR {
             files: [],
           },
         ]
-      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
+      : await this.commits({
+          sha: latestTag ? latestTag.sha : undefined,
+          labels: true,
+        });
     if (commits.length === 0) {
       checkpoint(
         `no commits found since ${
@@ -139,12 +142,13 @@ export class JavaAuthYoshi extends ReleasePR {
       );
     });
 
-    await this.openPR(
-      prSHA!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: prSHA!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 
   protected supportsSnapshots(): boolean {
