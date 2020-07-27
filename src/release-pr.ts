@@ -23,7 +23,6 @@ type PullsListResponseItem = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['get']>
 >['data'];
 
-import {join} from 'path';
 import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
@@ -294,7 +293,9 @@ export class ReleasePR {
     if (this.path === undefined) {
       return file;
     } else {
-      return join(this.path, `./${file}`);
+      const path = this.path.replace(/[/\\]$/, '');
+      file = file.replace(/^[/\\]/, '');
+      return `${path}/${file}`;
     }
   }
 }
