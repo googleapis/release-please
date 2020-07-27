@@ -53,9 +53,9 @@ export class PHPYoshi extends ReleasePR {
   static releaserName = 'php-yoshi';
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
-    );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+    });
 
     // we create an instance of conventional CHANGELOG for bumping the
     // top-level tag version we maintain on the mono-repo itself.
@@ -125,12 +125,13 @@ export class PHPYoshi extends ReleasePR {
       );
     });
 
-    await this.openPR(
-      commits[0].sha!,
+    await this.openPR({
+      sha: commits[0].sha!,
       changelogEntry,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 
   private async releaseAllPHPLibraries(

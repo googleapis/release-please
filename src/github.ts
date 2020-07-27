@@ -426,8 +426,8 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  async latestTag(): Promise<GitHubTag | undefined> {
-    const tags: {[version: string]: GitHubTag} = await this.allTags();
+  async latestTag(prefix?: string): Promise<GitHubTag | undefined> {
+    const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
     const versions = Object.keys(tags).filter(t => {
       // remove any pre-releases from the list:
       return !t.includes('-');
@@ -517,7 +517,9 @@ export class GitHub {
     return openReleasePRs;
   }
 
-  private async allTags(): Promise<{[version: string]: GitHubTag}> {
+  private async allTags(
+    prefix?: string
+  ): Promise<{[version: string]: GitHubTag}> {
     const tags: {[version: string]: GitHubTag} = {};
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
@@ -528,8 +530,11 @@ export class GitHub {
       })
     )) {
       response.data.forEach((data: ReposListTagsResponseItems) => {
-        const version = semver.valid(data.name);
-        if (version) {
+        // For monorepos, a prefix can be provided, indicating that only tags
+        // matching the prefix should be returned:
+        if (prefix && !data.name.startsWith(prefix)) return;
+        let version = data.name.replace(prefix, '');
+        if ((version = semver.valid(version))) {
           tags[version] = {sha: data.commit.sha, name: data.name, version};
         }
       });

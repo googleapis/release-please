@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import chalk = require('chalk');
+import {join} from 'path';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ReleasePRFactory} from './release-pr-factory';
@@ -30,6 +31,7 @@ const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 export interface GitHubReleaseOptions {
   label: string;
   repoUrl: string;
+  path?: string;
   packageName?: string;
   token?: string;
   apiUrl: string;
@@ -44,6 +46,7 @@ export class GitHubRelease {
   gh: GitHub;
   labels: string[];
   repoUrl: string;
+  path?: string;
   packageName?: string;
   token?: string;
   proxyKey?: string;
@@ -55,6 +58,7 @@ export class GitHubRelease {
     this.labels = options.label.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
+    this.path = options.path;
     this.packageName = options.packageName;
     this.releaseType = options.releaseType;
 
@@ -76,11 +80,13 @@ export class GitHubRelease {
       );
 
       const changelogContents = (
-        await this.gh.getFileContents(this.changelogPath)
+        await this.gh.getFileContents(this.addPath(this.changelogPath))
       ).parsedContent;
+      console.info(changelogContents, gitHubReleasePR.version);
       const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
         changelogContents,
-        gitHubReleasePR.version
+        // For monorepo releases, the library name is prepended to the tag and branch:
+        gitHubReleasePR.version.split('-').pop() || gitHubReleasePR.version
       );
       checkpoint(
         `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
@@ -114,6 +120,14 @@ export class GitHubRelease {
     } else {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
       return undefined;
+    }
+  }
+
+  addPath(file: string) {
+    if (this.path === undefined) {
+      return file;
+    } else {
+      return join(this.path, `./${file}`);
     }
   }
 

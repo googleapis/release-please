@@ -40,10 +40,13 @@ export class Ruby extends ReleasePR {
     this.versionFile = options.versionFile;
   }
   protected async _run() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}-` : undefined
     );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
+    });
 
     const cc = new ConventionalCommits({
       commits: postProcessCommits(commits),
@@ -78,7 +81,7 @@ export class Ruby extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: 'CHANGELOG.md',
+        path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
@@ -87,19 +90,20 @@ export class Ruby extends ReleasePR {
 
     updates.push(
       new VersionRB({
-        path: this.versionFile,
+        path: this.addPath(this.versionFile),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
       })
     );
 
-    await this.openPR(
-      commits[0].sha!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 }
 

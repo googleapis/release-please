@@ -72,6 +72,15 @@ const argv = yargs
         .option('default-branch', {
           describe: 'default branch to open release PR against',
           type: 'string',
+        })
+        .option('path', {
+          describe: 'release from path other than root directory',
+          type: 'string',
+        })
+        .option('monorepo-tags', {
+          describe: 'include library name in tags and release branches',
+          type: 'boolean',
+          default: false,
         });
     },
     (argv: ReleasePROptions) => {
@@ -99,6 +108,10 @@ const argv = yargs
           describe: 'what type of repo is a release being created for?',
           choices: getReleaserNames(),
           default: 'node',
+        })
+        .option('path', {
+          describe: 'release from path other than root directory',
+          type: 'string',
         });
     },
     (argv: GitHubReleaseOptions) => {
