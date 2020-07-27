@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [5.6.0](https://www.github.com/googleapis/release-please/compare/v5.5.2...v5.6.0) (2020-07-27)
+
+
+### Features
+
+* add support for monorepos/releasing from alternate folders ([#501](https://www.github.com/googleapis/release-please/issues/501)) ([64268ba](https://www.github.com/googleapis/release-please/commit/64268ba55d994dd350fe7e04123daafdca379ad0))
+
 ### [5.5.2](https://www.github.com/googleapis/release-please/compare/v5.5.1...v5.5.2) (2020-07-23)
 
 
