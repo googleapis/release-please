@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "5.6.0",
+  "version": "5.6.1",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
