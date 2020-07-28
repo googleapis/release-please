@@ -72,13 +72,6 @@ export class JavaYoshi extends ReleasePR {
 
     if (this.snapshot) {
       this.labels = ['type: process'];
-      if (this.snapshot) {
-        checkpoint(
-          'snapshot: sleeping for 15 seconds...',
-          CheckpointType.Success
-        );
-        checkpoint('snapshot: finished sleeping', CheckpointType.Success);
-      }
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
@@ -107,15 +100,15 @@ export class JavaYoshi extends ReleasePR {
     // Snapshots populate a fake "fix:"" commit, so that they will always
     // result in a patch update. We still need to know the HEAD sba, so that
     // we can use this as a starting point for the snapshot PR:
-    if (this.snapshot) {
+    if (this.snapshot && latestTag?.sha) {
       const latestCommit = (
         await this.commits({
-          sha: latestTag ? latestTag.sha : undefined,
+          sha: latestTag.sha,
           perPage: 1,
           labels: true,
         })
       )[0];
-      prSHA = latestCommit.sha;
+      prSHA = latestCommit ? latestCommit.sha : latestTag.sha;
     }
 
     const cc = new ConventionalCommits({

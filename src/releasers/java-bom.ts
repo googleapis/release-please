@@ -72,13 +72,6 @@ export class JavaBom extends ReleasePR {
 
     if (this.snapshot) {
       this.labels = ['type: process'];
-      if (this.snapshot) {
-        checkpoint(
-          'snapshot: sleeping for 15 seconds...',
-          CheckpointType.Success
-        );
-        checkpoint('snapshot: finished sleeping', CheckpointType.Success);
-      }
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
