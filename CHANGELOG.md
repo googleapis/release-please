@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [5.6.2](https://www.github.com/googleapis/release-please/compare/v5.6.1...v5.6.2) (2020-08-04)
+
+
+### Bug Fixes
+
+* looser parsing of versions.txt ([#512](https://www.github.com/googleapis/release-please/issues/512)) ([e4c77f4](https://www.github.com/googleapis/release-please/commit/e4c77f4c155295b60d7c6bb765f486325d3cfb3c)), closes [#500](https://www.github.com/googleapis/release-please/issues/500)
+
 ### [5.6.1](https://www.github.com/googleapis/release-please/compare/v5.6.0...v5.6.1) (2020-07-28)
 
 
