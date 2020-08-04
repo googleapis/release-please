@@ -58,7 +58,7 @@ export class VersionsManifest extends JavaUpdate {
   static parseVersions(content: string): VersionsMap {
     const versions = new Map<string, string>();
     content.split(/\r?\n/).forEach(line => {
-      const match = line.match(/^([\w\-_]+):(.+):(.+)/);
+      const match = line.match(/^([\w\-_]+):([^:]+):([^:]+)/);
       if (match) {
         versions.set(match[1], match[2]);
       }
