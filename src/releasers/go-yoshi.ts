@@ -116,7 +116,7 @@ export class GoYoshi extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: this.addPath('CHANGELOG.md'),
+        path: this.addPath('CHANGES.md'),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,

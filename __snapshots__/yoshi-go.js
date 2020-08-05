@@ -1,8 +1,8 @@
-exports['CHANGELOG-go-yoshi-message'] = `
-chore: created CHANGELOG.md
+exports['CHANGES-go-yoshi-message'] = `
+chore: created CHANGES.md
 `
 
-exports['CHANGELOG-go-yoshi'] = `
+exports['CHANGES-go-yoshi'] = `
 # Changelog
 
 ## [0.124.0](https://www.github.com/googleapis/yoshi-go-test-repo/compare/v0.123.4...v0.124.0) 

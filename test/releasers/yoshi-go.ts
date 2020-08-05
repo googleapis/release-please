@@ -64,17 +64,17 @@ describe('YoshiGo', () => {
         // creating a new branch
         .post('/repos/googleapis/yoshi-go-test-repo/git/refs')
         .reply(200)
-        // check for CHANGELOG
+        // check for CHANGES.md
         .get(
-          '/repos/googleapis/yoshi-go-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.124.0'
+          '/repos/googleapis/yoshi-go-test-repo/contents/CHANGES.md?ref=refs%2Fheads%2Frelease-v0.124.0'
         )
         .reply(404)
         .put(
-          '/repos/googleapis/yoshi-go-test-repo/contents/CHANGELOG.md',
+          '/repos/googleapis/yoshi-go-test-repo/contents/CHANGES.md',
           (req: {[key: string]: string}) => {
-            snapshot('CHANGELOG-go-yoshi-message', req.message);
+            snapshot('CHANGES-go-yoshi-message', req.message);
             snapshot(
-              'CHANGELOG-go-yoshi',
+              'CHANGES-go-yoshi',
               Buffer.from(req.content, 'base64')
                 .toString('utf8')
                 .replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '')
