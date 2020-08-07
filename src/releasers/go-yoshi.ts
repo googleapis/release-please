@@ -1,10 +1,3 @@
-// * we need a deny list of modules that are mono repos, which we keep track of
-// ideally with minimal human intervention:
-//   * these should not show up in CHANGELOG for an "all" release.
-// * We need to also be able to manage the release of our snowflake, hand-written
-// libraries. Which get released.
-// * top level changes relate to all.
-
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,27 +43,31 @@ const GAPIC_PR_REGEX = /.*auto-regenerate gapics.*/;
 export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
   protected async _run() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+    const latestTag = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
     let gapicPR: Commit;
-    const commits: Commit[] = (
+    const commits = (
       await this.commits({
-        sha: latestTag ? latestTag.sha : undefined,
+        sha: latestTag?.sha,
         path: this.path,
       })
     ).filter(commit => {
+      // Skipping commits related to sub-modules as they are not apart of the
+      // parent module.
       for (const ignoredPath of IGNORED_PATHS) {
         const re = new RegExp(`^\\w+\\(${ignoredPath}.*\\)`);
         if (re.test(commit.message)) {
           return false;
         }
       }
+      // Only have a single entry of the nightly regen listed in the changelog.
+      // If there are more than one of these commits, append associated PR.
       if (GAPIC_PR_REGEX.test(commit.message)) {
         if (gapicPR) {
           const issueRe = /.*(?<pr>\(.*\))$/;
           const match = commit.message.match(issueRe);
-          if (match && match?.groups?.pr) {
+          if (match?.groups?.pr) {
             gapicPR.message = `${gapicPR.message} ${match.groups.pr}`;
           }
           return false;

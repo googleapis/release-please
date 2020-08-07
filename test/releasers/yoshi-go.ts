@@ -33,7 +33,10 @@ function requireNode10(this: MochaThis) {
 
 describe('YoshiGo', () => {
   describe('run', () => {
-    before(requireNode10);
+    before(() => {
+      requireNode10;
+      nock.disableNetConnect();
+    });
     it('creates a release PR', async () => {
       const graphql = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
