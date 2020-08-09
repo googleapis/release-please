@@ -6,16 +6,43 @@
           "edges": [
             {
               "node": {
-                "message": "fix(automl): update dependency com.google.cloud:google-cloud-storage to v1.120.0",
-                "oid": "fcd1c890dc1526f4d62ceedad561f498195c8939",
+                "message": "fix(automl): fixed a really bad bug",
+                "oid": "d7d1c890dc1526f4d62ceedad581f498195c8939",
                 "associatedPullRequests": {
                   "edges": [
                     {
                       "node": {
                         "mergeCommit": {
-                          "oid": "fcd1c890dc1526f4d62ceedad561f498195c8939"
+                          "oid": "d7d1c890dc1526f4d62ceedad581f498195c8939"
                         },
-                        "number": 292,
+                        "number": 293,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat(asset): added a really cool feature",
+                "oid": "d7d1c890dc1526f4d62ceedad581f498195c8939",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {
+                          "oid": "d7d1c890dc1526f4d62ceedad581f498195c8939"
+                        },
+                        "number": 293,
                         "labels": {
                           "edges": [
                             {
@@ -60,14 +87,41 @@
             },
             {
               "node": {
-                "message": "fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0",
-                "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373",
+                "message": "fix: this commit should be ignored",
+                "oid": "ecd1c890dc1526f4d62ceedad581f489195c8939",
                 "associatedPullRequests": {
                   "edges": [
                     {
                       "node": {
                         "mergeCommit": {
-                          "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373"
+                          "oid": "ecd1c890dc1526f4d62ceedad581f489195c8939"
+                        },
+                        "number": 293,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat(all): auto-regenerate gapics (#1000)",
+                "oid": "2f9663cf08ab1cf3b68d95dee4dc99b7c4aac372",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {
+                          "oid": "2f9663cf08ab1cf3b68d95dee4dc99b7c4aac372"
                         },
                         "number": 301,
                         "labels": {
@@ -87,16 +141,16 @@
             },
             {
               "node": {
-                "message": "chore: update common templates",
-                "oid": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a",
+                "message": "feat(all): auto-regenerate gapics (#1001)",
+                "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371",
                 "associatedPullRequests": {
                   "edges": [
                     {
                       "node": {
                         "mergeCommit": {
-                          "oid": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a"
+                          "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371"
                         },
-                        "number": 300,
+                        "number": 301,
                         "labels": {
                           "edges": [
                             {

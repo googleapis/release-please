@@ -26,9 +26,9 @@ import * as semver from 'semver';
 // Generic
 import {Changelog} from '../updaters/changelog';
 
-// These repos should be ignored when generating a release for the
-// top level mono-repo:
-const IGNORED_PATHS = [
+// Commits containing a scope prefixed with an item in this array will be
+// ignored when generating a release PR for the parent module.
+const SUB_MODULES = [
   'bigtable',
   'bigquery',
   'datastore',
@@ -43,21 +43,29 @@ const GAPIC_PR_REGEX = /.*auto-regenerate gapics.*/;
 export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
   protected async _run() {
+    const scopeRe = /^\w+\((?<scope>.*)\):/;
     const latestTag = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
-    let gapicPR: Commit;
+    let gapicPR: Commit | undefined;
     const commits = (
       await this.commits({
         sha: latestTag?.sha,
         path: this.path,
       })
     ).filter(commit => {
+      // Filter commits that don't have a scope as we don't know where to put
+      // them.
+      const scope = commit.message.match(scopeRe)?.groups?.scope;
+      if (!scope) {
+        return false;
+      }
       // Skipping commits related to sub-modules as they are not apart of the
       // parent module.
-      for (const ignoredPath of IGNORED_PATHS) {
-        const re = new RegExp(`^\\w+\\(${ignoredPath}.*\\)`);
-        if (re.test(commit.message)) {
+      for (const subModule of SUB_MODULES) {
+        if (scope.startsWith(subModule)) {
+          // TODO(codyoss): eventually gather these commits into a map so we can
+          // purpose releases for sub-modules.
           return false;
         }
       }
@@ -72,6 +80,8 @@ export class GoYoshi extends ReleasePR {
           }
           return false;
         } else {
+          // Throw away the sha for nightly regens, will just append PR numbers.
+          commit.sha = null;
           gapicPR = commit;
         }
       }
@@ -88,11 +98,14 @@ export class GoYoshi extends ReleasePR {
       latestTag
     );
 
-    const changelogEntry: string = await cc.generateChangelogEntry({
+    let changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag,
     });
+
+    // remove commit reference from auto-generate gapics
+    changelogEntry = changelogEntry.replace(/\s\(\[null\].*\n/, '\n');
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
@@ -108,8 +121,6 @@ export class GoYoshi extends ReleasePR {
     }
 
     const updates: Update[] = [];
-
-    console.info(changelogEntry);
 
     updates.push(
       new Changelog({
