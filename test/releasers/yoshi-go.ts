@@ -24,17 +24,10 @@ const fixturesPath = './test/releasers/fixtures/yoshi-go';
 interface MochaThis {
   [skip: string]: Function;
 }
-function requireNode10(this: MochaThis) {
-  const match = process.version.match(/v([0-9]+)/);
-  if (match) {
-    if (Number(match[1]) < 10) this.skip();
-  }
-}
 
 describe('YoshiGo', () => {
   describe('run', () => {
     before(() => {
-      requireNode10;
       nock.disableNetConnect();
     });
     it('creates a release PR', async () => {
