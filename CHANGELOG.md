@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [5.7.1](https://www.github.com/googleapis/release-please/compare/v5.7.0...v5.7.1) (2020-08-12)
+
+
+### Bug Fixes
+
+* **java:** detect need for snapshot unless a snapshot is explicitly requested ([#518](https://www.github.com/googleapis/release-please/issues/518)) ([1e73a28](https://www.github.com/googleapis/release-please/commit/1e73a28898d8dd0eb3e6f5a3ff00564fe4004fa7))
+
 ## [5.7.0](https://www.github.com/googleapis/release-please/compare/v5.6.2...v5.7.0) (2020-08-12)
 
 
