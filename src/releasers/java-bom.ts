@@ -62,7 +62,7 @@ export class JavaBom extends ReleasePR {
     );
     if (this.snapshot === undefined) {
       this.snapshot = snapshotNeeded;
-    } else if (this.snapshot !== snapshotNeeded) {
+    } else if (this.snapshot && !snapshotNeeded) {
       checkpoint(
         'release asked for a snapshot, but no snapshot is needed',
         CheckpointType.Failure
