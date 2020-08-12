@@ -236,7 +236,9 @@ export class ConventionalCommits {
     // point to branch from for PRs.
     const commitsReadable = new Readable();
     this.commits.forEach((commit: Commit) => {
-      commitsReadable.push(`${commit.message}\n-hash-\n${commit.sha}`);
+      commitsReadable.push(
+        `${commit.message}\n-hash-\n${commit.sha ? commit.sha : ''}`
+      );
     });
     commitsReadable.push(null);
     return commitsReadable;

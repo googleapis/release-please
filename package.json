@@ -60,7 +60,7 @@
     "@octokit/rest": "^18.0.0",
     "chalk": "^4.0.0",
     "concat-stream": "^2.0.0",
-    "conventional-changelog-conventionalcommits": "^4.0.0",
+    "conventional-changelog-conventionalcommits": "^4.4.0",
     "conventional-changelog-writer": "^4.0.6",
     "conventional-commits-filter": "^2.0.2",
     "conventional-commits-parser": "^3.0.3",
