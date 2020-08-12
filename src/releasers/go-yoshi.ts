@@ -98,14 +98,11 @@ export class GoYoshi extends ReleasePR {
       latestTag
     );
 
-    let changelogEntry: string = await cc.generateChangelogEntry({
+    const changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag,
     });
-
-    // remove commit reference from auto-generate gapics
-    changelogEntry = changelogEntry.replace(/\s\(\[null\].*\n/, '\n');
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
