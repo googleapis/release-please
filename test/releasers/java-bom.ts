@@ -346,10 +346,17 @@ describe('JavaBom', () => {
       await releasePR.run();
       req.done();
     });
-    it('ignores an explicit release if no snapshot needed', async () => {
+    it('creates a snapshot PR if an explicit release is requested, but a snapshot is needed', async () => {
       const versionsContent = readFileSync(
         resolve(fixturesPath, 'released-versions.txt'),
         'utf8'
+      );
+      const pomContents = readFileSync(
+        resolve(fixturesPath, 'pom.xml'),
+        'utf8'
+      );
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
         .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
@@ -358,7 +365,100 @@ describe('JavaBom', () => {
         .reply(200, {
           content: Buffer.from(versionsContent, 'utf8').toString('base64'),
           sha: 'abc123',
-        });
+        })
+        // getting the most recent commit:
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
+        // fetch semver tags, this will be used to determine
+        // the delta since the last release.
+        .get('/repos/googleapis/java-cloud-bom/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v0.123.4',
+            commit: {
+              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            },
+          },
+        ])
+        // finding pom.xml files
+        .get(
+          '/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-cloud-bom'
+        )
+        .reply(200, {
+          total_count: 1,
+          items: [{name: 'pom.xml', path: 'pom.xml'}],
+        })
+        // getting the latest tag
+        .get('/repos/googleapis/java-cloud-bom/git/refs?per_page=100')
+        .reply(200, [{ref: 'refs/tags/v0.123.4'}])
+        // creating a new branch
+        .post('/repos/googleapis/java-cloud-bom/git/refs')
+        .reply(200)
+        // update versions.txt
+        .get(
+          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs%2Fheads%2Frelease-v0.123.5-SNAPSHOT'
+        )
+        .reply(200, {
+          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
+        .put(
+          '/repos/googleapis/java-cloud-bom/contents/versions.txt',
+          (req: {[key: string]: string}) => {
+            snapshot(
+              'versions-bom-snapshot-release',
+              Buffer.from(req.content, 'base64').toString('utf8')
+            );
+            return true;
+          }
+        )
+        .reply(200)
+        // update pom.xml
+        .get(
+          '/repos/googleapis/java-cloud-bom/contents/pom.xml?ref=refs%2Fheads%2Frelease-v0.123.5-SNAPSHOT'
+        )
+        .reply(200, {
+          content: Buffer.from(pomContents, 'utf8').toString('base64'),
+          sha: 'abc123',
+        })
+        .put(
+          '/repos/googleapis/java-cloud-bom/contents/pom.xml',
+          (req: {[key: string]: string}) => {
+            snapshot(
+              'pom-bom-snapshot-release',
+              Buffer.from(req.content, 'base64').toString('utf8')
+            );
+            return true;
+          }
+        )
+        .reply(200)
+        // check for default branch
+        .get('/repos/googleapis/java-cloud-bom')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
+        // create release
+        .post(
+          '/repos/googleapis/java-cloud-bom/pulls',
+          (req: {[key: string]: string}) => {
+            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
+            snapshot('PR body-bom-snapshot-release', req);
+            return true;
+          }
+        )
+        .reply(200, {number: 1})
+        .post(
+          '/repos/googleapis/java-cloud-bom/issues/1/labels',
+          (req: {[key: string]: string}) => {
+            snapshot('labels-bom-snapshot-release', req);
+            return true;
+          }
+        )
+        .reply(200, {})
+        // this step tries to close any existing PRs; just return an empty list.
+        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
+        .reply(200, []);
       const releasePR = new JavaBom({
         repoUrl: 'googleapis/java-cloud-bom',
         releaseType: 'java-bom',
