@@ -60,9 +60,11 @@ export class JavaYoshi extends ReleasePR {
     const snapshotNeeded = VersionsManifest.needsSnapshot(
       versionsManifestContent.parsedContent
     );
-    if (this.snapshot === undefined) {
+    if (!this.snapshot) {
+      // if a snapshot is not explicitly requested, decided what type
+      // of release based on whether a snapshot is needed or not
       this.snapshot = snapshotNeeded;
-    } else if (this.snapshot !== snapshotNeeded) {
+    } else if (!snapshotNeeded) {
       checkpoint(
         'release asked for a snapshot, but no snapshot is needed',
         CheckpointType.Failure

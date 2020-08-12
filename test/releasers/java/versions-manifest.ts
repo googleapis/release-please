@@ -33,4 +33,13 @@ google-cloud-redis:1.0.0:1.0.1-SNAPSHOT`;
       expect(versions.get('proto-google-cloud-redis-v1')).to.equal('1.0.0');
     });
   });
+
+  describe('needsSnapshot', () => {
+    const input = `# Format:
+# module:released-version:current-version
+
+google-cloud-bom:0.132.0:0.132.0`;
+    console.log(VersionsManifest.needsSnapshot(input));
+    expect(VersionsManifest.needsSnapshot(input)).to.be.true;
+  });
 });
