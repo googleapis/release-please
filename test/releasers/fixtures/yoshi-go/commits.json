@@ -87,6 +87,33 @@
             },
             {
               "node": {
+                "message": "fix(pubsub/pstest): this commit should be ignored",
+                "oid": "dad2c890dc1526f4d62ceedad581f498195c8939",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {
+                          "oid": "dad2c890dc1526f4d62ceedad581f498195c8939"
+                        },
+                        "number": 293,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
                 "message": "fix: this commit should be ignored",
                 "oid": "ecd1c890dc1526f4d62ceedad581f489195c8939",
                 "associatedPullRequests": {
@@ -141,7 +168,7 @@
             },
             {
               "node": {
-                "message": "feat(all): auto-regenerate gapics (#1001)",
+                "message": "feat(all): auto-regenerate gapics (#1001)\n\nCommit Body",
                 "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371",
                 "associatedPullRequests": {
                   "edges": [
@@ -149,6 +176,33 @@
                       "node": {
                         "mergeCommit": {
                           "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371"
+                        },
+                        "number": 301,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat(pubsublite): start generating v1",
+                "oid": "1d9662cf08ab1cf3b68d95dee4dc99b7c4aac371",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {
+                          "oid": "1d9662cf08ab1cf3b68d95dee4dc99b7c4aac371"
                         },
                         "number": 301,
                         "labels": {
