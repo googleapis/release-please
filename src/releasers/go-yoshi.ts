@@ -63,7 +63,7 @@ export class GoYoshi extends ReleasePR {
       // Skipping commits related to sub-modules as they are not apart of the
       // parent module.
       for (const subModule of SUB_MODULES) {
-        if (scope.startsWith(subModule)) {
+        if (scope === subModule || scope.startsWith(subModule + '/')) {
           // TODO(codyoss): eventually gather these commits into a map so we can
           // purpose releases for sub-modules.
           return false;
@@ -73,7 +73,7 @@ export class GoYoshi extends ReleasePR {
       // If there are more than one of these commits, append associated PR.
       if (GAPIC_PR_REGEX.test(commit.message)) {
         if (gapicPR) {
-          const issueRe = /.*(?<pr>\(.*\))$/;
+          const issueRe = /.*(?<pr>\(.*\))/;
           const match = commit.message.match(issueRe);
           if (match?.groups?.pr) {
             gapicPR.message = `${gapicPR.message} ${match.groups.pr}`;
