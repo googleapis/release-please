@@ -48,6 +48,7 @@ export class GoYoshi extends ReleasePR {
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
     let gapicPR: Commit | undefined;
+    let sha: null | string = null;
     const commits = (
       await this.commits({
         sha: latestTag?.sha,
@@ -68,6 +69,11 @@ export class GoYoshi extends ReleasePR {
           // purpose releases for sub-modules.
           return false;
         }
+      }
+      // Store the very first SHA returned, this represents the HEAD of the
+      // release being created:
+      if (!sha) {
+        sha = commit.sha;
       }
       // Only have a single entry of the nightly regen listed in the changelog.
       // If there are more than one of these commits, append associated PR.
@@ -127,9 +133,11 @@ export class GoYoshi extends ReleasePR {
         packageName: this.packageName,
       })
     );
-
+    if (!sha) {
+      throw Error('no sha found for pull request');
+    }
     await this.openPR({
-      sha: commits[0].sha!,
+      sha: sha!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,
       version: candidate.version,
