@@ -108,6 +108,8 @@ export class GoYoshi extends ReleasePR {
       latestTag
     );
 
+    // "closes" is a little presumptuous, let's just indicate that the
+    // PR references these other commits:
     const changelogEntry: string = (
       await cc.generateChangelogEntry({
         version: candidate.version,
@@ -144,8 +146,6 @@ export class GoYoshi extends ReleasePR {
     }
     await this.openPR({
       sha: sha!,
-      // "closes" is a little presumptuous, let's just indicate that the
-      // PR references these other commits:
       changelogEntry,
       updates,
       version: candidate.version,
