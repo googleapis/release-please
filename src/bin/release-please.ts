@@ -100,6 +100,10 @@ const argv = yargs
           describe: 'GitHub URL to generate release for',
           demand: true,
         })
+        .option('changelog-path', {
+          default: 'CHANGELOG.md',
+          describe: 'where can the CHANGELOG be found in the project?',
+        })
         .option('label', {
           default: 'autorelease: pending',
           describe: 'label to remove from release PR',

@@ -38,6 +38,7 @@ export interface GitHubReleaseOptions {
   proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
   releaseType?: string;
+  changelogPath?: string;
 }
 
 export class GitHubRelease {
@@ -62,7 +63,7 @@ export class GitHubRelease {
     this.packageName = options.packageName;
     this.releaseType = options.releaseType;
 
-    this.changelogPath = 'CHANGELOG.md';
+    this.changelogPath = options.changelogPath ?? 'CHANGELOG.md';
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
