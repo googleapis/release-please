@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [5.8.0](https://www.github.com/googleapis/release-please/compare/v5.7.3...v5.8.0) (2020-08-18)
+
+
+### Features
+
+* add typescript exports from index ([#525](https://www.github.com/googleapis/release-please/issues/525)) ([8b28640](https://www.github.com/googleapis/release-please/commit/8b286404489da09c68c63278bae2acca24377b68))
+* allow CHANGELOG path to be  set ([#527](https://www.github.com/googleapis/release-please/issues/527)) ([1a72cc2](https://www.github.com/googleapis/release-please/commit/1a72cc2916baba7b7a0d71aaa8274bc99ebcba53))
+
 ### [5.7.3](https://www.github.com/googleapis/release-please/compare/v5.7.2...v5.7.3) (2020-08-18)
 
 
