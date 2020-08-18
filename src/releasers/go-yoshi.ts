@@ -78,17 +78,21 @@ export class GoYoshi extends ReleasePR {
       // Only have a single entry of the nightly regen listed in the changelog.
       // If there are more than one of these commits, append associated PR.
       if (GAPIC_PR_REGEX.test(commit.message)) {
+        const issueRe = /(?<prefix>.*)\((?<pr>.*)\)(\n|$)/;
         if (gapicPR) {
-          const issueRe = /.*(?<pr>\(.*\))/;
           const match = commit.message.match(issueRe);
           if (match?.groups?.pr) {
-            gapicPR.message = `${gapicPR.message} ${match.groups.pr}`;
+            gapicPR.message += `\nRefs ${match.groups.pr}`;
           }
           return false;
         } else {
           // Throw away the sha for nightly regens, will just append PR numbers.
           commit.sha = null;
           gapicPR = commit;
+          const match = commit.message.match(issueRe);
+          if (match?.groups?.pr) {
+            gapicPR.message = `${match.groups.prefix}\n\nRefs ${match.groups.pr}`;
+          }
         }
       }
       return true;
@@ -104,11 +108,13 @@ export class GoYoshi extends ReleasePR {
       latestTag
     );
 
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
+    const changelogEntry: string = (
+      await cc.generateChangelogEntry({
+        version: candidate.version,
+        currentTag: `v${candidate.version}`,
+        previousTag: candidate.previousTag,
+      })
+    ).replace(/, closes /g, ', refs ');
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
@@ -138,7 +144,9 @@ export class GoYoshi extends ReleasePR {
     }
     await this.openPR({
       sha: sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
+      // "closes" is a little presumptuous, let's just indicate that the
+      // PR references these other commits:
+      changelogEntry,
       updates,
       version: candidate.version,
       includePackageName: this.monorepoTags,
