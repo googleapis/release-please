@@ -48,6 +48,7 @@ export class GoYoshi extends ReleasePR {
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
     let gapicPR: Commit | undefined;
+    let sha: null | string = null;
     const commits = (
       await this.commits({
         sha: latestTag?.sha,
@@ -69,20 +70,29 @@ export class GoYoshi extends ReleasePR {
           return false;
         }
       }
+      // Store the very first SHA returned, this represents the HEAD of the
+      // release being created:
+      if (!sha) {
+        sha = commit.sha;
+      }
       // Only have a single entry of the nightly regen listed in the changelog.
       // If there are more than one of these commits, append associated PR.
       if (GAPIC_PR_REGEX.test(commit.message)) {
+        const issueRe = /(?<prefix>.*)\((?<pr>.*)\)(\n|$)/;
         if (gapicPR) {
-          const issueRe = /.*(?<pr>\(.*\))/;
           const match = commit.message.match(issueRe);
           if (match?.groups?.pr) {
-            gapicPR.message = `${gapicPR.message} ${match.groups.pr}`;
+            gapicPR.message += `\nRefs ${match.groups.pr}`;
           }
           return false;
         } else {
           // Throw away the sha for nightly regens, will just append PR numbers.
           commit.sha = null;
           gapicPR = commit;
+          const match = commit.message.match(issueRe);
+          if (match?.groups?.pr) {
+            gapicPR.message = `${match.groups.prefix}\n\nRefs ${match.groups.pr}`;
+          }
         }
       }
       return true;
@@ -98,11 +108,15 @@ export class GoYoshi extends ReleasePR {
       latestTag
     );
 
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
+    // "closes" is a little presumptuous, let's just indicate that the
+    // PR references these other commits:
+    const changelogEntry: string = (
+      await cc.generateChangelogEntry({
+        version: candidate.version,
+        currentTag: `v${candidate.version}`,
+        previousTag: candidate.previousTag,
+      })
+    ).replace(/, closes /g, ', refs ');
 
     // don't create a release candidate until user facing changes
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
@@ -127,10 +141,12 @@ export class GoYoshi extends ReleasePR {
         packageName: this.packageName,
       })
     );
-
+    if (!sha) {
+      throw Error('no sha found for pull request');
+    }
     await this.openPR({
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
+      sha: sha!,
+      changelogEntry,
       updates,
       version: candidate.version,
       includePackageName: this.monorepoTags,
