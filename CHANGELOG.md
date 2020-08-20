@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [5.9.0](https://www.github.com/googleapis/release-please/compare/v5.8.0...v5.9.0) (2020-08-20)
+
+
+### Features
+
+* **release-as:** release-as now supports pre-release ([#529](https://www.github.com/googleapis/release-please/issues/529)) ([e8b1105](https://www.github.com/googleapis/release-please/commit/e8b1105e068cf037173d3d74a8555ace85a1bfcc))
+
 ## [5.8.0](https://www.github.com/googleapis/release-please/compare/v5.7.3...v5.8.0) (2020-08-18)
 
 
