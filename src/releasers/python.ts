@@ -29,7 +29,11 @@ import {SetupCfg} from '../updaters/python/setup-cfg';
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
   {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'deps', section: 'Dependencies'},
+  {type: 'revert', section: 'Reverts'},
   {type: 'docs', section: 'Documentation'},
+  {type: 'style', section: 'Styles', hidden: true},
   {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
   {type: 'refactor', section: 'Code Refactoring', hidden: true},
   {type: 'test', section: 'Tests', hidden: true},
