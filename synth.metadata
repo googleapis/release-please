@@ -4,14 +4,14 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/release-please.git",
-        "sha": "8e24efe444f15027dc071eea750bdf7475891bb0"
+        "sha": "46d9d834abd6d11000476c6938b1b0e897c89b14"
       }
     },
     {
       "git": {
         "name": "synthtool",
         "remote": "https://github.com/googleapis/synthtool.git",
-        "sha": "1a60ff2a3975c2f5054431588bd95db9c3b862ba"
+        "sha": "05de3e1e14a0b07eab8b474e669164dbd31f81fb"
       }
     }
   ],
@@ -29,17 +29,19 @@
     ".kokoro/common.cfg",
     ".kokoro/continuous/node10/common.cfg",
     ".kokoro/continuous/node10/docs.cfg",
-    ".kokoro/continuous/node10/lint.cfg",
-    ".kokoro/continuous/node10/samples-test.cfg",
     ".kokoro/continuous/node10/test.cfg",
     ".kokoro/continuous/node12/common.cfg",
+    ".kokoro/continuous/node12/lint.cfg",
+    ".kokoro/continuous/node12/samples-test.cfg",
+    ".kokoro/continuous/node12/system-test.cfg",
     ".kokoro/continuous/node12/test.cfg",
     ".kokoro/docs.sh",
     ".kokoro/lint.sh",
     ".kokoro/populate-secrets.sh",
     ".kokoro/presubmit/node10/common.cfg",
-    ".kokoro/presubmit/node10/samples-test.cfg",
     ".kokoro/presubmit/node12/common.cfg",
+    ".kokoro/presubmit/node12/samples-test.cfg",
+    ".kokoro/presubmit/node12/system-test.cfg",
     ".kokoro/presubmit/node12/test.cfg",
     ".kokoro/publish.sh",
     ".kokoro/release/docs-devsite.cfg",
