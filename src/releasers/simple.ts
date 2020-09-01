@@ -15,7 +15,7 @@
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag, GitHubFileContents} from '../github';
+import {GitHubTag} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -67,10 +67,6 @@ export class Simple extends ReleasePR {
 
     const updates: Update[] = [];
 
-    const contents: GitHubFileContents = await this.gh.getFileContents(
-      'version.txt'
-    );
-
     updates.push(
       new Changelog({
         path: 'CHANGELOG.md',
@@ -86,7 +82,6 @@ export class Simple extends ReleasePR {
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
-        contents,
         skipCi: false,
       })
     );

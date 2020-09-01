@@ -25,7 +25,7 @@ export class VersionTxt implements Update {
   skipCi?: boolean;
 
   constructor(options: UpdateOptions) {
-    this.create = false;
+    this.create = true;
     this.path = options.path;
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
