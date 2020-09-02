@@ -83,7 +83,6 @@ export class GitHubRelease {
       const changelogContents = (
         await this.gh.getFileContents(this.addPath(this.changelogPath))
       ).parsedContent;
-      console.info(changelogContents, gitHubReleasePR.version);
       const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
         changelogContents,
         // For monorepo releases, the library name is prepended to the tag and branch:
