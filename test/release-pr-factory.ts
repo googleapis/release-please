@@ -40,11 +40,6 @@ describe('ReleasePRFactory', () => {
           '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/simple-test-repo/contents/version.txt')
-        .reply(200, {
-          content: Buffer.from(versionContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get('/repos/googleapis/simple-test-repo/tags?per_page=100')
@@ -149,11 +144,6 @@ describe('ReleasePRFactory', () => {
           '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/simple-test-repo/contents/version.txt')
-        .reply(200, {
-          content: Buffer.from(versionContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get('/repos/googleapis/simple-test-repo/tags?per_page=100')
