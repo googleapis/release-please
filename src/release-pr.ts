@@ -55,6 +55,7 @@ export interface BuildOptions {
 
 export interface ReleasePROptions extends BuildOptions {
   releaseType: string;
+  changelogSections?: [];
 }
 
 export interface ReleaseCandidate {
@@ -96,6 +97,7 @@ export class ReleasePR {
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
+  changelogSections?: [];
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -118,6 +120,8 @@ export class ReleasePR {
       : undefined;
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
+
+    this.changelogSections = options.changelogSections;
   }
 
   async run() {
