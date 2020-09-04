@@ -4,6 +4,17 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.0.0](https://www.github.com/googleapis/release-please/compare/v5.9.1...v6.0.0) (2020-09-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **code-suggester:** move to code-suggester for PR management (#536)
+
+### Features
+
+* **code-suggester:** move to code-suggester for PR management ([#536](https://www.github.com/googleapis/release-please/issues/536)) ([de347b8](https://www.github.com/googleapis/release-please/commit/de347b89c5db8f410abe0730a6c0e48fb4665b2e))
+
 ### [5.9.1](https://www.github.com/googleapis/release-please/compare/v5.9.0...v5.9.1) (2020-09-02)
 
 
