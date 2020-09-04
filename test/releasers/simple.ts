@@ -12,29 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it, before} from 'mocha';
+import {describe, it, afterEach} from 'mocha';
 import * as nock from 'nock';
 import {Simple} from '../../src/releasers/simple';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
+import * as suggester from 'code-suggester';
+import * as sinon from 'sinon';
 
+const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/simple';
 
-interface MochaThis {
-  [skip: string]: Function;
-}
-function requireNode10(this: MochaThis) {
-  const match = process.version.match(/v([0-9]+)/);
-  if (match) {
-    if (Number(match[1]) < 10) this.skip();
-  }
-}
-
 describe('Simple', () => {
+  afterEach(() => {
+    sandbox.restore();
+  });
   describe('run', () => {
-    before(requireNode10);
     it('creates a release PR', async () => {
+      // We stub the entire suggester API, asserting only that the
+      // the appropriate changes are proposed:
+      let expectedChanges = null;
+      sandbox.replace(
+        suggester,
+        'createPullRequest',
+        (_octokit, changes): Promise<number> => {
+          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+          return Promise.resolve(22);
+        }
+      );
       const versionContent = readFileSync(
         resolve(fixturesPath, 'version.txt'),
         'utf8'
@@ -43,9 +49,13 @@ describe('Simple', () => {
         readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
+        // Check for in progress, merged release PRs:
         .get(
           '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
         )
+        .reply(200, undefined)
+        // Check for existing open release PRs:
+        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
@@ -62,67 +72,25 @@ describe('Simple', () => {
         .reply(200, {
           data: graphql,
         })
-        // getting the latest tag
-        .get('/repos/googleapis/simple-test-repo/git/refs?per_page=100')
-        .reply(200, [{ref: 'refs/tags/v0.123.4'}])
-        // creating a new branch
-        .post('/repos/googleapis/simple-test-repo/git/refs')
-        .reply(200)
         // check for CHANGELOG
         .get(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.123.5'
+          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
-        .put(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md',
-          (req: {[key: string]: string}) => {
-            snapshot('CHANGELOG-simple-message', req.message);
-            snapshot(
-              'CHANGELOG-simple',
-              Buffer.from(req.content, 'base64')
-                .toString('utf8')
-                .replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '')
-            );
-            return true;
-          }
-        )
-        .reply(201)
         // update version.txt
         .get(
-          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Frelease-v0.123.5'
+          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from(versionContent, 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .put(
-          '/repos/googleapis/simple-test-repo/contents/version.txt',
-          (req: {[key: string]: string}) => {
-            snapshot('version-txt-simple-message', req.message);
-            snapshot(
-              'version-txt-simple',
-              Buffer.from(req.content, 'base64').toString('utf8')
-            );
-            return true;
-          }
-        )
-        .reply(200)
         // check for default branch
         .get('/repos/googleapis/simple-test-repo')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .reply(200, require('../../../test/fixtures/repo-get-1.json'))
-        // create release
         .post(
-          '/repos/googleapis/simple-test-repo/pulls',
-          (req: {[key: string]: string}) => {
-            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-            snapshot('PR body-simple', req);
-            return true;
-          }
-        )
-        .reply(200, {number: 1})
-        .post(
-          '/repos/googleapis/simple-test-repo/issues/1/labels',
+          '/repos/googleapis/simple-test-repo/issues/22/labels',
           (req: {[key: string]: string}) => {
             snapshot('labels-simple', req);
             return true;
@@ -141,6 +109,12 @@ describe('Simple', () => {
       });
       await releasePR.run();
       req.done();
+      snapshot(
+        JSON.stringify(expectedChanges, null, 2).replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10' // don't save a real date, this will break tests.
+        )
+      );
     });
   });
 });

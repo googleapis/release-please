@@ -110,7 +110,12 @@ describe('ReleasePRFactory', () => {
       });
       await releasePR.run();
       req.done();
-      snapshot(JSON.stringify(expectedChanges, null, 2));
+      snapshot(
+        JSON.stringify(expectedChanges, null, 2).replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10' // don't save a real date, this will break tests.
+        )
+      );
     });
   });
 
@@ -193,7 +198,12 @@ describe('ReleasePRFactory', () => {
       });
       await releasePR.run();
       req.done();
-      snapshot(JSON.stringify(expectedChanges, null, 2));
+      snapshot(
+        JSON.stringify(expectedChanges, null, 2).replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10' // don't save a real date, this will break tests.
+        )
+      );
     });
   });
 });

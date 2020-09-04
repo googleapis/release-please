@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it, before} from 'mocha';
+import {describe, it, afterEach} from 'mocha';
 import * as nock from 'nock';
 nock.disableNetConnect();
 
@@ -20,22 +20,28 @@ import {JavaYoshi} from '../../src/releasers/java-yoshi';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
+import * as suggester from 'code-suggester';
+import * as sinon from 'sinon';
 
+const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/java-yoshi';
 
-interface MochaThis {
-  [skip: string]: Function;
-}
-function requireNode10(this: MochaThis) {
-  const match = process.version.match(/v([0-9]+)/);
-  if (match) {
-    if (Number(match[1]) < 10) this.skip();
-  }
-}
-
 describe('JavaYoshi', () => {
-  before(requireNode10);
+  afterEach(() => {
+    sandbox.restore();
+  });
   it('creates a release PR', async () => {
+    // We stub the entire suggester API, asserting only that the
+    // the appropriate changes are proposed:
+    let expectedChanges = null;
+    sandbox.replace(
+      suggester,
+      'createPullRequest',
+      (_octokit, changes): Promise<number> => {
+        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+        return Promise.resolve(22);
+      }
+    );
     const versionsContent = readFileSync(
       resolve(fixturesPath, 'versions.txt'),
       'utf8'
@@ -53,6 +59,9 @@ describe('JavaYoshi', () => {
       readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
     );
     const req = nock('https://api.github.com')
+      // This step looks for release PRs that are already open:
+      .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
+      .reply(200, [])
       .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
       .reply(200, undefined)
       .get('/repos/googleapis/java-trace/contents/versions.txt')
@@ -97,123 +106,48 @@ describe('JavaYoshi', () => {
         total_count: 0,
         items: [],
       })
-      // getting the latest tag
-      .get('/repos/googleapis/java-trace/git/refs?per_page=100')
-      .reply(200, [{ref: 'refs/tags/v0.20.3'}])
-      // creating a new branch
-      .post('/repos/googleapis/java-trace/git/refs')
-      .reply(200)
       // check for CHANGELOG
       .get(
-        '/repos/googleapis/java-trace/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.20.4'
+        '/repos/googleapis/java-trace/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmaster'
       )
       .reply(404)
-      .put(
-        '/repos/googleapis/java-trace/contents/CHANGELOG.md',
-        (req: {[key: string]: string}) => {
-          snapshot('CHANGELOG-message', req.message);
-          snapshot(
-            'CHANGELOG',
-            Buffer.from(req.content, 'base64')
-              .toString('utf8')
-              .replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '')
-          );
-          return true;
-        }
-      )
-      .reply(201)
       // update README.md
       .get(
-        '/repos/googleapis/java-trace/contents/README.md?ref=refs%2Fheads%2Frelease-v0.20.4'
+        '/repos/googleapis/java-trace/contents/README.md?ref=refs%2Fheads%2Fmaster'
       )
       .reply(200, {
         content: Buffer.from(readmeContent, 'utf8').toString('base64'),
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/README.md',
-        (req: {[key: string]: string}) => {
-          snapshot('README-message', req.message);
-          snapshot(
-            'README',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // update versions.txt
       .get(
-        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Frelease-v0.20.4'
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Fmaster'
       )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/versions.txt',
-        (req: {[key: string]: string}) => {
-          snapshot('versions-message', req.message);
-          snapshot(
-            'versions',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // update pom.xml
       .get(
-        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Frelease-v0.20.4'
+        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Fmaster'
       )
       .reply(200, {
         content: Buffer.from(pomContents, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/pom.xml',
-        (req: {[key: string]: string}) => {
-          snapshot('pom-message', req.message);
-          snapshot('pom', Buffer.from(req.content, 'base64').toString('utf8'));
-          return true;
-        }
-      )
-      .reply(200)
       // Update GoogleUtils.java
       .get(
-        '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java?ref=refs%2Fheads%2Frelease-v0.20.4'
+        '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java?ref=refs%2Fheads%2Fmaster'
       )
       .reply(200, {
         content: Buffer.from(googleUtilsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
-        (req: {[key: string]: string}) => {
-          snapshot('GoogleUtils-message', req.message);
-          snapshot(
-            'GoogleUtils',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       .reply(200, require('../../../test/fixtures/repo-get-1.json'))
-      // create release
       .post(
-        '/repos/googleapis/java-trace/pulls',
-        (req: {[key: string]: string}) => {
-          req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-          snapshot('PR body', req);
-          return true;
-        }
-      )
-      .reply(200, {number: 1})
-      .post(
-        '/repos/googleapis/java-trace/issues/1/labels',
+        '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
           snapshot('labels', req);
           return true;
@@ -232,8 +166,26 @@ describe('JavaYoshi', () => {
     });
     await releasePR.run();
     req.done();
+    snapshot(
+      JSON.stringify(expectedChanges, null, 2).replace(
+        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+        '1983-10-10' // don't save a real date, this will break tests.
+      )
+    );
   });
+
   it('creates a snapshot PR', async () => {
+    // We stub the entire suggester API, asserting only that the
+    // the appropriate changes are proposed:
+    let expectedChanges = null;
+    sandbox.replace(
+      suggester,
+      'createPullRequest',
+      (_octokit, changes): Promise<number> => {
+        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+        return Promise.resolve(22);
+      }
+    );
     const versionsContent = readFileSync(
       resolve(fixturesPath, 'released-versions.txt'),
       'utf8'
@@ -245,6 +197,9 @@ describe('JavaYoshi', () => {
     const req = nock('https://api.github.com')
       .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
       .reply(200, undefined)
+      // This step looks for release PRs that are already open:
+      .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
+      .reply(200, [])
       .get('/repos/googleapis/java-trace/contents/versions.txt')
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
@@ -288,66 +243,28 @@ describe('JavaYoshi', () => {
         total_count: 0,
         items: [],
       })
-      // getting the latest tag
-      .get('/repos/googleapis/java-trace/git/refs?per_page=100')
-      .reply(200, [{ref: 'refs/tags/v0.20.3'}])
-      // creating a new branch
-      .post('/repos/googleapis/java-trace/git/refs')
-      .reply(200)
       // update versions.txt
       .get(
-        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Frelease-v0.20.4-SNAPSHOT'
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Fmain'
       )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/versions.txt',
-        (req: {[key: string]: string}) => {
-          snapshot(
-            'versions-snapshot',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // update pom.xml
       .get(
-        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Frelease-v0.20.4-SNAPSHOT'
+        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Fmain'
       )
       .reply(200, {
         content: Buffer.from(pomContents, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/pom.xml',
-        (req: {[key: string]: string}) => {
-          snapshot(
-            'pom-snapshot',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       .reply(200, require('../../../test/fixtures/repo-get-2.json'))
-      // create release
       .post(
-        '/repos/googleapis/java-trace/pulls',
-        (req: {[key: string]: string}) => {
-          req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-          snapshot('PR body-snapshot', req);
-          return true;
-        }
-      )
-      .reply(200, {number: 1})
-      .post(
-        '/repos/googleapis/java-trace/issues/1/labels',
+        '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
           snapshot('labels-snapshot', req);
           return true;
@@ -367,8 +284,26 @@ describe('JavaYoshi', () => {
     });
     await releasePR.run();
     req.done();
+    snapshot(
+      JSON.stringify(expectedChanges, null, 2).replace(
+        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+        '1983-10-10' // don't save a real date, this will break tests.
+      )
+    );
   });
+
   it('creates a snapshot PR, when latest release sha is head', async () => {
+    // We stub the entire suggester API, asserting only that the
+    // the appropriate changes are proposed:
+    let expectedChanges = null;
+    sandbox.replace(
+      suggester,
+      'createPullRequest',
+      (_octokit, changes): Promise<number> => {
+        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+        return Promise.resolve(22);
+      }
+    );
     const versionsContent = readFileSync(
       resolve(fixturesPath, 'released-versions.txt'),
       'utf8'
@@ -380,6 +315,9 @@ describe('JavaYoshi', () => {
     const req = nock('https://api.github.com')
       .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
       .reply(200, undefined)
+      // This step looks for release PRs that are already open:
+      .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
+      .reply(200, [])
       .get('/repos/googleapis/java-trace/contents/versions.txt')
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
@@ -423,66 +361,28 @@ describe('JavaYoshi', () => {
         total_count: 0,
         items: [],
       })
-      // getting the latest tag
-      .get('/repos/googleapis/java-trace/git/refs?per_page=100')
-      .reply(200, [{ref: 'refs/tags/v0.20.3'}])
-      // creating a new branch
-      .post('/repos/googleapis/java-trace/git/refs')
-      .reply(200)
       // update versions.txt
       .get(
-        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Frelease-v0.20.4-SNAPSHOT'
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Fmain'
       )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/versions.txt',
-        (req: {[key: string]: string}) => {
-          snapshot(
-            'versions-snapshot-empty',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // update pom.xml
       .get(
-        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Frelease-v0.20.4-SNAPSHOT'
+        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Fmain'
       )
       .reply(200, {
         content: Buffer.from(pomContents, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/pom.xml',
-        (req: {[key: string]: string}) => {
-          snapshot(
-            'pom-snapshot-empty',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       .reply(200, require('../../../test/fixtures/repo-get-2.json'))
-      // create release
       .post(
-        '/repos/googleapis/java-trace/pulls',
-        (req: {[key: string]: string}) => {
-          req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-          snapshot('PR body-snapshot-empty', req);
-          return true;
-        }
-      )
-      .reply(200, {number: 1})
-      .post(
-        '/repos/googleapis/java-trace/issues/1/labels',
+        '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
           snapshot('labels-snapshot-empty', req);
           return true;
@@ -502,7 +402,14 @@ describe('JavaYoshi', () => {
     });
     await releasePR.run();
     req.done();
+    snapshot(
+      JSON.stringify(expectedChanges, null, 2).replace(
+        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+        '1983-10-10' // don't save a real date, this will break tests.
+      )
+    );
   });
+
   it('ignores a snapshot release if no snapshot needed', async () => {
     const versionsContent = readFileSync(
       resolve(fixturesPath, 'versions.txt'),
@@ -527,7 +434,19 @@ describe('JavaYoshi', () => {
     await releasePR.run();
     req.done();
   });
+
   it('creates a snapshot PR if an explicit release is requested, but a snapshot is needed', async () => {
+    // We stub the entire suggester API, asserting only that the
+    // the appropriate changes are proposed:
+    let expectedChanges = null;
+    sandbox.replace(
+      suggester,
+      'createPullRequest',
+      (_octokit, changes): Promise<number> => {
+        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+        return Promise.resolve(22);
+      }
+    );
     const versionsContent = readFileSync(
       resolve(fixturesPath, 'released-versions.txt'),
       'utf8'
@@ -539,6 +458,9 @@ describe('JavaYoshi', () => {
     const req = nock('https://api.github.com')
       .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
       .reply(200, undefined)
+      // This step looks for release PRs that are already open:
+      .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
+      .reply(200, [])
       .get('/repos/googleapis/java-trace/contents/versions.txt')
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
@@ -582,66 +504,28 @@ describe('JavaYoshi', () => {
         total_count: 0,
         items: [],
       })
-      // getting the latest tag
-      .get('/repos/googleapis/java-trace/git/refs?per_page=100')
-      .reply(200, [{ref: 'refs/tags/v0.20.3'}])
-      // creating a new branch
-      .post('/repos/googleapis/java-trace/git/refs')
-      .reply(200)
       // update versions.txt
       .get(
-        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Frelease-v0.20.4-SNAPSHOT'
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Fmain'
       )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/versions.txt',
-        (req: {[key: string]: string}) => {
-          snapshot(
-            'versions-snapshot-release',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // update pom.xml
       .get(
-        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Frelease-v0.20.4-SNAPSHOT'
+        '/repos/googleapis/java-trace/contents/pom.xml?ref=refs%2Fheads%2Fmain'
       )
       .reply(200, {
         content: Buffer.from(pomContents, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      .put(
-        '/repos/googleapis/java-trace/contents/pom.xml',
-        (req: {[key: string]: string}) => {
-          snapshot(
-            'pom-snapshot-release',
-            Buffer.from(req.content, 'base64').toString('utf8')
-          );
-          return true;
-        }
-      )
-      .reply(200)
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       .reply(200, require('../../../test/fixtures/repo-get-2.json'))
-      // create release
       .post(
-        '/repos/googleapis/java-trace/pulls',
-        (req: {[key: string]: string}) => {
-          req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-          snapshot('PR body-snapshot-release', req);
-          return true;
-        }
-      )
-      .reply(200, {number: 1})
-      .post(
-        '/repos/googleapis/java-trace/issues/1/labels',
+        '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
           snapshot('labels-snapshot-release', req);
           return true;
@@ -661,5 +545,11 @@ describe('JavaYoshi', () => {
     });
     await releasePR.run();
     req.done();
+    snapshot(
+      JSON.stringify(expectedChanges, null, 2).replace(
+        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+        '1983-10-10' // don't save a real date, this will break tests.
+      )
+    );
   });
 });
