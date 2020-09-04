@@ -39,7 +39,6 @@ google-cloud-redis:1.0.0:1.0.1-SNAPSHOT`;
 # module:released-version:current-version
 
 google-cloud-bom:0.132.0:0.132.0`;
-    console.log(VersionsManifest.needsSnapshot(input));
     expect(VersionsManifest.needsSnapshot(input)).to.be.true;
   });
 });

@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createPullRequest} from 'code-suggester';
-import {Changes} from 'code-suggester/build/src/types/index';
+import {createPullRequest, Changes} from 'code-suggester';
 
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
@@ -608,11 +607,13 @@ export class GitHub {
     // rather than creating a new PR.
     const refName = `refs/heads/${options.branch}`;
     let openReleasePR: PullsListResponseItem | undefined;
-    (await this.findOpenReleasePRs(options.labels)).forEach(releasePR => {
+    const releasePRCandidates = await this.findOpenReleasePRs(options.labels);
+    for (const releasePR of releasePRCandidates) {
       if (refName && refName.includes(releasePR.head.ref)) {
         openReleasePR = releasePR as PullsListResponseItem;
+        break;
       }
-    });
+    }
 
     // short-circuit of there have been no changes to the
     // pull-request body.
@@ -626,16 +627,21 @@ export class GitHub {
 
     //  Actually update the files for the release:
     const changes = await this.getChangeSet(options.updates, defaultBranch);
-    const prNumber = await createPullRequest(this.octokit, changes, {
-      upstreamOwner: this.owner,
-      upstreamRepo: this.repo,
-      title: options.title,
-      branch: options.branch,
-      description: options.body,
-      primary: defaultBranch,
-      force: true,
-      message: options.title,
-    });
+    const prNumber = await createPullRequest(
+      this.octokit,
+      changes,
+      {
+        upstreamOwner: this.owner,
+        upstreamRepo: this.repo,
+        title: options.title,
+        branch: options.branch,
+        description: options.body,
+        primary: defaultBranch,
+        force: true,
+        message: options.title,
+      },
+      {level: 'silent'}
+    );
 
     // If a release PR was already open, update the title and body:
     if (openReleasePR) {
@@ -670,8 +676,7 @@ export class GitHub {
   ): Promise<Changes> {
     const refName = `refs/heads/${defaultBranch}`;
     const changes = new Map();
-    for (let i = 0; i < updates.length; i++) {
-      const update = updates[i];
+    for (const update of updates) {
       let content;
       try {
         if (update.contents) {
@@ -730,100 +735,6 @@ export class GitHub {
     });
     this.defaultBranch = data.default_branch;
     return this.defaultBranch;
-  }
-
-  async updateFiles(updates: Update[], branch: string, refName: string) {
-    // does the user care about skipping CI at all?
-    const skipCiEverSet = updates.some(
-      upd => typeof upd.skipCi !== 'undefined'
-    );
-    if (skipCiEverSet) {
-      // if skipCi was set for some of the updates, disable CI for others
-      updates.forEach(upd => {
-        if (typeof upd.skipCi === 'undefined') {
-          upd.skipCi = true;
-        }
-      });
-    }
-    if (!skipCiEverSet && updates.length > 0) {
-      // if skipCi was not set for any of the files, disable CI for all files except the last one
-      updates.forEach(upd => (upd.skipCi = true));
-      updates[updates.length - 1].skipCi = false;
-    }
-
-    for (let i = 0; i < updates.length; i++) {
-      const update = updates[i];
-      let content;
-      try {
-        if (update.contents) {
-          // we already loaded the file contents earlier, let's not
-          // hit GitHub again.
-          content = {data: update.contents};
-        } else {
-          content = await this.request(
-            `GET /repos/:owner/:repo/contents/:path${
-              this.proxyKey ? `?key=${this.proxyKey}` : ''
-            }`,
-            {
-              owner: this.owner,
-              repo: this.repo,
-              path: update.path,
-              ref: refName,
-            }
-          );
-        }
-      } catch (err) {
-        if (err.status !== 404) throw err;
-        // if the file is missing and create = false, just continue
-        // to the next update, otherwise create the file.
-        if (!update.create) {
-          checkpoint(
-            `file ${chalk.green(update.path)} did not exist`,
-            CheckpointType.Failure
-          );
-          continue;
-        }
-      }
-      const contentText = content
-        ? Buffer.from(content.data.content, 'base64').toString('utf8')
-        : undefined;
-      const updatedContent = update.updateContent(contentText);
-
-      if (content) {
-        await this.request(
-          `PUT /repos/:owner/:repo/contents/:path${
-            this.proxyKey ? `?key=${this.proxyKey}` : ''
-          }`,
-          {
-            owner: this.owner,
-            repo: this.repo,
-            path: update.path,
-            message:
-              `chore: updated ${update.path}` +
-              (update.skipCi ? ' [ci skip]' : ''),
-            content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-            sha: content.data.sha,
-            branch,
-          }
-        );
-      } else {
-        await this.request(
-          `PUT /repos/:owner/:repo/contents/:path${
-            this.proxyKey ? `?key=${this.proxyKey}` : ''
-          }`,
-          {
-            owner: this.owner,
-            repo: this.repo,
-            path: update.path,
-            message:
-              `chore: created ${update.path}` +
-              (update.skipCi ? ' [ci skip]' : ''),
-            content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-            branch,
-          }
-        );
-      }
-    }
   }
 
   async closePR(prNumber: number) {

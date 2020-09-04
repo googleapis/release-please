@@ -82,7 +82,6 @@ export class Simple extends ReleasePR {
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
-        skipCi: false,
       })
     );
 
