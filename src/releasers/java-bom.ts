@@ -52,7 +52,6 @@ export class JavaBom extends ReleasePR {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
     );
-    console.info('version.txt content', versionsManifestContent.parsedContent);
     const currentVersions = VersionsManifest.parseVersions(
       versionsManifestContent.parsedContent
     );
@@ -193,9 +192,6 @@ export class JavaBom extends ReleasePR {
       );
     });
 
-    console.info(
-      `attempting to open PR latestTagSha = ${latestTag!.sha} prSha = ${prSHA}`
-    );
     await this.openPR({
       sha: prSHA!,
       changelogEntry: `${changelogEntry}\n---\n`,

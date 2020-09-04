@@ -274,8 +274,8 @@ export class ReleasePR {
       body,
       labels: this.labels,
     });
-    // a return of -1 indicates that PR was not updated.
-    if (pr > 0) {
+    // a return of 0 indicates that PR was not updated.
+    if (pr !== 0) {
       await this.gh.addLabels(this.labels, pr);
       checkpoint(
         `${this.repoUrl} find stale PRs with label "${this.labels.join(',')}"`,
