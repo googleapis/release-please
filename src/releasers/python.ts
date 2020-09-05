@@ -56,7 +56,7 @@ export class Python extends ReleasePR {
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
-      changelogSections: CHANGELOG_SECTIONS,
+      changelogSections: this.changelogSections || CHANGELOG_SECTIONS,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,

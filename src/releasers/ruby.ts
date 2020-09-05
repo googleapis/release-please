@@ -52,6 +52,7 @@ export class Ruby extends ReleasePR {
       commits: postProcessCommits(commits),
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: this.changelogSections,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,
