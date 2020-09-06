@@ -622,7 +622,7 @@ export class GitHub {
         `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
         CheckpointType.Failure
       );
-      return -1;
+      return 0;
     }
 
     //  Actually update the files for the release:
