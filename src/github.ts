@@ -638,6 +638,7 @@ export class GitHub {
         description: options.body,
         primary: defaultBranch,
         force: true,
+        fork: false,
         message: options.title,
       },
       {level: 'silent'}
