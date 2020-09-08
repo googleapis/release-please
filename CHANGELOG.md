@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.1.0](https://www.github.com/googleapis/release-please/compare/v6.0.0...v6.1.0) (2020-09-08)
+
+
+### Features
+
+*  pass an array of change log section options to the node releaser ([#538](https://www.github.com/googleapis/release-please/issues/538)) ([e9874f4](https://www.github.com/googleapis/release-please/commit/e9874f469dbe2ef76c9469f4db78e0eb9ece921e))
+
+
+### Bug Fixes
+
+* forks do not work for GitHub Actions or apps ([#542](https://www.github.com/googleapis/release-please/issues/542)) ([6676c26](https://www.github.com/googleapis/release-please/commit/6676c266128e967b9f6ad57acf45f9c82c506154))
+* return 0 rather than -1 if PR not found ([#541](https://www.github.com/googleapis/release-please/issues/541)) ([1247635](https://www.github.com/googleapis/release-please/commit/124763588b8a182f3a86240de2d9c8de458a712d))
+
 ## [6.0.0](https://www.github.com/googleapis/release-please/compare/v5.9.1...v6.0.0) (2020-09-04)
 
 
