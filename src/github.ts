@@ -96,6 +96,7 @@ export interface GitHubFileContents {
 
 interface GitHubPR {
   branch: string;
+  fork: boolean;
   version: string;
   title: string;
   body: string;
@@ -638,10 +639,10 @@ export class GitHub {
         description: options.body,
         primary: defaultBranch,
         force: true,
-        fork: false,
+        fork: options.fork,
         message: options.title,
       },
-      {level: 'silent'}
+      {level: 'error'}
     );
 
     // If a release PR was already open, update the title and body:

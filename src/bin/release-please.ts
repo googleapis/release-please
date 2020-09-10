@@ -61,6 +61,11 @@ const argv = yargs
           describe: 'GitHub URL to generate release for',
           demand: true,
         })
+        .option('fork', {
+          describe: 'should the PR be created from a fork',
+          type: 'boolean',
+          default: false,
+        })
         .option('label', {
           describe: 'label(s) to add to generated PR',
         })
