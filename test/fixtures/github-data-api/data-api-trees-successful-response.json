@@ -1,0 +1,38 @@
+{
+  "sha": "1630d12c8e72e7f1441ae8afe2240d823c2d4804",
+  "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/trees/1630d12c8e72e7f1441ae8afe2240d823c2d4804",
+  "tree": [
+    {
+      "path": ".github",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cc64165cf5da91810ab7edc1143a47be42513c0a",
+      "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/trees/cc64165cf5da91810ab7edc1143a47be42513c0a"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3c3629e647f5ddf82548912e337bea9826b434af",
+      "size": 13,
+      "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/blobs/3c3629e647f5ddf82548912e337bea9826b434af"
+    },
+    {
+      "path": "package-lock.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2f3d2c47bf49f81aca0df9ffc49524a213a2dc33",
+      "size": 1352120,
+      "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33"
+    },
+    {
+      "path": "package.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "33f90c139fca3d99a08a934fb87d30c13c68b885",
+      "size": 3995,
+      "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/blobs/33f90c139fca3d99a08a934fb87d30c13c68b885"
+    }
+  ],
+  "truncated": false
+}
