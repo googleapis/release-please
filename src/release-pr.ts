@@ -37,6 +37,7 @@ const parseGithubRepoUrl = require('parse-github-repo-url');
 export interface BuildOptions {
   bumpMinorPreMajor?: boolean;
   defaultBranch?: string;
+  fork?: boolean;
   label?: string;
   token?: string;
   repoUrl: string;
@@ -86,6 +87,7 @@ export class ReleasePR {
   apiUrl: string;
   defaultBranch?: string;
   labels: string[];
+  fork: boolean;
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   repoUrl: string;
@@ -102,6 +104,7 @@ export class ReleasePR {
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.defaultBranch = options.defaultBranch;
+    this.fork = !!options.fork;
     this.labels = options.label
       ? options.label.split(',')
       : DEFAULT_LABELS.split(',');
@@ -276,6 +279,7 @@ export class ReleasePR {
       updates,
       title,
       body,
+      fork: this.fork,
       labels: this.labels,
     });
     // a return of 0 indicates that PR was not updated.
