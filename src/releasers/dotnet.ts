@@ -13,13 +13,11 @@
 // limitations under the License.
 
 import * as chalk from 'chalk';
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePR} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
-import {Commit} from '../graphql-to-commits';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -41,11 +39,11 @@ export class DotNet extends ReleasePR {
     if (this.snapshot) {
       checkpoint('running as snapshot pre-release', CheckpointType.Success);
     }
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+    const latestTag = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined,
       this.snapshot
     );
-    const commits: Commit[] = await this.commits({
+    const commits = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
       path: this.path,
     });
@@ -56,13 +54,13 @@ export class DotNet extends ReleasePR {
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: this.changelogSections,
     });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
+    const candidate = await this.coerceReleaseCandidate(
       cc,
       latestTag,
       this.snapshot
     );
 
-    const changelogEntry: string = await cc.generateChangelogEntry({
+    const changelogEntry = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
       previousTag: candidate.previousTag,

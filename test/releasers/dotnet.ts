@@ -21,6 +21,7 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 
+nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/dotnet';
 
