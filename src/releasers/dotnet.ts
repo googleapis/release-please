@@ -28,7 +28,7 @@ import {CommonProperties} from '../updaters/dotnet/common-properties';
 import {Project} from '../updaters/dotnet/project';
 import {ReadMe} from '../updaters/dotnet/readme';
 
-export class Simple extends ReleasePR {
+export class DotNet extends ReleasePR {
   static releaserName = 'dotnet';
   protected async _run() {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
@@ -73,7 +73,7 @@ export class Simple extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: 'CHANGELOG.md',
+        path: 'docs/history.md',
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,

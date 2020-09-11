@@ -1,0 +1,48 @@
+<Project>
+  <!-- Properties common to all packaged projects under this directory -->
+
+  <!-- Version information -->
+  <PropertyGroup>
+    <Version>1.0.0-alpha11</Version>
+  </PropertyGroup>
+
+  <!-- Build information -->
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyOriginatorKeyFile>../GoogleApis.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Nullable>Enable</Nullable>
+    <OutputType>Library</OutputType>
+
+    <!-- Stop Visual Studio adding a launchSettings.properties file -->
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+  </PropertyGroup>
+
+  <!-- Packaging information -->
+  <PropertyGroup>
+    <IsPackable>True</IsPackable>
+    <Copyright>Copyright 2020 Google LLC</Copyright>
+    <Authors>Google LLC</Authors>
+    <!-- TODO: Find a Functions-specific icon URL. -->
+    <PackageIconUrl>https://cloud.google.com/images/gcp-icon-64x64.png</PackageIconUrl>
+    <PackageIcon>NuGetIcon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/GoogleCloudPlatform/functions-framework-dotnet</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/GoogleCloudPlatform/functions-framework-dotnet</RepositoryUrl>
+
+    <!-- Properties to get SourceLink to work -->
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../LICENSE" Pack="true" PackagePath="" />
+    <None Include="../NuGetIcon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>
