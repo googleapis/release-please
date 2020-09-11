@@ -24,6 +24,17 @@ import * as sinon from 'sinon';
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/dotnet';
 
+function getBlob(filename: string) {
+  const content = readFileSync(resolve(fixturesPath, filename), 'utf8').replace(
+    /\r\n/g,
+    '\n'
+  );
+  return {
+    content: Buffer.from(content, 'utf8').toString('base64'),
+    sha: 'abc123',
+  };
+}
+
 describe('DotNet', () => {
   afterEach(() => {
     sandbox.restore();
@@ -95,32 +106,17 @@ describe('DotNet', () => {
         .get(
           '/repos/googleapis/foo-dot-net/contents/README.md?ref=refs%2Fheads%2Fmaster'
         )
-        .reply(200, {
-          content: readFileSync(resolve(fixturesPath, './README.md')).toString(
-            'base64'
-          ),
-          sha: 'abc123',
-        })
+        .reply(200, getBlob('./README.md'))
         // fetch the CommonProperties.xml, so that the version # can be updated:
         .get(
           '/repos/googleapis/foo-dot-net/contents/src/CommonProperties.xml?ref=refs%2Fheads%2Fmaster'
         )
-        .reply(200, {
-          content: readFileSync(
-            resolve(fixturesPath, './CommonProperties.xml')
-          ).toString('base64'),
-          sha: 'abc123',
-        })
+        .reply(200, getBlob('./CommonProperties.xml'))
         // fetch and update project files:
         .get(
           '/repos/googleapis/foo-dot-net/contents/foo.csproj?ref=refs%2Fheads%2Fmaster'
         )
-        .reply(200, {
-          content: readFileSync(resolve(fixturesPath, './foo.csproj')).toString(
-            'base64'
-          ),
-          sha: 'abc123',
-        })
+        .reply(200, getBlob('./foo.csproj'))
         // check for default branch
         .get('/repos/googleapis/foo-dot-net')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
