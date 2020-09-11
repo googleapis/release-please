@@ -196,7 +196,8 @@ export class ReleasePR {
 
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
-    latestTag: GitHubTag | undefined
+    latestTag: GitHubTag | undefined,
+    preRelease = false
   ): Promise<ReleaseCandidate> {
     const releaseAsRe = /release-as:\s*v?([0-9]+\.[0-9]+\.[0-9a-z]+(-[0-9a-z.]+)?)\s*/i;
     const previousTag = latestTag ? latestTag.name : undefined;
@@ -215,6 +216,12 @@ export class ReleasePR {
     if (releaseAsCommit) {
       const match = releaseAsCommit.message.match(releaseAsRe);
       version = match![1];
+    } else if (preRelease) {
+      // Handle pre-release format v1.0.0-alpha1, alpha2, etc.
+      const [prefix, suffix] = version.split('-');
+      const match = suffix?.match(/(?<type>[^0-9]+)(?<number>[0-9]+)/);
+      const number = Number(match?.groups?.number || 0) + 1;
+      version = `${prefix}-${match?.groups?.type || 'alpha'}${number}`;
     } else if (latestTag && !this.releaseAs) {
       const bump = await cc.suggestBump(version);
       const candidate: string | null = semver.inc(version, bump.releaseType);

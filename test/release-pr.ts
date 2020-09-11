@@ -207,9 +207,10 @@ describe('Release-PR', () => {
     class TestableReleasePR extends ReleasePR {
       async coerceReleaseCandidate(
         cc: ConventionalCommits,
-        latestTag?: GitHubTag
+        latestTag?: GitHubTag,
+        preRelese = false
       ): Promise<ReleaseCandidate> {
-        return super.coerceReleaseCandidate(cc, latestTag);
+        return super.coerceReleaseCandidate(cc, latestTag, preRelese);
       }
     }
 
@@ -309,6 +310,54 @@ describe('Release-PR', () => {
       });
       const candidate = await rp.coerceReleaseCandidate(cc);
       expect(candidate.version).to.equal('2.0.0');
+    });
+
+    describe('preRelease', () => {
+      it('increments a prerelease appropriately', async () => {
+        const rp = new TestableReleasePR({
+          repoUrl: 'googleapis/nodejs',
+          packageName: '@google-cloud/nodejs',
+          apiUrl: 'github.com',
+          releaseType: 'node',
+        });
+        const cc = new ConventionalCommits({
+          commits: [],
+          githubRepoUrl: 'googleapis/nodejs',
+        });
+        const candidate = await rp.coerceReleaseCandidate(
+          cc,
+          {
+            name: 'tag',
+            sha: 'abc123',
+            version: '1.0.0-alpha9',
+          },
+          true
+        );
+        expect(candidate.version).to.equal('1.0.0-alpha10');
+      });
+
+      it('handles pre-release when there is no suffix', async () => {
+        const rp = new TestableReleasePR({
+          repoUrl: 'googleapis/nodejs',
+          packageName: '@google-cloud/nodejs',
+          apiUrl: 'github.com',
+          releaseType: 'node',
+        });
+        const cc = new ConventionalCommits({
+          commits: [],
+          githubRepoUrl: 'googleapis/nodejs',
+        });
+        const candidate = await rp.coerceReleaseCandidate(
+          cc,
+          {
+            name: 'tag',
+            sha: 'abc123',
+            version: '1.0.0',
+          },
+          true
+        );
+        expect(candidate.version).to.equal('1.0.0-alpha1');
+      });
     });
   });
 });
