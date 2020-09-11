@@ -692,7 +692,6 @@ export class GitHub {
     updates: Update[],
     defaultBranch: string
   ): Promise<Changes> {
-    const refName = `refs/heads/${defaultBranch}`;
     const changes = new Map();
     for (const update of updates) {
       let content;
@@ -702,17 +701,11 @@ export class GitHub {
           // hit GitHub again.
           content = {data: update.contents};
         } else {
-          content = await this.request(
-            `GET /repos/:owner/:repo/contents/:path${
-              this.proxyKey ? `?key=${this.proxyKey}` : ''
-            }`,
-            {
-              owner: this.owner,
-              repo: this.repo,
-              path: update.path,
-              ref: refName,
-            }
+          const fileContent = await this.getFileContents(
+            update.path,
+            defaultBranch
           );
+          content = {data: fileContent};
         }
       } catch (err) {
         if (err.status !== 404) throw err;
@@ -769,22 +762,80 @@ export class GitHub {
     );
   }
 
-  async getFileContents(path: string): Promise<GitHubFileContents> {
+  async getFileContentsWithSimpleAPI(
+    path: string,
+    defaultBranch: string | undefined
+  ): Promise<GitHubFileContents> {
+    const options: any = {
+      owner: this.owner,
+      repo: this.repo,
+      path,
+    };
+    if (defaultBranch) {
+      options.ref = `refs/heads/${defaultBranch}`;
+    }
     const resp = await this.request(
       `GET /repos/:owner/:repo/contents/:path${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
       }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        path,
-      }
+      options
     );
     return {
       parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
       content: resp.data.content,
       sha: resp.data.sha,
     };
+  }
+
+  async getFileContentsWithDataAPI(
+    path: string,
+    defaultBranch: string | undefined
+  ): Promise<GitHubFileContents> {
+    const repoTree = await this.request(
+      `GET /repos/:owner/:repo/git/trees/:branch${
+        this.proxyKey ? `?key=${this.proxyKey}` : ''
+      }`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+        branch: defaultBranch,
+      }
+    );
+
+    const blobDescriptor = repoTree.data.tree.find(
+      (tree: any) => tree.path === path
+    );
+
+    const resp = await this.request(
+      `GET /repos/:owner/:repo/git/blobs/:sha${
+        this.proxyKey ? `?key=${this.proxyKey}` : ''
+      }`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+        sha: blobDescriptor.sha,
+      }
+    );
+
+    return {
+      parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
+      content: resp.data.content,
+      sha: resp.data.sha,
+    };
+  }
+
+  async getFileContents(
+    path: string,
+    defaultBranch: string | undefined = undefined
+  ): Promise<GitHubFileContents> {
+    try {
+      return await this.getFileContentsWithSimpleAPI(path, defaultBranch);
+    } catch (err) {
+      if (err.status === 403) {
+        return await this.getFileContentsWithDataAPI(path, defaultBranch);
+      }
+      throw err;
+    }
   }
 
   async createRelease(
