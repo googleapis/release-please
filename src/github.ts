@@ -96,6 +96,7 @@ export interface GitHubFileContents {
 
 interface GitHubPR {
   branch: string;
+  fork: boolean;
   version: string;
   title: string;
   body: string;
@@ -431,16 +432,32 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  async latestTag(prefix?: string): Promise<GitHubTag | undefined> {
+  async latestTag(
+    prefix?: string,
+    preRelease = false
+  ): Promise<GitHubTag | undefined> {
     const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
     const versions = Object.keys(tags).filter(t => {
       // remove any pre-releases from the list:
-      return !t.includes('-');
+      return preRelease || !t.includes('-');
     });
     // no tags have been created yet.
     if (versions.length === 0) return undefined;
 
-    versions.sort(semver.rcompare);
+    // We use a slightly modified version of semver's sorting algorithm, which
+    // prefixes the numeric part of a pre-release with '0's, so that
+    // 010 is greater than > 002.
+    versions.sort((v1, v2) => {
+      if (v1.includes('-')) {
+        const [prefix, suffix] = v1.split('-');
+        v1 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      if (v2.includes('-')) {
+        const [prefix, suffix] = v2.split('-');
+        v2 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      return semver.rcompare(v1, v2);
+    });
     return {
       name: tags[versions[0]].name,
       sha: tags[versions[0]].sha,
@@ -638,10 +655,10 @@ export class GitHub {
         description: options.body,
         primary: defaultBranch,
         force: true,
-        fork: false,
+        fork: options.fork,
         message: options.title,
       },
-      {level: 'silent'}
+      {level: 'error'}
     );
 
     // If a release PR was already open, update the title and body:
