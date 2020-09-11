@@ -80,13 +80,24 @@ export class GitHubRelease {
         CheckpointType.Success
       );
 
+      // For monorepo releases, the library name is prepended to the tag and branch:
+      const versionCandidate: string =
+        gitHubReleasePR.version.split('-').pop() || gitHubReleasePR.version;
       const changelogContents = (
         await this.gh.getFileContents(this.addPath(this.changelogPath))
       ).parsedContent;
       const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
         changelogContents,
-        // For monorepo releases, the library name is prepended to the tag and branch:
-        gitHubReleasePR.version.split('-').pop() || gitHubReleasePR.version
+        // TODO: flesh this logic out a bit further with tests. There are a
+        // few scenarios we need to support when determining the candidate
+        // version from the branch:
+        // 1. the normal case: `v1.0.0`.
+        // 2. mono-repos: `my-lib-v1.0.0`.
+        // 3. pre-releases: `v1.0.0-alpha0`.
+        // 4. pre-releases in mono repos: `my-lib-v1.0.0-alpha0
+        versionCandidate.match(/.+\..+\..+/)
+          ? versionCandidate
+          : gitHubReleasePR.version
       );
       checkpoint(
         `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,

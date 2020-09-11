@@ -31,8 +31,12 @@ import {ReadMe} from '../updaters/dotnet/readme';
 export class DotNet extends ReleasePR {
   static releaserName = 'dotnet';
   protected async _run() {
+    if (this.snapshot) {
+      checkpoint('running as snapshot pre-release', CheckpointType.Success);
+    }
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined
+      this.monorepoTags ? `${this.packageName}-` : undefined,
+      this.snapshot
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -47,7 +51,8 @@ export class DotNet extends ReleasePR {
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,
-      latestTag
+      latestTag,
+      this.snapshot
     );
 
     const changelogEntry: string = await cc.generateChangelogEntry({
@@ -128,5 +133,15 @@ export class DotNet extends ReleasePR {
       version: candidate.version,
       includePackageName: this.monorepoTags,
     });
+  }
+
+  // Setting snapshot to true, indicates that the release should be
+  // treated as a pre-release:
+  protected supportsSnapshots(): boolean {
+    return true;
+  }
+
+  protected defaultInitialVersion(): string {
+    return '1.0.0-alpha0';
   }
 }
