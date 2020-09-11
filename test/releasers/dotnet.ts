@@ -24,6 +24,11 @@ import * as sinon from 'sinon';
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/dotnet';
 
+// Returns an object which can be used to fake a blob file response from the
+// GitHub API:
+//
+// content: is the base64 encoded content.
+// sha: is a sha (we don't use this value, so it's just faked).
 function getBlob(filename: string) {
   const content = readFileSync(resolve(fixturesPath, filename), 'utf8').replace(
     /\r\n/g,
@@ -35,6 +40,24 @@ function getBlob(filename: string) {
   };
 }
 
+// Stringify updates to the code suggester API. When we're not mocking the
+// code suggester API, this update object would result in corresponding
+// changes on GitHub:
+function stringifyUpdates(updates: [string, object][]): string {
+  let stringified = '';
+  for (const update of updates) {
+    stringified = `${stringified}\nfilename: ${update[0]}`;
+    const obj = update[1] as {[key: string]: string};
+    stringified = `${stringified}\n${obj.content}`;
+  }
+  return stringified.replace(
+    /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
+    '1983-10-10' // don't save a real date, this will break tests.
+  );
+}
+
+// This tests the happy path of creating a pull request for a relese PR
+// on a .NET repository:
 describe('DotNet', () => {
   afterEach(() => {
     sandbox.restore();
@@ -43,7 +66,7 @@ describe('DotNet', () => {
     it('creates a release PR', async () => {
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
-      let expectedChanges = null;
+      let expectedChanges: [string, object][] = [];
       sandbox.replace(
         suggester,
         'createPullRequest',
@@ -137,12 +160,7 @@ describe('DotNet', () => {
       });
       await releasePR.run();
       req.done();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(stringifyUpdates(expectedChanges));
     });
   });
 });

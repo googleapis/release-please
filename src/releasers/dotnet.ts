@@ -30,6 +30,13 @@ import {ReadMe} from '../updaters/dotnet/readme';
 
 export class DotNet extends ReleasePR {
   static releaserName = 'dotnet';
+  // When release-please runs, it calls the method run() on the base
+  // ReleasePR class. run() performs operations common to all languages:
+  // checking if there is an unreleased release PR, checking if the release
+  // strategy supports snapshots.
+  //
+  // _run() is called from run(), with the expectation that it performs
+  // language specific release tasks, e.g., updating files specific to .NET.
   protected async _run() {
     if (this.snapshot) {
       checkpoint('running as snapshot pre-release', CheckpointType.Success);
