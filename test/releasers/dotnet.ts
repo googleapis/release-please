@@ -53,7 +53,7 @@ function stringifyUpdates(updates: [string, object][]): string {
   }
   return stringified.replace(
     /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
-    '1983-10-10' // don't save a real date, this will break tests.
+    '1983-10-10' // use a fake date, so that we don't break daily.
   );
 }
 
