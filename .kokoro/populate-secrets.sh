@@ -20,8 +20,9 @@ function msg { println "$*" >&2 ;}
 function println { printf '%s\n' "$(now) $*" ;}
 
 
-# Populates requested secrets set in SECRET_MANAGER_KEYS from service account:
-# kokoro-trampoline@cloud-devrel-kokoro-resources.iam.gserviceaccount.com
+# Populates requested secrets set in SECRET_MANAGER_KEYS from a service account
+# attached to the Kokoro VM.
+# This means we need to setup auth on other CI systems.
 SECRET_LOCATION="${KOKORO_GFILE_DIR}/secret_manager"
 msg "Creating folder on disk for secrets: ${SECRET_LOCATION}"
 mkdir -p ${SECRET_LOCATION}
