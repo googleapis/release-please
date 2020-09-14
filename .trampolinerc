@@ -47,4 +47,4 @@ if [[ -z "${TRAMPOLINE_BUILD_FILE:-}" ]]; then
 fi
 
 # Secret Manager secrets.
-$(dirname $0)/populate-secrets.sh
+${PROJECT_ROOT}/.kokoro/populate-secrets.sh
