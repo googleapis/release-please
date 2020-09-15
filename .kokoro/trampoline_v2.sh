@@ -312,7 +312,7 @@ if [[ "${RUNNING_IN_CI:-}" == "true" ]]; then
     fi
 else
     # For local run, check if we have the image.
-    if docker images "${TRAMPOLINE_IMAGE}:latest" | grep "${TRAMPOLINE_IMAGE}"; then
+    if docker images "${TRAMPOLINE_IMAGE}" | grep "${TRAMPOLINE_IMAGE%:*}"; then
 	has_image="true"
     else
 	has_image="false"
