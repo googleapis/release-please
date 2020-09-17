@@ -4,6 +4,145 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.2.0](https://www.github.com/googleapis/release-please/compare/v6.1.0...v6.2.0) (2020-09-11)
+
+
+### Features
+
+* add option to create PR from fork ([#547](https://www.github.com/googleapis/release-please/issues/547)) ([5057818](https://www.github.com/googleapis/release-please/commit/5057818c9029cb2054c2279183044c17c607699f))
+* adds support for Data API in Github#getFileContents ([#551](https://www.github.com/googleapis/release-please/issues/551)) ([40a9c68](https://www.github.com/googleapis/release-please/commit/40a9c684347331756aae87639e0fa18d218ce16b)), closes [#546](https://www.github.com/googleapis/release-please/issues/546)
+* support pre-releases ([#550](https://www.github.com/googleapis/release-please/issues/550)) ([320448b](https://www.github.com/googleapis/release-please/commit/320448b22eb5c3c7c7a6eaa96ac77b8cc73bc48a))
+
+
+### Bug Fixes
+
+* **deps:** update dependency yargs to v16 ([#544](https://www.github.com/googleapis/release-please/issues/544)) ([ab092c8](https://www.github.com/googleapis/release-please/commit/ab092c83a284517b00b5827a6136cd32c8fd9e7e))
+
+## [6.1.0](https://www.github.com/googleapis/release-please/compare/v6.0.0...v6.1.0) (2020-09-08)
+
+
+### Features
+
+*  pass an array of change log section options to the node releaser ([#538](https://www.github.com/googleapis/release-please/issues/538)) ([e9874f4](https://www.github.com/googleapis/release-please/commit/e9874f469dbe2ef76c9469f4db78e0eb9ece921e))
+
+
+### Bug Fixes
+
+* forks do not work for GitHub Actions or apps ([#542](https://www.github.com/googleapis/release-please/issues/542)) ([6676c26](https://www.github.com/googleapis/release-please/commit/6676c266128e967b9f6ad57acf45f9c82c506154))
+* return 0 rather than -1 if PR not found ([#541](https://www.github.com/googleapis/release-please/issues/541)) ([1247635](https://www.github.com/googleapis/release-please/commit/124763588b8a182f3a86240de2d9c8de458a712d))
+
+## [6.0.0](https://www.github.com/googleapis/release-please/compare/v5.9.1...v6.0.0) (2020-09-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **code-suggester:** move to code-suggester for PR management (#536)
+
+### Features
+
+* **code-suggester:** move to code-suggester for PR management ([#536](https://www.github.com/googleapis/release-please/issues/536)) ([de347b8](https://www.github.com/googleapis/release-please/commit/de347b89c5db8f410abe0730a6c0e48fb4665b2e))
+
+### [5.9.1](https://www.github.com/googleapis/release-please/compare/v5.9.0...v5.9.1) (2020-09-02)
+
+
+### Bug Fixes
+
+* **simple:** create version.txt if it does not exist ([#534](https://www.github.com/googleapis/release-please/issues/534)) ([cf906f2](https://www.github.com/googleapis/release-please/commit/cf906f29f2d738104207fa682cda9146eaba64c5))
+
+## [5.9.0](https://www.github.com/googleapis/release-please/compare/v5.8.0...v5.9.0) (2020-08-20)
+
+
+### Features
+
+* **release-as:** release-as now supports pre-release ([#529](https://www.github.com/googleapis/release-please/issues/529)) ([e8b1105](https://www.github.com/googleapis/release-please/commit/e8b1105e068cf037173d3d74a8555ace85a1bfcc))
+
+## [5.8.0](https://www.github.com/googleapis/release-please/compare/v5.7.3...v5.8.0) (2020-08-18)
+
+
+### Features
+
+* add typescript exports from index ([#525](https://www.github.com/googleapis/release-please/issues/525)) ([8b28640](https://www.github.com/googleapis/release-please/commit/8b286404489da09c68c63278bae2acca24377b68))
+* allow CHANGELOG path to be  set ([#527](https://www.github.com/googleapis/release-please/issues/527)) ([1a72cc2](https://www.github.com/googleapis/release-please/commit/1a72cc2916baba7b7a0d71aaa8274bc99ebcba53))
+
+### [5.7.3](https://www.github.com/googleapis/release-please/compare/v5.7.2...v5.7.3) (2020-08-18)
+
+
+### Bug Fixes
+
+* **yoshi-go:** store the sha of the first commit ([#523](https://www.github.com/googleapis/release-please/issues/523)) ([6c313c1](https://www.github.com/googleapis/release-please/commit/6c313c151c749273d3d73bf4aeae6f4a2f9dffd3))
+
+### [5.7.2](https://www.github.com/googleapis/release-please/compare/v5.7.1...v5.7.2) (2020-08-14)
+
+
+### Bug Fixes
+
+* **go:** Update scope matching and regen regex ([#520](https://www.github.com/googleapis/release-please/issues/520)) ([aa045ce](https://www.github.com/googleapis/release-please/commit/aa045cec26ae8588f7aea78fd220dca72f83ea88))
+
+### [5.7.1](https://www.github.com/googleapis/release-please/compare/v5.7.0...v5.7.1) (2020-08-12)
+
+
+### Bug Fixes
+
+* **java:** detect need for snapshot unless a snapshot is explicitly requested ([#518](https://www.github.com/googleapis/release-please/issues/518)) ([1e73a28](https://www.github.com/googleapis/release-please/commit/1e73a28898d8dd0eb3e6f5a3ff00564fe4004fa7))
+
+## [5.7.0](https://www.github.com/googleapis/release-please/compare/v5.6.2...v5.7.0) (2020-08-12)
+
+
+### Features
+
+* **go:** add support for releasing yoshi gapic go libraries ([#514](https://www.github.com/googleapis/release-please/issues/514)) ([25a234a](https://www.github.com/googleapis/release-please/commit/25a234aa61c629e0cc3013f9c86b828c9b0f1d35))
+
+### [5.6.2](https://www.github.com/googleapis/release-please/compare/v5.6.1...v5.6.2) (2020-08-04)
+
+
+### Bug Fixes
+
+* looser parsing of versions.txt ([#512](https://www.github.com/googleapis/release-please/issues/512)) ([e4c77f4](https://www.github.com/googleapis/release-please/commit/e4c77f4c155295b60d7c6bb765f486325d3cfb3c)), closes [#500](https://www.github.com/googleapis/release-please/issues/500)
+
+### [5.6.1](https://www.github.com/googleapis/release-please/compare/v5.6.0...v5.6.1) (2020-07-28)
+
+
+### Bug Fixes
+
+* **java-snapshot:** handle no new commits since release ([#504](https://www.github.com/googleapis/release-please/issues/504)) ([deb625f](https://www.github.com/googleapis/release-please/commit/deb625ff5b00cbd523c0dcc1160716cce31b18da)), closes [#500](https://www.github.com/googleapis/release-please/issues/500)
+
+## [5.6.0](https://www.github.com/googleapis/release-please/compare/v5.5.2...v5.6.0) (2020-07-27)
+
+
+### Features
+
+* add support for monorepos/releasing from alternate folders ([#501](https://www.github.com/googleapis/release-please/issues/501)) ([64268ba](https://www.github.com/googleapis/release-please/commit/64268ba55d994dd350fe7e04123daafdca379ad0))
+
+### [5.5.2](https://www.github.com/googleapis/release-please/compare/v5.5.1...v5.5.2) (2020-07-23)
+
+
+### Bug Fixes
+
+* missing authorization header for repos.get() ([#490](https://www.github.com/googleapis/release-please/issues/490)) ([895b91c](https://www.github.com/googleapis/release-please/commit/895b91c5ff42d01fa96499f7021fa5ede98ff52e)), closes [#474](https://www.github.com/googleapis/release-please/issues/474)
+* **node:** reorder files added, so that skip logic works ([#495](https://www.github.com/googleapis/release-please/issues/495)) ([55d7be6](https://www.github.com/googleapis/release-please/commit/55d7be6fdba12b83285462c8946426a8618f4d2b))
+* use conventional commits for our own commits ([#498](https://www.github.com/googleapis/release-please/issues/498)) ([7c63bbf](https://www.github.com/googleapis/release-please/commit/7c63bbf978d4cf88d12c95de2412ab1124c748dc))
+
+### [5.5.1](https://www.github.com/googleapis/release-please/compare/v5.5.0...v5.5.1) (2020-07-07)
+
+
+### Bug Fixes
+
+* exception was thrown when 0 commits found ([#484](https://www.github.com/googleapis/release-please/issues/484)) ([ae26670](https://www.github.com/googleapis/release-please/commit/ae26670b51c0d7a221c1becf147a4cb839374554))
+
+## [5.5.0](https://www.github.com/googleapis/release-please/compare/v5.4.0...v5.5.0) (2020-07-01)
+
+
+### Features
+
+* **snapshot:** skip snapshot releases for releasers that lack this concept ([#479](https://www.github.com/googleapis/release-please/issues/479)) ([8305a2d](https://www.github.com/googleapis/release-please/commit/8305a2d7855988f175ac1b1d63513f7153e7e185))
+
+
+### Bug Fixes
+
+* **deps:** update dependency type-fest to ^0.16.0 ([#475](https://www.github.com/googleapis/release-please/issues/475)) ([be5ea39](https://www.github.com/googleapis/release-please/commit/be5ea39be3d45bb73ee4a78c2abae6a80fc9a6be))
+* skip Java releases if snapshot is specified, but does not match repo state ([#481](https://www.github.com/googleapis/release-please/issues/481)) ([ba6e358](https://www.github.com/googleapis/release-please/commit/ba6e35884b7e14d991618b9648b9d49fff1b4733))
+* update node issue template ([#472](https://www.github.com/googleapis/release-please/issues/472)) ([746f088](https://www.github.com/googleapis/release-please/commit/746f088b7c7c0a6ed7f118f39fa3cd4b825dc429))
+
 ## [5.4.0](https://www.github.com/googleapis/release-please/compare/v5.3.0...v5.4.0) (2020-06-17)
 
 

@@ -46,41 +46,33 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-async function delay({ms = 3000}) {
-  if (process.env.ENVIRONMENT === 'test') return;
-  new Promise(resolve => {
-    setTimeout(() => {
-      return resolve();
-    }, ms);
-  });
-}
-
 export class JavaYoshi extends ReleasePR {
   static releaserName = 'java-yoshi';
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
     );
-    console.info('version.txt content', versionsManifestContent.parsedContent);
     const currentVersions = VersionsManifest.parseVersions(
       versionsManifestContent.parsedContent
     );
-    this.snapshot = VersionsManifest.needsSnapshot(
+
+    const snapshotNeeded = VersionsManifest.needsSnapshot(
       versionsManifestContent.parsedContent
     );
+    if (!this.snapshot) {
+      // if a snapshot is not explicitly requested, decided what type
+      // of release based on whether a snapshot is needed or not
+      this.snapshot = snapshotNeeded;
+    } else if (!snapshotNeeded) {
+      checkpoint(
+        'release asked for a snapshot, but no snapshot is needed',
+        CheckpointType.Failure
+      );
+      return;
+    }
+
     if (this.snapshot) {
       this.labels = ['type: process'];
-      // TODO: this temporarily resolves a race condition between creating a release
-      // and updating tags on the release PR. This should be replaced by a queuing
-      // mechanism to delay/retry this request.
-      if (this.snapshot) {
-        checkpoint(
-          'snapshot: sleeping for 15 seconds...',
-          CheckpointType.Success
-        );
-        await delay({ms: 15000});
-        checkpoint('snapshot: finished sleeping', CheckpointType.Success);
-      }
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
@@ -92,16 +84,32 @@ export class JavaYoshi extends ReleasePR {
             files: [],
           },
         ]
-      : await this.commits(latestTag ? latestTag.sha : undefined, 100, true);
+      : await this.commits({
+          sha: latestTag ? latestTag.sha : undefined,
+          labels: true,
+        });
+    if (commits.length === 0) {
+      checkpoint(
+        `no commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return;
+    }
     let prSHA = commits[0].sha;
     // Snapshots populate a fake "fix:"" commit, so that they will always
     // result in a patch update. We still need to know the HEAD sba, so that
     // we can use this as a starting point for the snapshot PR:
-    if (this.snapshot) {
+    if (this.snapshot && latestTag?.sha) {
       const latestCommit = (
-        await this.commits(latestTag ? latestTag.sha : undefined, 1, true)
+        await this.commits({
+          sha: latestTag.sha,
+          perPage: 1,
+          labels: true,
+        })
       )[0];
-      prSHA = latestCommit.sha;
+      prSHA = latestCommit ? latestCommit.sha : latestTag.sha;
     }
 
     const cc = new ConventionalCommits({
@@ -237,17 +245,17 @@ export class JavaYoshi extends ReleasePR {
       );
     });
 
-    console.info(
-      `attempting to open PR latestTagSha = ${
-        latestTag ? latestTag.sha : 'none'
-      } prSha = ${prSHA}`
-    );
-    await this.openPR(
-      prSHA!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: prSHA!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
+  }
+
+  protected supportsSnapshots(): boolean {
+    return true;
   }
 
   protected defaultInitialVersion(): string {

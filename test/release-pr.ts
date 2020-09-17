@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {describe, it, afterEach} from 'mocha';
 import {expect} from 'chai';
 import * as nock from 'nock';
-import {before, describe, it} from 'mocha';
 nock.disableNetConnect();
 
 import {ConventionalCommits} from '../src/conventional-commits';
@@ -27,22 +27,30 @@ import * as snapshot from 'snap-shot-it';
 import {ReleaseCandidate, ReleasePR} from '../src/release-pr';
 import {PHPYoshi} from '../src/releasers/php-yoshi';
 
+import * as suggester from 'code-suggester';
+import * as sinon from 'sinon';
+
+const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
 
-interface MochaThis {
-  [skip: string]: Function;
-}
-function requireNode10(this: MochaThis) {
-  const match = process.version.match(/v([0-9]+)/);
-  if (match) {
-    if (Number(match[1]) < 10) this.skip();
-  }
-}
+describe('Release-PR', () => {
+  afterEach(() => {
+    sandbox.restore();
+  });
 
-describe('GitHub', () => {
   describe('Yoshi PHP Mono-Repo', () => {
-    before(requireNode10);
     it('generates CHANGELOG and aborts if duplicate', async () => {
+      // Fake the createPullRequest step, and capture a set of files to
+      // assert against:
+      let expectedChanges = null;
+      sandbox.replace(
+        suggester,
+        'createPullRequest',
+        (_octokit, changes): Promise<number> => {
+          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+          return Promise.resolve(22);
+        }
+      );
       const graphql = JSON.parse(
         readFileSync(
           resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
@@ -71,6 +79,9 @@ describe('GitHub', () => {
         .reply(200, {
           data: graphql,
         })
+        // Look for any existing release PRs that are still open:
+        .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
+        .reply(200, [])
         // fetch the current version of each library.
         .get('/repos/googleapis/release-please/contents/AutoMl/composer.json')
         .reply(200, {
@@ -139,26 +150,26 @@ describe('GitHub', () => {
         .get('/repos/googleapis/release-please/contents/docs/VERSION')
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.21.0'
+          '/repos/googleapis/release-please/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/src/Version.php?ref=refs%2Fheads%2Frelease-v0.21.0'
+          '/repos/googleapis/release-please/contents/src/Version.php?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/src/ServiceBuilder.php?ref=refs%2Fheads%2Frelease-v0.21.0'
+          '/repos/googleapis/release-please/contents/src/ServiceBuilder.php?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/composer.json?ref=refs%2Fheads%2Frelease-v0.21.0'
+          '/repos/googleapis/release-please/contents/composer.json?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from('{"replace": {}}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Frelease-v0.21.0'
+          '/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from(
@@ -167,57 +178,13 @@ describe('GitHub', () => {
           ).toString('base64'),
           sha: 'abc123',
         })
-        // we're on the home stretch I promise ...
-        // fetch prior refs, to determine whether this is an update
-        // to an existing branch or new PR.
-        .get('/repos/googleapis/release-please/git/refs?per_page=100')
-        .reply(200, [])
-        .post('/repos/googleapis/release-please/git/refs')
+        // Add autorelease: pending label to release PR:
+        .post('/repos/googleapis/release-please/issues/22/labels')
         .reply(200)
-        .post('/repos/googleapis/release-please/issues/1/labels')
-        .reply(200, {number: 1})
-        .put('/repos/googleapis/release-please/contents/AutoMl/VERSION')
-        .reply(200)
-        .put('/repos/googleapis/release-please/contents/Datastore/VERSION')
-        .reply(200)
-        .put('/repos/googleapis/release-please/contents/PubSub/VERSION')
-        .reply(200)
-        .put('/repos/googleapis/release-please/contents/Speech/VERSION')
-        .reply(200)
-        .put(
-          '/repos/googleapis/release-please/contents/WebSecurityScanner/VERSION'
-        )
-        .reply(200)
-        .put('/repos/googleapis/release-please/contents/composer.json')
-        .reply(200, [])
-        .put(
-          '/repos/googleapis/release-please/contents/docs/manifest.json',
-          (req: {[key: string]: string}) => {
-            const manifest = Buffer.from(req.content, 'base64').toString(
-              'utf8'
-            );
-            snapshot(manifest);
-            return true;
-          }
-        )
-        .reply(200, [])
-        .put('/repos/googleapis/release-please/contents/CHANGELOG.md')
-        .reply(200, [])
         // check for default branch
         .get('/repos/googleapis/release-please')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .reply(200, require('../../test/fixtures/repo-get-1.json'))
-        // actually open the darn PR, this is the exciting step,
-        // so we snapshot it:
-        .post(
-          '/repos/googleapis/release-please/pulls',
-          (req: {[key: string]: string}) => {
-            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-            snapshot(req);
-            return true;
-          }
-        )
-        .reply(200, {number: 1})
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
         .reply(200, []);
@@ -232,6 +199,7 @@ describe('GitHub', () => {
       });
       await releasePR.run();
       req.done();
+      snapshot(JSON.stringify(expectedChanges, null, 2));
     });
   });
 
@@ -239,9 +207,10 @@ describe('GitHub', () => {
     class TestableReleasePR extends ReleasePR {
       async coerceReleaseCandidate(
         cc: ConventionalCommits,
-        latestTag?: GitHubTag
+        latestTag?: GitHubTag,
+        preRelese = false
       ): Promise<ReleaseCandidate> {
-        return super.coerceReleaseCandidate(cc, latestTag);
+        return super.coerceReleaseCandidate(cc, latestTag, preRelese);
       }
     }
 
@@ -341,6 +310,54 @@ describe('GitHub', () => {
       });
       const candidate = await rp.coerceReleaseCandidate(cc);
       expect(candidate.version).to.equal('2.0.0');
+    });
+
+    describe('preRelease', () => {
+      it('increments a prerelease appropriately', async () => {
+        const rp = new TestableReleasePR({
+          repoUrl: 'googleapis/nodejs',
+          packageName: '@google-cloud/nodejs',
+          apiUrl: 'github.com',
+          releaseType: 'node',
+        });
+        const cc = new ConventionalCommits({
+          commits: [],
+          githubRepoUrl: 'googleapis/nodejs',
+        });
+        const candidate = await rp.coerceReleaseCandidate(
+          cc,
+          {
+            name: 'tag',
+            sha: 'abc123',
+            version: '1.0.0-alpha9',
+          },
+          true
+        );
+        expect(candidate.version).to.equal('1.0.0-alpha10');
+      });
+
+      it('handles pre-release when there is no suffix', async () => {
+        const rp = new TestableReleasePR({
+          repoUrl: 'googleapis/nodejs',
+          packageName: '@google-cloud/nodejs',
+          apiUrl: 'github.com',
+          releaseType: 'node',
+        });
+        const cc = new ConventionalCommits({
+          commits: [],
+          githubRepoUrl: 'googleapis/nodejs',
+        });
+        const candidate = await rp.coerceReleaseCandidate(
+          cc,
+          {
+            name: 'tag',
+            sha: 'abc123',
+            version: '1.0.0',
+          },
+          true
+        );
+        expect(candidate.version).to.equal('1.0.0-alpha1');
+      });
     });
   });
 });

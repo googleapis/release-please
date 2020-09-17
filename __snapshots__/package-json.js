@@ -31,8 +31,7 @@ exports['PackageJson updateContent updates the package version 1'] = `
     "coveralls": "^3.0.2",
     "mocha": "^5.2.0",
     "nyc": "^13.0.1",
-    "standard": "^12.0.1",
-    "standard-version": "^4.4.0"
+    "standard": "^12.0.1"
   },
   "dependencies": {
     "camelcase": "^5.0.0",

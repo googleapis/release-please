@@ -61,6 +61,11 @@ const argv = yargs
           describe: 'GitHub URL to generate release for',
           demand: true,
         })
+        .option('fork', {
+          describe: 'should the PR be created from a fork',
+          type: 'boolean',
+          default: false,
+        })
         .option('label', {
           describe: 'label(s) to add to generated PR',
         })
@@ -72,6 +77,15 @@ const argv = yargs
         .option('default-branch', {
           describe: 'default branch to open release PR against',
           type: 'string',
+        })
+        .option('path', {
+          describe: 'release from path other than root directory',
+          type: 'string',
+        })
+        .option('monorepo-tags', {
+          describe: 'include library name in tags and release branches',
+          type: 'boolean',
+          default: false,
         });
     },
     (argv: ReleasePROptions) => {
@@ -91,6 +105,10 @@ const argv = yargs
           describe: 'GitHub URL to generate release for',
           demand: true,
         })
+        .option('changelog-path', {
+          default: 'CHANGELOG.md',
+          describe: 'where can the CHANGELOG be found in the project?',
+        })
         .option('label', {
           default: 'autorelease: pending',
           describe: 'label to remove from release PR',
@@ -99,6 +117,10 @@ const argv = yargs
           describe: 'what type of repo is a release being created for?',
           choices: getReleaserNames(),
           default: 'node',
+        })
+        .option('path', {
+          describe: 'release from path other than root directory',
+          type: 'string',
         });
     },
     (argv: GitHubReleaseOptions) => {

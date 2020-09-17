@@ -12,22 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it} from 'mocha';
+import {describe, it, afterEach} from 'mocha';
+import * as assert from 'assert';
 import * as nock from 'nock';
 import {ReleasePRFactory} from '../src/release-pr-factory';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
+import * as suggester from 'code-suggester';
+import * as sinon from 'sinon';
+
+const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/simple';
 
-interface MochaThis {
-  [skip: string]: Function;
-}
-
 describe('ReleasePRFactory', () => {
+  afterEach(() => {
+    sandbox.restore();
+  });
+
   describe('build', () => {
     it('returns instance of dynamically loaded releaser', async () => {
+      // We stub the entire suggester API, asserting only that the
+      // the appropriate changes are proposed:
+      let expectedChanges = null;
+      sandbox.replace(
+        suggester,
+        'createPullRequest',
+        (_octokit, changes): Promise<number> => {
+          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+          return Promise.resolve(22);
+        }
+      );
       const versionContent = readFileSync(
         resolve(fixturesPath, 'version.txt'),
         'utf8'
@@ -40,11 +56,6 @@ describe('ReleasePRFactory', () => {
           '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/simple-test-repo/contents/version.txt')
-        .reply(200, {
-          content: Buffer.from(versionContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get('/repos/googleapis/simple-test-repo/tags?per_page=100')
@@ -60,70 +71,37 @@ describe('ReleasePRFactory', () => {
         .reply(200, {
           data: graphql,
         })
-        // getting the latest tag
-        .get('/repos/googleapis/simple-test-repo/git/refs?per_page=100')
-        .reply(200, [{ref: 'refs/tags/v0.123.4'}])
-        // creating a new branch
-        .post('/repos/googleapis/simple-test-repo/git/refs')
-        .reply(200)
+        // Check if a release PR already exists
+        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
+        .reply(200, [])
         // check for CHANGELOG
         .get(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.123.5'
+          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmain'
         )
         .reply(404)
-        .put(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md',
-          (req: {[key: string]: string}) => {
-            snapshot(
-              Buffer.from(req.content, 'base64')
-                .toString('utf8')
-                .replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '')
-            );
-            return true;
-          }
-        )
-        .reply(201)
-        // update version.txt
+        // Update the version.txt file:
         .get(
-          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Frelease-v0.123.5'
+          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Fmain'
         )
         .reply(200, {
           content: Buffer.from(versionContent, 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .put(
-          '/repos/googleapis/simple-test-repo/contents/version.txt',
-          (req: {[key: string]: string}) => {
-            snapshot(Buffer.from(req.content, 'base64').toString('utf8'));
-            return true;
-          }
-        )
-        .reply(200)
         // check for default branch
         .get('/repos/googleapis/simple-test-repo')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .reply(200, require('../../test/fixtures/repo-get-2.json'))
-        // create release
-        .post(
-          '/repos/googleapis/simple-test-repo/pulls',
-          (req: {[key: string]: string}) => {
-            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-            snapshot(req);
-            return true;
-          }
-        )
-        .reply(200, {number: 1})
-        .post(
-          '/repos/googleapis/simple-test-repo/issues/1/labels',
-          (req: {[key: string]: string}) => {
-            snapshot(req);
-            return true;
-          }
-        )
-        .reply(200, {})
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, []);
+        .reply(200, [])
+        .post(
+          '/repos/googleapis/simple-test-repo/issues/22/labels',
+          (req: {[key: string]: string}) => {
+            assert.strictEqual(req.labels[0], 'autorelease: pending');
+            return true;
+          }
+        )
+        .reply(200);
       const releasePR = ReleasePRFactory.build('simple', {
         repoUrl: 'googleapis/simple-test-repo',
         // not actually used by this type of repo.
@@ -132,11 +110,28 @@ describe('ReleasePRFactory', () => {
       });
       await releasePR.run();
       req.done();
+      snapshot(
+        JSON.stringify(expectedChanges, null, 2).replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10' // don't save a real date, this will break tests.
+        )
+      );
     });
   });
 
   describe('buildStatic', () => {
     it('returns an instance of a statically loaded releaser', async () => {
+      // We stub the entire suggester API, asserting only that the
+      // the appropriate changes are proposed:
+      let expectedChanges = null;
+      sandbox.replace(
+        suggester,
+        'createPullRequest',
+        (_octokit, changes): Promise<number> => {
+          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+          return Promise.resolve(22);
+        }
+      );
       const versionContent = readFileSync(
         resolve(fixturesPath, 'version.txt'),
         'utf8'
@@ -149,11 +144,6 @@ describe('ReleasePRFactory', () => {
           '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/simple-test-repo/contents/version.txt')
-        .reply(200, {
-          content: Buffer.from(versionContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get('/repos/googleapis/simple-test-repo/tags?per_page=100')
@@ -169,70 +159,37 @@ describe('ReleasePRFactory', () => {
         .reply(200, {
           data: graphql,
         })
-        // getting the latest tag
-        .get('/repos/googleapis/simple-test-repo/git/refs?per_page=100')
-        .reply(200, [{ref: 'refs/tags/v0.123.4'}])
-        // creating a new branch
-        .post('/repos/googleapis/simple-test-repo/git/refs')
-        .reply(200)
+        // Check if a release PR already exists
+        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
+        .reply(200, [])
         // check for CHANGELOG
         .get(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Frelease-v0.123.5'
+          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmain'
         )
         .reply(404)
-        .put(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md',
-          (req: {[key: string]: string}) => {
-            snapshot(
-              Buffer.from(req.content, 'base64')
-                .toString('utf8')
-                .replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '')
-            );
-            return true;
-          }
-        )
-        .reply(201)
-        // update version.txt
+        // Update the version.txt file:
         .get(
-          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Frelease-v0.123.5'
+          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Fmain'
         )
         .reply(200, {
           content: Buffer.from(versionContent, 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .put(
-          '/repos/googleapis/simple-test-repo/contents/version.txt',
-          (req: {[key: string]: string}) => {
-            snapshot(Buffer.from(req.content, 'base64').toString('utf8'));
-            return true;
-          }
-        )
-        .reply(200)
         // check for default branch
         .get('/repos/googleapis/simple-test-repo')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .reply(200, require('../../test/fixtures/repo-get-2.json'))
-        // create release
-        .post(
-          '/repos/googleapis/simple-test-repo/pulls',
-          (req: {[key: string]: string}) => {
-            req.body = req.body.replace(/\([0-9]{4}-[0-9]{2}-[0-9]{2}\)/g, '');
-            snapshot(req);
-            return true;
-          }
-        )
-        .reply(200, {number: 1})
-        .post(
-          '/repos/googleapis/simple-test-repo/issues/1/labels',
-          (req: {[key: string]: string}) => {
-            snapshot(req);
-            return true;
-          }
-        )
-        .reply(200, {})
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, []);
+        .reply(200, [])
+        .post(
+          '/repos/googleapis/simple-test-repo/issues/22/labels',
+          (req: {[key: string]: string}) => {
+            assert.strictEqual(req.labels[0], 'autorelease: pending');
+            return true;
+          }
+        )
+        .reply(200);
       const releasePR = ReleasePRFactory.buildStatic('simple', {
         repoUrl: 'googleapis/simple-test-repo',
         // not actually used by this type of repo.
@@ -241,6 +198,12 @@ describe('ReleasePRFactory', () => {
       });
       await releasePR.run();
       req.done();
+      snapshot(
+        JSON.stringify(expectedChanges, null, 2).replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10' // don't save a real date, this will break tests.
+        )
+      );
     });
   });
 });

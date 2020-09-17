@@ -37,10 +37,15 @@ const parseGithubRepoUrl = require('parse-github-repo-url');
 export interface BuildOptions {
   bumpMinorPreMajor?: boolean;
   defaultBranch?: string;
+  fork?: boolean;
   label?: string;
   token?: string;
   repoUrl: string;
   packageName: string;
+  // When releasing multiple libraries from one repository, include a prefix
+  // on tags and branch names:
+  monorepoTags?: boolean;
+  path?: string;
   releaseAs?: string;
   apiUrl: string;
   proxyKey?: string;
@@ -51,11 +56,27 @@ export interface BuildOptions {
 
 export interface ReleasePROptions extends BuildOptions {
   releaseType: string;
+  changelogSections?: [];
 }
 
 export interface ReleaseCandidate {
   version: string;
   previousTag?: string;
+}
+
+interface GetCommitsOptions {
+  sha?: string;
+  perPage?: number;
+  labels?: boolean;
+  path?: string;
+}
+
+interface OpenPROptions {
+  sha: string;
+  changelogEntry: string;
+  updates: Update[];
+  version: string;
+  includePackageName: boolean;
 }
 
 const DEFAULT_LABELS = 'autorelease: pending';
@@ -66,25 +87,32 @@ export class ReleasePR {
   apiUrl: string;
   defaultBranch?: string;
   labels: string[];
+  fork: boolean;
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   repoUrl: string;
   token: string | undefined;
+  path?: string;
   packageName: string;
+  monorepoTags: boolean;
   releaseAs?: string;
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
+  changelogSections?: [];
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.defaultBranch = options.defaultBranch;
+    this.fork = !!options.fork;
     this.labels = options.label
       ? options.label.split(',')
       : DEFAULT_LABELS.split(',');
     this.repoUrl = options.repoUrl;
     this.token = options.token;
+    this.path = options.path;
     this.packageName = options.packageName;
+    this.monorepoTags = options.monorepoTags || false;
     this.releaseAs = options.releaseAs;
     this.apiUrl = options.apiUrl;
     this.proxyKey = options.proxyKey;
@@ -95,9 +123,18 @@ export class ReleasePR {
       : undefined;
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
+
+    this.changelogSections = options.changelogSections;
   }
 
   async run() {
+    if (this.snapshot && !this.supportsSnapshots()) {
+      checkpoint(
+        'snapshot releases not supported for this releaser',
+        CheckpointType.Failure
+      );
+      return;
+    }
     const pr: GitHubReleasePR | undefined = await this.gh.findMergedReleasePR(
       this.labels
     );
@@ -114,6 +151,10 @@ export class ReleasePR {
 
   protected async _run() {
     throw Error('must be implemented by subclass');
+  }
+
+  protected supportsSnapshots(): boolean {
+    return false;
   }
 
   private async closeStaleReleasePRs(
@@ -155,9 +196,10 @@ export class ReleasePR {
 
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
-    latestTag: GitHubTag | undefined
+    latestTag: GitHubTag | undefined,
+    preRelease = false
   ): Promise<ReleaseCandidate> {
-    const releaseAsRe = /release-as: v?([0-9]+\.[0-9]+\.[0-9a-z-])+\s*/i;
+    const releaseAsRe = /release-as:\s*v?([0-9]+\.[0-9]+\.[0-9a-z]+(-[0-9a-z.]+)?)\s*/i;
     const previousTag = latestTag ? latestTag.name : undefined;
     let version = latestTag ? latestTag.version : this.defaultInitialVersion();
 
@@ -174,6 +216,12 @@ export class ReleasePR {
     if (releaseAsCommit) {
       const match = releaseAsCommit.message.match(releaseAsRe);
       version = match![1];
+    } else if (preRelease) {
+      // Handle pre-release format v1.0.0-alpha1, alpha2, etc.
+      const [prefix, suffix] = version.split('-');
+      const match = suffix?.match(/(?<type>[^0-9]+)(?<number>[0-9]+)/);
+      const number = Number(match?.groups?.number || 0) + 1;
+      version = `${prefix}-${match?.groups?.type || 'alpha'}${number}`;
     } else if (latestTag && !this.releaseAs) {
       const bump = await cc.suggestBump(version);
       const candidate: string | null = semver.inc(version, bump.releaseType);
@@ -186,16 +234,17 @@ export class ReleasePR {
     return {version, previousTag};
   }
 
-  protected async commits(
-    sha?: string,
-    perPage = 100,
-    labels = false,
-    path: string | null = null
-  ): Promise<Commit[]> {
+  protected async commits(opts: GetCommitsOptions): Promise<Commit[]> {
+    const sha = opts.sha;
+    const perPage = opts.perPage || 100;
+    const labels = opts.labels || false;
+    const path = opts.path || undefined;
     const commits = await this.gh.commitsSinceSha(sha, perPage, labels, path);
     if (commits.length) {
       checkpoint(
-        `found ${commits.length} commits since ${sha}`,
+        `found ${commits.length} commits since ${
+          sha ? sha : 'beginning of time'
+        }`,
         CheckpointType.Success
       );
     } else {
@@ -217,13 +266,13 @@ export class ReleasePR {
     });
   }
 
-  protected async openPR(
-    sha: string,
-    changelogEntry: string,
-    updates: Update[],
-    version: string,
-    includePackageName = false
-  ) {
+  protected async openPR(options: OpenPROptions) {
+    const sha = options.sha;
+    const changelogEntry = options.changelogEntry;
+    const updates = options.updates;
+    const version = options.version;
+    const includePackageName = options.includePackageName;
+
     const title = includePackageName
       ? `Release ${this.packageName} ${version}`
       : `chore: release ${version}`;
@@ -237,10 +286,11 @@ export class ReleasePR {
       updates,
       title,
       body,
+      fork: this.fork,
       labels: this.labels,
     });
-    // a return of -1 indicates that PR was not updated.
-    if (pr > 0) {
+    // a return of 0 indicates that PR was not updated.
+    if (pr !== 0) {
       await this.gh.addLabels(this.labels, pr);
       checkpoint(
         `${this.repoUrl} find stale PRs with label "${this.labels.join(',')}"`,
@@ -252,5 +302,15 @@ export class ReleasePR {
 
   protected changelogEmpty(changelogEntry: string) {
     return changelogEntry.split('\n').length === 1;
+  }
+
+  addPath(file: string) {
+    if (this.path === undefined) {
+      return file;
+    } else {
+      const path = this.path.replace(/[/\\]$/, '');
+      file = file.replace(/^[/\\]/, '');
+      return `${path}/${file}`;
+    }
   }
 }

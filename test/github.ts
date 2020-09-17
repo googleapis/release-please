@@ -155,5 +155,112 @@ describe('GitHub', () => {
       expect(latestTag!.version).to.equal('1.2.0');
       req.done();
     });
+
+    it('returns pre-releases as latest, when preRelease is true', async () => {
+      const req = nock('https://api.github.com')
+        .get('/repos/fake/fake/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v1.2.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.2.0',
+          },
+          {
+            name: 'v1.3.0-beta.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.3.0',
+          },
+          {
+            name: 'v1.1.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.1.0',
+          },
+          {
+            name: 'v1.4.0-beta10',
+            commit: {sha: 'abc123'},
+            version: 'v1.3.0',
+          },
+          {
+            name: 'v1.4.0-beta2',
+            commit: {sha: 'abc123'},
+            version: 'v1.3.0',
+          },
+          {
+            name: 'v1.4.0-beta0',
+            commit: {sha: 'abc123'},
+            version: 'v1.3.0',
+          },
+          {
+            name: 'v1.3.0',
+            commit: {sha: 'abc123'},
+            version: 'v1.1.0',
+          },
+        ]);
+      const latestTag = await github.latestTag(undefined, true);
+      expect(latestTag!.version).to.equal('1.4.0-beta10');
+      req.done();
+    });
+  });
+
+  describe('getFileContents', () => {
+    it('should support Github Data API in case of a big file', async () => {
+      const simpleAPIResponse = JSON.parse(
+        readFileSync(
+          resolve(
+            fixturesPath,
+            'github-data-api',
+            '403-too-large-file-response.json'
+          ),
+          'utf8'
+        )
+      );
+      const dataAPITreesResponse = JSON.parse(
+        readFileSync(
+          resolve(
+            fixturesPath,
+            'github-data-api',
+            'data-api-trees-successful-response.json'
+          ),
+          'utf8'
+        )
+      );
+      const dataAPIBlobResponse = JSON.parse(
+        readFileSync(
+          resolve(
+            fixturesPath,
+            'github-data-api',
+            'data-api-blobs-successful-response.json'
+          ),
+          'utf8'
+        )
+      );
+      const req1 = nock('https://api.github.com')
+        .get(
+          '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmaster'
+        )
+        .reply(403, simpleAPIResponse);
+      const req2 = nock('https://api.github.com')
+        .get('/repos/fake/fake/git/trees/master')
+        .reply(200, dataAPITreesResponse);
+      const req3 = nock('https://api.github.com')
+        .get(
+          '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
+        )
+        .reply(200, dataAPIBlobResponse);
+
+      const fileContents = await github.getFileContents(
+        'package-lock.json',
+        'master'
+      );
+      expect(fileContents).to.have.property('content');
+      expect(fileContents).to.have.property('parsedContent');
+      expect(fileContents)
+        .to.have.property('sha')
+        .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
+      snapshot(fileContents);
+      req1.done();
+      req2.done();
+      req3.done();
+    });
   });
 });

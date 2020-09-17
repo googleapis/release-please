@@ -29,21 +29,24 @@ import {SamplesPackageJson} from '../updaters/samples-package-json';
 export class Node extends ReleasePR {
   static releaserName = 'node';
   protected async _run() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}-` : undefined
     );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
+    });
 
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: this.changelogSections,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,
       latestTag
     );
-
     const changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
@@ -68,33 +71,14 @@ export class Node extends ReleasePR {
     // Make an effort to populate packageName from the contents of
     // the package.json, rather than forcing this to be set:
     const contents: GitHubFileContents = await this.gh.getFileContents(
-      'package.json'
+      this.addPath('package.json')
     );
     const pkg = JSON.parse(contents.parsedContent);
     if (pkg.name) this.packageName = pkg.name;
 
     updates.push(
-      new Changelog({
-        path: 'CHANGELOG.md',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
-
-    updates.push(
       new PackageJson({
-        path: 'package.json',
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-        contents,
-      })
-    );
-
-    updates.push(
-      new PackageJson({
-        path: 'package-lock.json',
+        path: this.addPath('package-lock.json'),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
@@ -103,19 +87,39 @@ export class Node extends ReleasePR {
 
     updates.push(
       new SamplesPackageJson({
-        path: 'samples/package.json',
+        path: this.addPath('samples/package.json'),
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
       })
     );
 
-    await this.openPR(
-      commits[0].sha!,
-      `${changelogEntry}\n---\n`,
-      updates,
-      candidate.version
+    updates.push(
+      new Changelog({
+        path: this.addPath('CHANGELOG.md'),
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+      })
     );
+
+    updates.push(
+      new PackageJson({
+        path: this.addPath('package.json'),
+        changelogEntry,
+        version: candidate.version,
+        packageName: this.packageName,
+        contents,
+      })
+    );
+
+    await this.openPR({
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
+      updates,
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 
   // A releaser can implement this method to automatically detect

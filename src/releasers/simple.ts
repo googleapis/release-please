@@ -15,7 +15,7 @@
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag, GitHubFileContents} from '../github';
+import {GitHubTag} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -28,15 +28,19 @@ import {VersionTxt} from '../updaters/version-txt';
 export class Simple extends ReleasePR {
   static releaserName = 'simple';
   protected async _run() {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
-    const commits: Commit[] = await this.commits(
-      latestTag ? latestTag.sha : undefined
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}-` : undefined
     );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
+    });
 
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: this.changelogSections,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,
@@ -64,10 +68,6 @@ export class Simple extends ReleasePR {
 
     const updates: Update[] = [];
 
-    const contents: GitHubFileContents = await this.gh.getFileContents(
-      'version.txt'
-    );
-
     updates.push(
       new Changelog({
         path: 'CHANGELOG.md',
@@ -83,16 +83,15 @@ export class Simple extends ReleasePR {
         changelogEntry,
         version: candidate.version,
         packageName: this.packageName,
-        contents,
-        skipCi: false,
       })
     );
 
-    await this.openPR(
-      commits[0].sha!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
   }
 }

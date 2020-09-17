@@ -46,50 +46,51 @@ const CHANGELOG_SECTIONS = [
 const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
 const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
-async function delay({ms = 3000}) {
-  if (process.env.ENVIRONMENT === 'test') return;
-  new Promise(resolve => {
-    setTimeout(() => {
-      return resolve();
-    }, ms);
-  });
-}
-
 export class JavaBom extends ReleasePR {
   static releaserName = 'java-bom';
   protected async _run() {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
     );
-    console.info('version.txt content', versionsManifestContent.parsedContent);
     const currentVersions = VersionsManifest.parseVersions(
       versionsManifestContent.parsedContent
     );
-    this.snapshot = VersionsManifest.needsSnapshot(
+
+    const snapshotNeeded = VersionsManifest.needsSnapshot(
       versionsManifestContent.parsedContent
     );
+    if (!this.snapshot) {
+      // if a snapshot is not explicitly requested, decided what type
+      // of release based on whether a snapshot is needed or not
+      this.snapshot = snapshotNeeded;
+    } else if (!snapshotNeeded) {
+      checkpoint(
+        'release asked for a snapshot, but no snapshot is needed',
+        CheckpointType.Failure
+      );
+      return;
+    }
+
     if (this.snapshot) {
       this.labels = ['type: process'];
-      // TODO: this temporarily resolves a race condition between creating a release
-      // and updating tags on the release PR. This should be replaced by a queuing
-      // mechanism to delay/retry this request.
-      if (this.snapshot) {
-        checkpoint(
-          'snapshot: sleeping for 15 seconds...',
-          CheckpointType.Success
-        );
-        await delay({ms: 15000});
-        checkpoint('snapshot: finished sleeping', CheckpointType.Success);
-      }
     }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
 
-    const commits = await this.commits(
-      latestTag ? latestTag.sha : undefined,
-      this.snapshot ? 1 : 100,
-      true
-    );
+    const commits = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      perPage: this.snapshot ? 1 : 100,
+      labels: true,
+    });
+    if (commits.length === 0) {
+      checkpoint(
+        `no commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return;
+    }
     const prSHA = commits[0].sha;
     const cc = new ConventionalCommits({
       commits,
@@ -191,15 +192,17 @@ export class JavaBom extends ReleasePR {
       );
     });
 
-    console.info(
-      `attempting to open PR latestTagSha = ${latestTag!.sha} prSha = ${prSHA}`
-    );
-    await this.openPR(
-      prSHA!,
-      `${changelogEntry}\n---\n`,
+    await this.openPR({
+      sha: prSHA!,
+      changelogEntry: `${changelogEntry}\n---\n`,
       updates,
-      candidate.version
-    );
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
+  }
+
+  protected supportsSnapshots(): boolean {
+    return true;
   }
 
   protected defaultInitialVersion(): string {

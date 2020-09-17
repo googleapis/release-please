@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {createPullRequest, Changes} from 'code-suggester';
+
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
@@ -94,6 +96,7 @@ export interface GitHubFileContents {
 
 interface GitHubPR {
   branch: string;
+  fork: boolean;
   version: string;
   title: string;
   body: string;
@@ -128,7 +131,10 @@ export class GitHub {
     this.proxyKey = options.proxyKey;
 
     if (options.octokitAPIs === undefined) {
-      this.octokit = new Octokit({baseUrl: options.apiUrl});
+      this.octokit = new Octokit({
+        baseUrl: options.apiUrl,
+        auth: this.token,
+      });
       const defaults: {[key: string]: string | object} = {
         baseUrl: this.apiUrl,
         headers: {
@@ -439,7 +445,7 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  async latestTag(): Promise<GitHubTag | undefined> {
+  /* async latestTag(): Promise<GitHubTag | undefined> {
     const pull = await this.findMergedReleasePR([]);
     if (!pull) return undefined;
 
@@ -450,6 +456,38 @@ export class GitHub {
     } as GitHubTag;
 
     return tag;
+  } */
+  async latestTag(
+    prefix?: string,
+    preRelease = false
+  ): Promise<GitHubTag | undefined> {
+    const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
+    const versions = Object.keys(tags).filter(t => {
+      // remove any pre-releases from the list:
+      return preRelease || !t.includes('-');
+    });
+    // no tags have been created yet.
+    if (versions.length === 0) return undefined;
+
+    // We use a slightly modified version of semver's sorting algorithm, which
+    // prefixes the numeric part of a pre-release with '0's, so that
+    // 010 is greater than > 002.
+    versions.sort((v1, v2) => {
+      if (v1.includes('-')) {
+        const [prefix, suffix] = v1.split('-');
+        v1 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      if (v2.includes('-')) {
+        const [prefix, suffix] = v2.split('-');
+        v2 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      return semver.rcompare(v1, v2);
+    });
+    return {
+      name: tags[versions[0]].name,
+      sha: tags[versions[0]].sha,
+      version: tags[versions[0]].version,
+    };
   }
 
   async findMergedReleasePR(
@@ -541,7 +579,9 @@ export class GitHub {
     return openReleasePRs;
   }
 
-  private async allTags(): Promise<{[version: string]: GitHubTag}> {
+  private async allTags(
+    prefix?: string
+  ): Promise<{[version: string]: GitHubTag}> {
     const tags: {[version: string]: GitHubTag} = {};
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
@@ -552,8 +592,11 @@ export class GitHub {
       })
     )) {
       response.data.forEach((data: ReposListTagsResponseItems) => {
-        const version = semver.valid(data.name);
-        if (version) {
+        // For monorepos, a prefix can be provided, indicating that only tags
+        // matching the prefix should be returned:
+        if (prefix && !data.name.startsWith(prefix)) return;
+        let version = data.name.replace(prefix, '');
+        if ((version = semver.valid(version))) {
           tags[version] = {sha: data.commit.sha, name: data.name, version};
         }
       });
@@ -615,97 +658,51 @@ export class GitHub {
   }
 
   async openPR(options: GitHubPR): Promise<number> {
-    let refName = await this.refByBranchName(options.branch);
+    const defaultBranch = await this.getDefaultBranch(this.owner, this.repo);
+
+    // check if there's an existing PR, so that we can opt to update it
+    // rather than creating a new PR.
+    const refName = `refs/heads/${options.branch}`;
     let openReleasePR: PullsListResponseItem | undefined;
-
-    // If the branch exists, we delete it and create a new branch
-    // with the same name; this results in the existing PR being closed.
-    if (!refName) {
-      refName = `refs/heads/${options.branch}`;
-
-      // the branch didn't yet exist, so make it.
-      try {
-        checkpoint(
-          `creating branch ${chalk.green(options.branch)}`,
-          CheckpointType.Success
-        );
-        await this.request(
-          `POST /repos/:owner/:repo/git/refs${
-            this.proxyKey ? `?key=${this.proxyKey}` : ''
-          }`,
-          {
-            owner: this.owner,
-            repo: this.repo,
-            ref: refName,
-            sha: options.sha,
-            key: this.proxyKey,
-          }
-        );
-      } catch (err) {
-        if (err.status === 404) {
-          // the most likely cause of a 404 during this step is actually
-          // that the user does not have access to the repo:
-          throw new AuthError();
-        } else {
-          throw err;
-        }
-      }
-    } else {
-      try {
-        checkpoint(
-          `branch ${chalk.red(options.branch)} already exists`,
-          CheckpointType.Failure
-        );
-
-        // check if there's an existing PR, so that we can opt to update it
-        // rather than creating a new PR.
-        (await this.findOpenReleasePRs(options.labels)).forEach(releasePR => {
-          if (refName && refName.indexOf(releasePR.head.ref) !== -1) {
-            openReleasePR = releasePR as PullsListResponseItem;
-          }
-        });
-
-        // short-circuit of there have been no changes to the
-        // pull-request body.
-        if (openReleasePR && openReleasePR.body === options.body) {
-          checkpoint(
-            `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
-            CheckpointType.Failure
-          );
-          return -1;
-        }
-
-        await this.request(
-          `PATCH /repos/:owner/:repo/git/refs/:ref${
-            this.proxyKey ? `?key=${this.proxyKey}` : ''
-          }`,
-          {
-            owner: this.owner,
-            repo: this.repo,
-            // TODO: remove the replace logic depending on the outcome of:
-            // https://github.com/octokit/rest.js/issues/1039.
-            ref: refName.replace('refs/', ''),
-            sha: options.sha,
-            force: true,
-          }
-        );
-      } catch (err) {
-        if (err.status === 404) {
-          // the most likely cause of a 404 during this step is actually
-          // that the user does not have access to the repo:
-          throw new AuthError();
-        } else {
-          throw err;
-        }
+    const releasePRCandidates = await this.findOpenReleasePRs(options.labels);
+    for (const releasePR of releasePRCandidates) {
+      if (refName && refName.includes(releasePR.head.ref)) {
+        openReleasePR = releasePR as PullsListResponseItem;
+        break;
       }
     }
 
-    await this.updateFiles(options.updates, options.branch, refName);
-    const base = await this.getDefaultBranch(this.owner, this.repo);
+    // short-circuit of there have been no changes to the
+    // pull-request body.
+    if (openReleasePR && openReleasePR.body === options.body) {
+      checkpoint(
+        `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
+        CheckpointType.Failure
+      );
+      return 0;
+    }
+
+    //  Actually update the files for the release:
+    const changes = await this.getChangeSet(options.updates, defaultBranch);
+    const prNumber = await createPullRequest(
+      this.octokit,
+      changes,
+      {
+        upstreamOwner: this.owner,
+        upstreamRepo: this.repo,
+        title: options.title,
+        branch: options.branch,
+        description: options.body,
+        primary: defaultBranch,
+        force: true,
+        fork: options.fork,
+        message: options.title,
+      },
+      {level: 'error'}
+    );
+
+    // If a release PR was already open, update the title and body:
     if (openReleasePR) {
-      // TODO: dig into why `updateRef` closes an issue attached
-      // to the branch being updated:
-      // https://github.com/octokit/rest.js/issues/1373
       checkpoint(
         `update pull-request #${openReleasePR.number}: ${chalk.yellow(
           options.title
@@ -723,33 +720,16 @@ export class GitHub {
           title: options.title,
           body: options.body,
           state: 'open',
-          base,
         }
       );
       return openReleasePR.number;
     } else {
-      checkpoint(
-        `open pull-request: ${chalk.yellow(options.title)}`,
-        CheckpointType.Success
-      );
-      const resp = await this.request(
-        `POST /repos/:owner/:repo/pulls${
-          this.proxyKey ? `?key=${this.proxyKey}` : ''
-        }`,
-        {
-          owner: this.owner,
-          repo: this.repo,
-          title: options.title,
-          body: options.body,
-          head: options.branch,
-          base,
-        }
-      );
-      return resp.data.number;
+      return prNumber;
     }
   }
 
-  private async getDefaultBranch(owner: string, repo: string): Promise<string> {
+  // Merged out
+  /* private async getDefaultBranch(owner: string, repo: string): Promise<string> {
     if (this.defaultBranch) {
       return this.defaultBranch;
     }
@@ -759,7 +739,7 @@ export class GitHub {
     });
     this.defaultBranch = data.default_branch;
     return this.defaultBranch;
-  }
+  } */
 
   // The base label is basically the default branch, attached to the owner.
   private async getBaseLabel(owner: string, repo: string): Promise<string> {
@@ -767,7 +747,8 @@ export class GitHub {
     return `${owner}:${baseBranch}`;
   }
 
-  async updateFiles(updates: Update[], branch: string, refName: string) {
+  // Merged out
+  /* async updateFiles(updates: Update[], branch: string, refName: string) {
     // does the user care about skipping CI at all?
     const skipCiEverSet = updates.some(
       upd => typeof upd.skipCi !== 'undefined'
@@ -788,6 +769,15 @@ export class GitHub {
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
+  */
+
+  private async getChangeSet(
+    updates: Update[],
+    defaultBranch: string
+  ): Promise<Changes> {
+    const changes = new Map();
+    for (const update of updates) {
+      // merge ends here
       let content;
       try {
         if (update.contents) {
@@ -795,17 +785,11 @@ export class GitHub {
           // hit GitHub again.
           content = {data: update.contents};
         } else {
-          content = await this.request(
-            `GET /repos/:owner/:repo/contents/:path${
-              this.proxyKey ? `?key=${this.proxyKey}` : ''
-            }`,
-            {
-              owner: this.owner,
-              repo: this.repo,
-              path: update.path,
-              ref: refName,
-            }
+          const fileContent = await this.getFileContents(
+            update.path,
+            defaultBranch
           );
+          content = {data: fileContent};
         }
       } catch (err) {
         if (err.status !== 404) throw err;
@@ -823,72 +807,29 @@ export class GitHub {
         ? Buffer.from(content.data.content, 'base64').toString('utf8')
         : undefined;
       const updatedContent = update.updateContent(contentText);
-
-      if (content) {
-        await this.request(
-          `PUT /repos/:owner/:repo/contents/:path${
-            this.proxyKey ? `?key=${this.proxyKey}` : ''
-          }`,
-          {
-            owner: this.owner,
-            repo: this.repo,
-            path: update.path,
-            message:
-              `updated ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
-            content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-            sha: content.data.sha,
-            branch,
-          }
-        );
-      } else {
-        await this.request(
-          `PUT /repos/:owner/:repo/contents/:path${
-            this.proxyKey ? `?key=${this.proxyKey}` : ''
-          }`,
-          {
-            owner: this.owner,
-            repo: this.repo,
-            path: update.path,
-            message:
-              `created ${update.path}` + (update.skipCi ? ' [ci skip]' : ''),
-            content: Buffer.from(updatedContent, 'utf8').toString('base64'),
-            branch,
-          }
-        );
+      if (updatedContent) {
+        changes.set(update.path, {
+          content: updatedContent,
+          mode: '100644',
+        });
       }
     }
+    return changes;
   }
 
-  private async refByBranchName(branch: string): Promise<string | undefined> {
-    let ref;
-    try {
-      for await (const response of this.octokit.paginate.iterator(
-        this.decoratePaginateOpts({
-          method: 'GET',
-          url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${
-            this.proxyKey ? `&key=${this.proxyKey}` : ''
-          }`,
-        })
-      )) {
-        const resp = response as {data: GitRefResponse[]};
-        for (let i = 0, r; resp.data[i] !== undefined; i++) {
-          r = resp.data[i];
-          const refRe = new RegExp(`/${branch}$`);
-          if (r.ref.match(refRe)) {
-            ref = r.ref;
-          }
-        }
-      }
-    } catch (err) {
-      if (err.status === 404) {
-        // the most likely cause of a 404 during this step is actually
-        // that the user does not have access to the repo:
-        throw new AuthError();
-      } else {
-        throw err;
-      }
+  private async getDefaultBranch(owner: string, repo: string): Promise<string> {
+    if (this.defaultBranch) {
+      return this.defaultBranch;
     }
-    return ref;
+    const {data} = await this.octokit.repos.get({
+      repo,
+      owner,
+      headers: {
+        Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+      },
+    });
+    this.defaultBranch = data.default_branch;
+    return this.defaultBranch;
   }
 
   async closePR(prNumber: number) {
@@ -905,22 +846,80 @@ export class GitHub {
     );
   }
 
-  async getFileContents(path: string): Promise<GitHubFileContents> {
+  async getFileContentsWithSimpleAPI(
+    path: string,
+    defaultBranch: string | undefined
+  ): Promise<GitHubFileContents> {
+    const options: any = {
+      owner: this.owner,
+      repo: this.repo,
+      path,
+    };
+    if (defaultBranch) {
+      options.ref = `refs/heads/${defaultBranch}`;
+    }
     const resp = await this.request(
       `GET /repos/:owner/:repo/contents/:path${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
       }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        path,
-      }
+      options
     );
     return {
       parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
       content: resp.data.content,
       sha: resp.data.sha,
     };
+  }
+
+  async getFileContentsWithDataAPI(
+    path: string,
+    defaultBranch: string | undefined
+  ): Promise<GitHubFileContents> {
+    const repoTree = await this.request(
+      `GET /repos/:owner/:repo/git/trees/:branch${
+        this.proxyKey ? `?key=${this.proxyKey}` : ''
+      }`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+        branch: defaultBranch,
+      }
+    );
+
+    const blobDescriptor = repoTree.data.tree.find(
+      (tree: any) => tree.path === path
+    );
+
+    const resp = await this.request(
+      `GET /repos/:owner/:repo/git/blobs/:sha${
+        this.proxyKey ? `?key=${this.proxyKey}` : ''
+      }`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+        sha: blobDescriptor.sha,
+      }
+    );
+
+    return {
+      parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
+      content: resp.data.content,
+      sha: resp.data.sha,
+    };
+  }
+
+  async getFileContents(
+    path: string,
+    defaultBranch: string | undefined = undefined
+  ): Promise<GitHubFileContents> {
+    try {
+      return await this.getFileContentsWithSimpleAPI(path, defaultBranch);
+    } catch (err) {
+      if (err.status === 403) {
+        return await this.getFileContentsWithDataAPI(path, defaultBranch);
+      }
+      throw err;
+    }
   }
 
   async createRelease(

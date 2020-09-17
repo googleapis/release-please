@@ -29,7 +29,6 @@ export class PHPManifest implements Update {
   packageName: string;
   create: boolean;
   contents?: GitHubFileContents;
-  skipCi?: boolean;
 
   constructor(options: UpdateOptions) {
     this.create = false;
@@ -38,7 +37,6 @@ export class PHPManifest implements Update {
     this.version = options.version;
     this.versions = options.versions;
     this.packageName = options.packageName;
-    this.skipCi = options.skipCi;
   }
 
   updateContent(content: string): string {
