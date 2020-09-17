@@ -729,25 +729,6 @@ export class GitHub {
   }
 
   // Merged out
-  /* private async getDefaultBranch(owner: string, repo: string): Promise<string> {
-    if (this.defaultBranch) {
-      return this.defaultBranch;
-    }
-    const {data} = await this.octokit.repos.get({
-      repo,
-      owner,
-    });
-    this.defaultBranch = data.default_branch;
-    return this.defaultBranch;
-  } */
-
-  // The base label is basically the default branch, attached to the owner.
-  private async getBaseLabel(owner: string, repo: string): Promise<string> {
-    const baseBranch = await this.getDefaultBranch(owner, repo);
-    return `${owner}:${baseBranch}`;
-  }
-
-  // Merged out
   /* async updateFiles(updates: Update[], branch: string, refName: string) {
     // does the user care about skipping CI at all?
     const skipCiEverSet = updates.some(
@@ -815,6 +796,12 @@ export class GitHub {
       }
     }
     return changes;
+  }
+
+  // The base label is basically the default branch, attached to the owner.
+  private async getBaseLabel(owner: string, repo: string): Promise<string> {
+    const baseBranch = await this.getDefaultBranch(owner, repo);
+    return `${owner}:${baseBranch}`;
   }
 
   private async getDefaultBranch(owner: string, repo: string): Promise<string> {
