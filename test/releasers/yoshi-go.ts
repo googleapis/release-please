@@ -32,7 +32,7 @@ describe('YoshiGo', () => {
     before(() => {
       nock.disableNetConnect();
     });
-    it('creates a release PR', async () => {
+    it('creates a release PR for google-cloud-go', async () => {
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -45,7 +45,7 @@ describe('YoshiGo', () => {
         }
       );
       const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
+        readFileSync(resolve(fixturesPath, 'cloud-go-commits.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
         // Check for in progress, merged release PRs:
@@ -100,6 +100,86 @@ describe('YoshiGo', () => {
         .reply(200, []);
       const releasePR = new GoYoshi({
         repoUrl: 'googleapis/google-cloud-go',
+        releaseType: 'yoshi-go',
+        // not actually used by this type of repo.
+        packageName: 'yoshi-go',
+        apiUrl: 'https://api.github.com',
+      });
+      await releasePR.run();
+      req.done();
+      snapshot(
+        JSON.stringify(expectedChanges, null, 2).replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10' // don't save a real date, this will break tests.
+        )
+      );
+    });
+    it('creates a release PR for google-api-go-client', async () => {
+      // We stub the entire suggester API, asserting only that the
+      // the appropriate changes are proposed:
+      let expectedChanges = null;
+      sandbox.replace(
+        suggester,
+        'createPullRequest',
+        (_octokit, changes): Promise<number> => {
+          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+          return Promise.resolve(22);
+        }
+      );
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'discovery-commits.json'), 'utf8')
+      );
+      const req = nock('https://api.github.com')
+        // Check for in progress, merged release PRs:
+        .get(
+          '/repos/googleapis/google-api-go-client/pulls?state=closed&per_page=100'
+        )
+        .reply(200, undefined)
+        // Check for existing open release PRs.
+        .get(
+          '/repos/googleapis/google-api-go-client/pulls?state=open&per_page=100'
+        )
+        .reply(200, undefined)
+        // fetch semver tags, this will be used to determine
+        // the delta since the last release.
+        .get('/repos/googleapis/google-api-go-client/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v0.123.4',
+            commit: {
+              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            },
+          },
+        ])
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
+        // check for CHANGES.md
+        .get(
+          '/repos/googleapis/google-api-go-client/contents/CHANGES.md?ref=refs%2Fheads%2Fmaster'
+        )
+        .reply(404)
+        // check for default branch
+        .get('/repos/googleapis/google-api-go-client')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+        // create release
+        .post(
+          '/repos/googleapis/google-api-go-client/issues/22/labels',
+          (req: {[key: string]: string}) => {
+            snapshot('labels-go-yoshi-discovery', req);
+            return true;
+          }
+        )
+        .reply(200, {})
+        // this step tries to close any existing PRs; just return an empty list.
+        .get(
+          '/repos/googleapis/google-api-go-client/pulls?state=open&per_page=100'
+        )
+        .reply(200, []);
+      const releasePR = new GoYoshi({
+        repoUrl: 'googleapis/google-api-go-client',
         releaseType: 'yoshi-go',
         // not actually used by this type of repo.
         packageName: 'yoshi-go',
