@@ -25,6 +25,10 @@ import * as semver from 'semver';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
+import {symlinkSync} from 'fs';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const parseGithubRepoUrl = require('parse-github-repo-url');
 
 // Commits containing a scope prefixed with an item in this array will be
 // ignored when generating a release PR for the parent module.
@@ -38,16 +42,18 @@ const SUB_MODULES = [
   'spanner',
   'storage',
 ];
-const GAPIC_PR_REGEX = /.*auto-regenerate gapics.*/;
+const REGEN_PR_REGEX = /.*auto-regenerate.*/;
+const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
 
 export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
   protected async _run() {
-    const scopeRe = /^\w+\((?<scope>.*)\):/;
     const latestTag = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
-    let gapicPR: Commit | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);
+    let regenPR: Commit | undefined;
     let sha: null | string = null;
     const commits = (
       await this.commits({
@@ -55,43 +61,48 @@ export class GoYoshi extends ReleasePR {
         path: this.path,
       })
     ).filter(commit => {
-      // Filter commits that don't have a scope as we don't know where to put
-      // them.
-      const scope = commit.message.match(scopeRe)?.groups?.scope;
-      if (!scope) {
-        return false;
-      }
-      // Skipping commits related to sub-modules as they are not apart of the
-      // parent module.
-      for (const subModule of SUB_MODULES) {
-        if (scope === subModule || scope.startsWith(subModule + '/')) {
-          // TODO(codyoss): eventually gather these commits into a map so we can
-          // purpose releases for sub-modules.
+      if (this.isGapicRepo(repo)) {
+        const scope = commit.message.match(SCOPE_REGEX)?.groups?.scope;
+        // Filter commits that don't have a scope as we don't know where to put
+        // them.
+        if (!scope) {
           return false;
         }
+        // Skipping commits related to sub-modules as they are not apart of the
+        // parent module.
+        for (const subModule of SUB_MODULES) {
+          if (scope === subModule || scope.startsWith(subModule + '/')) {
+            // TODO(codyoss): eventually gather these commits into a map so we can
+            // purpose releases for sub-modules.
+            return false;
+          }
+        }
       }
+
       // Store the very first SHA returned, this represents the HEAD of the
       // release being created:
       if (!sha) {
         sha = commit.sha;
       }
-      // Only have a single entry of the nightly regen listed in the changelog.
-      // If there are more than one of these commits, append associated PR.
-      if (GAPIC_PR_REGEX.test(commit.message)) {
+
+      if (this.isMultiClientRepo(repo) && REGEN_PR_REGEX.test(commit.message)) {
+        // Only have a single entry of the nightly regen listed in the changelog.
+        // If there are more than one of these commits, append associated PR.
         const issueRe = /(?<prefix>.*)\((?<pr>.*)\)(\n|$)/;
-        if (gapicPR) {
+        if (regenPR) {
           const match = commit.message.match(issueRe);
           if (match?.groups?.pr) {
-            gapicPR.message += `\nRefs ${match.groups.pr}`;
+            regenPR.message += `\nRefs ${match.groups.pr}`;
           }
           return false;
         } else {
           // Throw away the sha for nightly regens, will just append PR numbers.
           commit.sha = null;
-          gapicPR = commit;
+          regenPR = commit;
+
           const match = commit.message.match(issueRe);
           if (match?.groups?.pr) {
-            gapicPR.message = `${match.groups.prefix}\n\nRefs ${match.groups.pr}`;
+            regenPR.message = `${match.groups.prefix}\n\nRefs ${match.groups.pr}`;
           }
         }
       }
@@ -151,6 +162,14 @@ export class GoYoshi extends ReleasePR {
       version: candidate.version,
       includePackageName: this.monorepoTags,
     });
+  }
+
+  private isGapicRepo(repo: string): boolean {
+    return repo === 'google-cloud-go';
+  }
+
+  private isMultiClientRepo(repo: string): boolean {
+    return repo === 'google-cloud-go' || repo === 'google-api-go-client';
   }
 
   protected async coerceReleaseCandidate(

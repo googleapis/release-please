@@ -54,9 +54,7 @@ describe('YoshiGo', () => {
         )
         .reply(200, undefined)
         // Check for existing open release PRs.
-        .get(
-          '/repos/googleapis/yoshi-go-test-repo/pulls?state=open&per_page=100'
-        )
+        .get('/repos/googleapis/google-cloud-go/pulls?state=open&per_page=100')
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
@@ -81,16 +79,16 @@ describe('YoshiGo', () => {
         })
         // check for CHANGES.md
         .get(
-          '/repos/googleapis/yoshi-go-test-repo/contents/CHANGES.md?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/google-cloud-go/contents/CHANGES.md?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         // check for default branch
-        .get('/repos/googleapis/yoshi-go-test-repo')
+        .get('/repos/googleapis/google-cloud-go')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         .reply(200, require('../../../test/fixtures/repo-get-1.json'))
         // create release
         .post(
-          '/repos/googleapis/yoshi-go-test-repo/issues/22/labels',
+          '/repos/googleapis/google-cloud-go/issues/22/labels',
           (req: {[key: string]: string}) => {
             snapshot('labels-go-yoshi', req);
             return true;
@@ -98,12 +96,10 @@ describe('YoshiGo', () => {
         )
         .reply(200, {})
         // this step tries to close any existing PRs; just return an empty list.
-        .get(
-          '/repos/googleapis/yoshi-go-test-repo/pulls?state=open&per_page=100'
-        )
+        .get('/repos/googleapis/google-cloud-go/pulls?state=open&per_page=100')
         .reply(200, []);
       const releasePR = new GoYoshi({
-        repoUrl: 'googleapis/yoshi-go-test-repo',
+        repoUrl: 'googleapis/google-cloud-go',
         releaseType: 'yoshi-go',
         // not actually used by this type of repo.
         packageName: 'yoshi-go',
