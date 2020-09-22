@@ -1,6 +1,6 @@
 exports['labels-go-yoshi'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
@@ -17,8 +17,8 @@ exports['YoshiGo run creates a release PR for google-cloud-go 1'] = `
 `
 
 exports['labels-go-yoshi-discovery'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
