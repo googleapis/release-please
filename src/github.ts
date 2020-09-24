@@ -445,8 +445,18 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  /* async latestTag(): Promise<GitHubTag | undefined> {
-    const pull = await this.findMergedReleasePR([]);
+  // This looks for the most recent matching release tag on
+  // the branch we're configured for.
+  async latestTag(
+    prefix?: string,
+    preRelease = false
+  ): Promise<GitHubTag | undefined> {
+    let regexpString = prefix || '';
+    if (!preRelease) regexpString = `${regexpString}[^-]*`;
+
+    const regexp = regexpString ? new RegExp(regexpString) : null;
+
+    const pull = await this.findMergedReleasePR([], 100, regexp);
     if (!pull) return undefined;
 
     const tag = {
@@ -456,43 +466,13 @@ export class GitHub {
     } as GitHubTag;
 
     return tag;
-  } */
-  async latestTag(
-    prefix?: string,
-    preRelease = false
-  ): Promise<GitHubTag | undefined> {
-    const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
-    const versions = Object.keys(tags).filter(t => {
-      // remove any pre-releases from the list:
-      return preRelease || !t.includes('-');
-    });
-    // no tags have been created yet.
-    if (versions.length === 0) return undefined;
-
-    // We use a slightly modified version of semver's sorting algorithm, which
-    // prefixes the numeric part of a pre-release with '0's, so that
-    // 010 is greater than > 002.
-    versions.sort((v1, v2) => {
-      if (v1.includes('-')) {
-        const [prefix, suffix] = v1.split('-');
-        v1 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
-      }
-      if (v2.includes('-')) {
-        const [prefix, suffix] = v2.split('-');
-        v2 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
-      }
-      return semver.rcompare(v1, v2);
-    });
-    return {
-      name: tags[versions[0]].name,
-      sha: tags[versions[0]].sha,
-      version: tags[versions[0]].version,
-    };
   }
 
+  // The default matcher will rule out pre-releases.
   async findMergedReleasePR(
     labels: string[],
-    perPage = 100
+    perPage = 100,
+    matcher: RegExp | null = /[^-]*/
   ): Promise<GitHubReleasePR | undefined> {
     const baseLabel = await this.getBaseLabel(this.owner, this.repo);
 
@@ -521,8 +501,8 @@ export class GitHub {
         // Verify that this PR was based against our base branch of interest.
         if (!pull.base || pull.base.label !== baseLabel) continue;
 
-        // remove any pre-releases from the list:
-        if (!pull.head.label.includes('-')) continue;
+        // Does its name match any passed matcher?
+        if (matcher && !matcher.test(pull.head.label)) continue;
 
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
@@ -658,12 +638,17 @@ export class GitHub {
   }
 
   async openPR(options: GitHubPR): Promise<number> {
-    const defaultBranch = await this.getDefaultBranch(this.owner, this.repo);
+    let refName = await this.refByBranchName(options.branch);
+    let openReleasePR: PullsListResponseItem | undefined;
+
+    // If the branch exists, we delete it and create a new branch
+    // with the same name; this results in the existing PR being closed.
+    if (!refName) {
+      refName = `refs/heads/${options.branch}`;
+    }
 
     // check if there's an existing PR, so that we can opt to update it
     // rather than creating a new PR.
-    const refName = `refs/heads/${options.branch}`;
-    let openReleasePR: PullsListResponseItem | undefined;
     const releasePRCandidates = await this.findOpenReleasePRs(options.labels);
     for (const releasePR of releasePRCandidates) {
       if (refName && refName.includes(releasePR.head.ref)) {
@@ -683,7 +668,7 @@ export class GitHub {
     }
 
     //  Actually update the files for the release:
-    const changes = await this.getChangeSet(options.updates, defaultBranch);
+    const changes = await this.getChangeSet(options.updates, refName);
     const prNumber = await createPullRequest(
       this.octokit,
       changes,
@@ -693,7 +678,7 @@ export class GitHub {
         title: options.title,
         branch: options.branch,
         description: options.body,
-        primary: defaultBranch,
+        primary: refName,
         force: true,
         fork: options.fork,
         message: options.title,
@@ -728,33 +713,9 @@ export class GitHub {
     }
   }
 
-  // Merged out
-  /* async updateFiles(updates: Update[], branch: string, refName: string) {
-    // does the user care about skipping CI at all?
-    const skipCiEverSet = updates.some(
-      upd => typeof upd.skipCi !== 'undefined'
-    );
-    if (skipCiEverSet) {
-      // if skipCi was set for some of the updates, disable CI for others
-      updates.forEach(upd => {
-        if (typeof upd.skipCi === 'undefined') {
-          upd.skipCi = true;
-        }
-      });
-    }
-    if (!skipCiEverSet && updates.length > 0) {
-      // if skipCi was not set for any of the files, disable CI for all files except the last one
-      updates.forEach(upd => (upd.skipCi = true));
-      updates[updates.length - 1].skipCi = false;
-    }
-
-    for (let i = 0; i < updates.length; i++) {
-      const update = updates[i];
-  */
-
   private async getChangeSet(
     updates: Update[],
-    defaultBranch: string
+    refName: string
   ): Promise<Changes> {
     const changes = new Map();
     for (const update of updates) {
@@ -766,10 +727,7 @@ export class GitHub {
           // hit GitHub again.
           content = {data: update.contents};
         } else {
-          const fileContent = await this.getFileContents(
-            update.path,
-            defaultBranch
-          );
+          const fileContent = await this.getFileContents(update.path, refName);
           content = {data: fileContent};
         }
       } catch (err) {
@@ -804,6 +762,42 @@ export class GitHub {
     return `${owner}:${baseBranch}`;
   }
 
+  private async refByBranchName(branch: string): Promise<string | undefined> {
+    let ref;
+    try {
+      for await (const response of this.octokit.paginate.iterator(
+        this.decoratePaginateOpts({
+          method: 'GET',
+          url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${
+            this.proxyKey ? `&key=${this.proxyKey}` : ''
+          }`,
+          headers: {
+            Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+          },
+        })
+      )) {
+        const resp = response as {data: GitRefResponse[]};
+        for (let i = 0, r; resp.data[i] !== undefined; i++) {
+          r = resp.data[i];
+          const refRe = new RegExp(`/${branch}$`);
+          if (r.ref.match(refRe)) {
+            ref = r.ref;
+          }
+        }
+      }
+    } catch (err) {
+      if (err.status === 404) {
+        // the most likely cause of a 404 during this step is actually
+        // that the user does not have access to the repo:
+        throw new AuthError();
+      } else {
+        throw err;
+      }
+    }
+
+    return ref;
+  }
+
   private async getDefaultBranch(owner: string, repo: string): Promise<string> {
     if (this.defaultBranch) {
       return this.defaultBranch;
@@ -835,16 +829,14 @@ export class GitHub {
 
   async getFileContentsWithSimpleAPI(
     path: string,
-    defaultBranch: string | undefined
+    refName: string | undefined
   ): Promise<GitHubFileContents> {
     const options: any = {
       owner: this.owner,
       repo: this.repo,
       path,
     };
-    if (defaultBranch) {
-      options.ref = `refs/heads/${defaultBranch}`;
-    }
+    if (refName) options.ref = refName;
     const resp = await this.request(
       `GET /repos/:owner/:repo/contents/:path${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
@@ -860,7 +852,7 @@ export class GitHub {
 
   async getFileContentsWithDataAPI(
     path: string,
-    defaultBranch: string | undefined
+    refName: string | undefined
   ): Promise<GitHubFileContents> {
     const repoTree = await this.request(
       `GET /repos/:owner/:repo/git/trees/:branch${
@@ -869,7 +861,7 @@ export class GitHub {
       {
         owner: this.owner,
         repo: this.repo,
-        branch: defaultBranch,
+        ref: refName,
       }
     );
 
@@ -897,13 +889,13 @@ export class GitHub {
 
   async getFileContents(
     path: string,
-    defaultBranch: string | undefined = undefined
+    refName: string | undefined = undefined
   ): Promise<GitHubFileContents> {
     try {
-      return await this.getFileContentsWithSimpleAPI(path, defaultBranch);
+      return await this.getFileContentsWithSimpleAPI(path, refName);
     } catch (err) {
       if (err.status === 403) {
-        return await this.getFileContentsWithDataAPI(path, defaultBranch);
+        return await this.getFileContentsWithDataAPI(path, refName);
       }
       throw err;
     }
