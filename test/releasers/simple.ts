@@ -13,14 +13,16 @@
 // limitations under the License.
 
 import {describe, it, afterEach} from 'mocha';
-import * as nock from 'nock';
 import {Simple} from '../../src/releasers/simple';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
+import {stringifyExpectedChanges, readPOJO} from '../helpers';
+import * as nock from 'nock';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 
+nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/simple';
 
@@ -30,9 +32,64 @@ describe('Simple', () => {
   });
   describe('run', () => {
     it('creates a release PR', async () => {
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
+      const releasePR = new Simple({
+        repoUrl: 'googleapis/simple-test-repo',
+        releaseType: 'simple',
+        // not actually used by this type of repo.
+        packageName: 'simple-test-repo',
+        apiUrl: 'https://api.github.com',
+      });
+
+      // Indicates that there are no PRs currently waiting to be released:
+      sandbox
+        .stub(releasePR.gh, 'findMergedReleasePR')
+        .returns(Promise.resolve(undefined));
+
+      // Return latest tag used to determine next version #:
+      sandbox.stub(releasePR.gh, 'latestTag').returns(
+        Promise.resolve({
+          sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+          name: 'v0.123.4',
+          version: '0.123.4',
+        })
+      );
+
+      // Commits, used to build CHANGELOG, and propose next version bump:
+      sandbox
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .stub(releasePR as any, 'commits')
+        .returns(Promise.resolve(readPOJO('commits-fix')));
+
+      // See if there are any release PRs already open, we do this as
+      // we consider opening a new release-pr:
+      sandbox
+        .stub(releasePR.gh, 'findOpenReleasePRs')
+        .returns(Promise.resolve([]));
+
+      // Lookup the default branch name:
+      sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
+
+      // Fetch files from GitHub, in prep to update with code-suggester:
+      const getFileContentsStub = sandbox.stub(releasePR.gh, 'getFileContents');
+      // CHANGELOG is not found, and will be created:
+      getFileContentsStub
+        .onCall(0)
+        .rejects(Object.assign(Error('not found'), {status: 404}));
+      // A version.txt exists already:
+      const versionContent = readFileSync(
+        resolve(fixturesPath, 'version.txt'),
+        'utf8'
+      );
+      getFileContentsStub.onCall(1).resolves({
+        sha: 'abc123',
+        content: Buffer.from(versionContent, 'utf8').toString('base64'),
+        parsedContent: versionContent,
+      });
+
+      // We stub the entire suggester API, these updates are generally the
+      // most interesting thing under test, as they represent the changes
+      // that will be pushed up to GitHub:
+      let expectedChanges: [string, object][] = [];
       sandbox.replace(
         suggester,
         'createPullRequest',
@@ -41,86 +98,18 @@ describe('Simple', () => {
           return Promise.resolve(22);
         }
       );
-      const versionContent = readFileSync(
-        resolve(fixturesPath, 'version.txt'),
-        'utf8'
-      );
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
-      );
-      const req = nock('https://api.github.com')
-        // Check for in progress, merged release PRs:
-        .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
-        )
-        .reply(200, undefined)
-        // Check for existing open release PRs:
-        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, undefined)
-        // fetch semver tags, this will be used to determine
-        // the delta since the last release.
-        .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
-        )
-        .reply(200, [
-          {
-            base: {
-              label: 'googleapis:master',
-            },
-            head: {
-              label: 'googleapis:release-v0.123.4',
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            },
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        // check for CHANGELOG
-        .get(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmaster'
-        )
-        .reply(404)
-        // update version.txt
-        .get(
-          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Fmaster'
-        )
-        .reply(200, {
-          content: Buffer.from(versionContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // check for default branch
-        .get('/repos/googleapis/simple-test-repo')
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
-        .post(
-          '/repos/googleapis/simple-test-repo/issues/22/labels',
-          (req: {[key: string]: string}) => {
-            snapshot('labels-simple', req);
-            return true;
-          }
-        )
-        .reply(200, {})
-        // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, []);
-      const releasePR = new Simple({
-        repoUrl: 'googleapis/simple-test-repo',
-        releaseType: 'simple',
-        // not actually used by this type of repo.
-        packageName: 'simple-test-repo',
-        apiUrl: 'https://api.github.com',
-      });
+
+      // Call made to close any stale release PRs still open on GitHub:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
+
+      // Call to add autorelease: pending label:
+      sandbox.stub(releasePR.gh, 'addLabels');
+
       await releasePR.run();
-      req.done();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+
+      // Did we generate all the changes to files we expected to?
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
   });
 });

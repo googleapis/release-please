@@ -25,7 +25,6 @@ import * as semver from 'semver';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
-import {symlinkSync} from 'fs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
