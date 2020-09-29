@@ -62,7 +62,9 @@ describe('JavaYoshi', () => {
       // This step looks for release PRs that are already open:
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
       .reply(200, [])
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
       .get('/repos/googleapis/java-trace/contents/versions.txt')
       .reply(200, {
@@ -195,7 +197,9 @@ describe('JavaYoshi', () => {
       readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
     );
     const req = nock('https://api.github.com')
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
@@ -416,6 +420,10 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const req = nock('https://api.github.com')
+      .get('/repos/fake/fake')
+      .reply(200, {
+        default_branch: 'master',
+      })
       .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
       .reply(200, undefined)
       .get('/repos/googleapis/java-trace/contents/versions.txt')
@@ -456,7 +464,9 @@ describe('JavaYoshi', () => {
       readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
     );
     const req = nock('https://api.github.com')
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')

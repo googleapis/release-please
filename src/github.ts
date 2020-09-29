@@ -86,6 +86,7 @@ export interface GitHubReleasePR {
   number: number;
   version: string;
   sha: string;
+  normalizedVersion: string;
 }
 
 export interface GitHubFileContents {
@@ -452,7 +453,7 @@ export class GitHub {
     preRelease = false
   ): Promise<GitHubTag | undefined> {
     let regexpString = prefix || '';
-    if (!preRelease) regexpString = `${regexpString}[^-]*`;
+    if (!preRelease) regexpString = `^${regexpString}[^-]*$`;
 
     const regexp = regexpString ? new RegExp(regexpString) : null;
 
@@ -460,9 +461,9 @@ export class GitHub {
     if (!pull) return undefined;
 
     const tag = {
-      name: `v${pull.version}`,
+      name: `v${pull.normalizedVersion}`,
       sha: pull.sha,
-      version: pull.version,
+      version: pull.normalizedVersion,
     } as GitHubTag;
 
     return tag;
@@ -501,15 +502,22 @@ export class GitHub {
         // Verify that this PR was based against our base branch of interest.
         if (!pull.base || pull.base.label !== baseLabel) continue;
 
-        // Does its name match any passed matcher?
-        if (matcher && !matcher.test(pull.head.label)) continue;
-
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
+
+        // Make sure we did get a valid semver.
+        const version = match[1];
+        const normalizedVersion = semver.valid(version);
+        if (!normalizedVersion) continue;
+
+        // Does its name match any passed matcher?
+        if (matcher && !matcher.test(normalizedVersion)) continue;
+
         return {
           number: pull.number,
           sha: pull.merge_commit_sha,
-          version: match[1],
+          version,
+          normalizedVersion,
         } as GitHubReleasePR;
       }
     }
@@ -557,31 +565,6 @@ export class GitHub {
       if (hasAllLabels) openReleasePRs.push(pull);
     }
     return openReleasePRs;
-  }
-
-  private async allTags(
-    prefix?: string
-  ): Promise<{[version: string]: GitHubTag}> {
-    const tags: {[version: string]: GitHubTag} = {};
-    for await (const response of this.octokit.paginate.iterator(
-      this.decoratePaginateOpts({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
-          this.proxyKey ? `&key=${this.proxyKey}` : ''
-        }`,
-      })
-    )) {
-      response.data.forEach((data: ReposListTagsResponseItems) => {
-        // For monorepos, a prefix can be provided, indicating that only tags
-        // matching the prefix should be returned:
-        if (prefix && !data.name.startsWith(prefix)) return;
-        let version = data.name.replace(prefix, '');
-        if ((version = semver.valid(version))) {
-          tags[version] = {sha: data.commit.sha, name: data.name, version};
-        }
-      });
-    }
-    return tags;
   }
 
   async addLabels(labels: string[], pr: number) {

@@ -59,7 +59,9 @@ describe('JavaBom', () => {
         readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, undefined)
         .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
         .reply(200, {
@@ -177,7 +179,9 @@ describe('JavaBom', () => {
         readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, undefined)
         .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
         .reply(200, {
@@ -266,6 +270,10 @@ describe('JavaBom', () => {
         'utf8'
       );
       const req = nock('https://api.github.com')
+        .get('/repos/googleapis/java-cloud-bom')
+        .reply(200, {
+          default_branch: 'master',
+        })
         .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
         .reply(200, undefined)
         .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
@@ -309,7 +317,9 @@ describe('JavaBom', () => {
         readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, undefined)
         .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
         .reply(200, {
@@ -420,7 +430,9 @@ describe('JavaBom', () => {
         readFileSync(resolve(fixturesPath, 'commits-with-feature.json'), 'utf8')
       );
       const req = nock('https://api.github.com')
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, undefined)
         .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
         .reply(200, {

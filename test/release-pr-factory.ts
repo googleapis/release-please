@@ -53,7 +53,7 @@ describe('ReleasePRFactory', () => {
       );
       const req = nock('https://api.github.com')
         .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
+          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
@@ -141,7 +141,7 @@ describe('ReleasePRFactory', () => {
       );
       const req = nock('https://api.github.com')
         .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
+          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
