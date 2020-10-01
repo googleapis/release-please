@@ -56,7 +56,7 @@ describe('GitHubRelease', () => {
             merged_at: new Date().toISOString(),
           },
         ])
-        .get('/repos/googleapis/foo/contents/CHANGELOG.md')
+        .get('/repos/googleapis/foo/contents/CHANGELOG.md?ref=refs/heads/main')
         .reply(200, {
           content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
         })
@@ -111,11 +111,11 @@ describe('GitHubRelease', () => {
             merged_at: new Date().toISOString(),
           },
         ])
-        .get('/repos/googleapis/foo/contents/package.json')
+        .get('/repos/googleapis/foo/contents/package.json?ref=refs/heads/main')
         .reply(200, {
           content: Buffer.from('{"name": "@google-cloud/foo"}', 'utf8'),
         })
-        .get('/repos/googleapis/foo/contents/CHANGELOG.md')
+        .get('/repos/googleapis/foo/contents/CHANGELOG.md?ref=refs/heads/main')
         .reply(200, {
           content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
         })

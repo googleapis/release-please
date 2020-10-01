@@ -63,7 +63,9 @@ describe('JavaBom', () => {
           '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
+        .get(
+          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/main'
+        )
         .reply(200, {
           content: Buffer.from(versionsContent, 'utf8').toString('base64'),
           sha: 'abc123',
@@ -73,13 +75,19 @@ describe('JavaBom', () => {
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/java-cloud-bom/tags?per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.123.4',
-            commit: {
+            base: {
+              label: 'googleapis:main',
+            },
+            head: {
+              label: 'googleapis:release-v0.123.4',
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
+            merged_at: new Date().toISOString(),
           },
         ])
         .post('/graphql')
@@ -183,7 +191,9 @@ describe('JavaBom', () => {
           '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
+        .get(
+          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/main'
+        )
         .reply(200, {
           content: Buffer.from(versionsContent, 'utf8').toString('base64'),
           sha: 'abc123',
@@ -198,13 +208,19 @@ describe('JavaBom', () => {
         })
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/java-cloud-bom/tags?per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.123.4',
-            commit: {
+            base: {
+              label: 'googleapis:main',
+            },
+            head: {
+              label: 'googleapis:release-v0.123.4',
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
+            merged_at: new Date().toISOString(),
           },
         ])
         // finding pom.xml files
@@ -274,9 +290,13 @@ describe('JavaBom', () => {
         .reply(200, {
           default_branch: 'master',
         })
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, undefined)
-        .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
+        .get(
+          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/master'
+        )
         .reply(200, {
           content: Buffer.from(versionsContent, 'utf8').toString('base64'),
           sha: 'abc123',
@@ -321,7 +341,9 @@ describe('JavaBom', () => {
           '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
+        .get(
+          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/main'
+        )
         .reply(200, {
           content: Buffer.from(versionsContent, 'utf8').toString('base64'),
           sha: 'abc123',
@@ -336,13 +358,19 @@ describe('JavaBom', () => {
         })
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/java-cloud-bom/tags?per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.123.4',
-            commit: {
+            base: {
+              label: 'googleapis:main',
+            },
+            head: {
+              label: 'googleapis:release-v0.123.4',
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
+            merged_at: new Date().toISOString(),
           },
         ])
         // finding pom.xml files
@@ -434,7 +462,9 @@ describe('JavaBom', () => {
           '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
-        .get('/repos/googleapis/java-cloud-bom/contents/versions.txt')
+        .get(
+          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/master'
+        )
         .reply(200, {
           content: Buffer.from(versionsContent, 'utf8').toString('base64'),
           sha: 'abc123',
@@ -444,13 +474,19 @@ describe('JavaBom', () => {
         .reply(200, [])
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/java-cloud-bom/tags?per_page=100')
+        .get(
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.123.4',
-            commit: {
+            base: {
+              label: 'googleapis:main',
+            },
+            head: {
+              label: 'googleapis:release-v0.123.4',
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
+            merged_at: new Date().toISOString(),
           },
         ])
         .post('/graphql')

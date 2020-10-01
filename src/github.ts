@@ -227,7 +227,7 @@ export class GitHub {
     maxFilesChanged = 64,
     retries = 0
   ): Promise<CommitsResponse> {
-    const baseBranch = await this.getDefaultBranch(this.owner, this.repo);
+    const baseBranch = await this.getDefaultBranch();
 
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
@@ -320,7 +320,7 @@ export class GitHub {
     maxLabels = 16,
     retries = 0
   ): Promise<CommitsResponse> {
-    const baseBranch = await this.getDefaultBranch(this.owner, this.repo);
+    const baseBranch = await this.getDefaultBranch();
     try {
       const response = await this.graphqlRequest({
         query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxLabels: Int, $path: String) {
@@ -475,7 +475,7 @@ export class GitHub {
     perPage = 100,
     matcher: RegExp | null = /[^-]*/
   ): Promise<GitHubReleasePR | undefined> {
-    const baseLabel = await this.getBaseLabel(this.owner, this.repo);
+    const baseLabel = await this.getBaseLabel();
 
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
@@ -536,7 +536,7 @@ export class GitHub {
     labels: string[],
     perPage = 100
   ): Promise<PullsListResponseItems> {
-    const baseLabel = await this.getBaseLabel(this.owner, this.repo);
+    const baseLabel = await this.getBaseLabel();
 
     const openReleasePRs: PullsListResponseItems = [];
     const pullsResponse = (await this.request(
@@ -621,17 +621,12 @@ export class GitHub {
   }
 
   async openPR(options: GitHubPR): Promise<number> {
-    let refName = await this.refByBranchName(options.branch);
-    let openReleasePR: PullsListResponseItem | undefined;
-
-    // If the branch exists, we delete it and create a new branch
-    // with the same name; this results in the existing PR being closed.
-    if (!refName) {
-      refName = `refs/heads/${options.branch}`;
-    }
+    const defaultBranch = await this.getDefaultBranch();
 
     // check if there's an existing PR, so that we can opt to update it
     // rather than creating a new PR.
+    const refName = `refs/heads/${options.branch}`;
+    let openReleasePR: PullsListResponseItem | undefined;
     const releasePRCandidates = await this.findOpenReleasePRs(options.labels);
     for (const releasePR of releasePRCandidates) {
       if (refName && refName.includes(releasePR.head.ref)) {
@@ -640,8 +635,7 @@ export class GitHub {
       }
     }
 
-    // short-circuit of there have been no changes to the
-    // pull-request body.
+    // Short-circuit if there have been no changes to the pull-request body.
     if (openReleasePR && openReleasePR.body === options.body) {
       checkpoint(
         `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
@@ -651,7 +645,7 @@ export class GitHub {
     }
 
     //  Actually update the files for the release:
-    const changes = await this.getChangeSet(options.updates, refName);
+    const changes = await this.getChangeSet(options.updates, defaultBranch);
     const prNumber = await createPullRequest(
       this.octokit,
       changes,
@@ -661,7 +655,7 @@ export class GitHub {
         title: options.title,
         branch: options.branch,
         description: options.body,
-        primary: refName,
+        primary: defaultBranch,
         force: true,
         fork: options.fork,
         message: options.title,
@@ -698,11 +692,10 @@ export class GitHub {
 
   private async getChangeSet(
     updates: Update[],
-    refName: string
+    defaultBranch: string
   ): Promise<Changes> {
     const changes = new Map();
     for (const update of updates) {
-      // merge ends here
       let content;
       try {
         if (update.contents) {
@@ -710,7 +703,10 @@ export class GitHub {
           // hit GitHub again.
           content = {data: update.contents};
         } else {
-          const fileContent = await this.getFileContents(update.path, refName);
+          const fileContent = await this.getFileContentsOnBranch(
+            update.path,
+            defaultBranch
+          );
           content = {data: fileContent};
         }
       } catch (err) {
@@ -740,54 +736,18 @@ export class GitHub {
   }
 
   // The base label is basically the default branch, attached to the owner.
-  private async getBaseLabel(owner: string, repo: string): Promise<string> {
-    const baseBranch = await this.getDefaultBranch(owner, repo);
-    return `${owner}:${baseBranch}`;
+  private async getBaseLabel(): Promise<string> {
+    const baseBranch = await this.getDefaultBranch();
+    return `${this.owner}:${baseBranch}`;
   }
 
-  private async refByBranchName(branch: string): Promise<string | undefined> {
-    let ref;
-    try {
-      for await (const response of this.octokit.paginate.iterator(
-        this.decoratePaginateOpts({
-          method: 'GET',
-          url: `/repos/${this.owner}/${this.repo}/git/refs?per_page=100${
-            this.proxyKey ? `&key=${this.proxyKey}` : ''
-          }`,
-          headers: {
-            Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
-          },
-        })
-      )) {
-        const resp = response as {data: GitRefResponse[]};
-        for (let i = 0, r; resp.data[i] !== undefined; i++) {
-          r = resp.data[i];
-          const refRe = new RegExp(`/${branch}$`);
-          if (r.ref.match(refRe)) {
-            ref = r.ref;
-          }
-        }
-      }
-    } catch (err) {
-      if (err.status === 404) {
-        // the most likely cause of a 404 during this step is actually
-        // that the user does not have access to the repo:
-        throw new AuthError();
-      } else {
-        throw err;
-      }
-    }
-
-    return ref;
-  }
-
-  private async getDefaultBranch(owner: string, repo: string): Promise<string> {
+  private async getDefaultBranch(): Promise<string> {
     if (this.defaultBranch) {
       return this.defaultBranch;
     }
     const {data} = await this.octokit.repos.get({
-      repo,
-      owner,
+      repo: this.repo,
+      owner: this.owner,
       headers: {
         Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
       },
@@ -810,16 +770,30 @@ export class GitHub {
     );
   }
 
+  // Takes a potentially unqualified branch name, and turns it
+  // into a fully qualified ref.
+  //
+  // e.g. main -> refs/heads/main
+  static qualifyRef(refName: string): string {
+    let final = refName;
+    if (final.indexOf('/') < 0) {
+      final = `refs/heads/${final}`;
+    }
+
+    return final;
+  }
+
   async getFileContentsWithSimpleAPI(
     path: string,
-    refName: string | undefined
+    branch: string
   ): Promise<GitHubFileContents> {
+    const ref = GitHub.qualifyRef(branch);
     const options: any = {
       owner: this.owner,
       repo: this.repo,
       path,
     };
-    if (refName) options.ref = refName;
+    if (ref) options.ref = ref;
     const resp = await this.request(
       `GET /repos/:owner/:repo/contents/:path${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
@@ -835,17 +809,18 @@ export class GitHub {
 
   async getFileContentsWithDataAPI(
     path: string,
-    refName: string | undefined
+    branch: string
   ): Promise<GitHubFileContents> {
+    const options: any = {
+      owner: this.owner,
+      repo: this.repo,
+      branch,
+    };
     const repoTree = await this.request(
       `GET /repos/:owner/:repo/git/trees/:branch${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
       }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        ref: refName,
-      }
+      options
     );
 
     const blobDescriptor = repoTree.data.tree.find(
@@ -870,15 +845,22 @@ export class GitHub {
     };
   }
 
-  async getFileContents(
+  async getFileContents(path: string): Promise<GitHubFileContents> {
+    return await this.getFileContentsOnBranch(
+      path,
+      await this.getDefaultBranch()
+    );
+  }
+
+  async getFileContentsOnBranch(
     path: string,
-    refName: string | undefined = undefined
+    branch: string
   ): Promise<GitHubFileContents> {
     try {
-      return await this.getFileContentsWithSimpleAPI(path, refName);
+      return await this.getFileContentsWithSimpleAPI(path, branch);
     } catch (err) {
       if (err.status === 403) {
-        return await this.getFileContentsWithDataAPI(path, refName);
+        return await this.getFileContentsWithDataAPI(path, branch);
       }
       throw err;
     }

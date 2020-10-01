@@ -66,13 +66,18 @@ describe('Release-PR', () => {
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/release-please/tags?per_page=100')
+        .get(
+          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.20.3',
-            commit: {
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            base: {
+              label: 'googleapis:main',
             },
+            head: {
+              label: 'googleapis:release-v0.20.3',
+            },
+            merged_at: new Date().toISOString(),
           },
         ])
         // now we fetch the commits via the graphql API;
