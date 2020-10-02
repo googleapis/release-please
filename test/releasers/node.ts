@@ -45,7 +45,7 @@ function mockRequest(snapName: string, requestPrefix = '') {
     )
     .reply(200, undefined)
     .get(
-      `/repos/googleapis/node-test-repo/contents/${requestPrefix}package.json`
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}package.json?ref=refs/heads/master`
     )
     .reply(200, {
       content: Buffer.from(packageContent, 'utf8').toString('base64'),

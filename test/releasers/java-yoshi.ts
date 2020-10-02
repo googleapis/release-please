@@ -67,7 +67,7 @@ describe('JavaYoshi', () => {
       )
       .reply(200, undefined)
       .get(
-        '/repos/googleapis/java-trace/contents/versions.txt?refs=refs/heads/master'
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs/heads/master'
       )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
@@ -455,7 +455,9 @@ describe('JavaYoshi', () => {
         '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
       )
       .reply(200, undefined)
-      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .get(
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs/heads/master'
+      )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
