@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
-import { describe, it } from 'mocha';
-import { VersionPy } from '../../src/updaters/python/version-py';
+import {describe, it} from 'mocha';
+import {VersionPy} from '../../src/updaters/python/version-py';
 
 const fixturesPath = './test/updaters/fixtures';
 

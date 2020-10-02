@@ -12,34 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ReleasePR, ReleaseCandidate } from '../release-pr';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
-import { ConventionalCommits } from '../conventional-commits';
-import { GitHubTag } from '../github';
-import { checkpoint, CheckpointType } from '../util/checkpoint';
-import { Update } from '../updaters/update';
-import { Commit } from '../graphql-to-commits';
+import {ConventionalCommits} from '../conventional-commits';
+import {GitHubTag} from '../github';
+import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {Update} from '../updaters/update';
+import {Commit} from '../graphql-to-commits';
 
 // Generic
-import { Changelog } from '../updaters/changelog';
+import {Changelog} from '../updaters/changelog';
 // Python specific.
-import { SetupPy } from '../updaters/python/setup-py';
-import { SetupCfg } from '../updaters/python/setup-cfg';
-import { VersionPy } from '../updaters/python/version-py';
+import {SetupPy} from '../updaters/python/setup-py';
+import {SetupCfg} from '../updaters/python/setup-cfg';
+import {VersionPy} from '../updaters/python/version-py';
 
 const CHANGELOG_SECTIONS = [
-  { type: 'feat', section: 'Features' },
-  { type: 'fix', section: 'Bug Fixes' },
-  { type: 'perf', section: 'Performance Improvements' },
-  { type: 'deps', section: 'Dependencies' },
-  { type: 'revert', section: 'Reverts' },
-  { type: 'docs', section: 'Documentation' },
-  { type: 'style', section: 'Styles', hidden: true },
-  { type: 'chore', section: 'Miscellaneous Chores', hidden: true },
-  { type: 'refactor', section: 'Code Refactoring', hidden: true },
-  { type: 'test', section: 'Tests', hidden: true },
-  { type: 'build', section: 'Build System', hidden: true },
-  { type: 'ci', section: 'Continuous Integration', hidden: true },
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'deps', section: 'Dependencies'},
+  {type: 'revert', section: 'Reverts'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'style', section: 'Styles', hidden: true},
+  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
 export class Python extends ReleasePR {
@@ -75,7 +75,8 @@ export class Python extends ReleasePR {
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry)) {
       checkpoint(
-        `no user facing commits found since ${latestTag ? latestTag.sha : 'beginning of time'
+        `no user facing commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
         }`,
         CheckpointType.Failure
       );
@@ -110,7 +111,6 @@ export class Python extends ReleasePR {
       })
     );
 
-
     // There should be only one version.py, but foreach in case that is incorrect
     const versionPyFilesSearch = this.gh.findFilesByFilename('version.py');
     const versionPyFiles = await versionPyFilesSearch;
@@ -124,8 +124,6 @@ export class Python extends ReleasePR {
         })
       );
     });
-
-
 
     await this.openPR({
       sha: commits[0].sha!,
