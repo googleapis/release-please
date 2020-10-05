@@ -83,18 +83,18 @@ describe('Release-PR', () => {
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
         .reply(200, [])
         // fetch the current version of each library.
-        .get('/repos/googleapis/release-please/contents/AutoMl/composer.json')
+        .get('/repos/googleapis/release-please/contents/AutoMl%2Fcomposer.json')
         .reply(200, {
           content: Buffer.from('{"name": "automl"}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/AutoMl/VERSION')
+        .get('/repos/googleapis/release-please/contents/AutoMl%2FVERSION')
         .reply(200, {
           content: Buffer.from('1.8.3', 'utf8').toString('base64'),
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/Datastore/composer.json'
+          '/repos/googleapis/release-please/contents/Datastore%2Fcomposer.json'
         )
         .reply(200, {
           content: Buffer.from('{"name": "datastore"}', 'utf8').toString(
@@ -102,33 +102,33 @@ describe('Release-PR', () => {
           ),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/Datastore/VERSION')
+        .get('/repos/googleapis/release-please/contents/Datastore%2FVERSION')
         .reply(200, {
           content: Buffer.from('2.0.0', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/PubSub/composer.json')
+        .get('/repos/googleapis/release-please/contents/PubSub%2Fcomposer.json')
         .reply(200, {
           content: Buffer.from('{"name": "pubsub"}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/PubSub/VERSION')
+        .get('/repos/googleapis/release-please/contents/PubSub%2FVERSION')
         .reply(200, {
           content: Buffer.from('1.0.1', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/Speech/composer.json')
+        .get('/repos/googleapis/release-please/contents/Speech%2Fcomposer.json')
         .reply(200, {
           content: Buffer.from('{"name": "speech"}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/Speech/VERSION')
+        .get('/repos/googleapis/release-please/contents/Speech%2FVERSION')
         .reply(200, {
           content: Buffer.from('1.0.0', 'utf8').toString('base64'),
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/WebSecurityScanner/composer.json'
+          '/repos/googleapis/release-please/contents/WebSecurityScanner%2Fcomposer.json'
         )
         .reply(200, {
           content: Buffer.from(
@@ -138,7 +138,7 @@ describe('Release-PR', () => {
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/WebSecurityScanner/VERSION'
+          '/repos/googleapis/release-please/contents/WebSecurityScanner%2FVERSION'
         )
         .reply(200, {
           content: Buffer.from('0.8.0', 'utf8').toString('base64'),
@@ -147,18 +147,18 @@ describe('Release-PR', () => {
         // besides the composer.json and VERSION files that need to be
         // processed for each individual module, there are several
         // overarching meta-information files that need updating.
-        .get('/repos/googleapis/release-please/contents/docs/VERSION')
+        .get('/repos/googleapis/release-please/contents/docs%2FVERSION')
         .reply(404)
         .get(
           '/repos/googleapis/release-please/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/src/Version.php?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/release-please/contents/src%2FVersion.php?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/src/ServiceBuilder.php?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/release-please/contents/src%2FServiceBuilder.php?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
@@ -169,7 +169,7 @@ describe('Release-PR', () => {
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/release-please/contents/docs%2Fmanifest.json?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from(
