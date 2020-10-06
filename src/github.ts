@@ -243,7 +243,7 @@ export class GitHub {
                   target {
                     ... on Commit {
                       history(first: $perPage, after: $cursor, path: $path) {
-                        edges{
+                        edges {
                           node {
                             ... on Commit {
                               message
