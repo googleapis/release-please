@@ -84,9 +84,8 @@ export interface GitHubTag {
 
 export interface GitHubReleasePR {
   number: number;
-  version: string;
   sha: string;
-  normalizedVersion: string;
+  version: string;
 }
 
 export interface GitHubFileContents {
@@ -461,9 +460,9 @@ export class GitHub {
     if (!pull) return undefined;
 
     const tag = {
-      name: `v${pull.normalizedVersion}`,
+      name: `v${pull.version}`,
       sha: pull.sha,
-      version: pull.normalizedVersion,
+      version: pull.version,
     } as GitHubTag;
 
     return tag;
@@ -516,8 +515,7 @@ export class GitHub {
         return {
           number: pull.number,
           sha: pull.merge_commit_sha,
-          version,
-          normalizedVersion,
+          version: normalizedVersion,
         } as GitHubReleasePR;
       }
     }
