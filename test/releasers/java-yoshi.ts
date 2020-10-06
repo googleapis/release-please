@@ -201,9 +201,6 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
-    const graphql = JSON.parse(
-      readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
-    );
     const req = nock('https://api.github.com')
       .get(
         '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
@@ -218,11 +215,6 @@ describe('JavaYoshi', () => {
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
-      })
-      // getting the most recent commit:
-      .post('/graphql')
-      .reply(200, {
-        data: graphql,
       })
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
@@ -329,9 +321,6 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
-    const graphql = JSON.parse(
-      readFileSync(resolve(fixturesPath, 'empty-commits.json'), 'utf8')
-    );
     const req = nock('https://api.github.com')
       .get(
         '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
@@ -346,11 +335,6 @@ describe('JavaYoshi', () => {
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
-      })
-      // getting the most recent commit:
-      .post('/graphql')
-      .reply(200, {
-        data: graphql,
       })
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
@@ -491,9 +475,6 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
-    const graphql = JSON.parse(
-      readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
-    );
     const req = nock('https://api.github.com')
       .get(
         '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
@@ -508,11 +489,6 @@ describe('JavaYoshi', () => {
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
-      })
-      // getting the most recent commit:
-      .post('/graphql')
-      .reply(200, {
-        data: graphql,
       })
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
