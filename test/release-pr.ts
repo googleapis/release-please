@@ -179,11 +179,11 @@ describe('Release-PR', () => {
         )
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/src/Version.php?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/release-please/contents/src%2FVersion.php?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
-          '/repos/googleapis/release-please/contents/src/ServiceBuilder.php?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/release-please/contents/src%2FServiceBuilder.php?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404)
         .get(
@@ -194,7 +194,7 @@ describe('Release-PR', () => {
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/docs/manifest.json?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/release-please/contents/docs%2Fmanifest.json?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from(

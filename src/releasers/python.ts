@@ -25,6 +25,7 @@ import {Changelog} from '../updaters/changelog';
 // Python specific.
 import {SetupPy} from '../updaters/python/setup-py';
 import {SetupCfg} from '../updaters/python/setup-cfg';
+import {VersionPy} from '../updaters/python/version-py';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -109,6 +110,20 @@ export class Python extends ReleasePR {
         packageName: this.packageName,
       })
     );
+
+    // There should be only one version.py, but foreach in case that is incorrect
+    const versionPyFilesSearch = this.gh.findFilesByFilename('version.py');
+    const versionPyFiles = await versionPyFilesSearch;
+    versionPyFiles.forEach(path => {
+      updates.push(
+        new VersionPy({
+          path: this.addPath(path),
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
 
     await this.openPR({
       sha: commits[0].sha!,

@@ -146,7 +146,7 @@ describe('JavaYoshi', () => {
       })
       // Update GoogleUtils.java
       .get(
-        '/repos/googleapis/java-trace/contents/google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java?ref=refs%2Fheads%2Fmaster'
+        '/repos/googleapis/java-trace/contents/google-api-client%2Fsrc%2Fmain%2Fjava%2Fcom%2Fgoogle%2Fapi%2Fclient%2Fgoogleapis%2FGoogleUtils.java?ref=refs%2Fheads%2Fmaster'
       )
       .reply(200, {
         content: Buffer.from(googleUtilsContent, 'utf8').toString('base64'),

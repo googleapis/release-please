@@ -87,7 +87,7 @@ function mockRequest(snapName: string, requestPrefix = '') {
       sha: 'abc123',
     })
     .get(
-      `/repos/googleapis/node-test-repo/contents/${requestPrefix}samples/package.json?ref=refs%2Fheads%2Fmaster`
+      `/repos/googleapis/node-test-repo/contents/${requestPrefix}samples%2Fpackage.json?ref=refs%2Fheads%2Fmaster`
     )
     .reply(404)
     .post(
@@ -196,9 +196,9 @@ describe('Node', () => {
           return Promise.resolve(22);
         }
       );
-      const req = mockRequest('with-path', 'packages/foo/')
+      const req = mockRequest('with-path', 'packages%2Ffoo%2F')
         .get(
-          '/repos/googleapis/node-test-repo/contents/packages/foo/package-lock.json?ref=refs%2Fheads%2Fmaster'
+          '/repos/googleapis/node-test-repo/contents/packages%2Ffoo%2Fpackage-lock.json?ref=refs%2Fheads%2Fmaster'
         )
         .reply(404);
 

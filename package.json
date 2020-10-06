@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "6.2.0",
+  "version": "6.3.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -71,7 +71,7 @@
     "figures": "^3.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
-    "type-fest": "^0.16.0",
+    "type-fest": "^0.17.0",
     "yargs": "^16.0.0"
   },
   "engines": {

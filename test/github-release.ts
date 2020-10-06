@@ -76,7 +76,9 @@ describe('GitHubRelease', () => {
           }
         )
         .reply(200)
-        .delete('/repos/googleapis/foo/issues/1/labels/autorelease:%20pending')
+        .delete(
+          '/repos/googleapis/foo/issues/1/labels/autorelease%3A%20pending'
+        )
         .reply(200);
 
       const created = await release.createRelease();
@@ -135,7 +137,9 @@ describe('GitHubRelease', () => {
           }
         )
         .reply(200)
-        .delete('/repos/googleapis/foo/issues/1/labels/autorelease:%20pending')
+        .delete(
+          '/repos/googleapis/foo/issues/1/labels/autorelease%3A%20pending'
+        )
         .reply(200);
       const created = await release.createRelease();
       strictEqual(created!.tag_name, 'v1.0.2');

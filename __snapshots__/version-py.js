@@ -1,6 +1,5 @@
-#!/bin/bash
-
-# Copyright 2018 Google LLC
+exports['version.py updateContent updates version in version.py 1'] = `
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -eo pipefail
+__version__ = "0.6.0"
 
-export NPM_CONFIG_PREFIX=${HOME}/.npm-global
-
-# Start the releasetool reporter
-python3 -m pip install gcp-releasetool
-python3 -m releasetool publish-reporter-script > /tmp/publisher-script; source /tmp/publisher-script
-
-cd $(dirname $0)/..
-
-NPM_TOKEN=$(cat $KOKORO_GFILE_DIR/secret_manager/npm_publish_token)
-echo "//wombat-dressing-room.appspot.com/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-
-npm install
-npm publish --access=public --registry=https://wombat-dressing-room.appspot.com
+`
