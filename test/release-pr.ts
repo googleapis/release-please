@@ -72,7 +72,7 @@ describe('Release-PR', () => {
         .reply(200, [
           {
             base: {
-              label: 'googleapis:main',
+              label: 'googleapis:master',
             },
             head: {
               label: 'googleapis:release-v0.20.3',
