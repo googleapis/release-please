@@ -44,12 +44,12 @@
                   {
                     "node": {
                       "message": "fix: Assorted minor fixes for Cloud Datastore client (#1964)",
-                      "oid": "269cf923ea6fd0375abaf0bb19790475693c6f90",
+                      "oid": "cf52ec0bcdc777dc9c5e76153d7d253bea95d44b",
                       "associatedPullRequests": {
                         "edges": [
                           {
                             "node": {
-                              "mergeCommit": {"oid": "269cf923ea6fd0375abaf0bb19790475693c6f90"},
+                              "mergeCommit": {"oid": "cf52ec0bcdc777dc9c5e76153d7d253bea95d44b"},
                               "number": 1964,
                               "files": {
                                 "edges": [
@@ -809,168 +809,11 @@
                         ]
                       }
                     }
-                  },
-                  {
-                    "node": {
-                      "message": "fix: language system test (#1958)",
-                      "oid": "bf69d0f204474b88b3f8b5a72a392129d16a3929",
-                      "associatedPullRequests": {
-                        "edges": [
-                          {
-                            "node": {
-                              "mergeCommit": {"oid": "bf69d0f204474b88b3f8b5a72a392129d16a3929"},
-                              "number": 1958,
-                              "files": {
-                                "edges": [
-                                  {
-                                    "node": {
-                                      "path": "Language/tests/System/AnalyzeTest.php"
-                                    }
-                                  }
-                                ],
-                                "pageInfo": {
-                                  "endCursor": "MQ",
-                                  "hasNextPage": false
-                                }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "node": {
-                      "message": "fix: continue switch targeting warning in PHP 7.3 (#1957)",
-                      "oid": "a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f",
-                      "associatedPullRequests": {
-                        "edges": [
-                          {
-                            "node": {
-                              "mergeCommit": {"oid": "a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f"},
-                              "number": 1957,
-                              "files": {
-                                "edges": [
-                                  {
-                                    "node": {
-                                      "path": "Debugger/src/Agent.php"
-                                    }
-                                  }
-                                ],
-                                "pageInfo": {
-                                  "endCursor": "MQ",
-                                  "hasNextPage": false
-                                }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "node": {
-                      "message": "feat: Add Collection Group Query support (#1944)\n\n* Add Collection Group Query support\r\n\r\n* Fix documentation\r\n\r\n* Address code review\r\n\r\n* Throw from createDocumentReference",
-                      "oid": "cf52ec0bcdc777dc9c5e76153d7d253bea95d44b",
-                      "associatedPullRequests": {
-                        "edges": [
-                          {
-                            "node": {
-                              "mergeCommit": {"oid": "cf52ec0bcdc777dc9c5e76153d7d253bea95d44b"},
-                              "number": 1944,
-                              "files": {
-                                "edges": [
-                                  {
-                                    "node": {
-                                      "path": "Firestore/src/Connection/Grpc.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/src/FieldPath.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/src/FirestoreClient.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/src/Query.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/src/SnapshotTrait.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Snippet/CollectionReferenceTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Snippet/FieldPathTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Snippet/FirestoreClientTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Snippet/QueryTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/System/CollectionGroupTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/System/FirestoreTestCase.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Unit/CollectionReferenceTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Unit/FieldPathTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Unit/FirestoreClientTest.php"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "path": "Firestore/tests/Unit/QueryTest.php"
-                                    }
-                                  }
-                                ],
-                                "pageInfo": {
-                                  "endCursor": "MTU",
-                                  "hasNextPage": false
-                                }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
                   }
                 ],
                 "pageInfo": {
                   "endCursor": "0a8477108a26aeb21d7af06e62be4ae5cb00ad42 31",
-                  "hasNextPage": true
+                  "hasNextPage": false
                 }
               }
             }
