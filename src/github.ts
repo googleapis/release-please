@@ -22,7 +22,7 @@ import {graphql} from '@octokit/graphql';
 // around this,. See: https://github.com/octokit/rest.js/issues/1624
 // https://github.com/octokit/types.ts/issues/25.
 import {PromiseValue} from 'type-fest';
-import {EndpointOptions} from '@octokit/types';
+import {EndpointOptions, OctokitResponse} from '@octokit/types';
 type OctokitType = InstanceType<typeof Octokit>;
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
@@ -33,8 +33,8 @@ type PullsListResponseItem = PromiseValue<
 type GitRefResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['git']['getRef']>
 >['data'];
-type ReposListTagsResponseItems = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['tags']['list']>
+type GitGetTreeResponse = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['git']['getTree']>
 >['data'];
 type IssuesListResponseItem = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['issues']['get']>
@@ -45,6 +45,12 @@ type FileSearchResponse = PromiseValue<
 export type ReleaseCreateResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 >['data'];
+
+// Extract some types from the `request` package.
+type RequestBuilderType = typeof request;
+type DefaultFunctionType = RequestBuilderType['defaults'];
+type RequestFunctionType = ReturnType<DefaultFunctionType>;
+type RequestOptionsType = Parameters<DefaultFunctionType>[0];
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -62,7 +68,7 @@ const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)$/;
 
 export interface OctokitAPIs {
   graphql: Function;
-  request: Function;
+  request: RequestFunctionType;
   octokit: OctokitType;
 }
 
@@ -114,7 +120,7 @@ let probotMode = false;
 export class GitHub {
   defaultBranch?: string;
   octokit: OctokitType;
-  request: Function;
+  request: RequestFunctionType;
   graphql: Function;
   token: string | undefined;
   owner: string;
@@ -135,7 +141,7 @@ export class GitHub {
         baseUrl: options.apiUrl,
         auth: this.token,
       });
-      const defaults: {[key: string]: string | object} = {
+      const defaults: RequestOptionsType = {
         baseUrl: this.apiUrl,
         headers: {
           'user-agent': `release-please/${
@@ -786,7 +792,7 @@ export class GitHub {
     branch: string
   ): Promise<GitHubFileContents> {
     const ref = GitHub.qualifyRef(branch);
-    const options: any = {
+    const options: RequestOptionsType = {
       owner: this.owner,
       repo: this.repo,
       path,
@@ -809,21 +815,22 @@ export class GitHub {
     path: string,
     branch: string
   ): Promise<GitHubFileContents> {
-    const options: any = {
+    const options: RequestOptionsType = {
       owner: this.owner,
       repo: this.repo,
       branch,
     };
-    const repoTree = await this.request(
+    const repoTree: OctokitResponse<GitGetTreeResponse> = await this.request(
       `GET /repos/:owner/:repo/git/trees/:branch${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
       }`,
       options
     );
 
-    const blobDescriptor = repoTree.data.tree.find(
-      (tree: any) => tree.path === path
-    );
+    const blobDescriptor = repoTree.data.tree.find(tree => tree.path === path);
+    if (!blobDescriptor) {
+      throw new Error(`Could not find requested path: ${path}`);
+    }
 
     const resp = await this.request(
       `GET /repos/:owner/:repo/git/blobs/:sha${
