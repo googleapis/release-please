@@ -50,7 +50,7 @@ describe('YoshiGo', () => {
       const req = nock('https://api.github.com')
         // Check for in progress, merged release PRs:
         .get(
-          '/repos/googleapis/yoshi-go-test-repo/pulls?state=closed&per_page=100'
+          '/repos/googleapis/yoshi-go-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
         // Check for existing open release PRs.
@@ -60,13 +60,19 @@ describe('YoshiGo', () => {
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/yoshi-go-test-repo/tags?per_page=100')
+        .get(
+          '/repos/googleapis/yoshi-go-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.123.4',
-            commit: {
+            base: {
+              label: 'googleapis:master',
+            },
+            head: {
+              label: 'googleapis:release-v0.123.4',
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
+            merged_at: new Date().toISOString(),
           },
         ])
         .post('/graphql')

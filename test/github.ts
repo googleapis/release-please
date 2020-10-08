@@ -14,7 +14,7 @@
 
 import * as nock from 'nock';
 import {expect} from 'chai';
-import {describe, it} from 'mocha';
+import {beforeEach, describe, it} from 'mocha';
 nock.disableNetConnect();
 
 import {readFileSync} from 'fs';
@@ -22,11 +22,31 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
 import {GitHub} from '../src/github';
-const github = new GitHub({owner: 'fake', repo: 'fake'});
 
 const fixturesPath = './test/fixtures';
 
 describe('GitHub', () => {
+  let github: GitHub;
+  let req: nock.Scope;
+
+  function getNock() {
+    return nock('https://api.github.com/')
+      .get('/repos/fake/fake')
+      .optionally()
+      .reply(200, {
+        default_branch: 'main',
+      });
+  }
+
+  beforeEach(() => {
+    // Reset this before each test so we get a consistent
+    // set of requests (some things are cached).
+    github = new GitHub({owner: 'fake', repo: 'fake'});
+
+    // This shared nock will take care of some common requests.
+    req = getNock();
+  });
+
   describe('commitsSinceSha', () => {
     it('returns commits immediately before sha', async () => {
       const graphql = JSON.parse(
@@ -35,7 +55,7 @@ describe('GitHub', () => {
           'utf8'
         )
       );
-      const req = nock('https://api.github.com').post('/graphql').reply(200, {
+      req.post('/graphql').reply(200, {
         data: graphql,
       });
       const commitsSinceSha = await github.commitsSinceSha(
@@ -51,7 +71,7 @@ describe('GitHub', () => {
       const fileSearchResponse = JSON.parse(
         readFileSync(resolve(fixturesPath, 'pom-file-search.json'), 'utf8')
       );
-      const req = nock('https://api.github.com')
+      req
         .get('/search/code?q=filename%3Apom.xml+repo%3Afake%2Ffake')
         .reply(200, fileSearchResponse);
       const pomFiles = await github.findFilesByFilename('pom.xml');
@@ -62,18 +82,22 @@ describe('GitHub', () => {
 
   describe('findOpenReleasePRs', () => {
     it('returns PRs that have all release labels', async () => {
-      const req = nock('https://api.github.com')
-        .get('/repos/fake/fake/pulls?state=open&per_page=100')
-        .reply(200, [
-          {
-            number: 99,
-            labels: [{name: 'autorelease: pending'}, {name: 'process'}],
+      req.get('/repos/fake/fake/pulls?state=open&per_page=100').reply(200, [
+        {
+          number: 99,
+          labels: [{name: 'autorelease: pending'}, {name: 'process'}],
+          base: {
+            label: 'fake:main',
           },
-          {
-            number: 100,
-            labels: [{name: 'autorelease: pending'}],
+        },
+        {
+          number: 100,
+          labels: [{name: 'autorelease: pending'}],
+          base: {
+            label: 'fake:main',
           },
-        ]);
+        },
+      ]);
       const prs = await github.findOpenReleasePRs([
         'autorelease: pending',
         'process',
@@ -85,119 +109,156 @@ describe('GitHub', () => {
     });
 
     it('returns PRs when only one release label is configured', async () => {
-      const req = nock('https://api.github.com')
-        .get('/repos/fake/fake/pulls?state=open&per_page=100')
-        .reply(200, [
-          {
-            number: 99,
-            labels: [{name: 'autorelease: pending'}, {name: 'process'}],
+      req.get('/repos/fake/fake/pulls?state=open&per_page=100').reply(200, [
+        {
+          number: 99,
+          labels: [{name: 'autorelease: pending'}, {name: 'process'}],
+          base: {
+            label: 'fake:main',
           },
-          {
-            number: 100,
-            labels: [{name: 'autorelease: pending'}],
+        },
+        {
+          number: 100,
+          labels: [{name: 'autorelease: pending'}],
+          base: {
+            label: 'fake:main',
           },
-        ]);
+        },
+      ]);
       const prs = await github.findOpenReleasePRs(['autorelease: pending']);
       const numbers = prs.map(pr => pr.number);
       expect(numbers).to.include(99);
       expect(numbers).to.include(100);
       req.done();
     });
+
+    // Todo - not finding things from other branches
   });
 
   describe('latestTag', () => {
-    it('returns the largest tag, even if sorting is off', async () => {
-      const req = nock('https://api.github.com')
-        .get('/repos/fake/fake/tags?per_page=100')
-        .reply(200, [
-          {
-            name: 'v1.2.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.2.0',
-          },
-          {
-            name: 'v1.3.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.3.0',
-          },
-          {
-            name: 'v1.1.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.1.0',
-          },
-        ]);
+    const samplePrReturn = [
+      {
+        base: {
+          label: 'fake:prerelease',
+        },
+        head: {
+          label: 'fake:release-v3.0.0-rc1',
+        },
+        merged_at: new Date().toISOString(),
+      },
+      {
+        base: {
+          label: 'fake:main',
+        },
+        head: {
+          label: 'fake:release-v2.0.0-rc1',
+        },
+        merged_at: new Date().toISOString(),
+      },
+      {
+        base: {
+          label: 'fake:legacy-8',
+        },
+        head: {
+          label: 'fake:release-v1.1.5',
+        },
+        merged_at: new Date().toISOString(),
+      },
+      {
+        base: {
+          label: 'fake:main',
+        },
+        head: {
+          label: 'fake:release-v1.3.0',
+        },
+        merged_at: new Date().toISOString(),
+      },
+      {
+        base: {
+          label: 'fake:main',
+        },
+        head: {
+          label: 'fake:release-v1.2.0',
+        },
+        merged_at: new Date().toISOString(),
+      },
+      {
+        base: {
+          label: 'fake:main',
+        },
+        head: {
+          label: 'fake:release-v1.1.0',
+        },
+        merged_at: new Date().toISOString(),
+      },
+    ];
+
+    it('returns the latest tag on the main branch, based on PR date', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
+        .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
 
-    it('does not return pre-releases as latest tag', async () => {
-      const req = nock('https://api.github.com')
-        .get('/repos/fake/fake/tags?per_page=100')
-        .reply(200, [
-          {
-            name: 'v1.2.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.2.0',
-          },
-          {
-            name: 'v1.3.0-beta.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.3.0',
-          },
-          {
-            name: 'v1.1.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.1.0',
-          },
-        ]);
+    it('returns the latest tag on a sub branch, based on PR date', async () => {
+      // We need a special one here to set an alternate branch.
+      github = new GitHub({
+        owner: 'fake',
+        repo: 'fake',
+        defaultBranch: 'legacy-8',
+      });
+
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
+        .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.2.0');
+      expect(latestTag!.version).to.equal('1.1.5');
       req.done();
     });
 
-    it('returns pre-releases as latest, when preRelease is true', async () => {
-      const req = nock('https://api.github.com')
-        .get('/repos/fake/fake/tags?per_page=100')
-        .reply(200, [
-          {
-            name: 'v1.2.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.2.0',
-          },
-          {
-            name: 'v1.3.0-beta.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.3.0',
-          },
-          {
-            name: 'v1.1.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.1.0',
-          },
-          {
-            name: 'v1.4.0-beta10',
-            commit: {sha: 'abc123'},
-            version: 'v1.3.0',
-          },
-          {
-            name: 'v1.4.0-beta2',
-            commit: {sha: 'abc123'},
-            version: 'v1.3.0',
-          },
-          {
-            name: 'v1.4.0-beta0',
-            commit: {sha: 'abc123'},
-            version: 'v1.3.0',
-          },
-          {
-            name: 'v1.3.0',
-            commit: {sha: 'abc123'},
-            version: 'v1.1.0',
-          },
-        ]);
+    it('does not return pre-releases as latest tag', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
+        .reply(200, samplePrReturn);
+      const latestTag = await github.latestTag();
+      expect(latestTag!.version).to.equal('1.3.0');
+      req.done();
+    });
+
+    it('returns pre-releases on the main branch as latest, when preRelease is true', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
+        .reply(200, samplePrReturn);
       const latestTag = await github.latestTag(undefined, true);
-      expect(latestTag!.version).to.equal('1.4.0-beta10');
+      expect(latestTag!.version).to.equal('2.0.0-rc1');
+      req.done();
+    });
+
+    it('returns pre-releases on a sub branch as latest, when preRelease is true', async () => {
+      // We need a special one here to set an alternate branch.
+      github = new GitHub({
+        owner: 'fake',
+        repo: 'fake',
+        defaultBranch: 'prerelease',
+      });
+
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
+        .reply(200, samplePrReturn);
+      const latestTag = await github.latestTag(undefined, true);
+      expect(latestTag!.version).to.equal('3.0.0-rc1');
       req.done();
     });
   });
@@ -234,24 +295,21 @@ describe('GitHub', () => {
           'utf8'
         )
       );
-      const req1 = nock('https://api.github.com')
+      const req1 = nock('https://api.github.com/')
         .get(
-          '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmaster'
+          '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmain'
         )
         .reply(403, simpleAPIResponse);
-      const req2 = nock('https://api.github.com')
-        .get('/repos/fake/fake/git/trees/master')
+      const req2 = nock('https://api.github.com/')
+        .get('/repos/fake/fake/git/trees/main')
         .reply(200, dataAPITreesResponse);
-      const req3 = nock('https://api.github.com')
+      const req3 = nock('https://api.github.com/')
         .get(
           '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
         )
         .reply(200, dataAPIBlobResponse);
 
-      const fileContents = await github.getFileContents(
-        'package-lock.json',
-        'master'
-      );
+      const fileContents = await github.getFileContents('package-lock.json');
       expect(fileContents).to.have.property('content');
       expect(fileContents).to.have.property('parsedContent');
       expect(fileContents)

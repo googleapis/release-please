@@ -24,6 +24,9 @@ import {GitHubRelease} from '../src/github-release';
 
 const fixturesPath = './test/fixtures';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const repoInfo = require('../../test/fixtures/repo-get-2.json');
+
 describe('GitHubRelease', () => {
   describe('createRelease', () => {
     it('creates and labels release on GitHub', async () => {
@@ -34,18 +37,26 @@ describe('GitHubRelease', () => {
         apiUrl: 'https://api.github.com',
       });
       const requests = nock('https://api.github.com')
-        .get('/repos/googleapis/foo/pulls?state=closed&per_page=100')
+        // check for default branch
+        .get('/repos/googleapis/foo')
+        .reply(200, repoInfo)
+        .get(
+          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
             labels: [{name: 'autorelease: pending'}],
             head: {
               label: 'head:release-v1.0.3',
             },
+            base: {
+              label: 'googleapis:main',
+            },
             number: 1,
             merged_at: new Date().toISOString(),
           },
         ])
-        .get('/repos/googleapis/foo/contents/CHANGELOG.md')
+        .get('/repos/googleapis/foo/contents/CHANGELOG.md?ref=refs/heads/main')
         .reply(200, {
           content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
         })
@@ -83,22 +94,30 @@ describe('GitHubRelease', () => {
         releaseType: 'node',
       });
       const requests = nock('https://api.github.com')
-        .get('/repos/googleapis/foo/pulls?state=closed&per_page=100')
+        // check for default branch
+        .get('/repos/googleapis/foo')
+        .reply(200, repoInfo)
+        .get(
+          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
             labels: [{name: 'autorelease: pending'}],
             head: {
               label: 'head:release-v1.0.3',
             },
+            base: {
+              label: 'googleapis:main',
+            },
             number: 1,
             merged_at: new Date().toISOString(),
           },
         ])
-        .get('/repos/googleapis/foo/contents/package.json')
+        .get('/repos/googleapis/foo/contents/package.json?ref=refs/heads/main')
         .reply(200, {
           content: Buffer.from('{"name": "@google-cloud/foo"}', 'utf8'),
         })
-        .get('/repos/googleapis/foo/contents/CHANGELOG.md')
+        .get('/repos/googleapis/foo/contents/CHANGELOG.md?ref=refs/heads/main')
         .reply(200, {
           content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
         })

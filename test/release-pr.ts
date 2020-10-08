@@ -60,22 +60,31 @@ describe('Release-PR', () => {
       const req = nock('https://api.github.com')
         // check to see if this PR was already landed and we're
         // just waiting on the autorelease.
-        .get('/repos/googleapis/release-please/pulls?state=closed&per_page=100')
+        .get(
+          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/release-please/tags?per_page=100')
+        .get(
+          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.20.3',
-            commit: {
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            base: {
+              label: 'googleapis:master',
             },
+            head: {
+              label: 'googleapis:release-v0.20.3',
+            },
+            merged_at: new Date().toISOString(),
           },
         ])
         // now we fetch the commits via the graphql API;
         // note they will be truncated to just before the tag's sha.
-        .post('/graphql')
+        .post('/graphql', () => {
+          return true;
+        })
         .reply(200, {
           data: graphql,
         })
@@ -83,18 +92,22 @@ describe('Release-PR', () => {
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
         .reply(200, [])
         // fetch the current version of each library.
-        .get('/repos/googleapis/release-please/contents/AutoMl%2Fcomposer.json')
+        .get(
+          '/repos/googleapis/release-please/contents/AutoMl%2Fcomposer.json?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(200, {
           content: Buffer.from('{"name": "automl"}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/AutoMl%2FVERSION')
+        .get(
+          '/repos/googleapis/release-please/contents/AutoMl%2FVERSION?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(200, {
           content: Buffer.from('1.8.3', 'utf8').toString('base64'),
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/Datastore%2Fcomposer.json'
+          '/repos/googleapis/release-please/contents/Datastore%2Fcomposer.json?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from('{"name": "datastore"}', 'utf8').toString(
@@ -102,33 +115,43 @@ describe('Release-PR', () => {
           ),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/Datastore%2FVERSION')
+        .get(
+          '/repos/googleapis/release-please/contents/Datastore%2FVERSION?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(200, {
           content: Buffer.from('2.0.0', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/PubSub%2Fcomposer.json')
+        .get(
+          '/repos/googleapis/release-please/contents/PubSub%2Fcomposer.json?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(200, {
           content: Buffer.from('{"name": "pubsub"}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/PubSub%2FVERSION')
+        .get(
+          '/repos/googleapis/release-please/contents/PubSub%2FVERSION?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(200, {
           content: Buffer.from('1.0.1', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/Speech%2Fcomposer.json')
+        .get(
+          '/repos/googleapis/release-please/contents/Speech%2Fcomposer.json?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(200, {
           content: Buffer.from('{"name": "speech"}', 'utf8').toString('base64'),
           sha: 'abc123',
         })
-        .get('/repos/googleapis/release-please/contents/Speech%2FVERSION')
+        .get(
+          '/repos/googleapis/release-please/contents/Speech%2FVERSION?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(200, {
           content: Buffer.from('1.0.0', 'utf8').toString('base64'),
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/WebSecurityScanner%2Fcomposer.json'
+          '/repos/googleapis/release-please/contents/WebSecurityScanner%2Fcomposer.json?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from(
@@ -138,7 +161,7 @@ describe('Release-PR', () => {
           sha: 'abc123',
         })
         .get(
-          '/repos/googleapis/release-please/contents/WebSecurityScanner%2FVERSION'
+          '/repos/googleapis/release-please/contents/WebSecurityScanner%2FVERSION?ref=refs%2Fheads%2Fmaster'
         )
         .reply(200, {
           content: Buffer.from('0.8.0', 'utf8').toString('base64'),
@@ -147,7 +170,9 @@ describe('Release-PR', () => {
         // besides the composer.json and VERSION files that need to be
         // processed for each individual module, there are several
         // overarching meta-information files that need updating.
-        .get('/repos/googleapis/release-please/contents/docs%2FVERSION')
+        .get(
+          '/repos/googleapis/release-please/contents/docs%2FVERSION?ref=refs%2Fheads%2Fmaster'
+        )
         .reply(404)
         .get(
           '/repos/googleapis/release-please/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmaster'

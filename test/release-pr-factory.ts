@@ -53,18 +53,23 @@ describe('ReleasePRFactory', () => {
       );
       const req = nock('https://api.github.com')
         .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
+          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/simple-test-repo/tags?per_page=100')
+        .get(
+          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.123.4',
-            commit: {
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            base: {
+              label: 'googleapis:main',
             },
+            head: {
+              label: 'googleapis:release-v0.123.4',
+            },
+            merged_at: new Date().toISOString(),
           },
         ])
         .post('/graphql')
@@ -141,18 +146,24 @@ describe('ReleasePRFactory', () => {
       );
       const req = nock('https://api.github.com')
         .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100'
+          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
         )
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
-        .get('/repos/googleapis/simple-test-repo/tags?per_page=100')
+        .get(
+          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
         .reply(200, [
           {
-            name: 'v0.123.4',
-            commit: {
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            base: {
+              label: 'googleapis:main',
             },
+            head: {
+              label: 'googleapis:release-v0.123.4',
+            },
+            merge_commit_sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            merged_at: new Date().toISOString(),
           },
         ])
         .post('/graphql')

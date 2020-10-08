@@ -22,7 +22,7 @@ import {graphql} from '@octokit/graphql';
 // around this,. See: https://github.com/octokit/rest.js/issues/1624
 // https://github.com/octokit/types.ts/issues/25.
 import {PromiseValue} from 'type-fest';
-import {EndpointOptions} from '@octokit/types';
+import {EndpointOptions, OctokitResponse} from '@octokit/types';
 type OctokitType = InstanceType<typeof Octokit>;
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
@@ -33,8 +33,8 @@ type PullsListResponseItem = PromiseValue<
 type GitRefResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['git']['getRef']>
 >['data'];
-type ReposListTagsResponseItems = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['tags']['list']>
+type GitGetTreeResponse = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['git']['getTree']>
 >['data'];
 type IssuesListResponseItem = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['issues']['get']>
@@ -45,6 +45,12 @@ type FileSearchResponse = PromiseValue<
 export type ReleaseCreateResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 >['data'];
+
+// Extract some types from the `request` package.
+type RequestBuilderType = typeof request;
+type DefaultFunctionType = RequestBuilderType['defaults'];
+type RequestFunctionType = ReturnType<DefaultFunctionType>;
+type RequestOptionsType = Parameters<DefaultFunctionType>[0];
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -58,11 +64,11 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 
-const VERSION_FROM_BRANCH_RE = /^.*:[^-]+-(.*)$/;
+const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)$/;
 
 export interface OctokitAPIs {
   graphql: Function;
-  request: Function;
+  request: RequestFunctionType;
   octokit: OctokitType;
 }
 
@@ -84,8 +90,8 @@ export interface GitHubTag {
 
 export interface GitHubReleasePR {
   number: number;
-  version: string;
   sha: string;
+  version: string;
 }
 
 export interface GitHubFileContents {
@@ -114,7 +120,7 @@ let probotMode = false;
 export class GitHub {
   defaultBranch?: string;
   octokit: OctokitType;
-  request: Function;
+  request: RequestFunctionType;
   graphql: Function;
   token: string | undefined;
   owner: string;
@@ -135,7 +141,7 @@ export class GitHub {
         baseUrl: options.apiUrl,
         auth: this.token,
       });
-      const defaults: {[key: string]: string | object} = {
+      const defaults: RequestOptionsType = {
         baseUrl: this.apiUrl,
         headers: {
           'user-agent': `release-please/${
@@ -226,40 +232,46 @@ export class GitHub {
     maxFilesChanged = 64,
     retries = 0
   ): Promise<CommitsResponse> {
+    const baseBranch = await this.getDefaultBranch();
+
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
+        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            defaultBranchRef {
-              target {
-                ... on Commit {
-                  history(first: $perPage, after: $cursor, path: $path) {
-                    edges{
-                      node {
-                        ... on Commit {
-                          message
-                          oid
-                          associatedPullRequests(first: 1) {
-                            edges {
-                              node {
-                                ... on PullRequest {
-                                  number
-                                  mergeCommit {
-                                    oid
-                                  }
-                                  files(first: $maxFilesChanged) {
-                                    edges {
-                                      node {
-                                        path
+            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch) {
+              edges {
+                node {
+                  target {
+                    ... on Commit {
+                      history(first: $perPage, after: $cursor, path: $path) {
+                        edges {
+                          node {
+                            ... on Commit {
+                              message
+                              oid
+                              associatedPullRequests(first: 1) {
+                                edges {
+                                  node {
+                                    ... on PullRequest {
+                                      number
+                                      mergeCommit {
+                                        oid
                                       }
-                                    }
-                                    pageInfo {
-                                      endCursor
-                                      hasNextPage
+                                      files(first: $maxFilesChanged) {
+                                        edges {
+                                          node {
+                                            path
+                                          }
+                                        }
+                                        pageInfo {
+                                          endCursor
+                                          hasNextPage
+                                        }
+                                      }
                                     }
                                   }
                                 }
@@ -267,11 +279,11 @@ export class GitHub {
                             }
                           }
                         }
+                        pageInfo {
+                          endCursor
+                          hasNextPage
+                        }
                       }
-                    }
-                    pageInfo {
-                      endCursor
-                      hasNextPage
                     }
                   }
                 }
@@ -285,6 +297,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
+        baseBranch,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -312,31 +325,36 @@ export class GitHub {
     maxLabels = 16,
     retries = 0
   ): Promise<CommitsResponse> {
+    const baseBranch = await this.getDefaultBranch();
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $perPage: Int, $maxLabels: Int, $path: String) {
+        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxLabels: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            defaultBranchRef {
-              target {
-                ... on Commit {
-                  history(first: $perPage, after: $cursor, path: $path) {
-                    edges{
-                      node {
-                        ... on Commit {
-                          message
-                          oid
-                          associatedPullRequests(first: 1) {
-                            edges {
-                              node {
-                                ... on PullRequest {
-                                  number
-                                  mergeCommit {
-                                    oid
-                                  }
-                                  labels(first: $maxLabels) {
-                                    edges {
-                                      node {
-                                        name
+            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch) {
+              edges {
+                node {
+                  target {
+                    ... on Commit {
+                      history(first: $perPage, after: $cursor, path: $path) {
+                        edges {
+                          node {
+                            ... on Commit {
+                              message
+                              oid
+                              associatedPullRequests(first: 1) {
+                                edges {
+                                  node {
+                                    ... on PullRequest {
+                                      number
+                                      mergeCommit {
+                                        oid
+                                      }
+                                      labels(first: $maxLabels) {
+                                        edges {
+                                          node {
+                                            name
+                                          }
+                                        }
                                       }
                                     }
                                   }
@@ -345,11 +363,11 @@ export class GitHub {
                             }
                           }
                         }
+                        pageInfo {
+                          endCursor
+                          hasNextPage
+                        }
                       }
-                    }
-                    pageInfo {
-                      endCursor
-                      hasNextPage
                     }
                   }
                 }
@@ -363,6 +381,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
+        baseBranch,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
@@ -432,47 +451,41 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
+  // This looks for the most recent matching release tag on
+  // the branch we're configured for.
   async latestTag(
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
-    const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
-    const versions = Object.keys(tags).filter(t => {
-      // remove any pre-releases from the list:
-      return preRelease || !t.includes('-');
-    });
-    // no tags have been created yet.
-    if (versions.length === 0) return undefined;
+    let regexpString = prefix || '';
+    if (!preRelease) regexpString = `^${regexpString}[^-]*$`;
 
-    // We use a slightly modified version of semver's sorting algorithm, which
-    // prefixes the numeric part of a pre-release with '0's, so that
-    // 010 is greater than > 002.
-    versions.sort((v1, v2) => {
-      if (v1.includes('-')) {
-        const [prefix, suffix] = v1.split('-');
-        v1 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
-      }
-      if (v2.includes('-')) {
-        const [prefix, suffix] = v2.split('-');
-        v2 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
-      }
-      return semver.rcompare(v1, v2);
-    });
-    return {
-      name: tags[versions[0]].name,
-      sha: tags[versions[0]].sha,
-      version: tags[versions[0]].version,
-    };
+    const regexp = regexpString ? new RegExp(regexpString) : null;
+
+    const pull = await this.findMergedReleasePR([], 100, regexp);
+    if (!pull) return undefined;
+
+    const tag = {
+      name: `v${pull.version}`,
+      sha: pull.sha,
+      version: pull.version,
+    } as GitHubTag;
+
+    return tag;
   }
 
+  // The default matcher will rule out pre-releases.
   async findMergedReleasePR(
     labels: string[],
-    perPage = 100
+    perPage = 100,
+    matcher: RegExp | null = /[^-]*/
   ): Promise<GitHubReleasePR | undefined> {
+    const baseLabel = await this.getBaseLabel();
+
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }`,
+      }&sort=updated&direction=desc`,
       {
         owner: this.owner,
         repo: this.repo,
@@ -481,6 +494,7 @@ export class GitHub {
     for (let i = 0, pull; i < pullsResponse.data.length; i++) {
       pull = pullsResponse.data[i];
       if (
+        labels.length === 0 ||
         this.hasAllLabels(
           labels,
           pull.labels.map(l => l.name)
@@ -489,12 +503,25 @@ export class GitHub {
         // it's expected that a release PR will have a
         // HEAD matching the format repo:release-v1.0.0.
         if (!pull.head) continue;
+
+        // Verify that this PR was based against our base branch of interest.
+        if (!pull.base || pull.base.label !== baseLabel) continue;
+
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
+
+        // Make sure we did get a valid semver.
+        const version = match[1];
+        const normalizedVersion = semver.valid(version);
+        if (!normalizedVersion) continue;
+
+        // Does its name match any passed matcher?
+        if (matcher && !matcher.test(normalizedVersion)) continue;
+
         return {
           number: pull.number,
           sha: pull.merge_commit_sha,
-          version: match[1],
+          version: normalizedVersion,
         } as GitHubReleasePR;
       }
     }
@@ -513,6 +540,8 @@ export class GitHub {
     labels: string[],
     perPage = 100
   ): Promise<PullsListResponseItems> {
+    const baseLabel = await this.getBaseLabel();
+
     const openReleasePRs: PullsListResponseItems = [];
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}${
@@ -524,6 +553,9 @@ export class GitHub {
       }
     )) as {data: PullsListResponseItems};
     for (const pull of pullsResponse.data) {
+      // Verify that this PR was based against our base branch of interest.
+      if (!pull.base || pull.base.label !== baseLabel) continue;
+
       let hasAllLabels = false;
       const observedLabels = pull.labels.map(l => l.name);
       for (const expectedLabel of labels) {
@@ -537,31 +569,6 @@ export class GitHub {
       if (hasAllLabels) openReleasePRs.push(pull);
     }
     return openReleasePRs;
-  }
-
-  private async allTags(
-    prefix?: string
-  ): Promise<{[version: string]: GitHubTag}> {
-    const tags: {[version: string]: GitHubTag} = {};
-    for await (const response of this.octokit.paginate.iterator(
-      this.decoratePaginateOpts({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
-          this.proxyKey ? `&key=${this.proxyKey}` : ''
-        }`,
-      })
-    )) {
-      response.data.forEach((data: ReposListTagsResponseItems) => {
-        // For monorepos, a prefix can be provided, indicating that only tags
-        // matching the prefix should be returned:
-        if (prefix && !data.name.startsWith(prefix)) return;
-        let version = data.name.replace(prefix, '');
-        if ((version = semver.valid(version))) {
-          tags[version] = {sha: data.commit.sha, name: data.name, version};
-        }
-      });
-    }
-    return tags;
   }
 
   async addLabels(labels: string[], pr: number) {
@@ -618,7 +625,7 @@ export class GitHub {
   }
 
   async openPR(options: GitHubPR): Promise<number> {
-    const defaultBranch = await this.getDefaultBranch(this.owner, this.repo);
+    const defaultBranch = await this.getDefaultBranch();
 
     // check if there's an existing PR, so that we can opt to update it
     // rather than creating a new PR.
@@ -632,8 +639,7 @@ export class GitHub {
       }
     }
 
-    // short-circuit of there have been no changes to the
-    // pull-request body.
+    // Short-circuit if there have been no changes to the pull-request body.
     if (openReleasePR && openReleasePR.body === options.body) {
       checkpoint(
         `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
@@ -701,7 +707,7 @@ export class GitHub {
           // hit GitHub again.
           content = {data: update.contents};
         } else {
-          const fileContent = await this.getFileContents(
+          const fileContent = await this.getFileContentsOnBranch(
             update.path,
             defaultBranch
           );
@@ -733,13 +739,19 @@ export class GitHub {
     return changes;
   }
 
-  private async getDefaultBranch(owner: string, repo: string): Promise<string> {
+  // The base label is basically the default branch, attached to the owner.
+  private async getBaseLabel(): Promise<string> {
+    const baseBranch = await this.getDefaultBranch();
+    return `${this.owner}:${baseBranch}`;
+  }
+
+  private async getDefaultBranch(): Promise<string> {
     if (this.defaultBranch) {
       return this.defaultBranch;
     }
     const {data} = await this.octokit.repos.get({
-      repo,
-      owner,
+      repo: this.repo,
+      owner: this.owner,
       headers: {
         Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
       },
@@ -762,18 +774,30 @@ export class GitHub {
     );
   }
 
+  // Takes a potentially unqualified branch name, and turns it
+  // into a fully qualified ref.
+  //
+  // e.g. main -> refs/heads/main
+  static qualifyRef(refName: string): string {
+    let final = refName;
+    if (final.indexOf('/') < 0) {
+      final = `refs/heads/${final}`;
+    }
+
+    return final;
+  }
+
   async getFileContentsWithSimpleAPI(
     path: string,
-    defaultBranch: string | undefined
+    branch: string
   ): Promise<GitHubFileContents> {
-    const options: any = {
+    const ref = GitHub.qualifyRef(branch);
+    const options: RequestOptionsType = {
       owner: this.owner,
       repo: this.repo,
       path,
     };
-    if (defaultBranch) {
-      options.ref = `refs/heads/${defaultBranch}`;
-    }
+    if (ref) options.ref = ref;
     const resp = await this.request(
       `GET /repos/:owner/:repo/contents/:path${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
@@ -789,22 +813,24 @@ export class GitHub {
 
   async getFileContentsWithDataAPI(
     path: string,
-    defaultBranch: string | undefined
+    branch: string
   ): Promise<GitHubFileContents> {
-    const repoTree = await this.request(
+    const options: RequestOptionsType = {
+      owner: this.owner,
+      repo: this.repo,
+      branch,
+    };
+    const repoTree: OctokitResponse<GitGetTreeResponse> = await this.request(
       `GET /repos/:owner/:repo/git/trees/:branch${
         this.proxyKey ? `?key=${this.proxyKey}` : ''
       }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        branch: defaultBranch,
-      }
+      options
     );
 
-    const blobDescriptor = repoTree.data.tree.find(
-      (tree: any) => tree.path === path
-    );
+    const blobDescriptor = repoTree.data.tree.find(tree => tree.path === path);
+    if (!blobDescriptor) {
+      throw new Error(`Could not find requested path: ${path}`);
+    }
 
     const resp = await this.request(
       `GET /repos/:owner/:repo/git/blobs/:sha${
@@ -824,15 +850,22 @@ export class GitHub {
     };
   }
 
-  async getFileContents(
+  async getFileContents(path: string): Promise<GitHubFileContents> {
+    return await this.getFileContentsOnBranch(
+      path,
+      await this.getDefaultBranch()
+    );
+  }
+
+  async getFileContentsOnBranch(
     path: string,
-    defaultBranch: string | undefined = undefined
+    branch: string
   ): Promise<GitHubFileContents> {
     try {
-      return await this.getFileContentsWithSimpleAPI(path, defaultBranch);
+      return await this.getFileContentsWithSimpleAPI(path, branch);
     } catch (err) {
       if (err.status === 403) {
-        return await this.getFileContentsWithDataAPI(path, defaultBranch);
+        return await this.getFileContentsWithDataAPI(path, branch);
       }
       throw err;
     }

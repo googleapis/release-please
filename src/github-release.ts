@@ -73,10 +73,12 @@ export class GitHubRelease {
       | GitHubReleasePR
       | undefined = await this.gh.findMergedReleasePR(this.labels);
     if (gitHubReleasePR) {
+      const version = `v${gitHubReleasePR.version}`;
+
       checkpoint(
-        `found release branch ${chalk.green(
-          gitHubReleasePR.version
-        )} at ${chalk.green(gitHubReleasePR.sha)}`,
+        `found release branch ${chalk.green(version)} at ${chalk.green(
+          gitHubReleasePR.sha
+        )}`,
         CheckpointType.Success
       );
 
@@ -86,7 +88,7 @@ export class GitHubRelease {
       const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
         changelogContents,
         // For monorepo releases, the library name is prepended to the tag and branch:
-        gitHubReleasePR.version.split('-').pop() || gitHubReleasePR.version
+        version.split('-').pop() || version
       );
       checkpoint(
         `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
@@ -106,7 +108,7 @@ export class GitHubRelease {
 
       const release = await this.gh.createRelease(
         this.packageName,
-        gitHubReleasePR.version,
+        version,
         gitHubReleasePR.sha,
         latestReleaseNotes
       );

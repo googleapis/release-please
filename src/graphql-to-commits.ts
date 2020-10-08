@@ -33,7 +33,21 @@ export interface Commit {
 // define what the expected GraphQL response looks like.
 
 interface CommitHistoryGraphQLResponse {
-  repository: {defaultBranchRef: {target: {history: CommitHistory}}};
+  repository: {
+    refs: {
+      edges: RefNode[];
+    };
+  };
+}
+
+interface RefNode {
+  node: RefTarget;
+}
+
+interface RefTarget {
+  target: {
+    history: CommitHistory;
+  };
 }
 
 interface CommitHistory {
@@ -76,7 +90,7 @@ export async function graphqlToCommits(
   response: CommitHistoryGraphQLResponse
 ): Promise<CommitsResponse> {
   const commitHistory: CommitHistory =
-    response.repository.defaultBranchRef.target.history;
+    response.repository.refs.edges[0].node.target.history;
   const commits: CommitsResponse = {
     endCursor: commitHistory.pageInfo.endCursor,
     hasNextPage: commitHistory.pageInfo.hasNextPage,

@@ -62,22 +62,32 @@ describe('JavaYoshi', () => {
       // This step looks for release PRs that are already open:
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
       .reply(200, [])
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
-      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .get(
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs/heads/master'
+      )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
-      .get('/repos/googleapis/java-trace/tags?per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, [
         {
-          name: 'v0.20.3',
-          commit: {
+          base: {
+            label: 'googleapis:master',
+          },
+          head: {
+            label: 'googleapis:release-v0.20.3',
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
+          merged_at: new Date().toISOString(),
         },
       ])
       .post('/graphql')
@@ -191,34 +201,36 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
-    const graphql = JSON.parse(
-      readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
-    );
     const req = nock('https://api.github.com')
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
       .reply(200, [])
-      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .get(
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs/heads/main'
+      )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      // getting the most recent commit:
-      .post('/graphql')
-      .reply(200, {
-        data: graphql,
-      })
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
-      .get('/repos/googleapis/java-trace/tags?per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, [
         {
-          name: 'v0.20.3',
-          commit: {
+          base: {
+            label: 'googleapis:main',
+          },
+          head: {
+            label: 'googleapis:release-v0.20.3',
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
+          merged_at: new Date().toISOString(),
         },
       ])
       // finding pom.xml files
@@ -309,34 +321,37 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
-    const graphql = JSON.parse(
-      readFileSync(resolve(fixturesPath, 'empty-commits.json'), 'utf8')
-    );
     const req = nock('https://api.github.com')
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
       .reply(200, [])
-      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .get(
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs/heads/main'
+      )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      // getting the most recent commit:
-      .post('/graphql')
-      .reply(200, {
-        data: graphql,
-      })
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
-      .get('/repos/googleapis/java-trace/tags?per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, [
         {
-          name: 'v0.20.3',
-          commit: {
+          base: {
+            label: 'googleapis:main',
+          },
+          head: {
+            label: 'googleapis:release-v0.20.3',
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
+          merged_at: new Date().toISOString(),
+          labels: [],
         },
       ])
       // finding pom.xml files
@@ -416,9 +431,17 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const req = nock('https://api.github.com')
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get('/repos/googleapis/java-trace')
+      .reply(200, {
+        default_branch: 'master',
+      })
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
-      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .get(
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs/heads/master'
+      )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
@@ -452,34 +475,36 @@ describe('JavaYoshi', () => {
       'utf8'
     );
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
-    const graphql = JSON.parse(
-      readFileSync(resolve(fixturesPath, 'commits-yoshi-java.json'), 'utf8')
-    );
     const req = nock('https://api.github.com')
-      .get('/repos/googleapis/java-trace/pulls?state=closed&per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
       .reply(200, [])
-      .get('/repos/googleapis/java-trace/contents/versions.txt')
+      .get(
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs/heads/main'
+      )
       .reply(200, {
         content: Buffer.from(versionsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      // getting the most recent commit:
-      .post('/graphql')
-      .reply(200, {
-        data: graphql,
-      })
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
-      .get('/repos/googleapis/java-trace/tags?per_page=100')
+      .get(
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+      )
       .reply(200, [
         {
-          name: 'v0.20.3',
-          commit: {
+          base: {
+            label: 'googleapis:main',
+          },
+          head: {
+            label: 'googleapis:release-v0.20.3',
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
+          merged_at: new Date().toISOString(),
         },
       ])
       // finding pom.xml files
