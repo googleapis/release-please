@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.4.1](https://www.github.com/googleapis/release-please/compare/v6.4.0...v6.4.1) (2020-10-08)
+
+
+### Bug Fixes
+
+* sort commits from graphql output by descending commit date so we get fresh results ([#585](https://www.github.com/googleapis/release-please/issues/585)) ([05897e7](https://www.github.com/googleapis/release-please/commit/05897e7219fcf3d65eceaf64284d3d97daaeeaa4))
+
 ## [6.4.0](https://www.github.com/googleapis/release-please/compare/v6.3.0...v6.4.0) (2020-10-08)
 
 
