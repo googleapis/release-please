@@ -242,7 +242,8 @@ export class GitHub {
       const response = await this.graphqlRequest({
         query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch) {
+            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch,
+                  orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
               edges {
                 node {
                   target {
@@ -330,7 +331,8 @@ export class GitHub {
       const response = await this.graphqlRequest({
         query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxLabels: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch) {
+            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch,
+                  orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
               edges {
                 node {
                   target {
