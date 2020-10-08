@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.4.0](https://www.github.com/googleapis/release-please/compare/v6.3.0...v6.4.0) (2020-10-08)
+
+
+### Features
+
+* add support for releasing from non-master branches for legacy support ([#429](https://www.github.com/googleapis/release-please/issues/429)) ([6278b1d](https://www.github.com/googleapis/release-please/commit/6278b1d2a8cb1d3759fb2c1f599377b1182078d7))
+
 ## [6.3.0](https://www.github.com/googleapis/release-please/compare/v6.2.0...v6.3.0) (2020-10-05)
 
 
