@@ -64,7 +64,12 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 
-const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)$/;
+// Short explanation of this regex:
+// - skip the owner tag (e.g. googleapis)
+// - make sure the branch name starts with "release"
+// - skip everything up to the last "-v"
+// - take everything after the v as a match group
+const VERSION_FROM_BRANCH_RE = /^.*:release.*-v(?=[^v]+$)(.+)$/;
 
 export interface OctokitAPIs {
   graphql: Function;

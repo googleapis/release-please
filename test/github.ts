@@ -193,6 +193,37 @@ describe('GitHub', () => {
       },
     ];
 
+    it('handles monorepo composite branch names properly', async () => {
+      const sampleResults = [
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-complex-package_name-v1-v1.1.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
+          },
+          merged_at: new Date().toISOString(),
+        },
+      ];
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        )
+        .reply(200, sampleResults);
+      const latestTag = await github.latestTag();
+      expect(latestTag!.version).to.equal('1.1.0');
+      req.done();
+    });
+
     it('returns the latest tag on the main branch, based on PR date', async () => {
       req
         .get(
