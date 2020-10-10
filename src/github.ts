@@ -67,9 +67,15 @@ import {Update} from './updaters/update';
 // Short explanation of this regex:
 // - skip the owner tag (e.g. googleapis)
 // - make sure the branch name starts with "release"
+// - take everything else
+// This includes the tag to handle monorepos.
+const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)+$/;
+
+// Takes the output of the above regex and strips it down further
+// to a basic semver.
 // - skip everything up to the last "-v"
 // - take everything after the v as a match group
-const VERSION_FROM_BRANCH_RE = /^.*:release.*-v(?=[^v]+$)(.+)$/;
+const SEMVER_FROM_VERSION_RE = /^.*-v(?=[^v]+$)(.+)$/;
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -492,7 +498,7 @@ export class GitHub {
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }&sort=updated&direction=desc`,
+      }&sort=merged_at&direction=desc`,
       {
         owner: this.owner,
         repo: this.repo,
@@ -516,20 +522,31 @@ export class GitHub {
 
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
+        const version = match[1];
 
         // Make sure we did get a valid semver.
-        const version = match[1];
-        const normalizedVersion = semver.valid(version);
-        if (!normalizedVersion) continue;
+        const semverMatch = version.match(SEMVER_FROM_VERSION_RE);
+        if (!semverMatch) {
+          continue;
+        }
+        const semverString = semverMatch[1];
+
+        const normalizedVersion = semver.valid(semverString);
+        if (!normalizedVersion) {
+          continue;
+        }
 
         // Does its name match any passed matcher?
-        if (matcher && !matcher.test(normalizedVersion)) continue;
+        if (matcher && !matcher.test(version)) {
+          continue;
+        }
 
-        return {
+        const rv = {
           number: pull.number,
           sha: pull.merge_commit_sha,
           version: normalizedVersion,
         } as GitHubReleasePR;
+        return rv;
       }
     }
     return undefined;
