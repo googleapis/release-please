@@ -206,7 +206,6 @@ export class GitHub {
   ): Promise<Commit[]> {
     const commits: Commit[] = [];
     const method = labels ? 'commitsWithLabels' : 'commitsWithFiles';
-
     let cursor;
     for (;;) {
       const commitsResponse: CommitsResponse = await this[method](
@@ -238,46 +237,40 @@ export class GitHub {
     retries = 0
   ): Promise<CommitsResponse> {
     const baseBranch = await this.getDefaultBranch();
-
     // The GitHub v3 API does not offer an elegant way to fetch commits
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
+        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch,
-                  orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
-              edges {
-                node {
-                  target {
-                    ... on Commit {
-                      history(first: $perPage, after: $cursor, path: $path) {
-                        edges {
-                          node {
-                            ... on Commit {
-                              message
-                              oid
-                              associatedPullRequests(first: 1) {
-                                edges {
-                                  node {
-                                    ... on PullRequest {
-                                      number
-                                      mergeCommit {
-                                        oid
+            ref(qualifiedName: $baseRef) {
+              target {
+                ... on Commit {
+                  history(first: $perPage, after: $cursor, path: $path) {
+                    edges {
+                      node {
+                        ... on Commit {
+                          message
+                          oid
+                          associatedPullRequests(first: 1) {
+                            edges {
+                              node {
+                                ... on PullRequest {
+                                  number
+                                  mergeCommit {
+                                    oid
+                                  }
+                                  files(first: $maxFilesChanged) {
+                                    edges {
+                                      node {
+                                        path
                                       }
-                                      files(first: $maxFilesChanged) {
-                                        edges {
-                                          node {
-                                            path
-                                          }
-                                        }
-                                        pageInfo {
-                                          endCursor
-                                          hasNextPage
-                                        }
-                                      }
+                                    }
+                                    pageInfo {
+                                      endCursor
+                                      hasNextPage
                                     }
                                   }
                                 }
@@ -285,11 +278,11 @@ export class GitHub {
                             }
                           }
                         }
-                        pageInfo {
-                          endCursor
-                          hasNextPage
-                        }
                       }
+                    }
+                    pageInfo {
+                      endCursor
+                      hasNextPage
                     }
                   }
                 }
@@ -303,7 +296,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
-        baseBranch,
+        baseRef: `refs/heads/${baseBranch}`,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
