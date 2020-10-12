@@ -60,7 +60,7 @@ describe('JavaBom', () => {
       );
       const req = nock('https://api.github.com')
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, undefined)
         .get(
@@ -76,7 +76,7 @@ describe('JavaBom', () => {
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {
@@ -188,7 +188,7 @@ describe('JavaBom', () => {
       );
       const req = nock('https://api.github.com')
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, undefined)
         .get(
@@ -209,7 +209,7 @@ describe('JavaBom', () => {
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {
@@ -291,7 +291,7 @@ describe('JavaBom', () => {
           default_branch: 'master',
         })
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, undefined)
         .get(
@@ -338,7 +338,7 @@ describe('JavaBom', () => {
       );
       const req = nock('https://api.github.com')
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, undefined)
         .get(
@@ -359,7 +359,7 @@ describe('JavaBom', () => {
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=updated&'
         )
         .reply(200, [
           {
