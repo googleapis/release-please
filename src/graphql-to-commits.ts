@@ -34,19 +34,11 @@ export interface Commit {
 
 interface CommitHistoryGraphQLResponse {
   repository: {
-    refs: {
-      edges: RefNode[];
+    ref: {
+      target: {
+        history: CommitHistory;
+      };
     };
-  };
-}
-
-interface RefNode {
-  node: RefTarget;
-}
-
-interface RefTarget {
-  target: {
-    history: CommitHistory;
   };
 }
 
@@ -89,8 +81,7 @@ export async function graphqlToCommits(
   github: GitHub,
   response: CommitHistoryGraphQLResponse
 ): Promise<CommitsResponse> {
-  const commitHistory: CommitHistory =
-    response.repository.refs.edges[0].node.target.history;
+  const commitHistory: CommitHistory = response.repository.ref.target.history;
   const commits: CommitsResponse = {
     endCursor: commitHistory.pageInfo.endCursor,
     hasNextPage: commitHistory.pageInfo.hasNextPage,

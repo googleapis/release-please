@@ -251,39 +251,34 @@ export class GitHub {
     // order along with the file paths attached to them.
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
+        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch,
-                  orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
-              edges {
-                node {
-                  target {
-                    ... on Commit {
-                      history(first: $perPage, after: $cursor, path: $path) {
-                        edges {
-                          node {
-                            ... on Commit {
-                              message
-                              oid
-                              associatedPullRequests(first: 1) {
-                                edges {
-                                  node {
-                                    ... on PullRequest {
-                                      number
-                                      mergeCommit {
-                                        oid
+            ref(qualifiedName: $baseRef) {
+              target {
+                ... on Commit {
+                  history(first: $perPage, after: $cursor, path: $path) {
+                    edges {
+                      node {
+                        ... on Commit {
+                          message
+                          oid
+                          associatedPullRequests(first: 1) {
+                            edges {
+                              node {
+                                ... on PullRequest {
+                                  number
+                                  mergeCommit {
+                                    oid
+                                  }
+                                  files(first: $maxFilesChanged) {
+                                    edges {
+                                      node {
+                                        path
                                       }
-                                      files(first: $maxFilesChanged) {
-                                        edges {
-                                          node {
-                                            path
-                                          }
-                                        }
-                                        pageInfo {
-                                          endCursor
-                                          hasNextPage
-                                        }
-                                      }
+                                    }
+                                    pageInfo {
+                                      endCursor
+                                      hasNextPage
                                     }
                                   }
                                 }
@@ -291,14 +286,14 @@ export class GitHub {
                             }
                           }
                         }
-                        pageInfo {
-                          endCursor
-                          hasNextPage
-                        }
                       }
                     }
                   }
                 }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
               }
             }
           }
@@ -340,34 +335,29 @@ export class GitHub {
     const baseBranch = await this.getDefaultBranch();
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxLabels: Int, $path: String) {
+        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxLabels: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch,
-                  orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
-              edges {
-                node {
-                  target {
-                    ... on Commit {
-                      history(first: $perPage, after: $cursor, path: $path) {
-                        edges {
-                          node {
-                            ... on Commit {
-                              message
-                              oid
-                              associatedPullRequests(first: 1) {
-                                edges {
-                                  node {
-                                    ... on PullRequest {
-                                      number
-                                      mergeCommit {
-                                        oid
-                                      }
-                                      labels(first: $maxLabels) {
-                                        edges {
-                                          node {
-                                            name
-                                          }
-                                        }
+            ref(qualifiedName: $baseRef) {
+              target {
+                ... on Commit {
+                  history(first: $perPage, after: $cursor, path: $path) {
+                    edges {
+                      node {
+                        ... on Commit {
+                          message
+                          oid
+                          associatedPullRequests(first: 1) {
+                            edges {
+                              node {
+                                ... on PullRequest {
+                                  number
+                                  mergeCommit {
+                                    oid
+                                  }
+                                  labels(first: $maxLabels) {
+                                    edges {
+                                      node {
+                                        name
                                       }
                                     }
                                   }
@@ -376,14 +366,14 @@ export class GitHub {
                             }
                           }
                         }
-                        pageInfo {
-                          endCursor
-                          hasNextPage
-                        }
                       }
                     }
                   }
                 }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
               }
             }
           }
