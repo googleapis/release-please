@@ -45,6 +45,9 @@ type FileSearchResponse = PromiseValue<
 export type ReleaseCreateResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 >['data'];
+type ReposListTagsResponseItems = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['tags']['list']>
+>['data'];
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -462,8 +465,8 @@ export class GitHub {
 
     const regexp = regexpString ? new RegExp(regexpString) : null;
 
-    const pull = await this.findMergedReleasePR([], 100, regexp);
-    if (!pull) return undefined;
+    const pull = await this.findMergedReleasePR([], 1024, regexp);
+    if (!pull) return await this.latestTagFallback(prefix, preRelease);
 
     const tag = {
       name: `v${pull.version}`,
@@ -474,56 +477,121 @@ export class GitHub {
     return tag;
   }
 
+  // If we can't find a release branch (a common cause of this, as an example
+  // is that we might be dealing with the first relese), use the last semver
+  // tag that's available on the repository:
+  // TODO: it would be good to not need to maintain this logic, and the
+  // logic that introspects version based on the prior release PR.
+  async latestTagFallback(prefix?: string, preRelease = false) {
+    const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
+    const versions = Object.keys(tags).filter(t => {
+      // remove any pre-releases from the list:
+      return preRelease || !t.includes('-');
+    });
+    // no tags have been created yet.
+    if (versions.length === 0) return undefined;
+
+    // We use a slightly modified version of semver's sorting algorithm, which
+    // prefixes the numeric part of a pre-release with '0's, so that
+    // 010 is greater than > 002.
+    versions.sort((v1, v2) => {
+      if (v1.includes('-')) {
+        const [prefix, suffix] = v1.split('-');
+        v1 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      if (v2.includes('-')) {
+        const [prefix, suffix] = v2.split('-');
+        v2 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      return semver.rcompare(v1, v2);
+    });
+    return {
+      name: tags[versions[0]].name,
+      sha: tags[versions[0]].sha,
+      version: tags[versions[0]].version,
+    };
+  }
+
+  private async allTags(
+    prefix?: string
+  ): Promise<{[version: string]: GitHubTag}> {
+    const tags: {[version: string]: GitHubTag} = {};
+    for await (const response of this.octokit.paginate.iterator(
+      this.decoratePaginateOpts({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
+          this.proxyKey ? `&key=${this.proxyKey}` : ''
+        }`,
+      })
+    )) {
+      response.data.forEach((data: ReposListTagsResponseItems) => {
+        // For monorepos, a prefix can be provided, indicating that only tags
+        // matching the prefix should be returned:
+        if (prefix && !data.name.startsWith(prefix)) return;
+        let version = data.name.replace(prefix, '');
+        if ((version = semver.valid(version))) {
+          tags[version] = {sha: data.commit.sha, name: data.name, version};
+        }
+      });
+    }
+    return tags;
+  }
+
   // The default matcher will rule out pre-releases.
   async findMergedReleasePR(
     labels: string[],
-    perPage = 100,
+    maxPRsChecked = 100,
     matcher: RegExp | null = /[^-]*/
   ): Promise<GitHubReleasePR | undefined> {
     const baseLabel = await this.getBaseLabel();
+    let total = 0;
+    for await (const response of this.octokit.paginate.iterator(
+      this.decoratePaginateOpts({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/pulls?per_page=25${
+          this.proxyKey ? `&key=${this.proxyKey}` : ''
+        }&state=closed&sort=updated&direction=desc`,
+      })
+    )) {
+      const pullsResponse = response as {data: PullsListResponseItems};
+      console.info(response);
+      for (let i = 0, pull; i < pullsResponse.data.length; i++) {
+        total++;
+        pull = pullsResponse.data[i];
+        if (
+          labels.length === 0 ||
+          this.hasAllLabels(
+            labels,
+            pull.labels.map(l => l.name)
+          )
+        ) {
+          // it's expected that a release PR will have a
+          // HEAD matching the format repo:release-v1.0.0.
+          if (!pull.head) continue;
 
-    const pullsResponse = (await this.request(
-      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
-        this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }&sort=updated&direction=desc`,
-      {
-        owner: this.owner,
-        repo: this.repo,
+          // Verify that this PR was based against our base branch of interest.
+          if (!pull.base || pull.base.label !== baseLabel) continue;
+
+          const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
+          if (!match || !pull.merged_at) continue;
+
+          // Make sure we did get a valid semver.
+          const version = match[1];
+          const normalizedVersion = semver.valid(version);
+          if (!normalizedVersion) continue;
+
+          // Does its name match any passed matcher?
+          if (matcher && !matcher.test(normalizedVersion)) continue;
+
+          return {
+            number: pull.number,
+            sha: pull.merge_commit_sha,
+            version: normalizedVersion,
+          } as GitHubReleasePR;
+        }
       }
-    )) as {data: PullsListResponseItems};
-    for (let i = 0, pull; i < pullsResponse.data.length; i++) {
-      pull = pullsResponse.data[i];
-      if (
-        labels.length === 0 ||
-        this.hasAllLabels(
-          labels,
-          pull.labels.map(l => l.name)
-        )
-      ) {
-        // it's expected that a release PR will have a
-        // HEAD matching the format repo:release-v1.0.0.
-        if (!pull.head) continue;
-
-        // Verify that this PR was based against our base branch of interest.
-        if (!pull.base || pull.base.label !== baseLabel) continue;
-
-        const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-        if (!match || !pull.merged_at) continue;
-
-        // Make sure we did get a valid semver.
-        const version = match[1];
-        const normalizedVersion = semver.valid(version);
-        if (!normalizedVersion) continue;
-
-        // Does its name match any passed matcher?
-        if (matcher && !matcher.test(normalizedVersion)) continue;
-
-        return {
-          number: pull.number,
-          sha: pull.merge_commit_sha,
-          version: normalizedVersion,
-        } as GitHubReleasePR;
-      }
+      console.info(total, maxPRsChecked);
+      if (total >= maxPRsChecked) return undefined;
     }
     return undefined;
   }
