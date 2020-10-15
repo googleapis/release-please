@@ -245,7 +245,7 @@ describe('GitHub', () => {
 
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();

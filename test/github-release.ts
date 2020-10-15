@@ -41,7 +41,7 @@ describe('GitHubRelease', () => {
         .get('/repos/googleapis/foo')
         .reply(200, repoInfo)
         .get(
-          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {
@@ -98,7 +98,7 @@ describe('GitHubRelease', () => {
         .get('/repos/googleapis/foo')
         .reply(200, repoInfo)
         .get(
-          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {

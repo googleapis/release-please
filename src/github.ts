@@ -73,9 +73,9 @@ const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)+$/;
 
 // Takes the output of the above regex and strips it down further
 // to a basic semver.
-// - skip everything up to the last "-v"
+// - skip everything up to the last "-vX.Y.Z" and maybe "-test"
 // - take everything after the v as a match group
-const SEMVER_FROM_VERSION_RE = /^.*-v(?=[^v]+$)(.+)$/;
+const SEMVER_FROM_VERSION_RE = /^.*-?(v\d+\.\d+\.\d+[^\d]?(?!.*v\d+\.\d+\.\d+).*)$/;
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -460,12 +460,7 @@ export class GitHub {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
-    let regexpString = prefix || '';
-    if (!preRelease) regexpString = `^${regexpString}[^-]*$`;
-
-    const regexp = regexpString ? new RegExp(regexpString) : null;
-
-    const pull = await this.findMergedReleasePR([], 100, regexp);
+    const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
     if (!pull) return undefined;
 
     const tag = {
@@ -481,7 +476,8 @@ export class GitHub {
   async findMergedReleasePR(
     labels: string[],
     perPage = 100,
-    matcher: RegExp | null = /[^-]*/
+    prefix: string | undefined = undefined,
+    preRelease = true
   ): Promise<GitHubReleasePR | undefined> {
     const baseLabel = await this.getBaseLabel();
 
@@ -510,33 +506,42 @@ export class GitHub {
         // Verify that this PR was based against our base branch of interest.
         if (!pull.base || pull.base.label !== baseLabel) continue;
 
+        // The input should look something like:
+        // user:release-[optional-package-name]-v1.2.3
+        // We want the package name and any semver on the end.
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
-        const version = match[1];
+
+        // The input here should look something like:
+        // [optional-package-name-]v1.2.3[-beta-or-whatever]
+        // Because the package name can contain things like "-v1",
+        // it's easiest/safest to just pull this out by string search.
+        let version = match[1];
+        if (prefix) {
+          if (!version.startsWith(prefix)) continue;
+
+          // Remove any prefix after validating it.
+          version = version.substr(prefix.length);
+        }
+
+        // Extract the actual version string.
+        const versionMatch = version.match(SEMVER_FROM_VERSION_RE);
+        if (!versionMatch) continue;
+        version = versionMatch[1];
+
+        // What's left by now should just be the version string.
+        // Check for pre-releases if needed.
+        if (!preRelease && version.indexOf('-') >= 0) continue;
 
         // Make sure we did get a valid semver.
-        const semverMatch = version.match(SEMVER_FROM_VERSION_RE);
-        if (!semverMatch) {
-          continue;
-        }
-        const semverString = semverMatch[1];
+        const normalizedVersion = semver.valid(version);
+        if (!normalizedVersion) continue;
 
-        const normalizedVersion = semver.valid(semverString);
-        if (!normalizedVersion) {
-          continue;
-        }
-
-        // Does its name match any passed matcher?
-        if (matcher && !matcher.test(version)) {
-          continue;
-        }
-
-        const rv = {
+        return {
           number: pull.number,
           sha: pull.merge_commit_sha,
           version: normalizedVersion,
         } as GitHubReleasePR;
-        return rv;
       }
     }
     return undefined;
