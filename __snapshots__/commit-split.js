@@ -11,7 +11,7 @@ exports['CommitSplit partitions commits based on path from root directory by def
   ],
   'Datastore': [
     {
-      'sha': 'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b',
+      'sha': '269cf923ea6fd0375abaf0bb19790475693c6f90',
       'message': 'fix: Assorted minor fixes for Cloud Datastore client (#1964)',
       'files': [
         'Datastore/src/Connection/Grpc.php',
@@ -82,6 +82,13 @@ exports['CommitSplit partitions commits based on path from root directory by def
         'src/ServiceBuilder.php',
         'src/Version.php'
       ]
+    },
+    {
+      'sha': 'a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f',
+      'message': 'fix: continue switch targeting warning in PHP 7.3 (#1957)',
+      'files': [
+        'Debugger/src/Agent.php'
+      ]
     }
   ],
   'Dialogflow': [
@@ -134,6 +141,27 @@ exports['CommitSplit partitions commits based on path from root directory by def
         'src/ServiceBuilder.php',
         'src/Version.php'
       ]
+    },
+    {
+      'sha': 'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b',
+      'message': 'feat: Add Collection Group Query support (#1944)\n\n* Add Collection Group Query support\r\n\r\n* Fix documentation\r\n\r\n* Address code review\r\n\r\n* Throw from createDocumentReference',
+      'files': [
+        'Firestore/src/Connection/Grpc.php',
+        'Firestore/src/FieldPath.php',
+        'Firestore/src/FirestoreClient.php',
+        'Firestore/src/Query.php',
+        'Firestore/src/SnapshotTrait.php',
+        'Firestore/tests/Snippet/CollectionReferenceTest.php',
+        'Firestore/tests/Snippet/FieldPathTest.php',
+        'Firestore/tests/Snippet/FirestoreClientTest.php',
+        'Firestore/tests/Snippet/QueryTest.php',
+        'Firestore/tests/System/CollectionGroupTest.php',
+        'Firestore/tests/System/FirestoreTestCase.php',
+        'Firestore/tests/Unit/CollectionReferenceTest.php',
+        'Firestore/tests/Unit/FieldPathTest.php',
+        'Firestore/tests/Unit/FirestoreClientTest.php',
+        'Firestore/tests/Unit/QueryTest.php'
+      ]
     }
   ],
   'Language': [
@@ -159,6 +187,13 @@ exports['CommitSplit partitions commits based on path from root directory by def
         'docs/manifest.json',
         'src/ServiceBuilder.php',
         'src/Version.php'
+      ]
+    },
+    {
+      'sha': 'bf69d0f204474b88b3f8b5a72a392129d16a3929',
+      'message': 'fix: language system test (#1958)',
+      'files': [
+        'Language/tests/System/AnalyzeTest.php'
       ]
     }
   ],

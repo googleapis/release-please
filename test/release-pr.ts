@@ -78,6 +78,7 @@ describe('Release-PR', () => {
               label: 'googleapis:release-v0.20.3',
             },
             merged_at: new Date().toISOString(),
+            merge_commit_sha: 'bf69d0f204474b88b3f8b5a72a392129d16a3929',
           },
         ])
         // now we fetch the commits via the graphql API;

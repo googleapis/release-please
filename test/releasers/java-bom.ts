@@ -359,7 +359,7 @@ describe('JavaBom', () => {
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&'
+          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {
