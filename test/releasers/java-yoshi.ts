@@ -63,7 +63,7 @@ describe('JavaYoshi', () => {
       .get('/repos/googleapis/java-trace/pulls?state=open&per_page=100')
       .reply(200, [])
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, undefined)
       .get(
@@ -76,7 +76,7 @@ describe('JavaYoshi', () => {
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, [
         {
@@ -203,7 +203,7 @@ describe('JavaYoshi', () => {
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
     const req = nock('https://api.github.com')
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
@@ -219,7 +219,7 @@ describe('JavaYoshi', () => {
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, [
         {
@@ -323,7 +323,7 @@ describe('JavaYoshi', () => {
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
     const req = nock('https://api.github.com')
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
@@ -339,7 +339,7 @@ describe('JavaYoshi', () => {
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, [
         {
@@ -436,7 +436,7 @@ describe('JavaYoshi', () => {
         default_branch: 'master',
       })
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, undefined)
       .get(
@@ -477,7 +477,7 @@ describe('JavaYoshi', () => {
     const pomContents = readFileSync(resolve(fixturesPath, 'pom.xml'), 'utf8');
     const req = nock('https://api.github.com')
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, undefined)
       // This step looks for release PRs that are already open:
@@ -493,7 +493,7 @@ describe('JavaYoshi', () => {
       // fetch semver tags, this will be used to determine
       // the delta since the last release.
       .get(
-        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+        '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
       )
       .reply(200, [
         {

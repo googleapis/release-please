@@ -45,6 +45,9 @@ type FileSearchResponse = PromiseValue<
 export type ReleaseCreateResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 >['data'];
+type ReposListTagsResponseItems = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['tags']['list']>
+>['data'];
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -64,7 +67,18 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 
-const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)$/;
+// Short explanation of this regex:
+// - skip the owner tag (e.g. googleapis)
+// - make sure the branch name starts with "release"
+// - take everything else
+// This includes the tag to handle monorepos.
+const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)+$/;
+
+// Takes the output of the above regex and strips it down further
+// to a basic semver.
+// - skip everything up to the last "-vX.Y.Z" and maybe "-test"
+// - take everything after the v as a match group
+const SEMVER_FROM_VERSION_RE = /^.*-?(v\d+\.\d+\.\d+[^\d]?(?!.*v\d+\.\d+\.\d+).*)$/;
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -240,39 +254,34 @@ export class GitHub {
     // order along with the file paths attached to them.
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
+        query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch,
-                  orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
-              edges {
-                node {
-                  target {
-                    ... on Commit {
-                      history(first: $perPage, after: $cursor, path: $path) {
-                        edges {
-                          node {
-                            ... on Commit {
-                              message
-                              oid
-                              associatedPullRequests(first: 1) {
-                                edges {
-                                  node {
-                                    ... on PullRequest {
-                                      number
-                                      mergeCommit {
-                                        oid
+            ref(qualifiedName: $baseRef) {
+              target {
+                ... on Commit {
+                  history(first: $perPage, after: $cursor, path: $path) {
+                    edges {
+                      node {
+                        ... on Commit {
+                          message
+                          oid
+                          associatedPullRequests(first: 1) {
+                            edges {
+                              node {
+                                ... on PullRequest {
+                                  number
+                                  mergeCommit {
+                                    oid
+                                  }
+                                  files(first: $maxFilesChanged) {
+                                    edges {
+                                      node {
+                                        path
                                       }
-                                      files(first: $maxFilesChanged) {
-                                        edges {
-                                          node {
-                                            path
-                                          }
-                                        }
-                                        pageInfo {
-                                          endCursor
-                                          hasNextPage
-                                        }
-                                      }
+                                    }
+                                    pageInfo {
+                                      endCursor
+                                      hasNextPage
                                     }
                                   }
                                 }
@@ -280,14 +289,14 @@ export class GitHub {
                             }
                           }
                         }
-                        pageInfo {
-                          endCursor
-                          hasNextPage
-                        }
                       }
                     }
                   }
                 }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
               }
             }
           }
@@ -329,34 +338,29 @@ export class GitHub {
     const baseBranch = await this.getDefaultBranch();
     try {
       const response = await this.graphqlRequest({
-        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseBranch: String!, $perPage: Int, $maxLabels: Int, $path: String) {
+        query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxLabels: Int, $path: String) {
           repository(owner: $owner, name: $repo) {
-            refs(first: 1, refPrefix: "refs/heads/", query: $baseBranch,
-                  orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
-              edges {
-                node {
-                  target {
-                    ... on Commit {
-                      history(first: $perPage, after: $cursor, path: $path) {
-                        edges {
-                          node {
-                            ... on Commit {
-                              message
-                              oid
-                              associatedPullRequests(first: 1) {
-                                edges {
-                                  node {
-                                    ... on PullRequest {
-                                      number
-                                      mergeCommit {
-                                        oid
-                                      }
-                                      labels(first: $maxLabels) {
-                                        edges {
-                                          node {
-                                            name
-                                          }
-                                        }
+            ref(qualifiedName: $baseRef) {
+              target {
+                ... on Commit {
+                  history(first: $perPage, after: $cursor, path: $path) {
+                    edges {
+                      node {
+                        ... on Commit {
+                          message
+                          oid
+                          associatedPullRequests(first: 1) {
+                            edges {
+                              node {
+                                ... on PullRequest {
+                                  number
+                                  mergeCommit {
+                                    oid
+                                  }
+                                  labels(first: $maxLabels) {
+                                    edges {
+                                      node {
+                                        name
                                       }
                                     }
                                   }
@@ -365,14 +369,14 @@ export class GitHub {
                             }
                           }
                         }
-                        pageInfo {
-                          endCursor
-                          hasNextPage
-                        }
                       }
                     }
                   }
                 }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
               }
             }
           }
@@ -459,13 +463,8 @@ export class GitHub {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
-    let regexpString = prefix || '';
-    if (!preRelease) regexpString = `^${regexpString}[^-]*$`;
-
-    const regexp = regexpString ? new RegExp(regexpString) : null;
-
-    const pull = await this.findMergedReleasePR([], 100, regexp);
-    if (!pull) return undefined;
+    const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
+    if (!pull) return await this.latestTagFallback(prefix, preRelease);
 
     const tag = {
       name: `v${pull.version}`,
@@ -476,18 +475,80 @@ export class GitHub {
     return tag;
   }
 
+  // If we can't find a release branch (a common cause of this, as an example
+  // is that we might be dealing with the first relese), use the last semver
+  // tag that's available on the repository:
+  // TODO: it would be good to not need to maintain this logic, and the
+  // logic that introspects version based on the prior release PR.
+  async latestTagFallback(prefix?: string, preRelease = false) {
+    const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
+    const versions = Object.keys(tags).filter(t => {
+      // remove any pre-releases from the list:
+      return preRelease || !t.includes('-');
+    });
+    // no tags have been created yet.
+    if (versions.length === 0) return undefined;
+
+    // We use a slightly modified version of semver's sorting algorithm, which
+    // prefixes the numeric part of a pre-release with '0's, so that
+    // 010 is greater than > 002.
+    versions.sort((v1, v2) => {
+      if (v1.includes('-')) {
+        const [prefix, suffix] = v1.split('-');
+        v1 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      if (v2.includes('-')) {
+        const [prefix, suffix] = v2.split('-');
+        v2 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      return semver.rcompare(v1, v2);
+    });
+    return {
+      name: tags[versions[0]].name,
+      sha: tags[versions[0]].sha,
+      version: tags[versions[0]].version,
+    };
+  }
+
+  private async allTags(
+    prefix?: string
+  ): Promise<{[version: string]: GitHubTag}> {
+    const tags: {[version: string]: GitHubTag} = {};
+    for await (const response of this.octokit.paginate.iterator(
+      this.decoratePaginateOpts({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
+          this.proxyKey ? `&key=${this.proxyKey}` : ''
+        }`,
+      })
+    )) {
+      response.data.forEach((data: ReposListTagsResponseItems) => {
+        // For monorepos, a prefix can be provided, indicating that only tags
+        // matching the prefix should be returned:
+        if (prefix && !data.name.startsWith(prefix)) return;
+        let version = data.name.replace(prefix, '');
+        if ((version = semver.valid(version))) {
+          tags[version] = {sha: data.commit.sha, name: data.name, version};
+        }
+      });
+    }
+    return tags;
+  }
+
   // The default matcher will rule out pre-releases.
+  // TODO: make this handle more than 100 results using async iterator.
   async findMergedReleasePR(
     labels: string[],
     perPage = 100,
-    matcher: RegExp | null = /[^-]*/
+    prefix: string | undefined = undefined,
+    preRelease = true
   ): Promise<GitHubReleasePR | undefined> {
     const baseLabel = await this.getBaseLabel();
 
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }&sort=updated&direction=desc`,
+      }&sort=merged_at&direction=desc`,
       {
         owner: this.owner,
         repo: this.repo,
@@ -509,16 +570,36 @@ export class GitHub {
         // Verify that this PR was based against our base branch of interest.
         if (!pull.base || pull.base.label !== baseLabel) continue;
 
+        // The input should look something like:
+        // user:release-[optional-package-name]-v1.2.3
+        // We want the package name and any semver on the end.
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
         if (!match || !pull.merged_at) continue;
 
+        // The input here should look something like:
+        // [optional-package-name-]v1.2.3[-beta-or-whatever]
+        // Because the package name can contain things like "-v1",
+        // it's easiest/safest to just pull this out by string search.
+        let version = match[1];
+        if (prefix) {
+          if (!version.startsWith(prefix)) continue;
+
+          // Remove any prefix after validating it.
+          version = version.substr(prefix.length);
+        }
+
+        // Extract the actual version string.
+        const versionMatch = version.match(SEMVER_FROM_VERSION_RE);
+        if (!versionMatch) continue;
+        version = versionMatch[1];
+
+        // What's left by now should just be the version string.
+        // Check for pre-releases if needed.
+        if (!preRelease && version.indexOf('-') >= 0) continue;
+
         // Make sure we did get a valid semver.
-        const version = match[1];
         const normalizedVersion = semver.valid(version);
         if (!normalizedVersion) continue;
-
-        // Does its name match any passed matcher?
-        if (matcher && !matcher.test(normalizedVersion)) continue;
 
         return {
           number: pull.number,

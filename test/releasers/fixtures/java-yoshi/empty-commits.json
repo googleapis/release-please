@@ -1,6 +1,6 @@
 {
   "repository": {
-    "defaultBranchRef": {
+    "ref": {
       "target": {
         "history": {
           "edges": [],

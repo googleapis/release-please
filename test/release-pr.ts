@@ -61,13 +61,13 @@ describe('Release-PR', () => {
         // check to see if this PR was already landed and we're
         // just waiting on the autorelease.
         .get(
-          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get(
-          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {
@@ -78,6 +78,7 @@ describe('Release-PR', () => {
               label: 'googleapis:release-v0.20.3',
             },
             merged_at: new Date().toISOString(),
+            merge_commit_sha: 'bf69d0f204474b88b3f8b5a72a392129d16a3929',
           },
         ])
         // now we fetch the commits via the graphql API;

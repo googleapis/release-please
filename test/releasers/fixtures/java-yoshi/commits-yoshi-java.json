@@ -1,127 +1,121 @@
 {
   "repository": {
-    "refs": {
-      "edges": [
-        {
-          "node": {
-            "target": {
-              "history": {
-                "edges": [
-                  {
-                    "node": {
-                      "message": "Refactor shared IAM-based signing (#292)\n\n* Extract IAM signing into its own class\r\n\r\n* Refactor into IamUtils package private class\r\n\r\n* Remove unnecessary class\r\n\r\n* Remove unused code\r\n\r\n* Cleanup imports\r\n\r\n* Fill out javadoc for IamUtils\r\n\r\n* Failing tests for impersonated credentials\r\n\r\n* Fix credentials used for signing\r\n\r\n* Fix providing delegates to signing request\r\n\r\n* Disallow null additionalFields, remove jsr305 annotation\r\n\r\n* Remove usued imports",
-                      "oid": "fcd1c890dc1526f4d62ceedad561f498195c8939",
-                      "associatedPullRequests": {
-                        "edges": [
-                          {
-                            "node": {
-                              "mergeCommit": {"oid": "fcd1c890dc1526f4d62ceedad561f498195c8939"},
-                              "number": 292,
-                              "labels": {
-                                "edges": [
-                                  {
-                                    "node": {
-                                      "name": "cla: yes"
-                                    }
-                                  }
-                                ]
+    "ref": {
+      "target": {
+        "history": {
+          "edges": [
+            {
+              "node": {
+                "message": "Refactor shared IAM-based signing (#292)\n\n* Extract IAM signing into its own class\r\n\r\n* Refactor into IamUtils package private class\r\n\r\n* Remove unnecessary class\r\n\r\n* Remove unused code\r\n\r\n* Cleanup imports\r\n\r\n* Fill out javadoc for IamUtils\r\n\r\n* Failing tests for impersonated credentials\r\n\r\n* Fix credentials used for signing\r\n\r\n* Fix providing delegates to signing request\r\n\r\n* Disallow null additionalFields, remove jsr305 annotation\r\n\r\n* Remove usued imports",
+                "oid": "fcd1c890dc1526f4d62ceedad561f498195c8939",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "fcd1c890dc1526f4d62ceedad561f498195c8939"},
+                        "number": 292,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
                               }
                             }
-                          }
-                        ]
+                          ]
+                        }
                       }
                     }
-                  },
-                  {
-                    "node": {
-                      "message": "Update allowed header format (#301)\n\n* Update copyright format  \r\n\r\n@chingor13\r\n\r\n* Update java.header\r\n\r\n* add legacy copyright\r\n\r\n* remove spurious $",
-                      "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373",
-                      "associatedPullRequests": {
-                        "edges": [
-                          {
-                            "node": {
-                              "mergeCommit": {"oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373"},
-                              "number": 301,
-                              "labels": {
-                                "edges": [
-                                  {
-                                    "node": {
-                                      "name": "cla: yes"
-                                    }
-                                  }
-                                ]
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Update allowed header format (#301)\n\n* Update copyright format  \r\n\r\n@chingor13\r\n\r\n* Update java.header\r\n\r\n* add legacy copyright\r\n\r\n* remove spurious $",
+                "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373"},
+                        "number": 301,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
                               }
                             }
-                          }
-                        ]
+                          ]
+                        }
                       }
                     }
-                  },
-                  {
-                    "node": {
-                      "message": "Upgrade Guava to 28.0-android (#300)",
-                      "oid": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a",
-                      "associatedPullRequests": {
-                        "edges": [
-                          {
-                            "node": {
-                              "mergeCommit": {"oid": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a"},
-                              "number": 300,
-                              "labels": {
-                                "edges": [
-                                  {
-                                    "node": {
-                                      "name": "cla: yes"
-                                    }
-                                  }
-                                ]
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Upgrade Guava to 28.0-android (#300)",
+                "oid": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a"},
+                        "number": 300,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
                               }
                             }
-                          }
-                        ]
+                          ]
+                        }
                       }
                     }
-                  },
-                  {
-                    "node": {
-                      "message": "Fix declared dependencies from merge issue (#291)",
-                      "oid": "35abf13fa8acb3988aa086f3eb23f5ce1483cc5d",
-                      "associatedPullRequests": {
-                        "edges": [
-                          {
-                            "node": {
-                              "mergeCommit": {"oid": "35abf13fa8acb3988aa086f3eb23f5ce1483cc5d"},
-                              "number": 291,
-                              "labels": {
-                                "edges": [
-                                  {
-                                    "node": {
-                                      "name": "cla: yes"
-                                    }
-                                  },
-                                  {
-                                    "node": {
-                                      "name": "fix"
-                                    }
-                                  }
-                                ]
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Fix declared dependencies from merge issue (#291)",
+                "oid": "35abf13fa8acb3988aa086f3eb23f5ce1483cc5d",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "35abf13fa8acb3988aa086f3eb23f5ce1483cc5d"},
+                        "number": 291,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
+                              }
+                            },
+                            {
+                              "node": {
+                                "name": "fix"
                               }
                             }
-                          }
-                        ]
+                          ]
+                        }
                       }
                     }
-                  }
-                ],
-                "pageInfo": {
-                  "endCursor": "fcd1c890dc1526f4d62ceedad561f498195c8939 99",
-                  "hasNextPage": false
+                  ]
                 }
               }
             }
+          ],
+          "pageInfo": {
+            "endCursor": "fcd1c890dc1526f4d62ceedad561f498195c8939 99",
+            "hasNextPage": false
           }
         }
-      ]
+      }
     }
   }
 }
