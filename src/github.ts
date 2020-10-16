@@ -45,6 +45,9 @@ type FileSearchResponse = PromiseValue<
 export type ReleaseCreateResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 >['data'];
+type ReposListTagsResponseItems = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['tags']['list']>
+>['data'];
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -461,7 +464,7 @@ export class GitHub {
     preRelease = false
   ): Promise<GitHubTag | undefined> {
     const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
-    if (!pull) return undefined;
+    if (!pull) return await this.latestTagFallback(prefix, preRelease);
 
     const tag = {
       name: `v${pull.version}`,
@@ -472,7 +475,68 @@ export class GitHub {
     return tag;
   }
 
+  // If we can't find a release branch (a common cause of this, as an example
+  // is that we might be dealing with the first relese), use the last semver
+  // tag that's available on the repository:
+  // TODO: it would be good to not need to maintain this logic, and the
+  // logic that introspects version based on the prior release PR.
+  async latestTagFallback(prefix?: string, preRelease = false) {
+    const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
+    const versions = Object.keys(tags).filter(t => {
+      // remove any pre-releases from the list:
+      return preRelease || !t.includes('-');
+    });
+    // no tags have been created yet.
+    if (versions.length === 0) return undefined;
+
+    // We use a slightly modified version of semver's sorting algorithm, which
+    // prefixes the numeric part of a pre-release with '0's, so that
+    // 010 is greater than > 002.
+    versions.sort((v1, v2) => {
+      if (v1.includes('-')) {
+        const [prefix, suffix] = v1.split('-');
+        v1 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      if (v2.includes('-')) {
+        const [prefix, suffix] = v2.split('-');
+        v2 = prefix + '-' + suffix.replace(/[a-zA-Z.]/, '').padStart(6, '0');
+      }
+      return semver.rcompare(v1, v2);
+    });
+    return {
+      name: tags[versions[0]].name,
+      sha: tags[versions[0]].sha,
+      version: tags[versions[0]].version,
+    };
+  }
+
+  private async allTags(
+    prefix?: string
+  ): Promise<{[version: string]: GitHubTag}> {
+    const tags: {[version: string]: GitHubTag} = {};
+    for await (const response of this.octokit.paginate.iterator(
+      this.decoratePaginateOpts({
+        method: 'GET',
+        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
+          this.proxyKey ? `&key=${this.proxyKey}` : ''
+        }`,
+      })
+    )) {
+      response.data.forEach((data: ReposListTagsResponseItems) => {
+        // For monorepos, a prefix can be provided, indicating that only tags
+        // matching the prefix should be returned:
+        if (prefix && !data.name.startsWith(prefix)) return;
+        let version = data.name.replace(prefix, '');
+        if ((version = semver.valid(version))) {
+          tags[version] = {sha: data.commit.sha, name: data.name, version};
+        }
+      });
+    }
+    return tags;
+  }
+
   // The default matcher will rule out pre-releases.
+  // TODO: make this handle more than 100 results using async iterator.
   async findMergedReleasePR(
     labels: string[],
     perPage = 100,
