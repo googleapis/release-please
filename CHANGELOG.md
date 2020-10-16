@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.4.3](https://www.github.com/googleapis/release-please/compare/v6.4.2...v6.4.3) (2020-10-16)
+
+
+### Bug Fixes
+
+* issues found by testing with the GCP ruby repo ([#587](https://www.github.com/googleapis/release-please/issues/587)) ([ab9f97c](https://www.github.com/googleapis/release-please/commit/ab9f97c7a6fdd0e03ea7370d90839004490228ce))
+
 ### [6.4.2](https://www.github.com/googleapis/release-please/compare/v6.4.1...v6.4.2) (2020-10-14)
 
 
