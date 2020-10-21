@@ -291,12 +291,12 @@ export class GitHub {
                         }
                       }
                     }
+                    pageInfo {
+                      endCursor
+                      hasNextPage
+                    }
                   }
                 }
-              }
-              pageInfo {
-                endCursor
-                hasNextPage
               }
             }
           }
@@ -307,7 +307,7 @@ export class GitHub {
         path,
         perPage,
         repo: this.repo,
-        baseBranch,
+        baseRef: `refs/heads/${baseBranch}`,
       });
       return graphqlToCommits(this, response);
     } catch (err) {
