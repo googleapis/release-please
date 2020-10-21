@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.4.4](https://www.github.com/googleapis/release-please/compare/v6.4.3...v6.4.4) (2020-10-21)
+
+
+### Bug Fixes
+
+* pagination logic broken in merge ([#594](https://www.github.com/googleapis/release-please/issues/594)) ([b3c8dd2](https://www.github.com/googleapis/release-please/commit/b3c8dd2891db5e35b0bb8778a7923851ce1c7cdf))
+
 ### [6.4.3](https://www.github.com/googleapis/release-please/compare/v6.4.2...v6.4.3) (2020-10-16)
 
 
