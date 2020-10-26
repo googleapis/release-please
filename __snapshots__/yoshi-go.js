@@ -16,12 +16,6 @@ exports['YoshiGo run creates a release PR for google-cloud-go 1'] = `
 ]
 `
 
-exports['labels-go-yoshi-discovery'] = {
-  'labels': [
-    'autorelease: pending'
-  ]
-}
-
 exports['YoshiGo run creates a release PR for google-api-go-client 1'] = `
 [
   [

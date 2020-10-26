@@ -70,7 +70,10 @@ describe('Simple', () => {
       sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
 
       // Fetch files from GitHub, in prep to update with code-suggester:
-      const getFileContentsStub = sandbox.stub(releasePR.gh, 'getFileContents');
+      const getFileContentsStub = sandbox.stub(
+        releasePR.gh,
+        'getFileContentsOnBranch'
+      );
       // CHANGELOG is not found, and will be created:
       getFileContentsStub
         .onCall(0)
