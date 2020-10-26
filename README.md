@@ -119,6 +119,7 @@ jobs:
           node-version: 12
           registry-url: 'https://registry.npmjs.org'
         if: ${{ steps.release.outputs.release_created }}
+      # if you are using Yarn, replease the command below with `yarn install --frozen-lockfile`
       - run: npm ci
         if: ${{ steps.release.outputs.release_created }}
       - run: npm publish
