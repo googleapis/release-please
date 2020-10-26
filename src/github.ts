@@ -828,7 +828,7 @@ export class GitHub {
     return `${this.owner}:${baseBranch}`;
   }
 
-  private async getDefaultBranch(): Promise<string> {
+  async getDefaultBranch(): Promise<string> {
     if (this.defaultBranch) {
       return this.defaultBranch;
     }
