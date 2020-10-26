@@ -17,6 +17,8 @@ import * as nock from 'nock';
 import {GoYoshi} from '../../src/releasers/go-yoshi';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
+import {stringifyExpectedChanges} from '../helpers';
+
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
@@ -35,7 +37,7 @@ describe('YoshiGo', () => {
     it('creates a release PR for google-cloud-go', async () => {
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
-      let expectedChanges = null;
+      let expectedChanges: [string, object][] = [];
       sandbox.replace(
         suggester,
         'createPullRequest',
@@ -107,12 +109,7 @@ describe('YoshiGo', () => {
       });
       await releasePR.run();
       req.done();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
     it('creates a release PR for google-api-go-client', async () => {
       const releasePR = new GoYoshi({
@@ -125,7 +122,7 @@ describe('YoshiGo', () => {
 
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
-      let expectedChanges = null;
+      let expectedChanges: [string, object][] = [];
       sandbox.replace(
         suggester,
         'createPullRequest',
@@ -183,12 +180,9 @@ describe('YoshiGo', () => {
 
       await releasePR.run();
       req.done();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      snapshot(stringifyExpectedChanges(expectedChanges, true));
     });
   });
 });
