@@ -1,18 +1,18 @@
 exports['labels'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
 exports['labels-snapshot'] = {
-  "labels": [
-    "type: process"
+  'labels': [
+    'type: process'
   ]
 }
 
 exports['labels-snapshot-empty'] = {
-  "labels": [
-    "type: process"
+  'labels': [
+    'type: process'
   ]
 }
 
@@ -95,8 +95,8 @@ exports['JavaYoshi creates a snapshot PR, when latest release sha is head 1'] = 
 `
 
 exports['labels-snapshot-release'] = {
-  "labels": [
-    "type: process"
+  'labels': [
+    'type: process'
   ]
 }
 

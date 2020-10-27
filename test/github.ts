@@ -219,8 +219,48 @@ describe('GitHub', () => {
           '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, sampleResults);
-      const latestTag = await github.latestTag();
+      const latestTag = await github.latestTag('complex-package_name');
       expect(latestTag!.version).to.equal('1.1.0');
+      req.done();
+    });
+
+    it('does not return monorepo composite tag, if no prefix provided', async () => {
+      const sampleResults = [
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-complex-package_name-v1-v1.1.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
+          },
+          merged_at: new Date().toISOString(),
+        },
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v1.3.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+      ];
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+        )
+        .reply(200, sampleResults);
+      const latestTag = await github.latestTag();
+      expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
 

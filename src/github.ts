@@ -591,6 +591,9 @@ export class GitHub {
         // Extract the actual version string.
         const versionMatch = version.match(SEMVER_FROM_VERSION_RE);
         if (!versionMatch) continue;
+        // If no prefix is provided, and there appears to be a prefix, i.e.,
+        // characters before the version, skip this tag:
+        if (!prefix && version.indexOf(versionMatch[1]) > 0) continue;
         version = versionMatch[1];
 
         // What's left by now should just be the version string.

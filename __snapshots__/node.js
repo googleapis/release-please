@@ -1,6 +1,6 @@
 exports['labels-node-'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
@@ -24,8 +24,8 @@ exports['Node run creates a release PR without package-lock.json 1'] = `
 `
 
 exports['labels-node-with-package-lock'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
@@ -56,8 +56,8 @@ exports['Node run creates a release PR with package-lock.json 1'] = `
 `
 
 exports['labels-node-with-path'] = {
-  "labels": [
-    "autorelease: pending"
+  'labels': [
+    'autorelease: pending'
   ]
 }
 
