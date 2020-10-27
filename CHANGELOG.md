@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.5.0](https://www.github.com/googleapis/release-please/compare/v6.4.4...v6.5.0) (2020-10-27)
+
+
+### Features
+
+* **go:** generalize to also support google-api-go-client  ([#554](https://www.github.com/googleapis/release-please/issues/554)) ([609164c](https://www.github.com/googleapis/release-please/commit/609164ce23ddb9af369b01855581157e9ea891e3))
+
 ### [6.4.4](https://www.github.com/googleapis/release-please/compare/v6.4.3...v6.4.4) (2020-10-21)
 
 
