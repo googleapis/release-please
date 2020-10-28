@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.5.2](https://www.github.com/googleapis/release-please/compare/v6.5.1...v6.5.2) (2020-10-28)
+
+
+### Bug Fixes
+
+* **graphql:** graphql query requested pagination at wrong level/did n… ([#606](https://www.github.com/googleapis/release-please/issues/606)) ([0d9c1e1](https://www.github.com/googleapis/release-please/commit/0d9c1e1268b00ca441077fb39355fa4de1773ff1))
+
 ### [6.5.1](https://www.github.com/googleapis/release-please/compare/v6.5.0...v6.5.1) (2020-10-27)
 
 
