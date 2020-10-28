@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.6.0](https://www.github.com/googleapis/release-please/compare/v6.5.2...v6.6.0) (2020-10-28)
+
+
+### Features
+
+* Support the Ruby releaser from the static ReleasePRFactory ([#608](https://www.github.com/googleapis/release-please/issues/608)) ([8e4e49c](https://www.github.com/googleapis/release-please/commit/8e4e49c30e12ab2912fc1d3f740d91c549cdacb7))
+
 ### [6.5.2](https://www.github.com/googleapis/release-please/compare/v6.5.1...v6.5.2) (2020-10-28)
 
 
