@@ -118,3 +118,15 @@ exports['JavaYoshi creates a snapshot PR if an explicit release is requested, bu
   ]
 ]
 `
+
+exports['graphql-body-java-release'] = {
+  'query': 'query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxLabels: Int, $path: String) {\n          repository(owner: $owner, name: $repo) {\n            ref(qualifiedName: $baseRef) {\n              target {\n                ... on Commit {\n                  history(first: $perPage, after: $cursor, path: $path) {\n                    edges {\n                      node {\n                        ... on Commit {\n                          message\n                          oid\n                          associatedPullRequests(first: 1) {\n                            edges {\n                              node {\n                                ... on PullRequest {\n                                  number\n                                  mergeCommit {\n                                    oid\n                                  }\n                                  labels(first: $maxLabels) {\n                                    edges {\n                                      node {\n                                        name\n                                      }\n                                    }\n                                  }\n                                }\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                    pageInfo {\n                      endCursor\n                      hasNextPage\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }',
+  'variables': {
+    'maxLabels': 16,
+    'owner': 'googleapis',
+    'path': null,
+    'perPage': 100,
+    'repo': 'java-trace',
+    'baseRef': 'refs/heads/master'
+  }
+}

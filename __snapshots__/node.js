@@ -79,3 +79,39 @@ exports['Node run creates release PR relative to a path 1'] = `
   ]
 ]
 `
+
+exports['graphql-body-'] = {
+  'query': 'query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {\n          repository(owner: $owner, name: $repo) {\n            ref(qualifiedName: $baseRef) {\n              target {\n                ... on Commit {\n                  history(first: $perPage, after: $cursor, path: $path) {\n                    edges {\n                      node {\n                        ... on Commit {\n                          message\n                          oid\n                          associatedPullRequests(first: 1) {\n                            edges {\n                              node {\n                                ... on PullRequest {\n                                  number\n                                  mergeCommit {\n                                    oid\n                                  }\n                                  files(first: $maxFilesChanged) {\n                                    edges {\n                                      node {\n                                        path\n                                      }\n                                    }\n                                    pageInfo {\n                                      endCursor\n                                      hasNextPage\n                                    }\n                                  }\n                                }\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                    pageInfo {\n                      endCursor\n                      hasNextPage\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }',
+  'variables': {
+    'maxFilesChanged': 64,
+    'owner': 'googleapis',
+    'path': null,
+    'perPage': 100,
+    'repo': 'node-test-repo',
+    'baseRef': 'refs/heads/master'
+  }
+}
+
+exports['graphql-body-with-package-lock'] = {
+  'query': 'query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {\n          repository(owner: $owner, name: $repo) {\n            ref(qualifiedName: $baseRef) {\n              target {\n                ... on Commit {\n                  history(first: $perPage, after: $cursor, path: $path) {\n                    edges {\n                      node {\n                        ... on Commit {\n                          message\n                          oid\n                          associatedPullRequests(first: 1) {\n                            edges {\n                              node {\n                                ... on PullRequest {\n                                  number\n                                  mergeCommit {\n                                    oid\n                                  }\n                                  files(first: $maxFilesChanged) {\n                                    edges {\n                                      node {\n                                        path\n                                      }\n                                    }\n                                    pageInfo {\n                                      endCursor\n                                      hasNextPage\n                                    }\n                                  }\n                                }\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                    pageInfo {\n                      endCursor\n                      hasNextPage\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }',
+  'variables': {
+    'maxFilesChanged': 64,
+    'owner': 'googleapis',
+    'path': null,
+    'perPage': 100,
+    'repo': 'node-test-repo',
+    'baseRef': 'refs/heads/master'
+  }
+}
+
+exports['graphql-body-with-path'] = {
+  'query': 'query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {\n          repository(owner: $owner, name: $repo) {\n            ref(qualifiedName: $baseRef) {\n              target {\n                ... on Commit {\n                  history(first: $perPage, after: $cursor, path: $path) {\n                    edges {\n                      node {\n                        ... on Commit {\n                          message\n                          oid\n                          associatedPullRequests(first: 1) {\n                            edges {\n                              node {\n                                ... on PullRequest {\n                                  number\n                                  mergeCommit {\n                                    oid\n                                  }\n                                  files(first: $maxFilesChanged) {\n                                    edges {\n                                      node {\n                                        path\n                                      }\n                                    }\n                                    pageInfo {\n                                      endCursor\n                                      hasNextPage\n                                    }\n                                  }\n                                }\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                    pageInfo {\n                      endCursor\n                      hasNextPage\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }',
+  'variables': {
+    'maxFilesChanged': 64,
+    'owner': 'googleapis',
+    'path': 'packages/foo',
+    'perPage': 100,
+    'repo': 'node-test-repo',
+    'baseRef': 'refs/heads/master'
+  }
+}

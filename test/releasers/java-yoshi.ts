@@ -90,7 +90,10 @@ describe('JavaYoshi', () => {
           merged_at: new Date().toISOString(),
         },
       ])
-      .post('/graphql')
+      .post('/graphql', (body: object) => {
+        snapshot('graphql-body-java-release', body);
+        return true;
+      })
       .reply(200, {
         data: graphql,
       })

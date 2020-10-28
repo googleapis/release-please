@@ -69,7 +69,10 @@ function mockRequest(snapName: string, requestPrefix = '') {
         labels: [],
       },
     ])
-    .post('/graphql')
+    .post('/graphql', (body: object) => {
+      snapshot(`graphql-body-${snapName}`, body);
+      return true;
+    })
     .reply(200, {
       data: graphql,
     })
