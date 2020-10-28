@@ -52,7 +52,7 @@ export class ReleasePRFactory {
       case 'python':
         return new Python(releaseOptions);
       case 'ruby':
-        return new Ruby(releaseOptions);
+        return new Ruby(releaseOptions as RubyReleasePROptions);
       case 'simple':
         return new Simple(releaseOptions);
       case 'terraform-module':
