@@ -52,6 +52,7 @@ export interface BuildOptions {
   snapshot?: boolean;
   lastPackageVersion?: string;
   octokitAPIs?: OctokitAPIs;
+  versionFile?: string;
 }
 
 export interface ReleasePROptions extends BuildOptions {
