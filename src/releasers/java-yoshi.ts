@@ -30,6 +30,7 @@ import {Readme} from '../updaters/java/readme';
 import {Version} from './java/version';
 import {fromSemverReleaseType} from './java/bump_type';
 import {JavaUpdate} from '../updaters/java/java_update';
+import {isStableArtifact} from './java/stability';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -122,7 +123,11 @@ export class JavaYoshi extends ReleasePR {
       cc,
       latestTag
     );
-    const candidateVersions = await this.coerceVersions(cc, currentVersions);
+    const candidateVersions = await this.coerceVersions(
+      cc,
+      currentVersions,
+      candidate
+    );
     let changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
       currentTag: `v${candidate.version}`,
@@ -264,16 +269,21 @@ export class JavaYoshi extends ReleasePR {
 
   protected async coerceVersions(
     cc: ConventionalCommits,
-    currentVersions: VersionsMap
+    currentVersions: VersionsMap,
+    candidate: ReleaseCandidate
   ): Promise<VersionsMap> {
     const newVersions: VersionsMap = new Map<string, string>();
     for (const [k, version] of currentVersions) {
-      const bump = await cc.suggestBump(version);
-      const newVersion = Version.parse(version);
-      newVersion.bump(
-        this.snapshot ? 'snapshot' : fromSemverReleaseType(bump.releaseType)
-      );
-      newVersions.set(k, newVersion.toString());
+      if (candidate.version === '1.0.0' && isStableArtifact(k)) {
+        newVersions.set(k, '1.0.0');
+      } else {
+        const bump = await cc.suggestBump(version);
+        const newVersion = Version.parse(version);
+        newVersion.bump(
+          this.snapshot ? 'snapshot' : fromSemverReleaseType(bump.releaseType)
+        );
+        newVersions.set(k, newVersion.toString());
+      }
     }
     return newVersions;
   }

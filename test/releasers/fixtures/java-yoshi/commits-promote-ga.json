@@ -1,0 +1,41 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "edges": [
+            {
+              "node": {
+                "message": "feat: promote to 1.0.0 (#292)\n\nRelease-As: 1.0.0",
+                "oid": "fcd1c890dc1526f4d62ceedad561f498195c8939",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "fcd1c890dc1526f4d62ceedad561f498195c8939"},
+                        "number": 292,
+                        "labels": {
+                          "edges": [
+                            {
+                              "node": {
+                                "name": "cla: yes"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "pageInfo": {
+            "endCursor": "fcd1c890dc1526f4d62ceedad561f498195c8939 99",
+            "hasNextPage": false
+          }
+        }
+      }
+    }
+  }
+}
