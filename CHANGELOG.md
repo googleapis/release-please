@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.5.1](https://www.github.com/googleapis/release-please/compare/v6.5.0...v6.5.1) (2020-10-27)
+
+
+### Bug Fixes
+
+* **go:** ignore tags with prefix, if no prefix provided ([#604](https://www.github.com/googleapis/release-please/issues/604)) ([e35b38f](https://www.github.com/googleapis/release-please/commit/e35b38fd3be822dca36cab80271fb66d46d2a6ea))
+
 ## [6.5.0](https://www.github.com/googleapis/release-please/compare/v6.4.4...v6.5.0) (2020-10-27)
 
 
