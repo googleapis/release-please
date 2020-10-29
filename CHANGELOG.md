@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.7.0](https://www.github.com/googleapis/release-please/compare/v6.6.0...v6.7.0) (2020-10-29)
+
+
+### Features
+
+* **java:** support special case of promotion to 1.0.0 ([#610](https://www.github.com/googleapis/release-please/issues/610)) ([5b5edac](https://www.github.com/googleapis/release-please/commit/5b5edace650666db76c4f5d92881f8230c74464a))
+
 ## [6.6.0](https://www.github.com/googleapis/release-please/compare/v6.5.2...v6.6.0) (2020-10-28)
 
 
