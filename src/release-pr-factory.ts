@@ -18,6 +18,7 @@ import {getReleasers} from './releasers';
 
 import {Node} from './releasers/node';
 import {Python} from './releasers/python';
+import {Ruby} from './releasers/ruby';
 import {Simple} from './releasers/simple';
 import {TerraformModule} from './releasers/terraform-module';
 
@@ -50,6 +51,8 @@ export class ReleasePRFactory {
         return new Node(releaseOptions);
       case 'python':
         return new Python(releaseOptions);
+      case 'ruby':
+        return new Ruby(releaseOptions as RubyReleasePROptions);
       case 'simple':
         return new Simple(releaseOptions);
       case 'terraform-module':
