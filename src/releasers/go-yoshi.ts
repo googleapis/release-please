@@ -25,6 +25,7 @@ import * as semver from 'semver';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
+import {GoYoshiSubmodule} from './go-yoshi-submodule';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -71,8 +72,6 @@ export class GoYoshi extends ReleasePR {
         // parent module.
         for (const subModule of SUB_MODULES) {
           if (scope === subModule || scope.startsWith(subModule + '/')) {
-            // TODO(codyoss): eventually gather these commits into a map so we can
-            // purpose releases for sub-modules.
             return false;
           }
         }
@@ -107,6 +106,29 @@ export class GoYoshi extends ReleasePR {
       }
       return true;
     });
+
+    // Create a release for any submodules that require it:
+    // TODO(codyoss): we need a way to skip this step for Apiary (and/or
+    // to turn it on and off).
+    for (const subModule of SUB_MODULES) {
+      // TODO(codyoss): is there a better way to serialize all these pameters.
+      checkpoint(`attempting release for ${subModule}`, CheckpointType.Success);
+      const releaser = new GoYoshiSubmodule({
+        bumpMinorPreMajor: this.bumpMinorPreMajor,
+        defaultBranch: this.defaultBranch,
+        fork: this.fork,
+        token: this.token,
+        repoUrl: this.repoUrl,
+        packageName: subModule,
+        monorepoTags: true,
+        path: subModule,
+        apiUrl: this.apiUrl,
+        snapshot: this.snapshot,
+        releaseType: 'go-yoshi-submodule',
+        changelogSections: this.changelogSections,
+      });
+      await releaser.run();
+    }
 
     const cc = new ConventionalCommits({
       commits: commits,

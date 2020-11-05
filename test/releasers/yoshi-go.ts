@@ -34,7 +34,7 @@ describe('YoshiGo', () => {
     before(() => {
       nock.disableNetConnect();
     });
-    it('creates a release PR for google-cloud-go', async () => {
+    it.only('creates a release PR for google-cloud-go', async () => {
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges: [string, object][] = [];

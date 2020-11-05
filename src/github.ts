@@ -463,16 +463,17 @@ export class GitHub {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
-    const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
-    if (!pull) return await this.latestTagFallback(prefix, preRelease);
-
+    /*const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
+    if (!pull) */
+    return await this.latestTagFallback(prefix, preRelease);
+    /*
     const tag = {
       name: `v${pull.version}`,
       sha: pull.sha,
       version: pull.version,
     } as GitHubTag;
 
-    return tag;
+    return tag;*/
   }
 
   // If we can't find a release branch (a common cause of this, as an example
@@ -543,6 +544,7 @@ export class GitHub {
     prefix: string | undefined = undefined,
     preRelease = true
   ): Promise<GitHubReleasePR | undefined> {
+    prefix = prefix?.replace(/\//g, '-'); // TODO(codyoss): what should we actually do here.
     const baseLabel = await this.getBaseLabel();
 
     const pullsResponse = (await this.request(
