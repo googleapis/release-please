@@ -20,11 +20,13 @@ import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 
 interface SubmoduleBulidOptions extends ReleasePROptions {
-  commits: Commit[]
+  commits: Commit[];
 }
 
 // Generic
 import {Changelog} from '../updaters/changelog';
+
+const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
 
 export class GoYoshiSubmodule extends ReleasePR {
   static releaserName = 'go-yoshi-submodule';
@@ -32,13 +34,33 @@ export class GoYoshiSubmodule extends ReleasePR {
     if (!this.packageName) {
       throw Error('GoYoshiSubmodule requires this.packageName');
     }
-    console.info(`${this.packageName}/`);
+    // Get tag relative to module/v1.0.0:
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
-      `${this.packageName}/`
+      `${this.packageName}/`,
+      false,
+      `${this.packageName}-`
     );
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
+    const commits = (
+      await this.commits({
+        sha: latestTag?.sha,
+        path: this.path,
+      })
+    ).filter(commit => {
+      const scope = commit.message.match(SCOPE_REGEX)?.groups?.scope;
+      // Filter commits that don't have a scope as we don't know where to put
+      // them.
+      if (!scope) {
+        return false;
+      }
+      // Only use commits that match our scope:
+      if (
+        scope === this.packageName ||
+        scope.startsWith(this.packageName + '/')
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     });
 
     const cc = new ConventionalCommits({
@@ -81,7 +103,7 @@ export class GoYoshiSubmodule extends ReleasePR {
       })
     );
 
-    await this.openPR({
+    return this.openPR({
       sha: commits[0].sha!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,

@@ -39,6 +39,7 @@ const SUB_MODULES = [
   'firestore',
   'logging',
   'pubsub',
+  'pubsublite',
   'spanner',
   'storage',
 ];
@@ -48,13 +49,12 @@ const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
 export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
   protected async _run() {
-    const latestTag = await this.gh.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined
-    );
+    const latestTag = await this.gh.latestTag();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);
     let regenPR: Commit | undefined;
     let sha: null | string = null;
+    const submodulesToRelease: Set<string> = new Set();
     const commits = (
       await this.commits({
         sha: latestTag?.sha,
@@ -72,6 +72,7 @@ export class GoYoshi extends ReleasePR {
         // parent module.
         for (const subModule of SUB_MODULES) {
           if (scope === subModule || scope.startsWith(subModule + '/')) {
+            submodulesToRelease.add(subModule);
             return false;
           }
         }
@@ -107,27 +108,21 @@ export class GoYoshi extends ReleasePR {
       return true;
     });
 
-    // Create a release for any submodules that require it:
-    // TODO(codyoss): we need a way to skip this step for Apiary (and/or
-    // to turn it on and off).
-    for (const subModule of SUB_MODULES) {
-      // TODO(codyoss): is there a better way to serialize all these pameters.
-      checkpoint(`attempting release for ${subModule}`, CheckpointType.Success);
-      const releaser = new GoYoshiSubmodule({
-        bumpMinorPreMajor: this.bumpMinorPreMajor,
-        defaultBranch: this.defaultBranch,
-        fork: this.fork,
-        token: this.token,
-        repoUrl: this.repoUrl,
-        packageName: subModule,
-        monorepoTags: true,
-        path: subModule,
-        apiUrl: this.apiUrl,
-        snapshot: this.snapshot,
-        releaseType: 'go-yoshi-submodule',
-        changelogSections: this.changelogSections,
-      });
-      await releaser.run();
+    // If gapic library, and we've noticed commits for submodules, perform
+    // a release for submodule:
+    if (this.isGapicRepo(repo)) {
+      for (const subModule of submodulesToRelease) {
+        // TODO(codyoss): is there a better way to serialize all these pameters.
+        checkpoint(
+          `running release for ${subModule} submodule`,
+          CheckpointType.Success
+        );
+        await this.submoduleRelease(subModule);
+        checkpoint(
+          `finished running release for ${subModule} submodule`,
+          CheckpointType.Success
+        );
+      }
     }
 
     const cc = new ConventionalCommits({
@@ -208,5 +203,23 @@ export class GoYoshi extends ReleasePR {
 
   protected defaultInitialVersion(): string {
     return '0.1.0';
+  }
+
+  async submoduleRelease(subModule: string) {
+    const releaser = new GoYoshiSubmodule({
+      bumpMinorPreMajor: this.bumpMinorPreMajor,
+      defaultBranch: this.defaultBranch,
+      fork: this.fork,
+      token: this.token,
+      repoUrl: this.repoUrl,
+      packageName: subModule,
+      monorepoTags: true,
+      path: subModule,
+      apiUrl: this.apiUrl,
+      snapshot: this.snapshot,
+      releaseType: 'go-yoshi-submodule',
+      changelogSections: this.changelogSections,
+    });
+    await releaser.run();
   }
 }

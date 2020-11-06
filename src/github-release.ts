@@ -33,6 +33,12 @@ export interface GitHubReleaseOptions {
   repoUrl: string;
   path?: string;
   packageName?: string;
+  // TODO(codyoss): this won't work, because we need to know the package name
+  // being released, better that we get this from the branch name ...
+  // logic assumes: release-v3.0.0, we want to get release-bigquery-v3.0.0
+  // but, we don't know if we're trying to do a release for bigquery.
+  // release-*-v3.0.0 <-- we need to collect all the releases like that.
+  tagPrefix?: string;
   token?: string;
   apiUrl: string;
   proxyKey?: string;
@@ -49,6 +55,7 @@ export class GitHubRelease {
   repoUrl: string;
   path?: string;
   packageName?: string;
+  tagPrefix?: string;
   token?: string;
   proxyKey?: string;
   releaseType?: string;
@@ -58,6 +65,7 @@ export class GitHubRelease {
     this.proxyKey = options.proxyKey;
     this.labels = options.label.split(',');
     this.repoUrl = options.repoUrl;
+    this.tagPrefix = options.tagPrefix;
     this.token = options.token;
     this.path = options.path;
     this.packageName = options.packageName;
@@ -71,7 +79,13 @@ export class GitHubRelease {
   async createRelease(): Promise<ReleaseCreateResponse | undefined> {
     const gitHubReleasePR:
       | GitHubReleasePR
-      | undefined = await this.gh.findMergedReleasePR(this.labels);
+      | undefined = await this.gh.findMergedReleasePR(
+      this.labels,
+      100,
+      // Go libraries use a `/' for their tag names, but a '-' for the
+      // delimiter:
+      this.tagPrefix?.replace('/', '-')
+    );
     if (gitHubReleasePR) {
       const version = `v${gitHubReleasePR.version}`;
 
@@ -108,7 +122,7 @@ export class GitHubRelease {
 
       const release = await this.gh.createRelease(
         this.packageName,
-        version,
+        this.tagPrefix ? `${this.tagPrefix}${version}` : version,
         gitHubReleasePR.sha,
         latestReleaseNotes
       );

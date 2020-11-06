@@ -461,19 +461,25 @@ export class GitHub {
   // the branch we're configured for.
   async latestTag(
     prefix?: string,
-    preRelease = false
+    preRelease = false,
+    // Allow a branch prefix to differ from a tag prefix. This was required
+    // for google-cloud-go, which uses the tag prefix library/vx.y.z.
+    // this is a requirement in the go community.
+    branchPrefix?: string
   ): Promise<GitHubTag | undefined> {
-    /*const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
-    if (!pull) */
-    return await this.latestTagFallback(prefix, preRelease);
-    /*
+    const pull = await this.findMergedReleasePR(
+      [],
+      100,
+      branchPrefix ?? prefix,
+      preRelease
+    );
+    if (!pull) return await this.latestTagFallback(prefix, preRelease);
     const tag = {
       name: `v${pull.version}`,
       sha: pull.sha,
       version: pull.version,
     } as GitHubTag;
-
-    return tag;*/
+    return tag;
   }
 
   // If we can't find a release branch (a common cause of this, as an example
@@ -544,9 +550,7 @@ export class GitHub {
     prefix: string | undefined = undefined,
     preRelease = true
   ): Promise<GitHubReleasePR | undefined> {
-    prefix = prefix?.replace(/\//g, '-'); // TODO(codyoss): what should we actually do here.
     const baseLabel = await this.getBaseLabel();
-
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
@@ -961,11 +965,11 @@ export class GitHub {
 
   async createRelease(
     packageName: string,
-    version: string,
+    tagName: string,
     sha: string,
     releaseNotes: string
   ): Promise<ReleaseCreateResponse> {
-    checkpoint(`creating release ${version}`, CheckpointType.Success);
+    checkpoint(`creating release ${tagName}`, CheckpointType.Success);
     return (
       await this.request(
         `POST /repos/:owner/:repo/releases${
@@ -974,10 +978,10 @@ export class GitHub {
         {
           owner: this.owner,
           repo: this.repo,
-          tag_name: version,
+          tag_name: tagName,
           target_commitish: sha,
           body: releaseNotes,
-          name: `${packageName} ${version}`,
+          name: `${packageName} ${tagName}`,
         }
       )
     ).data;
