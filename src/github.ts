@@ -555,8 +555,7 @@ export class GitHub {
         repo: this.repo,
       }
     )) as {data: PullsListResponseItems};
-    for (let i = 0, pull; i < pullsResponse.data.length; i++) {
-      pull = pullsResponse.data[i];
+    for (const pull of pullsResponse.data) {
       if (
         labels.length === 0 ||
         this.hasAllLabels(
@@ -628,8 +627,7 @@ export class GitHub {
         repo: this.repo,
       }
     )) as {data: PullsListResponseItems};
-    for (let i = 0, pull; i < pullsResponse.data.length; i++) {
-      pull = pullsResponse.data[i];
+    for (const pull of pullsResponse.data) {
       if (
         labels.length === 0 ||
         this.hasAllLabels(
