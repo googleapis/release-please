@@ -205,6 +205,10 @@ export class GoYoshi extends ReleasePR {
     return '0.1.0';
   }
 
+  static tagSeparator(): string {
+    return '/';
+  }
+
   async submoduleRelease(subModule: string) {
     const releaser = new GoYoshiSubmodule({
       bumpMinorPreMajor: this.bumpMinorPreMajor,

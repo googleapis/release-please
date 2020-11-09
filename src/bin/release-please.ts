@@ -121,6 +121,11 @@ const argv = yargs
         .option('path', {
           describe: 'release from path other than root directory',
           type: 'string',
+        })
+        .option('monorepo-tags', {
+          describe: 'include library name in tags and release branches',
+          type: 'boolean',
+          default: false,
         });
     },
     (argv: GitHubReleaseOptions) => {

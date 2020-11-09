@@ -72,7 +72,7 @@ import {Update} from './updaters/update';
 // - make sure the branch name starts with "release"
 // - take everything else
 // This includes the tag to handle monorepos.
-const VERSION_FROM_BRANCH_RE = /^.*:release-(.*)+$/;
+const VERSION_FROM_BRANCH_RE = /^.*:release-?([\w-.]*)-(v[0-9].*)+$/;
 
 // Takes the output of the above regex and strips it down further
 // to a basic semver.
@@ -104,6 +104,7 @@ export interface GitHubTag {
 
 export interface GitHubReleasePR {
   number: number;
+  packageName: string;
   sha: string;
   version: string;
 }
@@ -586,20 +587,13 @@ export class GitHub {
         // [optional-package-name-]v1.2.3[-beta-or-whatever]
         // Because the package name can contain things like "-v1",
         // it's easiest/safest to just pull this out by string search.
-        let version = match[1];
-        if (prefix) {
-          if (!version.startsWith(prefix)) continue;
-
-          // Remove any prefix after validating it.
-          version = version.substr(prefix.length);
-        }
+        let version = match[2];
+        if (prefix && match[1] !== prefix) continue;
+        else if (!prefix && match[1]) continue;
 
         // Extract the actual version string.
         const versionMatch = version.match(SEMVER_FROM_VERSION_RE);
         if (!versionMatch) continue;
-        // If no prefix is provided, and there appears to be a prefix, i.e.,
-        // characters before the version, skip this tag:
-        if (!prefix && version.indexOf(versionMatch[1]) > 0) continue;
         version = versionMatch[1];
 
         // What's left by now should just be the version string.
@@ -612,12 +606,77 @@ export class GitHub {
 
         return {
           number: pull.number,
+          packageName: match[1] ? match[1] : undefined,
           sha: pull.merge_commit_sha,
           version: normalizedVersion,
         } as GitHubReleasePR;
       }
     }
     return undefined;
+  }
+
+  // Allows multiple release PRs to be pulled at once, for use by monorepos:
+  async findMergedReleasePRs(
+    labels: string[],
+    perPage = 100
+  ): Promise<GitHubReleasePR[]> {
+    const prs = [];
+    const baseLabel = await this.getBaseLabel();
+    const pullsResponse = (await this.request(
+      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
+        this.proxyKey ? `&key=${this.proxyKey}` : ''
+      }&sort=merged_at&direction=desc`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+      }
+    )) as {data: PullsListResponseItems};
+    for (let i = 0, pull; i < pullsResponse.data.length; i++) {
+      pull = pullsResponse.data[i];
+      if (
+        labels.length === 0 ||
+        this.hasAllLabels(
+          labels,
+          pull.labels.map(l => l.name)
+        )
+      ) {
+        // it's expected that a release PR will have a
+        // HEAD matching the format repo:release-v1.0.0.
+        if (!pull.head) continue;
+
+        // Verify that this PR was based against our base branch of interest.
+        if (!pull.base || pull.base.label !== baseLabel) continue;
+
+        // The input should look something like:
+        // user:release-[optional-package-name]-v1.2.3
+        // We want the package name and any semver on the end.
+        const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
+        if (!match || !pull.merged_at) continue;
+
+        // The input here should look something like:
+        // [optional-package-name-]v1.2.3[-beta-or-whatever]
+        // Because the package name can contain things like "-v1",
+        // it's easiest/safest to just pull this out by string search.
+        let version = match[2];
+
+        // Extract the actual version string.
+        const versionMatch = version.match(SEMVER_FROM_VERSION_RE);
+        if (!versionMatch) continue;
+        version = versionMatch[1];
+
+        // Make sure we did get a valid semver.
+        const normalizedVersion = semver.valid(version);
+        if (!normalizedVersion) continue;
+
+        prs.push({
+          number: pull.number,
+          packageName: match[1] ? match[1] : undefined,
+          sha: pull.merge_commit_sha,
+          version: normalizedVersion,
+        } as GitHubReleasePR);
+      }
+    }
+    return prs;
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {

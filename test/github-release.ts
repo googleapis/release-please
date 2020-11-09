@@ -41,7 +41,7 @@ describe('GitHubRelease', () => {
         .get('/repos/googleapis/foo')
         .reply(200, repoInfo)
         .get(
-          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+          '/repos/googleapis/foo/pulls?state=closed&per_page=25&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {
@@ -91,15 +91,17 @@ describe('GitHubRelease', () => {
         label: 'autorelease: pending',
         repoUrl: 'googleapis/foo',
         packageName: 'foo',
-        tagPrefix: 'bigquery/',
+        monorepoTags: true,
+        releaseType: 'go-yoshi',
         apiUrl: 'https://api.github.com',
+        changelogPath: 'CHANGES.md',
       });
       const requests = nock('https://api.github.com')
         // check for default branch
         .get('/repos/googleapis/foo')
         .reply(200, repoInfo)
         .get(
-          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+          '/repos/googleapis/foo/pulls?state=closed&per_page=25&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {
@@ -114,7 +116,9 @@ describe('GitHubRelease', () => {
             merged_at: new Date().toISOString(),
           },
         ])
-        .get('/repos/googleapis/foo/contents/CHANGELOG.md?ref=refs/heads/main')
+        .get(
+          '/repos/googleapis/foo/contents/bigquery%2FCHANGES.md?ref=refs/heads/main'
+        )
         .reply(200, {
           content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
         })
@@ -156,7 +160,7 @@ describe('GitHubRelease', () => {
         .get('/repos/googleapis/foo')
         .reply(200, repoInfo)
         .get(
-          '/repos/googleapis/foo/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+          '/repos/googleapis/foo/pulls?state=closed&per_page=25&sort=merged_at&direction=desc'
         )
         .reply(200, [
           {

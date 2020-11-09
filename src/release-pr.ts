@@ -195,6 +195,10 @@ export class ReleasePR {
     return Promise.resolve(undefined);
   }
 
+  static tagSeparator(): string {
+    return '-';
+  }
+
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined,
