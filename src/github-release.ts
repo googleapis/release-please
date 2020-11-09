@@ -13,8 +13,6 @@
 // limitations under the License.
 
 import chalk = require('chalk');
-import {join} from 'path';
-
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ReleasePRFactory} from './release-pr-factory';
 import {
@@ -75,86 +73,98 @@ export class GitHubRelease {
     let gitHubReleasePRs: GitHubReleasePR[] = [];
     const rootPath = this.path;
     const releases = [];
+    // In most configurations, createRelease() should be called close to when
+    // a release PR is merged, e.g., a GitHub action that kicks off this
+    // workflow on merge. For tis reason, we can pull a fairly small number of PRs:
+    const pageSize = 25;
     if (this.monorepoTags) {
-      gitHubReleasePRs = await this.gh.findMergedReleasePRs(this.labels, 25);
+      gitHubReleasePRs = await this.gh.findMergedReleasePRs(
+        this.labels,
+        pageSize
+      );
     } else {
-      const releasePR = await this.gh.findMergedReleasePR(this.labels, 25);
-      if (releasePR) gitHubReleasePRs = [releasePR];
+      const releasePR = await this.gh.findMergedReleasePR(
+        this.labels,
+        pageSize
+      );
+      if (releasePR) {
+        gitHubReleasePRs = [releasePR];
+      }
     }
     if (gitHubReleasePRs.length === 0) {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
       return undefined;
-    } else {
-      for (const gitHubReleasePR of gitHubReleasePRs) {
-        const version = `v${gitHubReleasePR.version}`;
-        // If we've enabled monorepoTags, and a prefix was found on release PR
-        // e.g., release-bigquery-v1.0.0, then assume we are releasing a
-        // module from within the "bigquery" folder:
-        if (this.monorepoTags && gitHubReleasePR.packageName) {
-          this.path = gitHubReleasePR.packageName;
-        } else {
-          // As in the case of google-cloud-go, a repo may contain both a
-          // top level module, and submodules. If no submodule is found in
-          // the branch name, we use the initial rootPath:
-          this.path = rootPath;
-        }
-
-        checkpoint(
-          `found release branch ${chalk.green(version)} at ${chalk.green(
-            gitHubReleasePR.sha
-          )}`,
-          CheckpointType.Success
-        );
-
-        const changelogContents = (
-          await this.gh.getFileContents(this.addPath(this.changelogPath))
-        ).parsedContent;
-        const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
-          changelogContents,
-          version
-        );
-        checkpoint(
-          `found release notes: \n---\n${chalk.grey(
-            latestReleaseNotes
-          )}\n---\n`,
-          CheckpointType.Success
-        );
-
-        // Attempt to lookup the package name from a well known location, such
-        // as package.json, if none is provided:
-        if (this.packageName === undefined && this.releaseType) {
-          this.packageName = await ReleasePRFactory.class(
-            this.releaseType
-          ).lookupPackageName(this.gh);
-        }
-        // Go uses '/' for a tag separator, rather than '-':
-        let tagSeparator = '-';
-        if (this.releaseType) {
-          tagSeparator = ReleasePRFactory.class(
-            this.releaseType
-          ).tagSeparator();
-        }
-        if (this.packageName === undefined) {
-          throw Error('could not determine package name for release');
-        }
-
-        const release = await this.gh.createRelease(
-          this.packageName,
-          this.monorepoTags && this.path
-            ? `${this.path}${tagSeparator}${version}`
-            : version,
-          gitHubReleasePR.sha,
-          latestReleaseNotes
-        );
-        // Add a label indicating that a release has been created on GitHub,
-        // but a publication has not yet occurred.
-        await this.gh.addLabels([GITHUB_RELEASE_LABEL], gitHubReleasePR.number);
-        // Remove 'autorelease: pending' which indicates a GitHub release
-        // has not yet been created.
-        await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
-        releases.push(release);
-      }
     }
+    for (const gitHubReleasePR of gitHubReleasePRs) {
+      const version = `v${gitHubReleasePR.version}`;
+      // If we've enabled monorepoTags, and a prefix was found on release PR
+      // e.g., release-bigquery-v1.0.0, then assume we are releasing a
+      // module from within the "bigquery" folder:
+      if (this.monorepoTags && gitHubReleasePR.packageName) {
+        this.path = gitHubReleasePR.packageName;
+      } else {
+        // As in the case of google-cloud-go, a repo may contain both a
+        // top level module, and submodules. If no submodule is found in
+        // the branch name, we use the initial rootPath:
+        this.path = rootPath;
+      }
+
+      checkpoint(
+        `found release branch ${chalk.green(version)} at ${chalk.green(
+          gitHubReleasePR.sha
+        )}`,
+        CheckpointType.Success
+      );
+
+      const changelogContents = (
+        await this.gh.getFileContents(this.addPath(this.changelogPath))
+      ).parsedContent;
+      const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
+        changelogContents,
+        version
+      );
+      checkpoint(
+        `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
+        CheckpointType.Success
+      );
+
+      // Attempt to lookup the package name from a well known location, such
+      // as package.json, if none is provided:
+      if (!this.packageName && this.releaseType) {
+        this.packageName = await ReleasePRFactory.class(
+          this.releaseType
+        ).lookupPackageName(this.gh);
+      }
+      // Go uses '/' for a tag separator, rather than '-':
+      let tagSeparator = '-';
+      if (this.releaseType) {
+        tagSeparator = ReleasePRFactory.class(this.releaseType).tagSeparator();
+      }
+      if (this.packageName === undefined) {
+        throw Error(
+          `could not determine package name for release repo = ${this.repoUrl}`
+        );
+      }
+
+      const release = await this.gh.createRelease(
+        this.packageName,
+        this.monorepoTags && this.path
+          ? `${this.path}${tagSeparator}${version}`
+          : version,
+        gitHubReleasePR.sha,
+        latestReleaseNotes
+      );
+      // Add a label indicating that a release has been created on GitHub,
+      // but a publication has not yet occurred.
+      await this.gh.addLabels([GITHUB_RELEASE_LABEL], gitHubReleasePR.number);
+      // Remove 'autorelease: pending' which indicates a GitHub release
+      // has not yet been created.
+      await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
+      releases.push(release);
+    }
+    // TODO(bcoe): it will be a breaking change, but we should come up with
+    // an approach to return a list of releases rather than a single
+    // release (we will need to make this work with the GitHub action).
     return releases[0];
   }
 

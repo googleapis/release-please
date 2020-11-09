@@ -72,13 +72,7 @@ import {Update} from './updaters/update';
 // - make sure the branch name starts with "release"
 // - take everything else
 // This includes the tag to handle monorepos.
-const VERSION_FROM_BRANCH_RE = /^.*:release-?([\w-.]*)-(v[0-9].*)+$/;
-
-// Takes the output of the above regex and strips it down further
-// to a basic semver.
-// - skip everything up to the last "-vX.Y.Z" and maybe "-test"
-// - take everything after the v as a match group
-const SEMVER_FROM_VERSION_RE = /^.*-?(v\d+\.\d+\.\d+[^\d]?(?!.*v\d+\.\d+\.\d+).*)$/;
+const VERSION_FROM_BRANCH_RE = /^.*:release-?([\w-.]*)-(v[0-9].*)$/;
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -587,14 +581,10 @@ export class GitHub {
         // [optional-package-name-]v1.2.3[-beta-or-whatever]
         // Because the package name can contain things like "-v1",
         // it's easiest/safest to just pull this out by string search.
-        let version = match[2];
+        const version = match[2];
+        if (!version) continue;
         if (prefix && match[1] !== prefix) continue;
         else if (!prefix && match[1]) continue;
-
-        // Extract the actual version string.
-        const versionMatch = version.match(SEMVER_FROM_VERSION_RE);
-        if (!versionMatch) continue;
-        version = versionMatch[1];
 
         // What's left by now should just be the version string.
         // Check for pre-releases if needed.
@@ -615,7 +605,11 @@ export class GitHub {
     return undefined;
   }
 
-  // Allows multiple release PRs to be pulled at once, for use by monorepos:
+  // Allows multiple release PRs to be pulled at once, for use by monorepos.
+  // TODO(bcoe): can we consolidate findMergedRelease and findMergedReleasePRs
+  // logic? The signficant differences are: findMergedRelease enforces a
+  // prefix on releases; findMergedReleasePRs returns the entire set of merged
+  // PRs, vs., a single PR matching a pattern:
   async findMergedReleasePRs(
     labels: string[],
     perPage = 100
@@ -657,12 +651,8 @@ export class GitHub {
         // [optional-package-name-]v1.2.3[-beta-or-whatever]
         // Because the package name can contain things like "-v1",
         // it's easiest/safest to just pull this out by string search.
-        let version = match[2];
-
-        // Extract the actual version string.
-        const versionMatch = version.match(SEMVER_FROM_VERSION_RE);
-        if (!versionMatch) continue;
-        version = versionMatch[1];
+        const version = match[2];
+        if (!version) continue;
 
         // Make sure we did get a valid semver.
         const normalizedVersion = semver.valid(version);

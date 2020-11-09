@@ -14,11 +14,9 @@
 
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHub, GitHubTag, GitHubFileContents} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 
-// Generic
 import {Changelog} from '../updaters/changelog';
 
 const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
@@ -30,7 +28,7 @@ export class GoYoshiSubmodule extends ReleasePR {
       throw Error('GoYoshiSubmodule requires this.packageName');
     }
     // Get tag relative to module/v1.0.0:
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+    const latestTag = await this.gh.latestTag(
       `${this.packageName}/`,
       false,
       `${this.packageName}-`
@@ -53,9 +51,8 @@ export class GoYoshiSubmodule extends ReleasePR {
         scope.startsWith(this.packageName + '/')
       ) {
         return true;
-      } else {
-        return false;
       }
+      return false;
     });
 
     const cc = new ConventionalCommits({
