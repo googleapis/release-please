@@ -583,8 +583,11 @@ export class GitHub {
         // it's easiest/safest to just pull this out by string search.
         const version = match[2];
         if (!version) continue;
-        if (prefix && match[1] !== prefix) continue;
-        else if (!prefix && match[1]) continue;
+        if (prefix && match[1] !== prefix) {
+          continue;
+        } else if (!prefix && match[1]) {
+          continue;
+        }
 
         // What's left by now should just be the version string.
         // Check for pre-releases if needed.
@@ -645,7 +648,9 @@ export class GitHub {
         // user:release-[optional-package-name]-v1.2.3
         // We want the package name and any semver on the end.
         const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-        if (!match || !pull.merged_at) continue;
+        if (!match || !pull.merged_at) {
+          continue;
+        }
 
         // The input here should look something like:
         // [optional-package-name-]v1.2.3[-beta-or-whatever]
