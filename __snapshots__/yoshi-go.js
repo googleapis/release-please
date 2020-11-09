@@ -16,7 +16,6 @@ filename: CHANGES.md
 
 * **all:** auto-regenerate gapics , refs [#1000](https://www.github.com/googleapis/google-cloud-go/issues/1000) [#1001](https://www.github.com/googleapis/google-cloud-go/issues/1001)
 * **asset:** added a really cool feature ([d7d1c89](https://www.github.com/googleapis/google-cloud-go/commit/d7d1c890dc1526f4d62ceedad581f498195c8939))
-* **pubsublite:** start generating v1 ([1d9662c](https://www.github.com/googleapis/google-cloud-go/commit/1d9662cf08ab1cf3b68d95dee4dc99b7c4aac371))
 
 
 ### Bug Fixes

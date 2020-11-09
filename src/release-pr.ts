@@ -195,6 +195,10 @@ export class ReleasePR {
     return Promise.resolve(undefined);
   }
 
+  static tagSeparator(): string {
+    return '-';
+  }
+
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined,
@@ -275,7 +279,7 @@ export class ReleasePR {
     const includePackageName = options.includePackageName;
 
     const title = includePackageName
-      ? `Release ${this.packageName} ${version}`
+      ? `chore: release ${this.packageName} ${version}`
       : `chore: release ${version}`;
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({

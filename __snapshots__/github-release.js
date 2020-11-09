@@ -122,3 +122,27 @@ exports['GitHubRelease createRelease creates and labels release on GitHub 2'] = 
     'autorelease: tagged'
   ]
 }
+
+exports['GitHubRelease createRelease creates releases for submodules in monorepo 1'] = {
+  'tag_name': 'bigquery/v1.0.3',
+  'body': '\n* entry',
+  'name': 'foo bigquery/v1.0.3'
+}
+
+exports['GitHubRelease createRelease creates releases for submodules in monorepo 2'] = {
+  'labels': [
+    'autorelease: tagged'
+  ]
+}
+
+exports['GitHubRelease createRelease creates release for root module in monorepo 1'] = {
+  'tag_name': 'v1.0.3',
+  'body': '\n* entry',
+  'name': 'foo v1.0.3'
+}
+
+exports['GitHubRelease createRelease creates release for root module in monorepo 2'] = {
+  'labels': [
+    'autorelease: tagged'
+  ]
+}

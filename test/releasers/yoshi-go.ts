@@ -107,6 +107,11 @@ describe('YoshiGo', () => {
         packageName: 'yoshi-go',
         apiUrl: 'https://api.github.com',
       });
+      // Stub the submodule release process, this is tested separately in
+      // TODO(codyoss): test this separately:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sandbox.stub(releasePR as any, 'submoduleRelease').resolves();
+
       await releasePR.run();
       req.done();
       snapshot(stringifyExpectedChanges(expectedChanges));
@@ -158,6 +163,11 @@ describe('YoshiGo', () => {
 
       // Call to add autorelease: pending label:
       sandbox.stub(releasePR.gh, 'addLabels');
+
+      // Stub the submodule release process, this is tested separately in
+      // TODO(codyoss): test this separately:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sandbox.stub(releasePR as any, 'submoduleRelease').resolves();
 
       const graphql = JSON.parse(
         readFileSync(resolve(fixturesPath, 'discovery-commits.json'), 'utf8')
