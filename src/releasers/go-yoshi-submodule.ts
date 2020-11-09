@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleasePROptions, ReleaseCandidate} from '../release-pr';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHub, GitHubTag, GitHubFileContents} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
-import {Commit} from '../graphql-to-commits';
-
-interface SubmoduleBulidOptions extends ReleasePROptions {
-  commits: Commit[];
-}
 
 // Generic
 import {Changelog} from '../updaters/changelog';

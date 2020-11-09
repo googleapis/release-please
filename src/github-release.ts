@@ -162,7 +162,9 @@ export class GitHubRelease {
     if (this.path === undefined) {
       return file;
     } else {
-      return join(this.path, `./${file}`);
+      const path = this.path.replace(/[/\\]$/, '');
+      file = file.replace(/^[/\\]/, '');
+      return `${path}/${file}`;
     }
   }
 
