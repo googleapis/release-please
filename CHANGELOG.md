@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.8.0](https://www.github.com/googleapis/release-please/compare/v6.7.0...v6.8.0) (2020-11-09)
+
+
+### Features
+
+* **go:** add support for mono-repo google-cloud-go repo ([#617](https://www.github.com/googleapis/release-please/issues/617)) ([7121575](https://www.github.com/googleapis/release-please/commit/7121575ca8229bc849d1e9e015b1c81f02a7b1c5))
+
 ## [6.7.0](https://www.github.com/googleapis/release-please/compare/v6.6.0...v6.7.0) (2020-10-29)
 
 
