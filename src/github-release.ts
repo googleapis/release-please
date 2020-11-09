@@ -73,6 +73,7 @@ export class GitHubRelease {
 
   async createRelease(): Promise<ReleaseCreateResponse | undefined> {
     let gitHubReleasePRs: GitHubReleasePR[] = [];
+    const rootPath = this.path;
     const releases = [];
     if (this.monorepoTags) {
       gitHubReleasePRs = await this.gh.findMergedReleasePRs(this.labels, 25);
@@ -91,6 +92,11 @@ export class GitHubRelease {
         // module from within the "bigquery" folder:
         if (this.monorepoTags && gitHubReleasePR.packageName) {
           this.path = gitHubReleasePR.packageName;
+        } else {
+          // As in the case of google-cloud-go, a repo may contain both a
+          // top level module, and submodules. If no submodule is found in
+          // the branch name, we use the initial rootPath:
+          this.path = rootPath;
         }
 
         checkpoint(
@@ -134,7 +140,9 @@ export class GitHubRelease {
 
         const release = await this.gh.createRelease(
           this.packageName,
-          this.monorepoTags ? `${this.path}${tagSeparator}${version}` : version,
+          this.monorepoTags && this.path
+            ? `${this.path}${tagSeparator}${version}`
+            : version,
           gitHubReleasePR.sha,
           latestReleaseNotes
         );
