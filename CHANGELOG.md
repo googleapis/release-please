@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.8.1](https://www.github.com/googleapis/release-please/compare/v6.8.0...v6.8.1) (2020-11-10)
+
+
+### Bug Fixes
+
+* **go:** we should not include - in the suffix ([#621](https://www.github.com/googleapis/release-please/issues/621)) ([a8fa0bd](https://www.github.com/googleapis/release-please/commit/a8fa0bd6d1e617f067a67fe85139a9b18ee7a6ec))
+
 ## [6.8.0](https://www.github.com/googleapis/release-please/compare/v6.7.0...v6.8.0) (2020-11-09)
 
 
