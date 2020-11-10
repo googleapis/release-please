@@ -37,8 +37,6 @@
   },
   "homepage": "https://github.com/googleapis/release-please#readme",
   "devDependencies": {
-    "@microsoft/api-documenter": "^7.8.10",
-    "@microsoft/api-extractor": "^7.8.10",
     "@octokit/types": "^5.0.0",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^8.0.0",

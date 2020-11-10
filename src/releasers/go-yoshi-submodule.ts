@@ -31,7 +31,7 @@ export class GoYoshiSubmodule extends ReleasePR {
     const latestTag = await this.gh.latestTag(
       `${this.packageName}/`,
       false,
-      `${this.packageName}-`
+      `${this.packageName}`
     );
     const commits = (
       await this.commits({
