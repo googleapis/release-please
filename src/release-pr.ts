@@ -52,9 +52,15 @@ export interface BuildOptions {
   versionFile?: string;
 }
 
+type ChangelogSection = {
+  type: string;
+  section: string;
+  hidden?: boolean;
+};
+
 export interface ReleasePROptions extends BuildOptions {
   releaseType: string;
-  changelogSections?: [];
+  changelogSections?: Array<ChangelogSection>;
 }
 
 export interface ReleaseCandidate {
@@ -97,7 +103,7 @@ export class ReleasePR {
   proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
-  changelogSections?: [];
+  changelogSections?: Array<ChangelogSection>;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
