@@ -18,13 +18,13 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {ConventionalCommits} from '../src/conventional-commits';
-import {GitHubTag} from '../src/github';
+import {GitHub, GitHubTag, GitHubPR} from '../src/github';
 
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {ReleaseCandidate, ReleasePR} from '../src/release-pr';
+import {ReleaseCandidate, ReleasePR, OpenPROptions} from '../src/release-pr';
 import {PHPYoshi} from '../src/releasers/php-yoshi';
 
 import * as suggester from 'code-suggester';
@@ -32,6 +32,26 @@ import * as sinon from 'sinon';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
+
+class TestableReleasePR extends ReleasePR {
+  openPROpts?: GitHubPR;
+  async coerceReleaseCandidate(
+    cc: ConventionalCommits,
+    latestTag?: GitHubTag,
+    preRelese = false
+  ): Promise<ReleaseCandidate> {
+    return super.coerceReleaseCandidate(cc, latestTag, preRelese);
+  }
+  async openPR(options: OpenPROptions) {
+    this.gh = {
+      openPR: async (opts: GitHubPR): Promise<number> => {
+        this.openPROpts = opts;
+        return 0;
+      },
+    } as GitHub;
+    return super.openPR(options);
+  }
+}
 
 describe('Release-PR', () => {
   afterEach(() => {
@@ -230,16 +250,6 @@ describe('Release-PR', () => {
   });
 
   describe('coerceReleaseCandidate', () => {
-    class TestableReleasePR extends ReleasePR {
-      async coerceReleaseCandidate(
-        cc: ConventionalCommits,
-        latestTag?: GitHubTag,
-        preRelese = false
-      ): Promise<ReleaseCandidate> {
-        return super.coerceReleaseCandidate(cc, latestTag, preRelese);
-      }
-    }
-
     it('suggests next version #, based on commit types', async () => {
       const rp = new TestableReleasePR({
         repoUrl: 'googleapis/nodejs',
@@ -384,6 +394,25 @@ describe('Release-PR', () => {
         );
         expect(candidate.version).to.equal('1.0.0-alpha1');
       });
+    });
+  });
+
+  describe('openPR', () => {
+    it('drops npm style @org/ prefix', async () => {
+      const rp = new TestableReleasePR({
+        repoUrl: 'googleapis/nodejs',
+        packageName: '@google-cloud/nodejs',
+        apiUrl: 'github.com',
+        releaseType: 'node',
+      });
+      await rp.openPR({
+        sha: 'abc123',
+        changelogEntry: 'changelog',
+        updates: [],
+        version: '1.3.0',
+        includePackageName: true,
+      });
+      expect(rp.openPROpts?.branch).to.equal('release-nodejs-v1.3.0');
     });
   });
 });

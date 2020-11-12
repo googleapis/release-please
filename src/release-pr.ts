@@ -72,7 +72,7 @@ interface GetCommitsOptions {
   path?: string;
 }
 
-interface OpenPROptions {
+export interface OpenPROptions {
   sha: string;
   changelogEntry: string;
   updates: Update[];
@@ -277,6 +277,10 @@ export class ReleasePR {
     const updates = options.updates;
     const version = options.version;
     const includePackageName = options.includePackageName;
+    // Do not include npm style @org/ prefixes in the branch name:
+    const branchPrefix = this.packageName.match(/^@[\w-]+\//)
+      ? this.packageName.split('/')[1]
+      : this.packageName;
 
     const title = includePackageName
       ? `chore: release ${this.packageName} ${version}`
@@ -284,7 +288,7 @@ export class ReleasePR {
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
     const pr: number = await this.gh.openPR({
       branch: includePackageName
-        ? `release-${this.packageName}-v${version}`
+        ? `release-${branchPrefix}-v${version}`
         : `release-v${version}`,
       version,
       sha,
