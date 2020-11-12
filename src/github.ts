@@ -109,7 +109,7 @@ export interface GitHubFileContents {
   parsedContent: string;
 }
 
-interface GitHubPR {
+export interface GitHubPR {
   branch: string;
   fork: boolean;
   version: string;
