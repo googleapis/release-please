@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.8.2](https://www.github.com/googleapis/release-please/compare/v6.8.1...v6.8.2) (2020-11-12)
+
+
+### Bug Fixes
+
+* **nodejs:** do not include org in branch name ([#623](https://www.github.com/googleapis/release-please/issues/623)) ([fde5db4](https://www.github.com/googleapis/release-please/commit/fde5db4b71a7421d546dabea5969610e84d65e9c))
+
 ### [6.8.1](https://www.github.com/googleapis/release-please/compare/v6.8.0...v6.8.1) (2020-11-10)
 
 
