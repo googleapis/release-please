@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.8.3](https://www.github.com/googleapis/release-please/compare/v6.8.2...v6.8.3) (2020-11-16)
+
+
+### Bug Fixes
+
+* include multi-line breaking changes ([#627](https://www.github.com/googleapis/release-please/issues/627)) ([bff05e1](https://www.github.com/googleapis/release-please/commit/bff05e1659bf71e2324bd70319e364e347bc025f))
+* **deps:** update dependency type-fest to ^0.19.0 ([#625](https://www.github.com/googleapis/release-please/issues/625)) ([e2b38ee](https://www.github.com/googleapis/release-please/commit/e2b38eea6424f647c807e76d894d0a618b61eea1))
+
 ### [6.8.2](https://www.github.com/googleapis/release-please/compare/v6.8.1...v6.8.2) (2020-11-12)
 
 

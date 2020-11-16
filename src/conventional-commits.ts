@@ -93,7 +93,12 @@ class PostProcessCommits extends Transform {
     done: Function
   ) {
     chunk.notes.forEach(note => {
-      note.text = note.text.split(/\r?\n/)[0];
+      let text = '';
+      for (const chunk of note.text.split(/\r?\n/)) {
+        if (chunk === '') break;
+        else text += `${chunk} `;
+      }
+      note.text = text.trim();
     });
     this.push(JSON.stringify(chunk, null, 4) + '\n');
     done();
