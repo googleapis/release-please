@@ -113,12 +113,10 @@ describe('terraform-module', () => {
           .rejects(Object.assign(Error('not found'), {status: 404}));
 
         test.readFilePaths.forEach((readFilePath, count) => {
-          console.log(readFilePath);
           const fileContent = readFileSync(
             resolve(fixturesPath, readFilePath),
             'utf8'
           );
-          console.log(fileContent);
           getFileContentsStub.onCall(count + 1).resolves({
             sha: 'abc123',
             content: Buffer.from(fileContent, 'utf8').toString('base64'),
