@@ -24,6 +24,7 @@ import {Commit} from '../graphql-to-commits';
 import {Changelog} from '../updaters/changelog';
 // Terraform specific.
 import {ReadMe} from '../updaters/terraform/readme';
+import {ModuleVersion} from '../updaters/terraform/module-version';
 
 export class TerraformModule extends ReleasePR {
   static releaserName = 'terraform-module';
@@ -85,6 +86,19 @@ export class TerraformModule extends ReleasePR {
         packageName: this.packageName,
       })
     );
+    // Update versions.tf to current candidate version.
+    // A module may have submodules, so find all versions.tf to update.
+    const versionFiles = await this.gh.findFilesByFilename('versions.tf');
+    versionFiles.forEach(path => {
+      updates.push(
+        new ModuleVersion({
+          path: this.addPath(path),
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
 
     await this.openPR({
       sha: commits[0].sha!,
