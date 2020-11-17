@@ -116,7 +116,7 @@ describe('terraform-module', () => {
           const fileContent = readFileSync(
             resolve(fixturesPath, readFilePath),
             'utf8'
-          );
+          ).replace(/\r\n/g, '\n');
           getFileContentsStub.onCall(count + 1).resolves({
             sha: 'abc123',
             content: Buffer.from(fileContent, 'utf8').toString('base64'),
