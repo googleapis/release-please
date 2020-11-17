@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.9.0](https://www.github.com/googleapis/release-please/compare/v6.8.3...v6.9.0) (2020-11-17)
+
+
+### Features
+
+* **terraform:** Add TF versions updater ([#629](https://www.github.com/googleapis/release-please/issues/629)) ([6f2007c](https://www.github.com/googleapis/release-please/commit/6f2007cfb740f4d711b20637c43cb8d63dbbda91))
+
 ### [6.8.3](https://www.github.com/googleapis/release-please/compare/v6.8.2...v6.8.3) (2020-11-16)
 
 
