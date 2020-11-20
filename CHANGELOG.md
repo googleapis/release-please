@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [6.9.1](https://www.github.com/googleapis/release-please/compare/v6.9.0...v6.9.1) (2020-11-20)
+
+
+### Bug Fixes
+
+* pass gh instance to submodule ([#631](https://www.github.com/googleapis/release-please/issues/631)) ([7b3e61c](https://www.github.com/googleapis/release-please/commit/7b3e61c89971918803b7fab2bb310d32442052ef))
+
 ## [6.9.0](https://www.github.com/googleapis/release-please/compare/v6.8.3...v6.9.0) (2020-11-17)
 
 
