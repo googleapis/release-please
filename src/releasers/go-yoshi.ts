@@ -224,6 +224,9 @@ export class GoYoshi extends ReleasePR {
       releaseType: 'go-yoshi-submodule',
       changelogSections: this.changelogSections,
     });
+    // This GitHub instance has potentially been instantiated with
+    // credentials from probot, make sure to chain it through:
+    releaser.gh = this.gh;
     await releaser.run();
   }
 }
