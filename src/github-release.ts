@@ -101,7 +101,8 @@ export class GitHubRelease {
       // e.g., release-bigquery-v1.0.0, then assume we are releasing a
       // module from within the "bigquery" folder:
       if (this.monorepoTags && gitHubReleasePR.packageName) {
-        this.path = gitHubReleasePR.packageName;
+        this.path = rootPath;
+        this.path = this.addPath(gitHubReleasePR.packageName);
       } else {
         // As in the case of google-cloud-go, a repo may contain both a
         // top level module, and submodules. If no submodule is found in
@@ -149,7 +150,7 @@ export class GitHubRelease {
       const release = await this.gh.createRelease(
         this.packageName,
         this.monorepoTags && this.path
-          ? `${this.path}${tagSeparator}${version}`
+          ? `${gitHubReleasePR.packageName}${tagSeparator}${version}`
           : version,
         gitHubReleasePR.sha,
         latestReleaseNotes
