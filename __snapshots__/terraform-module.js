@@ -11,7 +11,7 @@ filename: CHANGELOG.md
 * **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/googleapis/terraform-test-repo/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
 * **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/terraform-test-repo/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
 
-filename: README.md
+filename: readme.md
 # Terraform Module
 
 ## Usage
@@ -72,6 +72,30 @@ filename: CHANGELOG.md
 * **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/terraform-test-repo/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
 
 filename: README.md
+# Terraform Module
+
+## Usage
+
+\`\`\`hcl
+module "vpc" {
+    source  = "terraform-google-modules/mine/google"
+    version = "~> 2.1"
+}
+\`\`\`
+
+filename: modules/sub-module-with-version/readme.md
+# Terraform Module
+
+## Usage
+
+\`\`\`hcl
+module "vpc" {
+    source  = "terraform-google-modules/mine/google"
+    version = "~> 2.1"
+}
+\`\`\`
+
+filename: modules/sub-module-missing-versions/README.md
 # Terraform Module
 
 ## Usage
@@ -164,7 +188,7 @@ filename: CHANGELOG.md
 * **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/googleapis/terraform-test-repo/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
 * **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/terraform-test-repo/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
 
-filename: README.md
+filename: module-no-versions/README.MD
 # Terraform Module
 
 ## Usage
