@@ -98,7 +98,6 @@ export interface GitHubTag {
 
 export interface GitHubReleasePR {
   number: number;
-  packageName: string;
   sha: string;
   version: string;
 }
@@ -598,78 +597,12 @@ export class GitHub {
 
         return {
           number: pull.number,
-          packageName: match[1] ? match[1] : undefined,
           sha: pull.merge_commit_sha,
           version: normalizedVersion,
         } as GitHubReleasePR;
       }
     }
     return undefined;
-  }
-
-  // Allows multiple release PRs to be pulled at once, for use by monorepos.
-  // TODO(bcoe): can we consolidate findMergedRelease and findMergedReleasePRs
-  // logic? The signficant differences are: findMergedRelease enforces a
-  // prefix on releases; findMergedReleasePRs returns the entire set of merged
-  // PRs, vs., a single PR matching a pattern:
-  async findMergedReleasePRs(
-    labels: string[],
-    perPage = 100
-  ): Promise<GitHubReleasePR[]> {
-    const prs = [];
-    const baseLabel = await this.getBaseLabel();
-    const pullsResponse = (await this.request(
-      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
-        this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }&sort=merged_at&direction=desc`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-      }
-    )) as {data: PullsListResponseItems};
-    for (const pull of pullsResponse.data) {
-      if (
-        labels.length === 0 ||
-        this.hasAllLabels(
-          labels,
-          pull.labels.map(l => l.name)
-        )
-      ) {
-        // it's expected that a release PR will have a
-        // HEAD matching the format repo:release-v1.0.0.
-        if (!pull.head) continue;
-
-        // Verify that this PR was based against our base branch of interest.
-        if (!pull.base || pull.base.label !== baseLabel) continue;
-
-        // The input should look something like:
-        // user:release-[optional-package-name]-v1.2.3
-        // We want the package name and any semver on the end.
-        const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-        if (!match || !pull.merged_at) {
-          continue;
-        }
-
-        // The input here should look something like:
-        // [optional-package-name-]v1.2.3[-beta-or-whatever]
-        // Because the package name can contain things like "-v1",
-        // it's easiest/safest to just pull this out by string search.
-        const version = match[2];
-        if (!version) continue;
-
-        // Make sure we did get a valid semver.
-        const normalizedVersion = semver.valid(version);
-        if (!normalizedVersion) continue;
-
-        prs.push({
-          number: pull.number,
-          packageName: match[1] ? match[1] : undefined,
-          sha: pull.merge_commit_sha,
-          version: normalizedVersion,
-        } as GitHubReleasePR);
-      }
-    }
-    return prs;
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {

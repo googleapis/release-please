@@ -86,11 +86,12 @@ describe('GitHubRelease', () => {
       requests.done();
     });
 
-    it('creates releases for submodules in monorepo', async () => {
+    it('creates releases for submodule in monorepo', async () => {
       const release = new GitHubRelease({
         label: 'autorelease: pending',
         repoUrl: 'googleapis/foo',
-        packageName: 'foo',
+        packageName: 'bigquery',
+        path: 'bigquery',
         monorepoTags: true,
         releaseType: 'go-yoshi',
         apiUrl: 'https://api.github.com',
@@ -150,7 +151,7 @@ describe('GitHubRelease', () => {
 
     it('supports submodules in nested folders', async () => {
       const release = new GitHubRelease({
-        path: 'src/apis',
+        path: 'src/apis/foo',
         label: 'autorelease: pending',
         repoUrl: 'googleapis/foo',
         packageName: 'foo',
@@ -170,7 +171,7 @@ describe('GitHubRelease', () => {
           {
             labels: [{name: 'autorelease: pending'}],
             head: {
-              label: 'head:release-bigquery-v1.0.3',
+              label: 'head:release-foo-v1.0.3',
             },
             base: {
               label: 'googleapis:main',
@@ -180,7 +181,7 @@ describe('GitHubRelease', () => {
           },
         ])
         .get(
-          '/repos/googleapis/foo/contents/src%2Fapis%2Fbigquery%2FCHANGES.md?ref=refs/heads/main'
+          '/repos/googleapis/foo/contents/src%2Fapis%2Ffoo%2FCHANGES.md?ref=refs/heads/main'
         )
         .reply(200, {
           content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
@@ -192,7 +193,7 @@ describe('GitHubRelease', () => {
             return true;
           }
         )
-        .reply(200, {tag_name: 'bigquery/v1.0.3'})
+        .reply(200, {tag_name: 'foo/v1.0.3'})
         .post(
           '/repos/googleapis/foo/issues/1/labels',
           (body: {[key: string]: string}) => {
@@ -207,67 +208,7 @@ describe('GitHubRelease', () => {
         .reply(200);
 
       const created = await release.createRelease();
-      strictEqual(created!.tag_name, 'bigquery/v1.0.3');
-      requests.done();
-    });
-
-    it('creates release for root module in monorepo', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        monorepoTags: true,
-        releaseType: 'go-yoshi',
-        apiUrl: 'https://api.github.com',
-        changelogPath: 'CHANGES.md',
-      });
-      const requests = nock('https://api.github.com')
-        // check for default branch
-        .get('/repos/googleapis/foo')
-        .reply(200, repoInfo)
-        .get(
-          '/repos/googleapis/foo/pulls?state=closed&per_page=25&sort=merged_at&direction=desc'
-        )
-        .reply(200, [
-          {
-            labels: [{name: 'autorelease: pending'}],
-            head: {
-              label: 'head:release-v1.0.3',
-            },
-            base: {
-              label: 'googleapis:main',
-            },
-            number: 1,
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        .get('/repos/googleapis/foo/contents/CHANGES.md?ref=refs/heads/main')
-        .reply(200, {
-          content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
-        })
-        .post(
-          '/repos/googleapis/foo/releases',
-          (body: {[key: string]: string}) => {
-            snapshot(body);
-            return true;
-          }
-        )
-        .reply(200, {tag_name: 'v1.0.3'})
-        .post(
-          '/repos/googleapis/foo/issues/1/labels',
-          (body: {[key: string]: string}) => {
-            snapshot(body);
-            return true;
-          }
-        )
-        .reply(200)
-        .delete(
-          '/repos/googleapis/foo/issues/1/labels/autorelease%3A%20pending'
-        )
-        .reply(200);
-
-      const created = await release.createRelease();
-      strictEqual(created!.tag_name, 'v1.0.3');
+      strictEqual(created!.tag_name, 'foo/v1.0.3');
       requests.done();
     });
 
