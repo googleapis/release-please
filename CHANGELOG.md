@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [6.10.0](https://www.github.com/googleapis/release-please/compare/v6.9.1...v6.10.0) (2020-11-24)
+
+
+### Features
+
+* **monorepos:** support submodules in nested folders ([#633](https://www.github.com/googleapis/release-please/issues/633)) ([6b654ae](https://www.github.com/googleapis/release-please/commit/6b654ae17cb00f79103b8b58ed73d081d0b85c9a))
+
 ### [6.9.1](https://www.github.com/googleapis/release-please/compare/v6.9.0...v6.9.1) (2020-11-20)
 
 
