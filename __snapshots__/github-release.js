@@ -146,3 +146,15 @@ exports['GitHubRelease createRelease creates release for root module in monorepo
     'autorelease: tagged'
   ]
 }
+
+exports['GitHubRelease createRelease supports submodules in nested folders 1'] = {
+  'tag_name': 'bigquery/v1.0.3',
+  'body': '\n* entry',
+  'name': 'foo bigquery/v1.0.3'
+}
+
+exports['GitHubRelease createRelease supports submodules in nested folders 2'] = {
+  'labels': [
+    'autorelease: tagged'
+  ]
+}
