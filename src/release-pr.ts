@@ -128,7 +128,7 @@ export class ReleasePR {
     this.changelogSections = options.changelogSections;
   }
 
-  async run() {
+  async run(): Promise<number | undefined> {
     if (this.snapshot && !this.supportsSnapshots()) {
       checkpoint(
         'snapshot releases not supported for this releaser',
@@ -136,21 +136,23 @@ export class ReleasePR {
       );
       return;
     }
-    const pr: GitHubReleasePR | undefined = await this.gh.findMergedReleasePR(
-      this.labels
-    );
-    if (pr) {
+    const mergedPR:
+      | GitHubReleasePR
+      | undefined = await this.gh.findMergedReleasePR(this.labels);
+    if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
       checkpoint(
-        `pull #${pr.number} ${pr.sha} has not yet been released`,
+        `pull #${mergedPR.number} ${mergedPR.sha} has not yet been released`,
         CheckpointType.Failure
       );
+      return undefined;
     } else {
-      return this._run();
+      const openedPR = this._run();
+      return openedPR ? openedPR : undefined;
     }
   }
 
-  protected async _run() {
+  protected async _run(): Promise<number | undefined> {
     throw Error('must be implemented by subclass');
   }
 
@@ -271,7 +273,7 @@ export class ReleasePR {
     });
   }
 
-  protected async openPR(options: OpenPROptions) {
+  protected async openPR(options: OpenPROptions): Promise<number> {
     const sha = options.sha;
     const changelogEntry = options.changelogEntry;
     const updates = options.updates;
@@ -307,6 +309,7 @@ export class ReleasePR {
       );
       await this.closeStaleReleasePRs(pr, includePackageName);
     }
+    return pr;
   }
 
   protected changelogEmpty(changelogEntry: string) {

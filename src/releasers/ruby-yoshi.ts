@@ -42,7 +42,7 @@ const CHANGELOG_SECTIONS = [
 
 export class RubyYoshi extends ReleasePR {
   static releaserName = 'ruby-yoshi';
-  protected async _run() {
+  protected async _run(): Promise<number> {
     const lastReleaseSha: string | undefined = this.lastPackageVersion
       ? await this.gh.getTagSha(
           `${this.packageName}/v${this.lastPackageVersion}`
@@ -57,7 +57,7 @@ export class RubyYoshi extends ReleasePR {
         `no commits found since ${lastReleaseSha}`,
         CheckpointType.Failure
       );
-      return;
+      return 0;
     } else {
       const cc = new ConventionalCommits({
         commits: postProcessCommits(commits),
@@ -100,7 +100,7 @@ export class RubyYoshi extends ReleasePR {
           }`,
           CheckpointType.Failure
         );
-        return;
+        return 0;
       }
 
       const updates: Update[] = [];
@@ -126,7 +126,7 @@ export class RubyYoshi extends ReleasePR {
         })
       );
 
-      await this.openPR({
+      return await this.openPR({
         sha: commits[0].sha!,
         changelogEntry: `${changelogEntry}\n---\n${this.summarizeCommits(
           lastReleaseSha,

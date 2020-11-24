@@ -30,7 +30,7 @@ import {Readme} from '../updaters/java/readme';
 
 export class JavaAuthYoshi extends ReleasePR {
   static releaserName = 'java-auth-yoshi';
-  protected async _run() {
+  protected async _run(): Promise<number> {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = this.snapshot
       ? [
@@ -51,7 +51,7 @@ export class JavaAuthYoshi extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return 0;
     }
     let prSHA = commits[0].sha;
 
@@ -91,7 +91,7 @@ export class JavaAuthYoshi extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return 0;
     }
 
     const updates: Update[] = [];
@@ -142,7 +142,7 @@ export class JavaAuthYoshi extends ReleasePR {
       );
     });
 
-    await this.openPR({
+    return await this.openPR({
       sha: prSHA!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,

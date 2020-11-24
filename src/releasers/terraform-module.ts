@@ -28,7 +28,7 @@ import {ModuleVersion} from '../updaters/terraform/module-version';
 
 export class TerraformModule extends ReleasePR {
   static releaserName = 'terraform-module';
-  protected async _run() {
+  protected async _run(): Promise<number> {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
@@ -64,7 +64,7 @@ export class TerraformModule extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return 0;
     }
 
     const updates: Update[] = [];
@@ -100,7 +100,7 @@ export class TerraformModule extends ReleasePR {
       );
     });
 
-    await this.openPR({
+    return await this.openPR({
       sha: commits[0].sha!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,

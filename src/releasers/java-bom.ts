@@ -48,7 +48,7 @@ const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
 export class JavaBom extends ReleasePR {
   static releaserName = 'java-bom';
-  protected async _run() {
+  protected async _run(): Promise<number> {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
     );
@@ -68,7 +68,7 @@ export class JavaBom extends ReleasePR {
         'release asked for a snapshot, but no snapshot is needed',
         CheckpointType.Failure
       );
-      return;
+      return 0;
     }
 
     if (this.snapshot) {
@@ -89,7 +89,7 @@ export class JavaBom extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return 0;
     }
     const prSHA = commits[0].sha;
     const cc = new ConventionalCommits({
@@ -136,7 +136,7 @@ export class JavaBom extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return 0;
     }
 
     const candidateVersions = JavaBom.bumpAllVersions(
@@ -192,7 +192,7 @@ export class JavaBom extends ReleasePR {
       );
     });
 
-    await this.openPR({
+    return await this.openPR({
       sha: prSHA!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,
