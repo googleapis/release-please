@@ -67,7 +67,7 @@ describe('GitHubRelease', () => {
             return true;
           }
         )
-        .reply(200, {tag_name: 'v1.0.2'})
+        .reply(200, {tag_name: 'v1.0.3'})
         .post(
           '/repos/googleapis/foo/issues/1/labels',
           (body: {[key: string]: string}) => {
@@ -82,7 +82,10 @@ describe('GitHubRelease', () => {
         .reply(200);
 
       const created = await release.createRelease();
-      strictEqual(created!.tag_name, 'v1.0.2');
+      strictEqual(created!.tag_name, 'v1.0.3');
+      strictEqual(created!.major, 1);
+      strictEqual(created!.minor, 0);
+      strictEqual(created!.patch, 3);
       requests.done();
     });
 
@@ -146,6 +149,9 @@ describe('GitHubRelease', () => {
 
       const created = await release.createRelease();
       strictEqual(created!.tag_name, 'bigquery/v1.0.3');
+      strictEqual(created!.major, 1);
+      strictEqual(created!.minor, 0);
+      strictEqual(created!.patch, 3);
       requests.done();
     });
 
