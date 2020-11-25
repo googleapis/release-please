@@ -285,7 +285,7 @@ export class ReleasePR {
       ? `chore: release ${this.packageName} ${version}`
       : `chore: release ${version}`;
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
-    const pr: number|undefined = await this.gh.openPR({
+    const pr: number | undefined = await this.gh.openPR({
       branch: includePackageName
         ? `release-${branchPrefix}-v${version}`
         : `release-v${version}`,
