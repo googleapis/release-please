@@ -30,6 +30,7 @@ interface ReleaseResponse {
   sha: string;
   html_url: string;
   tag_name: string;
+  upload_url: string;
   pr: number;
 }
 
@@ -155,6 +156,7 @@ export class GitHubRelease {
         pr: gitHubReleasePR.number,
         html_url: release.html_url,
         tag_name: release.tag_name,
+        upload_url: release.upload_url,
       };
     } else {
       console.warn(`failed to parse version informatino from ${version}`);
