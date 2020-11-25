@@ -86,6 +86,11 @@ const argv = yargs
           describe: 'include library name in tags and release branches',
           type: 'boolean',
           default: false,
+        })
+        .option('clean', {
+          describe: 'should stale release PRs be cleaned post run?',
+          default: true,
+          type: 'boolean',
         });
     },
     (argv: ReleasePROptions) => {

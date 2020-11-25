@@ -53,6 +53,7 @@ export interface BuildOptions {
   lastPackageVersion?: string;
   octokitAPIs?: OctokitAPIs;
   versionFile?: string;
+  clean?: boolean;
 }
 
 export interface ReleasePROptions extends BuildOptions {
@@ -86,6 +87,7 @@ export class ReleasePR {
   static releaserName = 'base';
 
   apiUrl: string;
+  clean: boolean;
   defaultBranch?: string;
   labels: string[];
   fork: boolean;
@@ -122,6 +124,7 @@ export class ReleasePR {
     this.lastPackageVersion = options.lastPackageVersion
       ? options.lastPackageVersion.replace(/^v/, '')
       : undefined;
+    this.clean = options.clean ?? true;
 
     this.gh = this.gitHubInstance(options.octokitAPIs);
 
@@ -304,7 +307,9 @@ export class ReleasePR {
         `${this.repoUrl} find stale PRs with label "${this.labels.join(',')}"`,
         CheckpointType.Success
       );
-      await this.closeStaleReleasePRs(pr, includePackageName);
+      if (this.clean) {
+        await this.closeStaleReleasePRs(pr, includePackageName);
+      }
     }
     return pr;
   }
