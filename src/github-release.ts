@@ -15,11 +15,23 @@
 import chalk = require('chalk');
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ReleasePRFactory} from './release-pr-factory';
-import {GitHub, OctokitAPIs, ReleaseCreateResponse} from './github';
+import {GitHub, OctokitAPIs} from './github';
+import {parse} from 'semver';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
+
+interface ReleaseResponse {
+  major: number;
+  minor: number;
+  patch: number;
+  version: string;
+  sha: string;
+  html_url: string;
+  tag_name: string;
+  pr: number;
+}
 
 export interface GitHubReleaseOptions {
   label: string;
@@ -64,7 +76,7 @@ export class GitHubRelease {
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
-  async createRelease(): Promise<ReleaseCreateResponse | undefined> {
+  async createRelease(): Promise<ReleaseResponse | undefined> {
     // In most configurations, createRelease() should be called close to when
     // a release PR is merged, e.g., a GitHub action that kicks off this
     // workflow on merge. For tis reason, we can pull a fairly small number of PRs:
@@ -131,7 +143,23 @@ export class GitHubRelease {
     // Remove 'autorelease: pending' which indicates a GitHub release
     // has not yet been created.
     await this.gh.removeLabels(this.labels, gitHubReleasePR.number);
-    return release;
+
+    const parsedVersion = parse(version, {loose: true});
+    if (parsedVersion) {
+      return {
+        major: parsedVersion.major,
+        minor: parsedVersion.minor,
+        patch: parsedVersion.patch,
+        sha: gitHubReleasePR.sha,
+        version,
+        pr: gitHubReleasePR.number,
+        html_url: release.html_url,
+        tag_name: release.tag_name,
+      };
+    } else {
+      console.warn(`failed to parse version informatino from ${version}`);
+      return undefined;
+    }
   }
 
   addPath(file: string) {
