@@ -49,7 +49,7 @@ const CHANGELOG_SECTIONS = [
 
 export class JavaYoshi extends ReleasePR {
   static releaserName = 'java-yoshi';
-  protected async _run(): Promise<number> {
+  protected async _run(): Promise<number | undefined> {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
     );
@@ -69,7 +69,7 @@ export class JavaYoshi extends ReleasePR {
         'release asked for a snapshot, but no snapshot is needed',
         CheckpointType.Failure
       );
-      return 0;
+      return undefined;
     }
 
     if (this.snapshot) {
@@ -96,7 +96,7 @@ export class JavaYoshi extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return 0;
+      return undefined;
     }
     let prSHA = commits[0].sha;
     // Snapshots populate a fake "fix:"" commit, so that they will always
@@ -154,7 +154,7 @@ export class JavaYoshi extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return 0;
+      return undefined;
     }
 
     const updates: Update[] = [];

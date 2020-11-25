@@ -27,7 +27,7 @@ import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ConventionalCommits} from './conventional-commits';
-import {GitHub, GitHubReleasePR, GitHubTag, OctokitAPIs} from './github';
+import {GitHub, GitHubTag, OctokitAPIs} from './github';
 import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
 
@@ -136,9 +136,7 @@ export class ReleasePR {
       );
       return;
     }
-    const mergedPR:
-      | GitHubReleasePR
-      | undefined = await this.gh.findMergedReleasePR(this.labels);
+    const mergedPR = await this.gh.findMergedReleasePR(this.labels);
     if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
       checkpoint(
@@ -147,8 +145,7 @@ export class ReleasePR {
       );
       return undefined;
     } else {
-      const openedPR = this._run();
-      return openedPR ? openedPR : undefined;
+      return this._run();
     }
   }
 
@@ -273,7 +270,7 @@ export class ReleasePR {
     });
   }
 
-  protected async openPR(options: OpenPROptions): Promise<number> {
+  protected async openPR(options: OpenPROptions): Promise<number | undefined> {
     const sha = options.sha;
     const changelogEntry = options.changelogEntry;
     const updates = options.updates;
@@ -288,7 +285,7 @@ export class ReleasePR {
       ? `chore: release ${this.packageName} ${version}`
       : `chore: release ${version}`;
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please).`;
-    const pr: number = await this.gh.openPR({
+    const pr: number|undefined = await this.gh.openPR({
       branch: includePackageName
         ? `release-${branchPrefix}-v${version}`
         : `release-v${version}`,
@@ -300,8 +297,8 @@ export class ReleasePR {
       fork: this.fork,
       labels: this.labels,
     });
-    // a return of 0 indicates that PR was not updated.
-    if (pr !== 0) {
+    // a return of undefined indicates that PR was not updated.
+    if (pr) {
       await this.gh.addLabels(this.labels, pr);
       checkpoint(
         `${this.repoUrl} find stale PRs with label "${this.labels.join(',')}"`,

@@ -51,7 +51,7 @@ interface PHPYoshiBulkUpdate {
 
 export class PHPYoshi extends ReleasePR {
   static releaserName = 'php-yoshi';
-  protected async _run(): Promise<number> {
+  protected async _run(): Promise<number | undefined> {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag();
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,

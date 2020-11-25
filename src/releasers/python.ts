@@ -44,7 +44,7 @@ const CHANGELOG_SECTIONS = [
 
 export class Python extends ReleasePR {
   static releaserName = 'python';
-  protected async _run(): Promise<number> {
+  protected async _run(): Promise<number | undefined> {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
@@ -80,7 +80,7 @@ export class Python extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return 0;
+      return undefined;
     }
 
     const updates: Update[] = [];
