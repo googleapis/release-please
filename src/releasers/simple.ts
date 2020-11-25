@@ -27,7 +27,7 @@ import {VersionTxt} from '../updaters/version-txt';
 
 export class Simple extends ReleasePR {
   static releaserName = 'simple';
-  protected async _run() {
+  protected async _run(): Promise<number | undefined> {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
@@ -63,7 +63,7 @@ export class Simple extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return undefined;
     }
 
     const updates: Update[] = [];
@@ -86,7 +86,7 @@ export class Simple extends ReleasePR {
       })
     );
 
-    await this.openPR({
+    return await this.openPR({
       sha: commits[0].sha!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,

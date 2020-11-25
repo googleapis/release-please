@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as assert from 'assert';
 import {describe, it, afterEach} from 'mocha';
 import * as nock from 'nock';
 import {Node} from '../../src/releasers/node';
@@ -137,7 +138,8 @@ describe('Node', () => {
         packageName: 'node-testno-package-lock-repo',
         apiUrl: 'https://api.github.com',
       });
-      await releasePR.run();
+      const pr = await releasePR.run();
+      assert.strictEqual(pr, 22);
       req.done();
       snapshot(
         JSON.stringify(expectedChanges, null, 2).replace(
@@ -232,7 +234,8 @@ describe('Node', () => {
         apiUrl: 'https://api.github.com',
         snapshot: true,
       });
-      await releasePR.run();
+      const pr = await releasePR.run();
+      assert.strictEqual(pr, undefined);
     });
   });
 });

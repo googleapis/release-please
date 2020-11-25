@@ -23,7 +23,7 @@ const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
 
 export class GoYoshiSubmodule extends ReleasePR {
   static releaserName = 'go-yoshi-submodule';
-  protected async _run() {
+  protected async _run(): Promise<number | undefined> {
     if (!this.packageName) {
       throw Error('GoYoshiSubmodule requires this.packageName');
     }
@@ -81,7 +81,7 @@ export class GoYoshiSubmodule extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return undefined;
     }
 
     const updates: Update[] = [];

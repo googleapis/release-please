@@ -701,7 +701,7 @@ export class GitHub {
     return undefined;
   }
 
-  async openPR(options: GitHubPR): Promise<number> {
+  async openPR(options: GitHubPR): Promise<number | undefined> {
     const defaultBranch = await this.getDefaultBranch();
 
     // check if there's an existing PR, so that we can opt to update it
@@ -722,7 +722,7 @@ export class GitHub {
         `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
         CheckpointType.Failure
       );
-      return 0;
+      return undefined;
     }
 
     //  Actually update the files for the release:

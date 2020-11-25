@@ -48,7 +48,7 @@ const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
 
 export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
-  protected async _run() {
+  protected async _run(): Promise<number | undefined> {
     const latestTag = await this.gh.latestTag();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);
@@ -155,7 +155,7 @@ export class GoYoshi extends ReleasePR {
         }`,
         CheckpointType.Failure
       );
-      return;
+      return undefined;
     }
 
     const updates: Update[] = [];
@@ -171,7 +171,7 @@ export class GoYoshi extends ReleasePR {
     if (!sha) {
       throw Error('no sha found for pull request');
     }
-    await this.openPR({
+    return await this.openPR({
       sha: sha!,
       changelogEntry,
       updates,
