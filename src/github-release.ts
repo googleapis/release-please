@@ -17,7 +17,6 @@ import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ReleasePRFactory} from './release-pr-factory';
 import {GitHub, OctokitAPIs} from './github';
 import {parse} from 'semver';
-import { string } from 'yargs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
