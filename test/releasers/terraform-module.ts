@@ -39,6 +39,7 @@ describe('terraform-module', () => {
       // simple-module with module versions defined
       name: 'simple-module',
       findVersionFiles: ['versions.tf'],
+      findReadmeFiles: ['readme.md'],
       readFilePaths: ['simple-module/readme.md', 'simple-module/versions.tf'],
     },
     {
@@ -50,8 +51,15 @@ describe('terraform-module', () => {
         'versions.tf',
         'modules/sub-module-with-version/versions.tf',
       ],
+      findReadmeFiles: [
+        'README.md',
+        'modules/sub-module-with-version/readme.md',
+        'modules/sub-module-missing-versions/README.md',
+      ],
       readFilePaths: [
-        'module-submodule/readme.md',
+        'module-submodule/README.md',
+        'module-submodule/modules/sub-module-with-version/readme.md',
+        'module-submodule/modules/sub-module-missing-versions/README.md',
         'module-submodule/versions.tf',
         'module-submodule/modules/sub-module-with-version/versions.tf',
       ],
@@ -60,7 +68,8 @@ describe('terraform-module', () => {
       // module-no-versions with no module versions defined in versions.tf
       name: 'module-no-versions',
       findVersionFiles: [],
-      readFilePaths: ['module-no-versions/readme.md'],
+      findReadmeFiles: ['module-no-versions/README.MD'],
+      readFilePaths: ['module-no-versions/README.MD'],
     },
   ];
   beforeEach(() => {
@@ -91,6 +100,9 @@ describe('terraform-module', () => {
       it(`creates a release PR for ${test.name}`, async () => {
         sandbox
           .stub(releasePR.gh, 'findFilesByFilename')
+          .onFirstCall()
+          .returns(Promise.resolve(test.findReadmeFiles))
+          .onSecondCall()
           .returns(Promise.resolve(test.findVersionFiles));
 
         // Return latest tag used to determine next version #:

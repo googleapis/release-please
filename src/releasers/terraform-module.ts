@@ -78,14 +78,20 @@ export class TerraformModule extends ReleasePR {
       })
     );
 
-    updates.push(
-      new ReadMe({
-        path: this.addPath('README.md'),
-        changelogEntry,
-        version: candidate.version,
-        packageName: this.packageName,
-      })
-    );
+    // Update version in README to current candidate version.
+    // A module may have submodules, so find all submodules.
+    const readmeFiles = await this.gh.findFilesByFilename('readme.md');
+    readmeFiles.forEach(path => {
+      updates.push(
+        new ReadMe({
+          path: this.addPath(path),
+          changelogEntry,
+          version: candidate.version,
+          packageName: this.packageName,
+        })
+      );
+    });
+
     // Update versions.tf to current candidate version.
     // A module may have submodules, so find all versions.tf to update.
     const versionFiles = await this.gh.findFilesByFilename('versions.tf');
