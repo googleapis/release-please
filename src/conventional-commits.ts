@@ -117,7 +117,7 @@ class PostProcessCommits extends Transform {
 }
 
 // If someone wishes to include additional contextual information for a
-// BREAKING CHANGE, they can do so by starting the line after the initial
+// BREAKING CHANGE using markdown, they can do so by starting the line after the initial
 // breaking change description with either:
 //
 // 1. a fourth-level header.
