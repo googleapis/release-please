@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/googleapis/release-please#readme",
   "devDependencies": {
-    "@octokit/types": "^5.0.0",
+    "@octokit/types": "^6.0.0",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^8.0.0",
     "@types/node": "^11.13.6",
