@@ -94,15 +94,42 @@ class PostProcessCommits extends Transform {
   ) {
     chunk.notes.forEach(note => {
       let text = '';
+      let i = 0;
+      let extendedContext = false;
       for (const chunk of note.text.split(/\r?\n/)) {
+        if (i > 0 && hasExtendedContext(chunk) && !extendedContext) {
+          text = `${text.trim()}\n`;
+          extendedContext = true;
+        }
         if (chunk === '') break;
-        else text += `${chunk} `;
+        else if (extendedContext) {
+          text += `    ${chunk}\n`;
+        } else {
+          text += `${chunk} `;
+        }
+        i++;
       }
       note.text = text.trim();
     });
     this.push(JSON.stringify(chunk, null, 4) + '\n');
     done();
   }
+}
+
+// If someone wishes to include additional contextual information for a
+// BREAKING CHANGE using markdown, they can do so by starting the line after the initial
+// breaking change description with either:
+//
+// 1. a fourth-level header.
+// 2. a bulleted list (using either '*' or '-').
+//
+// BREAKING CHANGE: there were breaking changes
+// #### Deleted Endpoints
+// - endpoint 1
+// - endpoint 2
+function hasExtendedContext(line: string) {
+  if (line.match(/^#### |^[*-] /)) return true;
+  return false;
 }
 
 export class ConventionalCommits {

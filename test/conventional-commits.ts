@@ -66,6 +66,46 @@ describe('ConventionalCommits', () => {
       snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
     });
 
+    it('supports additional markdown for breaking change, if prefixed with fourth-level header', async () => {
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            message:
+              'chore: upgrade to Node 7\n\nBREAKING CHANGE: we were on Node 6\n#### deleted APIs\n- deleted API',
+            sha: 'abc345',
+            files: [],
+          },
+          {message: 'feat: awesome feature', sha: 'abc678', files: []},
+        ],
+        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        bumpMinorPreMajor: true,
+      });
+      const cl = await cc.generateChangelogEntry({
+        version: 'v1.0.0',
+      });
+      snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
+    });
+
+    it('supports additional markdown for breaking change, if prefixed with list', async () => {
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            message:
+              'chore: upgrade to Node 7\n\nBREAKING CHANGE: we were on Node 6\n- deleted API foo\n- deleted API bar',
+            sha: 'abc345',
+            files: [],
+          },
+          {message: 'feat: awesome feature', sha: 'abc678', files: []},
+        ],
+        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        bumpMinorPreMajor: true,
+      });
+      const cl = await cc.generateChangelogEntry({
+        version: 'v1.0.0',
+      });
+      snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
+    });
+
     // See: https://github.com/googleapis/nodejs-logging/commit/ce29b498ebb357403c093053d1b9989f1a56f5af
     it('does not include content two newlines after BREAKING CHANGE', async () => {
       const cc = new ConventionalCommits({
