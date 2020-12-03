@@ -126,18 +126,7 @@ async function graphqlToCommit(
 
   let prEdge: PREdge = commitEdge.node.associatedPullRequests.edges[0];
 
-  // if the commit.sha and mergeCommit.oid do not match, assume that this
-  // was a push directly to the default branch.
-  //
-  // TODO: investigate our motivations for skipping commits when
-  // commitEdge.node.oid and prEdge.node.mergeCommit.oid do not match (this
-  // caused issues for the legitimate use-case of merge commits.
-  if (
-    !commit.sha ||
-    !prEdge.node.mergeCommit ||
-    (commit.sha !== prEdge.node.mergeCommit.oid &&
-      !observedSHAs.has(prEdge.node.mergeCommit.oid))
-  ) {
+  if (!commit.sha) {
     return undefined;
   }
   observedSHAs.add(commit.sha);
