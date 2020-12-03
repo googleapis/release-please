@@ -559,7 +559,9 @@ export class GitHub {
         labels.length === 0 ||
         this.hasAllLabels(
           labels,
-          pull.labels.map(l => l.name)
+          pull.labels.map(l => {
+            return l.name + '';
+          })
         )
       ) {
         // it's expected that a release PR will have a
@@ -683,7 +685,7 @@ export class GitHub {
         })
       )) {
         for (let i = 0; response.data[i] !== undefined; i++) {
-          const issue = response.data[i] as IssuesListResponseItem;
+          const issue = response.data[i] as {title: string; state: string};
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
             return issue;
           }
@@ -833,8 +835,8 @@ export class GitHub {
         Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
       },
     });
-    this.defaultBranch = data.default_branch;
-    return this.defaultBranch;
+    this.defaultBranch = (data as {default_branch: string}).default_branch;
+    return this.defaultBranch as string;
   }
 
   async closePR(prNumber: number) {
