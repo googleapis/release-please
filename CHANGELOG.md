@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [7.0.1](https://www.github.com/googleapis/release-please/compare/v7.0.0...v7.0.1) (2020-12-03)
+
+
+### Bug Fixes
+
+* do not close stale PRs for submodules ([#651](https://www.github.com/googleapis/release-please/issues/651)) ([582fdf6](https://www.github.com/googleapis/release-please/commit/582fdf687ba23fdb554cb8de44af694a877d4ed9))
+
 ## [7.0.0](https://www.github.com/googleapis/release-please/compare/v6.9.1...v7.0.0) (2020-12-03)
 
 
