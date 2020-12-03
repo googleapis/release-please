@@ -4,6 +4,38 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [7.0.0](https://www.github.com/googleapis/release-please/compare/v6.9.1...v7.0.0) (2020-12-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* reverts adding clean option (#647)
+* return major/minor/patch when creating GitHub release (#642)
+* **github-release:** packageName now used to specify submodule (#636)
+
+### Features
+
+* **conventional-commits:** support googleapis extension ([#646](https://www.github.com/googleapis/release-please/issues/646)) ([80cd63c](https://www.github.com/googleapis/release-please/commit/80cd63c1d202bf21509d1828ce15aa9220c8b1d5))
+* allow cleanup steps to be turned off ([#643](https://www.github.com/googleapis/release-please/issues/643)) ([055cd3a](https://www.github.com/googleapis/release-please/commit/055cd3aa72276eb11637ff9cfb99fb50f11db5f1))
+* return major/minor/patch when creating GitHub release ([#642](https://www.github.com/googleapis/release-please/issues/642)) ([bb946dd](https://www.github.com/googleapis/release-please/commit/bb946dd1d0b683162e9be27a4b324ab02602d871))
+* return pr number, if one was opened ([#638](https://www.github.com/googleapis/release-please/issues/638)) ([ee8ae41](https://www.github.com/googleapis/release-please/commit/ee8ae414ae16e456c4604d3b1f68546e3ef603e5))
+* **github-release:** packageName now used to specify submodule ([#636](https://www.github.com/googleapis/release-please/issues/636)) ([3b8e9b3](https://www.github.com/googleapis/release-please/commit/3b8e9b3df3c537b9476dfe20050de45ca72491d7))
+* **monorepos:** support submodules in nested folders ([#633](https://www.github.com/googleapis/release-please/issues/633)) ([6b654ae](https://www.github.com/googleapis/release-please/commit/6b654ae17cb00f79103b8b58ed73d081d0b85c9a))
+
+
+### Bug Fixes
+
+* add back upload_url ([#644](https://www.github.com/googleapis/release-please/issues/644)) ([3e77519](https://www.github.com/googleapis/release-please/commit/3e77519a2f7651e2e9d653522f122051c31d79ce))
+* do not add labels when running on fork ([#645](https://www.github.com/googleapis/release-please/issues/645)) ([581e93e](https://www.github.com/googleapis/release-please/commit/581e93e33ba83d7d234c23519b068ad6cb10773a))
+* logic was throwing out merge commits ([#649](https://www.github.com/googleapis/release-please/issues/649)) ([e01cf05](https://www.github.com/googleapis/release-please/commit/e01cf0514a35427d7f87ebb39f02746da2529f35))
+* Recursively update version in Terraform submodule README files ([#640](https://www.github.com/googleapis/release-please/issues/640)) ([a1d3408](https://www.github.com/googleapis/release-please/commit/a1d3408541d80e896803b3f41ecd46ab305e1d02))
+* **deps:** update dependency type-fest to ^0.20.0 ([#641](https://www.github.com/googleapis/release-please/issues/641)) ([178bfb6](https://www.github.com/googleapis/release-please/commit/178bfb6ed4e22a0ee6d05d63e6e1babf6936db68))
+
+
+### Reverts
+
+* reverts adding clean option ([#647](https://www.github.com/googleapis/release-please/issues/647)) ([ca82b9a](https://www.github.com/googleapis/release-please/commit/ca82b9a4fd758cc4a7bc762b3282c2f665e46426))
+
 ### [6.9.1](https://www.github.com/googleapis/release-please/compare/v6.9.0...v6.9.1) (2020-11-20)
 
 
