@@ -13,6 +13,11 @@
 // limitations under the License.
 
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {Octokit} from '@octokit/rest';
+import {PromiseValue} from 'type-fest';
+type PullsListResponseItems = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
+>['data'];
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
@@ -228,5 +233,29 @@ export class GoYoshi extends ReleasePR {
     // credentials from probot, make sure to chain it through:
     releaser.gh = this.gh;
     await releaser.run();
+  }
+
+  protected async closeStaleReleasePRs(
+    currentPRNumber: number,
+    includePackageName = false
+  ) {
+    const prs: PullsListResponseItems = await this.gh.findOpenReleasePRs(
+      this.labels
+    );
+    for (let i = 0, pr; i < prs.length; i++) {
+      pr = prs[i];
+      // Don't close the most up-to-date release PR.
+      if (pr.number !== currentPRNumber) {
+        // Don't close releases for submodules:
+        if (!pr.title.match(/^chore: release [0-9]/)) {
+          continue;
+        }
+        checkpoint(
+          `closing pull #${pr.number} on ${this.repoUrl}`,
+          CheckpointType.Failure
+        );
+        await this.gh.closePR(pr.number);
+      }
+    }
   }
 }

@@ -19,9 +19,6 @@ import {PromiseValue} from 'type-fest';
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
 >['data'];
-type PullsListResponseItem = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['pulls']['get']>
->['data'];
 
 import * as semver from 'semver';
 
@@ -157,7 +154,7 @@ export class ReleasePR {
     return false;
   }
 
-  private async closeStaleReleasePRs(
+  protected async closeStaleReleasePRs(
     currentPRNumber: number,
     includePackageName = false
   ) {
