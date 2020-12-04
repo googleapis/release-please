@@ -77,12 +77,11 @@ export class GoYoshi extends ReleasePR {
         }
         // Skipping commits related to sub-modules as they are not apart of the
         // parent module.
-        for (const subModule of SUB_MODULES) {
-          if (
-            scope === subModule ||
-            (scope.startsWith(subModule + '/') && !this.monorepoTags)
-          ) {
-            return false;
+        if (!this.monorepoTags) {
+          for (const subModule of SUB_MODULES) {
+            if (scope === subModule || scope.startsWith(subModule + '/')) {
+              return false;
+            }
           }
         }
       }
