@@ -30,7 +30,6 @@ import * as semver from 'semver';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
-import {GoYoshiSubmodule} from './go-yoshi-submodule';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -54,12 +53,15 @@ const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
 export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
   protected async _run(): Promise<number | undefined> {
-    const latestTag = await this.gh.latestTag();
+    const latestTag = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}/` : undefined,
+      false,
+      this.monorepoTags ? `${this.packageName}` : undefined
+    );
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);
     let regenPR: Commit | undefined;
     let sha: null | string = null;
-    const submodulesToRelease: Set<string> = new Set();
     const commits = (
       await this.commits({
         sha: latestTag?.sha,
@@ -75,10 +77,11 @@ export class GoYoshi extends ReleasePR {
         }
         // Skipping commits related to sub-modules as they are not apart of the
         // parent module.
-        for (const subModule of SUB_MODULES) {
-          if (scope === subModule || scope.startsWith(subModule + '/')) {
-            submodulesToRelease.add(subModule);
-            return false;
+        if (!this.monorepoTags) {
+          for (const subModule of SUB_MODULES) {
+            if (scope === subModule || scope.startsWith(subModule + '/')) {
+              return false;
+            }
           }
         }
       }
@@ -112,24 +115,6 @@ export class GoYoshi extends ReleasePR {
       }
       return true;
     });
-
-    // If gapic library, and we've noticed commits for submodules, perform
-    // a release for submodule:
-    if (this.isGapicRepo(repo)) {
-      for (const subModule of submodulesToRelease) {
-        // TODO(codyoss): is there a better way to serialize all these pameters.
-        checkpoint(
-          `running release for ${subModule} submodule`,
-          CheckpointType.Success
-        );
-        await this.submoduleRelease(subModule);
-        checkpoint(
-          `finished running release for ${subModule} submodule`,
-          CheckpointType.Success
-        );
-      }
-    }
-
     const cc = new ConventionalCommits({
       commits: commits,
       githubRepoUrl: this.repoUrl,
@@ -212,50 +197,5 @@ export class GoYoshi extends ReleasePR {
 
   static tagSeparator(): string {
     return '/';
-  }
-
-  async submoduleRelease(subModule: string) {
-    const releaser = new GoYoshiSubmodule({
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      defaultBranch: this.defaultBranch,
-      fork: this.fork,
-      token: this.token,
-      repoUrl: this.repoUrl,
-      packageName: subModule,
-      monorepoTags: true,
-      path: subModule,
-      apiUrl: this.apiUrl,
-      snapshot: this.snapshot,
-      releaseType: 'go-yoshi-submodule',
-      changelogSections: this.changelogSections,
-    });
-    // This GitHub instance has potentially been instantiated with
-    // credentials from probot, make sure to chain it through:
-    releaser.gh = this.gh;
-    await releaser.run();
-  }
-
-  protected async closeStaleReleasePRs(
-    currentPRNumber: number,
-    includePackageName = false
-  ) {
-    const prs: PullsListResponseItems = await this.gh.findOpenReleasePRs(
-      this.labels
-    );
-    for (let i = 0, pr; i < prs.length; i++) {
-      pr = prs[i];
-      // Don't close the most up-to-date release PR.
-      if (pr.number !== currentPRNumber) {
-        // Don't close releases for submodules:
-        if (!pr.title.match(/^chore: release [0-9]/)) {
-          continue;
-        }
-        checkpoint(
-          `closing pull #${pr.number} on ${this.repoUrl}`,
-          CheckpointType.Failure
-        );
-        await this.gh.closePR(pr.number);
-      }
-    }
   }
 }

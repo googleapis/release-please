@@ -20,6 +20,7 @@ import {Node} from './releasers/node';
 import {Python} from './releasers/python';
 import {Ruby} from './releasers/ruby';
 import {Simple} from './releasers/simple';
+import {GoYoshi} from './releasers/go-yoshi';
 import {TerraformModule} from './releasers/terraform-module';
 
 export class ReleasePRFactory {
@@ -57,6 +58,8 @@ export class ReleasePRFactory {
         return new Simple(releaseOptions);
       case 'terraform-module':
         return new TerraformModule(releaseOptions);
+      case 'go':
+        return new GoYoshi(releaseOptions);
       default:
         throw Error('unknown release type');
     }
