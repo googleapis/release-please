@@ -4,6 +4,22 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [8.0.0](https://www.github.com/googleapis/release-please/compare/v7.0.0...v8.0.0) (2020-12-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* simplify go approach (#654)
+
+### Bug Fixes
+
+* do not close stale PRs for submodules ([#651](https://www.github.com/googleapis/release-please/issues/651)) ([582fdf6](https://www.github.com/googleapis/release-please/commit/582fdf687ba23fdb554cb8de44af694a877d4ed9))
+
+
+### Code Refactoring
+
+* simplify go approach ([#654](https://www.github.com/googleapis/release-please/issues/654)) ([c5fc472](https://www.github.com/googleapis/release-please/commit/c5fc47261817f4abd6fa3badd8d5446d9cdedaba))
+
 ## [7.0.0](https://www.github.com/googleapis/release-please/compare/v6.9.1...v7.0.0) (2020-12-03)
 
 
