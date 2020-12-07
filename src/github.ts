@@ -685,7 +685,7 @@ export class GitHub {
         })
       )) {
         for (let i = 0; response.data[i] !== undefined; i++) {
-          const issue = response.data[i] as {title: string; state: string};
+          const issue = response.data[i] as IssuesListResponseItem;
           if (issue.title.indexOf(title) !== -1 && issue.state === 'open') {
             return issue;
           }
