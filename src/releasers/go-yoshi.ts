@@ -166,7 +166,7 @@ export class GoYoshi extends ReleasePR {
       changelogEntry,
       updates,
       version: candidate.version,
-      includePackageName: false,
+      includePackageName: this.monorepoTags,
     });
   }
 
