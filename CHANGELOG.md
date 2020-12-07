@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [8.0.1](https://www.github.com/googleapis/release-please/compare/v8.0.0...v8.0.1) (2020-12-07)
+
+
+### Bug Fixes
+
+* **ruby:** use same tagging scheme as go ([#657](https://www.github.com/googleapis/release-please/issues/657)) ([fc8862b](https://www.github.com/googleapis/release-please/commit/fc8862bb3af35a7cd93cbb13515c03ab2062fe41))
+
 ## [8.0.0](https://www.github.com/googleapis/release-please/compare/v7.0.0...v8.0.0) (2020-12-07)
 
 
