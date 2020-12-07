@@ -544,6 +544,7 @@ export class GitHub {
     prefix: string | undefined = undefined,
     preRelease = true
   ): Promise<GitHubReleasePR | undefined> {
+    prefix = prefix?.endsWith('-') ? prefix.replace(/-$/, '') : prefix;
     const baseLabel = await this.getBaseLabel();
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${

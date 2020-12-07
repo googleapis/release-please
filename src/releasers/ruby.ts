@@ -41,6 +41,8 @@ export class Ruby extends ReleasePR {
   }
   protected async _run(): Promise<number | undefined> {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}/` : undefined,
+      false,
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
     const commits: Commit[] = await this.commits({
@@ -105,6 +107,10 @@ export class Ruby extends ReleasePR {
       version: candidate.version,
       includePackageName: this.monorepoTags,
     });
+  }
+
+  static tagSeparator(): string {
+    return '/';
   }
 }
 
