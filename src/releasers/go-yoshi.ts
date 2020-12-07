@@ -83,6 +83,15 @@ export class GoYoshi extends ReleasePR {
               return false;
             }
           }
+        } else {
+          if (
+            !(
+              scope === this.packageName ||
+              scope.startsWith(this.packageName + '/')
+            )
+          ) {
+            return false;
+          }
         }
       }
 
@@ -166,7 +175,7 @@ export class GoYoshi extends ReleasePR {
       changelogEntry,
       updates,
       version: candidate.version,
-      includePackageName: false,
+      includePackageName: this.monorepoTags,
     });
   }
 

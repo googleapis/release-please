@@ -46,3 +46,17 @@ filename: CHANGES.md
 * **pubsub:** this commit should be included ([dcd1c89](https://www.github.com/googleapis/google-api-go-client/commit/dcd1c890dc1526f4d62ceedad581f498195c8939))
 * this commit should be included ([ecd1c89](https://www.github.com/googleapis/google-api-go-client/commit/ecd1c890dc1526f4d62ceedad581f489195c8939))
 `
+
+exports['YoshiGo supports releasing submodule from google-cloud-go 1'] = `
+
+filename: pubsublite/CHANGES.md
+
+
+
+
+
+# Changelog
+## [0.124.0](https://www.github.com/googleapis/google-cloud-go/compare/v0.123.4...v0.124.0) (1983-10-10)
+### Features
+* **pubsublite:** start generating v1 ([1d9662c](https://www.github.com/googleapis/google-cloud-go/commit/1d9662cf08ab1cf3b68d95dee4dc99b7c4aac371))
+`
