@@ -219,7 +219,7 @@ describe('GitHub', () => {
           '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
         )
         .reply(200, sampleResults);
-      const latestTag = await github.latestTag('complex-package_name-v1');
+      const latestTag = await github.latestTag('complex-package_name-v1-');
       expect(latestTag!.version).to.equal('1.1.0');
       req.done();
     });

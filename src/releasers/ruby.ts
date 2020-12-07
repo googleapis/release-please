@@ -43,7 +43,7 @@ export class Ruby extends ReleasePR {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}/` : undefined,
       false,
-      this.monorepoTags ? `${this.packageName}` : undefined
+      this.monorepoTags ? `${this.packageName}-` : undefined
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
