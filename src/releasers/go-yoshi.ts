@@ -83,19 +83,15 @@ export class GoYoshi extends ReleasePR {
               return false;
             }
           }
-        }
-
-        // In the gapic repo, it's required that commits are prefixed with
-        // the packageName scope, in order for the commit to count towards
-        // a release:
-        if (this.monorepoTags) {
+        } else {
           if (
-            scope === this.packageName ||
-            scope.startsWith(this.packageName + '/')
+            !(
+              scope === this.packageName ||
+              scope.startsWith(this.packageName + '/')
+            )
           ) {
-            return true;
+            return false;
           }
-          return false;
         }
       }
 

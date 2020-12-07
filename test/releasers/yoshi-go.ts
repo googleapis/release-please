@@ -188,4 +188,79 @@ describe('YoshiGo', () => {
       snapshot(stringifyExpectedChanges(expectedChanges, true));
     });
   });
+  it('supports releasing submodule from google-cloud-go', async () => {
+    const releasePR = new GoYoshi({
+      repoUrl: 'googleapis/google-cloud-go',
+      releaseType: 'yoshi-go',
+      packageName: 'pubsublite',
+      monorepoTags: true,
+      path: 'pubsublite',
+      apiUrl: 'https://api.github.com',
+    });
+
+    // We stub the entire suggester API, asserting only that the
+    // the appropriate changes are proposed:
+    let expectedChanges: [string, object][] = [];
+    sandbox.replace(
+      suggester,
+      'createPullRequest',
+      (_octokit, changes): Promise<number> => {
+        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+        return Promise.resolve(22);
+      }
+    );
+
+    // Indicates that there are no PRs currently waiting to be released:
+    sandbox
+      .stub(releasePR.gh, 'findMergedReleasePR')
+      .returns(Promise.resolve(undefined));
+
+    // Return latest tag used to determine next version #:
+    sandbox.stub(releasePR.gh, 'latestTag').returns(
+      Promise.resolve({
+        sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+        name: 'v0.123.4',
+        version: '0.123.4',
+      })
+    );
+
+    // See if there are any release PRs already open, we do this as
+    // we consider opening a new release-pr:
+    sandbox
+      .stub(releasePR.gh, 'findOpenReleasePRs')
+      .returns(Promise.resolve([]));
+
+    // Call made to close any stale release PRs still open on GitHub:
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
+
+    // Call to add autorelease: pending label:
+    sandbox.stub(releasePR.gh, 'addLabels');
+
+    const graphql = JSON.parse(
+      readFileSync(resolve(fixturesPath, 'cloud-go-commits.json'), 'utf8')
+    );
+
+    const req = nock('https://api.github.com')
+      .post('/graphql')
+      .reply(200, {
+        data: graphql,
+      })
+      // check for CHANGES.md
+      .get(
+        '/repos/googleapis/google-cloud-go/contents/pubsublite%2FCHANGES.md?ref=refs%2Fheads%2Fmaster'
+      )
+      .reply(404)
+      // check for default branch
+      .get('/repos/googleapis/google-cloud-go')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      .reply(200, require('../../../test/fixtures/repo-get-1.json'));
+
+    const pr = await releasePR.run();
+    assert.strictEqual(pr, 22);
+    req.done();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    snapshot(stringifyExpectedChanges(expectedChanges, true));
+  });
 });
