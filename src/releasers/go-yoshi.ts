@@ -129,10 +129,11 @@ export class GoYoshi extends ReleasePR {
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
     });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
+    const candidate: ReleaseCandidate = this.monorepoTags
+      ? // Submodules use conventional commits to bump major/minor/patch:
+        await super.coerceReleaseCandidate(cc, latestTag)
+      : // Root module always bumps minor:
+        await this.coerceReleaseCandidate(cc, latestTag);
 
     // "closes" is a little presumptuous, let's just indicate that the
     // PR references these other commits:
