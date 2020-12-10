@@ -998,14 +998,28 @@ export class GitHub {
     }
   }
 
-  async findFilesByFilename(filename: string): Promise<string[]> {
+  async findFilesByFilename(
+    filename: string,
+    prefix?: string
+  ): Promise<string[]> {
+    let q = `filename:${filename}+repo:${this.owner}/${this.repo}`;
+    if (prefix) {
+      prefix = prefix.replace(/[/\\]$/, '');
+      prefix = prefix.replace(/^[/\\]/, '');
+      q += `+path:${prefix}`;
+    }
     const response: {data: FileSearchResponse} = await this.octokit.search.code(
       {
-        q: `filename:${filename}+repo:${this.owner}/${this.repo}`,
+        q: q,
       }
     );
     return response.data.items.map(file => {
-      return file.path;
+      let path = file.path;
+      if (prefix) {
+        const pfix = new RegExp(`^${prefix}[/\\\\]`);
+        path = path.replace(pfix, '');
+      }
+      return path;
     });
   }
 }
