@@ -141,7 +141,7 @@
             },
             {
               "node": {
-                "message": "feat(all): auto-regenerate gapics (#1000)",
+                "message": "feat(all): auto-regenerate gapics (#1000)\n\nCommit Body\n\nChanges:\n-feat(oslogin): a critical feature\n\nPiperOrigin-RevId: 9999999\nSource-Link: somewhere\n\n-chore(oslogin): a random chore\n\nPiperOrigin-RevId: 9999999\nSource-Link: somewhere\n\n-fix(securitycenter): security things\n\nPiperOrigin-RevId: 9999999\nSource-Link: somewhere\n\n",
                 "oid": "2f9663cf08ab1cf3b68d95dee4dc99b7c4aac372",
                 "associatedPullRequests": {
                   "edges": [
@@ -168,7 +168,7 @@
             },
             {
               "node": {
-                "message": "feat(all): auto-regenerate gapics (#1001)\n\nCommit Body",
+                "message": "feat(all): auto-regenerate gapics (#1001)\n\nCommit Body\n\nChanges:\n-chore(trace): traced lines\n\nPiperOrigin-RevId: 9999999\nSource-Link: somewhere\n\n-feat(container): contained it\n\nPiperOrigin-RevId: 9999999\nSource-Link: somewhere\n\n-fix(dialogflow): fixed the cadence\n\nPiperOrigin-RevId: 9999999\nSource-Link: somewhere\n\n",
                 "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371",
                 "associatedPullRequests": {
                   "edges": [

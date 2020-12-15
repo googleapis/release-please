@@ -62,6 +62,7 @@ export class GoYoshi extends ReleasePR {
     const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);
     let regenPR: Commit | undefined;
     let sha: null | string = null;
+    const parsedCommits: Commit[] = [];
     const commits = (
       await this.commits({
         sha: latestTag?.sha,
@@ -101,29 +102,36 @@ export class GoYoshi extends ReleasePR {
         sha = commit.sha;
       }
 
-      if (this.isMultiClientRepo(repo) && REGEN_PR_REGEX.test(commit.message)) {
-        // Only have a single entry of the nightly regen listed in the changelog.
-        // If there are more than one of these commits, append associated PR.
-        const issueRe = /(?<prefix>.*)\((?<pr>.*)\)(\n|$)/;
-        if (regenPR) {
-          const match = commit.message.match(issueRe);
-          if (match?.groups?.pr) {
-            regenPR.message += `\nRefs ${match.groups.pr}`;
-          }
+      if (REGEN_PR_REGEX.test(commit.message)) {
+        if (this.isGapicRepo(repo)) {
+          this.parseCommits(parsedCommits, commit);
+          // Throw away the regen PR itself as individual updates will be listed.
           return false;
-        } else {
-          // Throw away the sha for nightly regens, will just append PR numbers.
-          commit.sha = null;
-          regenPR = commit;
+        } else if (repo === 'google-api-go-client') {
+          // Only have a single entry of the nightly regen listed in the changelog.
+          // If there are more than one of these commits, append associated PR.
+          const issueRe = /(?<prefix>.*)\((?<pr>.*)\)(\n|$)/;
+          if (regenPR) {
+            const match = commit.message.match(issueRe);
+            if (match?.groups?.pr) {
+              regenPR.message += `\nRefs ${match.groups.pr}`;
+            }
+            return false;
+          } else {
+            // Throw away the sha for nightly regens, will just append PR numbers.
+            commit.sha = null;
+            regenPR = commit;
 
-          const match = commit.message.match(issueRe);
-          if (match?.groups?.pr) {
-            regenPR.message = `${match.groups.prefix}\n\nRefs ${match.groups.pr}`;
+            const match = commit.message.match(issueRe);
+            if (match?.groups?.pr) {
+              regenPR.message = `${match.groups.prefix}\n\nRefs ${match.groups.pr}`;
+            }
           }
         }
       }
       return true;
     });
+    commits.push(...parsedCommits);
     const cc = new ConventionalCommits({
       commits: commits,
       githubRepoUrl: this.repoUrl,
@@ -183,10 +191,6 @@ export class GoYoshi extends ReleasePR {
     return repo === 'google-cloud-go';
   }
 
-  private isMultiClientRepo(repo: string): boolean {
-    return repo === 'google-cloud-go' || repo === 'google-api-go-client';
-  }
-
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined
@@ -206,5 +210,30 @@ export class GoYoshi extends ReleasePR {
 
   static tagSeparator(): string {
     return '/';
+  }
+
+  // parseCommits breaks down the nightly regen PR to look like individual
+  // commits for the release notes.
+  private parseCommits(commits: Commit[], commit: Commit) {
+    const msg = commit.message;
+    const splitMsg = msg.split('\n\nChanges:');
+    if (splitMsg.length !== 2) {
+      return;
+    }
+    const changes = splitMsg[1].split('\n-');
+    for (const change of changes) {
+      if (change === '') {
+        continue;
+      }
+      const commitMsgParts = change.split('\n\n');
+      if (commitMsgParts.length < 2) {
+        continue;
+      }
+      commits.push({
+        message: commitMsgParts[0],
+        sha: commit.sha,
+        files: commit.files,
+      });
+    }
   }
 }
