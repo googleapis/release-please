@@ -146,3 +146,15 @@ exports['GitHubRelease createRelease creates releases for submodule in monorepo 
     'autorelease: tagged'
   ]
 }
+
+exports['GitHubRelease createRelease attempts to guess package name for submodule release 1'] = {
+  'tag_name': '@google-cloud/foo-v1.0.3',
+  'body': '\n* entry',
+  'name': '@google-cloud/foo @google-cloud/foo-v1.0.3'
+}
+
+exports['GitHubRelease createRelease attempts to guess package name for submodule release 2'] = {
+  'labels': [
+    'autorelease: tagged'
+  ]
+}

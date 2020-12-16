@@ -551,10 +551,12 @@ export class GitHub {
   async findMergedReleasePR(
     labels: string[],
     perPage = 100,
-    prefix: string | undefined = undefined,
+    branchPrefix: string | undefined = undefined,
     preRelease = true
   ): Promise<GitHubReleasePR | undefined> {
-    prefix = prefix?.endsWith('-') ? prefix.replace(/-$/, '') : prefix;
+    branchPrefix = branchPrefix?.endsWith('-')
+      ? branchPrefix.replace(/-$/, '')
+      : branchPrefix;
     const baseLabel = await this.getBaseLabel();
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
@@ -594,9 +596,9 @@ export class GitHub {
         // it's easiest/safest to just pull this out by string search.
         const version = match[2];
         if (!version) continue;
-        if (prefix && match[1] !== prefix) {
+        if (branchPrefix && match[1] !== branchPrefix) {
           continue;
-        } else if (!prefix && match[1]) {
+        } else if (!branchPrefix && match[1]) {
           continue;
         }
 

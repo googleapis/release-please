@@ -23,6 +23,7 @@ type PullsListResponseItems = PromiseValue<
 import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
+import {packageBranchPrefix} from './util/package-branch-prefix';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag, OctokitAPIs} from './github';
 import {Commit} from './graphql-to-commits';
@@ -98,6 +99,7 @@ export class ReleasePR {
   snapshot?: boolean;
   lastPackageVersion?: string;
   changelogSections?: [];
+  releaseType: string;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -123,6 +125,7 @@ export class ReleasePR {
     this.gh = this.gitHubInstance(options.octokitAPIs);
 
     this.changelogSections = options.changelogSections;
+    this.releaseType = options.releaseType;
   }
 
   async run(): Promise<number | undefined> {
@@ -186,8 +189,12 @@ export class ReleasePR {
   // A releaser can implement this method to automatically detect
   // the release name when creating a GitHub release, for instance by returning
   // name in package.json, or setup.py.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static async lookupPackageName(gh: GitHub): Promise<string | undefined> {
+  static async lookupPackageName(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    gh: GitHub,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    path?: string
+  ): Promise<string | undefined> {
     return Promise.resolve(undefined);
   }
 
@@ -273,11 +280,10 @@ export class ReleasePR {
     const updates = options.updates;
     const version = options.version;
     const includePackageName = options.includePackageName;
-    // Do not include npm style @org/ prefixes in the branch name:
-    const branchPrefix = this.packageName.match(/^@[\w-]+\//)
-      ? this.packageName.split('/')[1]
-      : this.packageName;
-
+    const branchPrefix = packageBranchPrefix(
+      this.packageName,
+      this.releaseType
+    );
     const title = includePackageName
       ? `chore: release ${this.packageName} ${version}`
       : `chore: release ${version}`;
@@ -321,13 +327,17 @@ export class ReleasePR {
     return changelogEntry.split('\n').length === 1;
   }
 
-  addPath(file: string) {
-    if (this.path === undefined) {
+  static addPathStatic(file: string, path?: string) {
+    if (path === undefined) {
       return file;
     } else {
-      const path = this.path.replace(/[/\\]$/, '');
+      path = path.replace(/[/\\]$/, '');
       file = file.replace(/^[/\\]/, '');
       return `${path}/${file}`;
     }
+  }
+
+  addPath(file: string) {
+    return ReleasePR.addPathStatic(file, this.path);
   }
 }
