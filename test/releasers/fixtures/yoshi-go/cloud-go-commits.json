@@ -195,7 +195,7 @@
             },
             {
               "node": {
-                "message": "feat(pubsublite): start generating v1",
+                "message": "fix(pubsublite): start generating v1",
                 "oid": "1d9662cf08ab1cf3b68d95dee4dc99b7c4aac371",
                 "associatedPullRequests": {
                   "edges": [
