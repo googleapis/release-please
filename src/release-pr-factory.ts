@@ -16,13 +16,6 @@ import {BuildOptions, ReleasePR, ReleasePROptions} from './release-pr';
 import {RubyReleasePROptions} from './releasers/ruby';
 import {getReleasers} from './releasers';
 
-import {Node} from './releasers/node';
-import {Python} from './releasers/python';
-import {Ruby} from './releasers/ruby';
-import {Simple} from './releasers/simple';
-import {GoYoshi} from './releasers/go-yoshi';
-import {TerraformModule} from './releasers/terraform-module';
-
 export class ReleasePRFactory {
   static build(releaseType: string, options: BuildOptions): ReleasePR {
     const releaseOptions: ReleasePROptions | RubyReleasePROptions = {
@@ -40,28 +33,9 @@ export class ReleasePRFactory {
     }
     return releaser;
   }
-  // For the benefit of WebPack, we provide a static factory for a subset
-  // of the releasers available in the release please GitHub action:
+  // TODO(bcoe): this function is deprecated and should be removed in the
+  // next major;
   static buildStatic(releaseType: string, options: BuildOptions) {
-    const releaseOptions: ReleasePROptions = {
-      ...options,
-      ...{releaseType},
-    };
-    switch (releaseType) {
-      case 'node':
-        return new Node(releaseOptions);
-      case 'python':
-        return new Python(releaseOptions);
-      case 'ruby':
-        return new Ruby(releaseOptions as RubyReleasePROptions);
-      case 'simple':
-        return new Simple(releaseOptions);
-      case 'terraform-module':
-        return new TerraformModule(releaseOptions);
-      case 'go':
-        return new GoYoshi(releaseOptions);
-      default:
-        throw Error('unknown release type');
-    }
+    return this.build(releaseType, options);
   }
 }
