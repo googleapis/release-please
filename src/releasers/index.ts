@@ -14,28 +14,34 @@
 
 import {ReleasePR} from '../release-pr';
 
-import {readdirSync} from 'fs';
-import {dirname} from 'path';
+import {GoYoshi} from './go-yoshi';
+import {JavaAuthYoshi} from './java-auth-yoshi';
+import {JavaBom} from './java-bom';
+import {JavaYoshi} from './java-yoshi';
+import {Node} from './node';
+import {PHPYoshi} from './php-yoshi';
+import {Python} from './python';
+import {RubyYoshi} from './ruby-yoshi';
+import {Ruby} from './ruby';
+import {Simple} from './simple';
+import {TerraformModule} from './terraform-module';
 
-// dynamically load all the releasers in the folder, and index based on their
-// releaserName property:
+// TODO: add any new releasers you create to this list:
 export function getReleasers(): {[key: string]: typeof ReleasePR} {
-  const releasers: {[key: string]: typeof ReleasePR} = {};
-  const root = dirname(require.resolve('./'));
-  for (const file of readdirSync(root, {withFileTypes: true})) {
-    if (
-      file.isFile() &&
-      !file.name.match(/.*\.ts.*/) &&
-      !file.name.match(/.*\.map$/) &&
-      !file.name.match(/index\.js/)
-    ) {
-      const obj = require(`./${file.name}`) as {
-        [key: string]: typeof ReleasePR;
-      };
-      const releaser = obj[Object.keys(obj)[0]];
-      releasers[releaser.releaserName] = releaser;
-    }
-  }
+  const releasers = {
+    go: GoYoshi, // TODO(codyoss): refactor this into a more generic go strategy.
+    'go-yoshi': GoYoshi,
+    'java-auth-yoshi': JavaAuthYoshi,
+    'java-bom': JavaBom,
+    'java-yoshi': JavaYoshi,
+    node: Node,
+    'php-yoshi': PHPYoshi,
+    python: Python,
+    'ruby-yoshi': RubyYoshi,
+    ruby: Ruby,
+    simple: Simple,
+    'terraform-module': TerraformModule,
+  };
   return releasers;
 }
 
