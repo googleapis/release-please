@@ -36,9 +36,6 @@ The most important prefixes you should have in mind are:
 
 ## How do I change the version number?
 
-This will only work if Release Please has been installed as a GitHub Action.
-Release-Please is installed in all [googleapis](https://github.com/googleapis) repositories as a GitHub Action.
-
 When a commit to the main branch has `Release-As: x.x.x` in the **commit body**, Release Please will open a new pull request for the specified version.
 
 **Empty commit example:**
