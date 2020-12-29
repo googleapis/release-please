@@ -455,7 +455,7 @@ export class GitHub {
   // the branch we're configured for.
   async latestTag(
     prefix?: string,
-    preRelease = false,
+    preRelease = false
   ): Promise<GitHubTag | undefined> {
     const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
     if (!pull) return await this.latestTagFallback(prefix, preRelease);
@@ -510,7 +510,7 @@ export class GitHub {
     // a repository to be seamlessly be migrated from a tool like lerna:
     const prefixes: string[] = [];
     if (prefix) {
-      prefix = prefix.substring(0, prefix.length - 1)
+      prefix = prefix.substring(0, prefix.length - 1);
       for (const suffix of ['-', '@', '/']) {
         prefixes.push(`${prefix}${suffix}`);
       }
@@ -527,7 +527,7 @@ export class GitHub {
       response.data.forEach((data: ReposListTagsResponseItems) => {
         // For monorepos, a prefix can be provided, indicating that only tags
         // matching the prefix should be returned:
-        let version = data.name
+        let version = data.name;
         if (prefix) {
           let match = false;
           for (prefix of prefixes) {
