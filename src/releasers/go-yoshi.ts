@@ -54,9 +54,8 @@ export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
   protected async _run(): Promise<number | undefined> {
     const latestTag = await this.gh.latestTag(
-      this.monorepoTags ? `${this.packageName}/` : undefined,
-      false,
-      this.monorepoTags ? `${this.packageName}` : undefined
+      this.monorepoTags ? `${this.packageName}-` : undefined,
+      false
     );
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);

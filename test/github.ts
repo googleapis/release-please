@@ -332,6 +332,122 @@ describe('GitHub', () => {
       expect(latestTag!.version).to.equal('3.0.0-rc1');
       req.done();
     });
+    it('falls back to using tags, for simple case', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+        )
+        .reply(200, [])
+        .get('/repos/fake/fake/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v1.0.0',
+            commit: {sha: 'abc123'},
+          },
+          {
+            name: 'v1.1.0',
+            commit: {sha: 'deadbeef'},
+          },
+        ]);
+      const latestTag = await github.latestTag();
+      expect(latestTag!.version).to.equal('1.1.0');
+      req.done();
+    });
+    it('falls back to using tags, when prefix is provided', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+        )
+        .reply(200, [])
+        .get('/repos/fake/fake/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v1.0.0',
+            commit: {sha: 'abc123'},
+          },
+          {
+            name: 'v1.1.0',
+            commit: {sha: 'deadbeef'},
+          },
+          {
+            name: 'foo-v1.9.0',
+            commit: {sha: 'deadbeef'},
+          },
+          {
+            name: 'v1.2.0',
+            commit: {sha: 'deadbeef'},
+          },
+        ]);
+      const latestTag = await github.latestTag('foo-');
+      expect(latestTag!.version).to.equal('1.9.0');
+      req.done();
+    });
+    it('allows for "@" rather than "-" when fallback used', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+        )
+        .reply(200, [])
+        .get('/repos/fake/fake/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v1.0.0',
+            commit: {sha: 'abc123'},
+          },
+          {
+            name: 'v1.1.0',
+            commit: {sha: 'deadbeef'},
+          },
+          {
+            name: 'foo@v1.9.0',
+            commit: {sha: 'dead'},
+          },
+          {
+            name: 'v1.2.0',
+            commit: {sha: 'beef'},
+          },
+          {
+            name: 'foo@v2.1.0',
+            commit: {sha: '123abc'},
+          },
+        ]);
+      const latestTag = await github.latestTag('foo-');
+      expect(latestTag!.version).to.equal('2.1.0');
+      req.done();
+    });
+    it('allows for "/" rather than "-" when fallback used', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=merged_at&direction=desc'
+        )
+        .reply(200, [])
+        .get('/repos/fake/fake/tags?per_page=100')
+        .reply(200, [
+          {
+            name: 'v1.0.0',
+            commit: {sha: 'abc123'},
+          },
+          {
+            name: 'v1.1.0',
+            commit: {sha: 'deadbeef'},
+          },
+          {
+            name: 'foo/v2.3.0',
+            commit: {sha: 'dead'},
+          },
+          {
+            name: 'v1.2.0',
+            commit: {sha: 'beef'},
+          },
+          {
+            name: 'foo/v2.1.0',
+            commit: {sha: '123abc'},
+          },
+        ]);
+      const latestTag = await github.latestTag('foo-');
+      expect(latestTag!.version).to.equal('2.3.0');
+      req.done();
+    });
   });
 
   describe('getFileContents', () => {
