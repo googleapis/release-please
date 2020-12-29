@@ -19,6 +19,11 @@ import {Readable} from 'stream';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {Commit} from './graphql-to-commits';
+import {
+  ConventionalChangelogCommit,
+  parser,
+  toConventionalChangelogFormat,
+} from '@conventional-commits/parser';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const concat = require('concat-stream');
@@ -68,52 +73,31 @@ interface Note {
   text: string;
 }
 
-interface ParsedConventionalCommit {
-  type: string;
-  scope: string | null;
-  subject: string;
-  merge: boolean | null;
-  header: string;
-  body: string | null;
-  footer: string | null;
-  notes: Note[];
-  references: object[];
-  mentions: string[];
-  revert: boolean | null;
-}
-
 // Perform some post processing on the commits parsed by conventional commits:
 // 1. don't allow BREAKING CHANGES to have two newlines:
 import {Transform} from 'stream';
 
-class PostProcessCommits extends Transform {
-  _transform(
-    chunk: ParsedConventionalCommit,
-    _encoding: string,
-    done: Function
-  ) {
-    chunk.notes.forEach(note => {
-      let text = '';
-      let i = 0;
-      let extendedContext = false;
-      for (const chunk of note.text.split(/\r?\n/)) {
-        if (i > 0 && hasExtendedContext(chunk) && !extendedContext) {
-          text = `${text.trim()}\n`;
-          extendedContext = true;
-        }
-        if (chunk === '') break;
-        else if (extendedContext) {
-          text += `    ${chunk}\n`;
-        } else {
-          text += `${chunk} `;
-        }
-        i++;
+function postProcessCommits(commit: ConventionalChangelogCommit) {
+  commit.notes.forEach(note => {
+    let text = '';
+    let i = 0;
+    let extendedContext = false;
+    for (const chunk of note.text.split(/\r?\n/)) {
+      if (i > 0 && hasExtendedContext(chunk) && !extendedContext) {
+        text = `${text.trim()}\n`;
+        extendedContext = true;
       }
-      note.text = text.trim();
-    });
-    this.push(JSON.stringify(chunk, null, 4) + '\n');
-    done();
-  }
+      if (chunk === '') break;
+      else if (extendedContext) {
+        text += `    ${chunk}\n`;
+      } else {
+        text += `${chunk} `;
+      }
+      i++;
+    }
+    note.text = text.trim();
+  });
+  return commit;
 }
 
 // If someone wishes to include additional contextual information for a
@@ -202,12 +186,12 @@ export class ConventionalCommits {
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
 
-    return new Promise((resolve, reject) => {
-      let content = '';
-      const stream = this.commitsReadable()
+    /*return new Promise((resolve, reject) => {
+      // let content = '';
+      /*const stream = this.commitsReadable()
         .pipe(conventionalCommitsParser(preset.parserOpts))
         .pipe(new PostProcessCommits({objectMode: true}))
-        .pipe(conventionalChangelogWriter(context, preset.writerOpts));
+        .pipe(conventionalChangelogWriter(context, preset.writerOpts));*
 
       stream.on('error', (err: Error) => {
         return reject(err);
@@ -219,8 +203,25 @@ export class ConventionalCommits {
 
       stream.on('end', () => {
         return resolve(content.trim());
-      });
-    });
+      });*/
+    //});
+    const parsedCommits = [];
+    for (const commit of this.commits) {
+      try {
+        const parsedCommit = postProcessCommits(
+          toConventionalChangelogFormat(parser(commit.message))
+        );
+        (parsedCommit as any).hash = commit.sha;
+        parsedCommits.push(parsedCommit);
+      } catch (_err) {
+        // Commit is not in conventional commit format,
+        // we don't understand it.
+      }
+    }
+    const parsed: string = conventionalChangelogWriter
+      .parseArray(parsedCommits, context, preset.writerOpts)
+      .trim();
+    return parsed;
   }
   private async guessReleaseType(preMajor: boolean): Promise<BumpSuggestion> {
     const VERSIONS = ['major', 'minor', 'patch'];
@@ -229,7 +230,7 @@ export class ConventionalCommits {
       const stream = this.commitsReadable()
         .pipe(conventionalCommitsParser(preset.parserOpts))
         .pipe(
-          concat((data: ParsedConventionalCommit[]) => {
+          concat((data: ConventionalChangelogCommit[]) => {
             const commits = conventionalCommitsFilter(data);
 
             let result = preset.recommendedBumpOpts.whatBump(
