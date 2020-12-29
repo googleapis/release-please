@@ -56,7 +56,7 @@ filename: pubsublite/CHANGES.md
 
 
 # Changelog
-## [0.124.0](https://www.github.com/googleapis/google-cloud-go/compare/v0.123.4...v0.124.0) (1983-10-10)
-### Features
+### Bug Fixes
+### [0.123.5](https://www.github.com/googleapis/google-cloud-go/compare/v0.123.4...v0.123.5) (1983-10-10)
 * **pubsublite:** start generating v1 ([1d9662c](https://www.github.com/googleapis/google-cloud-go/commit/1d9662cf08ab1cf3b68d95dee4dc99b7c4aac371))
 `
