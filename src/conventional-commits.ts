@@ -15,7 +15,6 @@
 import chalk = require('chalk');
 import * as semver from 'semver';
 import {ReleaseType} from 'semver';
-import {Readable} from 'stream';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {Commit} from './graphql-to-commits';
@@ -25,12 +24,12 @@ import {
   toConventionalChangelogFormat,
 } from '@conventional-commits/parser';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const concat = require('concat-stream');
+interface CommitWithHash extends ConventionalChangelogCommit {
+  hash: string | null;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsFilter = require('conventional-commits-filter');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const conventionalCommitsParser = require('conventional-commits-parser');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalChangelogWriter = require('conventional-changelog-writer');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -72,10 +71,6 @@ interface Note {
   title: string;
   text: string;
 }
-
-// Perform some post processing on the commits parsed by conventional commits:
-// 1. don't allow BREAKING CHANGES to have two newlines:
-import {Transform} from 'stream';
 
 function postProcessCommits(commit: ConventionalChangelogCommit) {
   commit.notes.forEach(note => {
@@ -185,37 +180,17 @@ export class ConventionalCommits {
       this.headerPartial || preset.writerOpts.headerPartial;
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
-
-    /*return new Promise((resolve, reject) => {
-      // let content = '';
-      /*const stream = this.commitsReadable()
-        .pipe(conventionalCommitsParser(preset.parserOpts))
-        .pipe(new PostProcessCommits({objectMode: true}))
-        .pipe(conventionalChangelogWriter(context, preset.writerOpts));*
-
-      stream.on('error', (err: Error) => {
-        return reject(err);
-      });
-
-      stream.on('data', (buffer: Buffer) => {
-        content += buffer.toString('utf8');
-      });
-
-      stream.on('end', () => {
-        return resolve(content.trim());
-      });*/
-    //});
     const parsedCommits = [];
     for (const commit of this.commits) {
       try {
         const parsedCommit = postProcessCommits(
           toConventionalChangelogFormat(parser(commit.message))
-        );
-        (parsedCommit as any).hash = commit.sha;
+        ) as CommitWithHash;
+        parsedCommit.hash = commit.sha;
         parsedCommits.push(parsedCommit);
       } catch (_err) {
-        // Commit is not in conventional commit format,
-        // we don't understand it.
+        // Commit is not in conventional commit format, it does not
+        // contribute to the CHANGELOG generation.
       }
     }
     const parsed: string = conventionalChangelogWriter
@@ -226,54 +201,41 @@ export class ConventionalCommits {
   private async guessReleaseType(preMajor: boolean): Promise<BumpSuggestion> {
     const VERSIONS = ['major', 'minor', 'patch'];
     const preset = await presetFactory({preMajor});
-    return new Promise((resolve: Function, reject: Function) => {
-      const stream = this.commitsReadable()
-        .pipe(conventionalCommitsParser(preset.parserOpts))
-        .pipe(
-          concat((data: ConventionalChangelogCommit[]) => {
-            const commits = conventionalCommitsFilter(data);
-
-            let result = preset.recommendedBumpOpts.whatBump(
-              commits,
-              preset.recommendedBumpOpts
-            );
-
-            if (result && result.level !== null) {
-              result.releaseType = VERSIONS[result.level];
-            } else if (result === null) {
-              result = {};
-            }
-
-            // we have slightly different logic than the default of conventional commits,
-            // the minor should be bumped when features are introduced for pre 1.x.x libs:
-            if (
-              result.reason.indexOf(' 0 features') === -1 &&
-              result.releaseType === 'patch'
-            ) {
-              result.releaseType = 'minor';
-            }
-
-            return resolve(result);
-          })
+    const parsedCommits = [];
+    for (const commit of this.commits) {
+      try {
+        const parsedCommit = toConventionalChangelogFormat(
+          parser(commit.message)
         );
+        parsedCommits.push(parsedCommit);
+      } catch (_err) {
+        // Commit is not in conventional commit format, it does not
+        // contribute to the CHANGELOG generation.
+      }
+    }
+    const commits = conventionalCommitsFilter(
+      parsedCommits
+    ) as ConventionalChangelogCommit;
 
-      stream.on('error', (err: Error) => {
-        return reject(err);
-      });
-    });
-  }
-  private commitsReadable(): Readable {
-    // The conventional commits parser expects an array of string commit
-    // messages terminated by `-hash-` followed by the commit sha. We
-    // piggyback off of this, and use this sha when choosing a
-    // point to branch from for PRs.
-    const commitsReadable = new Readable();
-    this.commits.forEach((commit: Commit) => {
-      commitsReadable.push(
-        `${commit.message}\n-hash-\n${commit.sha ? commit.sha : ''}`
-      );
-    });
-    commitsReadable.push(null);
-    return commitsReadable;
+    let result = preset.recommendedBumpOpts.whatBump(
+      commits,
+      preset.recommendedBumpOpts
+    );
+
+    if (result && result.level !== null) {
+      result.releaseType = VERSIONS[result.level];
+    } else if (result === null) {
+      result = {};
+    }
+
+    // we have slightly different logic than the default of conventional commits,
+    // the minor should be bumped when features are introduced for pre 1.x.x libs:
+    if (
+      result.reason.indexOf(' 0 features') === -1 &&
+      result.releaseType === 'patch'
+    ) {
+      result.releaseType = 'minor';
+    }
+    return result;
   }
 }

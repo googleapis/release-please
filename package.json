@@ -56,16 +56,15 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "@conventional-commits/parser": "^0.3.0",
     "@octokit/graphql": "^4.3.1",
     "@octokit/request": "^5.3.4",
     "@octokit/rest": "^18.0.4",
     "chalk": "^4.0.0",
     "code-suggester": "^1.4.0",
-    "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.4.0",
-    "conventional-changelog-writer": "^4.0.6",
+    "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
-    "conventional-commits-parser": "^3.0.3",
     "figures": "^3.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
