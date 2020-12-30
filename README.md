@@ -34,6 +34,20 @@ The most important prefixes you should have in mind are:
 * `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
   (indicated by the `!`) and will result in a SemVer major.
 
+## How do I change the version number?
+
+When a commit to the main branch has `Release-As: x.x.x` in the **commit body**, Release Please will open a new pull request for the specified version.
+
+**Empty commit example:**
+
+`git commit --allow-empty -m "chore: release 2.0.0" -m "Release-As: 2.0.0"` results in the following commit message:
+```
+chore: release 2.0.0
+
+Release-As: 2.0.0
+```
+
+
 ## Release types supported
 
 Release Please automates releases for the following flavors of repositories:
