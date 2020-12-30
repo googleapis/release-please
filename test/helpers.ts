@@ -24,9 +24,6 @@ export function stringifyExpectedChanges(expected: [string, object][]): string {
   for (const update of expected) {
     stringified = `${stringified}\nfilename: ${update[0]}`;
     const obj = update[1] as {[key: string]: string};
-    // TODO(bcoe): dig into issue with Node 10 streams that is forcing us
-    // to sort content before performing comparison.
-    // See: https://github.com/googleapis/release-please/issues/601
     stringified = `${stringified}\n${obj.content}`;
   }
   return stringified.replace(
