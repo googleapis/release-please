@@ -63,7 +63,7 @@
     "code-suggester": "^1.4.0",
     "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.4.0",
-    "conventional-changelog-writer": "^4.0.6",
+    "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
     "conventional-commits-parser": "^3.0.3",
     "figures": "^3.0.0",
