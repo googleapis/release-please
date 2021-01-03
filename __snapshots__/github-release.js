@@ -146,3 +146,15 @@ exports['GitHubRelease createRelease creates releases for submodule in monorepo 
     'autorelease: tagged'
   ]
 }
+
+exports['GitHubRelease createRelease supports scoped node packages in a monorepo 1'] = {
+  'tag_name': '@googleapis/foo-v1.0.3',
+  'body': '\n* entry',
+  'name': '@googleapis/foo @googleapis/foo-v1.0.3'
+}
+
+exports['GitHubRelease createRelease supports scoped node packages in a monorepo 2'] = {
+  'labels': [
+    'autorelease: tagged'
+  ]
+}

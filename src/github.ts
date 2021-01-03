@@ -66,6 +66,7 @@ import {
   PREdge,
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
+import {branchPrefix} from './util/branch-prefix';
 
 // Short explanation of this regex:
 // - skip the owner tag (e.g. googleapis)
@@ -584,7 +585,7 @@ export class GitHub {
         // it's easiest/safest to just pull this out by string search.
         const version = match[2];
         if (!version) continue;
-        if (prefix && match[1] !== prefix) {
+        if (prefix && match[1] !== branchPrefix(prefix)) {
           continue;
         } else if (!prefix && match[1]) {
           continue;

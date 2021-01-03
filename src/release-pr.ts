@@ -22,6 +22,7 @@ type PullsListResponseItems = PromiseValue<
 
 import * as semver from 'semver';
 
+import {branchPrefix} from './util/branch-prefix';
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ConventionalCommits} from './conventional-commits';
 import {GitHub, GitHubTag, OctokitAPIs} from './github';
@@ -273,10 +274,6 @@ export class ReleasePR {
     const updates = options.updates;
     const version = options.version;
     const includePackageName = options.includePackageName;
-    // Do not include npm style @org/ prefixes in the branch name:
-    const branchPrefix = this.packageName.match(/^@[\w-]+\//)
-      ? this.packageName.split('/')[1]
-      : this.packageName;
 
     const title = includePackageName
       ? `chore: release ${this.packageName} ${version}`
@@ -284,7 +281,7 @@ export class ReleasePR {
     const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).`;
     const pr: number | undefined = await this.gh.openPR({
       branch: includePackageName
-        ? `release-${branchPrefix}-v${version}`
+        ? `release-${branchPrefix(this.packageName)}-v${version}`
         : `release-v${version}`,
       version,
       sha,
