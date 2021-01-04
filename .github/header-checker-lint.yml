@@ -1,0 +1,2 @@
+ignoreFiles:
+  - '__snapshots__/**/*.js'
