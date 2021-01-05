@@ -9,6 +9,7 @@ common_templates = gcp.CommonTemplates()
 templates = common_templates.node_library()
 s.copy(templates, excludes=[
   'README.md',
+  'CONTRIBUTING.md',
   '.eslintignore',
   '.eslintrc.yml',
   '.prettierignore',
