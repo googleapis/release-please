@@ -19,21 +19,12 @@ import {resolve} from 'path';
  * Given an object of chnages expected to be made by code-suggester API,
  * stringify content in such a way that it works well for snapshots:
  */
-export function stringifyExpectedChanges(
-  expected: [string, object][],
-  sort = false
-): string {
+export function stringifyExpectedChanges(expected: [string, object][]): string {
   let stringified = '';
   for (const update of expected) {
     stringified = `${stringified}\nfilename: ${update[0]}`;
     const obj = update[1] as {[key: string]: string};
-    // TODO(bcoe): dig into issue with Node 10 streams that is forcing us
-    // to sort content before performing comparison.
-    // See: https://github.com/googleapis/release-please/issues/601
-    const content = sort
-      ? obj.content.split('\n').sort().join('\n')
-      : obj.content;
-    stringified = `${stringified}\n${content}`;
+    stringified = `${stringified}\n${obj.content}`;
   }
   return stringified.replace(
     /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
