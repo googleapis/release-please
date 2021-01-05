@@ -455,18 +455,9 @@ export class GitHub {
   // the branch we're configured for.
   async latestTag(
     prefix?: string,
-    preRelease = false,
-    // Allow a branch prefix to differ from a tag prefix. This was required
-    // for google-cloud-go, which uses the tag prefix library/vx.y.z.
-    // this is a requirement in the go community.
-    branchPrefix?: string
+    preRelease = false
   ): Promise<GitHubTag | undefined> {
-    const pull = await this.findMergedReleasePR(
-      [],
-      100,
-      branchPrefix ?? prefix,
-      preRelease
-    );
+    const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
     if (!pull) return await this.latestTagFallback(prefix, preRelease);
     const tag = {
       name: `v${pull.version}`,
@@ -514,6 +505,16 @@ export class GitHub {
   private async allTags(
     prefix?: string
   ): Promise<{[version: string]: GitHubTag}> {
+    // If we've fallen back to using allTags, support "-", "@", and "/" as a
+    // suffix separating the library name from the version #. This allows
+    // a repository to be seamlessly be migrated from a tool like lerna:
+    const prefixes: string[] = [];
+    if (prefix) {
+      prefix = prefix.substring(0, prefix.length - 1);
+      for (const suffix of ['-', '@', '/']) {
+        prefixes.push(`${prefix}${suffix}`);
+      }
+    }
     const tags: {[version: string]: GitHubTag} = {};
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
@@ -526,8 +527,17 @@ export class GitHub {
       response.data.forEach((data: ReposListTagsResponseItems) => {
         // For monorepos, a prefix can be provided, indicating that only tags
         // matching the prefix should be returned:
-        if (prefix && !data.name.startsWith(prefix)) return;
-        let version = data.name.replace(prefix, '');
+        let version = data.name;
+        if (prefix) {
+          let match = false;
+          for (prefix of prefixes) {
+            if (data.name.startsWith(prefix)) {
+              version = data.name.replace(prefix, '');
+              match = true;
+            }
+          }
+          if (!match) return;
+        }
         if ((version = semver.valid(version))) {
           tags[version] = {sha: data.commit.sha, name: data.name, version};
         }
