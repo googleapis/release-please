@@ -39,14 +39,9 @@ accept your pull requests.
 
 ### Before you begin
 
-1.  [Select or create a Cloud Platform project][projects]. 
-1.  [Set up authentication with a service account][auth] so you can access the
-    API from your local workstation.
-
+1.  [Install Node.js LTS][node].
 
 ## Running the tests
-
-1.  [Prepare your environment for Node.js setup][setup].
 
 1.  Install dependencies:
 
@@ -54,21 +49,10 @@ accept your pull requests.
 
 1.  Run the tests:
 
-        # Run unit tests.
         npm test
-
-        # Run sample integration tests.
-        npm run samples-test
-
-        # Run all system tests.
-        npm run system-test
 
 1.  Lint (and maybe fix) any changes:
 
         npm run fix
 
-[setup]: https://cloud.google.com/nodejs/docs/setup
-[projects]: https://console.cloud.google.com/project
-[billing]: https://support.google.com/cloud/answer/6293499#enable-billing
-
-[auth]: https://cloud.google.com/docs/authentication/getting-started
+[node]: https://nodejs.org/en/
