@@ -185,7 +185,7 @@ describe('YoshiGo', () => {
       req.done();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snapshot(stringifyExpectedChanges(expectedChanges, true));
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
   });
   it('supports releasing submodule from google-cloud-go', async () => {
@@ -261,6 +261,6 @@ describe('YoshiGo', () => {
     req.done();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    snapshot(stringifyExpectedChanges(expectedChanges, true));
+    snapshot(stringifyExpectedChanges(expectedChanges));
   });
 });
