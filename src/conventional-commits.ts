@@ -22,7 +22,7 @@ import {
   ConventionalChangelogCommit,
   parser,
 } from '@conventional-commits/parser';
-import toConventionalChangelogFormat from "./to-conventional-changelog-format";
+import toConventionalChangelogFormat from './util/to-conventional-changelog-format';
 interface CommitWithHash extends ConventionalChangelogCommit {
   hash: string | null;
 }
