@@ -4,6 +4,20 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [8.1.0](https://www.github.com/googleapis/release-please/compare/v8.0.1...v8.1.0) (2021-01-05)
+
+
+### Features
+
+* support @ and / when falling back to tags ([#673](https://www.github.com/googleapis/release-please/issues/673)) ([243d6d9](https://www.github.com/googleapis/release-please/commit/243d6d9a5e719e6ebccb232b35fcab1f9f3db24f))
+
+
+### Bug Fixes
+
+* **go:** pass monorepo-tags to open-pr; omit commits when publishing gapic submodule ([#659](https://www.github.com/googleapis/release-please/issues/659)) ([9ba60ee](https://www.github.com/googleapis/release-please/commit/9ba60ee3f8f3bfc9c0dee3180dce3b16386aa1b1))
+* **go:** submodules should bump patch ([#661](https://www.github.com/googleapis/release-please/issues/661)) ([f441676](https://www.github.com/googleapis/release-please/commit/f441676b2f57ce716e8a0b2b34ecc300dfee1f90))
+* **webpack:** make release-please webpackable ([#670](https://www.github.com/googleapis/release-please/issues/670)) ([ae4f500](https://www.github.com/googleapis/release-please/commit/ae4f5007749a1cf1fa23f3af9ea3d8c20f35a800))
+
 ### [8.0.1](https://www.github.com/googleapis/release-please/compare/v8.0.0...v8.0.1) (2020-12-07)
 
 
