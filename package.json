@@ -68,6 +68,8 @@
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
     "type-fest": "^0.20.0",
+    "unist-util-visit": "^2.0.3",
+    "unist-util-visit-parents": "^3.1.1",
     "yargs": "^16.0.0"
   },
   "engines": {
