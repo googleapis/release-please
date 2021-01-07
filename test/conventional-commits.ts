@@ -176,5 +176,39 @@ fix(securitycenter): fixes security center.
       });
       snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
     });
+
+    it('parses commits from footer, when body contains multiple paragraphs', async () => {
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            message: `meta: multiple commits.
+
+Details.
+
+Some clarifying facts.
+
+fix: fixes bug #733
+feat(recaptchaenterprise): migrate microgenertor
+  Committer: @miraleung
+  PiperOrigin-RevId: 345559154
+  BREAKING-CHANGE: for some reason this migration is breaking.
+  Source-Link: goo gleapis/googleapis@5e0dcb2
+
+fix(securitycenter): fixes security center.
+  Committer: @miraleung
+  PiperOrigin-RevId: 345559182
+  Source-Link: googleapis/googleapis@e5eef86`,
+            sha: 'abc345',
+            files: [],
+          },
+        ],
+        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        bumpMinorPreMajor: true,
+      });
+      const cl = await cc.generateChangelogEntry({
+        version: 'v1.0.0',
+      });
+      snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
+    });
   });
 });

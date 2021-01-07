@@ -111,3 +111,22 @@ exports['ConventionalCommits generateChangelogEntry parses footer commits that c
 
 * **securitycenter:** fixes security center. ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
 `
+
+exports['ConventionalCommits generateChangelogEntry parses commits from footer, when body contains multiple paragraphs 1'] = `
+## v1.0.0 (1665-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **recaptchaenterprise:** for some reason this migration is breaking.
+
+### Features
+
+* **recaptchaenterprise:** migrate microgenertor ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
+
+
+### Bug Fixes
+
+* fixes bug [#733](https://www.github.com/bcoe/release-please/issues/733) ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
+* **securitycenter:** fixes security center. ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
+`
