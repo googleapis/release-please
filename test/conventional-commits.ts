@@ -151,18 +151,18 @@ describe('ConventionalCommits', () => {
       const cc = new ConventionalCommits({
         commits: [
           {
-            message: `chore: multiple commits.
+            message: `meta: multiple commits.
 
-            feat(recaptchaenterprise): migrate microgenertor
-              Committer: @miraleung
-              PiperOrigin-RevId: 345559154
-              BREAKING-CHANGE: for some reason this migration is breaking.
-              Source-Link: googleapis/googleapis@5e0dcb2
+feat(recaptchaenterprise): migrate microgenertor
+  Committer: @miraleung
+  PiperOrigin-RevId: 345559154
+  BREAKING-CHANGE: for some reason this migration is breaking.
+  Source-Link: googleapis/googleapis@5e0dcb2
 
-            fix(securitycenter): fixes security center.
-              Committer: @miraleung
-              PiperOrigin-RevId: 345559182
-              Source-Link: googleapis/googleapis@e5eef86`,
+fix(securitycenter): fixes security center.
+  Committer: @miraleung
+  PiperOrigin-RevId: 345559182
+  Source-Link: googleapis/googleapis@e5eef86`,
             sha: 'abc345',
             files: [],
           },

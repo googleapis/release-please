@@ -92,6 +92,9 @@ function getParsedCommits(commits: Commit[]) {
   return parsedCommits;
 }
 
+// TODO(@bcoe): now that we walk the actual AST of conventional commits
+// we should be able to move post processing into
+// to-conventional-changelog.ts.
 function postProcessCommits(commit: ConventionalChangelogCommit) {
   commit.notes.forEach(note => {
     let text = '';
