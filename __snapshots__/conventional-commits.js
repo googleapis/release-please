@@ -73,3 +73,22 @@ exports['ConventionalCommits generateChangelogEntry supports additional markdown
 
 * upgrade to Node 7 ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
 `
+
+exports['ConventionalCommits generateChangelogEntry parses additional commits in footers 1'] = `
+## v1.0.0 (1665-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* cool feature
+
+### Features
+
+* awesome feature ([abc678](https://www.github.com/bcoe/release-please/commit/abc678))
+* cool feature ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
+
+
+### Bug Fixes
+
+* **subsystem:** also a fix ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
+`
