@@ -34,6 +34,33 @@ The most important prefixes you should have in mind are:
 * `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
   (indicated by the `!`) and will result in a SemVer major.
 
+### What if my PR contains multiple fixes or features?
+
+Release Please allows you to represent multiple changes in a single commit,
+using footers:
+
+```
+feat: adds v4 UUID to crypto
+
+This adds support for v4 UUIDs to the library.
+
+fix(utils): unicode no longer throws exception
+  PiperOrigin-RevId: 345559154
+  BREAKING-CHANGE: encode method no longer throws.
+  Source-Link: googleapis/googleapis@5e0dcb2
+
+feat(utils): update encode to support unicode
+  PiperOrigin-RevId: 345559182
+  Source-Link: googleapis/googleapis@e5eef86
+```
+
+The above commit message will contain:
+
+1. an entry for the **"adds v4 UUID to crypto"** feature.
+2. an entry for the fix **"unicode no longer throws exception"**, along with a note
+  that it's a breaking change.
+3. an entry for the feature **"update encode to support unicode"**.
+
 ## How do I change the version number?
 
 When a commit to the main branch has `Release-As: x.x.x` in the **commit body**, Release Please will open a new pull request for the specified version.

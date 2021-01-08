@@ -19,18 +19,21 @@ const visitWithAncestors = require('unist-util-visit-parents');
 const NUMBER_REGEX = /^[0-9]+$/;
 import * as parser from '@conventional-commits/parser';
 
-type SummaryNode =
+type SummaryNodes =
   | parser.Type
   | parser.Scope
   | parser.BreakingChange
   | parser.Text;
+type FooterNodes =
+  | parser.Type
+  | parser.Scope
+  | parser.BreakingChange
+  | parser.Separator
+  | parser.Text
+  | parser.Newline;
 
-// Converts conventional commit AST into conventional-changelog's
-// output format, see: https://www.npmjs.com/package/conventional-commits-parser
-export default function toConventionalChangelogFormat(
-  ast: parser.Message
-): parser.ConventionalChangelogCommit {
-  const cc: parser.ConventionalChangelogCommit = {
+function getBlankConventionalCommit(): parser.ConventionalChangelogCommit {
+  return {
     body: '',
     subject: '',
     type: '',
@@ -43,6 +46,15 @@ export default function toConventionalChangelogFormat(
     header: '',
     footer: null,
   };
+}
+
+// Converts conventional commit AST into conventional-changelog's
+// output format, see: https://www.npmjs.com/package/conventional-commits-parser
+export default function toConventionalChangelogFormat(
+  ast: parser.Message
+): parser.ConventionalChangelogCommit[] {
+  const commits: parser.ConventionalChangelogCommit[] = [];
+  const headerCommit = getBlankConventionalCommit();
   // Separate the body and summary nodes, this simplifies the subsequent
   // tree walking logic:
   let body;
@@ -59,22 +71,22 @@ export default function toConventionalChangelogFormat(
   });
 
   // <type>, "(", <scope>, ")", ["!"], ":", <whitespace>*, <text>
-  visit(summary, (node: SummaryNode) => {
+  visit(summary, (node: SummaryNodes) => {
     switch (node.type) {
       case 'type':
-        cc.type = node.value;
-        cc.header += node.value;
+        headerCommit.type = node.value;
+        headerCommit.header += node.value;
         break;
       case 'scope':
-        cc.scope = node.value;
-        cc.header += `(${node.value})`;
+        headerCommit.scope = node.value;
+        headerCommit.header += `(${node.value})`;
         break;
       case 'breaking-change':
-        cc.header += '!';
+        headerCommit.header += '!';
         break;
       case 'text':
-        cc.subject = node.value;
-        cc.header += `: ${node.value}`;
+        headerCommit.subject = node.value;
+        headerCommit.header += `: ${node.value}`;
         break;
       default:
         break;
@@ -83,10 +95,8 @@ export default function toConventionalChangelogFormat(
 
   // [<any body-text except pre-footer>]
   if (body) {
-    visit(body, 'text', (node: parser.Text) => {
-      // TODO(@bcoe): once we have \n tokens in tree we can drop this:
-      if (cc.body !== '') cc.body += '\n';
-      cc.body += node.value;
+    visit(body, ['text', 'newline'], (node: parser.Text) => {
+      headerCommit.body += node.value;
     });
   }
 
@@ -104,10 +114,9 @@ export default function toConventionalChangelogFormat(
       if (!parent) {
         return;
       }
-      let startCollecting = false;
       switch (parent.type) {
         case 'summary':
-          breaking.text = cc.subject;
+          breaking.text = headerCommit.subject;
           break;
         case 'body':
           breaking.text = '';
@@ -115,28 +124,25 @@ export default function toConventionalChangelogFormat(
           // the breaking change notes:
           visit(
             parent,
-            ['text', 'breaking-change'],
+            ['text', 'newline'],
             (node: parser.Text | parser.BreakingChange) => {
-              // TODO(@bcoe): once we have \n tokens in tree we can drop this:
-              if (startCollecting && node.type === 'text') {
-                if (breaking.text !== '') breaking.text += '\n';
-                breaking.text += node.value;
-              } else if (node.type === 'breaking-change') {
-                startCollecting = true;
-              }
+              breaking.text += node.value;
             }
           );
           break;
         case 'token':
+          // If the '!' breaking change marker is used, the breaking change
+          // will be identified when the footer is parsed as a commit:
+          if (!node.value.includes('BREAKING')) return;
           parent = ancestors.pop();
-          visit(parent, 'text', (node: parser.Text) => {
+          visit(parent, ['text', 'newline'], (node: parser.Text) => {
             breaking.text = node.value;
           });
           break;
       }
     }
   );
-  if (breaking.text !== '') cc.notes.push(breaking);
+  if (breaking.text !== '') headerCommit.notes.push(breaking);
 
   // Populates references array from footers:
   // references: [{
@@ -183,9 +189,60 @@ export default function toConventionalChangelogFormat(
     );
     // TODO(@bcoe): how should references like "Refs: v8:8940" work.
     if (hasRefSepartor && reference.issue.match(NUMBER_REGEX)) {
-      cc.references.push(reference);
+      headerCommit.references.push(reference);
     }
   });
 
-  return cc;
+  /*
+   * Split footers that resemble commits into additional commits, e.g.,
+   * chore: multiple commits
+   * chore(recaptchaenterprise): migrate recaptchaenterprise to the Java microgenerator
+   *   Committer: @miraleung
+   *   PiperOrigin-RevId: 345559154
+   * ...
+   */
+  visitWithAncestors(
+    ast,
+    ['type'],
+    (node: parser.Type, ancestors: parser.Node[]) => {
+      let parent = ancestors.pop();
+      if (!parent) {
+        return;
+      }
+      if (parent.type === 'token') {
+        parent = ancestors.pop();
+        let footerText = '';
+        visit(
+          parent,
+          ['type', 'scope', 'breaking-change', 'separator', 'text', 'newline'],
+          (node: FooterNodes) => {
+            switch (node.type) {
+              case 'scope':
+                footerText += `(${node.value})`;
+                break;
+              case 'separator':
+                // Footers of the form Fixes #99, should not be parsed.
+                if (node.value.includes('#')) return;
+                footerText += `${node.value} `;
+                break;
+              default:
+                footerText += node.value;
+                break;
+            }
+          }
+        );
+        try {
+          for (const commit of toConventionalChangelogFormat(
+            parser.parser(footerText)
+          )) {
+            commits.push(commit);
+          }
+        } catch (err) {
+          // Footer does not appear to be an additional commit.
+        }
+      }
+    }
+  );
+  commits.push(headerCommit);
+  return commits;
 }

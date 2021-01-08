@@ -71,6 +71,30 @@ interface Note {
   text: string;
 }
 
+function getParsedCommits(commits: Commit[]): CommitWithHash[] {
+  const parsedCommits: CommitWithHash[] = [];
+  for (const commit of commits) {
+    try {
+      for (const parsedCommit of toConventionalChangelogFormat(
+        parser(commit.message)
+      )) {
+        const commitWithHash = postProcessCommits(
+          parsedCommit
+        ) as CommitWithHash;
+        commitWithHash.hash = commit.sha;
+        parsedCommits.push(commitWithHash);
+      }
+    } catch (_err) {
+      // Commit is not in conventional commit format, it does not
+      // contribute to the CHANGELOG generation.
+    }
+  }
+  return parsedCommits;
+}
+
+// TODO(@bcoe): now that we walk the actual AST of conventional commits
+// we should be able to move post processing into
+// to-conventional-changelog.ts.
 function postProcessCommits(commit: ConventionalChangelogCommit) {
   commit.notes.forEach(note => {
     let text = '';
@@ -179,41 +203,16 @@ export class ConventionalCommits {
       this.headerPartial || preset.writerOpts.headerPartial;
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
-    const parsedCommits = [];
-    for (const commit of this.commits) {
-      try {
-        const parsedCommit = postProcessCommits(
-          toConventionalChangelogFormat(parser(commit.message))
-        ) as CommitWithHash;
-        parsedCommit.hash = commit.sha;
-        parsedCommits.push(parsedCommit);
-      } catch (_err) {
-        // Commit is not in conventional commit format, it does not
-        // contribute to the CHANGELOG generation.
-      }
-    }
     const parsed: string = conventionalChangelogWriter
-      .parseArray(parsedCommits, context, preset.writerOpts)
+      .parseArray(getParsedCommits(this.commits), context, preset.writerOpts)
       .trim();
     return parsed;
   }
   private async guessReleaseType(preMajor: boolean): Promise<BumpSuggestion> {
     const VERSIONS = ['major', 'minor', 'patch'];
     const preset = await presetFactory({preMajor});
-    const parsedCommits = [];
-    for (const commit of this.commits) {
-      try {
-        const parsedCommit = toConventionalChangelogFormat(
-          parser(commit.message)
-        );
-        parsedCommits.push(parsedCommit);
-      } catch (_err) {
-        // Commit is not in conventional commit format, it does not
-        // contribute to the CHANGELOG generation.
-      }
-    }
     const commits = conventionalCommitsFilter(
-      parsedCommits
+      getParsedCommits(this.commits)
     ) as ConventionalChangelogCommit;
 
     let result = preset.recommendedBumpOpts.whatBump(
