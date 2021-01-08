@@ -25,6 +25,7 @@ import {RubyYoshi} from './ruby-yoshi';
 import {Ruby} from './ruby';
 import {Simple} from './simple';
 import {TerraformModule} from './terraform-module';
+import {Rust} from './rust';
 
 // TODO: add any new releasers you create to this list:
 export function getReleasers(): {[key: string]: typeof ReleasePR} {
@@ -41,6 +42,7 @@ export function getReleasers(): {[key: string]: typeof ReleasePR} {
     ruby: Ruby,
     simple: Simple,
     'terraform-module': TerraformModule,
+    rust: Rust,
   };
   return releasers;
 }

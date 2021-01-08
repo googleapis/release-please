@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "8.0.1",
+  "version": "8.2.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -36,6 +36,7 @@
   "devDependencies": {
     "@octokit/types": "^6.1.0",
     "@types/chai": "^4.1.7",
+    "@types/iarna__toml": "^2.0.1",
     "@types/mocha": "^8.0.0",
     "@types/node": "^11.13.6",
     "@types/pino": "^6.3.0",
@@ -53,20 +54,22 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "@conventional-commits/parser": "^0.3.0",
+    "@iarna/toml": "^2.2.5",
     "@octokit/graphql": "^4.3.1",
     "@octokit/request": "^5.3.4",
     "@octokit/rest": "^18.0.4",
     "chalk": "^4.0.0",
     "code-suggester": "^1.4.0",
-    "concat-stream": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.4.0",
-    "conventional-changelog-writer": "^4.0.6",
+    "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
-    "conventional-commits-parser": "^3.0.3",
     "figures": "^3.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
     "type-fest": "^0.20.0",
+    "unist-util-visit": "^2.0.3",
+    "unist-util-visit-parents": "^3.1.1",
     "yargs": "^16.0.0"
   },
   "engines": {
