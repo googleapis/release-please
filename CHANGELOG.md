@@ -4,6 +4,22 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [9.0.0](https://www.github.com/googleapis/release-please/compare/v8.2.0...v9.0.0) (2021-01-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* support multiple commits in footer (#686)
+
+### Features
+
+* support multiple commits in footer ([#686](https://www.github.com/googleapis/release-please/issues/686)) ([b3f96d8](https://www.github.com/googleapis/release-please/commit/b3f96d8dd988b7d482223e8a7868a45043db4880))
+
+
+### Bug Fixes
+
+* `findFilesByfilename` respects `path` option ([#665](https://www.github.com/googleapis/release-please/issues/665)) ([a3a1df6](https://www.github.com/googleapis/release-please/commit/a3a1df690f48b38c539ee5aab5ae046d640c6811))
+
 ## [8.2.0](https://www.github.com/googleapis/release-please/compare/v8.1.0...v8.2.0) (2021-01-06)
 
 
