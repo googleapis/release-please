@@ -78,6 +78,34 @@ describe('GitHub', () => {
       snapshot(pomFiles);
       req.done();
     });
+
+    const prefixes = [
+      'appengine',
+      'appengine/',
+      '/appengine',
+      '/appengine/',
+      'appengine\\',
+      '\\appengine',
+      '\\appengine\\',
+    ];
+    prefixes.forEach(prefix => {
+      it(`scopes pattern matching files to prefix(${prefix})`, async () => {
+        const fileSearchResponse = JSON.parse(
+          readFileSync(
+            resolve(fixturesPath, 'pom-file-search-with-prefix.json'),
+            'utf8'
+          )
+        );
+        req
+          .get(
+            '/search/code?q=filename%3Apom.xml+repo%3Afake%2Ffake+path%3Aappengine'
+          )
+          .reply(200, fileSearchResponse);
+        const pomFiles = await github.findFilesByFilename('pom.xml', prefix);
+        req.done();
+        expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
+      });
+    });
   });
 
   describe('findOpenReleasePRs', () => {

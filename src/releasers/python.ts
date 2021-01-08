@@ -112,7 +112,10 @@ export class Python extends ReleasePR {
     );
 
     // There should be only one version.py, but foreach in case that is incorrect
-    const versionPyFilesSearch = this.gh.findFilesByFilename('version.py');
+    const versionPyFilesSearch = this.gh.findFilesByFilename(
+      'version.py',
+      this.path
+    );
     const versionPyFiles = await versionPyFilesSearch;
     versionPyFiles.forEach(path => {
       updates.push(
