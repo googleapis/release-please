@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [8.2.0](https://www.github.com/googleapis/release-please/compare/v8.1.0...v8.2.0) (2021-01-06)
+
+
+### Features
+
+* add rust releaser & cargo-toml updater ([#684](https://www.github.com/googleapis/release-please/issues/684)) ([fe05ff4](https://www.github.com/googleapis/release-please/commit/fe05ff47f1eb523d47bf3f6f11587105270744ee))
+
 ## [8.1.0](https://www.github.com/googleapis/release-please/compare/v8.0.1...v8.1.0) (2021-01-05)
 
 
