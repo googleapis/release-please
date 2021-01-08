@@ -71,7 +71,7 @@ interface Note {
   text: string;
 }
 
-function getParsedCommits(commits: Commit[]) {
+function getParsedCommits(commits: Commit[]): CommitWithHash[] {
   const parsedCommits: CommitWithHash[] = [];
   for (const commit of commits) {
     try {
