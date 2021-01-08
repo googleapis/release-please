@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [8.2.1](https://www.github.com/googleapis/release-please/compare/v8.2.0...v8.2.1) (2021-01-08)
+
+
+### Bug Fixes
+
+* `findFilesByfilename` respects `path` option ([#665](https://www.github.com/googleapis/release-please/issues/665)) ([a3a1df6](https://www.github.com/googleapis/release-please/commit/a3a1df690f48b38c539ee5aab5ae046d640c6811))
+
 ## [8.2.0](https://www.github.com/googleapis/release-please/compare/v8.1.0...v8.2.0) (2021-01-06)
 
 
