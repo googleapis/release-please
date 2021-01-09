@@ -415,4 +415,12 @@ describe('Release-PR', () => {
       expect(rp.openPROpts?.branch).to.equal('release-nodejs-v1.3.0');
     });
   });
+
+  describe('lookupPackageName', () => {
+    it('noop, child releasers need to implement', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const name = await ReleasePR.lookupPackageName(github);
+      expect(name).to.be.undefined;
+    });
+  });
 });

@@ -14,7 +14,9 @@
 
 import * as assert from 'assert';
 import {describe, it, afterEach} from 'mocha';
+import {expect} from 'chai';
 import * as nock from 'nock';
+import {GitHub} from '../../src/github';
 import {Node} from '../../src/releasers/node';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
@@ -236,6 +238,55 @@ describe('Node', () => {
       });
       const pr = await releasePR.run();
       assert.strictEqual(pr, undefined);
+    });
+  });
+
+  describe('lookupPackageName', () => {
+    it('finds package name in package.json', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const packageContent = readFileSync(
+        resolve(fixturesPath, 'package.json'),
+        'utf8'
+      );
+      const req = nock('https://api.github.com')
+        .get('/repos/googleapis/node-test-repo')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+        .get(
+          '/repos/googleapis/node-test-repo/contents/package.json?ref=refs/heads/master'
+        )
+        .reply(200, {
+          content: Buffer.from(packageContent, 'utf8').toString('base64'),
+          sha: 'abc123',
+        });
+      const expectedPackageName = await Node.lookupPackageName(github);
+      expect(expectedPackageName).to.equal('node-test-repo');
+      req.done();
+    });
+
+    it('finds package name in submodule package.json', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const packageContent = readFileSync(
+        resolve(fixturesPath, 'package.json'),
+        'utf8'
+      );
+      const req = nock('https://api.github.com')
+        .get('/repos/googleapis/node-test-repo')
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+        .get(
+          '/repos/googleapis/node-test-repo/contents/some-path%2Fpackage.json?ref=refs/heads/master'
+        )
+        .reply(200, {
+          content: Buffer.from(packageContent, 'utf8').toString('base64'),
+          sha: 'abc123',
+        });
+      const expectedPackageName = await Node.lookupPackageName(
+        github,
+        'some-path'
+      );
+      expect(expectedPackageName).to.equal('node-test-repo');
+      req.done();
     });
   });
 });

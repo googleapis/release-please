@@ -14,6 +14,7 @@
 
 import chalk = require('chalk');
 import {checkpoint, CheckpointType} from './util/checkpoint';
+import {packageBranchPrefix} from './util/package-branch-prefix';
 import {ReleasePRFactory} from './release-pr-factory';
 import {GitHub, OctokitAPIs} from './github';
 import {parse} from 'semver';
@@ -78,6 +79,19 @@ export class GitHubRelease {
   }
 
   async createRelease(): Promise<ReleaseResponse | undefined> {
+    // Attempt to lookup the package name from a well known location, such
+    // as package.json, if none is provided:
+    if (!this.packageName && this.releaseType) {
+      this.packageName = await ReleasePRFactory.class(
+        this.releaseType
+      ).lookupPackageName(this.gh, this.path);
+    }
+    if (this.packageName === undefined) {
+      throw Error(
+        `could not determine package name for release repo = ${this.repoUrl}`
+      );
+    }
+
     // In most configurations, createRelease() should be called close to when
     // a release PR is merged, e.g., a GitHub action that kicks off this
     // workflow on merge. For tis reason, we can pull a fairly small number of PRs:
@@ -85,7 +99,9 @@ export class GitHubRelease {
     const gitHubReleasePR = await this.gh.findMergedReleasePR(
       this.labels,
       pageSize,
-      this.monorepoTags ? this.packageName : undefined
+      this.monorepoTags
+        ? packageBranchPrefix(this.packageName, this.releaseType)
+        : undefined
     );
     if (!gitHubReleasePR) {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
@@ -111,23 +127,10 @@ export class GitHubRelease {
       `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
       CheckpointType.Success
     );
-
-    // Attempt to lookup the package name from a well known location, such
-    // as package.json, if none is provided:
-    if (!this.packageName && this.releaseType) {
-      this.packageName = await ReleasePRFactory.class(
-        this.releaseType
-      ).lookupPackageName(this.gh);
-    }
     // Go uses '/' for a tag separator, rather than '-':
     let tagSeparator = '-';
     if (this.releaseType) {
       tagSeparator = ReleasePRFactory.class(this.releaseType).tagSeparator();
-    }
-    if (this.packageName === undefined) {
-      throw Error(
-        `could not determine package name for release repo = ${this.repoUrl}`
-      );
     }
 
     const release = await this.gh.createRelease(

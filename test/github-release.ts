@@ -16,6 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
+import {expect} from 'chai';
 import * as nock from 'nock';
 import {strictEqual} from 'assert';
 nock.disableNetConnect();
@@ -218,6 +219,72 @@ describe('GitHubRelease', () => {
       requests.done();
     });
 
+    it('attempts to guess package name for submodule release', async () => {
+      const release = new GitHubRelease({
+        path: 'src/apis/foo',
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        apiUrl: 'https://api.github.com',
+        monorepoTags: true,
+        releaseType: 'node',
+      });
+      const requests = nock('https://api.github.com')
+        // check for default branch
+        .get('/repos/googleapis/foo')
+        .reply(200, repoInfo)
+        .get(
+          '/repos/googleapis/foo/pulls?state=closed&per_page=25&sort=merged_at&direction=desc'
+        )
+        .reply(200, [
+          {
+            labels: [{name: 'autorelease: pending'}],
+            head: {
+              label: 'head:release-foo-v1.0.3',
+            },
+            base: {
+              label: 'googleapis:main',
+            },
+            number: 1,
+            merged_at: new Date().toISOString(),
+          },
+        ])
+        .get(
+          '/repos/googleapis/foo/contents/src%2Fapis%2Ffoo%2Fpackage.json?ref=refs/heads/main'
+        )
+        .reply(200, {
+          content: Buffer.from('{"name": "@google-cloud/foo"}', 'utf8'),
+        })
+        .get(
+          '/repos/googleapis/foo/contents/src%2Fapis%2Ffoo%2FCHANGELOG.md?ref=refs/heads/main'
+        )
+        .reply(200, {
+          content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
+        })
+        .post(
+          '/repos/googleapis/foo/releases',
+          (body: {[key: string]: string}) => {
+            snapshot(body);
+            return true;
+          }
+        )
+        .reply(200, {tag_name: 'v1.0.3'})
+        .post(
+          '/repos/googleapis/foo/issues/1/labels',
+          (body: {[key: string]: string}) => {
+            snapshot(body);
+            return true;
+          }
+        )
+        .reply(200)
+        .delete(
+          '/repos/googleapis/foo/issues/1/labels/autorelease%3A%20pending'
+        )
+        .reply(200);
+      const created = await release.createRelease();
+      strictEqual(created!.tag_name, 'v1.0.3');
+      requests.done();
+    });
+
     it('attempts to guess package name for release', async () => {
       const release = new GitHubRelease({
         label: 'autorelease: pending',
@@ -260,7 +327,7 @@ describe('GitHubRelease', () => {
             return true;
           }
         )
-        .reply(200, {tag_name: 'v1.0.2'})
+        .reply(200, {tag_name: 'v1.0.3'})
         .post(
           '/repos/googleapis/foo/issues/1/labels',
           (body: {[key: string]: string}) => {
@@ -274,7 +341,53 @@ describe('GitHubRelease', () => {
         )
         .reply(200);
       const created = await release.createRelease();
-      strictEqual(created!.tag_name, 'v1.0.2');
+      strictEqual(created!.tag_name, 'v1.0.3');
+      requests.done();
+    });
+
+    it('errors when no packageName (no lookupPackageName impl: python)', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        apiUrl: 'https://api.github.com',
+        releaseType: 'python',
+      });
+      let failed = true;
+      try {
+        await release.createRelease();
+        failed = false;
+      } catch (error) {
+        expect(error.message).to.equal(
+          'could not determine package name for release repo = googleapis/foo'
+        );
+      }
+      expect(failed).to.be.true;
+    });
+
+    it('errors when no packageName (lookupPackageName impl: node)', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        apiUrl: 'https://api.github.com',
+        releaseType: 'node',
+      });
+      const requests = nock('https://api.github.com')
+        .get('/repos/googleapis/foo')
+        .reply(200, repoInfo)
+        .get('/repos/googleapis/foo/contents/package.json?ref=refs/heads/main')
+        .reply(200, {
+          content: Buffer.from('{"no-the-name": "@google-cloud/foo"}', 'utf8'),
+        });
+      let failed = true;
+      try {
+        await release.createRelease();
+        failed = false;
+      } catch (error) {
+        expect(error.message).to.equal(
+          'could not determine package name for release repo = googleapis/foo'
+        );
+      }
+      expect(failed).to.be.true;
       requests.done();
     });
   });
