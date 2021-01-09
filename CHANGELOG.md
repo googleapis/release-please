@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [9.0.1](https://www.github.com/googleapis/release-please/compare/v9.0.0...v9.0.1) (2021-01-09)
+
+
+### Bug Fixes
+
+* **monorepos:** github-release not created ([#669](https://www.github.com/googleapis/release-please/issues/669)) ([9f69f41](https://www.github.com/googleapis/release-please/commit/9f69f416ad4d228b40ac6d7f7d86c652d01e57d6)), closes [#668](https://www.github.com/googleapis/release-please/issues/668)
+
 ## [9.0.0](https://www.github.com/googleapis/release-please/compare/v8.2.0...v9.0.0) (2021-01-08)
 
 
