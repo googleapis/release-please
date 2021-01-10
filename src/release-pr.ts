@@ -329,7 +329,11 @@ export class ReleasePR {
 
   static addPathStatic(file: string, path?: string) {
     if (path === undefined) {
-      return file;
+      if (file.startsWith('/')) {
+        return file.slice(1);
+      } else {
+        return file;
+      }
     } else {
       path = path.replace(/[/\\]$/, '');
       file = file.replace(/^[/\\]/, '');
