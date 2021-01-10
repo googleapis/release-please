@@ -108,6 +108,48 @@ describe('GitHub', () => {
     });
   });
 
+  describe('findFilesByExtension', () => {
+    it('returns files matching the requested pattern', async () => {
+      const fileSearchResponse = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'pom-file-search.json'), 'utf8')
+      );
+      req
+        .get('/search/code?q=extension%3Axml+repo%3Afake%2Ffake')
+        .reply(200, fileSearchResponse);
+      const pomFiles = await github.findFilesByExtension('xml');
+      snapshot(pomFiles);
+      req.done();
+    });
+
+    const prefixes = [
+      'appengine',
+      'appengine/',
+      '/appengine',
+      '/appengine/',
+      'appengine\\',
+      '\\appengine',
+      '\\appengine\\',
+    ];
+    prefixes.forEach(prefix => {
+      it(`scopes pattern matching files to prefix(${prefix})`, async () => {
+        const fileSearchResponse = JSON.parse(
+          readFileSync(
+            resolve(fixturesPath, 'pom-file-search-with-prefix.json'),
+            'utf8'
+          )
+        );
+        req
+          .get(
+            '/search/code?q=extension%3Axml+repo%3Afake%2Ffake+path%3Aappengine'
+          )
+          .reply(200, fileSearchResponse);
+        const pomFiles = await github.findFilesByExtension('xml', prefix);
+        req.done();
+        expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
+      });
+    });
+  });
+
   describe('findOpenReleasePRs', () => {
     it('returns PRs that have all release labels', async () => {
       req.get('/repos/fake/fake/pulls?state=open&per_page=100').reply(200, [
