@@ -1020,7 +1020,8 @@ export class GitHub {
   ): Promise<string[]> {
     let q = `filename:${filename}+repo:${this.owner}/${this.repo}`;
     if (prefix) {
-      q += `+path:${this.normalizePrefix(prefix)}`;
+      prefix = this.normalizePrefix(prefix);
+      q += `+path:${prefix}`;
     }
     const response: {data: FileSearchResponse} = await this.octokit.search.code(
       {
@@ -1043,7 +1044,8 @@ export class GitHub {
   ): Promise<string[]> {
     let q = `extension:${extension}+repo:${this.owner}/${this.repo}`;
     if (prefix) {
-      q += `+path:${this.normalizePrefix(prefix)}`;
+      prefix = this.normalizePrefix(prefix);
+      q += `+path:${prefix}`;
     }
     const response: {data: FileSearchResponse} = await this.octokit.search.code(
       {
