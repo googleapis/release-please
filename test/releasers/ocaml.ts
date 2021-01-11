@@ -32,14 +32,14 @@ describe('OCaml', () => {
     sandbox.restore();
   });
   describe('run', () => {
-    let suites = [
-      { esy: ['esy.json'], opam: ['sample.opam'] },
-      { esy: ['esy.json'], opam: [] },
-      { esy: [], opam: ['sample.opam'] },
-      { esy: ['package.json'], opam: [] },
+    const suites = [
+      {esy: ['esy.json'], opam: ['sample.opam']},
+      {esy: ['esy.json'], opam: []},
+      {esy: [], opam: ['sample.opam']},
+      {esy: ['package.json'], opam: []},
     ];
 
-    suites.forEach(({ esy, opam }) => {
+    suites.forEach(({esy, opam}) => {
       let suiteName = esy.join(',');
       if (esy.length && opam.length) {
         suiteName += ' + ';

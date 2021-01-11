@@ -85,7 +85,7 @@ export class OCaml extends ReleasePR {
     const updates: Update[] = [];
 
     const jsonPaths = await this.gh.findFilesByExtension('json');
-    jsonPaths.filter(notEsyLock).forEach((path) => {
+    jsonPaths.filter(notEsyLock).forEach(path => {
       updates.push(
         new EsyJson({
           path: this.addPath(path),
@@ -97,7 +97,7 @@ export class OCaml extends ReleasePR {
     });
 
     const opamPaths = await this.gh.findFilesByExtension('opam');
-    opamPaths.filter(notEsyLock).forEach((path) => {
+    opamPaths.filter(notEsyLock).forEach(path => {
       updates.push(
         new Opam({
           path: this.addPath(path),

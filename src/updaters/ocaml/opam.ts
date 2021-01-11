@@ -33,7 +33,7 @@ export class Opam implements Update {
     this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    const oldVersion = content.match(/^version: "([A-Za-z0-9\_\-\+\.\~]+)"$/m);
+    const oldVersion = content.match(/^version: "([A-Za-z0-9_-+.~]+)"$/m);
     if (oldVersion) {
       checkpoint(
         `updating ${this.path} from ${oldVersion[1]} to ${this.version}`,
@@ -41,7 +41,7 @@ export class Opam implements Update {
       );
     }
     return content.replace(
-      /^version: "[A-Za-z0-9\_\-\+\.\~]+"$/m,
+      /^version: "[A-Za-z0-9_-+.~]+"$/m,
       `version: "${this.version}"`
     );
   }

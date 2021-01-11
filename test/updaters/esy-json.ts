@@ -20,7 +20,6 @@ import {EsyJson} from '../../src/updaters/ocaml/esy-json';
 
 const fixturesPath = './test/updaters/fixtures';
 
-
 describe('EsyJson', () => {
   describe('updateContent', () => {
     it('updates version in esy.json file', async () => {
