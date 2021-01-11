@@ -66,6 +66,18 @@ describe('GitHub', () => {
     });
   });
 
+  describe('normalizePrefix', () => {
+    it('removes a leading slash', async () => {
+      expect(github.normalizePrefix('/test')).to.equal('test');
+    });
+    it('removes a trailing slash', async () => {
+      expect(github.normalizePrefix('test/')).to.equal('test');
+    });
+    it('removes a leading & trailing slash', async () => {
+      expect(github.normalizePrefix('/test/')).to.equal('test');
+    });
+  });
+
   describe('findFilesByfilename', () => {
     it('returns files matching the requested pattern', async () => {
       const fileSearchResponse = JSON.parse(
@@ -102,6 +114,48 @@ describe('GitHub', () => {
           )
           .reply(200, fileSearchResponse);
         const pomFiles = await github.findFilesByFilename('pom.xml', prefix);
+        req.done();
+        expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
+      });
+    });
+  });
+
+  describe('findFilesByExtension', () => {
+    it('returns files matching the requested pattern', async () => {
+      const fileSearchResponse = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'pom-file-search.json'), 'utf8')
+      );
+      req
+        .get('/search/code?q=extension%3Axml+repo%3Afake%2Ffake')
+        .reply(200, fileSearchResponse);
+      const pomFiles = await github.findFilesByExtension('xml');
+      snapshot(pomFiles);
+      req.done();
+    });
+
+    const prefixes = [
+      'appengine',
+      'appengine/',
+      '/appengine',
+      '/appengine/',
+      'appengine\\',
+      '\\appengine',
+      '\\appengine\\',
+    ];
+    prefixes.forEach(prefix => {
+      it(`scopes pattern matching files to prefix(${prefix})`, async () => {
+        const fileSearchResponse = JSON.parse(
+          readFileSync(
+            resolve(fixturesPath, 'pom-file-search-with-prefix.json'),
+            'utf8'
+          )
+        );
+        req
+          .get(
+            '/search/code?q=extension%3Axml+repo%3Afake%2Ffake+path%3Aappengine'
+          )
+          .reply(200, fileSearchResponse);
+        const pomFiles = await github.findFilesByExtension('xml', prefix);
         req.done();
         expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
       });

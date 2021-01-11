@@ -1010,14 +1010,41 @@ export class GitHub {
     }
   }
 
+  normalizePrefix(prefix: string) {
+    return prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '');
+  }
+
   async findFilesByFilename(
     filename: string,
     prefix?: string
   ): Promise<string[]> {
     let q = `filename:${filename}+repo:${this.owner}/${this.repo}`;
     if (prefix) {
-      prefix = prefix.replace(/[/\\]$/, '');
-      prefix = prefix.replace(/^[/\\]/, '');
+      prefix = this.normalizePrefix(prefix);
+      q += `+path:${prefix}`;
+    }
+    const response: {data: FileSearchResponse} = await this.octokit.search.code(
+      {
+        q: q,
+      }
+    );
+    return response.data.items.map(file => {
+      let path = file.path;
+      if (prefix) {
+        const pfix = new RegExp(`^${prefix}[/\\\\]`);
+        path = path.replace(pfix, '');
+      }
+      return path;
+    });
+  }
+
+  async findFilesByExtension(
+    extension: string,
+    prefix?: string
+  ): Promise<string[]> {
+    let q = `extension:${extension}+repo:${this.owner}/${this.repo}`;
+    if (prefix) {
+      prefix = this.normalizePrefix(prefix);
       q += `+path:${prefix}`;
     }
     const response: {data: FileSearchResponse} = await this.octokit.search.code(
