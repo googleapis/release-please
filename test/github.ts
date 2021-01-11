@@ -66,6 +66,18 @@ describe('GitHub', () => {
     });
   });
 
+  describe('normalizePrefix', () => {
+    it('removes a leading slash', async () => {
+      expect(github.normalizePrefix('/test')).to.equal('test');
+    });
+    it('removes a trailing slash', async () => {
+      expect(github.normalizePrefix('test/')).to.equal('test');
+    });
+    it('removes a leading & trailing slash', async () => {
+      expect(github.normalizePrefix('/test/')).to.equal('test');
+    });
+  });
+
   describe('findFilesByfilename', () => {
     it('returns files matching the requested pattern', async () => {
       const fileSearchResponse = JSON.parse(

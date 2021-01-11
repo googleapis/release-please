@@ -1010,15 +1010,17 @@ export class GitHub {
     }
   }
 
+  normalizePrefix(prefix: string) {
+    return prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '');
+  }
+
   async findFilesByFilename(
     filename: string,
     prefix?: string
   ): Promise<string[]> {
     let q = `filename:${filename}+repo:${this.owner}/${this.repo}`;
     if (prefix) {
-      prefix = prefix.replace(/[/\\]$/, '');
-      prefix = prefix.replace(/^[/\\]/, '');
-      q += `+path:${prefix}`;
+      q += `+path:${this.normalizePrefix(prefix)}`;
     }
     const response: {data: FileSearchResponse} = await this.octokit.search.code(
       {
@@ -1041,9 +1043,7 @@ export class GitHub {
   ): Promise<string[]> {
     let q = `extension:${extension}+repo:${this.owner}/${this.repo}`;
     if (prefix) {
-      prefix = prefix.replace(/[/\\]$/, '');
-      prefix = prefix.replace(/^[/\\]/, '');
-      q += `+path:${prefix}`;
+      q += `+path:${this.normalizePrefix(prefix)}`;
     }
     const response: {data: FileSearchResponse} = await this.octokit.search.code(
       {
