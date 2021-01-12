@@ -94,8 +94,8 @@ export class GitHubRelease {
 
     // In most configurations, createRelease() should be called close to when
     // a release PR is merged, e.g., a GitHub action that kicks off this
-    // workflow on merge. For tis reason, we can pull a fairly small number of PRs:
-    const pageSize = 25;
+    // workflow on merge. For this reason, we can pull a fairly small number of PRs:
+    const pageSize = 50;
     const gitHubReleasePR = await this.gh.findMergedReleasePR(
       this.labels,
       pageSize,
