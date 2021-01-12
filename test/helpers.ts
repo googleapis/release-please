@@ -24,7 +24,7 @@ export function stringifyExpectedChanges(expected: [string, object][]): string {
   for (const update of expected) {
     stringified = `${stringified}\nfilename: ${update[0]}`;
     const obj = update[1] as {[key: string]: string};
-    stringified = `${stringified}\n${obj.content}`;
+    stringified = `${stringified}\n${obj.content.replace(/\r\n/g, '\n')}`;
   }
   return stringified.replace(
     /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
