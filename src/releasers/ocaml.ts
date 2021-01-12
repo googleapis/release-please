@@ -15,7 +15,7 @@
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag} from '../github';
+import {GitHubTag, GitHubFileContents} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -85,16 +85,25 @@ export class OCaml extends ReleasePR {
     const updates: Update[] = [];
 
     const jsonPaths = await this.gh.findFilesByExtension('json');
-    jsonPaths.filter(notEsyLock).forEach(path => {
-      updates.push(
-        new EsyJson({
-          path: this.addPath(path),
-          changelogEntry,
-          version: candidate.version,
-          packageName: this.packageName,
-        })
-      );
-    });
+    for (let path of jsonPaths) {
+      if (notEsyLock(path)) {
+        const contents: GitHubFileContents = await this.gh.getFileContents(
+          this.addPath(path)
+        );
+        const pkg = JSON.parse(contents.parsedContent);
+        if (pkg.version !== undefined) {
+          updates.push(
+            new EsyJson({
+              path: this.addPath(path),
+              changelogEntry,
+              version: candidate.version,
+              packageName: this.packageName,
+              contents,
+            })
+          );
+        }
+      }
+    }
 
     const opamPaths = await this.gh.findFilesByExtension('opam');
     opamPaths.filter(notEsyLock).forEach(path => {
