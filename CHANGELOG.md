@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [9.1.0](https://www.github.com/googleapis/release-please/compare/v9.0.0...v9.1.0) (2021-01-12)
+
+
+### Features
+
+* add addFilesByExtension method & allow leading slash in path ([#694](https://www.github.com/googleapis/release-please/issues/694)) ([0d63813](https://www.github.com/googleapis/release-please/commit/0d638138caa4299fda723008dfa6975c0b816ebd))
+
+
+### Bug Fixes
+
+* **github-release:** increasae page size finding release ([#698](https://www.github.com/googleapis/release-please/issues/698)) ([c156950](https://www.github.com/googleapis/release-please/commit/c1569508bf2d5b9071df0c7bebe75f3322ff1b4a))
+* **monorepos:** github-release not created ([#669](https://www.github.com/googleapis/release-please/issues/669)) ([9f69f41](https://www.github.com/googleapis/release-please/commit/9f69f416ad4d228b40ac6d7f7d86c652d01e57d6)), closes [#668](https://www.github.com/googleapis/release-please/issues/668)
+
 ## [9.0.0](https://www.github.com/googleapis/release-please/compare/v8.2.0...v9.0.0) (2021-01-08)
 
 
