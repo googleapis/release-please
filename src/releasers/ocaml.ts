@@ -85,7 +85,7 @@ export class OCaml extends ReleasePR {
     const updates: Update[] = [];
 
     const jsonPaths = await this.gh.findFilesByExtension('json');
-    for (let path of jsonPaths) {
+    for (const path of jsonPaths) {
       if (notEsyLock(path)) {
         const contents: GitHubFileContents = await this.gh.getFileContents(
           this.addPath(path)

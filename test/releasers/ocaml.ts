@@ -156,7 +156,7 @@ describe('OCaml', () => {
       });
     });
 
-    it(`skips JSON files that don't contain a "version" field`, async () => {
+    it('skips JSON files that don\'t contain a "version" field', async () => {
       const releasePR = new OCaml({
         repoUrl: 'phated/ocaml-sample-repo',
         releaseType: 'ocaml',
@@ -211,7 +211,9 @@ describe('OCaml', () => {
 
       getFileContentsStub.withArgs('fixture.json', 'main').resolves({
         sha: 'abc123',
-        content: Buffer.from(JSON.stringify({test: 'Test'}), 'utf8').toString('base64'),
+        content: Buffer.from(JSON.stringify({test: 'Test'}), 'utf8').toString(
+          'base64'
+        ),
         parsedContent: '{"test": "Test"}',
       });
 
