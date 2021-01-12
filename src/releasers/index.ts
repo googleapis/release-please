@@ -26,6 +26,7 @@ import {Ruby} from './ruby';
 import {Simple} from './simple';
 import {TerraformModule} from './terraform-module';
 import {Rust} from './rust';
+import {OCaml} from './ocaml';
 
 // TODO: add any new releasers you create to this list:
 export function getReleasers(): {[key: string]: typeof ReleasePR} {
@@ -43,6 +44,7 @@ export function getReleasers(): {[key: string]: typeof ReleasePR} {
     simple: Simple,
     'terraform-module': TerraformModule,
     rust: Rust,
+    ocaml: OCaml,
   };
   return releasers;
 }

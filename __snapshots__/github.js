@@ -199,9 +199,9 @@ exports['GitHub getFileContents should support Github Data API in case of a big 
 }
 
 exports['GitHub findFilesByExtension returns files matching the requested pattern 1'] = [
-  "appengine/pom.xml",
-  "bom/pom.xml",
-  "credentials/pom.xml",
-  "oauth2_http/pom.xml",
-  "pom.xml"
+  'appengine/pom.xml',
+  'bom/pom.xml',
+  'credentials/pom.xml',
+  'oauth2_http/pom.xml',
+  'pom.xml'
 ]
