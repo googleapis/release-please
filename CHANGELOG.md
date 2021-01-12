@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [9.2.0](https://www.github.com/googleapis/release-please/compare/v9.1.0...v9.2.0) (2021-01-12)
+
+
+### Features
+
+* add ocaml releaser and esy/opam updaters ([#697](https://www.github.com/googleapis/release-please/issues/697)) ([5e94767](https://www.github.com/googleapis/release-please/commit/5e947674683bbe512343848e52327255c331cdc4))
+
 ## [9.1.0](https://www.github.com/googleapis/release-please/compare/v9.0.0...v9.1.0) (2021-01-12)
 
 
