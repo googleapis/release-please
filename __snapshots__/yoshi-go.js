@@ -1,6 +1,6 @@
 exports['labels-go-yoshi'] = {
-  'labels': [
-    'autorelease: pending'
+  "labels": [
+    "autorelease: pending"
   ]
 }
 
