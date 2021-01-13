@@ -126,6 +126,14 @@ const argv = yargs
           describe: 'include library name in tags and release branches',
           type: 'boolean',
           default: false,
+        })
+        .option('draft', {
+          describe:
+            'mark release as a draft. no tag is created but tag_name and ' +
+            'target_commitish are associated with the release for future ' +
+            'tag creation upon "un-drafting" the release.',
+          type: 'boolean',
+          default: false,
         });
     },
     (argv: GitHubReleaseOptions) => {

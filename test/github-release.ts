@@ -68,7 +68,7 @@ describe('GitHubRelease', () => {
             return true;
           }
         )
-        .reply(200, {tag_name: 'v1.0.3'})
+        .reply(200, {tag_name: 'v1.0.3', draft: false})
         .post(
           '/repos/googleapis/foo/issues/1/labels',
           (body: {[key: string]: string}) => {
@@ -87,6 +87,69 @@ describe('GitHubRelease', () => {
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
       strictEqual(created!.patch, 3);
+      strictEqual(created!.draft, false);
+      requests.done();
+    });
+
+    it('creates a draft release', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        packageName: 'foo',
+        apiUrl: 'https://api.github.com',
+        draft: true,
+      });
+      const requests = nock('https://api.github.com')
+        // check for default branch
+        .get('/repos/googleapis/foo')
+        .reply(200, repoInfo)
+        .get(
+          '/repos/googleapis/foo/pulls?state=closed&per_page=50&sort=merged_at&direction=desc'
+        )
+        .reply(200, [
+          {
+            labels: [{name: 'autorelease: pending'}],
+            head: {
+              label: 'head:release-v1.0.3',
+            },
+            base: {
+              label: 'googleapis:main',
+            },
+            number: 1,
+            merged_at: new Date().toISOString(),
+          },
+        ])
+        .get('/repos/googleapis/foo/contents/CHANGELOG.md?ref=refs/heads/main')
+        .reply(200, {
+          content: Buffer.from('#Changelog\n\n## v1.0.3\n\n* entry', 'utf8'),
+        })
+        .post(
+          '/repos/googleapis/foo/releases',
+          (body: {[key: string]: string}) => {
+            snapshot(body);
+            return true;
+          }
+        )
+        .reply(200, {tag_name: 'v1.0.3', draft: true})
+        .post(
+          '/repos/googleapis/foo/issues/1/labels',
+          (body: {[key: string]: string}) => {
+            snapshot(body);
+            return true;
+          }
+        )
+        .reply(200)
+        .delete(
+          '/repos/googleapis/foo/issues/1/labels/autorelease%3A%20pending'
+        )
+        .reply(200);
+
+      const created = await release.createRelease();
+      strictEqual(created!.tag_name, 'v1.0.3');
+      strictEqual(created!.major, 1);
+      strictEqual(created!.minor, 0);
+      strictEqual(created!.patch, 3);
+      strictEqual(created!.draft, true);
       requests.done();
     });
 
