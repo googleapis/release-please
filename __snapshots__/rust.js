@@ -41,8 +41,8 @@ filename: crates/crate2/Cargo.toml
 name = "crate2"
 version = "0.4.321"
 
-[dependencies.crate1]
-version = "0.123.5"
-path = "../crate2"
+[dependencies]
+crate1 = { version = "0.123.5", path = "../crate2" }
+
 
 `
