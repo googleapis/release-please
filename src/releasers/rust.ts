@@ -90,6 +90,7 @@ export class Rust extends ReleasePR {
     );
 
     const manifestPaths: string[] = [];
+    let lockPath: string;
 
     if (
       workspaceManifest &&
@@ -104,6 +105,7 @@ export class Rust extends ReleasePR {
       for (const member of members) {
         manifestPaths.push(`${member}/Cargo.toml`);
       }
+      lockPath = 'Cargo.lock';
     } else {
       const manifestPath = this.addPath('Cargo.toml');
       checkpoint(
@@ -111,6 +113,7 @@ export class Rust extends ReleasePR {
         CheckpointType.Success
       );
       manifestPaths.push(this.addPath('Cargo.toml'));
+      lockPath = this.addPath('Cargo.lock');
     }
 
     const versions = new Map();
@@ -128,7 +131,6 @@ export class Rust extends ReleasePR {
       );
     }
 
-    const lockPath = this.addPath('Cargo.lock');
     if (await this.exists(lockPath)) {
       updates.push(
         new CargoLock({
