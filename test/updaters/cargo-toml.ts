@@ -24,7 +24,7 @@ const fixturesPath = './test/updaters/fixtures';
 
 describe('CargoToml', () => {
   describe('updateContent', () => {
-    it('updates the crate version', async () => {
+    it('updates the crate version while preserving formatting', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),
         'utf8'

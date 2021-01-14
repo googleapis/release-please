@@ -1,24 +1,15 @@
 declare module '@iarna/toml/lib/toml-parser' {
-  // Copied from `@iarna/toml`'s typings
-  type JsonArray = boolean[] | number[] | string[] | JsonMap[] | Date[];
-  type AnyJson =
-    | boolean
-    | number
-    | string
-    | JsonMap
-    | Date
-    | JsonArray
-    | JsonArray[];
+  import {JsonMap} from '@iarna/toml';
 
-  interface JsonMap {
-    [key: string]: AnyJson;
+  namespace TOMLParser {
+    // This is necessary, or TS will consider this to be a "non-module entity"
   }
 
   /**
    * Low-level @iarna/toml interface (documented in the README, not in the official typings)
    * Only the fields that we're using or overriding are declared here.
    */
-  export class TOMLParser {
+  class TOMLParser {
     pos: number;
     state: {
       returned: unknown;
@@ -49,4 +40,6 @@ declare module '@iarna/toml/lib/toml-parser' {
      */
     parseBasicString(): void;
   }
+
+  export = TOMLParser;
 }

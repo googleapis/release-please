@@ -4,7 +4,7 @@
     "lib": ["es2018", "dom"],
     "rootDir": ".",
     "outDir": "build",
-    "typeRoots": ["./typings"]
+    "typeRoots": ["./typings", "./node_modules/@types"]
   },
   "include": [
     "typings/**/*.d.ts",
