@@ -17,7 +17,8 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
-import {CargoToml, parseCargoManifest} from '../../src/updaters/cargo-toml';
+import {CargoToml} from '../../src/updaters/rust/cargo-toml';
+import {parseCargoManifest} from '../../src/updaters/rust/common';
 
 const fixturesPath = './test/updaters/fixtures';
 
