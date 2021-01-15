@@ -59,11 +59,7 @@ export class CargoToml implements Update {
           `updating ${this.path}'s own version from ${parsed.package?.version} to ${pkgVersion}`,
           CheckpointType.Success
         );
-        payload = replaceTomlValue(
-          payload,
-          ['package', 'version'],
-          pkgVersion
-        );
+        payload = replaceTomlValue(payload, ['package', 'version'], pkgVersion);
 
         continue; // to next [pkgName, pkgVersion] pair
       }
@@ -98,6 +94,43 @@ export class CargoToml implements Update {
           [depKind, pkgName, 'version'],
           pkgVersion
         );
+      }
+
+      // Update platform-specific dependencies
+      if (parsed.target) {
+        for (const targetName of Object.keys(parsed.target)) {
+          for (const depKind of DEP_KINDS) {
+            const deps = parsed.target[targetName][depKind];
+
+            if (!deps) {
+              continue; // to next depKind
+            }
+
+            if (!deps[pkgName]) {
+              continue; // to next depKind
+            }
+
+            const dep = deps[pkgName];
+
+            if (typeof dep === 'string' || typeof dep.path === 'undefined') {
+              checkpoint(
+                `skipping target.${targetName}.${depKind}.${pkgName} in ${this.path}`,
+                CheckpointType.Success
+              );
+              continue; // to next depKind
+            }
+
+            checkpoint(
+              `updating ${this.path} target.${targetName}.${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`,
+              CheckpointType.Success
+            );
+            payload = replaceTomlValue(
+              payload,
+              ['target', targetName, depKind, pkgName, 'version'],
+              pkgVersion
+            );
+          }
+        }
       }
     }
 

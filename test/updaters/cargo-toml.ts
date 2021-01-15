@@ -16,9 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {expect} from 'chai';
 import {CargoToml} from '../../src/updaters/rust/cargo-toml';
-import {parseCargoManifest} from '../../src/updaters/rust/common';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -51,6 +49,10 @@ describe('CargoToml', () => {
       versions.set('normal-dep', '2.0.0');
       versions.set('dev-dep', '2.0.0');
       versions.set('build-dep', '2.0.0');
+      versions.set('windows-dep', '2.0.0');
+      versions.set('unix-dep', '2.0.0');
+      versions.set('x86-dep', '2.0.0');
+      versions.set('x86-64-dep', '2.0.0');
       const cargoToml = new CargoToml({
         path: 'Cargo.toml',
         changelogEntry: '',
@@ -59,12 +61,6 @@ describe('CargoToml', () => {
         packageName: 'rust-test-repo',
       });
       const newContent = cargoToml.updateContent(oldContent);
-      const parsed = parseCargoManifest(newContent);
-      expect(parsed).to.deep.include({
-        'build-dependencies': {
-          'build-dep': {path: '..', registry: 'private', version: '2.0.0'},
-        },
-      });
       snapshot(newContent);
     });
   });

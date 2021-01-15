@@ -24,6 +24,18 @@ export interface CargoManifest {
   dependencies?: CargoDependencies;
   ['dev-dependencies']?: CargoDependencies;
   ['build-dependencies']?: CargoDependencies;
+  target?: TargetDependencies;
+}
+
+/**
+ * Platform-specific dependencies
+ */
+export interface TargetDependencies {
+  [key: string]: {
+    dependencies?: CargoDependencies;
+    ['dev-dependencies']?: CargoDependencies;
+    ['build-dependencies']?: CargoDependencies;
+  };
 }
 
 export interface CargoWorkspace {
