@@ -17,11 +17,47 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {CargoToml} from '../../src/updaters/rust/cargo-toml';
+import {expect} from 'chai';
 
 const fixturesPath = './test/updaters/fixtures';
 
 describe('CargoToml', () => {
   describe('updateContent', () => {
+    it('refuses to update without versions', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './Cargo.toml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const cargoToml = new CargoToml({
+        path: 'Cargo.toml',
+        changelogEntry: '',
+        version: 'unused',
+        versions: undefined,
+        packageName: 'rust-test-repo',
+      });
+      expect(() => {
+        cargoToml.updateContent(oldContent);
+      }).to.throw();
+    });
+
+    it('refuses to update non-package manifests', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './Cargo-workspace.toml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map();
+      const cargoToml = new CargoToml({
+        path: 'Cargo.toml',
+        changelogEntry: '',
+        version: 'unused',
+        versions,
+        packageName: 'rust-test-repo',
+      });
+      expect(() => {
+        cargoToml.updateContent(oldContent);
+      }).to.throw();
+    });
+
     it('updates the crate version while preserving formatting', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),
@@ -53,6 +89,7 @@ describe('CargoToml', () => {
       versions.set('unix-dep', '2.0.0');
       versions.set('x86-dep', '2.0.0');
       versions.set('x86-64-dep', '2.0.0');
+      versions.set('foobar-dep', '2.0.0');
       const cargoToml = new CargoToml({
         path: 'Cargo.toml',
         changelogEntry: '',

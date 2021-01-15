@@ -27,6 +27,9 @@ x86-dep = { version = "2.0.0", registry = "private", path = ".." }
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86-64-dep = { version = "2.0.0", registry = "private", path = ".." }
 
+[target.'cfg(foobar)'.dependencies]
+foobar-dep = "1.2.3"
+
 `
 
 exports['CargoToml updateContent updates the crate version while preserving formatting 1'] = `
@@ -57,5 +60,8 @@ x86-dep = { version = "1.2.3", registry = "private", path = ".." }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86-64-dep = { version = "1.2.3", registry = "private", path = ".." }
+
+[target.'cfg(foobar)'.dependencies]
+foobar-dep = "1.2.3"
 
 `
