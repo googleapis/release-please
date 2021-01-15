@@ -4,8 +4,10 @@
     "lib": ["es2018", "dom"],
     "rootDir": ".",
     "outDir": "build",
+    "typeRoots": ["./typings", "./node_modules/@types"]
   },
   "include": [
+    "typings/**/*.d.ts",
     "src/**/*.ts",
     "test/**/*.ts",
     "system-test/*.ts"
