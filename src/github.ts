@@ -552,7 +552,8 @@ export class GitHub {
     labels: string[],
     perPage = 100,
     branchPrefix: string | undefined = undefined,
-    preRelease = true
+    preRelease = true,
+    sort = 'created'
   ): Promise<GitHubReleasePR | undefined> {
     branchPrefix = branchPrefix?.endsWith('-')
       ? branchPrefix.replace(/-$/, '')
@@ -561,7 +562,7 @@ export class GitHub {
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }&sort=updated&direction=desc`,
+      }&sort=${sort}&direction=desc`,
       {
         owner: this.owner,
         repo: this.repo,

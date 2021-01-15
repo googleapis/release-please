@@ -101,7 +101,9 @@ export class GitHubRelease {
       pageSize,
       this.monorepoTags
         ? packageBranchPrefix(this.packageName, this.releaseType)
-        : undefined
+        : undefined,
+      true,
+      'updated'
     );
     if (!gitHubReleasePR) {
       checkpoint('no recent release PRs found', CheckpointType.Failure);
