@@ -16,88 +16,88 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import {expect} from 'chai';
+import {CargoLock} from '../../src/updaters/rust/cargo-lock';
+import {parseCargoLockfile} from '../../src/updaters/rust/common';
 
 const fixturesPath = './test/updaters/fixtures';
 
-describe('CargoToml', () => {
+describe('CargoLock', () => {
   describe('updateContent', () => {
     it('refuses to update without versions', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './Cargo.toml'),
+        resolve(fixturesPath, './Cargo.lock'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
+      const cargoLock = new CargoLock({
+        path: 'Cargo.lock',
         changelogEntry: '',
         version: 'unused',
         versions: undefined,
         packageName: 'rust-test-repo',
       });
       expect(() => {
-        cargoToml.updateContent(oldContent);
+        cargoLock.updateContent(oldContent);
       }).to.throw();
     });
 
-    it('refuses to update non-package manifests', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './Cargo-workspace.toml'),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
-      const versions = new Map();
-      const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
+    it('refuses to update something that is not a lockfile', async () => {
+      const oldContent = '[woops]\nindeed = true';
+      const cargoLock = new CargoLock({
+        path: 'Cargo.lock',
         changelogEntry: '',
         version: 'unused',
-        versions,
+        versions: new Map(),
         packageName: 'rust-test-repo',
       });
       expect(() => {
-        cargoToml.updateContent(oldContent);
+        cargoLock.updateContent(oldContent);
       }).to.throw();
     });
 
     it('updates the crate version while preserving formatting', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './Cargo.toml'),
+        resolve(fixturesPath, './Cargo.lock'),
         'utf8'
       ).replace(/\r\n/g, '\n');
       const versions = new Map();
-      versions.set('rust-test-repo', '14.0.0');
-      const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
+      versions.set('delf', '0.2.0');
+      const cargoLock = new CargoLock({
+        path: 'Cargo.lock',
         changelogEntry: '',
         version: 'unused',
         versions,
-        packageName: 'rust-test-repo',
+        packageName: 'delf',
       });
-      const newContent = cargoToml.updateContent(oldContent);
+      const newContent = cargoLock.updateContent(oldContent);
+      const pkg = parseCargoLockfile(newContent).package![4];
+      expect(pkg).to.deep.include({
+        name: 'delf',
+        version: '0.2.0',
+      });
       snapshot(newContent);
     });
 
-    it('updates (only) path dependencies', async () => {
+    it('silently ignores invalid [[package]] entries', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './Cargo.toml'),
+        resolve(fixturesPath, './Cargo-invalid.lock'),
         'utf8'
       ).replace(/\r\n/g, '\n');
       const versions = new Map();
-      versions.set('normal-dep', '2.0.0');
-      versions.set('dev-dep', '2.0.0');
-      versions.set('build-dep', '2.0.0');
-      versions.set('windows-dep', '2.0.0');
-      versions.set('unix-dep', '2.0.0');
-      versions.set('x86-dep', '2.0.0');
-      versions.set('x86-64-dep', '2.0.0');
-      versions.set('foobar-dep', '2.0.0');
-      const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
+      versions.set('delf', '0.2.0');
+      const cargoLock = new CargoLock({
+        path: 'Cargo.lock',
         changelogEntry: '',
         version: 'unused',
         versions,
-        packageName: 'rust-test-repo',
+        packageName: 'delf',
       });
-      const newContent = cargoToml.updateContent(oldContent);
+      const newContent = cargoLock.updateContent(oldContent);
+      const pkg = parseCargoLockfile(newContent).package![0];
+      expect(pkg).to.deep.include({
+        name: 'delf',
+        version: '0.2.0',
+      });
       snapshot(newContent);
     });
   });
