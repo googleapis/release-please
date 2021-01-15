@@ -561,7 +561,7 @@ export class GitHub {
     const pullsResponse = (await this.request(
       `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
         this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }&sort=merged_at&direction=desc`,
+      }&sort=updated&direction=desc`,
       {
         owner: this.owner,
         repo: this.repo,
