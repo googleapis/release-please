@@ -26,7 +26,12 @@ declare module '@iarna/toml/lib/toml-parser' {
   class TOMLParser {
     pos: number;
     state: {
+      /// Value returned by parser (its result)
       returned: unknown;
+
+      /// Internal marker used to remember the start of values,
+      /// not set by `@iarna/toml` itself.
+      __TAGGED_START?: number;
     };
 
     constructor();
@@ -50,9 +55,22 @@ declare module '@iarna/toml/lib/toml-parser' {
     ///////////////////////////////
 
     /**
-     * Parses a single-line, double-quoted string
+     * Parses any value (string, number, boolean, date, etc.)
      */
-    parseBasicString(): void;
+    parseValue(): void;
+
+    /**
+     * Specifies the next parser to be run by setting `this.state.parser`,
+     * called by `goto()`, `call()`, etc.
+     */
+    next(fn: Function): void;
+
+    /**
+     * Called when a parser ends, returns either @value or `this.state.buf`
+     * The parser we're returning "to" is popped from `this.stack`, assigned
+     * to `this.state`, and `this.state.returned` is set to the returned value.
+     */
+    return(value: unknown): void;
   }
 
   export = TOMLParser;

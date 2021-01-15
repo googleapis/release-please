@@ -14,40 +14,95 @@
 
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
-import {replaceTomlString} from '../../src/updaters/rust/toml-edit';
+import {replaceTomlValue} from '../../src/updaters/rust/toml-edit';
 
 describe('toml-edit', () => {
-  it('replaces a string', () => {
+  it('replaces a double-quoted string', () => {
     const input = '[package]\nversion = "0.1.0"';
-    const output = replaceTomlString(input, ['package', 'version'], '0.2.0');
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
     expect(output).to.equal('[package]\nversion = "0.2.0"');
+  });
+
+  it('replaces a double-quoted string with escapes', () => {
+    const input = '[package]\nversion = "0.1\\t.0"';
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
+    expect(output).to.equal('[package]\nversion = "0.2.0"');
+  });
+
+  it('replaces a single-quoted string', () => {
+    const input = "[package]\nversion = '0.1.0'";
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
+    expect(output).to.equal('[package]\nversion = "0.2.0"');
+  });
+
+  it('replaces a multiline string', () => {
+    const input = '[package]\nversion = """\n0.1.0"""';
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
+    expect(output).to.equal('[package]\nversion = "0.2.0"');
+  });
+
+  it('replaces a boolean', () => {
+    const input = '[package]\nversion = false';
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
+    expect(output).to.equal('[package]\nversion = "0.2.0"');
+  });
+
+  it('replaces when path uses dotted syntax', () => {
+    const input = 'package.version = "0.1.0"';
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
+    expect(output).to.equal('package.version = "0.2.0"');
+  });
+
+  it('replaces when path uses dotted syntax with quoted keys (1)', () => {
+    const input = 'package."version" = "0.1.0"';
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
+    expect(output).to.equal('package."version" = "0.2.0"');
+  });
+
+  it('replaces when path uses dotted syntax with quoted keys (2)', () => {
+    const input = '"package".version = "0.1.0"';
+    const output = replaceTomlValue(input, ['package', 'version'], '0.2.0');
+    expect(output).to.equal('"package".version = "0.2.0"');
+  });
+
+  it('replaces deep paths', () => {
+    const input = [
+      '[first-key]',
+      '# comment',
+      'second-key = { third-key = false } # comment',
+    ].join('\n');
+    const output = replaceTomlValue(
+      input,
+      ['first-key', 'second-key', 'third-key'],
+      '0.2.0'
+    );
+    expect(output).to.equal(
+      [
+        '[first-key]',
+        '# comment',
+        'second-key = { third-key = "0.2.0" } # comment',
+      ].join('\n')
+    );
   });
 
   it('throws if path is empty', () => {
     const input = '[package]\nversion = "0.1.0"';
     expect(() => {
-      replaceTomlString(input, [], '0.2.0');
+      replaceTomlValue(input, [], '0.2.0');
     }).to.throw();
   });
 
   it('throws if path does not exist', () => {
     const input = '[package]\nversion = "0.1.0"';
     expect(() => {
-      replaceTomlString(input, ['package', 'variety'], '0.2.0');
+      replaceTomlValue(input, ['package', 'variety'], '0.2.0');
     }).to.throw();
   });
 
-  it('throws if path does not lead to a string', () => {
-    const input = '[package]\nversion = false';
+  it('throws if path does not lead to a value', () => {
+    const input = '[package.version]\nwoops = true';
     expect(() => {
-      replaceTomlString(input, ['package', 'version'], '0.2.0');
-    }).to.throw();
-  });
-
-  it('throws if result is not valid TOML', () => {
-    const input = '[package]\nversion = "0.1.0"';
-    expect(() => {
-      replaceTomlString(input, ['package', 'version'], 'woops"unterminated');
+      replaceTomlValue(input, ['package', 'version'], '0.2.0');
     }).to.throw();
   });
 });

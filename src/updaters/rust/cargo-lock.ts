@@ -15,7 +15,7 @@
 import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
-import {replaceTomlString} from './toml-edit';
+import {replaceTomlValue} from './toml-edit';
 import {parseCargoLockfile} from './common';
 
 /**
@@ -80,7 +80,7 @@ export class CargoLock implements Update {
         `updating ${pkg.name} in ${this.path}`,
         CheckpointType.Success
       );
-      payload = replaceTomlString(
+      payload = replaceTomlValue(
         payload,
         ['package', packageIndex, 'version'],
         nextVersion

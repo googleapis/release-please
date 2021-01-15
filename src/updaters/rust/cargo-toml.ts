@@ -15,7 +15,7 @@
 import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
-import {replaceTomlString} from './toml-edit';
+import {replaceTomlValue} from './toml-edit';
 import {DEP_KINDS, parseCargoManifest} from './common';
 
 /**
@@ -59,7 +59,7 @@ export class CargoToml implements Update {
           `updating ${this.path}'s own version from ${parsed.package?.version} to ${pkgVersion}`,
           CheckpointType.Success
         );
-        payload = replaceTomlString(
+        payload = replaceTomlValue(
           payload,
           ['package', 'version'],
           pkgVersion
@@ -93,7 +93,7 @@ export class CargoToml implements Update {
           `updating ${this.path} ${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`,
           CheckpointType.Success
         );
-        payload = replaceTomlString(
+        payload = replaceTomlValue(
           payload,
           [depKind, pkgName, 'version'],
           pkgVersion
