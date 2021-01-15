@@ -28,7 +28,7 @@ describe('CargoToml', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),
         'utf8'
-      );
+      ).replace(/\r\n/, '\n');
       const versions = new Map();
       versions.set('rust-test-repo', '14.0.0');
       const cargoToml = new CargoToml({
@@ -39,14 +39,14 @@ describe('CargoToml', () => {
         packageName: 'rust-test-repo',
       });
       const newContent = cargoToml.updateContent(oldContent);
-      snapshot(newContent.replace(/\r\n/, '\n'));
+      snapshot(newContent);
     });
 
     it('updates (only) path dependencies', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),
         'utf8'
-      );
+      ).replace(/\r\n/, '\n');
       const versions = new Map();
       versions.set('normal-dep', '2.0.0');
       versions.set('dev-dep', '2.0.0');
@@ -65,7 +65,7 @@ describe('CargoToml', () => {
           'build-dep': {path: '..', registry: 'private', version: '2.0.0'},
         },
       });
-      snapshot(newContent.replace(/\r\n/, '\n'));
+      snapshot(newContent);
     });
   });
 });

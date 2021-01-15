@@ -28,7 +28,7 @@ describe('CargoLock', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.lock'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const versions = new Map();
       versions.set('delf', '0.2.0');
       const cargoToml = new CargoLock({
@@ -44,7 +44,7 @@ describe('CargoLock', () => {
         name: 'delf',
         version: '0.2.0',
       });
-      snapshot(newContent.replace(/\r\n/g, '\n'));
+      snapshot(newContent);
     });
   });
 });
