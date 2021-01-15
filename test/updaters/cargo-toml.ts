@@ -28,7 +28,7 @@ describe('CargoToml', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),
         'utf8'
-      ).replace(/\r\n/, '\n');
+      ).replace(/\r\n/g, '\n');
       const versions = new Map();
       versions.set('rust-test-repo', '14.0.0');
       const cargoToml = new CargoToml({
@@ -46,7 +46,7 @@ describe('CargoToml', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.toml'),
         'utf8'
-      ).replace(/\r\n/, '\n');
+      ).replace(/\r\n/g, '\n');
       const versions = new Map();
       versions.set('normal-dep', '2.0.0');
       versions.set('dev-dep', '2.0.0');
