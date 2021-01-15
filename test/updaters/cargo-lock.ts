@@ -44,7 +44,7 @@ describe('CargoLock', () => {
         name: 'delf',
         version: '0.2.0',
       });
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
     });
   });
 });
