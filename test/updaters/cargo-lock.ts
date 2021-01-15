@@ -24,6 +24,37 @@ const fixturesPath = './test/updaters/fixtures';
 
 describe('CargoLock', () => {
   describe('updateContent', () => {
+    it('refuses to update without versions', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './Cargo.lock'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const cargoLock = new CargoLock({
+        path: 'Cargo.lock',
+        changelogEntry: '',
+        version: 'unused',
+        versions: undefined,
+        packageName: 'rust-test-repo',
+      });
+      expect(() => {
+        cargoLock.updateContent(oldContent);
+      }).to.throw();
+    });
+
+    it('refuses to update something that is not a lockfile', async () => {
+      const oldContent = '[woops]\nindeed = true';
+      const cargoLock = new CargoLock({
+        path: 'Cargo.lock',
+        changelogEntry: '',
+        version: 'unused',
+        versions: new Map(),
+        packageName: 'rust-test-repo',
+      });
+      expect(() => {
+        cargoLock.updateContent(oldContent);
+      }).to.throw();
+    });
+
     it('updates the crate version while preserving formatting', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './Cargo.lock'),
@@ -31,15 +62,38 @@ describe('CargoLock', () => {
       ).replace(/\r\n/g, '\n');
       const versions = new Map();
       versions.set('delf', '0.2.0');
-      const cargoToml = new CargoLock({
+      const cargoLock = new CargoLock({
         path: 'Cargo.lock',
         changelogEntry: '',
         version: 'unused',
         versions,
         packageName: 'delf',
       });
-      const newContent = cargoToml.updateContent(oldContent);
+      const newContent = cargoLock.updateContent(oldContent);
       const pkg = parseCargoLockfile(newContent).package![4];
+      expect(pkg).to.deep.include({
+        name: 'delf',
+        version: '0.2.0',
+      });
+      snapshot(newContent);
+    });
+
+    it('silently ignores invalid [[package]] entries', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './Cargo-invalid.lock'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map();
+      versions.set('delf', '0.2.0');
+      const cargoLock = new CargoLock({
+        path: 'Cargo.lock',
+        changelogEntry: '',
+        version: 'unused',
+        versions,
+        packageName: 'delf',
+      });
+      const newContent = cargoLock.updateContent(oldContent);
+      const pkg = parseCargoLockfile(newContent).package![0];
       expect(pkg).to.deep.include({
         name: 'delf',
         version: '0.2.0',
