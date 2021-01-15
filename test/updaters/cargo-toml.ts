@@ -39,7 +39,7 @@ describe('CargoToml', () => {
         packageName: 'rust-test-repo',
       });
       const newContent = cargoToml.updateContent(oldContent);
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/, '\n'));
     });
 
     it('updates (only) path dependencies', async () => {
@@ -65,7 +65,7 @@ describe('CargoToml', () => {
           'build-dep': {path: '..', registry: 'private', version: '2.0.0'},
         },
       });
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/, '\n'));
     });
   });
 });
