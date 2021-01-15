@@ -23,11 +23,9 @@ import {Commit} from '../graphql-to-commits';
 // Generic
 import {Changelog} from '../updaters/changelog';
 // Cargo.toml support
-import {
-  CargoManifest,
-  CargoToml,
-  parseCargoManifest,
-} from '../updaters/cargo-toml';
+import {CargoToml} from '../updaters/rust/cargo-toml';
+import {CargoLock} from '../updaters/rust/cargo-lock';
+import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
 
 export class Rust extends ReleasePR {
   static releaserName = 'rust';
@@ -91,7 +89,8 @@ export class Rust extends ReleasePR {
       })
     );
 
-    const paths: string[] = [];
+    const manifestPaths: string[] = [];
+    let lockPath: string;
 
     if (
       workspaceManifest &&
@@ -104,24 +103,38 @@ export class Rust extends ReleasePR {
         CheckpointType.Success
       );
       for (const member of members) {
-        paths.push(`${member}/Cargo.toml`);
+        manifestPaths.push(`${member}/Cargo.toml`);
       }
+      lockPath = 'Cargo.lock';
     } else {
       const manifestPath = this.addPath('Cargo.toml');
       checkpoint(
         `single crate found, updating ${manifestPath}`,
         CheckpointType.Success
       );
-      paths.push(this.addPath('Cargo.toml'));
+      manifestPaths.push(this.addPath('Cargo.toml'));
+      lockPath = this.addPath('Cargo.lock');
     }
 
     const versions = new Map();
     versions.set(this.packageName, candidate.version);
 
-    for (const path of paths) {
+    for (const path of manifestPaths) {
       updates.push(
         new CargoToml({
           path,
+          changelogEntry,
+          version: 'unused',
+          versions,
+          packageName: this.packageName,
+        })
+      );
+    }
+
+    if (await this.exists(lockPath)) {
+      updates.push(
+        new CargoLock({
+          path: lockPath,
           changelogEntry,
           version: 'unused',
           versions,
@@ -205,6 +218,15 @@ export class Rust extends ReleasePR {
       return null;
     }
     return parseCargoManifest(content.parsedContent);
+  }
+
+  protected async exists(path: string): Promise<boolean> {
+    try {
+      await this.gh.getFileContents(path);
+      return true;
+    } catch (_e) {
+      return false;
+    }
   }
 }
 
