@@ -298,7 +298,7 @@ describe('GitHub', () => {
       ];
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, sampleResults);
       const latestTag = await github.latestTag('complex-package_name-v1-');
@@ -338,7 +338,7 @@ describe('GitHub', () => {
       ];
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, sampleResults);
       const latestTag = await github.latestTag();
@@ -349,7 +349,7 @@ describe('GitHub', () => {
     it('returns the latest tag on the main branch, based on PR date', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();
@@ -367,7 +367,7 @@ describe('GitHub', () => {
 
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();
@@ -378,7 +378,7 @@ describe('GitHub', () => {
     it('does not return pre-releases as latest tag', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();
@@ -389,7 +389,7 @@ describe('GitHub', () => {
     it('returns pre-releases on the main branch as latest, when preRelease is true', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag(undefined, true);
@@ -407,7 +407,7 @@ describe('GitHub', () => {
 
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag(undefined, true);
@@ -417,7 +417,7 @@ describe('GitHub', () => {
     it('falls back to using tags, for simple case', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
@@ -438,7 +438,7 @@ describe('GitHub', () => {
     it('falls back to using tags, when prefix is provided', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
@@ -467,7 +467,7 @@ describe('GitHub', () => {
     it('allows for "@" rather than "-" when fallback used', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
@@ -500,7 +500,7 @@ describe('GitHub', () => {
     it('allows for "/" rather than "-" when fallback used', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=updated&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
