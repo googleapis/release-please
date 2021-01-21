@@ -230,7 +230,7 @@ describe('Release-PR', () => {
         // check for default branch
         .get('/repos/googleapis/release-please')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../test/fixtures/repo-get-1.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
         .reply(200, []);
