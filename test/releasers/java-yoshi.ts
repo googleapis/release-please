@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {describe, it, afterEach} from 'mocha';
+import {expect} from 'chai';
 import * as nock from 'nock';
 nock.disableNetConnect();
 
@@ -669,10 +670,12 @@ describe('JavaYoshi', () => {
     // We stub the entire suggester API, asserting only that the
     // the appropriate changes are proposed:
     let expectedChanges = null;
+    let expectedOptions = null;
     sandbox.replace(
       suggester,
       'createPullRequest',
-      (_octokit, changes): Promise<number> => {
+      (_octokit, changes, options): Promise<number> => {
+        expectedOptions = options;
         expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
         return Promise.resolve(22);
       }
@@ -714,6 +717,16 @@ describe('JavaYoshi', () => {
         '/repos/googleapis/java-trace/pulls?state=closed&per_page=100&sort=created&direction=desc'
       )
       .reply(200, [
+        {
+          base: {
+            label: 'googleapis:master',
+          },
+          head: {
+            label: 'googleapis:release-v1.0.0',
+            sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+          },
+          merged_at: new Date().toISOString(),
+        },
         {
           base: {
             label: 'googleapis:1.x',
@@ -776,14 +789,10 @@ describe('JavaYoshi', () => {
         content: Buffer.from(googleUtilsContent, 'utf8').toString('base64'),
         sha: 'abc123',
       })
-      // check for default branch
-      .get('/repos/googleapis/java-trace')
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      .reply(200, require('../../../test/fixtures/repo-get-1.json'))
       .post(
         '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
-          snapshot('labels', req);
+          snapshot('labels-feature-branch', req);
           return true;
         }
       )
@@ -803,6 +812,12 @@ describe('JavaYoshi', () => {
     req.done();
     snapshot(
       JSON.stringify(expectedChanges, null, 2).replace(
+        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+        '1983-10-10' // don't save a real date, this will break tests.
+      )
+    );
+    snapshot(
+      JSON.stringify(expectedOptions, null, 2).replace(
         /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
         '1983-10-10' // don't save a real date, this will break tests.
       )
