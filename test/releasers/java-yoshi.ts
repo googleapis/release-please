@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {describe, it, afterEach} from 'mocha';
-import {expect} from 'chai';
 import * as nock from 'nock';
 nock.disableNetConnect();
 
@@ -806,7 +805,7 @@ describe('JavaYoshi', () => {
       // not actually used by this type of repo.
       packageName: 'java-trace',
       apiUrl: 'https://api.github.com',
-      defaultBranch: '1.x'
+      defaultBranch: '1.x',
     });
     await releasePR.run();
     req.done();

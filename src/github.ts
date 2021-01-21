@@ -1071,7 +1071,7 @@ export class GitHub {
    *
    * If a prefix is specified, only return paths that match
    * the provided prefix.
-   * 
+   *
    * @param filename The name of the file to find
    * @param prefix Optional path prefix used to filter results
    */
@@ -1079,7 +1079,11 @@ export class GitHub {
     filename: string,
     prefix?: string
   ): Promise<string[]> {
-    return this.findFilesByFilenameAndRef(filename, await this.getDefaultBranch(), prefix);
+    return this.findFilesByFilenameAndRef(
+      filename,
+      await this.getDefaultBranch(),
+      prefix
+    );
   }
 
   /**
@@ -1149,9 +1153,13 @@ export class GitHub {
    */
   async findFilesByExtension(
     extension: string,
-    prefix?: string,
+    prefix?: string
   ): Promise<string[]> {
-    return this.findFilesByExtensionAndRef(extension, await this.getDefaultBranch(), prefix);
+    return this.findFilesByExtensionAndRef(
+      extension,
+      await this.getDefaultBranch(),
+      prefix
+    );
   }
 }
 
