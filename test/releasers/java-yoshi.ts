@@ -98,26 +98,12 @@ describe('JavaYoshi', () => {
         data: graphql,
       })
       // finding pom.xml files
-      .get('/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-trace')
-      .reply(200, {
-        total_count: 1,
-        items: [{name: 'pom.xml', path: 'pom.xml'}],
-      })
       // finding build.gradle files
-      .get(
-        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
-      )
-      .reply(200, {
-        total_count: 0,
-        items: [],
-      })
       // finding dependencies.properties files
-      .get(
-        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
-      )
+      .get('/repos/googleapis/java-trace/git/trees/master?recursive=true')
+      .times(3)
       .reply(200, {
-        total_count: 0,
-        items: [],
+        tree: [{path: 'pom.xml'}],
       })
       // check for CHANGELOG
       .get(
@@ -237,26 +223,12 @@ describe('JavaYoshi', () => {
         },
       ])
       // finding pom.xml files
-      .get('/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-trace')
-      .reply(200, {
-        total_count: 1,
-        items: [{name: 'pom.xml', path: 'pom.xml'}],
-      })
       // finding build.gradle files
-      .get(
-        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
-      )
-      .reply(200, {
-        total_count: 0,
-        items: [],
-      })
       // finding dependencies.properties files
-      .get(
-        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
-      )
+      .get('/repos/googleapis/java-trace/git/trees/main?recursive=true')
+      .times(3)
       .reply(200, {
-        total_count: 0,
-        items: [],
+        tree: [{path: 'pom.xml'}],
       })
       // update versions.txt
       .get(
@@ -358,26 +330,12 @@ describe('JavaYoshi', () => {
         },
       ])
       // finding pom.xml files
-      .get('/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-trace')
-      .reply(200, {
-        total_count: 1,
-        items: [{name: 'pom.xml', path: 'pom.xml'}],
-      })
       // finding build.gradle files
-      .get(
-        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
-      )
-      .reply(200, {
-        total_count: 0,
-        items: [],
-      })
       // finding dependencies.properties files
-      .get(
-        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
-      )
+      .get('/repos/googleapis/java-trace/git/trees/main?recursive=true')
+      .times(3)
       .reply(200, {
-        total_count: 0,
-        items: [],
+        tree: [{path: 'pom.xml'}],
       })
       // update versions.txt
       .get(
@@ -511,26 +469,12 @@ describe('JavaYoshi', () => {
         },
       ])
       // finding pom.xml files
-      .get('/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-trace')
-      .reply(200, {
-        total_count: 1,
-        items: [{name: 'pom.xml', path: 'pom.xml'}],
-      })
       // finding build.gradle files
-      .get(
-        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
-      )
-      .reply(200, {
-        total_count: 0,
-        items: [],
-      })
       // finding dependencies.properties files
-      .get(
-        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
-      )
+      .get('/repos/googleapis/java-trace/git/trees/main?recursive=true')
+      .times(3)
       .reply(200, {
-        total_count: 0,
-        items: [],
+        tree: [{path: 'pom.xml'}],
       })
       // update versions.txt
       .get(
@@ -646,26 +590,12 @@ describe('JavaYoshi', () => {
         data: graphql,
       })
       // finding pom.xml files
-      .get('/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-trace')
-      .reply(200, {
-        total_count: 1,
-        items: [{name: 'pom.xml', path: 'pom.xml'}],
-      })
       // finding build.gradle files
-      .get(
-        '/search/code?q=filename%3Abuild.gradle+repo%3Agoogleapis%2Fjava-trace'
-      )
-      .reply(200, {
-        total_count: 0,
-        items: [],
-      })
       // finding dependencies.properties files
-      .get(
-        '/search/code?q=filename%3Adependencies.properties+repo%3Agoogleapis%2Fjava-trace'
-      )
+      .get('/repos/googleapis/java-trace/git/trees/master?recursive=true')
+      .times(3)
       .reply(200, {
-        total_count: 0,
-        items: [],
+        tree: [{path: 'pom.xml'}],
       })
       // check for CHANGELOG
       .get(
