@@ -42,7 +42,7 @@ function mockRequest(snapName: string, requestPrefix = '') {
     // check for default branch
     .get('/repos/googleapis/node-test-repo')
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+    .reply(200, require(resolve('test/fixtures/repo-get-1.json')))
     .get(
       '/repos/googleapis/node-test-repo/pulls?state=closed&per_page=100&sort=created&direction=desc'
     )
@@ -69,7 +69,7 @@ function mockRequest(snapName: string, requestPrefix = '') {
           sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
         },
         merged_at: new Date().toISOString(),
-        labels: [],
+        labels: [{name: 'autorelease: tagged'}],
       },
     ])
     .post('/graphql', (body: object) => {
@@ -251,7 +251,7 @@ describe('Node', () => {
       const req = nock('https://api.github.com')
         .get('/repos/googleapis/node-test-repo')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
         .get(
           '/repos/googleapis/node-test-repo/contents/package.json?ref=refs/heads/master'
         )
@@ -273,7 +273,7 @@ describe('Node', () => {
       const req = nock('https://api.github.com')
         .get('/repos/googleapis/node-test-repo')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
         .get(
           '/repos/googleapis/node-test-repo/contents/some-path%2Fpackage.json?ref=refs/heads/master'
         )

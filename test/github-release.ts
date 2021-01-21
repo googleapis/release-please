@@ -26,7 +26,7 @@ import {GitHubRelease} from '../src/github-release';
 const fixturesPath = './test/fixtures';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const repoInfo = require('../../test/fixtures/repo-get-2.json');
+const repoInfo = require(resolve('./test/fixtures/repo-get-2.json'));
 
 describe('GitHubRelease', () => {
   describe('createRelease', () => {

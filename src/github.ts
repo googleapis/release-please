@@ -66,6 +66,7 @@ import {
   PREdge,
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
+import {resolve} from 'path';
 
 // Short explanation of this regex:
 // - skip the owner tag (e.g. googleapis)
@@ -73,6 +74,8 @@ import {Update} from './updaters/update';
 // - take everything else
 // This includes the tag to handle monorepos.
 const VERSION_FROM_BRANCH_RE = /^.*:release-?([\w-.]*)-(v[0-9].*)$/;
+
+export const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -153,7 +156,7 @@ export class GitHub {
         baseUrl: this.apiUrl,
         headers: {
           'user-agent': `release-please/${
-            require('../../package.json').version
+            require(resolve('package.json')).version
           }`,
           // some proxies do not require the token prefix.
           Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
@@ -457,7 +460,12 @@ export class GitHub {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
-    const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
+    const pull = await this.findMergedReleasePR(
+      [GITHUB_RELEASE_LABEL],
+      100,
+      prefix,
+      preRelease
+    );
     if (!pull) return await this.latestTagFallback(prefix, preRelease);
     const tag = {
       name: `v${pull.version}`,

@@ -88,6 +88,7 @@ describe('JavaYoshi', () => {
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
       ])
       .post('/graphql', (body: object) => {
@@ -158,7 +159,7 @@ describe('JavaYoshi', () => {
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+      .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
       .post(
         '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
@@ -234,6 +235,7 @@ describe('JavaYoshi', () => {
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
       ])
       // finding pom.xml files
@@ -277,7 +279,7 @@ describe('JavaYoshi', () => {
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      .reply(200, require('../../../test/fixtures/repo-get-2.json'))
+      .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
       .post(
         '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
@@ -354,7 +356,7 @@ describe('JavaYoshi', () => {
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
           merged_at: new Date().toISOString(),
-          labels: [],
+          labels: [{name: 'autorelease: tagged'}],
         },
       ])
       // finding pom.xml files
@@ -398,7 +400,7 @@ describe('JavaYoshi', () => {
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      .reply(200, require('../../../test/fixtures/repo-get-2.json'))
+      .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
       .post(
         '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
@@ -508,6 +510,7 @@ describe('JavaYoshi', () => {
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
       ])
       // finding pom.xml files
@@ -551,7 +554,7 @@ describe('JavaYoshi', () => {
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      .reply(200, require('../../../test/fixtures/repo-get-2.json'))
+      .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
       .post(
         '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {
@@ -639,6 +642,7 @@ describe('JavaYoshi', () => {
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
       ])
       .post('/graphql')
@@ -706,7 +710,7 @@ describe('JavaYoshi', () => {
       // check for default branch
       .get('/repos/googleapis/java-trace')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+      .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
       .post(
         '/repos/googleapis/java-trace/issues/22/labels',
         (req: {[key: string]: string}) => {

@@ -88,6 +88,7 @@ describe('JavaBom', () => {
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
             merged_at: new Date().toISOString(),
+            labels: [{name: 'autorelease: tagged'}],
           },
         ])
         .post('/graphql')
@@ -133,7 +134,7 @@ describe('JavaBom', () => {
         // check for default branch
         .get('/repos/googleapis/java-cloud-bom')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
         // create release
         .post(
           '/repos/googleapis/java-cloud-bom/issues/22/labels',
@@ -221,6 +222,7 @@ describe('JavaBom', () => {
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
             merged_at: new Date().toISOString(),
+            labels: [{name: 'autorelease: tagged'}],
           },
         ])
         // finding pom.xml files
@@ -250,7 +252,7 @@ describe('JavaBom', () => {
         // check for default branch
         .get('/repos/googleapis/java-cloud-bom')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
         .post(
           '/repos/googleapis/java-cloud-bom/issues/22/labels',
           (req: {[key: string]: string}) => {
@@ -371,6 +373,7 @@ describe('JavaBom', () => {
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
             merged_at: new Date().toISOString(),
+            labels: [{name: 'autorelease: tagged'}],
           },
         ])
         // finding pom.xml files
@@ -400,7 +403,7 @@ describe('JavaBom', () => {
         // check for default branch
         .get('/repos/googleapis/java-cloud-bom')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
         .post(
           '/repos/googleapis/java-cloud-bom/issues/22/labels',
           (req: {[key: string]: string}) => {
@@ -487,6 +490,7 @@ describe('JavaBom', () => {
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             },
             merged_at: new Date().toISOString(),
+            labels: [{name: 'autorelease: tagged'}],
           },
         ])
         .post('/graphql')
@@ -532,7 +536,7 @@ describe('JavaBom', () => {
         // check for default branch
         .get('/repos/googleapis/java-cloud-bom')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
         .post(
           '/repos/googleapis/java-cloud-bom/issues/22/labels',
           (req: {[key: string]: string}) => {

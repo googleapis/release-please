@@ -16,12 +16,11 @@ import chalk = require('chalk');
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {packageBranchPrefix} from './util/package-branch-prefix';
 import {ReleasePRFactory} from './release-pr-factory';
-import {GitHub, OctokitAPIs} from './github';
+import {GitHub, GITHUB_RELEASE_LABEL, OctokitAPIs} from './github';
 import {parse} from 'semver';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
-const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
 interface ReleaseResponse {
   major: number;

@@ -99,6 +99,7 @@ describe('Release-PR', () => {
             },
             merged_at: new Date().toISOString(),
             merge_commit_sha: 'bf69d0f204474b88b3f8b5a72a392129d16a3929',
+            labels: [{name: 'autorelease: tagged'}],
           },
         ])
         // now we fetch the commits via the graphql API;
@@ -230,7 +231,7 @@ describe('Release-PR', () => {
         // check for default branch
         .get('/repos/googleapis/release-please')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../test/fixtures/repo-get-1.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/release-please/pulls?state=open&per_page=100')
         .reply(200, []);

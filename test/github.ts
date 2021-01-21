@@ -227,6 +227,7 @@ describe('GitHub', () => {
           label: 'fake:release-v3.0.0-rc1',
         },
         merged_at: new Date().toISOString(),
+        labels: [{name: 'autorelease: tagged'}],
       },
       {
         base: {
@@ -236,6 +237,7 @@ describe('GitHub', () => {
           label: 'fake:release-v2.0.0-rc1',
         },
         merged_at: new Date().toISOString(),
+        labels: [{name: 'autorelease: tagged'}],
       },
       {
         base: {
@@ -245,6 +247,7 @@ describe('GitHub', () => {
           label: 'fake:release-v1.1.5',
         },
         merged_at: new Date().toISOString(),
+        labels: [{name: 'autorelease: tagged'}],
       },
       {
         base: {
@@ -254,6 +257,7 @@ describe('GitHub', () => {
           label: 'fake:release-v1.3.0',
         },
         merged_at: new Date().toISOString(),
+        labels: [{name: 'autorelease: tagged'}],
       },
       {
         base: {
@@ -263,6 +267,7 @@ describe('GitHub', () => {
           label: 'fake:release-v1.2.0',
         },
         merged_at: new Date().toISOString(),
+        labels: [{name: 'autorelease: tagged'}],
       },
       {
         base: {
@@ -272,6 +277,7 @@ describe('GitHub', () => {
           label: 'fake:release-v1.1.0',
         },
         merged_at: new Date().toISOString(),
+        labels: [{name: 'autorelease: tagged'}],
       },
     ];
 
@@ -285,6 +291,7 @@ describe('GitHub', () => {
             label: 'fake:release-complex-package_name-v1-v1.1.0',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
         {
           base: {
@@ -294,6 +301,7 @@ describe('GitHub', () => {
             label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
       ];
       req
@@ -316,6 +324,7 @@ describe('GitHub', () => {
             label: 'fake:release-complex-package_name-v1-v1.1.0',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
         {
           base: {
@@ -325,6 +334,7 @@ describe('GitHub', () => {
             label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
         {
           base: {
@@ -334,6 +344,7 @@ describe('GitHub', () => {
             label: 'fake:release-v1.3.0',
           },
           merged_at: new Date().toISOString(),
+          labels: [{name: 'autorelease: tagged'}],
         },
       ];
       req
