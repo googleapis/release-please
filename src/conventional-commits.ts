@@ -46,6 +46,7 @@ interface ConventionalCommitsOptions {
   headerPartial?: string;
   mainTemplate?: string;
   changelogSections?: ChangelogSection[];
+  commitFilter?: (c: ConventionalChangelogCommit) => boolean;
 }
 
 interface ChangelogSection {
@@ -71,7 +72,10 @@ interface Note {
   text: string;
 }
 
-function getParsedCommits(commits: Commit[]): CommitWithHash[] {
+function getParsedCommits(
+  commits: Commit[],
+  commitFilter: (c: ConventionalChangelogCommit) => boolean = () => false
+): CommitWithHash[] {
   const parsedCommits: CommitWithHash[] = [];
   for (const commit of commits) {
     try {
@@ -81,6 +85,9 @@ function getParsedCommits(commits: Commit[]): CommitWithHash[] {
         const commitWithHash = postProcessCommits(
           parsedCommit
         ) as CommitWithHash;
+        if (commitFilter(parsedCommit)) {
+          continue;
+        }
         commitWithHash.hash = commit.sha;
         parsedCommits.push(commitWithHash);
       }
@@ -146,6 +153,7 @@ export class ConventionalCommits {
   headerPartial?: string;
   mainTemplate?: string;
   changelogSections?: ChangelogSection[];
+  private commitFilter?: (c: ConventionalChangelogCommit) => boolean;
 
   constructor(options: ConventionalCommitsOptions) {
     const parsedGithubRepoUrl = parseGithubRepoUrl(options.githubRepoUrl);
@@ -162,6 +170,7 @@ export class ConventionalCommits {
     this.headerPartial = options.headerPartial;
     this.mainTemplate = options.mainTemplate;
     this.changelogSections = options.changelogSections;
+    this.commitFilter = options.commitFilter;
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
     const preMajor = this.bumpMinorPreMajor
@@ -204,7 +213,11 @@ export class ConventionalCommits {
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
     const parsed: string = conventionalChangelogWriter
-      .parseArray(getParsedCommits(this.commits), context, preset.writerOpts)
+      .parseArray(
+        getParsedCommits(this.commits, this.commitFilter),
+        context,
+        preset.writerOpts
+      )
       .trim();
     return parsed;
   }
@@ -212,7 +225,7 @@ export class ConventionalCommits {
     const VERSIONS = ['major', 'minor', 'patch'];
     const preset = await presetFactory({preMajor});
     const commits = conventionalCommitsFilter(
-      getParsedCommits(this.commits)
+      getParsedCommits(this.commits, this.commitFilter)
     ) as ConventionalChangelogCommit;
 
     let result = preset.recommendedBumpOpts.whatBump(

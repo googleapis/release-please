@@ -141,7 +141,7 @@
             },
             {
               "node": {
-                "message": "feat(all): auto-regenerate gapics (#1000)",
+                "message": "chore(all): auto-regenerate gapics (#1000)\n\nChanges:\n\nchore(automl): cleaned up a thing\n  PiperOrigin-RevId: 352834281\nfix(pubsublite): a minor issue\n  PiperOrigin-RevId: 352834283",
                 "oid": "2f9663cf08ab1cf3b68d95dee4dc99b7c4aac372",
                 "associatedPullRequests": {
                   "edges": [
@@ -168,7 +168,7 @@
             },
             {
               "node": {
-                "message": "feat(all): auto-regenerate gapics (#1001)\n\nCommit Body",
+                "message": "chore(all): auto-regenerate gapics (#1001)\n\nCommit Body\n\nChanges:\n\nfix(automl): fixed a minor thing\n  PiperOrigin-RevId: 352834280\nfeat(language): added a new one\n  PiperOrigin-RevId: 352834282",
                 "oid": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371",
                 "associatedPullRequests": {
                   "edges": [

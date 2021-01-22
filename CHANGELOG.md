@@ -4,6 +4,21 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [9.3.0](https://www.github.com/googleapis/release-please/compare/v9.2.0...v9.3.0) (2021-01-22)
+
+
+### Features
+
+* add add GitHub helpers for findFilesByFilenameAndRef and findFilesByExtensionAndRef ([#712](https://www.github.com/googleapis/release-please/issues/712)) ([0258bd6](https://www.github.com/googleapis/release-please/commit/0258bd6fe4aca5e988aa993156bccd37c53130eb))
+* **rust:** Update Cargo.lock, preserve formatting in Cargo.{toml,lock} ([#705](https://www.github.com/googleapis/release-please/issues/705)) ([198c327](https://www.github.com/googleapis/release-please/commit/198c32787d5f41104f7d19c59df28bfbdee2d85d))
+
+
+### Bug Fixes
+
+* **go:** support processing footers in gapics ([#711](https://www.github.com/googleapis/release-please/issues/711)) ([08d8986](https://www.github.com/googleapis/release-please/commit/08d8986f4fa9544f77d931847a3d54ab967c17fd))
+* **pagination:** when tagging release, use updated, vs., created ([#708](https://www.github.com/googleapis/release-please/issues/708)) ([9ae5620](https://www.github.com/googleapis/release-please/commit/9ae5620274836acd39662ef0fb55502d06585423))
+* return PRs by last updated ([#706](https://www.github.com/googleapis/release-please/issues/706)) ([e0c7b00](https://www.github.com/googleapis/release-please/commit/e0c7b00034837d728770fb27ddf6d746c3dd181e))
+
 ## [9.2.0](https://www.github.com/googleapis/release-please/compare/v9.1.0...v9.2.0) (2021-01-12)
 
 

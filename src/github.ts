@@ -1017,52 +1017,143 @@ export class GitHub {
     return prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '');
   }
 
+  /**
+   * Returns a list of paths to all files with a given name.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param filename The name of the file to find
+   * @param ref Git reference to search files in
+   * @param prefix Optional path prefix used to filter results
+   */
+  async findFilesByFilenameAndRef(
+    filename: string,
+    ref: string,
+    prefix?: string
+  ): Promise<string[]> {
+    if (prefix) {
+      prefix = this.normalizePrefix(prefix);
+    }
+    const response: {
+      data: GitGetTreeResponse;
+    } = await this.octokit.git.getTree({
+      owner: this.owner,
+      repo: this.repo,
+      tree_sha: ref,
+      recursive: 'true',
+    });
+    return response.data.tree
+      .filter(file => {
+        const path = file.path;
+        return (
+          path &&
+          // match the filename
+          path.endsWith(filename) &&
+          // match the prefix if provided
+          (!prefix || path.startsWith(prefix))
+        );
+      })
+      .map(file => {
+        let path = file.path!;
+        // strip the prefix if provided
+        if (prefix) {
+          const pfix = new RegExp(`^${prefix}[/\\\\]`);
+          path = path.replace(pfix, '');
+        }
+        return path;
+      });
+  }
+  /**
+   * Returns a list of paths to all files with a given name.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param filename The name of the file to find
+   * @param prefix Optional path prefix used to filter results
+   */
   async findFilesByFilename(
     filename: string,
     prefix?: string
   ): Promise<string[]> {
-    let q = `filename:${filename}+repo:${this.owner}/${this.repo}`;
-    if (prefix) {
-      prefix = this.normalizePrefix(prefix);
-      q += `+path:${prefix}`;
-    }
-    const response: {data: FileSearchResponse} = await this.octokit.search.code(
-      {
-        q: q,
-      }
+    return this.findFilesByFilenameAndRef(
+      filename,
+      await this.getDefaultBranch(),
+      prefix
     );
-    return response.data.items.map(file => {
-      let path = file.path;
-      if (prefix) {
-        const pfix = new RegExp(`^${prefix}[/\\\\]`);
-        path = path.replace(pfix, '');
-      }
-      return path;
-    });
   }
 
+  /**
+   * Returns a list of paths to all files with a given file
+   * extension.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param extension The file extension used to filter results.
+   *   Example: `js`, `java`
+   * @param ref Git reference to search files in
+   * @param prefix Optional path prefix used to filter results
+   */
+  async findFilesByExtensionAndRef(
+    extension: string,
+    ref: string,
+    prefix?: string
+  ): Promise<string[]> {
+    if (prefix) {
+      prefix = this.normalizePrefix(prefix);
+    }
+    const response: {
+      data: GitGetTreeResponse;
+    } = await this.octokit.git.getTree({
+      owner: this.owner,
+      repo: this.repo,
+      tree_sha: ref,
+      recursive: 'true',
+    });
+    return response.data.tree
+      .filter(file => {
+        const path = file.path;
+        return (
+          path &&
+          // match the file extension
+          path.endsWith(`.${extension}`) &&
+          // match the prefix if provided
+          (!prefix || path.startsWith(prefix))
+        );
+      })
+      .map(file => {
+        let path = file.path!;
+        // strip the prefix if provided
+        if (prefix) {
+          const pfix = new RegExp(`^${prefix}[/\\\\]`);
+          path = path.replace(pfix, '');
+        }
+        return path;
+      });
+  }
+
+  /**
+   * Returns a list of paths to all files with a given file
+   * extension.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param extension The file extension used to filter results.
+   *   Example: `js`, `java`
+   * @param prefix Optional path prefix used to filter results
+   */
   async findFilesByExtension(
     extension: string,
     prefix?: string
   ): Promise<string[]> {
-    let q = `extension:${extension}+repo:${this.owner}/${this.repo}`;
-    if (prefix) {
-      prefix = this.normalizePrefix(prefix);
-      q += `+path:${prefix}`;
-    }
-    const response: {data: FileSearchResponse} = await this.octokit.search.code(
-      {
-        q: q,
-      }
+    return this.findFilesByExtensionAndRef(
+      extension,
+      await this.getDefaultBranch(),
+      prefix
     );
-    return response.data.items.map(file => {
-      let path = file.path;
-      if (prefix) {
-        const pfix = new RegExp(`^${prefix}[/\\\\]`);
-        path = path.replace(pfix, '');
-      }
-      return path;
-    });
   }
 }
 

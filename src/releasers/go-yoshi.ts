@@ -15,6 +15,7 @@
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
 import {Octokit} from '@octokit/rest';
 import {PromiseValue} from 'type-fest';
+import {ConventionalChangelogCommit} from '@conventional-commits/parser';
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
 >['data'];
@@ -67,40 +68,16 @@ export class GoYoshi extends ReleasePR {
         path: this.path,
       })
     ).filter(commit => {
-      if (this.isGapicRepo(repo)) {
-        const scope = commit.message.match(SCOPE_REGEX)?.groups?.scope;
-        // Filter commits that don't have a scope as we don't know where to put
-        // them.
-        if (!scope) {
-          return false;
-        }
-        // Skipping commits related to sub-modules as they are not apart of the
-        // parent module.
-        if (!this.monorepoTags) {
-          for (const subModule of SUB_MODULES) {
-            if (scope === subModule || scope.startsWith(subModule + '/')) {
-              return false;
-            }
-          }
-        } else {
-          if (
-            !(
-              scope === this.packageName ||
-              scope.startsWith(this.packageName + '/')
-            )
-          ) {
-            return false;
-          }
-        }
-      }
-
       // Store the very first SHA returned, this represents the HEAD of the
       // release being created:
       if (!sha) {
         sha = commit.sha;
       }
 
-      if (this.isMultiClientRepo(repo) && REGEN_PR_REGEX.test(commit.message)) {
+      if (
+        repo === 'google-api-go-client' &&
+        REGEN_PR_REGEX.test(commit.message)
+      ) {
         // Only have a single entry of the nightly regen listed in the changelog.
         // If there are more than one of these commits, append associated PR.
         const issueRe = /(?<prefix>.*)\((?<pr>.*)\)(\n|$)/;
@@ -127,10 +104,10 @@ export class GoYoshi extends ReleasePR {
       commits: commits,
       githubRepoUrl: this.repoUrl,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
+      commitFilter: this.filterSubModuleCommits(repo),
     });
     const candidate: ReleaseCandidate =
-      this.monorepoTags ||
-      !(this.isMultiClientRepo(repo) || this.isGapicRepo(repo))
+      this.monorepoTags || !this.isMultiClientRepo(repo)
         ? // Submodules use conventional commits to bump major/minor/patch:
           await super.coerceReleaseCandidate(cc, latestTag)
         : // Root module always bumps minor:
@@ -208,5 +185,38 @@ export class GoYoshi extends ReleasePR {
 
   static tagSeparator(): string {
     return '/';
+  }
+
+  private filterSubModuleCommits(
+    repo: string
+  ): (c: ConventionalChangelogCommit) => boolean {
+    return (c: ConventionalChangelogCommit) => {
+      if (this.isGapicRepo(repo)) {
+        // Filter commits that don't have a scope as we don't know where to put
+        // them.
+        if (!c.scope) {
+          return true;
+        }
+        // Skipping commits related to sub-modules as they are not apart of the
+        // parent module.
+        if (!this.monorepoTags) {
+          for (const subModule of SUB_MODULES) {
+            if (c.scope === subModule || c.scope.startsWith(subModule + '/')) {
+              return true;
+            }
+          }
+        } else {
+          if (
+            !(
+              c.scope === this.packageName ||
+              c.scope.startsWith(this.packageName + '/')
+            )
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
   }
 }

@@ -84,7 +84,7 @@ describe('GitHub', () => {
         readFileSync(resolve(fixturesPath, 'pom-file-search.json'), 'utf8')
       );
       req
-        .get('/search/code?q=filename%3Apom.xml+repo%3Afake%2Ffake')
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, fileSearchResponse);
       const pomFiles = await github.findFilesByFilename('pom.xml');
       snapshot(pomFiles);
@@ -109,9 +109,7 @@ describe('GitHub', () => {
           )
         );
         req
-          .get(
-            '/search/code?q=filename%3Apom.xml+repo%3Afake%2Ffake+path%3Aappengine'
-          )
+          .get('/repos/fake/fake/git/trees/main?recursive=true')
           .reply(200, fileSearchResponse);
         const pomFiles = await github.findFilesByFilename('pom.xml', prefix);
         req.done();
@@ -126,7 +124,7 @@ describe('GitHub', () => {
         readFileSync(resolve(fixturesPath, 'pom-file-search.json'), 'utf8')
       );
       req
-        .get('/search/code?q=extension%3Axml+repo%3Afake%2Ffake')
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, fileSearchResponse);
       const pomFiles = await github.findFilesByExtension('xml');
       snapshot(pomFiles);
@@ -151,9 +149,7 @@ describe('GitHub', () => {
           )
         );
         req
-          .get(
-            '/search/code?q=extension%3Axml+repo%3Afake%2Ffake+path%3Aappengine'
-          )
+          .get('/repos/fake/fake/git/trees/main?recursive=true')
           .reply(200, fileSearchResponse);
         const pomFiles = await github.findFilesByExtension('xml', prefix);
         req.done();
