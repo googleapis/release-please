@@ -29,7 +29,10 @@ const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/java-bom';
 
 function buildFileContent(fixture: string): GitHubFileContents {
-  const content = readFileSync(resolve(fixturesPath, fixture), 'utf8');
+  const content = readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(
+    /\r\n/g,
+    '\n'
+  );
   return {
     content: Buffer.from(content, 'utf8').toString('base64'),
     parsedContent: content,
