@@ -1,21 +1,3 @@
-exports['labels'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
-
-exports['labels-snapshot'] = {
-  "labels": [
-    "type: process"
-  ]
-}
-
-exports['labels-snapshot-empty'] = {
-  "labels": [
-    "type: process"
-  ]
-}
-
 exports['JavaYoshi creates a release PR 1'] = `
 [
   [
@@ -94,12 +76,6 @@ exports['JavaYoshi creates a snapshot PR, when latest release sha is head 1'] = 
 ]
 `
 
-exports['labels-snapshot-release'] = {
-  "labels": [
-    "type: process"
-  ]
-}
-
 exports['JavaYoshi creates a snapshot PR if an explicit release is requested, but a snapshot is needed 1'] = `
 [
   [
@@ -118,24 +94,6 @@ exports['JavaYoshi creates a snapshot PR if an explicit release is requested, bu
   ]
 ]
 `
-
-exports['graphql-body-java-release'] = {
-  "query": "query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxLabels: Int, $path: String) {\n          repository(owner: $owner, name: $repo) {\n            ref(qualifiedName: $baseRef) {\n              target {\n                ... on Commit {\n                  history(first: $perPage, after: $cursor, path: $path) {\n                    edges {\n                      node {\n                        ... on Commit {\n                          message\n                          oid\n                          associatedPullRequests(first: 1) {\n                            edges {\n                              node {\n                                ... on PullRequest {\n                                  number\n                                  mergeCommit {\n                                    oid\n                                  }\n                                  labels(first: $maxLabels) {\n                                    edges {\n                                      node {\n                                        name\n                                      }\n                                    }\n                                  }\n                                }\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                    pageInfo {\n                      endCursor\n                      hasNextPage\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }",
-  "variables": {
-    "maxLabels": 16,
-    "owner": "googleapis",
-    "path": null,
-    "perPage": 100,
-    "repo": "java-trace",
-    "baseRef": "refs/heads/master"
-  }
-}
-
-exports['promotion labels'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
 
 exports['JavaYoshi handles promotion to 1.0.0 1'] = `
 [
@@ -176,24 +134,6 @@ exports['JavaYoshi handles promotion to 1.0.0 1'] = `
   ]
 ]
 `
-
-exports['graphql-body-java-release-feature-branch'] = {
-  "query": "query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxLabels: Int, $path: String) {\n          repository(owner: $owner, name: $repo) {\n            ref(qualifiedName: $baseRef) {\n              target {\n                ... on Commit {\n                  history(first: $perPage, after: $cursor, path: $path) {\n                    edges {\n                      node {\n                        ... on Commit {\n                          message\n                          oid\n                          associatedPullRequests(first: 1) {\n                            edges {\n                              node {\n                                ... on PullRequest {\n                                  number\n                                  mergeCommit {\n                                    oid\n                                  }\n                                  labels(first: $maxLabels) {\n                                    edges {\n                                      node {\n                                        name\n                                      }\n                                    }\n                                  }\n                                }\n                              }\n                            }\n                          }\n                        }\n                      }\n                    }\n                    pageInfo {\n                      endCursor\n                      hasNextPage\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }",
-  "variables": {
-    "maxLabels": 16,
-    "owner": "googleapis",
-    "path": null,
-    "perPage": 100,
-    "repo": "java-trace",
-    "baseRef": "refs/heads/1.x"
-  }
-}
-
-exports['labels-feature-branch'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
 
 exports['JavaYoshi creates a release PR against a feature branch 1'] = `
 [

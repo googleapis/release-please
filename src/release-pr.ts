@@ -303,7 +303,7 @@ export class ReleasePR {
     // a return of undefined indicates that PR was not updated.
     if (pr) {
       // If the PR is being created from a fork, it will not have permission
-      // to add nd remove labels from the PR:
+      // to add and remove labels from the PR:
       if (!this.fork) {
         await this.gh.addLabels(this.labels, pr);
       } else {
