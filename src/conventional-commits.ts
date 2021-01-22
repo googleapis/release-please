@@ -74,7 +74,7 @@ interface Note {
 
 function getParsedCommits(
   commits: Commit[],
-  commitFilter?: (c: ConventionalChangelogCommit) => boolean
+  commitFilter: (c: ConventionalChangelogCommit) => boolean = () => false
 ): CommitWithHash[] {
   const parsedCommits: CommitWithHash[] = [];
   for (const commit of commits) {
@@ -85,7 +85,7 @@ function getParsedCommits(
         const commitWithHash = postProcessCommits(
           parsedCommit
         ) as CommitWithHash;
-        if (commitFilter?.(parsedCommit)) {
+        if (commitFilter(parsedCommit)) {
           continue;
         }
         commitWithHash.hash = commit.sha;
