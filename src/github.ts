@@ -1021,13 +1021,9 @@ export class GitHub {
    * If a prefix is specified, only return paths that match
    * the provided prefix.
    *
-   * If a ref is provided, consider the list of files at that
-   * sha. Otherwise, use the default branch.
-   *
    * @param filename The name of the file to find
+   * @param ref Git reference to search files in
    * @param prefix Optional path prefix used to filter results
-   * @param ref Optional git reference. Defaults to the default
-   *   branch's HEAD.
    */
   async findFilesByFilenameAndRef(
     filename: string,
@@ -1093,14 +1089,10 @@ export class GitHub {
    * If a prefix is specified, only return paths that match
    * the provided prefix.
    *
-   * If a ref is provided, consider the list of files at that
-   * sha. Otherwise, use the default branch.
-   *
    * @param extension The file extension used to filter results.
    *   Example: `js`, `java`
+   * @param ref Git reference to search files in
    * @param prefix Optional path prefix used to filter results
-   * @param ref Optional git reference. Defaults to the default
-   *   branch's HEAD.
    */
   async findFilesByExtensionAndRef(
     extension: string,
