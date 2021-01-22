@@ -22,9 +22,21 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
+import { GitHubFileContents } from '../../src/github';
+import * as crypto from 'crypto';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/java-bom';
+
+function buildFileContent(fixture: string): GitHubFileContents {
+  const content = readFileSync(resolve(fixturesPath, fixture), 'utf8');
+  return {
+    content: Buffer.from(content, 'utf8').toString('base64'),
+    parsedContent: content,
+    // fake a consistent sha
+    sha: crypto.createHash('md5').update(content).digest('hex'),
+  };
+}
 
 describe('JavaBom', () => {
   afterEach(() => {
@@ -32,6 +44,86 @@ describe('JavaBom', () => {
   });
   describe('run', () => {
     it('creates a release PR', async () => {
+      const releasePR = new JavaBom({
+        repoUrl: 'googleapis/java-cloud-bom',
+        releaseType: 'java-bom',
+        // not actually used by this type of repo.
+        packageName: 'java-cloud-bom',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox
+        .stub(releasePR.gh, 'getDefaultBranch')
+        .returns(Promise.resolve('master'));
+  
+      // No open release PRs, so create a new release PR
+      sandbox
+        .stub(releasePR.gh, 'findOpenReleasePRs')
+        .returns(Promise.resolve([]));
+  
+      sandbox
+        .stub(releasePR.gh, 'findMergedReleasePR')
+        .returns(Promise.resolve(undefined));
+  
+      // Indicates that there are no PRs currently waiting to be released:
+      sandbox.stub(releasePR.gh, 'latestTag').returns(
+        Promise.resolve({
+          name: 'v0.123.4',
+          sha: 'abc123',
+          version: '0.123.4',
+        })
+      );
+  
+      const findFilesStub = sandbox.stub(
+        releasePR.gh,
+        'findFilesByFilenameAndRef'
+      );
+      findFilesStub
+        .withArgs('pom.xml', 'master', undefined)
+        .resolves(['pom.xml']);
+      findFilesStub.withArgs('build.gradle', 'master', undefined).resolves([]);
+      findFilesStub
+        .withArgs('dependencies.properties', 'master', undefined)
+        .resolves([]);
+  
+      const getFileContentsStub = sandbox.stub(
+        releasePR.gh,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'master')
+        .resolves(buildFileContent('versions.txt'));
+      getFileContentsStub
+        .withArgs('README.md', 'master')
+        .resolves(buildFileContent('README.md'));
+      getFileContentsStub
+        .withArgs('pom.xml', 'master')
+        .resolves(buildFileContent('pom.xml'));
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
+  
+      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
+        {
+          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
+          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0',
+          files: [],
+        },
+        {
+          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
+          message: 'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
+          files: [],
+        },
+        {
+          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
+          message: 'chore: update common templates',
+          files: [],
+        }
+      ]);
+  
+      // TODO: maybe assert which labels added
+      sandbox.stub(releasePR.gh, 'addLabels');
+      
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -43,115 +135,7 @@ describe('JavaBom', () => {
           return Promise.resolve(22);
         }
       );
-      const versionsContent = readFileSync(
-        resolve(fixturesPath, 'versions.txt'),
-        'utf8'
-      );
-      const readmeContent = readFileSync(
-        resolve(fixturesPath, 'README.md'),
-        'utf8'
-      );
-      const pomContents = readFileSync(
-        resolve(fixturesPath, 'pom.xml'),
-        'utf8'
-      );
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
-      );
-      const req = nock('https://api.github.com')
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, undefined)
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/main'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // This step looks for any existing, open, release PRs.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, undefined)
-        // fetch semver tags, this will be used to determine
-        // the delta since the last release.
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, [
-          {
-            base: {
-              label: 'googleapis:main',
-            },
-            head: {
-              label: 'googleapis:release-v0.123.4',
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            },
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        // finding pom.xml files
-        .get('/repos/googleapis/java-cloud-bom/git/trees/main?recursive=true')
-        .reply(200, {
-          tree: [{path: 'pom.xml'}],
-        })
-        // check for CHANGELOG
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(404)
-        // update README.md
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/README.md?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(readmeContent, 'utf8').toString('base64'),
-        })
-        // update versions.txt
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // update pom.xml
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/pom.xml?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(pomContents, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // check for default branch
-        .get('/repos/googleapis/java-cloud-bom')
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
-        // create release
-        .post(
-          '/repos/googleapis/java-cloud-bom/issues/22/labels',
-          (req: {[key: string]: string}) => {
-            snapshot('labels-bom', req);
-            return true;
-          }
-        )
-        .reply(200, {})
-        // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, []);
-      const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
-        packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
-      });
       await releasePR.run();
-      req.done();
       snapshot(
         JSON.stringify(expectedChanges, null, 2).replace(
           /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
@@ -161,6 +145,87 @@ describe('JavaBom', () => {
     });
 
     it('creates a snapshot PR', async () => {
+      const releasePR = new JavaBom({
+        repoUrl: 'googleapis/java-cloud-bom',
+        releaseType: 'java-bom',
+        // not actually used by this type of repo.
+        packageName: 'java-cloud-bom',
+        apiUrl: 'https://api.github.com',
+        snapshot: true,
+      });
+
+      sandbox
+        .stub(releasePR.gh, 'getDefaultBranch')
+        .returns(Promise.resolve('master'));
+  
+      // No open release PRs, so create a new release PR
+      sandbox
+        .stub(releasePR.gh, 'findOpenReleasePRs')
+        .returns(Promise.resolve([]));
+  
+      sandbox
+        .stub(releasePR.gh, 'findMergedReleasePR')
+        .returns(Promise.resolve(undefined));
+  
+      // Indicates that there are no PRs currently waiting to be released:
+      sandbox.stub(releasePR.gh, 'latestTag').returns(
+        Promise.resolve({
+          name: 'v0.123.4',
+          sha: 'abc123',
+          version: '0.123.4',
+        })
+      );
+  
+      const findFilesStub = sandbox.stub(
+        releasePR.gh,
+        'findFilesByFilenameAndRef'
+      );
+      findFilesStub
+        .withArgs('pom.xml', 'master', undefined)
+        .resolves(['pom.xml']);
+      findFilesStub.withArgs('build.gradle', 'master', undefined).resolves([]);
+      findFilesStub
+        .withArgs('dependencies.properties', 'master', undefined)
+        .resolves([]);
+  
+      const getFileContentsStub = sandbox.stub(
+        releasePR.gh,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'master')
+        .resolves(buildFileContent('released-versions.txt'));
+      getFileContentsStub
+        .withArgs('README.md', 'master')
+        .resolves(buildFileContent('README.md'));
+      getFileContentsStub
+        .withArgs('pom.xml', 'master')
+        .resolves(buildFileContent('pom.xml'));
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
+  
+      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
+        {
+          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
+          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0',
+          files: [],
+        },
+        {
+          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
+          message: 'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
+          files: [],
+        },
+        {
+          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
+          message: 'chore: update common templates',
+          files: [],
+        }
+      ]);
+  
+      // TODO: maybe assert which labels added
+      sandbox.stub(releasePR.gh, 'addLabels');
+      
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -172,100 +237,7 @@ describe('JavaBom', () => {
           return Promise.resolve(22);
         }
       );
-      const versionsContent = readFileSync(
-        resolve(fixturesPath, 'released-versions.txt'),
-        'utf8'
-      );
-      const pomContents = readFileSync(
-        resolve(fixturesPath, 'pom.xml'),
-        'utf8'
-      );
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
-      );
-      const req = nock('https://api.github.com')
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, undefined)
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/main'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // This step lists any existing, open release PRs.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, [])
-        // getting the most recent commit:
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        // fetch semver tags, this will be used to determine
-        // the delta since the last release.
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, [
-          {
-            base: {
-              label: 'googleapis:main',
-            },
-            head: {
-              label: 'googleapis:release-v0.123.4',
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            },
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        // finding pom.xml files
-        .get('/repos/googleapis/java-cloud-bom/git/trees/main?recursive=true')
-        .reply(200, {
-          tree: [{path: 'pom.xml'}],
-        })
-        // update versions.txt
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // update pom.xml
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/pom.xml?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(pomContents, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // check for default branch
-        .get('/repos/googleapis/java-cloud-bom')
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
-        .post(
-          '/repos/googleapis/java-cloud-bom/issues/22/labels',
-          (req: {[key: string]: string}) => {
-            snapshot('labels-bom-snapshot', req);
-            return true;
-          }
-        )
-        .reply(200, {})
-        // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, []);
-      const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
-        packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
-        snapshot: true,
-      });
       await releasePR.run();
-      req.done();
       snapshot(
         JSON.stringify(expectedChanges, null, 2).replace(
           /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
@@ -275,26 +247,6 @@ describe('JavaBom', () => {
     });
 
     it('ignores a snapshot release if no snapshot needed', async () => {
-      const versionsContent = readFileSync(
-        resolve(fixturesPath, 'versions.txt'),
-        'utf8'
-      );
-      const req = nock('https://api.github.com')
-        .get('/repos/googleapis/java-cloud-bom')
-        .reply(200, {
-          default_branch: 'master',
-        })
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, undefined)
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/master'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        });
       const releasePR = new JavaBom({
         repoUrl: 'googleapis/java-cloud-bom',
         releaseType: 'java-bom',
@@ -303,11 +255,115 @@ describe('JavaBom', () => {
         apiUrl: 'https://api.github.com',
         snapshot: true,
       });
+
+      sandbox
+      .stub(releasePR.gh, 'getDefaultBranch')
+      .returns(Promise.resolve('master'));
+
+      sandbox
+        .stub(releasePR.gh, 'findMergedReleasePR')
+        .returns(Promise.resolve(undefined));
+
+      const getFileContentsStub = sandbox.stub(
+        releasePR.gh,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'master')
+        .resolves(buildFileContent('versions.txt'));
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
+
+      // should not attempt to create a pull request
+      sandbox
+        .stub(suggester, 'createPullRequest')
+        .rejects(Error('should not get here'));
+
       await releasePR.run();
-      req.done();
     });
 
     it('creates a snapshot PR if an explicit release is requested, but a snapshot is needed', async () => {
+      const releasePR = new JavaBom({
+        repoUrl: 'googleapis/java-cloud-bom',
+        releaseType: 'java-bom',
+        // not actually used by this type of repo.
+        packageName: 'java-cloud-bom',
+        apiUrl: 'https://api.github.com',
+        snapshot: false,
+      });
+      sandbox
+        .stub(releasePR.gh, 'getDefaultBranch')
+        .returns(Promise.resolve('master'));
+  
+      // No open release PRs, so create a new release PR
+      sandbox
+        .stub(releasePR.gh, 'findOpenReleasePRs')
+        .returns(Promise.resolve([]));
+  
+      sandbox
+        .stub(releasePR.gh, 'findMergedReleasePR')
+        .returns(Promise.resolve(undefined));
+  
+      // Indicates that there are no PRs currently waiting to be released:
+      sandbox.stub(releasePR.gh, 'latestTag').returns(
+        Promise.resolve({
+          name: 'v0.123.4',
+          sha: 'abc123',
+          version: '0.123.4',
+        })
+      );
+  
+      const findFilesStub = sandbox.stub(
+        releasePR.gh,
+        'findFilesByFilenameAndRef'
+      );
+      findFilesStub
+        .withArgs('pom.xml', 'master', undefined)
+        .resolves(['pom.xml']);
+      findFilesStub.withArgs('build.gradle', 'master', undefined).resolves([]);
+      findFilesStub
+        .withArgs('dependencies.properties', 'master', undefined)
+        .resolves([]);
+  
+      const getFileContentsStub = sandbox.stub(
+        releasePR.gh,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'master')
+        .resolves(buildFileContent('released-versions.txt'));
+      getFileContentsStub
+        .withArgs('README.md', 'master')
+        .resolves(buildFileContent('README.md'));
+      getFileContentsStub
+        .withArgs('pom.xml', 'master')
+        .resolves(buildFileContent('pom.xml'));
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
+  
+      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
+        {
+          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
+          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0',
+          files: [],
+        },
+        {
+          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
+          message: 'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
+          files: [],
+        },
+        {
+          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
+          message: 'chore: update common templates',
+          files: [],
+        }
+      ]);
+  
+      // TODO: maybe assert which labels added
+      sandbox.stub(releasePR.gh, 'addLabels');
+      
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -319,100 +375,7 @@ describe('JavaBom', () => {
           return Promise.resolve(22);
         }
       );
-      const versionsContent = readFileSync(
-        resolve(fixturesPath, 'released-versions.txt'),
-        'utf8'
-      );
-      const pomContents = readFileSync(
-        resolve(fixturesPath, 'pom.xml'),
-        'utf8'
-      );
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
-      );
-      const req = nock('https://api.github.com')
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, undefined)
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/main'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // Checks for existing open release PRs.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, [])
-        // getting the most recent commit:
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        // fetch semver tags, this will be used to determine
-        // the delta since the last release.
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, [
-          {
-            base: {
-              label: 'googleapis:main',
-            },
-            head: {
-              label: 'googleapis:release-v0.123.4',
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            },
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        // finding pom.xml files
-        .get('/repos/googleapis/java-cloud-bom/git/trees/main?recursive=true')
-        .reply(200, {
-          tree: [{path: 'pom.xml'}],
-        })
-        // update versions.txt
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // update pom.xml
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/pom.xml?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(pomContents, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // check for default branch
-        .get('/repos/googleapis/java-cloud-bom')
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-2.json'))
-        .post(
-          '/repos/googleapis/java-cloud-bom/issues/22/labels',
-          (req: {[key: string]: string}) => {
-            snapshot('labels-bom-snapshot-release', req);
-            return true;
-          }
-        )
-        .reply(200, {})
-        // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, []);
-      const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
-        packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
-        snapshot: false,
-      });
       await releasePR.run();
-      req.done();
       snapshot(
         JSON.stringify(expectedChanges, null, 2).replace(
           /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
@@ -422,6 +385,86 @@ describe('JavaBom', () => {
     });
 
     it('merges conventional commit messages', async () => {
+      const releasePR = new JavaBom({
+        repoUrl: 'googleapis/java-cloud-bom',
+        releaseType: 'java-bom',
+        // not actually used by this type of repo.
+        packageName: 'java-cloud-bom',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox
+        .stub(releasePR.gh, 'getDefaultBranch')
+        .returns(Promise.resolve('master'));
+  
+      // No open release PRs, so create a new release PR
+      sandbox
+        .stub(releasePR.gh, 'findOpenReleasePRs')
+        .returns(Promise.resolve([]));
+  
+      sandbox
+        .stub(releasePR.gh, 'findMergedReleasePR')
+        .returns(Promise.resolve(undefined));
+  
+      // Indicates that there are no PRs currently waiting to be released:
+      sandbox.stub(releasePR.gh, 'latestTag').returns(
+        Promise.resolve({
+          name: 'v0.123.4',
+          sha: 'abc123',
+          version: '0.123.4',
+        })
+      );
+  
+      const findFilesStub = sandbox.stub(
+        releasePR.gh,
+        'findFilesByFilenameAndRef'
+      );
+      findFilesStub
+        .withArgs('pom.xml', 'master', undefined)
+        .resolves(['pom.xml']);
+      findFilesStub.withArgs('build.gradle', 'master', undefined).resolves([]);
+      findFilesStub
+        .withArgs('dependencies.properties', 'master', undefined)
+        .resolves([]);
+  
+      const getFileContentsStub = sandbox.stub(
+        releasePR.gh,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'master')
+        .resolves(buildFileContent('versions.txt'));
+      getFileContentsStub
+        .withArgs('README.md', 'master')
+        .resolves(buildFileContent('README.md'));
+      getFileContentsStub
+        .withArgs('pom.xml', 'master')
+        .resolves(buildFileContent('pom.xml'));
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
+  
+      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
+        {
+          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
+          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.1',
+          files: [],
+        },
+        {
+          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
+          message: 'feat: import google-cloud-game-servers',
+          files: [],
+        },
+        {
+          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
+          message: 'chore: update common templates',
+          files: [],
+        }
+      ]);
+  
+      // TODO: maybe assert which labels added
+      sandbox.stub(releasePR.gh, 'addLabels');
+
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -433,114 +476,7 @@ describe('JavaBom', () => {
           return Promise.resolve(22);
         }
       );
-      const versionsContent = readFileSync(
-        resolve(fixturesPath, 'versions.txt'),
-        'utf8'
-      );
-      const readmeContent = readFileSync(
-        resolve(fixturesPath, 'README.md'),
-        'utf8'
-      );
-      const pomContents = readFileSync(
-        resolve(fixturesPath, 'pom.xml'),
-        'utf8'
-      );
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits-with-feature.json'), 'utf8')
-      );
-      const req = nock('https://api.github.com')
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, undefined)
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs/heads/master'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // This step checks for existing open release PRs.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, [])
-        // fetch semver tags, this will be used to determine
-        // the delta since the last release.
-        .get(
-          '/repos/googleapis/java-cloud-bom/pulls?state=closed&per_page=100&sort=created&direction=desc'
-        )
-        .reply(200, [
-          {
-            base: {
-              label: 'googleapis:master',
-            },
-            head: {
-              label: 'googleapis:release-v0.123.4',
-              sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            },
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        // finding pom.xml files
-        .get('/repos/googleapis/java-cloud-bom/git/trees/master?recursive=true')
-        .reply(200, {
-          tree: [{path: 'pom.xml'}],
-        })
-        // check for CHANGELOG
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmaster'
-        )
-        .reply(404)
-        // update README.md
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/README.md?ref=refs%2Fheads%2Fmaster'
-        )
-        .reply(200, {
-          content: Buffer.from(readmeContent, 'utf8').toString('base64'),
-        })
-        // update versions.txt
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/versions.txt?ref=refs%2Fheads%2Fmaster'
-        )
-        .reply(200, {
-          content: Buffer.from(versionsContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // update pom.xml
-        .get(
-          '/repos/googleapis/java-cloud-bom/contents/pom.xml?ref=refs%2Fheads%2Fmaster'
-        )
-        .reply(200, {
-          content: Buffer.from(pomContents, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // check for default branch
-        .get('/repos/googleapis/java-cloud-bom')
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
-        .post(
-          '/repos/googleapis/java-cloud-bom/issues/22/labels',
-          (req: {[key: string]: string}) => {
-            snapshot('labels-bom-feature', req);
-            return true;
-          }
-        )
-        .reply(200, {})
-        // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/java-cloud-bom/pulls?state=open&per_page=100')
-        .reply(200, []);
-      const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
-        packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
-      });
       await releasePR.run();
-      req.done();
       snapshot(
         JSON.stringify(expectedChanges, null, 2).replace(
           /[0-9]{4}-[0-9]{2}-[0-9]{2}/,

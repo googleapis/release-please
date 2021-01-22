@@ -1,9 +1,3 @@
-exports['labels-bom'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
-
 exports['JavaBom run creates a release PR 1'] = `
 [
   [
@@ -37,12 +31,6 @@ exports['JavaBom run creates a release PR 1'] = `
 ]
 `
 
-exports['labels-bom-snapshot'] = {
-  "labels": [
-    "type: process"
-  ]
-}
-
 exports['JavaBom run creates a snapshot PR 1'] = `
 [
   [
@@ -62,12 +50,6 @@ exports['JavaBom run creates a snapshot PR 1'] = `
 ]
 `
 
-exports['labels-bom-snapshot-release'] = {
-  "labels": [
-    "type: process"
-  ]
-}
-
 exports['JavaBom run creates a snapshot PR if an explicit release is requested, but a snapshot is needed 1'] = `
 [
   [
@@ -86,12 +68,6 @@ exports['JavaBom run creates a snapshot PR if an explicit release is requested, 
   ]
 ]
 `
-
-exports['labels-bom-feature'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
 
 exports['JavaBom run merges conventional commit messages 1'] = `
 [
