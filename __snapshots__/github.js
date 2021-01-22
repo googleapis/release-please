@@ -205,3 +205,21 @@ exports['GitHub findFilesByExtension returns files matching the requested patter
   "oauth2_http/pom.xml",
   "pom.xml"
 ]
+
+exports['GitHub commitsSinceSha prefixes commits with labels from associated pull requests 1'] = [
+  {
+    "sha": "fcd1c890dc1526f4d62ceedad561f498195c8939",
+    "message": "Refactor shared IAM-based signing (#292)\n\n* Extract IAM signing into its own class\r\n\r\n* Refactor into IamUtils package private class\r\n\r\n* Remove unnecessary class\r\n\r\n* Remove unused code\r\n\r\n* Cleanup imports\r\n\r\n* Fill out javadoc for IamUtils\r\n\r\n* Failing tests for impersonated credentials\r\n\r\n* Fix credentials used for signing\r\n\r\n* Fix providing delegates to signing request\r\n\r\n* Disallow null additionalFields, remove jsr305 annotation\r\n\r\n* Remove usued imports",
+    "files": []
+  },
+  {
+    "sha": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373",
+    "message": "Update allowed header format (#301)\n\n* Update copyright format  \r\n\r\n@chingor13\r\n\r\n* Update java.header\r\n\r\n* add legacy copyright\r\n\r\n* remove spurious $",
+    "files": []
+  },
+  {
+    "sha": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a",
+    "message": "Upgrade Guava to 28.0-android (#300)",
+    "files": []
+  }
+]

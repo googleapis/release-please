@@ -64,6 +64,25 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('prefixes commits with labels from associated pull requests', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-with-labels.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitsSinceSha = await github.commitsSinceSha(
+        '35abf13fa8acb3988aa086f3eb23f5ce1483cc5d',
+        100,
+        true,
+      );
+      snapshot(commitsSinceSha);
+      req.done();
+    });
   });
 
   describe('normalizePrefix', () => {
@@ -560,15 +579,14 @@ describe('GitHub', () => {
           'utf8'
         )
       );
-      const req1 = nock('https://api.github.com/')
+
+      req
         .get(
           '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmain'
         )
-        .reply(403, simpleAPIResponse);
-      const req2 = nock('https://api.github.com/')
+        .reply(403, simpleAPIResponse)
         .get('/repos/fake/fake/git/trees/main')
-        .reply(200, dataAPITreesResponse);
-      const req3 = nock('https://api.github.com/')
+        .reply(200, dataAPITreesResponse)
         .get(
           '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
         )
@@ -581,9 +599,7 @@ describe('GitHub', () => {
         .to.have.property('sha')
         .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
       snapshot(fileContents);
-      req1.done();
-      req2.done();
-      req3.done();
+      req.done();
     });
   });
 });
