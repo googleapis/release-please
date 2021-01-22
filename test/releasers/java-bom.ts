@@ -95,12 +95,9 @@ describe('JavaBom', () => {
           data: graphql,
         })
         // finding pom.xml files
-        .get(
-          '/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-cloud-bom'
-        )
+        .get('/repos/googleapis/java-cloud-bom/git/trees/main?recursive=true')
         .reply(200, {
-          total_count: 1,
-          items: [{name: 'pom.xml', path: 'pom.xml'}],
+          tree: [{path: 'pom.xml'}],
         })
         // check for CHANGELOG
         .get(
@@ -224,12 +221,9 @@ describe('JavaBom', () => {
           },
         ])
         // finding pom.xml files
-        .get(
-          '/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-cloud-bom'
-        )
+        .get('/repos/googleapis/java-cloud-bom/git/trees/main?recursive=true')
         .reply(200, {
-          total_count: 1,
-          items: [{name: 'pom.xml', path: 'pom.xml'}],
+          tree: [{path: 'pom.xml'}],
         })
         // update versions.txt
         .get(
@@ -374,12 +368,9 @@ describe('JavaBom', () => {
           },
         ])
         // finding pom.xml files
-        .get(
-          '/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-cloud-bom'
-        )
+        .get('/repos/googleapis/java-cloud-bom/git/trees/main?recursive=true')
         .reply(200, {
-          total_count: 1,
-          items: [{name: 'pom.xml', path: 'pom.xml'}],
+          tree: [{path: 'pom.xml'}],
         })
         // update versions.txt
         .get(
@@ -494,12 +485,9 @@ describe('JavaBom', () => {
           data: graphql,
         })
         // finding pom.xml files
-        .get(
-          '/search/code?q=filename%3Apom.xml+repo%3Agoogleapis%2Fjava-cloud-bom'
-        )
+        .get('/repos/googleapis/java-cloud-bom/git/trees/master?recursive=true')
         .reply(200, {
-          total_count: 1,
-          items: [{name: 'pom.xml', path: 'pom.xml'}],
+          tree: [{path: 'pom.xml'}],
         })
         // check for CHANGELOG
         .get(
