@@ -1,15 +1,9 @@
-exports['labels-bom'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
-
 exports['JavaBom run creates a release PR 1'] = `
 [
   [
     "CHANGELOG.md",
     {
-      "content": "# Changelog\\n\\n## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) (1983-10-10)\\n\\n\\n### Dependencies\\n\\n* update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))\\n* update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))\\n",
+      "content": "# Changelog\\n\\n## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) (1983-10-10)\\n\\n\\n### Dependencies\\n\\n* update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([cff63d6](https://www.github.com/googleapis/java-cloud-bom/commit/cff63d6a37871ed689d160f5e0ce3049))\\n* update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([333b994](https://www.github.com/googleapis/java-cloud-bom/commit/333b994dfc5c831a74c9f597349d4b62))\\n",
       "mode": "100644"
     }
   ],
@@ -37,12 +31,6 @@ exports['JavaBom run creates a release PR 1'] = `
 ]
 `
 
-exports['labels-bom-snapshot'] = {
-  "labels": [
-    "type: process"
-  ]
-}
-
 exports['JavaBom run creates a snapshot PR 1'] = `
 [
   [
@@ -61,12 +49,6 @@ exports['JavaBom run creates a snapshot PR 1'] = `
   ]
 ]
 `
-
-exports['labels-bom-snapshot-release'] = {
-  "labels": [
-    "type: process"
-  ]
-}
 
 exports['JavaBom run creates a snapshot PR if an explicit release is requested, but a snapshot is needed 1'] = `
 [
@@ -87,18 +69,12 @@ exports['JavaBom run creates a snapshot PR if an explicit release is requested, 
 ]
 `
 
-exports['labels-bom-feature'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
-
 exports['JavaBom run merges conventional commit messages 1'] = `
 [
   [
     "CHANGELOG.md",
     {
-      "content": "# Changelog\\n\\n## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) (1983-10-10)\\n\\n\\n### Features\\n\\n* import google-cloud-game-servers ([1f9663c](https://www.github.com/googleapis/java-cloud-bom/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))\\n\\n\\n### Dependencies\\n\\n* update dependency com.google.cloud:google-cloud-storage to v1.120.1 ([fcd1c89](https://www.github.com/googleapis/java-cloud-bom/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))\\n",
+      "content": "# Changelog\\n\\n## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) (1983-10-10)\\n\\n\\n### Features\\n\\n* import google-cloud-game-servers ([3ec8138](https://www.github.com/googleapis/java-cloud-bom/commit/3ec8138bb1ce60b060411fb179ab1755))\\n\\n\\n### Dependencies\\n\\n* update dependency com.google.cloud:google-cloud-storage to v1.120.1 ([62ea60b](https://www.github.com/googleapis/java-cloud-bom/commit/62ea60ba424a832710e87eb266ca854b))\\n",
       "mode": "100644"
     }
   ],
