@@ -67,10 +67,7 @@ describe('GitHub', () => {
 
     it('prefixes commits with labels from associated pull requests', async () => {
       const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'commits-with-labels.json'),
-          'utf8'
-        )
+        readFileSync(resolve(fixturesPath, 'commits-with-labels.json'), 'utf8')
       );
       req.post('/graphql').reply(200, {
         data: graphql,
@@ -78,7 +75,7 @@ describe('GitHub', () => {
       const commitsSinceSha = await github.commitsSinceSha(
         '35abf13fa8acb3988aa086f3eb23f5ce1483cc5d',
         100,
-        true,
+        true
       );
       snapshot(commitsSinceSha);
       req.done();
