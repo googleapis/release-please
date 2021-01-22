@@ -24,6 +24,7 @@ import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents} from '../../src/github';
 import * as crypto from 'crypto';
+import {Commit} from '../../src/graphql-to-commits';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/java-yoshi';
@@ -35,6 +36,14 @@ function buildFileContent(fixture: string): GitHubFileContents {
     parsedContent: content,
     // fake a consistent sha
     sha: crypto.createHash('md5').update(content).digest('hex'),
+  };
+}
+
+function buildMockCommit(message: string): Commit {
+  return {
+    sha: crypto.createHash('md5').update(message).digest('hex'),
+    message,
+    files: [],
   };
 }
 
@@ -108,14 +117,13 @@ describe('JavaYoshi', () => {
       Object.assign(Error('not found'), {status: 404})
     );
 
-    sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-      {
-        sha: '35abf13fa8acb3988aa086f3eb23f5ce1483cc5d',
-        message:
-          'fix: Fix declared dependencies from merge issue (#291)',
-        files: [],
-      },
-    ]);
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit(
+          'fix: Fix declared dependencies from merge issue (#291)'
+        ),
+      ]);
 
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
@@ -207,14 +215,13 @@ describe('JavaYoshi', () => {
       Object.assign(Error('not found'), {status: 404})
     );
 
-    sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-      {
-        sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
-        message:
-          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
-        files: [],
-      },
-    ]);
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+        ),
+      ]);
 
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
@@ -435,14 +442,13 @@ describe('JavaYoshi', () => {
       Object.assign(Error('not found'), {status: 404})
     );
 
-    sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-      {
-        sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
-        message:
-          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
-        files: [],
-      },
-    ]);
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+        ),
+      ]);
 
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
@@ -533,13 +539,11 @@ describe('JavaYoshi', () => {
       Object.assign(Error('not found'), {status: 404})
     );
 
-    sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-      {
-        sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
-        message: 'feat: promote to 1.0.0 (#292)\n\nRelease-As: 1.0.0',
-        files: [],
-      },
-    ]);
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit('feat: promote to 1.0.0 (#292)\n\nRelease-As: 1.0.0'),
+      ]);
 
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
@@ -625,14 +629,13 @@ describe('JavaYoshi', () => {
       Object.assign(Error('not found'), {status: 404})
     );
 
-    sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-      {
-        sha: '35abf13fa8acb3988aa086f3eb23f5ce1483cc5d',
-        message:
-          'fix: Fix declared dependencies from merge issue (#291)',
-        files: [],
-      },
-    ]);
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit(
+          'fix: Fix declared dependencies from merge issue (#291)'
+        ),
+      ]);
 
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');

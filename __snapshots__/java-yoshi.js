@@ -3,7 +3,7 @@ exports['JavaYoshi creates a release PR 1'] = `
   [
     "CHANGELOG.md",
     {
-      "content": "# Changelog\\n\\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (1983-10-10)\\n\\n\\n### Bug Fixes\\n\\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))\\n",
+      "content": "# Changelog\\n\\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (1983-10-10)\\n\\n\\n### Bug Fixes\\n\\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([4af82b3](https://www.github.com/googleapis/java-trace/commit/4af82b3a0399386f68484da753a975b5))\\n",
       "mode": "100644"
     }
   ],
@@ -100,7 +100,7 @@ exports['JavaYoshi handles promotion to 1.0.0 1'] = `
   [
     "CHANGELOG.md",
     {
-      "content": "# Changelog\\n\\n## [1.0.0](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v1.0.0) (1983-10-10)\\n\\n\\n### Features\\n\\n* promote to 1.0.0 ([#292](https://www.github.com/googleapis/java-trace/issues/292)) ([fcd1c89](https://www.github.com/googleapis/java-trace/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))\\n",
+      "content": "# Changelog\\n\\n## [1.0.0](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v1.0.0) (1983-10-10)\\n\\n\\n### Features\\n\\n* promote to 1.0.0 ([#292](https://www.github.com/googleapis/java-trace/issues/292)) ([7fe1778](https://www.github.com/googleapis/java-trace/commit/7fe1778d9a6f9e16c410a0947241df0a))\\n",
       "mode": "100644"
     }
   ],
@@ -140,7 +140,7 @@ exports['JavaYoshi creates a release PR against a feature branch 1'] = `
   [
     "CHANGELOG.md",
     {
-      "content": "# Changelog\\n\\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (1983-10-10)\\n\\n\\n### Bug Fixes\\n\\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))\\n",
+      "content": "# Changelog\\n\\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (1983-10-10)\\n\\n\\n### Bug Fixes\\n\\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([4af82b3](https://www.github.com/googleapis/java-trace/commit/4af82b3a0399386f68484da753a975b5))\\n",
       "mode": "100644"
     }
   ],
@@ -181,7 +181,7 @@ exports['JavaYoshi creates a release PR against a feature branch 2'] = `
   "upstreamRepo": "java-trace",
   "title": "chore: release 0.20.4",
   "branch": "release-v0.20.4",
-  "description": ":robot: I have created a release \\\\*beep\\\\* \\\\*boop\\\\* \\n---\\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (1983-10-10)\\n\\n\\n### Bug Fixes\\n\\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([35abf13](https://www.github.com/googleapis/java-trace/commit/35abf13fa8acb3988aa086f3eb23f5ce1483cc5d))\\n---\\n\\n\\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+  "description": ":robot: I have created a release \\\\*beep\\\\* \\\\*boop\\\\* \\n---\\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (1983-10-10)\\n\\n\\n### Bug Fixes\\n\\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([4af82b3](https://www.github.com/googleapis/java-trace/commit/4af82b3a0399386f68484da753a975b5))\\n---\\n\\n\\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
   "primary": "1.x",
   "force": true,
   "fork": false,

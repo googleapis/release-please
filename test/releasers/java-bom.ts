@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {describe, it, afterEach} from 'mocha';
-import * as nock from 'nock';
 
 import {expect} from 'chai';
 import {JavaBom} from '../../src/releasers/java-bom';
@@ -22,8 +21,9 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
-import { GitHubFileContents } from '../../src/github';
+import {GitHubFileContents} from '../../src/github';
 import * as crypto from 'crypto';
+import {Commit} from '../../src/graphql-to-commits';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/java-bom';
@@ -35,6 +35,14 @@ function buildFileContent(fixture: string): GitHubFileContents {
     parsedContent: content,
     // fake a consistent sha
     sha: crypto.createHash('md5').update(content).digest('hex'),
+  };
+}
+
+function buildMockCommit(message: string): Commit {
+  return {
+    sha: crypto.createHash('md5').update(message).digest('hex'),
+    message,
+    files: [],
   };
 }
 
@@ -55,16 +63,16 @@ describe('JavaBom', () => {
       sandbox
         .stub(releasePR.gh, 'getDefaultBranch')
         .returns(Promise.resolve('master'));
-  
+
       // No open release PRs, so create a new release PR
       sandbox
         .stub(releasePR.gh, 'findOpenReleasePRs')
         .returns(Promise.resolve([]));
-  
+
       sandbox
         .stub(releasePR.gh, 'findMergedReleasePR')
         .returns(Promise.resolve(undefined));
-  
+
       // Indicates that there are no PRs currently waiting to be released:
       sandbox.stub(releasePR.gh, 'latestTag').returns(
         Promise.resolve({
@@ -73,7 +81,7 @@ describe('JavaBom', () => {
           version: '0.123.4',
         })
       );
-  
+
       const findFilesStub = sandbox.stub(
         releasePR.gh,
         'findFilesByFilenameAndRef'
@@ -85,7 +93,7 @@ describe('JavaBom', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'master', undefined)
         .resolves([]);
-  
+
       const getFileContentsStub = sandbox.stub(
         releasePR.gh,
         'getFileContentsOnBranch'
@@ -102,28 +110,22 @@ describe('JavaBom', () => {
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404})
       );
-  
-      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-        {
-          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
-          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0',
-          files: [],
-        },
-        {
-          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
-          message: 'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
-          files: [],
-        },
-        {
-          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
-          message: 'chore: update common templates',
-          files: [],
-        }
-      ]);
-  
+
+      sandbox
+        .stub(releasePR.gh, 'commitsSinceSha')
+        .resolves([
+          buildMockCommit(
+            'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+          ),
+          buildMockCommit(
+            'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
+          ),
+          buildMockCommit('chore: update common templates'),
+        ]);
+
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
-      
+
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -157,16 +159,16 @@ describe('JavaBom', () => {
       sandbox
         .stub(releasePR.gh, 'getDefaultBranch')
         .returns(Promise.resolve('master'));
-  
+
       // No open release PRs, so create a new release PR
       sandbox
         .stub(releasePR.gh, 'findOpenReleasePRs')
         .returns(Promise.resolve([]));
-  
+
       sandbox
         .stub(releasePR.gh, 'findMergedReleasePR')
         .returns(Promise.resolve(undefined));
-  
+
       // Indicates that there are no PRs currently waiting to be released:
       sandbox.stub(releasePR.gh, 'latestTag').returns(
         Promise.resolve({
@@ -175,7 +177,7 @@ describe('JavaBom', () => {
           version: '0.123.4',
         })
       );
-  
+
       const findFilesStub = sandbox.stub(
         releasePR.gh,
         'findFilesByFilenameAndRef'
@@ -187,7 +189,7 @@ describe('JavaBom', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'master', undefined)
         .resolves([]);
-  
+
       const getFileContentsStub = sandbox.stub(
         releasePR.gh,
         'getFileContentsOnBranch'
@@ -204,28 +206,22 @@ describe('JavaBom', () => {
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404})
       );
-  
-      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-        {
-          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
-          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0',
-          files: [],
-        },
-        {
-          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
-          message: 'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
-          files: [],
-        },
-        {
-          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
-          message: 'chore: update common templates',
-          files: [],
-        }
-      ]);
-  
+
+      sandbox
+        .stub(releasePR.gh, 'commitsSinceSha')
+        .resolves([
+          buildMockCommit(
+            'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+          ),
+          buildMockCommit(
+            'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
+          ),
+          buildMockCommit('chore: update common templates'),
+        ]);
+
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
-      
+
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -257,8 +253,8 @@ describe('JavaBom', () => {
       });
 
       sandbox
-      .stub(releasePR.gh, 'getDefaultBranch')
-      .returns(Promise.resolve('master'));
+        .stub(releasePR.gh, 'getDefaultBranch')
+        .returns(Promise.resolve('master'));
 
       sandbox
         .stub(releasePR.gh, 'findMergedReleasePR')
@@ -295,16 +291,16 @@ describe('JavaBom', () => {
       sandbox
         .stub(releasePR.gh, 'getDefaultBranch')
         .returns(Promise.resolve('master'));
-  
+
       // No open release PRs, so create a new release PR
       sandbox
         .stub(releasePR.gh, 'findOpenReleasePRs')
         .returns(Promise.resolve([]));
-  
+
       sandbox
         .stub(releasePR.gh, 'findMergedReleasePR')
         .returns(Promise.resolve(undefined));
-  
+
       // Indicates that there are no PRs currently waiting to be released:
       sandbox.stub(releasePR.gh, 'latestTag').returns(
         Promise.resolve({
@@ -313,7 +309,7 @@ describe('JavaBom', () => {
           version: '0.123.4',
         })
       );
-  
+
       const findFilesStub = sandbox.stub(
         releasePR.gh,
         'findFilesByFilenameAndRef'
@@ -325,7 +321,7 @@ describe('JavaBom', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'master', undefined)
         .resolves([]);
-  
+
       const getFileContentsStub = sandbox.stub(
         releasePR.gh,
         'getFileContentsOnBranch'
@@ -342,28 +338,22 @@ describe('JavaBom', () => {
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404})
       );
-  
-      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-        {
-          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
-          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0',
-          files: [],
-        },
-        {
-          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
-          message: 'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
-          files: [],
-        },
-        {
-          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
-          message: 'chore: update common templates',
-          files: [],
-        }
-      ]);
-  
+
+      sandbox
+        .stub(releasePR.gh, 'commitsSinceSha')
+        .resolves([
+          buildMockCommit(
+            'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+          ),
+          buildMockCommit(
+            'deps: update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
+          ),
+          buildMockCommit('chore: update common templates'),
+        ]);
+
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
-      
+
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
       let expectedChanges = null;
@@ -396,16 +386,16 @@ describe('JavaBom', () => {
       sandbox
         .stub(releasePR.gh, 'getDefaultBranch')
         .returns(Promise.resolve('master'));
-  
+
       // No open release PRs, so create a new release PR
       sandbox
         .stub(releasePR.gh, 'findOpenReleasePRs')
         .returns(Promise.resolve([]));
-  
+
       sandbox
         .stub(releasePR.gh, 'findMergedReleasePR')
         .returns(Promise.resolve(undefined));
-  
+
       // Indicates that there are no PRs currently waiting to be released:
       sandbox.stub(releasePR.gh, 'latestTag').returns(
         Promise.resolve({
@@ -414,7 +404,7 @@ describe('JavaBom', () => {
           version: '0.123.4',
         })
       );
-  
+
       const findFilesStub = sandbox.stub(
         releasePR.gh,
         'findFilesByFilenameAndRef'
@@ -426,7 +416,7 @@ describe('JavaBom', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'master', undefined)
         .resolves([]);
-  
+
       const getFileContentsStub = sandbox.stub(
         releasePR.gh,
         'getFileContentsOnBranch'
@@ -443,25 +433,17 @@ describe('JavaBom', () => {
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404})
       );
-  
-      sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves([
-        {
-          sha: 'fcd1c890dc1526f4d62ceedad561f498195c8939',
-          message: 'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.1',
-          files: [],
-        },
-        {
-          sha: '1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373',
-          message: 'feat: import google-cloud-game-servers',
-          files: [],
-        },
-        {
-          sha: '3006009a2b1b2cb4bd5108c0f469c410759f3a6a',
-          message: 'chore: update common templates',
-          files: [],
-        }
-      ]);
-  
+
+      sandbox
+        .stub(releasePR.gh, 'commitsSinceSha')
+        .resolves([
+          buildMockCommit(
+            'deps: update dependency com.google.cloud:google-cloud-storage to v1.120.1'
+          ),
+          buildMockCommit('feat: import google-cloud-game-servers'),
+          buildMockCommit('chore: update common templates'),
+        ]);
+
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
 
