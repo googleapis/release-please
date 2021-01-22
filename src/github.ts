@@ -968,7 +968,8 @@ export class GitHub {
     packageName: string,
     tagName: string,
     sha: string,
-    releaseNotes: string
+    releaseNotes: string,
+    draft: boolean
   ): Promise<ReleaseCreateResponse> {
     checkpoint(`creating release ${tagName}`, CheckpointType.Success);
     return (
@@ -983,6 +984,7 @@ export class GitHub {
           target_commitish: sha,
           body: releaseNotes,
           name: `${packageName} ${tagName}`,
+          draft: draft,
         }
       )
     ).data;

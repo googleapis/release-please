@@ -33,6 +33,7 @@ interface ReleaseResponse {
   tag_name: string;
   upload_url: string;
   pr: number;
+  draft: boolean;
 }
 
 export interface GitHubReleaseOptions {
@@ -47,6 +48,7 @@ export interface GitHubReleaseOptions {
   octokitAPIs?: OctokitAPIs;
   releaseType?: string;
   changelogPath?: string;
+  draft?: boolean;
 }
 
 export class GitHubRelease {
@@ -61,6 +63,7 @@ export class GitHubRelease {
   token?: string;
   proxyKey?: string;
   releaseType?: string;
+  draft?: boolean;
 
   constructor(options: GitHubReleaseOptions) {
     this.apiUrl = options.apiUrl;
@@ -72,6 +75,7 @@ export class GitHubRelease {
     this.path = options.path;
     this.packageName = options.packageName;
     this.releaseType = options.releaseType;
+    this.draft = options.draft;
 
     this.changelogPath = options.changelogPath ?? 'CHANGELOG.md';
 
@@ -141,7 +145,8 @@ export class GitHubRelease {
         ? `${this.packageName}${tagSeparator}${version}`
         : version,
       gitHubReleasePR.sha,
-      latestReleaseNotes
+      latestReleaseNotes,
+      !!this.draft
     );
     // Add a label indicating that a release has been created on GitHub,
     // but a publication has not yet occurred.
@@ -162,6 +167,7 @@ export class GitHubRelease {
         html_url: release.html_url,
         tag_name: release.tag_name,
         upload_url: release.upload_url,
+        draft: release.draft,
       };
     } else {
       console.warn(`failed to parse version informatino from ${version}`);
