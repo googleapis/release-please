@@ -153,6 +153,37 @@ interface GraphQLCommit {
   };
 }
 
+export interface MergedGitHubPRWithFiles extends MergedGitHubPR {
+  files: string[];
+}
+
+// GraphQL reponse types
+export interface Repository<T> {
+  repository: T;
+}
+
+interface Nodes<T> {
+  nodes: T[];
+}
+
+export interface PageInfo {
+  endCursor: string;
+  hasNextPage: boolean;
+}
+
+interface PullRequestNode {
+  title: string;
+  body: string;
+  number: number;
+  mergeCommit: {oid: string};
+  files: {pageInfo: PageInfo} & Nodes<{path: string}>;
+  labels: Nodes<{name: string}>;
+}
+
+export interface PullRequests {
+  pullRequests: Nodes<PullRequestNode>;
+}
+
 let probotMode = false;
 
 export class GitHub {
@@ -464,6 +495,77 @@ export class GitHub {
       }
     )) as {data: GitRefResponse};
     return refResponse.data.object.sha;
+  }
+
+  /**
+   * Find the most "last" merged PR given a headBranch. "last" here means
+   * the most recently created. Includes all associated files.
+   *
+   * @param {string} headBranch - e.g. "release-please/branches/main"
+   * @returns {MergedGitHubPRWithFiles} - if found, otherwise undefined.
+   */
+  async lastMergedPRByHeadBranch(
+    headBranch: string
+  ): Promise<MergedGitHubPRWithFiles | undefined> {
+    const baseBranch = await this.getDefaultBranch();
+    const response: Repository<PullRequests> = await this.graphqlRequest({
+      query: `query lastMergedPRByHeadBranch($owner: String!, $repo: String!, $baseBranch: String!, $headBranch: String!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequests(baseRefName: $baseBranch, states: MERGED, orderBy: {field: CREATED_AT, direction: DESC}, first: 1, headRefName: $headBranch) {
+          nodes {
+            title
+            body
+            number
+            mergeCommit {
+              oid
+            }
+            files(first: 100) {
+              nodes {
+                path
+              }
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+            }
+            labels(first: 10) {
+              nodes {
+                name
+              }
+            }
+          }
+        }
+      }`,
+      owner: this.owner,
+      repo: this.repo,
+      baseBranch,
+      headBranch,
+    });
+    let result: MergedGitHubPRWithFiles | undefined = undefined;
+    const pr = response.repository.pullRequests.nodes[0];
+    if (pr) {
+      const files = pr.files.nodes.map(({path}) => path);
+      let hasMoreFiles = pr.files.pageInfo.hasNextPage;
+      let cursor = pr.files.pageInfo.endCursor;
+      while (hasMoreFiles) {
+        const next = await this.pullRequestFiles(pr.number, cursor);
+        const nextFiles = next.node.files.edges.map(fe => fe.node.path);
+        files.push(...nextFiles);
+        cursor = next.node.files.pageInfo.endCursor;
+        hasMoreFiles = next.node.files.pageInfo.hasNextPage;
+      }
+      result = {
+        sha: pr.mergeCommit.oid,
+        title: pr.title,
+        body: pr.body,
+        number: pr.number,
+        baseRefName: baseBranch,
+        headRefName: headBranch,
+        files,
+        labels: pr.labels.nodes.map(({name}) => name),
+      };
+    }
+    return result;
   }
 
   // If we can't find a release branch (a common cause of this, as an example

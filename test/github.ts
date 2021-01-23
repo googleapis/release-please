@@ -21,8 +21,9 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 
-import {GitHub} from '../src/github';
+import {GitHub, Repository, PullRequests} from '../src/github';
 import {fail} from 'assert';
+import {PREdge} from '../src/graphql-to-commits';
 
 const fixturesPath = './test/fixtures';
 
@@ -812,6 +813,121 @@ describe('GitHub', () => {
       const latestTag = await github.latestTagFallback('foo-');
       expect(latestTag!.version).to.equal('2.3.0');
       req.done();
+    });
+  });
+  describe('lastMergedPRByHeadBranch', () => {
+    const getLastMergedManifestPRGraphQL = (
+      files: string[],
+      nextPage: boolean
+    ): Repository<PullRequests> => {
+      const nodeFiles = [{path: '.release-please-manifest.json'}];
+      nodeFiles.push(...files.map(path => ({path})));
+      return {
+        repository: {
+          pullRequests: {
+            nodes: [
+              {
+                title: 'some Title',
+                body: 'some Body',
+                number: 22,
+                mergeCommit: {oid: 'abc123'},
+                files: {
+                  nodes: nodeFiles,
+                  pageInfo: {hasNextPage: nextPage, endCursor: 'MQ'},
+                },
+                labels: {
+                  nodes: [{name: 'foo'}, {name: 'bar'}],
+                },
+              },
+            ],
+          },
+        },
+      };
+    };
+    const getPullRequestFilesGraphQL = (
+      files: string[],
+      nextPage: boolean
+    ): Repository<{pullRequest: PREdge['node']}> => {
+      return {
+        repository: {
+          pullRequest: {
+            number: 22,
+            mergeCommit: {oid: 'abc123'},
+            files: {
+              edges: files.map(path => ({node: {path}})),
+              pageInfo: {hasNextPage: nextPage, endCursor: 'MQ'},
+            },
+            labels: {edges: []},
+          },
+        },
+      };
+    };
+    it('finds no previously merged PR', async () => {
+      const noPrs: Repository<PullRequests> = {
+        repository: {
+          pullRequests: {
+            nodes: [],
+          },
+        },
+      };
+      req.post('/graphql').reply(200, {
+        data: noPrs,
+      });
+      const pr = await github.lastMergedPRByHeadBranch('headBranch');
+      req.done();
+      expect(pr).to.be.undefined;
+    });
+    it('finds the last merged PR with fewer than 100 files', async () => {
+      const files = ['node/pkg1/package.json', 'py/setup.py'];
+      const graphql = getLastMergedManifestPRGraphQL(files, false);
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      files.unshift('.release-please-manifest.json');
+      const pr = await github.lastMergedPRByHeadBranch('headBranch');
+      req.done();
+      expect(pr).to.not.be.undefined;
+      expect(pr!.sha).to.equal('abc123');
+      expect(pr!.title).to.equal('some Title');
+      expect(pr!.body).to.equal('some Body');
+      expect(pr!.number).to.equal(22);
+      expect(pr!.baseRefName).to.equal('main');
+      expect(pr!.headRefName).to.equal('headBranch');
+      expect(pr!.files).to.eql(files);
+    });
+    it('finds the last merged PR with greater than "100" files', async () => {
+      // 100 files is the github limit but since we trigger on
+      // PageInfo.hasNextPage we'll mock that knob so we can deal with fewer
+      // file (6 in this case).
+      const files1 = ['node/pkg1/package.json', 'py/setup.py'];
+      const files2 = ['node/pkg2/package.json', 'py2/setup.py'];
+      const files3 = ['node/pkg3/package.json', 'py3/setup.py'];
+      const graphql1 = getLastMergedManifestPRGraphQL(files1, true);
+      const graphql2 = getPullRequestFilesGraphQL(files2, true);
+      const graphql3 = getPullRequestFilesGraphQL(files3, false);
+      req.post('/graphql').reply(200, {
+        data: graphql1,
+      });
+      req.post('/graphql').reply(200, {
+        data: graphql2,
+      });
+      req.post('/graphql').reply(200, {
+        data: graphql3,
+      });
+
+      const pr = await github.lastMergedPRByHeadBranch('headBranch');
+      req.done();
+
+      const files = ['.release-please-manifest.json'];
+      files.push(...files1, ...files2, ...files3);
+      expect(pr).to.not.be.undefined;
+      expect(pr!.sha).to.equal('abc123');
+      expect(pr!.title).to.equal('some Title');
+      expect(pr!.body).to.equal('some Body');
+      expect(pr!.number).to.equal(22);
+      expect(pr!.baseRefName).to.equal('main');
+      expect(pr!.headRefName).to.equal('headBranch');
+      expect(pr!.files).to.eql(files);
     });
   });
 });
