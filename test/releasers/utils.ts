@@ -14,7 +14,7 @@
 
 import {GitHubFileContents, GitHub} from '../../src/github';
 import {readFileSync} from 'fs';
-import {resolve} from 'path';
+import * as path from 'path';
 import * as crypto from 'crypto';
 import {SinonSandbox} from 'sinon';
 
@@ -23,7 +23,13 @@ export function buildGitHubFileContent(
   fixture: string
 ): GitHubFileContents {
   return buildGitHubFileRaw(
-    readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(/\r\n/g, '\n')
+    readFileSync(
+      path.resolve(
+        fixturesPath.replace(/\//g, path.sep),
+        fixture.replace(/\//g, path.sep)
+      ),
+      'utf8'
+    ).replace(/\r\n/g, '\n')
   );
 }
 
