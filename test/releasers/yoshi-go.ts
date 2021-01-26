@@ -88,7 +88,7 @@ describe('YoshiGo', () => {
         // check for default branch
         .get('/repos/googleapis/google-cloud-go')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-1.json'))
+        .reply(200, require(resolve('./test/fixtures/repo-get-1.json')))
         // create release
         .post(
           '/repos/googleapis/google-cloud-go/issues/22/labels',
@@ -178,7 +178,7 @@ describe('YoshiGo', () => {
         // check for default branch
         .get('/repos/googleapis/google-api-go-client')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../../test/fixtures/repo-get-1.json'));
+        .reply(200, require(resolve('./test/fixtures/repo-get-1.json')));
 
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
@@ -254,7 +254,7 @@ describe('YoshiGo', () => {
       // check for default branch
       .get('/repos/googleapis/google-cloud-go')
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      .reply(200, require('../../../test/fixtures/repo-get-1.json'));
+      .reply(200, require(resolve('./test/fixtures/repo-get-1.json')));
 
     const pr = await releasePR.run();
     assert.strictEqual(pr, 22);
