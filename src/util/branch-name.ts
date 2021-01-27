@@ -58,7 +58,7 @@ export class BranchName {
   }
 }
 
-const AUTORELEASE_PATTERN = /^release-?([\w-.]*)?-v([0-9].*)$/;
+const AUTORELEASE_PATTERN = /^release-?(?<component>[\w-.]*)?-v(?<version>[0-9].*)$/;
 class AutoreleaseBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(AUTORELEASE_PATTERN);
@@ -66,9 +66,9 @@ class AutoreleaseBranchName extends BranchName {
   constructor(branchName: string) {
     super(branchName);
     const match = branchName.match(AUTORELEASE_PATTERN);
-    if (match) {
-      this.component = match[1];
-      this.version = match[2];
+    if (match?.groups) {
+      this.component = match.groups['component'];
+      this.version = match.groups['version'];
     }
   }
   toString(): string {
@@ -79,7 +79,7 @@ class AutoreleaseBranchName extends BranchName {
   }
 }
 
-const DEFAULT_PATTERN = /^release-please\/branches\/([^/]+)$/;
+const DEFAULT_PATTERN = /^release-please\/branches\/(?<branch>[^/]+)$/;
 class DefaultBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(DEFAULT_PATTERN);
@@ -87,8 +87,8 @@ class DefaultBranchName extends BranchName {
   constructor(branchName: string) {
     super(branchName);
     const match = branchName.match(DEFAULT_PATTERN);
-    if (match) {
-      this.targetBranch = match[1];
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
     }
   }
   toString(): string {
@@ -96,7 +96,7 @@ class DefaultBranchName extends BranchName {
   }
 }
 
-const COMPONENT_PATTERN = /^release-please\/branches\/([^/]+)\/components\/([^/]+)$/;
+const COMPONENT_PATTERN = /^release-please\/branches\/(?<branch>[^/]+)\/components\/(?<component>[^/]+)$/;
 class ComponentBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(COMPONENT_PATTERN);
@@ -104,9 +104,9 @@ class ComponentBranchName extends BranchName {
   constructor(branchName: string) {
     super(branchName);
     const match = branchName.match(COMPONENT_PATTERN);
-    if (match) {
-      this.targetBranch = match[1];
-      this.component = match[2];
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+      this.component = match.groups['component'];
     }
   }
   toString(): string {
