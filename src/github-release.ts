@@ -18,6 +18,7 @@ import {packageBranchPrefix} from './util/package-branch-prefix';
 import {ReleasePRFactory} from './release-pr-factory';
 import {GitHub, OctokitAPIs} from './github';
 import {parse} from 'semver';
+import { extractReleaseNotes } from './util/release-notes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -125,10 +126,7 @@ export class GitHubRelease {
     const changelogContents = (
       await this.gh.getFileContents(this.addPath(this.changelogPath))
     ).parsedContent;
-    const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
-      changelogContents,
-      version
-    );
+    const latestReleaseNotes = extractReleaseNotes(changelogContents, version);
     checkpoint(
       `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
       CheckpointType.Success
@@ -195,21 +193,5 @@ export class GitHubRelease {
       proxyKey: this.proxyKey,
       octokitAPIs,
     });
-  }
-
-  static extractLatestReleaseNotes(
-    changelogContents: string,
-    version: string
-  ): string {
-    version = version.replace(/^v/, '');
-    const latestRe = new RegExp(
-      `## v?\\[?${version}[^\\n]*\\n(.*?)(\\n##\\s|\\n### \\[?[0-9]+\\.|($(?![\r\n])))`,
-      'ms'
-    );
-    const match = changelogContents.match(latestRe);
-    if (!match) {
-      throw Error('could not find changelog entry corresponding to release PR');
-    }
-    return match[1];
   }
 }
