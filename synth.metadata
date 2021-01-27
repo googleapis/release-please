@@ -4,14 +4,14 @@
       "git": {
         "name": ".",
         "remote": "https://github.com/googleapis/release-please.git",
-        "sha": "ae4f5007749a1cf1fa23f3af9ea3d8c20f35a800"
+        "sha": "b0a6a184981a528da79bfc4a0a5c00ef3ecadde1"
       }
     },
     {
       "git": {
         "name": "synthtool",
         "remote": "https://github.com/googleapis/synthtool.git",
-        "sha": "363fe305e9ce34a6cd53951c6ee5f997094b54ee"
+        "sha": "57c23fa5705499a4181095ced81f0ee0933b64f6"
       }
     }
   ]
