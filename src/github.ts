@@ -120,6 +120,34 @@ export interface GitHubPR {
   labels: string[];
 }
 
+export interface MergedGitHubPR {
+  sha: string;
+  number: number;
+  baseRefName: string;
+  headRefName: string;
+  labels: string[];
+  title: string;
+  body: string;
+}
+
+interface HistoryCommit {
+  oid: string;
+  associatedPullRequests: {
+    nodes: {
+      number: number;
+      title: string;
+      body: string;
+      baseRefName: string;
+      headRefName: string;
+      labels: {
+        nodes: {
+          name: string;
+        }[];
+      };
+    }[];
+  };
+}
+
 interface FileSearchResponseFile {
   path: string;
 }
@@ -545,6 +573,59 @@ export class GitHub {
       });
     }
     return tags;
+  }
+
+  async findMergedPullRequests(number?: number): Promise<MergedGitHubPR[]> {
+    const targetBranch = await this.getDefaultBranch();
+    const response = await this.graphqlRequest({
+      query: `query findMergedPullRequests($owner: String!, $repo: String!, $num: Int!) {
+          repository(owner: $owner, name: $repo) {
+            ref(qualifiedName: $targetBranch) {
+              target {
+                ... on Commit {
+                  history(first: $num) {
+                    nodes {
+                      oid
+                      associatedPullRequests(last: 1) {
+                        nodes {
+                          number
+                          body
+                          title
+                          baseRefName
+                          headRefName
+                          labels(first: 10) {
+                            nodes {
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }`,
+      owner: this.owner,
+      repo: this.repo,
+      branch: targetBranch,
+      num: number ?? 10,
+    });
+    const pullRequests = response.repository.ref.target.history
+      .nodes as HistoryCommit[];
+    return pullRequests.map(commit => {
+      const associatedPullRequest = commit.associatedPullRequests.nodes[0];
+      return {
+        sha: commit.oid,
+        number: associatedPullRequest.number,
+        baseRefName: associatedPullRequest.baseRefName,
+        headRefName: associatedPullRequest.headRefName,
+        labels: associatedPullRequest.labels.nodes.map(label => label.name),
+        title: associatedPullRequest.title,
+        body: associatedPullRequest.body,
+      };
+    });
   }
 
   // The default matcher will rule out pre-releases.

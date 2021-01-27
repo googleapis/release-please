@@ -599,4 +599,21 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
+  describe('findMergedPullRequests', () => {
+    it('finds merged pull requests with labels', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'merged-pull-requests.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const mergedPullRequests = await github.findMergedPullRequests()
+      snapshot(mergedPullRequests);
+      req.done();
+    });
+  });
 });
