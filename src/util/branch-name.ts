@@ -15,7 +15,7 @@
 type BranchNameType = typeof BranchName;
 
 function getAllResourceNames(): BranchNameType[] {
-  return [LegacyReleaseBranchName, ComponentBranchName, DefaultBranchName];
+  return [AutoreleaseBranchName, ComponentBranchName, DefaultBranchName];
 }
 
 export class BranchName {
@@ -33,10 +33,10 @@ export class BranchName {
     return new branchNameClass(branchName);
   }
   static ofComponentVersion(branchPrefix: string, version: string): BranchName {
-    return new LegacyReleaseBranchName(`release-${branchPrefix}-v${version}`);
+    return new AutoreleaseBranchName(`release-${branchPrefix}-v${version}`);
   }
   static ofVersion(version: string): BranchName {
-    return new LegacyReleaseBranchName(`release-v${version}`);
+    return new AutoreleaseBranchName(`release-v${version}`);
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(branchName: string) {}
@@ -58,14 +58,14 @@ export class BranchName {
   }
 }
 
-const LEGACY_PATTERN = /^release-?([\w-.]*)?-v([0-9].*)$/;
-class LegacyReleaseBranchName extends BranchName {
+const AUTORELEASE_PATTERN = /^release-?([\w-.]*)?-v([0-9].*)$/;
+class AutoreleaseBranchName extends BranchName {
   static matches(branchName: string): boolean {
-    return !!branchName.match(LEGACY_PATTERN);
+    return !!branchName.match(AUTORELEASE_PATTERN);
   }
   constructor(branchName: string) {
     super(branchName);
-    const match = branchName.match(LEGACY_PATTERN);
+    const match = branchName.match(AUTORELEASE_PATTERN);
     if (match) {
       this.component = match[1];
       this.version = match[2];
@@ -91,6 +91,9 @@ class DefaultBranchName extends BranchName {
       this.targetBranch = match[1];
     }
   }
+  toString(): string {
+    return `release-please/branches/${this.targetBranch}`;
+  }
 }
 
 const COMPONENT_PATTERN = /^release-please\/branches\/([^/]+)\/components\/([^/]+)$/;
@@ -105,5 +108,8 @@ class ComponentBranchName extends BranchName {
       this.targetBranch = match[1];
       this.component = match[2];
     }
+  }
+  toString(): string {
+    return `release-please/branches/${this.targetBranch}/components/${this.component}`;
   }
 }

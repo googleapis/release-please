@@ -18,8 +18,8 @@ import {expect} from 'chai';
 
 describe('BranchName', () => {
   describe('parse', () => {
-    describe('legacy branch name', () => {
-      it('parses a legacy branch name', () => {
+    describe('autorelease branch name', () => {
+      it('parses a versioned branch name', () => {
         const name = 'release-v1.2.3';
         const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
@@ -28,7 +28,7 @@ describe('BranchName', () => {
         expect(branchName?.getVersion()).to.eql('1.2.3');
         expect(branchName?.toString()).to.eql(name);
       });
-      it('parses a legacy branch name with component', () => {
+      it('parses a versioned branch name with component', () => {
         const name = 'release-storage-v1.2.3';
         const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
@@ -61,6 +61,18 @@ describe('BranchName', () => {
     it('fails to parse', () => {
       const branchName = BranchName.parse('release-foo');
       expect(branchName).to.be.undefined;
+    });
+  });
+  describe('ofVersion', () => {
+    it('builds the autorelease versioned branch name', () => {
+      const branchName = BranchName.ofVersion('1.2.3');
+      expect(branchName.toString()).to.eql('release-v1.2.3');
+    });
+  });
+  describe('ofComponentVersion', () => {
+    it('builds the autorelease versioned branch name with component', () => {
+      const branchName = BranchName.ofComponentVersion('storage', '1.2.3');
+      expect(branchName.toString()).to.eql('release-storage-v1.2.3');
     });
   });
 });
