@@ -32,6 +32,12 @@ export class BranchName {
     }
     return new branchNameClass(branchName);
   }
+  static ofComponentVersion(branchPrefix: string, version: string): BranchName {
+    return new LegacyReleaseBranchName(`release-${branchPrefix}-v${version}`);
+  }
+  static ofVersion(version: string): BranchName {
+    return new LegacyReleaseBranchName(`release-v${version}`);
+  }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(branchName: string) {}
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -47,9 +53,12 @@ export class BranchName {
   getVersion(): string | undefined {
     return this.version;
   }
+  toString(): string {
+    return '';
+  }
 }
 
-const LEGACY_PATTERN = /^release-?([\w-.]*)?-(v[0-9].*)$/;
+const LEGACY_PATTERN = /^release-?([\w-.]*)?-v([0-9].*)$/;
 class LegacyReleaseBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(LEGACY_PATTERN);
@@ -61,6 +70,12 @@ class LegacyReleaseBranchName extends BranchName {
       this.component = match[1];
       this.version = match[2];
     }
+  }
+  toString(): string {
+    if (this.component) {
+      return `release-${this.component}-v${this.version}`;
+    }
+    return `release-v${this.version}`;
   }
 }
 

@@ -20,36 +20,42 @@ describe('BranchName', () => {
   describe('parse', () => {
     describe('legacy branch name', () => {
       it('parses a legacy branch name', () => {
-        const branchName = BranchName.parse('release-v1.2.3');
+        const name = 'release-v1.2.3';
+        const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
         expect(branchName?.getTargetBranch()).to.be.undefined;
         expect(branchName?.getComponent()).to.be.undefined;
-        expect(branchName?.getVersion()).to.eql('v1.2.3');
+        expect(branchName?.getVersion()).to.eql('1.2.3');
+        expect(branchName?.toString()).to.eql(name);
       });
       it('parses a legacy branch name with component', () => {
-        const branchName = BranchName.parse('release-storage-v1.2.3');
+        const name = 'release-storage-v1.2.3';
+        const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
         expect(branchName?.getTargetBranch()).to.be.undefined;
         expect(branchName?.getComponent()).to.eql('storage');
-        expect(branchName?.getVersion()).to.eql('v1.2.3');
+        expect(branchName?.getVersion()).to.eql('1.2.3');
+        expect(branchName?.toString()).to.eql(name);
       });
     });
     it('parses a target branch', () => {
-      const branchName = BranchName.parse('release-please/branches/main');
+      const name = 'release-please/branches/main';
+      const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('main');
       expect(branchName?.getComponent()).to.be.undefined;
       expect(branchName?.getVersion()).to.be.undefined;
+      expect(branchName?.toString()).to.eql(name);
     });
 
     it('parses a target branch and component', () => {
-      const branchName = BranchName.parse(
-        'release-please/branches/main/components/storage'
-      );
+      const name = 'release-please/branches/main/components/storage';
+      const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('main');
       expect(branchName?.getComponent()).to.eql('storage');
       expect(branchName?.getVersion()).to.be.undefined;
+      expect(branchName?.toString()).to.eql(name);
     });
 
     it('fails to parse', () => {
