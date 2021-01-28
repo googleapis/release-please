@@ -17,7 +17,6 @@ import {ReleasePR, ReleaseCandidate} from '../release-pr';
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHub, GitHubTag, GitHubFileContents} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
-import {packageBranchPrefix} from '../util/package-branch-prefix';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 
@@ -39,9 +38,7 @@ export class Node extends ReleasePR {
     if (pkg.name) this.packageName = pkg.name;
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
-      this.monorepoTags
-        ? `${packageBranchPrefix(this.packageName, 'node')}-`
-        : undefined
+      this.monorepoTags ? `${this.packagePrefix}-` : undefined
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -140,5 +137,13 @@ export class Node extends ReleasePR {
     const pkg = JSON.parse(contents.parsedContent);
     if (pkg.name) return pkg.name;
     else return undefined;
+  }
+
+  // Parse the package prefix for releases from the full package name
+  // The package name usually looks like `@[group]/[library]`
+  protected coercePackagePrefix(packageName: string): string {
+    return packageName.match(/^@[\w-]+\//)
+      ? packageName.split('/')[1]
+      : packageName;
   }
 }

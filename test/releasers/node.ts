@@ -289,4 +289,31 @@ describe('Node', () => {
       req.done();
     });
   });
+
+  describe('coercePackagePrefix', () => {
+    it('should parse out the @scope', () => {
+      const inputs = ['@foo/bar', '@foo-baz/bar'];
+      inputs.forEach(input => {
+        const releasePR = new Node({
+          packageName: input,
+          repoUrl: 'owner/repo',
+          apiUrl: 'unused',
+          releaseType: 'node',
+        });
+        expect(releasePR.packagePrefix).to.eql('bar');
+      });
+    });
+    it('should default to the package name', () => {
+      const inputs = ['foo/bar', 'foobar', ''];
+      inputs.forEach(input => {
+        const releasePR = new Node({
+          packageName: input,
+          repoUrl: 'owner/repo',
+          apiUrl: 'unused',
+          releaseType: 'node',
+        });
+        expect(releasePR.packagePrefix).to.eql(input);
+      });
+    });
+  });
 });

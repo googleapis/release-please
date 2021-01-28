@@ -42,9 +42,16 @@ type IssuesListResponseItem = PromiseValue<
 type FileSearchResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['search']['code']>
 >['data'];
-export type ReleaseCreateResponse = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
->['data'];
+// see: PromiseValue<
+//  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
+// >['data'];
+export type ReleaseCreateResponse = {
+  tag_name: string;
+  draft: boolean;
+  html_url: string;
+  upload_url: string;
+};
+
 type ReposListTagsResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['tags']['list']>
 >['data'];

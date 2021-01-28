@@ -187,6 +187,10 @@ export class GoYoshi extends ReleasePR {
     return '/';
   }
 
+  tagSeparator(): string {
+    return '/';
+  }
+
   private filterSubModuleCommits(
     repo: string
   ): (c: ConventionalChangelogCommit) => boolean {

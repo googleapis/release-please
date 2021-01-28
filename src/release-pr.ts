@@ -23,34 +23,52 @@ type PullsListResponseItems = PromiseValue<
 import * as semver from 'semver';
 
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import {packageBranchPrefix} from './util/package-branch-prefix';
 import {ConventionalCommits} from './conventional-commits';
-import {GitHub, GitHubTag, OctokitAPIs} from './github';
+import {GitHub, GitHubTag, OctokitAPIs, MergedGitHubPR} from './github';
 import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
+import {BranchName} from './util/branch-name';
+import {extractReleaseNotes} from './util/release-notes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 export interface BuildOptions {
+  // Whether to treat breaking changes as minor semver bumps pre-1.0.0
   bumpMinorPreMajor?: boolean;
+  // The target release branch
   defaultBranch?: string;
+  // Whether to open the pull request from a forked repository
   fork?: boolean;
+  // Comma-separated list of additional labels to add
   label?: string;
+  // GitHub API Token
   token?: string;
+  // URL of the GitHub repository
   repoUrl: string;
+  // The name of the package to release
   packageName: string;
-  // When releasing multiple libraries from one repository, include a prefix
-  // on tags and branch names:
+  // When releasing multiple libraries from one repository, whether or not
+  // to include a prefix on tags and branch names
   monorepoTags?: boolean;
+  // Limit file search to this path
   path?: string;
+  // Override the version to release
   releaseAs?: string;
+  // GitHub API endpoint
   apiUrl: string;
+  // Legacy GitHub proxy authentication token
   proxyKey?: string;
+  // Whether or not to force a snapshot release
   snapshot?: boolean;
+  // Override the last released version
   lastPackageVersion?: string;
+  // Override Octokit APIs to inject an authenticated GitHub client
   octokitAPIs?: OctokitAPIs;
+  // Path to version.rb file
   versionFile?: string;
+  // Optionally provide GitHub instance
+  github?: GitHub;
 }
 
 export interface ReleasePROptions extends BuildOptions {
@@ -78,6 +96,15 @@ export interface OpenPROptions {
   includePackageName: boolean;
 }
 
+export interface CandidateRelease {
+  sha: string;
+  tag: string;
+  notes: string;
+  name: string;
+  version: string;
+  pullNumber: number;
+}
+
 const DEFAULT_LABELS = 'autorelease: pending';
 
 export class ReleasePR {
@@ -100,6 +127,8 @@ export class ReleasePR {
   lastPackageVersion?: string;
   changelogSections?: [];
   releaseType: string;
+  // Prefix for tags/branches
+  packagePrefix: string;
 
   constructor(options: ReleasePROptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -122,10 +151,11 @@ export class ReleasePR {
       ? options.lastPackageVersion.replace(/^v/, '')
       : undefined;
 
-    this.gh = this.gitHubInstance(options.octokitAPIs);
+    this.gh = options.github ?? this.gitHubInstance(options.octokitAPIs);
 
     this.changelogSections = options.changelogSections;
     this.releaseType = options.releaseType;
+    this.packagePrefix = this.coercePackagePrefix(this.packageName);
   }
 
   async run(): Promise<number | undefined> {
@@ -202,6 +232,10 @@ export class ReleasePR {
     return '-';
   }
 
+  tagSeparator(): string {
+    return '-';
+  }
+
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined,
@@ -274,24 +308,48 @@ export class ReleasePR {
     });
   }
 
+  // Override this method to modify the pull request title
+  protected buildPullRequestTitle(
+    version: string,
+    includePackageName: boolean
+  ): string {
+    return includePackageName
+      ? `chore: release ${this.packageName} ${version}`
+      : `chore: release ${version}`;
+  }
+
+  // Override this method to modify the pull request head branch name
+  // If you modify this, you must ensure that the releaser can parse the tag version
+  // from the pull request.
+  protected buildBranchName(
+    version: string,
+    includePackageName: boolean
+  ): BranchName {
+    if (includePackageName && this.packageName) {
+      return BranchName.ofComponentVersion(this.packagePrefix, version);
+    }
+    return BranchName.ofVersion(version);
+  }
+
+  // Override this method to modify the pull request body
+  protected buildPullRequestBody(
+    version: string,
+    changelogEntry: string
+  ): string {
+    return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).`;
+  }
+
   protected async openPR(options: OpenPROptions): Promise<number | undefined> {
     const sha = options.sha;
     const changelogEntry = options.changelogEntry;
     const updates = options.updates;
     const version = options.version;
     const includePackageName = options.includePackageName;
-    const branchPrefix = packageBranchPrefix(
-      this.packageName,
-      this.releaseType
-    );
-    const title = includePackageName
-      ? `chore: release ${this.packageName} ${version}`
-      : `chore: release ${version}`;
-    const body = `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).`;
+    const title = this.buildPullRequestTitle(version, includePackageName);
+    const body = this.buildPullRequestBody(version, changelogEntry);
+    const branchName = this.buildBranchName(version, includePackageName);
     const pr: number | undefined = await this.gh.openPR({
-      branch: includePackageName
-        ? `release-${branchPrefix}-v${version}`
-        : `release-v${version}`,
+      branch: branchName.toString(),
       version,
       sha,
       updates,
@@ -339,5 +397,117 @@ export class ReleasePR {
 
   addPath(file: string) {
     return ReleasePR.addPathStatic(file, this.path);
+  }
+
+  // BEGIN release functionality
+
+  // Override this method to detect the release version from code (if it cannot be
+  // inferred from the release PR head branch)
+  protected async detectReleaseVersionFromCode(): Promise<string | undefined> {
+    return undefined;
+  }
+
+  // Override this method to detect the release version from code (if it cannot be
+  // inferred from the release PR head branch)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected detectReleaseVersionFromTitle(title: string): string | undefined {
+    return undefined;
+  }
+
+  private async detectReleaseVersion(
+    mergedPR: MergedGitHubPR,
+    branchName: BranchName | undefined
+  ): Promise<string | undefined> {
+    // try from branch name
+    let version = branchName?.getVersion();
+    if (version) {
+      return version;
+    }
+
+    // try from PR title
+    version = this.detectReleaseVersionFromTitle(mergedPR.title);
+    if (version) {
+      return version;
+    }
+
+    // detect from code
+    return this.detectReleaseVersionFromCode();
+  }
+
+  private buildReleaseTag(version: string, packagePrefix?: string): string {
+    if (this.monorepoTags && packagePrefix) {
+      const tagSeparator = this.tagSeparator();
+      return `${packagePrefix}${tagSeparator}v${version}`;
+    }
+    return `v${version}`;
+  }
+
+  // Logic for determining what to include in a GitHub release.
+  async buildRelease(
+    changelogPath: string
+  ): Promise<CandidateRelease | undefined> {
+    const mergedPR = await this.findMergedRelease();
+    if (!mergedPR) {
+      checkpoint('No merged release PR found', CheckpointType.Failure);
+      return undefined;
+    }
+    const branchName = BranchName.parse(mergedPR.headRefName);
+    const version = await this.detectReleaseVersion(mergedPR, branchName);
+    if (!version) {
+      checkpoint('Unable to detect release version', CheckpointType.Failure);
+      return undefined;
+    }
+
+    const tag = this.buildReleaseTag(version, this.packagePrefix);
+    const changelogContents = (await this.gh.getFileContents(changelogPath))
+      .parsedContent;
+    const notes = extractReleaseNotes(changelogContents, version);
+
+    return {
+      sha: mergedPR.sha,
+      tag,
+      notes,
+      name: this.packagePrefix,
+      version,
+      pullNumber: mergedPR.number,
+    };
+  }
+
+  private async findMergedRelease(): Promise<MergedGitHubPR | undefined> {
+    let gitHubReleasePR: MergedGitHubPR | undefined;
+
+    // Filter PRs to the latest applicable release PR
+    if (this.monorepoTags) {
+      // we expect to find a release branch name that matches the package name
+      const expectedPackageName = this.packagePrefix;
+      // if (!expectedPackageName) {
+      //   throw Error(
+      //     `could not determine package name for release repo = ${this.repoUrl}`
+      //   );
+      // }
+
+      // Find all merged PRs to this release branch
+      const mergedPRs = await this.gh.findMergedPullRequests();
+      gitHubReleasePR = mergedPRs.find(pullRequest => {
+        return (
+          BranchName.parse(pullRequest.headRefName)?.getComponent() ===
+          expectedPackageName
+        );
+      });
+    } else {
+      // Find all merged PRs to this release branch
+      const mergedPRs = await this.gh.findMergedPullRequests();
+
+      // find the first release branch
+      gitHubReleasePR = mergedPRs.find(pullRequest => {
+        return BranchName.parse(pullRequest.headRefName);
+      });
+    }
+    return gitHubReleasePR;
+  }
+
+  // Parse the package prefix for releases from the full package name
+  protected coercePackagePrefix(packageName: string): string {
+    return packageName;
   }
 }

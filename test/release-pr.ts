@@ -29,11 +29,12 @@ import {PHPYoshi} from '../src/releasers/php-yoshi';
 
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
+import {Node} from '../src/releasers/node';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
 
-class TestableReleasePR extends ReleasePR {
+class TestableReleasePR extends Node {
   openPROpts?: GitHubPR;
   async coerceReleaseCandidate(
     cc: ConventionalCommits,
@@ -421,6 +422,21 @@ describe('Release-PR', () => {
       const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
       const name = await ReleasePR.lookupPackageName(github);
       expect(name).to.be.undefined;
+    });
+  });
+
+  describe('coercePackagePrefix', () => {
+    it('should default to the package name', () => {
+      const inputs = ['foo/bar', 'foobar', ''];
+      inputs.forEach(input => {
+        const releasePR = new ReleasePR({
+          packageName: input,
+          repoUrl: 'owner/repo',
+          apiUrl: 'unused',
+          releaseType: 'unused',
+        });
+        expect(releasePR.packagePrefix).to.eql(input);
+      });
     });
   });
 });
