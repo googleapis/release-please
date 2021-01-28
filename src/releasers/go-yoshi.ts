@@ -183,10 +183,6 @@ export class GoYoshi extends ReleasePR {
     return '0.1.0';
   }
 
-  static tagSeparator(): string {
-    return '/';
-  }
-
   tagSeparator(): string {
     return '/';
   }

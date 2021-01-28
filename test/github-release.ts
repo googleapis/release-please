@@ -452,7 +452,63 @@ describe('GitHubRelease', () => {
       expect(failed).to.be.true;
     });
 
-    it('parses version from PR title', async () => {
+    it('parses version from PR title (detectReleaseVersionFromTitle impl: base)', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        packageName: 'foo',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
+
+      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
+        {
+          sha: 'abc123',
+          number: 1,
+          baseRefName: 'main',
+          headRefName: 'release-please/branches/main',
+          labels: ['autorelease: pending'],
+          title: 'chore: release 1.0.3',
+          body: 'Some release notes',
+        },
+      ]);
+
+      sandbox
+        .stub(release.gh, 'getFileContentsOnBranch')
+        .withArgs('CHANGELOG.md', 'main')
+        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
+
+      sandbox
+        .stub(release.gh, 'createRelease')
+        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .resolves({
+          tag_name: 'v1.0.3',
+          draft: false,
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+        });
+
+      sandbox
+        .stub(release.gh, 'addLabels')
+        .withArgs(['autorelease: tagged'], 1)
+        .resolves();
+
+      sandbox
+        .stub(release.gh, 'removeLabels')
+        .withArgs(['autorelease: pending'], 1)
+        .resolves();
+
+      const created = await release.createRelease();
+      expect(created).to.not.be.undefined;
+      strictEqual(created!.tag_name, 'v1.0.3');
+      strictEqual(created!.major, 1);
+      strictEqual(created!.minor, 0);
+      strictEqual(created!.patch, 3);
+      strictEqual(created!.draft, false);
+    });
+
+    it('parses version from PR title (detectReleaseVersionFromTitle impl: java-yoshi)', async () => {
       const release = new GitHubRelease({
         label: 'autorelease: pending',
         repoUrl: 'googleapis/foo',
@@ -508,5 +564,47 @@ describe('GitHubRelease', () => {
       strictEqual(created!.patch, 3);
       strictEqual(created!.draft, false);
     });
+
+    it('does nothing when no merged release PRs found', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        packageName: 'foo',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
+
+      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([]);
+
+      const created = await release.createRelease();
+      expect(created).to.be.undefined;
+    })
+
+    it('does nothing when we find a release PR, but cannot determine the version', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        packageName: 'foo',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
+
+      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
+        {
+          sha: 'abc123',
+          number: 1,
+          baseRefName: 'main',
+          headRefName: 'release-please/branches/main',
+          labels: ['autorelease: pending'],
+          title: 'Some not matching release name',
+          body: 'Some release notes',
+        }
+      ]);
+
+      const created = await release.createRelease();
+      expect(created).to.be.undefined;
+    })
   });
 });
