@@ -49,7 +49,6 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class JavaYoshi extends ReleasePR {
-  static releaserName = 'java-yoshi';
   protected async _run(): Promise<number | undefined> {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'

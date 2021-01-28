@@ -19,6 +19,7 @@ import {factory} from './factory';
 import {GitHub, OctokitAPIs} from './github';
 import {parse} from 'semver';
 import {ReleasePR} from './release-pr';
+import {ReleaseType} from './releasers';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -38,7 +39,7 @@ export interface ReleaseResponse {
 }
 
 export interface GitHubReleaseOptions extends SharedOptions {
-  releaseType?: string;
+  releaseType?: ReleaseType;
   changelogPath?: string;
   draft?: boolean;
   defaultBranch?: string;
@@ -54,7 +55,7 @@ export class GitHubRelease {
   packageName?: string;
   monorepoTags?: boolean;
   token?: string;
-  releaseType?: string;
+  releaseType?: ReleaseType;
   draft: boolean;
   defaultBranch?: string;
 
@@ -108,7 +109,7 @@ export class GitHubRelease {
         })
       : new ReleasePR({
           ...releaseOptions,
-          ...{releaseType: 'unknown'},
+          ...{releaseType: 'base'},
         });
 
     const candidate = await releasePR.buildRelease(

@@ -47,7 +47,6 @@ const SUB_MODULES = [
 const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 
 export class GoYoshi extends ReleasePR {
-  static releaserName = 'go-yoshi';
   protected async _run(): Promise<number | undefined> {
     const latestTag = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined,

@@ -31,6 +31,7 @@ import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {extractReleaseNotes} from './util/release-notes';
+import {ReleaseType} from './releasers';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -51,7 +52,7 @@ export interface ReleasePROptions extends SharedOptions {
   octokitAPIs?: OctokitAPIs;
   // Path to version.rb file
   versionFile?: string;
-  releaseType: string;
+  releaseType: ReleaseType;
   changelogSections?: [];
   // Optionally provide GitHub instance
   github?: GitHub;
@@ -87,8 +88,6 @@ export interface OpenPROptions {
 }
 
 export class ReleasePR {
-  static releaserName = 'base';
-
   apiUrl: string;
   defaultBranch?: string;
   labels: string[];

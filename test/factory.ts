@@ -36,14 +36,14 @@ describe('factory', () => {
       expect(releasePR.constructor.name).to.eql('Simple');
       expect(releasePR.packageName).to.eql('simple-test-repo');
     });
-    it('throws an error on unknown release type', () => {
+    it('throws an error on invalid release type', () => {
       let caught = false;
       try {
         factory.releasePR({
           repoUrl: 'googleapis/simple-test-repo',
           packageName: 'simple-test-repo',
           apiUrl: 'https://api.github.com',
-          releaseType: 'unknown-release-type-name',
+          releaseType: 'base',
         });
         assert.fail();
       } catch (e) {
@@ -56,13 +56,13 @@ describe('factory', () => {
   describe('releasePRClass', () => {
     it('returns a releaser class', () => {
       const releaseClass = factory.releasePRClass('ruby');
-      expect(releaseClass.releaserName).to.eql('ruby');
+      expect(releaseClass.name).to.equal('Ruby');
     });
 
-    it('throws and error on unknown release type', () => {
+    it('throws and error on invalid release type', () => {
       let caught = false;
       try {
-        factory.releasePRClass('unknown-release-type-name');
+        factory.releasePRClass('base');
         assert.fail();
       } catch (e) {
         caught = true;
