@@ -318,13 +318,25 @@ export class ReleasePR {
       : `chore: release ${version}`;
   }
 
+  // Override this method to detect the release version from code (if it cannot be
+  // inferred from the release PR head branch)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected detectReleaseVersionFromTitle(title: string): string | undefined {
+    const pattern = /^chore: release ?(?<component>.*) (?<version>\d+\.\d+\.\d+)$/;
+    const match = title.match(pattern);
+    if (match?.groups) {
+      return match.groups['version'];
+    }
+    return undefined;
+  }
+
   // Override this method to modify the pull request head branch name
   // If you modify this, you must ensure that the releaser can parse the tag version
   // from the pull request.
-  protected buildBranchName(
+  protected async buildBranchName(
     version: string,
     includePackageName: boolean
-  ): BranchName {
+  ): Promise<BranchName> {
     if (includePackageName && this.packageName) {
       return BranchName.ofComponentVersion(this.packagePrefix, version);
     }
@@ -347,7 +359,7 @@ export class ReleasePR {
     const includePackageName = options.includePackageName;
     const title = this.buildPullRequestTitle(version, includePackageName);
     const body = this.buildPullRequestBody(version, changelogEntry);
-    const branchName = this.buildBranchName(version, includePackageName);
+    const branchName = await this.buildBranchName(version, includePackageName);
     const pr: number | undefined = await this.gh.openPR({
       branch: branchName.toString(),
       version,
@@ -404,13 +416,6 @@ export class ReleasePR {
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
   protected async detectReleaseVersionFromCode(): Promise<string | undefined> {
-    return undefined;
-  }
-
-  // Override this method to detect the release version from code (if it cannot be
-  // inferred from the release PR head branch)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected detectReleaseVersionFromTitle(title: string): string | undefined {
     return undefined;
   }
 
@@ -503,5 +508,13 @@ export class ReleasePR {
   // Parse the package prefix for releases from the full package name
   protected coercePackagePrefix(packageName: string): string {
     return packageName;
+  }
+
+  protected async getDefaultBranch(): Promise<string> {
+    if (!this.defaultBranch) {
+      this.defaultBranch = await this.gh.getDefaultBranch();
+    }
+
+    return this.defaultBranch;
   }
 }

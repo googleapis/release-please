@@ -180,7 +180,7 @@ exports['JavaYoshi creates a release PR against a feature branch 2'] = `
   "upstreamOwner": "googleapis",
   "upstreamRepo": "java-trace",
   "title": "chore: release 0.20.4",
-  "branch": "release-v0.20.4",
+  "branch": "release-please/branches/1.x",
   "description": ":robot: I have created a release \\\\*beep\\\\* \\\\*boop\\\\* \\n---\\n### [0.20.4](https://www.github.com/googleapis/java-trace/compare/v0.20.3...v0.20.4) (1983-10-10)\\n\\n\\n### Bug Fixes\\n\\n* Fix declared dependencies from merge issue ([#291](https://www.github.com/googleapis/java-trace/issues/291)) ([4af82b3](https://www.github.com/googleapis/java-trace/commit/4af82b3a0399386f68484da753a975b5))\\n---\\n\\n\\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
   "primary": "1.x",
   "force": true,

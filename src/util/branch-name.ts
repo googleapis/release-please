@@ -38,6 +38,12 @@ export class BranchName {
   static ofVersion(version: string): BranchName {
     return new AutoreleaseBranchName(`release-v${version}`);
   }
+  static ofTargetBranch(targetBranch: string): BranchName {
+    return new DefaultBranchName(`release-please/branches/${targetBranch}`);
+  }
+  static ofComponentTargetBranch(component: string, targetBranch: string): BranchName {
+    return new ComponentBranchName(`release-pleaase/branches/${targetBranch}/components/${component}`);
+  }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(branchName: string) {}
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
