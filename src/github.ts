@@ -252,6 +252,7 @@ export class GitHub {
     }
   }
 
+  // Commit.files only for commits from PRs.
   async commitsSinceSha(
     sha: string | undefined,
     perPage = 100,
