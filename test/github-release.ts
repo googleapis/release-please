@@ -458,7 +458,7 @@ describe('GitHubRelease', () => {
         repoUrl: 'googleapis/foo',
         packageName: 'foo',
         apiUrl: 'https://api.github.com',
-        releaseType: 'java-yoshi'
+        releaseType: 'java-yoshi',
       });
 
       sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
@@ -470,7 +470,7 @@ describe('GitHubRelease', () => {
           baseRefName: 'main',
           headRefName: 'release-please/branches/main',
           labels: ['autorelease: pending'],
-          title: 'chore: release 1.0.3',
+          title: 'chore(main): release 1.0.3',
           body: 'Some release notes',
         },
       ]);
@@ -501,6 +501,7 @@ describe('GitHubRelease', () => {
         .resolves();
 
       const created = await release.createRelease();
+      expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);

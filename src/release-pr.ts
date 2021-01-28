@@ -309,10 +309,10 @@ export class ReleasePR {
   }
 
   // Override this method to modify the pull request title
-  protected buildPullRequestTitle(
+  protected async buildPullRequestTitle(
     version: string,
     includePackageName: boolean
-  ): string {
+  ): Promise<string> {
     return includePackageName
       ? `chore: release ${this.packageName} ${version}`
       : `chore: release ${version}`;
@@ -344,10 +344,10 @@ export class ReleasePR {
   }
 
   // Override this method to modify the pull request body
-  protected buildPullRequestBody(
+  protected async buildPullRequestBody(
     version: string,
     changelogEntry: string
-  ): string {
+  ): Promise<string> {
     return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).`;
   }
 
@@ -357,8 +357,8 @@ export class ReleasePR {
     const updates = options.updates;
     const version = options.version;
     const includePackageName = options.includePackageName;
-    const title = this.buildPullRequestTitle(version, includePackageName);
-    const body = this.buildPullRequestBody(version, changelogEntry);
+    const title = await this.buildPullRequestTitle(version, includePackageName);
+    const body = await this.buildPullRequestBody(version, changelogEntry);
     const branchName = await this.buildBranchName(version, includePackageName);
     const pr: number | undefined = await this.gh.openPR({
       branch: branchName.toString(),

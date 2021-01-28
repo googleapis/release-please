@@ -41,8 +41,13 @@ export class BranchName {
   static ofTargetBranch(targetBranch: string): BranchName {
     return new DefaultBranchName(`release-please/branches/${targetBranch}`);
   }
-  static ofComponentTargetBranch(component: string, targetBranch: string): BranchName {
-    return new ComponentBranchName(`release-pleaase/branches/${targetBranch}/components/${component}`);
+  static ofComponentTargetBranch(
+    component: string,
+    targetBranch: string
+  ): BranchName {
+    return new ComponentBranchName(
+      `release-pleaase/branches/${targetBranch}/components/${component}`
+    );
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(branchName: string) {}

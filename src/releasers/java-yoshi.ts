@@ -31,7 +31,7 @@ import {Version} from './java/version';
 import {fromSemverReleaseType} from './java/bump_type';
 import {JavaUpdate} from '../updaters/java/java_update';
 import {isStableArtifact} from './java/stability';
-import { BranchName } from '../util/branch-name';
+import {BranchName} from '../util/branch-name';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -300,8 +300,34 @@ export class JavaYoshi extends ReleasePR {
   ): Promise<BranchName> {
     const defaultBranch = await this.getDefaultBranch();
     if (includePackageName && this.packageName) {
-      return BranchName.ofComponentTargetBranch(this.packageName, defaultBranch);
+      return BranchName.ofComponentTargetBranch(
+        this.packageName,
+        defaultBranch
+      );
     }
     return BranchName.ofTargetBranch(defaultBranch);
+  }
+
+  // Override this method to modify the pull request title
+  protected async buildPullRequestTitle(
+    version: string,
+    includePackageName: boolean
+  ): Promise<string> {
+    const defaultBranch = await this.getDefaultBranch();
+    return includePackageName
+      ? `chore(${defaultBranch}): release ${this.packageName} ${version}`
+      : `chore(${defaultBranch}): release ${version}`;
+  }
+
+  // Override this method to detect the release version from code (if it cannot be
+  // inferred from the release PR head branch)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected detectReleaseVersionFromTitle(title: string): string | undefined {
+    const pattern = /^chore\((?<branch>[^(]+)\): release ?(?<component>.*) (?<version>\d+\.\d+\.\d+)$/;
+    const match = title.match(pattern);
+    if (match?.groups) {
+      return match.groups['version'];
+    }
+    return undefined;
   }
 }
