@@ -478,20 +478,14 @@ export class ReleasePR {
 
     // Filter PRs to the latest applicable release PR
     if (this.monorepoTags) {
-      // we expect to find a release branch name that matches the package name
-      const expectedPackageName = this.packagePrefix;
-      // if (!expectedPackageName) {
-      //   throw Error(
-      //     `could not determine package name for release repo = ${this.repoUrl}`
-      //   );
-      // }
-
       // Find all merged PRs to this release branch
       const mergedPRs = await this.gh.findMergedPullRequests();
+
+      // We expect to find a release branch name that matches the package name
       gitHubReleasePR = mergedPRs.find(pullRequest => {
         return (
           BranchName.parse(pullRequest.headRefName)?.getComponent() ===
-          expectedPackageName
+          this.packagePrefix
         );
       });
     } else {
