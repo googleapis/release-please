@@ -579,7 +579,7 @@ describe('GitHubRelease', () => {
 
       const created = await release.createRelease();
       expect(created).to.be.undefined;
-    })
+    });
 
     it('does nothing when we find a release PR, but cannot determine the version', async () => {
       const release = new GitHubRelease({
@@ -600,11 +600,11 @@ describe('GitHubRelease', () => {
           labels: ['autorelease: pending'],
           title: 'Some not matching release name',
           body: 'Some release notes',
-        }
+        },
       ]);
 
       const created = await release.createRelease();
       expect(created).to.be.undefined;
-    })
+    });
   });
 });
