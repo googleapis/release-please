@@ -56,9 +56,13 @@
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
     "@iarna/toml": "^2.2.5",
+    "@lerna/package": "^3.16.0",
+    "@lerna/package-graph": "^3.18.5",
+    "@lerna/run-topologically": "^3.18.5",
     "@octokit/graphql": "^4.3.1",
     "@octokit/request": "^5.3.4",
     "@octokit/rest": "^18.0.4",
+    "@types/npm-package-arg": "^6.1.0",
     "chalk": "^4.0.0",
     "code-suggester": "^1.4.0",
     "conventional-changelog-conventionalcommits": "^4.4.0",
