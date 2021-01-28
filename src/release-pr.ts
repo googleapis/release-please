@@ -228,10 +228,6 @@ export class ReleasePR {
     return Promise.resolve(undefined);
   }
 
-  static tagSeparator(): string {
-    return '-';
-  }
-
   tagSeparator(): string {
     return '-';
   }
