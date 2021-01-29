@@ -49,7 +49,6 @@ const SUB_MODULES = [
   'storage',
 ];
 const REGEN_PR_REGEX = /.*auto-regenerate.*/;
-const SCOPE_REGEX = /^\w+\((?<scope>.*)\):/;
 
 export class GoYoshi extends ReleasePR {
   static releaserName = 'go-yoshi';
