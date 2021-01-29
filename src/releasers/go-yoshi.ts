@@ -105,13 +105,10 @@ export class GoYoshi extends ReleasePR {
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       commitFilter: this.filterSubModuleCommits(repo),
     });
-    const candidate: ReleaseCandidate =
-      this.monorepoTags || !this.isMultiClientRepo(repo)
-        ? // Submodules use conventional commits to bump major/minor/patch:
-          await super.coerceReleaseCandidate(cc, latestTag)
-        : // Root module always bumps minor:
-          await this.coerceReleaseCandidate(cc, latestTag);
-
+    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
+      cc,
+      latestTag
+    );
     // "closes" is a little presumptuous, let's just indicate that the
     // PR references these other commits:
     const changelogEntry: string = (
@@ -163,19 +160,6 @@ export class GoYoshi extends ReleasePR {
 
   private isMultiClientRepo(repo: string): boolean {
     return repo === 'google-cloud-go' || repo === 'google-api-go-client';
-  }
-
-  protected async coerceReleaseCandidate(
-    cc: ConventionalCommits,
-    latestTag: GitHubTag | undefined
-  ): Promise<ReleaseCandidate> {
-    const version = latestTag
-      ? latestTag.version
-      : this.defaultInitialVersion();
-    const previousTag = latestTag ? latestTag.name : undefined;
-    const bump: ReleaseType = 'minor';
-    const candidate: string | null = semver.inc(version, bump);
-    return {version: candidate as string, previousTag};
   }
 
   protected defaultInitialVersion(): string {
