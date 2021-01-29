@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ReleasePRFactory} from './release-pr-factory';
+import chalk = require('chalk');
+import {SharedOptions, DEFAULT_LABELS} from './';
+import {checkpoint, CheckpointType} from './util/checkpoint';
+import {packageBranchPrefix} from './util/package-branch-prefix';
+import * as factory from './factory';
 import {GitHub, OctokitAPIs} from './github';
 import {parse} from 'semver';
 import {ReleasePR} from './release-pr';
@@ -22,7 +26,7 @@ import {ReleasePR} from './release-pr';
 const parseGithubRepoUrl = require('parse-github-repo-url');
 const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
-interface ReleaseResponse {
+export interface ReleaseResponse {
   major: number;
   minor: number;
   patch: number;
@@ -35,16 +39,7 @@ interface ReleaseResponse {
   draft: boolean;
 }
 
-export interface GitHubReleaseOptions {
-  label: string;
-  repoUrl: string;
-  path?: string;
-  packageName?: string;
-  monorepoTags?: boolean;
-  token?: string;
-  apiUrl: string;
-  proxyKey?: string;
-  octokitAPIs?: OctokitAPIs;
+export interface GitHubReleaseOptions extends SharedOptions {
   releaseType?: string;
   changelogPath?: string;
   draft?: boolean;
@@ -61,15 +56,15 @@ export class GitHubRelease {
   packageName?: string;
   monorepoTags?: boolean;
   token?: string;
-  proxyKey?: string;
   releaseType?: string;
   draft: boolean;
   defaultBranch?: string;
 
   constructor(options: GitHubReleaseOptions) {
     this.apiUrl = options.apiUrl;
-    this.proxyKey = options.proxyKey;
-    this.labels = options.label.split(',');
+    this.labels = options.label
+      ? options.label.split(',')
+      : DEFAULT_LABELS.split(',');
     this.repoUrl = options.repoUrl;
     this.monorepoTags = options.monorepoTags;
     this.token = options.token;
@@ -84,11 +79,17 @@ export class GitHubRelease {
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
+<<<<<<< HEAD
   async createRelease(): Promise<ReleaseResponse | undefined> {
+=======
+  async run(): Promise<ReleaseResponse | undefined> {
+    // Attempt to lookup the package name from a well known location, such
+    // as package.json, if none is provided:
+>>>>>>> 5c4ff32 (feat(cli)!: refactor factory/CLI to be more testable)
     if (!this.packageName && this.releaseType) {
-      this.packageName = await ReleasePRFactory.class(
-        this.releaseType
-      ).lookupPackageName(this.gh, this.path);
+      this.packageName = await factory
+        .releasePRClass(this.releaseType)
+        .lookupPackageName(this.gh, this.path);
     }
     if (!this.packageName) {
       throw Error(
@@ -120,6 +121,34 @@ export class GitHubRelease {
       checkpoint('Unable to build candidate', CheckpointType.Failure);
       return undefined;
     }
+<<<<<<< HEAD
+=======
+    const version = `v${gitHubReleasePR.version}`;
+
+    checkpoint(
+      `found release branch ${chalk.green(version)} at ${chalk.green(
+        gitHubReleasePR.sha
+      )}`,
+      CheckpointType.Success
+    );
+
+    const changelogContents = (
+      await this.gh.getFileContents(this.addPath(this.changelogPath))
+    ).parsedContent;
+    const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
+      changelogContents,
+      version
+    );
+    checkpoint(
+      `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
+      CheckpointType.Success
+    );
+    // Go uses '/' for a tag separator, rather than '-':
+    let tagSeparator = '-';
+    if (this.releaseType) {
+      tagSeparator = factory.releasePRClass(this.releaseType).tagSeparator();
+    }
+>>>>>>> 5c4ff32 (feat(cli)!: refactor factory/CLI to be more testable)
 
     const release = await this.gh.createRelease(
       candidate.name,
@@ -177,7 +206,6 @@ export class GitHubRelease {
       owner,
       repo,
       apiUrl: this.apiUrl,
-      proxyKey: this.proxyKey,
       octokitAPIs,
     });
   }

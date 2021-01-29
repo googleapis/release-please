@@ -89,7 +89,6 @@ interface GitHubOptions {
   owner: string;
   repo: string;
   apiUrl?: string;
-  proxyKey?: string;
   octokitAPIs?: OctokitAPIs;
 }
 
@@ -137,7 +136,6 @@ export class GitHub {
   owner: string;
   repo: string;
   apiUrl: string;
-  proxyKey?: string;
 
   constructor(options: GitHubOptions) {
     this.defaultBranch = options.defaultBranch;
@@ -145,8 +143,6 @@ export class GitHub {
     this.owner = options.owner;
     this.repo = options.repo;
     this.apiUrl = options.apiUrl || 'https://api.github.com';
-    this.proxyKey = options.proxyKey;
-
     if (options.octokitAPIs === undefined) {
       this.octokit = new Octokit({
         baseUrl: options.apiUrl,
@@ -158,8 +154,7 @@ export class GitHub {
           'user-agent': `release-please/${
             require('../../package.json').version
           }`,
-          // some proxies do not require the token prefix.
-          Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+          Authorization: `  token ${this.token}`,
         },
       };
       this.request = request.defaults(defaults);
@@ -180,11 +175,9 @@ export class GitHub {
     let opts = Object.assign({}, _opts);
     if (!probotMode) {
       opts = Object.assign(opts, {
-        url: `${this.apiUrl}/graphql${
-          this.proxyKey ? `?key=${this.proxyKey}` : ''
-        }`,
+        url: `${this.apiUrl}/graphql`,
         headers: {
-          authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+          authorization: `token ${this.token}`,
           'content-type': 'application/vnd.github.v3+json',
         },
       });
@@ -198,7 +191,7 @@ export class GitHub {
     } else {
       return Object.assign(opts, {
         headers: {
-          Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+          Authorization: `token ${this.token}`,
         },
       });
     }
@@ -442,9 +435,7 @@ export class GitHub {
 
   async getTagSha(name: string): Promise<string> {
     const refResponse = (await this.request(
-      `GET /repos/:owner/:repo/git/refs/tags/:name${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
+      'GET /repos/:owner/:repo/git/refs/tags/:name',
       {
         owner: this.owner,
         repo: this.repo,
@@ -528,9 +519,7 @@ export class GitHub {
     for await (const response of this.octokit.paginate.iterator(
       this.decoratePaginateOpts({
         method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100${
-          this.proxyKey ? `&key=${this.proxyKey}` : ''
-        }`,
+        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100`,
       })
     )) {
       response.data.forEach((data: ReposListTagsResponseItems) => {
@@ -661,32 +650,47 @@ export class GitHub {
     branchPrefix = branchPrefix?.endsWith('-')
       ? branchPrefix.replace(/-$/, '')
       : branchPrefix;
-    return await this.findMergedPullRequest(
-      baseBranch,
-      (mergedPullRequest: MergedGitHubPR) => {
-        // If labels specified, ensure the pull request has all the specified labels
-        if (
-          labels.length > 0 &&
-          !this.hasAllLabels(labels, mergedPullRequest.labels)
-        ) {
-          return false;
-        }
+    const baseLabel = await this.getBaseLabel();
+    const pullsResponse = (await this.request(
+      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}&sort=${sort}&direction=desc`,
+      {
+        owner: this.owner,
+        repo: this.repo,
+      }
+    )) as {data: PullsListResponseItems};
+    for (const pull of pullsResponse.data) {
+      if (
+        labels.length === 0 ||
+        this.hasAllLabels(
+          labels,
+          pull.labels.map(l => {
+            return l.name + '';
+          })
+        )
+      ) {
+        // it's expected that a release PR will have a
+        // HEAD matching the format repo:release-v1.0.0.
+        if (!pull.head) continue;
 
-        const branchName = BranchName.parse(mergedPullRequest.headRefName);
-        if (!branchName) {
-          return false;
-        }
+        // Verify that this PR was based against our base branch of interest.
+        if (!pull.base || pull.base.label !== baseLabel) continue;
 
-        // If branchPrefix is specified, ensure it is found in the branch name.
-        // If branchPrefix is not specified, component should also be undefined.
-        if (branchName.getComponent() !== branchPrefix) {
-          return false;
-        }
+        // The input should look something like:
+        // user:release-[optional-package-name]-v1.2.3
+        // We want the package name and any semver on the end.
+        const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
+        if (!match || !pull.merged_at) continue;
 
-        // In this implementation we expect to have a release version
-        const version = branchName.getVersion();
-        if (!version) {
-          return false;
+        // The input here should look something like:
+        // [optional-package-name-]v1.2.3[-beta-or-whatever]
+        // Because the package name can contain things like "-v1",
+        // it's easiest/safest to just pull this out by string search.
+        const version = match[2];
+        if (!version) continue;
+        if (branchPrefix && match[1] !== branchPrefix) {
+          continue;
+        } else if (!branchPrefix && match[1]) {
+          continue;
         }
 
         // What's left by now should just be the version string.
@@ -722,9 +726,7 @@ export class GitHub {
 
     const openReleasePRs: PullsListResponseItems = [];
     const pullsResponse = (await this.request(
-      `GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}${
-        this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }`,
+      `GET /repos/:owner/:repo/pulls?state=open&per_page=${perPage}`,
       {
         owner: this.owner,
         repo: this.repo,
@@ -757,9 +759,7 @@ export class GitHub {
       CheckpointType.Success
     );
     return this.request(
-      `POST /repos/:owner/:repo/issues/:issue_number/labels${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
+      'POST /repos/:owner/:repo/issues/:issue_number/labels',
       {
         owner: this.owner,
         repo: this.repo,
@@ -779,7 +779,7 @@ export class GitHub {
           method: 'GET',
           url: `/repos/${this.owner}/${this.repo}/issues?labels=${labels.join(
             ','
-          )}${this.proxyKey ? `&key=${this.proxyKey}` : ''}`,
+          )}`,
           per_page: 100,
         })
       )) {
@@ -853,19 +853,14 @@ export class GitHub {
         )}`,
         CheckpointType.Success
       );
-      await this.request(
-        `PATCH /repos/:owner/:repo/pulls/:pull_number${
-          this.proxyKey ? `?key=${this.proxyKey}` : ''
-        }`,
-        {
-          pull_number: openReleasePR.number,
-          owner: this.owner,
-          repo: this.repo,
-          title: options.title,
-          body: options.body,
-          state: 'open',
-        }
-      );
+      await this.request('PATCH /repos/:owner/:repo/pulls/:pull_number', {
+        pull_number: openReleasePR.number,
+        owner: this.owner,
+        repo: this.repo,
+        title: options.title,
+        body: options.body,
+        state: 'open',
+      });
       return openReleasePR.number;
     } else {
       return prNumber;
@@ -931,7 +926,7 @@ export class GitHub {
       repo: this.repo,
       owner: this.owner,
       headers: {
-        Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
+        Authorization: `token ${this.token}`,
       },
     });
     this.defaultBranch = (data as {default_branch: string}).default_branch;
@@ -939,17 +934,12 @@ export class GitHub {
   }
 
   async closePR(prNumber: number) {
-    await this.request(
-      `PATCH /repos/:owner/:repo/pulls/:pull_number${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        pull_number: prNumber,
-        state: 'closed',
-      }
-    );
+    await this.request('PATCH /repos/:owner/:repo/pulls/:pull_number', {
+      owner: this.owner,
+      repo: this.repo,
+      pull_number: prNumber,
+      state: 'closed',
+    });
   }
 
   // Takes a potentially unqualified branch name, and turns it
@@ -977,9 +967,7 @@ export class GitHub {
     };
     if (ref) options.ref = ref;
     const resp = await this.request(
-      `GET /repos/:owner/:repo/contents/:path${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
+      'GET /repos/:owner/:repo/contents/:path',
       options
     );
     return {
@@ -999,9 +987,7 @@ export class GitHub {
       branch,
     };
     const repoTree: OctokitResponse<GitGetTreeResponse> = await this.request(
-      `GET /repos/:owner/:repo/git/trees/:branch${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
+      'GET /repos/:owner/:repo/git/trees/:branch',
       options
     );
 
@@ -1010,16 +996,11 @@ export class GitHub {
       throw new Error(`Could not find requested path: ${path}`);
     }
 
-    const resp = await this.request(
-      `GET /repos/:owner/:repo/git/blobs/:sha${
-        this.proxyKey ? `?key=${this.proxyKey}` : ''
-      }`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-        sha: blobDescriptor.sha,
-      }
-    );
+    const resp = await this.request('GET /repos/:owner/:repo/git/blobs/:sha', {
+      owner: this.owner,
+      repo: this.repo,
+      sha: blobDescriptor.sha,
+    });
 
     return {
       parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
@@ -1058,20 +1039,15 @@ export class GitHub {
   ): Promise<ReleaseCreateResponse> {
     checkpoint(`creating release ${tagName}`, CheckpointType.Success);
     return (
-      await this.request(
-        `POST /repos/:owner/:repo/releases${
-          this.proxyKey ? `?key=${this.proxyKey}` : ''
-        }`,
-        {
-          owner: this.owner,
-          repo: this.repo,
-          tag_name: tagName,
-          target_commitish: sha,
-          body: releaseNotes,
-          name: `${packageName} ${tagName}`,
-          draft: draft,
-        }
-      )
+      await this.request('POST /repos/:owner/:repo/releases', {
+        owner: this.owner,
+        repo: this.repo,
+        tag_name: tagName,
+        target_commitish: sha,
+        body: releaseNotes,
+        name: `${packageName} ${tagName}`,
+        draft: draft,
+      })
     ).data;
   }
 
@@ -1085,9 +1061,7 @@ export class GitHub {
         CheckpointType.Success
       );
       await this.request(
-        `DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name${
-          this.proxyKey ? `?key=${this.proxyKey}` : ''
-        }`,
+        'DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name',
         {
           owner: this.owner,
           repo: this.repo,

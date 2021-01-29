@@ -12,13 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export {
-  BuildOptions,
-  ReleaseCandidate,
-  ReleasePR,
-  ReleasePROptions,
-} from './release-pr';
-export {ReleasePRFactory} from './release-pr-factory';
+import {OctokitAPIs} from './github';
+
+export {ReleaseCandidate, ReleasePR, ReleasePROptions} from './release-pr';
+
+// Configuration options shared by Release PRs and
+// GitHub releases:
+export interface SharedOptions {
+  label?: string;
+  repoUrl: string;
+  path?: string;
+  packageName?: string;
+  monorepoTags?: boolean;
+  token?: string;
+  apiUrl: string;
+  octokitAPIs?: OctokitAPIs;
+}
+
+export const DEFAULT_LABELS = 'autorelease: pending';
+export {factory} from './factory';
 export {getReleaserNames, getReleasers} from './releasers';
 export {GitHubRelease, GitHubReleaseOptions} from './github-release';
 export {JavaYoshi} from './releasers/java-yoshi';

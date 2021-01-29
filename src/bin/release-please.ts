@@ -16,9 +16,9 @@
 
 import chalk = require('chalk');
 import {coerceOption} from '../util/coerce-option';
-import {GitHubRelease, GitHubReleaseOptions} from '../github-release';
+import {GitHubReleaseOptions} from '../github-release';
 import {ReleasePROptions} from '../release-pr';
-import {ReleasePRFactory} from '../release-pr-factory';
+import {factory} from '../factory';
 import {getReleaserNames} from '../releasers';
 import * as yargs from 'yargs';
 
@@ -41,33 +41,22 @@ interface YargsOptionsBuilder {
   option(opt: string, options: YargsOptions): YargsOptionsBuilder;
 }
 
-const argv = yargs
+export const parser = yargs
   .command(
     'release-pr',
     'create or update a PR representing the next release',
     (yargs: YargsOptionsBuilder) => {
       yargs
-        .option('package-name', {
-          describe: 'name of package release is being minted for',
-          demand: true,
-        })
         .option('version-file', {
           describe: 'path to version file to update, e.g., version.rb',
         })
         .option('last-package-version', {
           describe: 'last version # that package was released as',
         })
-        .option('repo-url', {
-          describe: 'GitHub URL to generate release for',
-          demand: true,
-        })
         .option('fork', {
           describe: 'should the PR be created from a fork',
           type: 'boolean',
           default: false,
-        })
-        .option('label', {
-          describe: 'label(s) to add to generated PR',
         })
         .option('snapshot', {
           describe: 'is it a snapshot (or pre-release) being generated?',
@@ -78,10 +67,6 @@ const argv = yargs
           describe: 'default branch to open release PR against',
           type: 'string',
         })
-        .option('path', {
-          describe: 'release from path other than root directory',
-          type: 'string',
-        })
         .option('monorepo-tags', {
           describe: 'include library name in tags and release branches',
           type: 'boolean',
@@ -89,8 +74,7 @@ const argv = yargs
         });
     },
     (argv: ReleasePROptions) => {
-      const rp = ReleasePRFactory.build(argv.releaseType, argv);
-      rp.run().catch(handleError);
+      factory.runCommand('release-pr', argv).catch(handleError);
     }
   )
   .command(
@@ -98,34 +82,14 @@ const argv = yargs
     'create a GitHub release from a release PR',
     (yargs: YargsOptionsBuilder) => {
       yargs
-        .option('package-name', {
-          describe: 'name of package release is being minted for',
-        })
-        .option('repo-url', {
-          describe: 'GitHub URL to generate release for',
-          demand: true,
-        })
         .option('changelog-path', {
           default: 'CHANGELOG.md',
           describe: 'where can the CHANGELOG be found in the project?',
-        })
-        .option('label', {
-          default: 'autorelease: pending',
-          describe: 'label to remove from release PR',
         })
         .option('release-type', {
           describe: 'what type of repo is a release being created for?',
           choices: getReleaserNames(),
           default: 'node',
-        })
-        .option('path', {
-          describe: 'release from path other than root directory',
-          type: 'string',
-        })
-        .option('monorepo-tags', {
-          describe: 'include library name in tags and release branches',
-          type: 'boolean',
-          default: false,
         })
         .option('draft', {
           describe:
@@ -137,8 +101,7 @@ const argv = yargs
         });
     },
     (argv: GitHubReleaseOptions) => {
-      const gr = new GitHubRelease(argv);
-      gr.createRelease().catch(handleError);
+      factory.runCommand('github-release', argv).catch(handleError);
     }
   )
   .middleware(_argv => {
@@ -147,7 +110,6 @@ const argv = yargs
     // rather than being passed directly to the bin.
     if (argv.token) argv.token = coerceOption(argv.token);
     if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
-    if (argv.proxyKey) argv.proxyKey = coerceOption(argv.proxyKey);
   })
   .option('token', {describe: 'GitHub token with repo write permissions'})
   .option('release-as', {
@@ -170,10 +132,6 @@ const argv = yargs
     default: 'https://api.github.com',
     type: 'string',
   })
-  .option('proxy-key', {
-    describe: 'key used by some GitHub proxies',
-    type: 'string',
-  })
   .option('debug', {
     describe: 'print verbose errors (use only for local debugging).',
     default: false,
@@ -183,9 +141,35 @@ const argv = yargs
     describe: '',
     type: 'string',
   })
+  .option('label', {
+    default: 'autorelease: pending',
+    describe: 'label to remove from release PR',
+  })
+  .option('repo-url', {
+    describe: 'GitHub URL to generate release for',
+    demand: true,
+  })
+  .option('path', {
+    describe: 'release from path other than root directory',
+    type: 'string',
+  })
+  .option('package-name', {
+    describe: 'name of package release is being minted for',
+  })
+  .option('monorepo-tags', {
+    describe: 'include library name in tags and release branches',
+    type: 'boolean',
+    default: false,
+  })
   .demandCommand(1)
-  .strict(true)
-  .parse();
+  .strict(true);
+
+// Only run parser if executed with node bin, this allows
+// for the parser to be easily tested:
+let argv: yargs.Arguments;
+if (require.main === module) {
+  argv = parser.parse();
+}
 
 // The errors returned by octokit currently contain the
 // request object, this contains information we don't want to
@@ -194,7 +178,7 @@ const argv = yargs
 // the request object, don't do this in CI/CD).
 function handleError(err: ErrorObject) {
   let status = '';
-  const command = argv._.length === 0 ? '' : argv._[0];
+  const command = argv?._?.length ? argv._[0] : '';
   if (err.status) {
     status = '' + err.status;
   }
@@ -203,7 +187,7 @@ function handleError(err: ErrorObject) {
       `command ${command} failed${status ? ` with status ${status}` : ''}`
     )
   );
-  if (argv.debug) {
+  if (argv?.debug) {
     console.error('---------');
     console.error(err.stack);
   }
