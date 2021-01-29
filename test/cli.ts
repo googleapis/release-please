@@ -50,4 +50,28 @@ describe('CLI', () => {
       assert.strictEqual(classToRun!.releaseType, 'node');
     });
   });
+  describe('github-release', () => {
+    it('instantiates a GitHub released based on command line arguments', () => {
+      let classToRun: GitHubRelease;
+      // This logic is used to capture the class that would
+      // be executed, allowing us to validate that the appropriate
+      // properties were assigned from the argument parser:
+      sandbox.replace(
+        factory,
+        'run',
+        (runnable): Promise<undefined> => {
+          classToRun = runnable as GitHubRelease;
+          return Promise.resolve(undefined);
+        }
+      );
+      parser.parse(
+        'github-release --repo-url=googleapis/release-please-cli --package-name=cli-package'
+      );
+      assert.strictEqual(classToRun!.repoUrl, 'googleapis/release-please-cli');
+      assert.strictEqual(classToRun!.packageName, 'cli-package');
+      // Defaults to Node.js release type:
+      assert.strictEqual(classToRun!.releaseType, 'node');
+      assert.strictEqual(classToRun!.changelogPath, 'CHANGELOG.md');
+    });
+  });
 });
