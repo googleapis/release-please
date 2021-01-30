@@ -86,11 +86,6 @@ export const parser = yargs
           default: 'CHANGELOG.md',
           describe: 'where can the CHANGELOG be found in the project?',
         })
-        .option('release-type', {
-          describe: 'what type of repo is a release being created for?',
-          choices: getReleaserNames(),
-          default: 'node',
-        })
         .option('draft', {
           describe:
             'mark release as a draft. no tag is created but tag_name and ' +

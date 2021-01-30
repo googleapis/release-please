@@ -106,10 +106,7 @@ export class ReleasePR {
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.path = options.path;
-    // If no packageName has been provided, use the name
-    // of the repository:
-    const [, repo] = parseGithubRepoUrl(this.repoUrl);
-    this.packageName = options.packageName || repo;
+    this.packageName = options.packageName || '';
     this.monorepoTags = options.monorepoTags || false;
     this.releaseAs = options.releaseAs;
     this.apiUrl = options.apiUrl;

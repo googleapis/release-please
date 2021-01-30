@@ -44,10 +44,11 @@ describe('CLI', () => {
       parser.parse(
         'release-pr --repo-url=googleapis/release-please-cli --package-name=cli-package'
       );
-      assert.strictEqual(classToRun!.repoUrl, 'googleapis/release-please-cli');
-      assert.strictEqual(classToRun!.packageName, 'cli-package');
+      assert.ok(classToRun! instanceof ReleasePR);
+      assert.strictEqual(classToRun.repoUrl, 'googleapis/release-please-cli');
+      assert.strictEqual(classToRun.packageName, 'cli-package');
       // Defaults to Node.js release type:
-      assert.strictEqual(classToRun!.releaseType, 'node');
+      assert.strictEqual(classToRun.releaseType, 'node');
     });
   });
   describe('github-release', () => {
@@ -67,11 +68,12 @@ describe('CLI', () => {
       parser.parse(
         'github-release --repo-url=googleapis/release-please-cli --package-name=cli-package'
       );
-      assert.strictEqual(classToRun!.repoUrl, 'googleapis/release-please-cli');
-      assert.strictEqual(classToRun!.packageName, 'cli-package');
+      assert.ok(classToRun! instanceof GitHubRelease);
+      assert.strictEqual(classToRun.repoUrl, 'googleapis/release-please-cli');
+      assert.strictEqual(classToRun.packageName, 'cli-package');
       // Defaults to Node.js release type:
-      assert.strictEqual(classToRun!.releaseType, 'node');
-      assert.strictEqual(classToRun!.changelogPath, 'CHANGELOG.md');
+      assert.strictEqual(classToRun.releaseType, 'node');
+      assert.strictEqual(classToRun.changelogPath, 'CHANGELOG.md');
     });
   });
 });
