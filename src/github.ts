@@ -102,12 +102,6 @@ export interface GitHubTag {
   version: string;
 }
 
-export interface GitHubReleasePR {
-  number: number;
-  sha: string;
-  version: string;
-}
-
 export interface GitHubFileContents {
   sha: string;
   content: string;
@@ -133,28 +127,6 @@ export interface MergedGitHubPR {
   labels: string[];
   title: string;
   body: string;
-}
-
-interface HistoryCommit {
-  oid: string;
-  associatedPullRequests: {
-    nodes: {
-      number: number;
-      title: string;
-      body: string;
-      baseRefName: string;
-      headRefName: string;
-      labels: {
-        nodes: {
-          name: string;
-        }[];
-      };
-    }[];
-  };
-}
-
-interface FileSearchResponseFile {
-  path: string;
 }
 
 let probotMode = false;
@@ -493,10 +465,16 @@ export class GitHub {
   ): Promise<GitHubTag | undefined> {
     const pull = await this.findMergedReleasePR([], prefix, preRelease);
     if (!pull) return await this.latestTagFallback(prefix, preRelease);
+
+    // FIXME: this assumes that the version is in the branch name
+    const branchName = BranchName.parse(pull.headRefName)!;
+    const version = branchName.getVersion()!;
+    const normalizedVersion = semver.valid(version)!;
+
     const tag = {
-      name: `v${pull.version}`,
+      name: `v${normalizedVersion}`,
       sha: pull.sha,
-      version: pull.version,
+      version: normalizedVersion,
     } as GitHubTag;
     return tag;
   }
@@ -610,7 +588,7 @@ export class GitHub {
     // TODO: distinguish between no more pages and a full page of
     // closed, non-merged pull requests. At page size of 100, this unlikely
     // to matter
-    
+
     if (!pullsResponse.data) {
       return [];
     }
@@ -622,10 +600,10 @@ export class GitHub {
           return !!pull.merged_at;
         })
         .map(pull => {
-          const labels = pull.labels ?
-            pull.labels.map(l => {
-              return l.name + '';
-            })
+          const labels = pull.labels
+            ? pull.labels.map(l => {
+                return l.name + '';
+              })
             : [];
           return {
             sha: pull.merge_commit_sha!, // already filtered non-merged
@@ -680,13 +658,13 @@ export class GitHub {
     labels: string[],
     branchPrefix: string | undefined = undefined,
     preRelease = true
-  ): Promise<GitHubReleasePR | undefined> {
+  ): Promise<MergedGitHubPR | undefined> {
     const baseBranch = await this.getDefaultBranch();
 
     branchPrefix = branchPrefix?.endsWith('-')
       ? branchPrefix.replace(/-$/, '')
       : branchPrefix;
-    const found = await this.findMergedPullRequest(
+    return await this.findMergedPullRequest(
       baseBranch,
       (mergedPullRequest: MergedGitHubPR) => {
         // If labels specified, ensure the pull request has all the specified labels
@@ -729,18 +707,6 @@ export class GitHub {
         return true;
       }
     );
-    if (found) {
-      const branchName = BranchName.parse(found.headRefName)!;
-      const version = branchName.getVersion()!;
-      const normalizedVersion = semver.valid(version)!;
-
-      return {
-        number: found.number,
-        sha: found.sha,
-        version: normalizedVersion,
-      } as GitHubReleasePR;
-    }
-    return undefined;
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {
