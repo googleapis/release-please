@@ -106,9 +106,7 @@ export class ReleasePR {
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.path = options.path;
-    this.packageName = options.packageName || await factory
-      .releasePRClass(this.releaseType)
-      .lookupPackageName(this.gh, this.path);
+    this.packageName = options.packageName || '';
     this.monorepoTags = options.monorepoTags || false;
     this.releaseAs = options.releaseAs;
     this.apiUrl = options.apiUrl;
