@@ -44,7 +44,7 @@ function mockRequest(snapName: string, requestPrefix = '') {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     .reply(200, require(resolve('test/fixtures/repo-get-1.json')))
     .get(
-      '/repos/googleapis/node-test-repo/pulls?state=closed&per_page=100&sort=created&direction=desc'
+      '/repos/googleapis/node-test-repo/pulls?state=closed&per_page=100&page=1&base=master&sort=created&direction=desc'
     )
     .reply(200, undefined)
     .get(
@@ -57,7 +57,7 @@ function mockRequest(snapName: string, requestPrefix = '') {
     // fetch semver tags, this will be used to determine
     // the delta since the last release.
     .get(
-      '/repos/googleapis/node-test-repo/pulls?state=closed&per_page=100&sort=created&direction=desc'
+      '/repos/googleapis/node-test-repo/pulls?state=closed&per_page=100&page=1&base=master&sort=created&direction=desc'
     )
     .reply(200, [
       {
@@ -67,6 +67,7 @@ function mockRequest(snapName: string, requestPrefix = '') {
         head: {
           label: 'googleapis:release-v0.123.4',
           sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+          ref: 'release-v0.123.4',
         },
         merged_at: new Date().toISOString(),
         labels: [],
