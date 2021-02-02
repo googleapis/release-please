@@ -20,15 +20,12 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents} from '../../src/github';
-import { buildGitHubFileContent, buildMockCommit } from './utils';
+import {buildGitHubFileContent, buildMockCommit} from './utils';
 
 const sandbox = sinon.createSandbox();
 
 function buildFileContent(fixture: string): GitHubFileContents {
-  return buildGitHubFileContent(
-    './test/releasers/fixtures/java-bom',
-    fixture
-  );
+  return buildGitHubFileContent('./test/releasers/fixtures/java-bom', fixture);
 }
 
 describe('JavaBom', () => {
