@@ -62,9 +62,7 @@ type DefaultFunctionType = RequestBuilderType['defaults'];
 type RequestFunctionType = ReturnType<DefaultFunctionType>;
 type RequestOptionsType = Parameters<DefaultFunctionType>[0];
 
-interface MergedPullRequestFilter {
-  (filter: MergedGitHubPR): boolean;
-}
+type MergedPullRequestFilter = (filter: MergedGitHubPR) => boolean;
 
 import chalk = require('chalk');
 import * as semver from 'semver';
