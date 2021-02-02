@@ -35,7 +35,11 @@ export class Node extends ReleasePR {
       this.addPath('package.json')
     );
     const pkg = JSON.parse(contents.parsedContent);
-    if (pkg.name) this.packageName = pkg.name;
+    if (pkg.name) {
+      this.packageName = pkg.name;
+      // we've rewritten the package name, recalculate the package prefix
+      this.packagePrefix = this.coercePackagePrefix(pkg.name);
+    }
 
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
       this.monorepoTags ? `${this.packagePrefix}-` : undefined

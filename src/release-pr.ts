@@ -478,16 +478,16 @@ export class ReleasePR {
     const targetBranch = await this.getDefaultBranch();
     const filter = this.monorepoTags
       ? (pullRequest: MergedGitHubPR) => {
-        // in a monorepo, filter PR head branch by component
-        return (
-          BranchName.parse(pullRequest.headRefName)?.getComponent() ===
-          this.packagePrefix
-        );
-      }
+          // in a monorepo, filter PR head branch by component
+          return (
+            BranchName.parse(pullRequest.headRefName)?.getComponent() ===
+            this.packagePrefix
+          );
+        }
       : (pullRequest: MergedGitHubPR) => {
-        // accept any release PR head branch pattern
-        return !!BranchName.parse(pullRequest.headRefName);
-      }
+          // accept any release PR head branch pattern
+          return !!BranchName.parse(pullRequest.headRefName);
+        };
     return await this.gh.findMergedPullRequest(targetBranch, filter);
   }
 

@@ -240,6 +240,56 @@ describe('Node', () => {
       const pr = await releasePR.run();
       assert.strictEqual(pr, undefined);
     });
+
+    it('uses detected package name in branch', async () => {
+      // We stub the entire suggester API, asserting only that the
+      // the appropriate changes are proposed:
+      let expectedChanges = null;
+      let expectedBranch = null;
+      sandbox.replace(
+        suggester,
+        'createPullRequest',
+        (_octokit, changes, options): Promise<number> => {
+          console.log(options);
+          expectedBranch = options.branch;
+          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+          return Promise.resolve(22);
+        }
+      );
+      const req = mockRequest('detected package name')
+        .get(
+          '/repos/googleapis/node-test-repo/contents/package-lock.json?ref=refs%2Fheads%2Fmaster'
+        )
+        .reply(404);
+      const releasePR = new Node({
+        repoUrl: 'googleapis/node-test-repo',
+        releaseType: 'node',
+        // not actually used by this type of repo.
+        packageName: 'node-testno-package-lock-repo',
+        apiUrl: 'https://api.github.com',
+        monorepoTags: true,
+      });
+
+      sandbox.stub(releasePR.gh, 'findMergedReleasePR').resolves(undefined);
+      sandbox
+        .stub(releasePR.gh, 'latestTag')
+        .withArgs('node-test-repo')
+        .resolves({
+          name: '0.123.4',
+          version: 'v0.123.4',
+          sha: 'abc123',
+        });
+
+      const pr = await releasePR.run();
+      assert.strictEqual(pr, 22);
+      snapshot(
+        JSON.stringify(expectedChanges, null, 2).replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10' // don't save a real date, this will break tests.
+        )
+      );
+      expect(expectedBranch).to.eql('release-node-test-repo-v1.0.0');
+    });
   });
 
   describe('lookupPackageName', () => {
