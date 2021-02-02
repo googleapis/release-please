@@ -75,7 +75,6 @@ import {
   PREdge,
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
-import {resolve} from 'path';
 import {BranchName} from './util/branch-name';
 
 export interface OctokitAPIs {
@@ -157,7 +156,7 @@ export class GitHub {
         baseUrl: this.apiUrl,
         headers: {
           'user-agent': `release-please/${
-            require(resolve('package.json')).version
+            require('../../package.json').version
           }`,
           // some proxies do not require the token prefix.
           Authorization: `${this.proxyKey ? '' : 'token '}${this.token}`,
