@@ -4,5 +4,6 @@
   "release_level": "beta",
   "language": "nodejs",
   "repo": "googleapis/release-please",
-  "distribution_name": "release-please"
+  "distribution_name": "release-please",
+  "codeowner_team": "@googleapis/github-automation"
 }
