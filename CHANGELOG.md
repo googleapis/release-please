@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [9.4.0](https://www.github.com/googleapis/release-please/compare/v9.3.0...v9.4.0) (2021-02-01)
+
+
+### Features
+
+* **github-release:** create a draft release ([#703](https://www.github.com/googleapis/release-please/issues/703)) ([bd83c03](https://www.github.com/googleapis/release-please/commit/bd83c032d2b678430e09e15283949bc8ee777471))
+
 ## [9.3.0](https://www.github.com/googleapis/release-please/compare/v9.2.0...v9.3.0) (2021-01-22)
 
 
