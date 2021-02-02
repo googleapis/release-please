@@ -21,13 +21,9 @@ type PullsListResponseItems = PromiseValue<
 >['data'];
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
-
-import {ReleaseType} from 'semver';
-import * as semver from 'semver';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
