@@ -475,30 +475,20 @@ export class ReleasePR {
   }
 
   private async findMergedRelease(): Promise<MergedGitHubPR | undefined> {
-    let gitHubReleasePR: MergedGitHubPR | undefined;
-
-    // Filter PRs to the latest applicable release PR
-    if (this.monorepoTags) {
-      // Find all merged PRs to this release branch
-      const mergedPRs = await this.gh.findMergedPullRequests();
-
-      // We expect to find a release branch name that matches the package name
-      gitHubReleasePR = mergedPRs.find(pullRequest => {
+    const targetBranch = await this.getDefaultBranch();
+    const filter = this.monorepoTags
+      ? (pullRequest: MergedGitHubPR) => {
+        // in a monorepo, filter PR head branch by component
         return (
           BranchName.parse(pullRequest.headRefName)?.getComponent() ===
           this.packagePrefix
         );
-      });
-    } else {
-      // Find all merged PRs to this release branch
-      const mergedPRs = await this.gh.findMergedPullRequests();
-
-      // find the first release branch
-      gitHubReleasePR = mergedPRs.find(pullRequest => {
-        return BranchName.parse(pullRequest.headRefName);
-      });
-    }
-    return gitHubReleasePR;
+      }
+      : (pullRequest: MergedGitHubPR) => {
+        // accept any release PR head branch pattern
+        return !!BranchName.parse(pullRequest.headRefName);
+      }
+    return await this.gh.findMergedPullRequest(targetBranch, filter);
   }
 
   // Parse the package prefix for releases from the full package name
