@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [9.4.1](https://www.github.com/googleapis/release-please/compare/v9.4.0...v9.4.1) (2021-02-02)
+
+
+### Bug Fixes
+
+* **revert:** use resolove to find imports in tests [#715](https://www.github.com/googleapis/release-please/issues/715) ([#731](https://www.github.com/googleapis/release-please/issues/731)) ([ab74aea](https://www.github.com/googleapis/release-please/commit/ab74aea90dd131a994a192dacceefa8fd8414146))
+
 ## [9.4.0](https://www.github.com/googleapis/release-please/compare/v9.3.0...v9.4.0) (2021-02-01)
 
 
