@@ -95,7 +95,7 @@ describe('ReleasePRFactory', () => {
         // check for default branch
         .get('/repos/googleapis/simple-test-repo')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
+        .reply(200, require('../../test/fixtures/repo-get-2.json'))
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
         .reply(200, [])
@@ -189,7 +189,7 @@ describe('ReleasePRFactory', () => {
         // check for default branch
         .get('/repos/googleapis/simple-test-repo')
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require(resolve('./test/fixtures/repo-get-2.json')))
+        .reply(200, require('../../test/fixtures/repo-get-2.json'))
         // this step tries to close any existing PRs; just return an empty list.
         .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
         .reply(200, [])
