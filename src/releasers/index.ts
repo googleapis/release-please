@@ -15,7 +15,6 @@
 import {ReleasePR} from '../release-pr';
 
 import {GoYoshi} from './go-yoshi';
-import {JavaAuthYoshi} from './java-auth-yoshi';
 import {JavaBom} from './java-bom';
 import {JavaYoshi} from './java-yoshi';
 import {Node} from './node';
@@ -33,7 +32,6 @@ export function getReleasers(): {[key: string]: typeof ReleasePR} {
   const releasers = {
     go: GoYoshi, // TODO(codyoss): refactor this into a more generic go strategy.
     'go-yoshi': GoYoshi,
-    'java-auth-yoshi': JavaAuthYoshi,
     'java-bom': JavaBom,
     'java-yoshi': JavaYoshi,
     node: Node,
