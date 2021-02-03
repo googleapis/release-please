@@ -15,7 +15,7 @@
 import {describe, it, afterEach} from 'mocha';
 import * as assert from 'assert';
 import * as nock from 'nock';
-import * as factory from '../src/factory';
+import {factory} from '../src/factory';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';

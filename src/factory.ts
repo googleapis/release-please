@@ -46,11 +46,11 @@ function run(runnable: ReleasePR | GitHubRelease) {
   return runnable.run();
 }
 
-export function githubRelease(options: GitHubReleaseOptions): GitHubRelease {
+function githubRelease(options: GitHubReleaseOptions): GitHubRelease {
   return new GitHubRelease(options);
 }
 
-export function releasePR(options: ReleasePROptions): ReleasePR {
+function releasePR(options: ReleasePROptions): ReleasePR {
   const releaseOptions: ReleasePROptions | RubyReleasePROptions = options;
   return new (factory.releasePRClass(options.releaseType))(releaseOptions);
 }

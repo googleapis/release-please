@@ -14,7 +14,7 @@
 
 import {SharedOptions, DEFAULT_LABELS} from './';
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import * as factory from './factory';
+import {factory} from './factory';
 import {GitHub, OctokitAPIs} from './github';
 import {parse} from 'semver';
 import {ReleasePR} from './release-pr';
