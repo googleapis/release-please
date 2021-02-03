@@ -24,7 +24,7 @@ import {
 } from './github-release';
 import {getReleasers} from './releasers';
 
-export function runCommand(
+function runCommand(
   command: string,
   options: GitHubReleaseOptions | ReleasePROptions
 ): Promise<number | undefined | ReleaseResponse> {
