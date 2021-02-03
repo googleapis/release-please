@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// map from a packageName to the prefix used in release branch creation.
-export function packageBranchPrefix(packageName: string, releaseType?: string) {
-  let branchPrefix: string;
-  switch (releaseType) {
-    case 'node': {
-      branchPrefix = packageName.match(/^@[\w-]+\//)
-        ? packageName.split('/')[1]
-        : packageName;
-      break;
-    }
-    default: {
-      branchPrefix = packageName;
-    }
+export function extractReleaseNotes(
+  changelogContents: string,
+  version: string
+): string {
+  version = version.replace(/^v/, '');
+  const latestRe = new RegExp(
+    `## v?\\[?${version}[^\\n]*\\n(.*?)(\\n##\\s|\\n### \\[?[0-9]+\\.|($(?![\r\n])))`,
+    'ms'
+  );
+  const match = changelogContents.match(latestRe);
+  if (!match) {
+    throw Error('could not find changelog entry corresponding to release PR');
   }
-  return branchPrefix;
+  return match[1];
 }

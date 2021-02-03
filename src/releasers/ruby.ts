@@ -108,7 +108,7 @@ export class Ruby extends ReleasePR {
     });
   }
 
-  static tagSeparator(): string {
+  tagSeparator(): string {
     return '/';
   }
 }
