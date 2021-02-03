@@ -16,37 +16,16 @@ import {describe, it, afterEach} from 'mocha';
 
 import {expect} from 'chai';
 import {JavaBom} from '../../src/releasers/java-bom';
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents} from '../../src/github';
-import * as crypto from 'crypto';
-import {Commit} from '../../src/graphql-to-commits';
+import {buildGitHubFileContent, buildMockCommit} from './utils';
 
 const sandbox = sinon.createSandbox();
-const fixturesPath = './test/releasers/fixtures/java-bom';
 
 function buildFileContent(fixture: string): GitHubFileContents {
-  const content = readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(
-    /\r\n/g,
-    '\n'
-  );
-  return {
-    content: Buffer.from(content, 'utf8').toString('base64'),
-    parsedContent: content,
-    // fake a consistent sha
-    sha: crypto.createHash('md5').update(content).digest('hex'),
-  };
-}
-
-function buildMockCommit(message: string): Commit {
-  return {
-    sha: crypto.createHash('md5').update(message).digest('hex'),
-    message,
-    files: [],
-  };
+  return buildGitHubFileContent('./test/releasers/fixtures/java-bom', fixture);
 }
 
 describe('JavaBom', () => {

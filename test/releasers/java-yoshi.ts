@@ -17,37 +17,20 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {JavaYoshi} from '../../src/releasers/java-yoshi';
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents} from '../../src/github';
-import * as crypto from 'crypto';
-import {Commit} from '../../src/graphql-to-commits';
+import {expect} from 'chai';
+import {buildGitHubFileContent, buildMockCommit} from './utils';
 
 const sandbox = sinon.createSandbox();
-const fixturesPath = './test/releasers/fixtures/java-yoshi';
 
 function buildFileContent(fixture: string): GitHubFileContents {
-  const content = readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(
-    /\r\n/g,
-    '\n'
+  return buildGitHubFileContent(
+    './test/releasers/fixtures/java-yoshi',
+    fixture
   );
-  return {
-    content: Buffer.from(content, 'utf8').toString('base64'),
-    parsedContent: content,
-    // fake a consistent sha
-    sha: crypto.createHash('md5').update(content).digest('hex'),
-  };
-}
-
-function buildMockCommit(message: string): Commit {
-  return {
-    sha: crypto.createHash('md5').update(message).digest('hex'),
-    message,
-    files: [],
-  };
 }
 
 describe('JavaYoshi', () => {
@@ -72,11 +55,11 @@ describe('JavaYoshi', () => {
       .stub(releasePR.gh, 'findOpenReleasePRs')
       .returns(Promise.resolve([]));
 
+    // Indicates that there are no PRs currently waiting to be released:
     sandbox
       .stub(releasePR.gh, 'findMergedReleasePR')
       .returns(Promise.resolve(undefined));
 
-    // Indicates that there are no PRs currently waiting to be released:
     sandbox.stub(releasePR.gh, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
@@ -128,8 +111,10 @@ describe('JavaYoshi', () => {
         ),
       ]);
 
-    // TODO: maybe assert which labels added
-    sandbox.stub(releasePR.gh, 'addLabels');
+    const addLabelStub = sandbox
+      .stub(releasePR.gh, 'addLabels')
+      .withArgs(['autorelease: pending'], 22)
+      .resolves();
 
     // We stub the entire suggester API, asserting only that the
     // the appropriate changes are proposed:
@@ -149,6 +134,8 @@ describe('JavaYoshi', () => {
         '1983-10-10' // don't save a real date, this will break tests.
       )
     );
+
+    expect(addLabelStub.callCount).to.eql(1);
   });
 
   it('creates a snapshot PR', async () => {

@@ -1,9 +1,3 @@
-exports['labels-go-yoshi'] = {
-  "labels": [
-    "autorelease: pending"
-  ]
-}
-
 exports['YoshiGo run creates a release PR for google-cloud-go 1'] = `
 
 filename: CHANGES.md
@@ -14,14 +8,14 @@ filename: CHANGES.md
 
 ### Features
 
-* **asset:** added a really cool feature ([d7d1c89](https://www.github.com/googleapis/google-cloud-go/commit/d7d1c890dc1526f4d62ceedad581f498195c8939))
-* **language:** added a new one ([1f9663c](https://www.github.com/googleapis/google-cloud-go/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371))
+* **asset:** added a really cool feature ([df2e08e](https://www.github.com/googleapis/google-cloud-go/commit/df2e08e2237642c162d080064c1aa4da))
+* **language:** added a new one ([b12e5a1](https://www.github.com/googleapis/google-cloud-go/commit/b12e5a1554a0a6ac8bb3b2213ad33090))
 
 
 ### Bug Fixes
 
-* **automl:** fixed a minor thing ([1f9663c](https://www.github.com/googleapis/google-cloud-go/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac371))
-* **automl:** fixed a really bad bug ([d7d1c89](https://www.github.com/googleapis/google-cloud-go/commit/d7d1c890dc1526f4d62ceedad581f498195c8939))
+* **automl:** fixed a minor thing ([b12e5a1](https://www.github.com/googleapis/google-cloud-go/commit/b12e5a1554a0a6ac8bb3b2213ad33090))
+* **automl:** fixed a really bad bug ([2910926](https://www.github.com/googleapis/google-cloud-go/commit/29109261188e5c680a9508238b5c873b))
 
 `
 
@@ -36,15 +30,15 @@ filename: CHANGES.md
 ### Features
 
 * **all:** auto-regenerate discovery clients , refs [#1000](https://www.github.com/googleapis/google-api-go-client/issues/1000) [#1001](https://www.github.com/googleapis/google-api-go-client/issues/1001)
-* **asset:** added a really cool feature ([d7d1c72](https://www.github.com/googleapis/google-api-go-client/commit/d7d1c720dc1526f4d62ceedad581f498195c8939))
+* **asset:** added a really cool feature ([df2e08e](https://www.github.com/googleapis/google-api-go-client/commit/df2e08e2237642c162d080064c1aa4da))
 
 
 ### Bug Fixes
 
-* **automl:** fixed a really bad bug ([d7d1c89](https://www.github.com/googleapis/google-api-go-client/commit/d7d1c890dc1526f4d62ceedad581f498195c8939))
-* **pubsub/pstest:** this commit should also be included ([dad2c89](https://www.github.com/googleapis/google-api-go-client/commit/dad2c890dc1526f4d62ceedad581f498195c8939))
-* **pubsub:** this commit should be included ([dcd1c89](https://www.github.com/googleapis/google-api-go-client/commit/dcd1c890dc1526f4d62ceedad581f498195c8939))
-* this commit should be included ([ecd1c89](https://www.github.com/googleapis/google-api-go-client/commit/ecd1c890dc1526f4d62ceedad581f489195c8939))
+* **automl:** fixed a really bad bug ([2910926](https://www.github.com/googleapis/google-api-go-client/commit/29109261188e5c680a9508238b5c873b))
+* **pubsub/pstest:** this commit should also be included ([18928e9](https://www.github.com/googleapis/google-api-go-client/commit/18928e9edb0b75972e15d7154a2f4220))
+* **pubsub:** this commit should be included ([8685637](https://www.github.com/googleapis/google-api-go-client/commit/8685637f7d27f9cd12b41ed6a04702d1))
+* this commit should be included ([19da7da](https://www.github.com/googleapis/google-api-go-client/commit/19da7da9bf67e9017e99bf2ddfa385b2))
 
 `
 
@@ -58,7 +52,7 @@ filename: pubsublite/CHANGES.md
 
 ### Bug Fixes
 
-* **pubsublite:** a minor issue ([2f9663c](https://www.github.com/googleapis/google-cloud-go/commit/2f9663cf08ab1cf3b68d95dee4dc99b7c4aac372))
-* **pubsublite:** start generating v1 ([1d9662c](https://www.github.com/googleapis/google-cloud-go/commit/1d9662cf08ab1cf3b68d95dee4dc99b7c4aac371))
+* **pubsublite:** a minor issue ([0fa149c](https://www.github.com/googleapis/google-cloud-go/commit/0fa149c303104b62e410cd708ab23350))
+* **pubsublite:** start generating v1 ([93a4aa5](https://www.github.com/googleapis/google-cloud-go/commit/93a4aa5e59098a70d3fefd2c2ff99a03))
 
 `
