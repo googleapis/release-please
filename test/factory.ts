@@ -15,7 +15,7 @@
 import {describe, it, afterEach} from 'mocha';
 import * as assert from 'assert';
 import * as nock from 'nock';
-import {ReleasePRFactory} from '../src/release-pr-factory';
+import {factory} from '../src/factory';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
@@ -26,12 +26,12 @@ import * as sinon from 'sinon';
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/simple';
 
-describe('ReleasePRFactory', () => {
+describe('factory', () => {
   afterEach(() => {
     sandbox.restore();
   });
 
-  describe('build', () => {
+  describe('ReleasePR', () => {
     it('returns instance of dynamically loaded releaser', async () => {
       // We stub the entire suggester API, asserting only that the
       // the appropriate changes are proposed:
@@ -108,11 +108,12 @@ describe('ReleasePRFactory', () => {
           }
         )
         .reply(200);
-      const releasePR = ReleasePRFactory.build('simple', {
+      const releasePR = factory.releasePR({
         repoUrl: 'googleapis/simple-test-repo',
         // not actually used by this type of repo.
         packageName: 'simple-test-repo',
         apiUrl: 'https://api.github.com',
+        releaseType: 'simple',
       });
       await releasePR.run();
       req.done();
@@ -203,11 +204,13 @@ describe('ReleasePRFactory', () => {
           }
         )
         .reply(200);
-      const releasePR = ReleasePRFactory.buildStatic('simple', {
+      const releasePR = factory.releasePR({
+        label: '',
         repoUrl: 'googleapis/simple-test-repo',
         // not actually used by this type of repo.
         packageName: 'simple-test-repo',
         apiUrl: 'https://api.github.com',
+        releaseType: 'simple',
       });
       await releasePR.run();
       req.done();

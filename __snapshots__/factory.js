@@ -1,4 +1,4 @@
-exports['ReleasePRFactory buildStatic returns an instance of a statically loaded releaser 1'] = `
+exports['factory ReleasePR returns instance of dynamically loaded releaser 1'] = `
 [
   [
     "CHANGELOG.md",
@@ -17,7 +17,7 @@ exports['ReleasePRFactory buildStatic returns an instance of a statically loaded
 ]
 `
 
-exports['ReleasePRFactory build returns instance of dynamically loaded releaser 1'] = `
+exports['factory buildStatic returns an instance of a statically loaded releaser 1'] = `
 [
   [
     "CHANGELOG.md",
