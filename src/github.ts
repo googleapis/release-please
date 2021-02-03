@@ -63,6 +63,10 @@ type RequestFunctionType = ReturnType<DefaultFunctionType>;
 type RequestOptionsType = Parameters<DefaultFunctionType>[0];
 
 type MergedPullRequestFilter = (filter: MergedGitHubPR) => boolean;
+type CommitFilter = (
+  commit: Commit,
+  pullRequest: MergedGitHubPR | undefined
+) => boolean;
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -124,6 +128,38 @@ export interface MergedGitHubPR {
   labels: string[];
   title: string;
   body: string;
+}
+
+interface CommitWithPullRequest {
+  commit: Commit;
+  pullRequest?: MergedGitHubPR;
+}
+
+interface PullRequestHistory {
+  pageInfo: {
+    hasNextPage: boolean;
+    endCursor: string | undefined;
+  };
+  data: CommitWithPullRequest[];
+}
+
+interface GraphQLCommit {
+  sha: string;
+  message: string;
+  associatedPullRequests: {
+    nodes: {
+      number: number;
+      title: string;
+      body: string;
+      baseRefName: string;
+      headRefName: string;
+      labels: {
+        nodes: {
+          name: string;
+        }[];
+      };
+    }[];
+  };
 }
 
 let probotMode = false;
@@ -545,6 +581,119 @@ export class GitHub {
       });
     }
     return tags;
+  }
+
+  private async pullRequestsSinceGraphQL(
+    cursor?: string
+  ): Promise<PullRequestHistory> {
+    console.log('fetching graphql');
+    const response = await this.graphqlRequest({
+      query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $targetBranch: String!, $cursor: String) {
+        repository(owner: $owner, name: $repo) {
+          ref(qualifiedName: $targetBranch) {
+            target {
+              ... on Commit {
+                history(first: $num, after: $cursor) {
+                  nodes {
+                    associatedPullRequests(last: 1) {
+                      nodes {
+                        number
+                        title
+                        baseRefName
+                        headRefName
+                        labels(first: 10) {
+                          nodes {
+                            name
+                          }
+                        }
+                        body
+                      }
+                    }
+                    sha: oid
+                    message
+                  }
+                  pageInfo {
+                    hasNextPage
+                    endCursor
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`,
+      cursor,
+      owner: this.owner,
+      repo: this.repo,
+      num: 25,
+    });
+    const history = response.repository.ref.target.history;
+    const commits = history.nodes as GraphQLCommit[];
+    return {
+      pageInfo: history.pageInfo,
+      data: commits.map(graphCommit => {
+        const commit = {
+          sha: graphCommit.sha,
+          message: graphCommit.message,
+          files: [] as string[],
+        };
+        if (graphCommit.associatedPullRequests.nodes.length > 0) {
+          const pullRequest = graphCommit.associatedPullRequests.nodes[0];
+          return {
+            commit,
+            pullRequest: {
+              sha: commit.sha,
+              number: pullRequest.number,
+              baseRefName: pullRequest.baseRefName,
+              headRefName: pullRequest.headRefName,
+              title: pullRequest.title,
+              body: pullRequest.body,
+              labels: pullRequest.labels.nodes.map(node => node.name),
+            },
+          };
+        }
+        return {
+          commit,
+        };
+      }),
+    };
+  }
+
+  /**
+   * Returns the unique list of pull requests merged to this commit after
+   * the provided filter query has been satified.
+   *
+   * @param {CommitFilter} filter - Callback function that returns whether a
+   *   commit/pull request matches certain criteria
+   * @returns {Commit[]} - List of commits to current branch
+   */
+  async commitsSince(filter: CommitFilter): Promise<Commit[]> {
+    let cursor: string | undefined = undefined;
+    const commits: Commit[] = [];
+    let found: CommitWithPullRequest | undefined = undefined;
+    while (!found) {
+      const response: PullRequestHistory = await this.pullRequestsSinceGraphQL(
+        cursor
+      );
+      found = response.data.find(commitWithPullRequest => {
+        if (
+          filter(
+            commitWithPullRequest.commit,
+            commitWithPullRequest.pullRequest
+          )
+        ) {
+          return true;
+        }
+        commits.push(commitWithPullRequest.commit);
+        return false;
+      });
+      if (!response.pageInfo.hasNextPage) {
+        break;
+      }
+      cursor = response.pageInfo.endCursor;
+    }
+
+    return commits;
   }
 
   /**

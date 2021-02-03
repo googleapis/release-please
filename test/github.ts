@@ -702,4 +702,65 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
+  describe('commitsSince', () => {
+    it('finds commits up until a condition', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitsSinceSha = await github.commitsSince(
+        (commit, pullRequest) => {
+          // this commit is the 2nd most recent
+          return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+        }
+      );
+      expect(commitsSinceSha.length).to.eql(1);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+
+    it('paginates through commits', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      const graphql2 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-2.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql1,
+      }).post('/graphql').reply(200, {
+        data: graphql2,
+      });
+      const commitsSinceSha = await github.commitsSince(
+        (commit, pullRequest) => {
+          // this commit is on page 2
+          return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+        }
+      );
+      expect(commitsSinceSha.length).to.eql(11);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+
+    it('finds first commit of a multi-commit merge pull request', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitsSinceSha = await github.commitsSince(
+        (commit, pullRequest) => {
+          // PR #6 was rebase/merged so it has 4 associated commits
+          return pullRequest?.number === 6;
+        }
+      );
+      expect(commitsSinceSha.length).to.eql(3);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+  });
 });
