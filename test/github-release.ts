@@ -35,14 +35,10 @@ function buildFileContent(content: string): GitHubFileContents {
 }
 
 describe('GitHubRelease', () => {
-<<<<<<< HEAD
   afterEach(() => {
     sandbox.restore();
   });
   describe('createRelease', () => {
-=======
-  describe('run', () => {
->>>>>>> 5c4ff32 (feat(cli)!: refactor factory/CLI to be more testable)
     it('creates and labels release on GitHub', async () => {
       const release = new GitHubRelease({
         label: 'autorelease: pending',
@@ -205,7 +201,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'bigquery/v1.0.3');
       strictEqual(created!.major, 1);
@@ -324,7 +320,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'foo-v1.0.3');
     });
@@ -385,7 +381,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       strictEqual(created!.tag_name, 'v1.0.3');
     });
 
@@ -503,7 +499,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
@@ -560,7 +556,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
@@ -581,7 +577,7 @@ describe('GitHubRelease', () => {
 
       sandbox.stub(release.gh, 'findMergedPullRequests').resolves([]);
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.be.undefined;
     });
 
@@ -607,7 +603,7 @@ describe('GitHubRelease', () => {
         },
       ]);
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.be.undefined;
     });
 
@@ -638,7 +634,7 @@ describe('GitHubRelease', () => {
         .onSecondCall()
         .resolves([]);
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.be.undefined;
     });
   });

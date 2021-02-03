@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePRFactory} from './release-pr-factory';
-import chalk = require('chalk');
 import {SharedOptions, DEFAULT_LABELS} from './';
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import {packageBranchPrefix} from './util/package-branch-prefix';
 import * as factory from './factory';
 import {GitHub, OctokitAPIs} from './github';
 import {parse} from 'semver';
@@ -79,13 +76,9 @@ export class GitHubRelease {
     this.gh = this.gitHubInstance(options.octokitAPIs);
   }
 
-<<<<<<< HEAD
-  async createRelease(): Promise<ReleaseResponse | undefined> {
-=======
   async run(): Promise<ReleaseResponse | undefined> {
     // Attempt to lookup the package name from a well known location, such
     // as package.json, if none is provided:
->>>>>>> 5c4ff32 (feat(cli)!: refactor factory/CLI to be more testable)
     if (!this.packageName && this.releaseType) {
       this.packageName = await factory
         .releasePRClass(this.releaseType)
@@ -108,7 +101,10 @@ export class GitHubRelease {
       monorepoTags: this.monorepoTags,
     };
     const releasePR = this.releaseType
-      ? ReleasePRFactory.build(this.releaseType, releaseOptions)
+      ? factory.releasePR({
+          ...releaseOptions,
+          ...{releaseType: this.releaseType},
+        })
       : new ReleasePR({
           ...releaseOptions,
           ...{releaseType: 'unknown'},
@@ -121,34 +117,6 @@ export class GitHubRelease {
       checkpoint('Unable to build candidate', CheckpointType.Failure);
       return undefined;
     }
-<<<<<<< HEAD
-=======
-    const version = `v${gitHubReleasePR.version}`;
-
-    checkpoint(
-      `found release branch ${chalk.green(version)} at ${chalk.green(
-        gitHubReleasePR.sha
-      )}`,
-      CheckpointType.Success
-    );
-
-    const changelogContents = (
-      await this.gh.getFileContents(this.addPath(this.changelogPath))
-    ).parsedContent;
-    const latestReleaseNotes = GitHubRelease.extractLatestReleaseNotes(
-      changelogContents,
-      version
-    );
-    checkpoint(
-      `found release notes: \n---\n${chalk.grey(latestReleaseNotes)}\n---\n`,
-      CheckpointType.Success
-    );
-    // Go uses '/' for a tag separator, rather than '-':
-    let tagSeparator = '-';
-    if (this.releaseType) {
-      tagSeparator = factory.releasePRClass(this.releaseType).tagSeparator();
-    }
->>>>>>> 5c4ff32 (feat(cli)!: refactor factory/CLI to be more testable)
 
     const release = await this.gh.createRelease(
       candidate.name,

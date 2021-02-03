@@ -143,6 +143,7 @@ export class GitHub {
     this.owner = options.owner;
     this.repo = options.repo;
     this.apiUrl = options.apiUrl || 'https://api.github.com';
+
     if (options.octokitAPIs === undefined) {
       this.octokit = new Octokit({
         baseUrl: options.apiUrl,
@@ -154,7 +155,8 @@ export class GitHub {
           'user-agent': `release-please/${
             require('../../package.json').version
           }`,
-          Authorization: `  token ${this.token}`,
+          // some proxies do not require the token prefix.
+          Authorization: `token ${this.token}`,
         },
       };
       this.request = request.defaults(defaults);
@@ -650,47 +652,32 @@ export class GitHub {
     branchPrefix = branchPrefix?.endsWith('-')
       ? branchPrefix.replace(/-$/, '')
       : branchPrefix;
-    const baseLabel = await this.getBaseLabel();
-    const pullsResponse = (await this.request(
-      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}&sort=${sort}&direction=desc`,
-      {
-        owner: this.owner,
-        repo: this.repo,
-      }
-    )) as {data: PullsListResponseItems};
-    for (const pull of pullsResponse.data) {
-      if (
-        labels.length === 0 ||
-        this.hasAllLabels(
-          labels,
-          pull.labels.map(l => {
-            return l.name + '';
-          })
-        )
-      ) {
-        // it's expected that a release PR will have a
-        // HEAD matching the format repo:release-v1.0.0.
-        if (!pull.head) continue;
+    return await this.findMergedPullRequest(
+      baseBranch,
+      (mergedPullRequest: MergedGitHubPR) => {
+        // If labels specified, ensure the pull request has all the specified labels
+        if (
+          labels.length > 0 &&
+          !this.hasAllLabels(labels, mergedPullRequest.labels)
+        ) {
+          return false;
+        }
 
-        // Verify that this PR was based against our base branch of interest.
-        if (!pull.base || pull.base.label !== baseLabel) continue;
+        const branchName = BranchName.parse(mergedPullRequest.headRefName);
+        if (!branchName) {
+          return false;
+        }
 
-        // The input should look something like:
-        // user:release-[optional-package-name]-v1.2.3
-        // We want the package name and any semver on the end.
-        const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-        if (!match || !pull.merged_at) continue;
+        // If branchPrefix is specified, ensure it is found in the branch name.
+        // If branchPrefix is not specified, component should also be undefined.
+        if (branchName.getComponent() !== branchPrefix) {
+          return false;
+        }
 
-        // The input here should look something like:
-        // [optional-package-name-]v1.2.3[-beta-or-whatever]
-        // Because the package name can contain things like "-v1",
-        // it's easiest/safest to just pull this out by string search.
-        const version = match[2];
-        if (!version) continue;
-        if (branchPrefix && match[1] !== branchPrefix) {
-          continue;
-        } else if (!branchPrefix && match[1]) {
-          continue;
+        // In this implementation we expect to have a release version
+        const version = branchName.getVersion();
+        if (!version) {
+          return false;
         }
 
         // What's left by now should just be the version string.

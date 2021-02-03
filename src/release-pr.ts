@@ -52,11 +52,22 @@ export interface ReleasePROptions extends SharedOptions {
   versionFile?: string;
   releaseType: string;
   changelogSections?: [];
+  // Optionally provide GitHub instance
+  github?: GitHub;
 }
 
 export interface ReleaseCandidate {
   version: string;
   previousTag?: string;
+}
+
+export interface CandidateRelease {
+  sha: string;
+  tag: string;
+  notes: string;
+  name: string;
+  version: string;
+  pullNumber: number;
 }
 
 interface GetCommitsOptions {
