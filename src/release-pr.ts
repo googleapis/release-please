@@ -14,6 +14,7 @@
 
 // See: https://github.com/octokit/rest.js/issues/1624
 //  https://github.com/octokit/types.ts/issues/25.
+import {SharedOptions, DEFAULT_LABELS} from './';
 import {Octokit} from '@octokit/rest';
 import {PromiseValue} from 'type-fest';
 type PullsListResponseItems = PromiseValue<
@@ -33,33 +34,15 @@ import {extractReleaseNotes} from './util/release-notes';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
-export interface BuildOptions {
-  // Whether to treat breaking changes as minor semver bumps pre-1.0.0
+export interface ReleasePROptions extends SharedOptions {
   bumpMinorPreMajor?: boolean;
   // The target release branch
   defaultBranch?: string;
   // Whether to open the pull request from a forked repository
   fork?: boolean;
-  // Comma-separated list of additional labels to add
-  label?: string;
-  // GitHub API Token
-  token?: string;
-  // URL of the GitHub repository
-  repoUrl: string;
-  // The name of the package to release
-  packageName: string;
-  // When releasing multiple libraries from one repository, whether or not
-  // to include a prefix on tags and branch names
-  monorepoTags?: boolean;
-  // Limit file search to this path
-  path?: string;
-  // Override the version to release
+  // When releasing multiple libraries from one repository, include a prefix
+  // on tags and branch names:
   releaseAs?: string;
-  // GitHub API endpoint
-  apiUrl: string;
-  // Legacy GitHub proxy authentication token
-  proxyKey?: string;
-  // Whether or not to force a snapshot release
   snapshot?: boolean;
   // Override the last released version
   lastPackageVersion?: string;
@@ -67,18 +50,24 @@ export interface BuildOptions {
   octokitAPIs?: OctokitAPIs;
   // Path to version.rb file
   versionFile?: string;
-  // Optionally provide GitHub instance
-  github?: GitHub;
-}
-
-export interface ReleasePROptions extends BuildOptions {
   releaseType: string;
   changelogSections?: [];
+  // Optionally provide GitHub instance
+  github?: GitHub;
 }
 
 export interface ReleaseCandidate {
   version: string;
   previousTag?: string;
+}
+
+export interface CandidateRelease {
+  sha: string;
+  tag: string;
+  notes: string;
+  name: string;
+  version: string;
+  pullNumber: number;
 }
 
 interface GetCommitsOptions {
@@ -96,17 +85,6 @@ export interface OpenPROptions {
   includePackageName: boolean;
 }
 
-export interface CandidateRelease {
-  sha: string;
-  tag: string;
-  notes: string;
-  name: string;
-  version: string;
-  pullNumber: number;
-}
-
-const DEFAULT_LABELS = 'autorelease: pending';
-
 export class ReleasePR {
   static releaserName = 'base';
 
@@ -122,7 +100,6 @@ export class ReleasePR {
   packageName: string;
   monorepoTags: boolean;
   releaseAs?: string;
-  proxyKey?: string;
   snapshot?: boolean;
   lastPackageVersion?: string;
   changelogSections?: [];
@@ -140,11 +117,10 @@ export class ReleasePR {
     this.repoUrl = options.repoUrl;
     this.token = options.token;
     this.path = options.path;
-    this.packageName = options.packageName;
+    this.packageName = options.packageName || '';
     this.monorepoTags = options.monorepoTags || false;
     this.releaseAs = options.releaseAs;
     this.apiUrl = options.apiUrl;
-    this.proxyKey = options.proxyKey;
     this.snapshot = options.snapshot;
     // drop a `v` prefix if provided:
     this.lastPackageVersion = options.lastPackageVersion
@@ -299,7 +275,6 @@ export class ReleasePR {
       owner,
       repo,
       apiUrl: this.apiUrl,
-      proxyKey: this.proxyKey,
       octokitAPIs,
     });
   }

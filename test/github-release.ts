@@ -86,7 +86,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
@@ -142,7 +142,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
@@ -201,7 +201,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'bigquery/v1.0.3');
       strictEqual(created!.major, 1);
@@ -260,7 +260,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       strictEqual(created!.tag_name, 'foo/v1.0.3');
     });
 
@@ -320,7 +320,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'foo-v1.0.3');
     });
@@ -381,7 +381,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       strictEqual(created!.tag_name, 'v1.0.3');
     });
 
@@ -394,7 +394,7 @@ describe('GitHubRelease', () => {
       });
       let failed = true;
       try {
-        await release.createRelease();
+        await release.run();
         failed = false;
       } catch (error) {
         expect(error.message).to.equal(
@@ -442,7 +442,7 @@ describe('GitHubRelease', () => {
 
       let failed = true;
       try {
-        await release.createRelease();
+        await release.run();
         failed = false;
       } catch (error) {
         expect(error.message).to.equal(
@@ -499,7 +499,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
@@ -556,7 +556,7 @@ describe('GitHubRelease', () => {
         .withArgs(['autorelease: pending'], 1)
         .resolves();
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.not.be.undefined;
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
@@ -577,7 +577,7 @@ describe('GitHubRelease', () => {
 
       sandbox.stub(release.gh, 'findMergedPullRequests').resolves([]);
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.be.undefined;
     });
 
@@ -603,7 +603,7 @@ describe('GitHubRelease', () => {
         },
       ]);
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.be.undefined;
     });
 
@@ -634,7 +634,7 @@ describe('GitHubRelease', () => {
         .onSecondCall()
         .resolves([]);
 
-      const created = await release.createRelease();
+      const created = await release.run();
       expect(created).to.be.undefined;
     });
   });
