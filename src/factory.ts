@@ -54,6 +54,7 @@ function releasePR(options: ReleasePROptions): ReleasePR {
   const releaseOptions: ReleasePROptions | RubyReleasePROptions = options;
   return new (factory.releasePRClass(options.releaseType))(releaseOptions);
 }
+
 export function releasePRClass(releaseType: string): typeof ReleasePR {
   const releasers = getReleasers();
   const releaser = releasers[releaseType];
