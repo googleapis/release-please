@@ -53,7 +53,7 @@ describe('YoshiGo', () => {
       const req = nock('https://api.github.com')
         // Check for in progress, merged release PRs:
         .get(
-          '/repos/googleapis/google-cloud-go/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/googleapis/google-cloud-go/pulls?state=closed&per_page=100&page=1&base=master&sort=created&direction=desc'
         )
         .reply(200, undefined)
         // Check for existing open release PRs.
@@ -62,7 +62,7 @@ describe('YoshiGo', () => {
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get(
-          '/repos/googleapis/google-cloud-go/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/googleapis/google-cloud-go/pulls?state=closed&per_page=100&page=1&base=master&sort=created&direction=desc'
         )
         .reply(200, [
           {
@@ -72,6 +72,7 @@ describe('YoshiGo', () => {
             head: {
               label: 'googleapis:release-v0.123.4',
               sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+              ref: 'release-v0.123.4',
             },
             merged_at: new Date().toISOString(),
           },

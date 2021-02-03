@@ -237,6 +237,7 @@ describe('GitHub', () => {
         },
         head: {
           label: 'fake:release-v3.0.0-rc1',
+          ref: 'release-v3.0.0-rc1',
         },
         merged_at: new Date().toISOString(),
       },
@@ -246,6 +247,7 @@ describe('GitHub', () => {
         },
         head: {
           label: 'fake:release-v2.0.0-rc1',
+          ref: 'release-v2.0.0-rc1',
         },
         merged_at: new Date().toISOString(),
       },
@@ -255,6 +257,7 @@ describe('GitHub', () => {
         },
         head: {
           label: 'fake:release-v1.1.5',
+          ref: 'release-v1.1.5',
         },
         merged_at: new Date().toISOString(),
       },
@@ -264,6 +267,7 @@ describe('GitHub', () => {
         },
         head: {
           label: 'fake:release-v1.3.0',
+          ref: 'release-v1.3.0',
         },
         merged_at: new Date().toISOString(),
       },
@@ -273,6 +277,7 @@ describe('GitHub', () => {
         },
         head: {
           label: 'fake:release-v1.2.0',
+          ref: 'release-v1.2.0',
         },
         merged_at: new Date().toISOString(),
       },
@@ -282,6 +287,7 @@ describe('GitHub', () => {
         },
         head: {
           label: 'fake:release-v1.1.0',
+          ref: 'release-v1.1.0',
         },
         merged_at: new Date().toISOString(),
       },
@@ -295,6 +301,7 @@ describe('GitHub', () => {
           },
           head: {
             label: 'fake:release-complex-package_name-v1-v1.1.0',
+            ref: 'release-complex-package_name-v1-v1.1.0',
           },
           merged_at: new Date().toISOString(),
         },
@@ -304,13 +311,14 @@ describe('GitHub', () => {
           },
           head: {
             label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
+            ref: 'release-complex-package_name-v2.1-v2.0.0-beta',
           },
           merged_at: new Date().toISOString(),
         },
       ];
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
         .reply(200, sampleResults);
       const latestTag = await github.latestTag('complex-package_name-v1-');
@@ -326,6 +334,7 @@ describe('GitHub', () => {
           },
           head: {
             label: 'fake:release-complex-package_name-v1-v1.1.0',
+            ref: 'release-complex-package_name-v1-v1.1.0',
           },
           merged_at: new Date().toISOString(),
         },
@@ -335,6 +344,7 @@ describe('GitHub', () => {
           },
           head: {
             label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
+            ref: 'release-complex-package_name-v2.1-v2.0.0-beta',
           },
           merged_at: new Date().toISOString(),
         },
@@ -344,13 +354,14 @@ describe('GitHub', () => {
           },
           head: {
             label: 'fake:release-v1.3.0',
+            ref: 'release-v1.3.0',
           },
           merged_at: new Date().toISOString(),
         },
       ];
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
         .reply(200, sampleResults);
       const latestTag = await github.latestTag();
@@ -359,11 +370,43 @@ describe('GitHub', () => {
     });
 
     it('returns the latest tag on the main branch, based on PR date', async () => {
+      const ret = [
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v1.3.0',
+            ref: 'release-v1.3.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v1.2.0',
+            ref: 'release-v1.2.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v1.1.0',
+            ref: 'release-v1.1.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+      ];
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
-        .reply(200, samplePrReturn);
+        .reply(200, ret);
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.3.0');
       req.done();
@@ -379,7 +422,7 @@ describe('GitHub', () => {
 
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=legacy-8&sort=created&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();
@@ -388,22 +431,66 @@ describe('GitHub', () => {
     });
 
     it('does not return pre-releases as latest tag', async () => {
+      const ret = [
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v2.0.0-rc1',
+            ref: 'release-v2.0.0-rc1',
+          },
+          merged_at: new Date().toISOString(),
+        },
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v1.3.0',
+            ref: 'release-v1.3.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+      ];
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
-        .reply(200, samplePrReturn);
+        .reply(200, ret);
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
 
     it('returns pre-releases on the main branch as latest, when preRelease is true', async () => {
+      const ret = [
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v2.0.0-rc1',
+            ref: 'release-v2.0.0-rc1',
+          },
+          merged_at: new Date().toISOString(),
+        },
+        {
+          base: {
+            label: 'fake:main',
+          },
+          head: {
+            label: 'fake:release-v1.3.0',
+            ref: 'release-v1.3.0',
+          },
+          merged_at: new Date().toISOString(),
+        },
+      ];
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
-        .reply(200, samplePrReturn);
+        .reply(200, ret);
       const latestTag = await github.latestTag(undefined, true);
       expect(latestTag!.version).to.equal('2.0.0-rc1');
       req.done();
@@ -419,7 +506,7 @@ describe('GitHub', () => {
 
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=prerelease&sort=created&direction=desc'
         )
         .reply(200, samplePrReturn);
       const latestTag = await github.latestTag(undefined, true);
@@ -429,7 +516,7 @@ describe('GitHub', () => {
     it('falls back to using tags, for simple case', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
@@ -450,7 +537,7 @@ describe('GitHub', () => {
     it('falls back to using tags, when prefix is provided', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
@@ -479,7 +566,7 @@ describe('GitHub', () => {
     it('allows for "@" rather than "-" when fallback used', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
@@ -512,7 +599,7 @@ describe('GitHub', () => {
     it('allows for "/" rather than "-" when fallback used', async () => {
       req
         .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
         )
         .reply(200, [])
         .get('/repos/fake/fake/tags?per_page=100')
@@ -596,6 +683,22 @@ describe('GitHub', () => {
         .to.have.property('sha')
         .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
       snapshot(fileContents);
+      req.done();
+    });
+  });
+
+  describe('findMergedPullRequests', () => {
+    it('finds merged pull requests with labels', async () => {
+      const pullRequests = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'merged-pull-requests.json'), 'utf8')
+      );
+      req
+        .get(
+          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
+        )
+        .reply(200, pullRequests);
+      const mergedPullRequests = await github.findMergedPullRequests();
+      snapshot(mergedPullRequests);
       req.done();
     });
   });

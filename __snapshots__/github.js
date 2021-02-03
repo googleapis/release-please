@@ -223,3 +223,309 @@ exports['GitHub commitsSinceSha prefixes commits with labels from associated pul
     "files": []
   }
 ]
+
+exports['GitHub findMergedPullRequests finds merged pull requests with labels 1'] = [
+  {
+    "sha": "02760f5cb01fb358de95705713fd310bb3e5429b",
+    "number": 2807,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.19.1-SNAPSHOT",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "chore: Bump next snapshot",
+    "body": "This pull request was generated using releasetool.\n\nBump snapshot"
+  },
+  {
+    "sha": "5059935bf1065b90da7bc55999c92b56cc254289",
+    "number": 2806,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.19.0",
+    "labels": [
+      "api: bigtable",
+      "autorelease: published",
+      "cla: yes"
+    ],
+    "title": "chore: Release cloud-bigtable-client v1.19.0",
+    "body": "This pull request was generated using releasetool.\r\n\r\n01-19-2021 07:24 PST\r\n\r\n### New Features\r\n- feat: align grpc channel ids in bigtable exceptions ([#2804](https://github.com/googleapis/java-bigtable-hbase/pull/2804))"
+  },
+  {
+    "sha": "5fcd3cb0cec1113e997d57bf85c4dbdd87511bcc",
+    "number": 2804,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "better-channel-ids",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "feat: align grpc channel ids in bigtable exceptions",
+    "body": "Currently bigtable client annotates its error messages with sequential channel ids which are unrelated to actual grpc log ids. This PR bubbles up both to make it easier top correlate with grpc verbose logging"
+  },
+  {
+    "sha": "fd4fa187084403ee669b466f9cb4eb225c2d1bce",
+    "number": 2793,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-java-bigtable-hbase-v1.18.3-SNAPSHOT",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "Bump next snapshot",
+    "body": "This pull request was generated using releasetool.\n\nBump snapshot"
+  },
+  {
+    "sha": "ab056dcc0696e492c93aee529692e9fbce01943c",
+    "number": 2792,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-java-bigtable-hbase-v1.18.2",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "Release java-bigtable-hbase v1.18.2",
+    "body": "This pull request was generated using releasetool.\r\n\r\n01-06-2021 11:50 PST\r\n\r\n### Dependencies\r\n- deps: update veneer version to 1.19.2 ([#2766](https://github.com/googleapis/java-bigtable-hbase/pull/2766))\r\n\r\n### Documentation\r\n- Remove disrespectful terms ([#2777](https://github.com/googleapis/java-bigtable-hbase/pull/2777))\r\n\r\n### Bug Fixes\r\n- fix: Fix autoflush race condition in BulkMutation ([#2762](https://github.com/googleapis/java-bigtable-hbase/pull/2762))\r\n- Non-retriable operations should ignore attempt timeout and default to RPC timeout instead ([#2756](https://github.com/googleapis/java-bigtable-hbase/pull/2756))\r\n- fix: update readRowsAsync to use RetryingReadRowsOperation ([#2757](https://github.com/googleapis/java-bigtable-hbase/pull/2757))"
+  },
+  {
+    "sha": "d914d22558b718adf38b0f713556c8b547ca1f6a",
+    "number": 2777,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "terms-update",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "Remove disrespectful terms",
+    "body": "Thank you for opening a Pull Request! Before submitting your PR, there are a few things you can do to make sure it goes smoothly:\r\n- [ ] Make sure to open an issue as a [bug/issue](https://github.com/googleapis/java-bigtable-hbase/issues/new/choose) before writing your code!  That way we can discuss the change, evaluate designs, and agree on the general idea\r\n- [ ] Ensure the tests and linter pass\r\n- [ ] Code coverage does not decrease (if any source code was changed)\r\n- [ ] Appropriate docs were updated (if necessary)\r\n\r\nFixes #<issue_number_goes_here> ☕️\r\n"
+  },
+  {
+    "sha": "0254144531a3d5cee41ab823ddfd5f4d266be5f1",
+    "number": 2766,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "veneer-1.19.1",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "deps: update veneer version to 1.19.2",
+    "body": "\r\n"
+  },
+  {
+    "sha": "ef2bfc53bd9ea8b3b126e2a00cee34b519e98ec4",
+    "number": 2762,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "fix-autoflush",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "fix: Fix autoflush race condition in BulkMutation",
+    "body": "Thank you for opening a Pull Request! Before submitting your PR, there are a few things you can do to make sure it goes smoothly:\r\n- [ ] Make sure to open an issue as a [bug/issue](https://github.com/googleapis/java-bigtable-hbase/issues/new/choose) before writing your code!  That way we can discuss the change, evaluate designs, and agree on the general idea\r\n- [x] Ensure the tests and linter pass\r\n- [x] Code coverage does not decrease (if any source code was changed)\r\n- [ ] Appropriate docs were updated (if necessary)\r\n\r\nFixes #<issue_number_goes_here> ☕️\r\n"
+  },
+  {
+    "sha": "790c448d3b0aecf7fc3b0fbb74386052402d3264",
+    "number": 2757,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "revert-2745-revert-1.x-fix",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "fix: update readRowsAsync to use RetryingReadRowsOperation (1x)",
+    "body": "Roll forward of #2738 now that #2742 is merged"
+  },
+  {
+    "sha": "927e9cd0848c508f4dd4c20f5d18eadc948a75f7",
+    "number": 2756,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "checkAndMutateRowRetriable",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "fix: Non-retriable operations should ignore attempt timeout and default to RPC timeout instead",
+    "body": ""
+  },
+  {
+    "sha": "3937056dcc03379a015180a706a98efe646662c5",
+    "number": 2747,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.18.2-SNAPSHOT",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "Bump next snapshot",
+    "body": "This pull request was generated using releasetool.\n\nBump snapshot"
+  },
+  {
+    "sha": "a7d964cf4b31ae07deb3d80367d6543cf567162e",
+    "number": 2746,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.18.1",
+    "labels": [
+      "api: bigtable",
+      "autorelease: tagged",
+      "cla: yes"
+    ],
+    "title": "chore: Release cloud-bigtable-client v1.18.1",
+    "body": "This pull request was generated using releasetool.\r\n\r\n12-10-2020 13:08 PST\r\n\r\n### Implementation Changes\r\n- fix: fix race condition where a retry triggers a full table scan ([#2742](https://github.com/googleapis/java-bigtable-hbase/pull/2742))\r\n\r\n### Dependencies\r\n- deps: update bigtable.version to 1.19.0 ([#2740](https://github.com/googleapis/java-bigtable-hbase/pull/2740))\r\n\r\n### Internal / Testing Changes\r\n- fix: update readRowsAsync to use RetryingReadRowsOperation ([#2738](https://github.com/googleapis/java-bigtable-hbase/pull/2738))\r\n- revert: Revert \"fix: update readRowsAsync to use RetryingReadRowsOperation ([#2738](https://github.com/googleapis/java-bigtable-hbase/pull/2738))\" ([#2745](https://github.com/googleapis/java-bigtable-hbase/pull/2745))\r\n- chore: synth updates for 1.x branch ([#2741](https://github.com/googleapis/java-bigtable-hbase/pull/2741))"
+  },
+  {
+    "sha": "c5e4e0ea24bead61a1e797e8611667882cb4c068",
+    "number": 2745,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "revert-1.x-fix",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "revert: Revert \"fix: update readRowsAsync to use RetryingReadRowsOperation (#2738)",
+    "body": "…2738)\"\r\n\r\nThis reverts commit 2d422175\r\n"
+  },
+  {
+    "sha": "d7521ad9619d7fc35e1cfe69682093a3977c7fa9",
+    "number": 2742,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "fulltablescanretry",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "fix: fix race condition where a retry triggers a full table scan",
+    "body": "There is a race condition where a read rows stream will return all of the data, but still end in a non-ok status. This will trigger a full table scan because the row resumption logic will strip away all of seem keys & ranges, leaving the retry request empty, will cause a full table scan.\r\n\r\nThis PR will detect this case and will replace the status code to be ok. This should be a very rare condition.\r\n"
+  },
+  {
+    "sha": "6a924e15071ba96f9f26d7c36b22f922de76472d",
+    "number": 2741,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "synth-updates-1.x",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "chore: synth updates for 1.x branch",
+    "body": "\r\n"
+  },
+  {
+    "sha": "79627e5c221b26bebaa796b8dd91b6b9ad7a7138",
+    "number": 2740,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "veneer-update-1.19.0",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "deps: update bigtable.version to 1.19.0",
+    "body": "\r\n"
+  },
+  {
+    "sha": "2d4221751d5ac1e5f730c0c2ee8f2f0159aa4b71",
+    "number": 2738,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "watchdog-retries",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "fix: update readRowsAsync to use RetryingReadRowsOperation",
+    "body": "This will allow that method to inherit features like stream resumption and retry on stream timeouts.\r\n"
+  },
+  {
+    "sha": "6a34e79dbf35035cea6530c37a73034b12779d14",
+    "number": 2728,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.18.1-SNAPSHOT",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "chore: Bump next snapshot",
+    "body": "This pull request was generated using releasetool.\n\nBump snapshot"
+  },
+  {
+    "sha": "cf82b3730cee94ab4e13b36ee41dd95d6c89d016",
+    "number": 2727,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.18.0",
+    "labels": [
+      "api: bigtable",
+      "autorelease: tagged",
+      "cla: yes"
+    ],
+    "title": "chore: Release cloud-bigtable-client v1.18.0",
+    "body": "This pull request was generated using releasetool.\r\n\r\n12-03-2020 11:58 PST\r\n\r\n### New Features\r\n- Adding timeouts for RPC Retry Attempts for HBase client ([#2717](https://github.com/googleapis/java-bigtable-hbase/pull/2717))"
+  },
+  {
+    "sha": "a097df63e2ae08f28317f9315c1899c988d4f0db",
+    "number": 2717,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "attempt-timeout-1.x",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "feat: Adding timeouts for RPC Retry Attempts for HBase client (on bigtable-1.x branch)",
+    "body": "We'd like to give user the ability to set a shorter timeout for individual RPC attempts within an overall timeout window (e.g. to allow multiple retries during the timeout window)"
+  },
+  {
+    "sha": "0f4d8fe3885c007b10d8f3be0ad23db6caed33e3",
+    "number": 2705,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.17.2-SNAPSHOT",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "chore: Bump next snapshot",
+    "body": "This pull request was generated using releasetool.\n\nBump snapshot"
+  },
+  {
+    "sha": "d1e045cfbda8d836fac76920ea9a85c5949c5a8c",
+    "number": 2704,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "release-cloud-bigtable-client-v1.17.1",
+    "labels": [
+      "api: bigtable",
+      "autorelease: tagged",
+      "cla: yes"
+    ],
+    "title": "chore: Release cloud-bigtable-client v1.17.1",
+    "body": "This pull request was generated using releasetool.\r\n\r\n11-18-2020 10:49 PST\r\n\r\n### Dependencies\r\n- deps: update mockito to 3.6.0 ([#2701](https://github.com/googleapis/java-bigtable-hbase/pull/2701))\r\n\r\n### Internal / Testing Changes\r\n- build: update distributionManagement in parent pom ([#2470](https://github.com/googleapis/java-bigtable-hbase/pull/2470)) ([#2699](https://github.com/googleapis/java-bigtable-hbase/pull/2699))"
+  },
+  {
+    "sha": "9242415581247db67eaf77978106e700ff02af75",
+    "number": 2701,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "deps-update",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "deps: update mockito to 3.6.0",
+    "body": ""
+  },
+  {
+    "sha": "91c9ebf002f350f1a4c906269afe580a1d7b80fe",
+    "number": 2699,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "sonatype-update-1x",
+    "labels": [
+      "cla: yes"
+    ],
+    "title": "build: update distributionManagement in parent pom (#2470)",
+    "body": "(cherry picked from commit 0a51cb8f500ec8da8cec58dcc0e37011a749d407)"
+  },
+  {
+    "sha": "f0ab843d17c3ed09abfc8a5e4c00de767b9533f5",
+    "number": 2698,
+    "baseRefName": "bigtable-1.x",
+    "headRefName": "travis-1.x",
+    "labels": [
+      "api: bigtable",
+      "cla: yes"
+    ],
+    "title": "chore: disable travis (#2676)",
+    "body": "(cherry picked from commit a03d7dcdd8458d5c3542ec2914a031afd69815cf)\r\n"
+  }
+]

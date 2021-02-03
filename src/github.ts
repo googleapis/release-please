@@ -42,9 +42,16 @@ type IssuesListResponseItem = PromiseValue<
 type FileSearchResponse = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['search']['code']>
 >['data'];
-export type ReleaseCreateResponse = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
->['data'];
+// see: PromiseValue<
+//  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
+// >['data'];
+export type ReleaseCreateResponse = {
+  tag_name: string;
+  draft: boolean;
+  html_url: string;
+  upload_url: string;
+};
+
 type ReposListTagsResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['tags']['list']>
 >['data'];
@@ -54,6 +61,8 @@ type RequestBuilderType = typeof request;
 type DefaultFunctionType = RequestBuilderType['defaults'];
 type RequestFunctionType = ReturnType<DefaultFunctionType>;
 type RequestOptionsType = Parameters<DefaultFunctionType>[0];
+
+type MergedPullRequestFilter = (filter: MergedGitHubPR) => boolean;
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -66,13 +75,7 @@ import {
   PREdge,
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
-
-// Short explanation of this regex:
-// - skip the owner tag (e.g. googleapis)
-// - make sure the branch name starts with "release"
-// - take everything else
-// This includes the tag to handle monorepos.
-const VERSION_FROM_BRANCH_RE = /^.*:release-?([\w-.]*)-(v[0-9].*)$/;
+import {BranchName} from './util/branch-name';
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -96,12 +99,6 @@ export interface GitHubTag {
   version: string;
 }
 
-export interface GitHubReleasePR {
-  number: number;
-  sha: string;
-  version: string;
-}
-
 export interface GitHubFileContents {
   sha: string;
   content: string;
@@ -119,8 +116,14 @@ export interface GitHubPR {
   labels: string[];
 }
 
-interface FileSearchResponseFile {
-  path: string;
+export interface MergedGitHubPR {
+  sha: string;
+  number: number;
+  baseRefName: string;
+  headRefName: string;
+  labels: string[];
+  title: string;
+  body: string;
 }
 
 let probotMode = false;
@@ -457,12 +460,18 @@ export class GitHub {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
-    const pull = await this.findMergedReleasePR([], 100, prefix, preRelease);
+    const pull = await this.findMergedReleasePR([], prefix, preRelease);
     if (!pull) return await this.latestTagFallback(prefix, preRelease);
+
+    // FIXME: this assumes that the version is in the branch name
+    const branchName = BranchName.parse(pull.headRefName)!;
+    const version = branchName.getVersion()!;
+    const normalizedVersion = semver.valid(version)!;
+
     const tag = {
-      name: `v${pull.version}`,
+      name: `v${normalizedVersion}`,
       sha: pull.sha,
-      version: pull.version,
+      version: normalizedVersion,
     } as GitHubTag;
     return tag;
   }
@@ -546,79 +555,155 @@ export class GitHub {
     return tags;
   }
 
-  // The default matcher will rule out pre-releases.
-  // TODO: make this handle more than 100 results using async iterator.
-  async findMergedReleasePR(
-    labels: string[],
-    perPage = 100,
-    branchPrefix: string | undefined = undefined,
-    preRelease = true,
-    sort = 'created'
-  ): Promise<GitHubReleasePR | undefined> {
-    branchPrefix = branchPrefix?.endsWith('-')
-      ? branchPrefix.replace(/-$/, '')
-      : branchPrefix;
-    const baseLabel = await this.getBaseLabel();
+  /**
+   * Return a list of merged pull requests. The list is not guaranteed to be sorted
+   * by merged_at, but is generally most recent first.
+   *
+   * @param {string} targetBranch - Base branch of the pull request. Defaults to
+   *   the configured default branch.
+   * @param {number} page - Page of results. Defaults to 1.
+   * @param {number} perPage - Number of results per page. Defaults to 100.
+   * @returns {MergedGitHubPR[]} - List of merged pull requests
+   */
+  async findMergedPullRequests(
+    targetBranch?: string,
+    page = 1,
+    perPage = 100
+  ): Promise<MergedGitHubPR[]> {
+    if (!targetBranch) {
+      targetBranch = await this.getDefaultBranch();
+    }
+    // TODO: is sorting by updated better?
     const pullsResponse = (await this.request(
-      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}${
-        this.proxyKey ? `&key=${this.proxyKey}` : ''
-      }&sort=${sort}&direction=desc`,
+      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}&page=${page}&base=${targetBranch}&sort=created&direction=desc`,
       {
         owner: this.owner,
         repo: this.repo,
       }
     )) as {data: PullsListResponseItems};
-    for (const pull of pullsResponse.data) {
-      if (
-        labels.length === 0 ||
-        this.hasAllLabels(
-          labels,
-          pull.labels.map(l => {
-            return l.name + '';
-          })
-        )
-      ) {
-        // it's expected that a release PR will have a
-        // HEAD matching the format repo:release-v1.0.0.
-        if (!pull.head) continue;
 
-        // Verify that this PR was based against our base branch of interest.
-        if (!pull.base || pull.base.label !== baseLabel) continue;
+    // TODO: distinguish between no more pages and a full page of
+    // closed, non-merged pull requests. At page size of 100, this unlikely
+    // to matter
 
-        // The input should look something like:
-        // user:release-[optional-package-name]-v1.2.3
-        // We want the package name and any semver on the end.
-        const match = pull.head.label.match(VERSION_FROM_BRANCH_RE);
-        if (!match || !pull.merged_at) continue;
+    if (!pullsResponse.data) {
+      return [];
+    }
 
-        // The input here should look something like:
-        // [optional-package-name-]v1.2.3[-beta-or-whatever]
-        // Because the package name can contain things like "-v1",
-        // it's easiest/safest to just pull this out by string search.
-        const version = match[2];
-        if (!version) continue;
-        if (branchPrefix && match[1] !== branchPrefix) {
-          continue;
-        } else if (!branchPrefix && match[1]) {
-          continue;
+    return (
+      pullsResponse.data
+        // only return merged pull requests
+        .filter(pull => {
+          return !!pull.merged_at;
+        })
+        .map(pull => {
+          const labels = pull.labels
+            ? pull.labels.map(l => {
+                return l.name + '';
+              })
+            : [];
+          return {
+            sha: pull.merge_commit_sha!, // already filtered non-merged
+            number: pull.number,
+            baseRefName: pull.base.ref,
+            headRefName: pull.head.ref,
+            labels,
+            title: pull.title,
+            body: pull.body + '',
+          };
+        })
+    );
+  }
+
+  /**
+   * Helper to find the first merged pull request that matches the
+   * given criteria. The helper will paginate over all pull requests
+   * merged into the specified target branch.
+   *
+   * @param {string} targetBranch - Base branch of the pull request
+   * @param {MergedPullRequestFilter} filter - Callback function that
+   *   returns whether a pull request matches certain criteria
+   * @returns {MergedGitHubPR | undefined} - Returns the first matching
+   *   pull request, or `undefined` if no matching pull request found.
+   */
+  async findMergedPullRequest(
+    targetBranch: string,
+    filter: MergedPullRequestFilter
+  ): Promise<MergedGitHubPR | undefined> {
+    let page = 1;
+    let mergedPullRequests = await this.findMergedPullRequests(
+      targetBranch,
+      page
+    );
+    while (mergedPullRequests.length > 0) {
+      const found = mergedPullRequests.find(filter);
+      if (found) {
+        return found;
+      }
+      page += 1;
+      mergedPullRequests = await this.findMergedPullRequests(
+        targetBranch,
+        page
+      );
+    }
+    return undefined;
+  }
+
+  // The default matcher will rule out pre-releases.
+  // TODO: make this handle more than 100 results using async iterator.
+  async findMergedReleasePR(
+    labels: string[],
+    branchPrefix: string | undefined = undefined,
+    preRelease = true
+  ): Promise<MergedGitHubPR | undefined> {
+    const baseBranch = await this.getDefaultBranch();
+
+    branchPrefix = branchPrefix?.endsWith('-')
+      ? branchPrefix.replace(/-$/, '')
+      : branchPrefix;
+    return await this.findMergedPullRequest(
+      baseBranch,
+      (mergedPullRequest: MergedGitHubPR) => {
+        // If labels specified, ensure the pull request has all the specified labels
+        if (
+          labels.length > 0 &&
+          !this.hasAllLabels(labels, mergedPullRequest.labels)
+        ) {
+          return false;
+        }
+
+        const branchName = BranchName.parse(mergedPullRequest.headRefName);
+        if (!branchName) {
+          return false;
+        }
+
+        // If branchPrefix is specified, ensure it is found in the branch name.
+        // If branchPrefix is not specified, component should also be undefined.
+        if (branchName.getComponent() !== branchPrefix) {
+          return false;
+        }
+
+        // In this implementation we expect to have a release version
+        const version = branchName.getVersion();
+        if (!version) {
+          return false;
         }
 
         // What's left by now should just be the version string.
         // Check for pre-releases if needed.
-        if (!preRelease && version.indexOf('-') >= 0) continue;
+        if (!preRelease && version.indexOf('-') >= 0) {
+          return false;
+        }
 
         // Make sure we did get a valid semver.
         const normalizedVersion = semver.valid(version);
-        if (!normalizedVersion) continue;
+        if (!normalizedVersion) {
+          return false;
+        }
 
-        return {
-          number: pull.number,
-          sha: pull.merge_commit_sha,
-          version: normalizedVersion,
-        } as GitHubReleasePR;
+        return true;
       }
-    }
-    return undefined;
+    );
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {

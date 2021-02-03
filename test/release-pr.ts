@@ -29,11 +29,12 @@ import {PHPYoshi} from '../src/releasers/php-yoshi';
 
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
+import {Node} from '../src/releasers/node';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
 
-class TestableReleasePR extends ReleasePR {
+class TestableReleasePR extends Node {
   openPROpts?: GitHubPR;
   async coerceReleaseCandidate(
     cc: ConventionalCommits,
@@ -81,13 +82,13 @@ describe('Release-PR', () => {
         // check to see if this PR was already landed and we're
         // just waiting on the autorelease.
         .get(
-          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&page=1&base=master&sort=created&direction=desc'
         )
         .reply(200, undefined)
         // fetch semver tags, this will be used to determine
         // the delta since the last release.
         .get(
-          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&sort=created&direction=desc'
+          '/repos/googleapis/release-please/pulls?state=closed&per_page=100&page=1&base=master&sort=created&direction=desc'
         )
         .reply(200, [
           {
@@ -96,6 +97,7 @@ describe('Release-PR', () => {
             },
             head: {
               label: 'googleapis:release-v0.20.3',
+              ref: 'release-v0.20.3',
             },
             merged_at: new Date().toISOString(),
             merge_commit_sha: 'bf69d0f204474b88b3f8b5a72a392129d16a3929',
@@ -402,7 +404,7 @@ describe('Release-PR', () => {
       const rp = new TestableReleasePR({
         repoUrl: 'googleapis/nodejs',
         packageName: '@google-cloud/nodejs',
-        apiUrl: 'github.com',
+        apiUrl: 'https://api.github.com',
         releaseType: 'node',
       });
       await rp.openPR({
@@ -421,6 +423,21 @@ describe('Release-PR', () => {
       const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
       const name = await ReleasePR.lookupPackageName(github);
       expect(name).to.be.undefined;
+    });
+  });
+
+  describe('coercePackagePrefix', () => {
+    it('should default to the package name', () => {
+      const inputs = ['foo/bar', 'foobar', ''];
+      inputs.forEach(input => {
+        const releasePR = new ReleasePR({
+          packageName: input,
+          repoUrl: 'owner/repo',
+          apiUrl: 'unused',
+          releaseType: 'unused',
+        });
+        expect(releasePR.packagePrefix).to.eql(input);
+      });
     });
   });
 });
