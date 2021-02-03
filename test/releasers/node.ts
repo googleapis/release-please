@@ -250,7 +250,6 @@ describe('Node', () => {
         suggester,
         'createPullRequest',
         (_octokit, changes, options): Promise<number> => {
-          console.log(options);
           expectedBranch = options.branch;
           expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
           return Promise.resolve(22);

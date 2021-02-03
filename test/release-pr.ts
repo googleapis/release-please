@@ -404,7 +404,7 @@ describe('Release-PR', () => {
       const rp = new TestableReleasePR({
         repoUrl: 'googleapis/nodejs',
         packageName: '@google-cloud/nodejs',
-        apiUrl: 'github.com',
+        apiUrl: 'https://api.github.com',
         releaseType: 'node',
       });
       await rp.openPR({

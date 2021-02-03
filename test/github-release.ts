@@ -606,5 +606,36 @@ describe('GitHubRelease', () => {
       const created = await release.createRelease();
       expect(created).to.be.undefined;
     });
+
+    it('ignores tagged pull requests', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        packageName: 'foo',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
+
+      sandbox
+        .stub(release.gh, 'findMergedPullRequests')
+        .onFirstCall()
+        .resolves([
+          {
+            sha: 'abc123',
+            number: 1,
+            baseRefName: 'main',
+            headRefName: 'release-foo-v1.0.3',
+            labels: ['autorelease: tagged'],
+            title: 'Release foo v1.0.3',
+            body: 'Some release notes',
+          },
+        ])
+        .onSecondCall()
+        .resolves([]);
+
+      const created = await release.createRelease();
+      expect(created).to.be.undefined;
+    });
   });
 });
