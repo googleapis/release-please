@@ -4,6 +4,38 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [10.0.0](https://www.github.com/googleapis/release-please/compare/v9.4.1...v10.0.0) (2021-02-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove deprecated JavaAuthYoshi releaser (#736)
+* helpers in factory class renamed.
+* more options pulled to top level (some types changed in process)
+* GitHub release now uses "run" rather than "createRelease" to execute
+* drop unused proxy-key parameter.
+* **cli:** refactor factory/CLI to be more testable (#725)
+* removed per page parameter from GitHub#findMergedReleasePR and moved some internal helpers
+
+### Features
+
+* **cli:** refactor factory/CLI to be more testable ([#725](https://www.github.com/googleapis/release-please/issues/725)) ([713bfc5](https://www.github.com/googleapis/release-please/commit/713bfc591bef8c5df71de67e7aca44cbc0457344))
+* packageName parameter is now optional ([713bfc5](https://www.github.com/googleapis/release-please/commit/713bfc591bef8c5df71de67e7aca44cbc0457344))
+* support stable release branch names ([#720](https://www.github.com/googleapis/release-please/issues/720)) ([36cae96](https://www.github.com/googleapis/release-please/commit/36cae96eebd4ee00a00f9ccc6b7382f879d97a39))
+
+
+### Bug Fixes
+
+* remove deprecated JavaAuthYoshi releaser ([#736](https://www.github.com/googleapis/release-please/issues/736)) ([fc86755](https://www.github.com/googleapis/release-please/commit/fc867556c071218390d58d6d978d2a6687026d1b))
+
+
+### Code Refactoring
+
+* drop unused proxy-key parameter. ([713bfc5](https://www.github.com/googleapis/release-please/commit/713bfc591bef8c5df71de67e7aca44cbc0457344))
+* GitHub release now uses "run" rather than "createRelease" to execute ([713bfc5](https://www.github.com/googleapis/release-please/commit/713bfc591bef8c5df71de67e7aca44cbc0457344))
+* helpers in factory class renamed. ([713bfc5](https://www.github.com/googleapis/release-please/commit/713bfc591bef8c5df71de67e7aca44cbc0457344))
+* more options pulled to top level (some types changed in process) ([713bfc5](https://www.github.com/googleapis/release-please/commit/713bfc591bef8c5df71de67e7aca44cbc0457344))
+
 ### [9.4.1](https://www.github.com/googleapis/release-please/compare/v9.4.0...v9.4.1) (2021-02-02)
 
 
