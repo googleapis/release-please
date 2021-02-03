@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// cannot import from '..' - transpiled code references to RELEASE_PLEASE
+// at the script level are undefined, they are only defined inside function
+// or instance methods/properties.
+import {RELEASE_PLEASE} from '../constants';
+
 type BranchNameType = typeof BranchName;
 
 function getAllResourceNames(): BranchNameType[] {
@@ -39,14 +44,14 @@ export class BranchName {
     return new AutoreleaseBranchName(`release-v${version}`);
   }
   static ofTargetBranch(targetBranch: string): BranchName {
-    return new DefaultBranchName(`release-please/branches/${targetBranch}`);
+    return new DefaultBranchName(`${RELEASE_PLEASE}/branches/${targetBranch}`);
   }
   static ofComponentTargetBranch(
     component: string,
     targetBranch: string
   ): BranchName {
     return new ComponentBranchName(
-      `release-pleaase/branches/${targetBranch}/components/${component}`
+      `${RELEASE_PLEASE}/branches/${targetBranch}/components/${component}`
     );
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -90,7 +95,7 @@ class AutoreleaseBranchName extends BranchName {
   }
 }
 
-const DEFAULT_PATTERN = /^release-please\/branches\/(?<branch>[^/]+)$/;
+const DEFAULT_PATTERN = `^${RELEASE_PLEASE}/branches/(?<branch>[^/]+)$`;
 class DefaultBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(DEFAULT_PATTERN);
@@ -103,11 +108,11 @@ class DefaultBranchName extends BranchName {
     }
   }
   toString(): string {
-    return `release-please/branches/${this.targetBranch}`;
+    return `${RELEASE_PLEASE}/branches/${this.targetBranch}`;
   }
 }
 
-const COMPONENT_PATTERN = /^release-please\/branches\/(?<branch>[^/]+)\/components\/(?<component>[^/]+)$/;
+const COMPONENT_PATTERN = `^${RELEASE_PLEASE}/branches/(?<branch>[^/]+)/components/(?<component>[^/]+)$`;
 class ComponentBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(COMPONENT_PATTERN);
@@ -121,6 +126,6 @@ class ComponentBranchName extends BranchName {
     }
   }
   toString(): string {
-    return `release-please/branches/${this.targetBranch}/components/${this.component}`;
+    return `${RELEASE_PLEASE}/branches/${this.targetBranch}/components/${this.component}`;
   }
 }
