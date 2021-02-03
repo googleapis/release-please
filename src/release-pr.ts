@@ -474,21 +474,13 @@ export class ReleasePR {
     };
   }
 
-  private hasAllLabels(labelsA: string[], labelsB: string[]) {
-    let hasAll = true;
-    labelsA.forEach(label => {
-      if (labelsB.indexOf(label) === -1) hasAll = false;
-    });
-    return hasAll;
-  }
-
   private async findMergedRelease(): Promise<MergedGitHubPR | undefined> {
     const targetBranch = await this.getDefaultBranch();
     const filter = this.monorepoTags
       ? (pullRequest: MergedGitHubPR) => {
           if (
             this.labels.length > 0 &&
-            !this.hasAllLabels(this.labels, pullRequest.labels)
+            !this.labels.every(label => pullRequest.labels.includes(label))
           ) {
             return false;
           }
@@ -501,7 +493,7 @@ export class ReleasePR {
       : (pullRequest: MergedGitHubPR) => {
           if (
             this.labels.length > 0 &&
-            !this.hasAllLabels(this.labels, pullRequest.labels)
+            !this.labels.every(label => pullRequest.labels.includes(label))
           ) {
             return false;
           }
