@@ -14,212 +14,83 @@
 
 import {describe, it, afterEach} from 'mocha';
 import * as assert from 'assert';
-import * as nock from 'nock';
 import {factory} from '../src/factory';
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
-import * as snapshot from 'snap-shot-it';
-
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
+import {expect} from 'chai';
 
 const sandbox = sinon.createSandbox();
-const fixturesPath = './test/releasers/fixtures/simple';
 
 describe('factory', () => {
   afterEach(() => {
     sandbox.restore();
   });
 
-  describe('ReleasePR', () => {
-    it('returns instance of dynamically loaded releaser', async () => {
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
-      const versionContent = readFileSync(
-        resolve(fixturesPath, 'version.txt'),
-        'utf8'
-      );
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
-      );
-      const req = nock('https://api.github.com')
-        .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, undefined)
-        // fetch semver tags, this will be used to determine
-        // the delta since the last release.
-        .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, [
-          {
-            base: {
-              label: 'googleapis:main',
-            },
-            head: {
-              label: 'googleapis:release-v0.123.4',
-              ref: 'release-v0.123.4',
-            },
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        // Check if a release PR already exists
-        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, [])
-        // check for CHANGELOG
-        .get(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(404)
-        // Update the version.txt file:
-        .get(
-          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(versionContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // check for default branch
-        .get('/repos/googleapis/simple-test-repo')
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../test/fixtures/repo-get-2.json'))
-        // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, [])
-        .post(
-          '/repos/googleapis/simple-test-repo/issues/22/labels',
-          (req: {[key: string]: string}) => {
-            assert.strictEqual(req.labels[0], 'autorelease: pending');
-            return true;
-          }
-        )
-        .reply(200);
+  describe('releasePR', () => {
+    it('returns instance of dynamically loaded releaser', () => {
       const releasePR = factory.releasePR({
         repoUrl: 'googleapis/simple-test-repo',
-        // not actually used by this type of repo.
         packageName: 'simple-test-repo',
         apiUrl: 'https://api.github.com',
         releaseType: 'simple',
       });
-      await releasePR.run();
-      req.done();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      expect(releasePR.constructor.name).to.eql('Simple');
+      expect(releasePR.packageName).to.eql('simple-test-repo');
+    });
+    it('throws an error on unknown release type', () => {
+      let caught = false;
+      try {
+        factory.releasePR({
+          repoUrl: 'googleapis/simple-test-repo',
+          packageName: 'simple-test-repo',
+          apiUrl: 'https://api.github.com',
+          releaseType: 'unknown-release-type-name',
+        });
+        assert.fail();
+      } catch (e) {
+        caught = true;
+      }
+      expect(caught).to.be.true;
     });
   });
 
-  describe('buildStatic', () => {
-    it('returns an instance of a statically loaded releaser', async () => {
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
-      const versionContent = readFileSync(
-        resolve(fixturesPath, 'version.txt'),
-        'utf8'
-      );
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'commits.json'), 'utf8')
-      );
-      const req = nock('https://api.github.com')
-        .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, undefined)
-        // fetch semver tags, this will be used to determine
-        // the delta since the last release.
-        .get(
-          '/repos/googleapis/simple-test-repo/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, [
-          {
-            base: {
-              label: 'googleapis:main',
-            },
-            head: {
-              label: 'googleapis:release-v0.123.4',
-              ref: 'release-v0.123.4',
-            },
-            merge_commit_sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            merged_at: new Date().toISOString(),
-          },
-        ])
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        // Check if a release PR already exists
-        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, [])
-        // check for CHANGELOG
-        .get(
-          '/repos/googleapis/simple-test-repo/contents/CHANGELOG.md?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(404)
-        // Update the version.txt file:
-        .get(
-          '/repos/googleapis/simple-test-repo/contents/version.txt?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(200, {
-          content: Buffer.from(versionContent, 'utf8').toString('base64'),
-          sha: 'abc123',
-        })
-        // check for default branch
-        .get('/repos/googleapis/simple-test-repo')
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        .reply(200, require('../../test/fixtures/repo-get-2.json'))
-        // this step tries to close any existing PRs; just return an empty list.
-        .get('/repos/googleapis/simple-test-repo/pulls?state=open&per_page=100')
-        .reply(200, [])
-        .post(
-          '/repos/googleapis/simple-test-repo/issues/22/labels',
-          (req: {[key: string]: string}) => {
-            assert.strictEqual(req.labels[0], 'autorelease: pending');
-            return true;
-          }
-        )
-        .reply(200);
-      const releasePR = factory.releasePR({
-        label: '',
+  describe('releasePRClass', () => {
+    it('returns a releaser class', () => {
+      const releaseClass = factory.releasePRClass('ruby');
+      expect(releaseClass.releaserName).to.eql('ruby');
+    });
+
+    it('throws and error on unknown release type', () => {
+      let caught = false;
+      try {
+        factory.releasePRClass('unknown-release-type-name');
+        assert.fail();
+      } catch (e) {
+        caught = true;
+      }
+      expect(caught).to.be.true;
+    });
+  });
+
+  describe('githubRelease', () => {
+    it('returns a GitHub release with a known release type', () => {
+      const githubRelease = factory.githubRelease({
         repoUrl: 'googleapis/simple-test-repo',
-        // not actually used by this type of repo.
         packageName: 'simple-test-repo',
         apiUrl: 'https://api.github.com',
         releaseType: 'simple',
       });
-      await releasePR.run();
-      req.done();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      expect(githubRelease.constructor.name).to.eql('GitHubRelease');
+      expect(githubRelease.releaseType).to.eql('simple');
+    });
+
+    it('allows releaseType to be empty', () => {
+      const githubRelease = factory.githubRelease({
+        repoUrl: 'googleapis/simple-test-repo',
+        packageName: 'simple-test-repo',
+        apiUrl: 'https://api.github.com',
+      });
+      expect(githubRelease.constructor.name).to.eql('GitHubRelease');
+      expect(githubRelease.releaseType).to.be.undefined;
     });
   });
 });
