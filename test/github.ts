@@ -729,11 +729,15 @@ describe('GitHub', () => {
       const graphql2 = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since-page-2.json'), 'utf8')
       );
-      req.post('/graphql').reply(200, {
-        data: graphql1,
-      }).post('/graphql').reply(200, {
-        data: graphql2,
-      });
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql1,
+        })
+        .post('/graphql')
+        .reply(200, {
+          data: graphql2,
+        });
       const commitsSinceSha = await github.commitsSince(
         (commit, pullRequest) => {
           // this commit is on page 2

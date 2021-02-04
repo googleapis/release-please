@@ -586,7 +586,7 @@ export class GitHub {
   private async pullRequestsSinceGraphQL(
     cursor?: string
   ): Promise<PullRequestHistory> {
-    console.log('fetching graphql');
+    const targetBranch = await this.getDefaultBranch();
     const response = await this.graphqlRequest({
       query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $targetBranch: String!, $cursor: String) {
         repository(owner: $owner, name: $repo) {
@@ -626,9 +626,10 @@ export class GitHub {
       owner: this.owner,
       repo: this.repo,
       num: 25,
+      targetBranch,
     });
     const history = response.repository.ref.target.history;
-    const commits = history.nodes as GraphQLCommit[];
+    const commits = (history.nodes || []) as GraphQLCommit[];
     return {
       pageInfo: history.pageInfo,
       data: commits.map(graphCommit => {
@@ -657,6 +658,38 @@ export class GitHub {
         };
       }),
     };
+  }
+
+  /**
+   * Search through commit history to find the latest commit that matches to
+   * provided filter.
+   *
+   * @param {CommitFilter} filter - Callback function that returns whether a
+   *   commit/pull request matches certain criteria
+   * @returns {CommitWithPullRequest}
+   */
+  async findMergeCommit(
+    filter: CommitFilter
+  ): Promise<CommitWithPullRequest | undefined> {
+    let cursor: string | undefined = undefined;
+    let found: CommitWithPullRequest | undefined = undefined;
+    while (!found) {
+      const response: PullRequestHistory = await this.pullRequestsSinceGraphQL(
+        cursor
+      );
+      found = response.data.find(commitWithPullRequest => {
+        return filter(
+          commitWithPullRequest.commit,
+          commitWithPullRequest.pullRequest
+        );
+      });
+      if (!response.pageInfo.hasNextPage) {
+        break;
+      }
+      cursor = response.pageInfo.endCursor;
+    }
+
+    return found;
   }
 
   /**
@@ -797,14 +830,16 @@ export class GitHub {
     branchPrefix: string | undefined = undefined,
     preRelease = true
   ): Promise<MergedGitHubPR | undefined> {
-    const baseBranch = await this.getDefaultBranch();
-
     branchPrefix = branchPrefix?.endsWith('-')
       ? branchPrefix.replace(/-$/, '')
       : branchPrefix;
-    return await this.findMergedPullRequest(
-      baseBranch,
-      (mergedPullRequest: MergedGitHubPR) => {
+
+    const mergedCommit = await this.findMergeCommit(
+      (commit, mergedPullRequest) => {
+        if (!mergedPullRequest) {
+          return false;
+        }
+
         // If labels specified, ensure the pull request has all the specified labels
         if (
           labels.length > 0 &&
@@ -845,6 +880,7 @@ export class GitHub {
         return true;
       }
     );
+    return mergedCommit?.pullRequest;
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {
