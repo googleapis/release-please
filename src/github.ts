@@ -76,6 +76,7 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
+import {RELEASE_PLEASE} from './constants';
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -152,7 +153,7 @@ export class GitHub {
       const defaults: RequestOptionsType = {
         baseUrl: this.apiUrl,
         headers: {
-          'user-agent': `release-please/${
+          'user-agent': `${RELEASE_PLEASE}/${
             require('../../package.json').version
           }`,
           // some proxies do not require the token prefix.

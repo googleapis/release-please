@@ -14,7 +14,8 @@
 
 // See: https://github.com/octokit/rest.js/issues/1624
 //  https://github.com/octokit/types.ts/issues/25.
-import {SharedOptions, DEFAULT_LABELS} from './';
+import {SharedOptions} from './';
+import {DEFAULT_LABELS, RELEASE_PLEASE} from './constants';
 import {Octokit} from '@octokit/rest';
 import {PromiseValue} from 'type-fest';
 type PullsListResponseItems = PromiseValue<
@@ -319,7 +320,7 @@ export class ReleasePR {
     version: string,
     changelogEntry: string
   ): Promise<string> {
-    return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).`;
+    return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation](https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;
   }
 
   protected async openPR(options: OpenPROptions): Promise<number | undefined> {
