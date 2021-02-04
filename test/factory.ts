@@ -93,4 +93,16 @@ describe('factory', () => {
       expect(githubRelease.releaseType).to.be.undefined;
     });
   });
+  describe('run', () => {
+    it('runs a runnable', async () => {
+      const runnable = factory.releasePR({
+        repoUrl: 'googleapis/simple-test-repo',
+        packageName: 'simple-test-repo',
+        apiUrl: 'https://api.github.com',
+        releaseType: 'simple',
+      });
+      sandbox.stub(runnable, 'run').resolves(47);
+      expect(await factory.run(runnable)).to.equal(47);
+    });
+  });
 });
