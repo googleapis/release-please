@@ -76,7 +76,7 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
-import {RELEASE_PLEASE} from './';
+import {RELEASE_PLEASE} from './constants';
 
 export interface OctokitAPIs {
   graphql: Function;

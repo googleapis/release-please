@@ -29,7 +29,6 @@ export interface SharedOptions {
   octokitAPIs?: OctokitAPIs;
 }
 
-export {DEFAULT_LABELS, RELEASE_PLEASE} from './constants';
 export {factory} from './factory';
 export {getReleaserNames, getReleasers} from './releasers';
 export {GitHubRelease, GitHubReleaseOptions} from './github-release';

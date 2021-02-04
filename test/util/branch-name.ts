@@ -75,4 +75,18 @@ describe('BranchName', () => {
       expect(branchName.toString()).to.eql('release-storage-v1.2.3');
     });
   });
+  describe('ofTargetBranch', () => {
+    it('builds branchname with only target branch', () => {
+      const branchName = BranchName.ofTargetBranch('main');
+      expect(branchName.toString()).to.eql('release-please/branches/main');
+    });
+  });
+  describe('ofComponentTargetBranch', () => {
+    it('builds branchname with target branch and component', () => {
+      const branchName = BranchName.ofComponentTargetBranch('foo', 'main');
+      expect(branchName.toString()).to.eql(
+        'release-please/branches/main/components/foo'
+      );
+    });
+  });
 });

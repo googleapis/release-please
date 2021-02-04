@@ -14,7 +14,8 @@
 
 // See: https://github.com/octokit/rest.js/issues/1624
 //  https://github.com/octokit/types.ts/issues/25.
-import {SharedOptions, DEFAULT_LABELS, RELEASE_PLEASE} from './';
+import {SharedOptions} from './';
+import {DEFAULT_LABELS, RELEASE_PLEASE} from './constants';
 import {Octokit} from '@octokit/rest';
 import {PromiseValue} from 'type-fest';
 type PullsListResponseItems = PromiseValue<

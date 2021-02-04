@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {SharedOptions, DEFAULT_LABELS} from './';
+import {SharedOptions} from './';
+import {DEFAULT_LABELS} from './constants';
 import {checkpoint, CheckpointType} from './util/checkpoint';
 import {factory} from './factory';
 import {GitHub, OctokitAPIs} from './github';
