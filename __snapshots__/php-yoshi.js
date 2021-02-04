@@ -1,4 +1,4 @@
-exports['Release-PR Yoshi PHP Mono-Repo generates CHANGELOG and aborts if duplicate 1'] = `
+exports['PHPYoshi generates CHANGELOG and aborts if duplicate 1'] = `
 [
   [
     "AutoMl/VERSION",
