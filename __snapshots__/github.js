@@ -529,3 +529,19 @@ exports['GitHub findMergedPullRequests finds merged pull requests with labels 1'
     "body": "(cherry picked from commit a03d7dcdd8458d5c3542ec2914a031afd69815cf)\r\n"
   }
 ]
+
+exports['GitHub createRelease should create a release with a package prefix 1'] = {
+  "tag_name": "v1.2.3",
+  "target_commitish": "abc123",
+  "body": "Some release notes",
+  "name": "my package v1.2.3",
+  "draft": false
+}
+
+exports['GitHub createRelease should create a release without a package prefix 1'] = {
+  "tag_name": "v1.2.3",
+  "target_commitish": "abc123",
+  "body": "Some release notes",
+  "name": "v1.2.3",
+  "draft": false
+}

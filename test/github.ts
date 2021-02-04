@@ -702,4 +702,60 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
+  describe('createRelease', () => {
+    it('should create a release with a package prefix', async () => {
+      req.post(
+        '/repos/fake/fake/releases',
+        (body) => {
+          snapshot(body)
+          return true;
+        }
+      )
+      .reply(200, {
+        tag_name: 'v1.2.3',
+        draft: false,
+        html_url: 'https://github.com/fake/fake/releases/v1.2.3',
+        upload_url: 'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
+      });
+      const release = await github.createRelease(
+        'my package',
+        'v1.2.3',
+        'abc123',
+        'Some release notes',
+        false,
+      );
+      req.done();
+      expect(release).to.not.be.undefined;
+      expect(release!.tag_name).to.eql('v1.2.3');
+      expect(release!.draft).to.be.false;
+    });
+
+    it('should create a release without a package prefix', async () => {
+      req.post(
+        '/repos/fake/fake/releases',
+        (body) => {
+          snapshot(body)
+          return true;
+        }
+      )
+      .reply(200, {
+        tag_name: 'v1.2.3',
+        draft: false,
+        html_url: 'https://github.com/fake/fake/releases/v1.2.3',
+        upload_url: 'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
+      });
+      const release = await github.createRelease(
+        '',
+        'v1.2.3',
+        'abc123',
+        'Some release notes',
+        false,
+      );
+      req.done();
+      expect(release).to.not.be.undefined;
+      expect(release!.tag_name).to.eql('v1.2.3');
+      expect(release!.draft).to.be.false;
+    });
+  });
 });
