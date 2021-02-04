@@ -22,10 +22,12 @@ export function buildGitHubFileContent(
   fixturesPath: string,
   fixture: string
 ): GitHubFileContents {
-  const content = readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(
-    /\r\n/g,
-    '\n'
+  return buildGitHubFileRaw(
+    readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(/\r\n/g, '\n')
   );
+}
+
+export function buildGitHubFileRaw(content: string): GitHubFileContents {
   return {
     content: Buffer.from(content, 'utf8').toString('base64'),
     parsedContent: content,
