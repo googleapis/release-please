@@ -583,7 +583,7 @@ export class GitHub {
     return tags;
   }
 
-  private async pullRequestsSinceGraphQL(
+  private async mergeCommitsGraphQL(
     cursor?: string
   ): Promise<PullRequestHistory> {
     const targetBranch = await this.getDefaultBranch();
@@ -674,7 +674,7 @@ export class GitHub {
     let cursor: string | undefined = undefined;
     let found: CommitWithPullRequest | undefined = undefined;
     while (!found) {
-      const response: PullRequestHistory = await this.pullRequestsSinceGraphQL(
+      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
         cursor
       );
       found = response.data.find(commitWithPullRequest => {
@@ -693,8 +693,8 @@ export class GitHub {
   }
 
   /**
-   * Returns the unique list of pull requests merged to this commit after
-   * the provided filter query has been satified.
+   * Returns the list of commits to the default branch after the provided filter
+   * query has been satified.
    *
    * @param {CommitFilter} filter - Callback function that returns whether a
    *   commit/pull request matches certain criteria
@@ -705,7 +705,7 @@ export class GitHub {
     const commits: Commit[] = [];
     let found: CommitWithPullRequest | undefined = undefined;
     while (!found) {
-      const response: PullRequestHistory = await this.pullRequestsSinceGraphQL(
+      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
         cursor
       );
       found = response.data.find(commitWithPullRequest => {
@@ -824,7 +824,18 @@ export class GitHub {
   }
 
   // The default matcher will rule out pre-releases.
-  // TODO: make this handle more than 100 results using async iterator.
+  /**
+   * Find the last merged pull request that targeted the default
+   * branch and looks like a release PR.
+   *
+   * @param {string[]} labels - If provided, ensure that the pull
+   *   request has all of the specified labels
+   * @param {string|undefined} branchPrefix - If provided, limit
+   *   release pull requests that contain the specified component
+   * @param {boolean} preRelease - Whether to include pre-release
+   *   versions in the response. Defaults to true.
+   * @returns {MergedGitHubPR|undefined}
+   */
   async findMergedReleasePR(
     labels: string[],
     branchPrefix: string | undefined = undefined,

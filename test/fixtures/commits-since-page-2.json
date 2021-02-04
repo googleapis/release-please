@@ -10,6 +10,7 @@
                   {
                     "number": 1,
                     "title": "Release release-please-test v0.1.0",
+                    "baseRefName": "main",
                     "headRefName": "release-release-please-test-v0.1.0",
                     "labels": {
                       "nodes": [

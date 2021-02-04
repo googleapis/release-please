@@ -10,6 +10,7 @@
                   {
                     "number": 7,
                     "title": "feat: feature that will be plain merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch-plain-merge",
                     "labels": {
                       "nodes": []
@@ -27,6 +28,7 @@
                   {
                     "number": 7,
                     "title": "feat: feature that will be plain merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch-plain-merge",
                     "labels": {
                       "nodes": []
@@ -44,6 +46,7 @@
                   {
                     "number": 7,
                     "title": "feat: feature that will be plain merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch-plain-merge",
                     "labels": {
                       "nodes": []
@@ -61,6 +64,7 @@
                   {
                     "number": 6,
                     "title": "feat: feature that will be rebase merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch-merge",
                     "labels": {
                       "nodes": []
@@ -78,6 +82,7 @@
                   {
                     "number": 6,
                     "title": "feat: feature that will be rebase merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch-merge",
                     "labels": {
                       "nodes": []
@@ -95,6 +100,7 @@
                   {
                     "number": 6,
                     "title": "feat: feature that will be rebase merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch-merge",
                     "labels": {
                       "nodes": []
@@ -112,6 +118,7 @@
                   {
                     "number": 6,
                     "title": "feat: feature that will be rebase merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch-merge",
                     "labels": {
                       "nodes": []
@@ -129,6 +136,7 @@
                   {
                     "number": 3,
                     "title": "chore(main): release 0.1.1-SNAPSHOT",
+                    "baseRefName": "main",
                     "headRefName": "release-please/branches/main",
                     "labels": {
                       "nodes": [
@@ -150,6 +158,7 @@
                   {
                     "number": 2,
                     "title": "feat: feature-branch that will be squash merged",
+                    "baseRefName": "main",
                     "headRefName": "feature-branch",
                     "labels": {
                       "nodes": []
@@ -174,6 +183,7 @@
                   {
                     "number": 1,
                     "title": "Release release-please-test v0.1.0",
+                    "baseRefName": "main",
                     "headRefName": "release-release-please-test-v0.1.0",
                     "labels": {
                       "nodes": [
