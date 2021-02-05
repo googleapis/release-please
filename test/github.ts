@@ -785,10 +785,7 @@ describe('GitHub', () => {
           return true;
         })
         .reply(201, createCommentResponse);
-      const comment = await github.commentOnIssue(
-        'This is a comment',
-        1347
-      );
+      const comment = await github.commentOnIssue('This is a comment', 1347);
       expect(comment.body).to.eql('This is a comment');
     });
 

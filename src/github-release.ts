@@ -128,6 +128,12 @@ export class GitHubRelease {
     );
     checkpoint(`Created release: ${release.html_url}.`, CheckpointType.Success);
 
+    // Comment on the release PR with the
+    await this.gh.commentOnIssue(
+      `Release is at ${release.html_url}`,
+      candidate.pullNumber
+    );
+
     // Add a label indicating that a release has been created on GitHub,
     // but a publication has not yet occurred.
     await this.gh.addLabels([GITHUB_RELEASE_LABEL], candidate.pullNumber);
