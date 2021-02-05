@@ -610,7 +610,7 @@ describe('GitHub', () => {
       req.done();
     });
   });
-  
+
   describe('createRelease', () => {
     it('should create a release with a package prefix', async () => {
       req
