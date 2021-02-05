@@ -530,6 +530,90 @@ exports['GitHub findMergedPullRequests finds merged pull requests with labels 1'
   }
 ]
 
+exports['GitHub commitsSince finds commits up until a condition 1'] = [
+  {
+    "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
+    "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "files": []
+  }
+]
+
+exports['GitHub commitsSince paginates through commits 1'] = [
+  {
+    "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
+    "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "files": []
+  },
+  {
+    "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+    "message": "feat: feature-branch-plain-merge commit 2",
+    "files": []
+  },
+  {
+    "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+    "message": "feat: feature-branch-plain-merge commit 1",
+    "files": []
+  },
+  {
+    "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+    "message": "fix: feature-branch-merge fix 1",
+    "files": []
+  },
+  {
+    "sha": "a257514a541d483425118d973674b1ce006a5489",
+    "message": "chore: feature-branch-merge lint",
+    "files": []
+  },
+  {
+    "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
+    "message": "feat: feature-branch-merge commit 2",
+    "files": []
+  },
+  {
+    "sha": "520b6f42551c86002197d033564a76a3f99b0019",
+    "message": "feat: feature-branch-merge commit 1",
+    "files": []
+  },
+  {
+    "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
+    "message": "chore(main): release 0.1.1-SNAPSHOT (#3)",
+    "files": []
+  },
+  {
+    "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
+    "message": "feat: feature-branch that will be squash merged (#2)\n\n* feat: feature-branch commit 1\r\n\r\n* feat: feature-branch commit 2\r\n\r\n* chore: fix lint\r\n\r\n* fix: feature-branch fix 1",
+    "files": []
+  },
+  {
+    "sha": "0cda26c2e7776748072ba5a24302474947b3ebbd",
+    "message": "build: add release-please bot",
+    "files": []
+  },
+  {
+    "sha": "959ee48c95f254300eb040c46ebdc8248317efe4",
+    "message": "Release v0.1.0 (#1)",
+    "files": []
+  }
+]
+
+exports['GitHub commitsSince finds first commit of a multi-commit merge pull request 1'] = [
+  {
+    "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
+    "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "files": []
+  },
+  {
+    "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+    "message": "feat: feature-branch-plain-merge commit 2",
+    "files": []
+  },
+  {
+    "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+    "message": "feat: feature-branch-plain-merge commit 1",
+    "files": []
+  }
+]
+
 exports['GitHub createRelease should create a release with a package prefix 1'] = {
   "tag_name": "v1.2.3",
   "target_commitish": "abc123",
@@ -544,4 +628,247 @@ exports['GitHub createRelease should create a release without a package prefix 1
   "body": "Some release notes",
   "name": "v1.2.3",
   "draft": false
+}
+
+exports['GitHub commitsSince limits pagination 1'] = [
+  {
+    "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
+    "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "files": []
+  },
+  {
+    "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+    "message": "feat: feature-branch-plain-merge commit 2",
+    "files": []
+  },
+  {
+    "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+    "message": "feat: feature-branch-plain-merge commit 1",
+    "files": []
+  },
+  {
+    "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+    "message": "fix: feature-branch-merge fix 1",
+    "files": []
+  },
+  {
+    "sha": "a257514a541d483425118d973674b1ce006a5489",
+    "message": "chore: feature-branch-merge lint",
+    "files": []
+  },
+  {
+    "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
+    "message": "feat: feature-branch-merge commit 2",
+    "files": []
+  },
+  {
+    "sha": "520b6f42551c86002197d033564a76a3f99b0019",
+    "message": "feat: feature-branch-merge commit 1",
+    "files": []
+  },
+  {
+    "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
+    "message": "chore(main): release 0.1.1-SNAPSHOT (#3)",
+    "files": []
+  },
+  {
+    "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
+    "message": "feat: feature-branch that will be squash merged (#2)\n\n* feat: feature-branch commit 1\r\n\r\n* feat: feature-branch commit 2\r\n\r\n* chore: fix lint\r\n\r\n* fix: feature-branch fix 1",
+    "files": []
+  },
+  {
+    "sha": "0cda26c2e7776748072ba5a24302474947b3ebbd",
+    "message": "build: add release-please bot",
+    "files": []
+  }
+]
+
+exports['GitHub commitsSinceSha retries the graphql on a timeout 1'] = [
+  {
+    "sha": "0a8477108a26aeb21d7af06e62be4ae5cb00ad42",
+    "message": "fix: Update PubSub timeouts. (#1967)",
+    "files": [
+      "PubSub/src/V1/resources/subscriber_client_config.json",
+      "PubSub/synth.metadata"
+    ]
+  },
+  {
+    "sha": "269cf923ea6fd0375abaf0bb19790475693c6f90",
+    "message": "fix: Assorted minor fixes for Cloud Datastore client (#1964)",
+    "files": [
+      "Datastore/src/Connection/Grpc.php",
+      "Datastore/src/DatastoreClient.php",
+      "Datastore/src/Entity.php",
+      "Datastore/src/EntityIterator.php",
+      "Datastore/src/EntityMapper.php",
+      "Datastore/src/Key.php",
+      "Datastore/src/Operation.php",
+      "Datastore/src/TransactionTrait.php"
+    ]
+  },
+  {
+    "sha": "da356f004ff891e11a369fd634f55d6abade708f",
+    "message": "Prepare v0.102.0 (#1965)",
+    "files": [
+      "AutoMl/VERSION",
+      "Debugger/VERSION",
+      "Debugger/src/DebuggerClient.php",
+      "Dialogflow/VERSION",
+      "Firestore/VERSION",
+      "Firestore/src/FirestoreClient.php",
+      "Language/VERSION",
+      "Language/src/LanguageClient.php",
+      "Speech/VERSION",
+      "Speech/src/SpeechClient.php",
+      "Tasks/VERSION",
+      "Vision/VERSION",
+      "Vision/src/VisionClient.php",
+      "WebSecurityScanner/VERSION",
+      "composer.json",
+      "docs/manifest.json",
+      "src/ServiceBuilder.php",
+      "src/Version.php"
+    ]
+  },
+  {
+    "sha": "fa5761e9e52f36506a72a9292843259d198468b0",
+    "message": "feat: Add Web Security Center Client (#1961)\n\n* add synth script\r\n\r\n* generate web security scanner\r\n\r\n* add to docs site\r\n\r\n* update README\r\n\r\n* update composer\r\n\r\n* remove whitespace in sample\r\n\r\n* add phpunit config\r\n\r\n* add hyperlink\r\n\r\n* autoload tests\r\n\r\n* more autoload fixes",
+    "files": [
+      "README.md",
+      "WebSecurityScanner/.gitattributes",
+      "WebSecurityScanner/.github/pull_request_template.md",
+      "WebSecurityScanner/CONTRIBUTING.md",
+      "WebSecurityScanner/LICENSE",
+      "WebSecurityScanner/README.md",
+      "WebSecurityScanner/composer.json",
+      "WebSecurityScanner/metadata/V1Beta/CrawledUrl.php",
+      "WebSecurityScanner/metadata/V1Beta/Finding.php",
+      "WebSecurityScanner/metadata/V1Beta/FindingAddon.php",
+      "WebSecurityScanner/metadata/V1Beta/FindingTypeStats.php",
+      "WebSecurityScanner/metadata/V1Beta/ScanConfig.php",
+      "WebSecurityScanner/metadata/V1Beta/ScanConfigError.php",
+      "WebSecurityScanner/metadata/V1Beta/ScanRun.php",
+      "WebSecurityScanner/metadata/V1Beta/ScanRunErrorTrace.php",
+      "WebSecurityScanner/metadata/V1Beta/ScanRunWarningTrace.php",
+      "WebSecurityScanner/metadata/V1Beta/WebSecurityScanner.php",
+      "WebSecurityScanner/phpunit.xml.dist",
+      "WebSecurityScanner/src/V1beta/CrawledUrl.php",
+      "WebSecurityScanner/src/V1beta/CreateScanConfigRequest.php",
+      "WebSecurityScanner/src/V1beta/DeleteScanConfigRequest.php",
+      "WebSecurityScanner/src/V1beta/Finding.php",
+      "WebSecurityScanner/src/V1beta/FindingTypeStats.php",
+      "WebSecurityScanner/src/V1beta/Form.php",
+      "WebSecurityScanner/src/V1beta/Gapic/WebSecurityScannerGapicClient.php",
+      "WebSecurityScanner/src/V1beta/GetFindingRequest.php",
+      "WebSecurityScanner/src/V1beta/GetScanConfigRequest.php",
+      "WebSecurityScanner/src/V1beta/GetScanRunRequest.php",
+      "WebSecurityScanner/src/V1beta/ListCrawledUrlsRequest.php",
+      "WebSecurityScanner/src/V1beta/ListCrawledUrlsResponse.php",
+      "WebSecurityScanner/src/V1beta/ListFindingTypeStatsRequest.php",
+      "WebSecurityScanner/src/V1beta/ListFindingTypeStatsResponse.php",
+      "WebSecurityScanner/src/V1beta/ListFindingsRequest.php",
+      "WebSecurityScanner/src/V1beta/ListFindingsResponse.php",
+      "WebSecurityScanner/src/V1beta/ListScanConfigsRequest.php",
+      "WebSecurityScanner/src/V1beta/ListScanConfigsResponse.php",
+      "WebSecurityScanner/src/V1beta/ListScanRunsRequest.php",
+      "WebSecurityScanner/src/V1beta/ListScanRunsResponse.php",
+      "WebSecurityScanner/src/V1beta/OutdatedLibrary.php",
+      "WebSecurityScanner/src/V1beta/README.md",
+      "WebSecurityScanner/src/V1beta/ScanConfig.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/Authentication.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/Authentication/CustomAccount.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/Authentication/GoogleAccount.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/ExportToSecurityCommandCenter.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/RiskLevel.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/Schedule.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/TargetPlatform.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig/UserAgent.php",
+      "WebSecurityScanner/src/V1beta/ScanConfigError.php",
+      "WebSecurityScanner/src/V1beta/ScanConfigError/Code.php",
+      "WebSecurityScanner/src/V1beta/ScanConfigError_Code.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_Authentication.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_Authentication_CustomAccount.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_Authentication_GoogleAccount.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_ExportToSecurityCommandCenter.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_RiskLevel.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_Schedule.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_TargetPlatform.php",
+      "WebSecurityScanner/src/V1beta/ScanConfig_UserAgent.php",
+      "WebSecurityScanner/src/V1beta/ScanRun.php",
+      "WebSecurityScanner/src/V1beta/ScanRun/ExecutionState.php",
+      "WebSecurityScanner/src/V1beta/ScanRun/ResultState.php",
+      "WebSecurityScanner/src/V1beta/ScanRunErrorTrace.php",
+      "WebSecurityScanner/src/V1beta/ScanRunErrorTrace/Code.php",
+      "WebSecurityScanner/src/V1beta/ScanRunErrorTrace_Code.php",
+      "WebSecurityScanner/src/V1beta/ScanRunWarningTrace.php",
+      "WebSecurityScanner/src/V1beta/ScanRunWarningTrace/Code.php",
+      "WebSecurityScanner/src/V1beta/ScanRunWarningTrace_Code.php",
+      "WebSecurityScanner/src/V1beta/ScanRun_ExecutionState.php",
+      "WebSecurityScanner/src/V1beta/ScanRun_ResultState.php",
+      "WebSecurityScanner/src/V1beta/StartScanRunRequest.php",
+      "WebSecurityScanner/src/V1beta/StopScanRunRequest.php",
+      "WebSecurityScanner/src/V1beta/UpdateScanConfigRequest.php",
+      "WebSecurityScanner/src/V1beta/ViolatingResource.php",
+      "WebSecurityScanner/src/V1beta/VulnerableHeaders.php",
+      "WebSecurityScanner/src/V1beta/VulnerableHeaders/Header.php",
+      "WebSecurityScanner/src/V1beta/VulnerableHeaders_Header.php",
+      "WebSecurityScanner/src/V1beta/VulnerableParameters.php",
+      "WebSecurityScanner/src/V1beta/WebSecurityScannerClient.php",
+      "WebSecurityScanner/src/V1beta/WebSecurityScannerGrpcClient.php",
+      "WebSecurityScanner/src/V1beta/Xss.php",
+      "WebSecurityScanner/src/V1beta/resources/web_security_scanner_client_config.json",
+      "WebSecurityScanner/src/V1beta/resources/web_security_scanner_descriptor_config.php",
+      "WebSecurityScanner/src/V1beta/resources/web_security_scanner_rest_client_config.php",
+      "WebSecurityScanner/synth.metadata",
+      "WebSecurityScanner/synth.py",
+      "WebSecurityScanner/tests/Unit/V1beta/WebSecurityScannerClientTest.php",
+      "composer.json",
+      "docs/contents/cloud-web-security-scanner.json",
+      "docs/contents/google-cloud.json",
+      "docs/manifest.json"
+    ]
+  },
+  {
+    "sha": "8db7f3b19c46c873897d79c89ce35b8492e5fe60",
+    "message": "feat: move speech from alpha -> beta (#1962)",
+    "files": [
+      "README.md",
+      "Speech/README.md"
+    ]
+  },
+  {
+    "sha": "52f4fbfa1fc3fde585c84e64ef40571d2b85d72e",
+    "message": "fix: correctly label as beta (#1963)",
+    "files": [
+      "AutoMl/README.md"
+    ]
+  },
+  {
+    "sha": "da6e52d956c1e35d19e75e0f2fdba439739ba364",
+    "message": "feat: Add mp3 encoding and context hint boost support. (#1959)",
+    "files": [
+      "Speech/metadata/V1P1Beta1/CloudSpeech.php",
+      "Speech/src/V1p1beta1/RecognitionConfig/AudioEncoding.php",
+      "Speech/src/V1p1beta1/SpeechContext.php",
+      "Speech/synth.metadata"
+    ]
+  },
+  {
+    "sha": "bf69d0f204474b88b3f8b5a72a392129d16a3929",
+    "message": "fix: language system test (#1958)",
+    "files": [
+      "Language/tests/System/AnalyzeTest.php"
+    ]
+  },
+  {
+    "sha": "a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f",
+    "message": "fix: continue switch targeting warning in PHP 7.3 (#1957)",
+    "files": [
+      "Debugger/src/Agent.php"
+    ]
+  }
+]
+
+exports['GitHub commentOnIssue can create a comment 1'] = {
+  "body": "This is a comment"
 }
