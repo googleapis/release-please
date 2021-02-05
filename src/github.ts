@@ -1222,6 +1222,7 @@ export class GitHub {
     draft: boolean
   ): Promise<ReleaseCreateResponse> {
     checkpoint(`creating release ${tagName}`, CheckpointType.Success);
+    const name = packageName ? `${packageName} ${tagName}` : tagName;
     return (
       await this.request('POST /repos/:owner/:repo/releases', {
         owner: this.owner,
@@ -1229,7 +1230,7 @@ export class GitHub {
         tag_name: tagName,
         target_commitish: sha,
         body: releaseNotes,
-        name: `${packageName} ${tagName}`,
+        name,
         draft: draft,
       })
     ).data;

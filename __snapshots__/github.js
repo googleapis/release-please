@@ -613,3 +613,18 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
     "files": []
   }
 ]
+exports['GitHub createRelease should create a release with a package prefix 1'] = {
+  "tag_name": "v1.2.3",
+  "target_commitish": "abc123",
+  "body": "Some release notes",
+  "name": "my package v1.2.3",
+  "draft": false
+}
+
+exports['GitHub createRelease should create a release without a package prefix 1'] = {
+  "tag_name": "v1.2.3",
+  "target_commitish": "abc123",
+  "body": "Some release notes",
+  "name": "v1.2.3",
+  "draft": false
+}
