@@ -613,6 +613,7 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
     "files": []
   }
 ]
+
 exports['GitHub createRelease should create a release with a package prefix 1'] = {
   "tag_name": "v1.2.3",
   "target_commitish": "abc123",
@@ -628,3 +629,56 @@ exports['GitHub createRelease should create a release without a package prefix 1
   "name": "v1.2.3",
   "draft": false
 }
+
+exports['GitHub commitsSince limits pagination 1'] = [
+  {
+    "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
+    "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "files": []
+  },
+  {
+    "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+    "message": "feat: feature-branch-plain-merge commit 2",
+    "files": []
+  },
+  {
+    "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+    "message": "feat: feature-branch-plain-merge commit 1",
+    "files": []
+  },
+  {
+    "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+    "message": "fix: feature-branch-merge fix 1",
+    "files": []
+  },
+  {
+    "sha": "a257514a541d483425118d973674b1ce006a5489",
+    "message": "chore: feature-branch-merge lint",
+    "files": []
+  },
+  {
+    "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
+    "message": "feat: feature-branch-merge commit 2",
+    "files": []
+  },
+  {
+    "sha": "520b6f42551c86002197d033564a76a3f99b0019",
+    "message": "feat: feature-branch-merge commit 1",
+    "files": []
+  },
+  {
+    "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
+    "message": "chore(main): release 0.1.1-SNAPSHOT (#3)",
+    "files": []
+  },
+  {
+    "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
+    "message": "feat: feature-branch that will be squash merged (#2)\n\n* feat: feature-branch commit 1\r\n\r\n* feat: feature-branch commit 2\r\n\r\n* chore: fix lint\r\n\r\n* fix: feature-branch fix 1",
+    "files": []
+  },
+  {
+    "sha": "0cda26c2e7776748072ba5a24302474947b3ebbd",
+    "message": "build: add release-please bot",
+    "files": []
+  }
+]

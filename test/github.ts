@@ -609,6 +609,111 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('limits pagination', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql1,
+      });
+      const commitsSinceSha = await github.commitsSince(commit => {
+        // this commit is on page 2
+        return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+      }, 10);
+      expect(commitsSinceSha.length).to.eql(10);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+  });
+
+  describe('findMergeCommit', () => {
+    it('finds commits up until a condition', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitWithPullRequest = await github.findMergeCommit(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+      });
+      expect(commitWithPullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.commit.sha).to.eql(
+        'b29149f890e6f76ee31ed128585744d4c598924c'
+      );
+      expect(commitWithPullRequest!.pullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.pullRequest!.number).to.eql(7);
+      req.done();
+    });
+
+    it('paginates through commits', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      const graphql2 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-2.json'), 'utf8')
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql1,
+        })
+        .post('/graphql')
+        .reply(200, {
+          data: graphql2,
+        });
+
+      const commitWithPullRequest = await github.findMergeCommit(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+      });
+      expect(commitWithPullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.commit.sha).to.eql(
+        'c6d9dfb03aa2dbe1abc329592af60713fe28586d'
+      );
+      expect(commitWithPullRequest!.pullRequest).to.be.undefined;
+      req.done();
+    });
+
+    it('finds first commit of a multi-commit merge pull request', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitWithPullRequest = await github.findMergeCommit(
+        (commit, pullRequest) => {
+          // PR #6 was rebase/merged so it has 4 associated commits
+          return pullRequest?.number === 6;
+        }
+      );
+      expect(commitWithPullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.commit.sha).to.eql(
+        '2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5'
+      );
+      expect(commitWithPullRequest!.pullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.pullRequest!.number).to.eql(6);
+      req.done();
+    });
+
+    it('limits pagination', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql1,
+      });
+
+      const commitWithPullRequest = await github.findMergeCommit(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+      }, 10);
+      expect(commitWithPullRequest).to.be.undefined;
+      req.done();
+    });
   });
 
   describe('createRelease', () => {
