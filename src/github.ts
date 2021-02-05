@@ -39,8 +39,8 @@ type GitGetTreeResponse = PromiseValue<
 type IssuesListResponseItem = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['issues']['get']>
 >['data'];
-type FileSearchResponse = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['search']['code']>
+type CreateIssueCommentResponse = PromiseValue<
+  ReturnType<InstanceType<typeof Octokit>['issues']['create']>
 >['data'];
 // see: PromiseValue<
 //  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
@@ -1415,6 +1415,33 @@ export class GitHub {
       await this.getDefaultBranch(),
       prefix
     );
+  }
+
+  /**
+   * Makes a comment on a issue/pull request.
+   *
+   * @param {string} comment - The body of the comment to post.
+   * @param {number} number - The issue or pull request number.
+   */
+  async commentOnIssue(
+    comment: string,
+    number: number
+  ): Promise<CreateIssueCommentResponse> {
+    checkpoint(
+      `adding comment to https://github.com/${this.owner}/${this.repo}/issue/${number}`,
+      CheckpointType.Success
+    );
+    return (
+      await this.request(
+        'POST /repos/:owner/:repo/issues/:issue_number/comments',
+        {
+          owner: this.owner,
+          repo: this.repo,
+          issue_number: number,
+          body: comment,
+        }
+      )
+    ).data;
   }
 }
 

@@ -682,3 +682,7 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "files": []
   }
 ]
+
+exports['GitHub commentOnIssue can create a comment 1'] = {
+  "body": "This is a comment"
+}
