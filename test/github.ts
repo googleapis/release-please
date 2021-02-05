@@ -838,4 +838,36 @@ describe('GitHub', () => {
       expect(release!.draft).to.be.false;
     });
   });
+
+  describe('commentOnIssue', () => {
+    it('can create a comment', async () => {
+      const createCommentResponse = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'create-comment-response.json'),
+          'utf8'
+        )
+      );
+      req
+        .post('/repos/fake/fake/issues/1347/comments', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(201, createCommentResponse);
+      const comment = await github.commentOnIssue('This is a comment', 1347);
+      expect(comment.body).to.eql('This is a comment');
+    });
+
+    it('propagates error', async () => {
+      req.post('/repos/fake/fake/issues/1347/comments').reply(410, 'Gone');
+      let thrown = false;
+      try {
+        await github.commentOnIssue('This is a comment', 1347);
+        fail('should have thrown');
+      } catch (err) {
+        thrown = true;
+        expect(err.status).to.eql(410);
+      }
+      expect(thrown).to.be.true;
+    });
+  });
 });

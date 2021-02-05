@@ -868,3 +868,7 @@ exports['GitHub commitsSinceSha retries the graphql on a timeout 1'] = [
     ]
   }
 ]
+
+exports['GitHub commentOnIssue can create a comment 1'] = {
+  "body": "This is a comment"
+}

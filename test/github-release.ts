@@ -77,6 +77,11 @@ describe('GitHubRelease', () => {
         });
 
       sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
+
+      sandbox
         .stub(release.gh, 'addLabels')
         .withArgs(['autorelease: tagged'], 1)
         .resolves();
@@ -131,6 +136,11 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
+
+      sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
 
       sandbox
         .stub(release.gh, 'addLabels')
@@ -192,6 +202,11 @@ describe('GitHubRelease', () => {
         });
 
       sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
+
+      sandbox
         .stub(release.gh, 'addLabels')
         .withArgs(['autorelease: tagged'], 1)
         .resolves();
@@ -249,6 +264,11 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
+
+      sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
 
       sandbox
         .stub(release.gh, 'addLabels')
@@ -311,6 +331,11 @@ describe('GitHubRelease', () => {
         });
 
       sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
+
+      sandbox
         .stub(release.gh, 'addLabels')
         .withArgs(['autorelease: tagged'], 1)
         .resolves();
@@ -370,6 +395,11 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
+
+      sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
 
       sandbox
         .stub(release.gh, 'addLabels')
@@ -490,6 +520,11 @@ describe('GitHubRelease', () => {
         });
 
       sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
+
+      sandbox
         .stub(release.gh, 'addLabels')
         .withArgs(['autorelease: tagged'], 1)
         .resolves();
@@ -545,6 +580,11 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
+
+      sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
 
       sandbox
         .stub(release.gh, 'addLabels')
@@ -674,6 +714,11 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
+
+      sandbox
+        .stub(release.gh, 'commentOnIssue')
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+        .resolves();
 
       sandbox
         .stub(release.gh, 'addLabels')
