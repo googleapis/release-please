@@ -1,4 +1,3 @@
-
 import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';

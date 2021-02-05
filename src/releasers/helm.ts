@@ -1,4 +1,3 @@
-
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
@@ -7,13 +6,11 @@ import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 
-
 // Generic
 import {Changelog} from '../updaters/changelog';
 import * as yaml from 'yaml';
 // helm
-import {ChartYaml} from '../updaters/helm/chart-yaml'
-
+import {ChartYaml} from '../updaters/helm/chart-yaml';
 
 export class Helm extends ReleasePR {
   static releaserName = 'helm';
