@@ -196,10 +196,8 @@ export class ReleasePR {
   // the release name when creating a GitHub release, for instance by returning
   // name in package.json, or setup.py.
   static async lookupPackageName(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    gh: GitHub,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    path?: string
+    _gh: GitHub,
+    _path?: string
   ): Promise<string | undefined> {
     return Promise.resolve(undefined);
   }
@@ -291,7 +289,6 @@ export class ReleasePR {
 
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected detectReleaseVersionFromTitle(title: string): string | undefined {
     const pattern = /^chore: release ?(?<component>.*) (?<version>\d+\.\d+\.\d+)$/;
     const match = title.match(pattern);
@@ -316,7 +313,7 @@ export class ReleasePR {
 
   // Override this method to modify the pull request body
   protected async buildPullRequestBody(
-    version: string,
+    _version: string,
     changelogEntry: string
   ): Promise<string> {
     return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation](https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;

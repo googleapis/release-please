@@ -52,8 +52,7 @@ export class GoYoshi extends ReleasePR {
       this.monorepoTags ? `${this.packageName}-` : undefined,
       false
     );
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);
+    const [_, repo] = parseGithubRepoUrl(this.repoUrl);
     let regenPR: Commit | undefined;
     let sha: null | string = null;
     const commits = (
