@@ -80,12 +80,12 @@ export class GitHubRelease {
   async run(): Promise<ReleaseResponse | undefined> {
     // Attempt to lookup the package name from a well known location, such
     // as package.json, if none is provided:
-    if (!this.packageName && this.releaseType) {
+    if (this.packageName === undefined && this.releaseType) {
       this.packageName = await factory
         .releasePRClass(this.releaseType)
         .lookupPackageName(this.gh, this.path);
     }
-    if (!this.packageName) {
+    if (this.packageName === undefined) {
       throw Error(
         `could not determine package name for release repo = ${this.repoUrl}`
       );
