@@ -63,6 +63,10 @@ type RequestFunctionType = ReturnType<DefaultFunctionType>;
 type RequestOptionsType = Parameters<DefaultFunctionType>[0];
 
 type MergedPullRequestFilter = (filter: MergedGitHubPR) => boolean;
+type CommitFilter = (
+  commit: Commit,
+  pullRequest: MergedGitHubPR | undefined
+) => boolean;
 
 import chalk = require('chalk');
 import * as semver from 'semver';
@@ -122,6 +126,38 @@ export interface MergedGitHubPR {
   labels: string[];
   title: string;
   body: string;
+}
+
+interface CommitWithPullRequest {
+  commit: Commit;
+  pullRequest?: MergedGitHubPR;
+}
+
+interface PullRequestHistory {
+  pageInfo: {
+    hasNextPage: boolean;
+    endCursor: string | undefined;
+  };
+  data: CommitWithPullRequest[];
+}
+
+interface GraphQLCommit {
+  sha: string;
+  message: string;
+  associatedPullRequests: {
+    nodes: {
+      number: number;
+      title: string;
+      body: string;
+      baseRefName: string;
+      headRefName: string;
+      labels: {
+        nodes: {
+          name: string;
+        }[];
+      };
+    }[];
+  };
 }
 
 let probotMode = false;
@@ -452,7 +488,10 @@ export class GitHub {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
-    const pull = await this.findMergedReleasePR([], prefix, preRelease);
+    // only look at the last 250 or so commits to find the latest tag - we
+    // don't want to scan the entire repository history if this repo has never
+    // been released
+    const pull = await this.findMergedReleasePR([], prefix, preRelease, 250);
     if (!pull) return await this.latestTagFallback(prefix, preRelease);
 
     // FIXME: this assumes that the version is in the branch name
@@ -543,6 +582,164 @@ export class GitHub {
       });
     }
     return tags;
+  }
+
+  private async mergeCommitsGraphQL(
+    cursor?: string
+  ): Promise<PullRequestHistory> {
+    const targetBranch = await this.getDefaultBranch();
+    const response = await this.graphqlRequest({
+      query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $targetBranch: String!, $cursor: String) {
+        repository(owner: $owner, name: $repo) {
+          ref(qualifiedName: $targetBranch) {
+            target {
+              ... on Commit {
+                history(first: $num, after: $cursor) {
+                  nodes {
+                    associatedPullRequests(last: 1) {
+                      nodes {
+                        number
+                        title
+                        baseRefName
+                        headRefName
+                        labels(first: 10) {
+                          nodes {
+                            name
+                          }
+                        }
+                        body
+                      }
+                    }
+                    sha: oid
+                    message
+                  }
+                  pageInfo {
+                    hasNextPage
+                    endCursor
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`,
+      cursor,
+      owner: this.owner,
+      repo: this.repo,
+      num: 25,
+      targetBranch,
+    });
+    const history = response.repository.ref.target.history;
+    const commits = (history.nodes || []) as GraphQLCommit[];
+    return {
+      pageInfo: history.pageInfo,
+      data: commits.map(graphCommit => {
+        const commit = {
+          sha: graphCommit.sha,
+          message: graphCommit.message,
+          files: [] as string[],
+        };
+        if (graphCommit.associatedPullRequests.nodes.length > 0) {
+          const pullRequest = graphCommit.associatedPullRequests.nodes[0];
+          return {
+            commit,
+            pullRequest: {
+              sha: commit.sha,
+              number: pullRequest.number,
+              baseRefName: pullRequest.baseRefName,
+              headRefName: pullRequest.headRefName,
+              title: pullRequest.title,
+              body: pullRequest.body,
+              labels: pullRequest.labels.nodes.map(node => node.name),
+            },
+          };
+        }
+        return {
+          commit,
+        };
+      }),
+    };
+  }
+
+  /**
+   * Search through commit history to find the latest commit that matches to
+   * provided filter.
+   *
+   * @param {CommitFilter} filter - Callback function that returns whether a
+   *   commit/pull request matches certain criteria
+   * @param {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @returns {CommitWithPullRequest}
+   */
+  async findMergeCommit(
+    filter: CommitFilter,
+    maxResults: number = Number.MAX_SAFE_INTEGER
+  ): Promise<CommitWithPullRequest | undefined> {
+    let cursor: string | undefined = undefined;
+    let found: CommitWithPullRequest | undefined = undefined;
+    let results = 0;
+    while (!found && results < maxResults) {
+      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
+        cursor
+      );
+      found = response.data.find(commitWithPullRequest => {
+        results += 1;
+        return filter(
+          commitWithPullRequest.commit,
+          commitWithPullRequest.pullRequest
+        );
+      });
+      if (!response.pageInfo.hasNextPage) {
+        break;
+      }
+      cursor = response.pageInfo.endCursor;
+    }
+
+    return found;
+  }
+
+  /**
+   * Returns the list of commits to the default branch after the provided filter
+   * query has been satified.
+   *
+   * @param {CommitFilter} filter - Callback function that returns whether a
+   *   commit/pull request matches certain criteria
+   * @param {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @returns {Commit[]} - List of commits to current branch
+   */
+  async commitsSince(
+    filter: CommitFilter,
+    maxResults: number = Number.MAX_SAFE_INTEGER
+  ): Promise<Commit[]> {
+    let cursor: string | undefined = undefined;
+    const commits: Commit[] = [];
+    let found: CommitWithPullRequest | undefined = undefined;
+    let results = 0;
+    while (!found && results < maxResults) {
+      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
+        cursor
+      );
+      found = response.data.find(commitWithPullRequest => {
+        results += 1;
+        if (
+          filter(
+            commitWithPullRequest.commit,
+            commitWithPullRequest.pullRequest
+          )
+        ) {
+          return true;
+        }
+        commits.push(commitWithPullRequest.commit);
+        return false;
+      });
+      if (!response.pageInfo.hasNextPage) {
+        break;
+      }
+      cursor = response.pageInfo.endCursor;
+    }
+
+    return commits;
   }
 
   /**
@@ -640,20 +837,36 @@ export class GitHub {
   }
 
   // The default matcher will rule out pre-releases.
-  // TODO: make this handle more than 100 results using async iterator.
+  /**
+   * Find the last merged pull request that targeted the default
+   * branch and looks like a release PR.
+   *
+   * @param {string[]} labels - If provided, ensure that the pull
+   *   request has all of the specified labels
+   * @param {string|undefined} branchPrefix - If provided, limit
+   *   release pull requests that contain the specified component
+   * @param {boolean} preRelease - Whether to include pre-release
+   *   versions in the response. Defaults to true.
+   * @param {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @returns {MergedGitHubPR|undefined}
+   */
   async findMergedReleasePR(
     labels: string[],
     branchPrefix: string | undefined = undefined,
-    preRelease = true
+    preRelease = true,
+    maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<MergedGitHubPR | undefined> {
-    const baseBranch = await this.getDefaultBranch();
-
     branchPrefix = branchPrefix?.endsWith('-')
       ? branchPrefix.replace(/-$/, '')
       : branchPrefix;
-    return await this.findMergedPullRequest(
-      baseBranch,
-      (mergedPullRequest: MergedGitHubPR) => {
+
+    const mergedCommit = await this.findMergeCommit(
+      (commit, mergedPullRequest) => {
+        if (!mergedPullRequest) {
+          return false;
+        }
+
         // If labels specified, ensure the pull request has all the specified labels
         if (
           labels.length > 0 &&
@@ -692,8 +905,10 @@ export class GitHub {
         }
 
         return true;
-      }
+      },
+      maxResults
     );
+    return mergedCommit?.pullRequest;
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {

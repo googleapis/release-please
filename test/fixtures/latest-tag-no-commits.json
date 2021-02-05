@@ -1,0 +1,15 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "nodes": [],
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "e6daec403626c9987c7af0d97b34f324cd84320a 12"
+          }
+        }
+      }
+    }
+  }
+}

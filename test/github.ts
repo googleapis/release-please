@@ -230,189 +230,53 @@ describe('GitHub', () => {
   });
 
   describe('latestTag', () => {
-    const samplePrReturn = [
-      {
-        base: {
-          label: 'fake:prerelease',
-        },
-        head: {
-          label: 'fake:release-v3.0.0-rc1',
-          ref: 'release-v3.0.0-rc1',
-        },
-        merged_at: new Date().toISOString(),
-      },
-      {
-        base: {
-          label: 'fake:main',
-        },
-        head: {
-          label: 'fake:release-v2.0.0-rc1',
-          ref: 'release-v2.0.0-rc1',
-        },
-        merged_at: new Date().toISOString(),
-      },
-      {
-        base: {
-          label: 'fake:legacy-8',
-        },
-        head: {
-          label: 'fake:release-v1.1.5',
-          ref: 'release-v1.1.5',
-        },
-        merged_at: new Date().toISOString(),
-      },
-      {
-        base: {
-          label: 'fake:main',
-        },
-        head: {
-          label: 'fake:release-v1.3.0',
-          ref: 'release-v1.3.0',
-        },
-        merged_at: new Date().toISOString(),
-      },
-      {
-        base: {
-          label: 'fake:main',
-        },
-        head: {
-          label: 'fake:release-v1.2.0',
-          ref: 'release-v1.2.0',
-        },
-        merged_at: new Date().toISOString(),
-      },
-      {
-        base: {
-          label: 'fake:main',
-        },
-        head: {
-          label: 'fake:release-v1.1.0',
-          ref: 'release-v1.1.0',
-        },
-        merged_at: new Date().toISOString(),
-      },
-    ];
-
     it('handles monorepo composite branch names properly', async () => {
-      const sampleResults = [
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-complex-package_name-v1-v1.1.0',
-            ref: 'release-complex-package_name-v1-v1.1.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
-            ref: 'release-complex-package_name-v2.1-v2.0.0-beta',
-          },
-          merged_at: new Date().toISOString(),
-        },
-      ];
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, sampleResults);
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag-monorepo.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
       const latestTag = await github.latestTag('complex-package_name-v1-');
       expect(latestTag!.version).to.equal('1.1.0');
       req.done();
     });
 
     it('does not return monorepo composite tag, if no prefix provided', async () => {
-      const sampleResults = [
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-complex-package_name-v1-v1.1.0',
-            ref: 'release-complex-package_name-v1-v1.1.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-complex-package_name-v2.1-v2.0.0-beta',
-            ref: 'release-complex-package_name-v2.1-v2.0.0-beta',
-          },
-          merged_at: new Date().toISOString(),
-        },
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v1.3.0',
-            ref: 'release-v1.3.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-      ];
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, sampleResults);
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag-monorepo.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
 
     it('returns the latest tag on the main branch, based on PR date', async () => {
-      const ret = [
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v1.3.0',
-            ref: 'release-v1.3.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v1.2.0',
-            ref: 'release-v1.2.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v1.1.0',
-            ref: 'release-v1.1.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-      ];
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, ret);
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
 
     it('returns the latest tag on a sub branch, based on PR date', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-alternate-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+
       // We need a special one here to set an alternate branch.
       github = new GitHub({
         owner: 'fake',
@@ -420,105 +284,70 @@ describe('GitHub', () => {
         defaultBranch: 'legacy-8',
       });
 
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=legacy-8&sort=created&direction=desc'
-        )
-        .reply(200, samplePrReturn);
       const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.1.5');
+      expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
 
     it('does not return pre-releases as latest tag', async () => {
-      const ret = [
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v2.0.0-rc1',
-            ref: 'release-v2.0.0-rc1',
-          },
-          merged_at: new Date().toISOString(),
-        },
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v1.3.0',
-            ref: 'release-v1.3.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-      ];
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, ret);
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+
       const latestTag = await github.latestTag();
       expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
 
     it('returns pre-releases on the main branch as latest, when preRelease is true', async () => {
-      const ret = [
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v2.0.0-rc1',
-            ref: 'release-v2.0.0-rc1',
-          },
-          merged_at: new Date().toISOString(),
-        },
-        {
-          base: {
-            label: 'fake:main',
-          },
-          head: {
-            label: 'fake:release-v1.3.0',
-            ref: 'release-v1.3.0',
-          },
-          merged_at: new Date().toISOString(),
-        },
-      ];
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
-        )
-        .reply(200, ret);
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
       const latestTag = await github.latestTag(undefined, true);
       expect(latestTag!.version).to.equal('2.0.0-rc1');
       req.done();
     });
 
     it('returns pre-releases on a sub branch as latest, when preRelease is true', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-alternate-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+
       // We need a special one here to set an alternate branch.
       github = new GitHub({
         owner: 'fake',
         repo: 'fake',
         defaultBranch: 'prerelease',
       });
-
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=prerelease&sort=created&direction=desc'
-        )
-        .reply(200, samplePrReturn);
       const latestTag = await github.latestTag(undefined, true);
-      expect(latestTag!.version).to.equal('3.0.0-rc1');
+      expect(latestTag!.version).to.equal('2.0.0-rc1');
       req.done();
     });
+
     it('falls back to using tags, for simple case', async () => {
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-no-commits.json'),
+          'utf8'
         )
-        .reply(200, [])
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
         .get('/repos/fake/fake/tags?per_page=100')
         .reply(200, [
           {
@@ -535,11 +364,17 @@ describe('GitHub', () => {
       req.done();
     });
     it('falls back to using tags, when prefix is provided', async () => {
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-no-commits.json'),
+          'utf8'
         )
-        .reply(200, [])
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
         .get('/repos/fake/fake/tags?per_page=100')
         .reply(200, [
           {
@@ -564,11 +399,17 @@ describe('GitHub', () => {
       req.done();
     });
     it('allows for "@" rather than "-" when fallback used', async () => {
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-no-commits.json'),
+          'utf8'
         )
-        .reply(200, [])
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
         .get('/repos/fake/fake/tags?per_page=100')
         .reply(200, [
           {
@@ -597,11 +438,17 @@ describe('GitHub', () => {
       req.done();
     });
     it('allows for "/" rather than "-" when fallback used', async () => {
-      req
-        .get(
-          '/repos/fake/fake/pulls?state=closed&per_page=100&page=1&base=main&sort=created&direction=desc'
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-no-commits.json'),
+          'utf8'
         )
-        .reply(200, [])
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
         .get('/repos/fake/fake/tags?per_page=100')
         .reply(200, [
           {
@@ -699,6 +546,172 @@ describe('GitHub', () => {
         .reply(200, pullRequests);
       const mergedPullRequests = await github.findMergedPullRequests();
       snapshot(mergedPullRequests);
+      req.done();
+    });
+  });
+
+  describe('commitsSince', () => {
+    it('finds commits up until a condition', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitsSinceSha = await github.commitsSince(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+      });
+      expect(commitsSinceSha.length).to.eql(1);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+
+    it('paginates through commits', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      const graphql2 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-2.json'), 'utf8')
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql1,
+        })
+        .post('/graphql')
+        .reply(200, {
+          data: graphql2,
+        });
+      const commitsSinceSha = await github.commitsSince(commit => {
+        // this commit is on page 2
+        return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+      });
+      expect(commitsSinceSha.length).to.eql(11);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+
+    it('finds first commit of a multi-commit merge pull request', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitsSinceSha = await github.commitsSince(
+        (commit, pullRequest) => {
+          // PR #6 was rebase/merged so it has 4 associated commits
+          return pullRequest?.number === 6;
+        }
+      );
+      expect(commitsSinceSha.length).to.eql(3);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+
+    it('limits pagination', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql1,
+      });
+      const commitsSinceSha = await github.commitsSince(commit => {
+        // this commit is on page 2
+        return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+      }, 10);
+      expect(commitsSinceSha.length).to.eql(10);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+  });
+
+  describe('findMergeCommit', () => {
+    it('finds commits up until a condition', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitWithPullRequest = await github.findMergeCommit(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+      });
+      expect(commitWithPullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.commit.sha).to.eql(
+        'b29149f890e6f76ee31ed128585744d4c598924c'
+      );
+      expect(commitWithPullRequest!.pullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.pullRequest!.number).to.eql(7);
+      req.done();
+    });
+
+    it('paginates through commits', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      const graphql2 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-2.json'), 'utf8')
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql1,
+        })
+        .post('/graphql')
+        .reply(200, {
+          data: graphql2,
+        });
+
+      const commitWithPullRequest = await github.findMergeCommit(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+      });
+      expect(commitWithPullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.commit.sha).to.eql(
+        'c6d9dfb03aa2dbe1abc329592af60713fe28586d'
+      );
+      expect(commitWithPullRequest!.pullRequest).to.be.undefined;
+      req.done();
+    });
+
+    it('finds first commit of a multi-commit merge pull request', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitWithPullRequest = await github.findMergeCommit(
+        (commit, pullRequest) => {
+          // PR #6 was rebase/merged so it has 4 associated commits
+          return pullRequest?.number === 6;
+        }
+      );
+      expect(commitWithPullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.commit.sha).to.eql(
+        '2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5'
+      );
+      expect(commitWithPullRequest!.pullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.pullRequest!.number).to.eql(6);
+      req.done();
+    });
+
+    it('limits pagination', async () => {
+      const graphql1 = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql1,
+      });
+
+      const commitWithPullRequest = await github.findMergeCommit(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
+      }, 10);
+      expect(commitWithPullRequest).to.be.undefined;
       req.done();
     });
   });
