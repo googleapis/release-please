@@ -637,5 +637,60 @@ describe('GitHubRelease', () => {
       const created = await release.run();
       expect(created).to.be.undefined;
     });
+
+    it('allows blank packageName', async () => {
+      const release = new GitHubRelease({
+        label: 'autorelease: pending',
+        repoUrl: 'googleapis/foo',
+        packageName: '',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
+
+      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
+        {
+          sha: 'abc123',
+          number: 1,
+          baseRefName: 'main',
+          headRefName: 'release-v1.0.3',
+          labels: ['autorelease: pending'],
+          title: 'Release v1.0.3',
+          body: 'Some release notes',
+        },
+      ]);
+
+      sandbox
+        .stub(release.gh, 'getFileContentsOnBranch')
+        .withArgs('CHANGELOG.md', 'main')
+        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
+
+      sandbox
+        .stub(release.gh, 'createRelease')
+        .withArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
+        .resolves({
+          tag_name: 'v1.0.3',
+          draft: false,
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+        });
+
+      sandbox
+        .stub(release.gh, 'addLabels')
+        .withArgs(['autorelease: tagged'], 1)
+        .resolves();
+
+      sandbox
+        .stub(release.gh, 'removeLabels')
+        .withArgs(['autorelease: pending'], 1)
+        .resolves();
+
+      const created = await release.run();
+      strictEqual(created!.tag_name, 'v1.0.3');
+      strictEqual(created!.major, 1);
+      strictEqual(created!.minor, 0);
+      strictEqual(created!.patch, 3);
+      strictEqual(created!.draft, false);
+    });
   });
 });
