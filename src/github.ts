@@ -206,7 +206,7 @@ export class GitHub {
     }
   }
 
-  private async graphqlRequest(_opts: {
+  private async makeGraphqlRequest(_opts: {
     [key: string]: string | number | null | undefined;
   }) {
     let opts = Object.assign({}, _opts);
@@ -220,6 +220,24 @@ export class GitHub {
       });
     }
     return this.graphql(opts);
+  }
+
+  private async graphqlRequest(
+    opts: {
+      [key: string]: string | number | null | undefined;
+    },
+    maxRetries = 1
+  ) {
+    while (maxRetries >= 0) {
+      try {
+        return await this.makeGraphqlRequest(opts);
+      } catch (err) {
+        if (err.status !== 502) {
+          throw err;
+        }
+      }
+      maxRetries -= 1;
+    }
   }
 
   private decoratePaginateOpts(opts: EndpointOptions): EndpointOptions {
@@ -270,8 +288,7 @@ export class GitHub {
     cursor: string | undefined = undefined,
     perPage = 32,
     path: string | null = null,
-    maxFilesChanged = 64,
-    retries = 0
+    maxFilesChanged = 64
   ): Promise<CommitsResponse> {
     const baseBranch = await this.getDefaultBranch();
 
@@ -279,37 +296,36 @@ export class GitHub {
     // in conjucntion with the path that they modify. We lean on the graphql
     // API for this one task, fetching commits in descending chronological
     // order along with the file paths attached to them.
-    try {
-      const response = await this.graphqlRequest({
+    const response = await this.graphqlRequest(
+      {
         query: `query commitsWithFiles($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxFilesChanged: Int, $path: String) {
-          repository(owner: $owner, name: $repo) {
-            ref(qualifiedName: $baseRef) {
-              target {
-                ... on Commit {
-                  history(first: $perPage, after: $cursor, path: $path) {
-                    edges {
-                      node {
-                        ... on Commit {
-                          message
-                          oid
-                          associatedPullRequests(first: 1) {
-                            edges {
-                              node {
-                                ... on PullRequest {
-                                  number
-                                  mergeCommit {
-                                    oid
+        repository(owner: $owner, name: $repo) {
+          ref(qualifiedName: $baseRef) {
+            target {
+              ... on Commit {
+                history(first: $perPage, after: $cursor, path: $path) {
+                  edges {
+                    node {
+                      ... on Commit {
+                        message
+                        oid
+                        associatedPullRequests(first: 1) {
+                          edges {
+                            node {
+                              ... on PullRequest {
+                                number
+                                mergeCommit {
+                                  oid
+                                }
+                                files(first: $maxFilesChanged) {
+                                  edges {
+                                    node {
+                                      path
+                                    }
                                   }
-                                  files(first: $maxFilesChanged) {
-                                    edges {
-                                      node {
-                                        path
-                                      }
-                                    }
-                                    pageInfo {
-                                      endCursor
-                                      hasNextPage
-                                    }
+                                  pageInfo {
+                                    endCursor
+                                    hasNextPage
                                   }
                                 }
                               }
@@ -318,16 +334,17 @@ export class GitHub {
                         }
                       }
                     }
-                    pageInfo {
-                      endCursor
-                      hasNextPage
-                    }
+                  }
+                  pageInfo {
+                    endCursor
+                    hasNextPage
                   }
                 }
               }
             }
           }
-        }`,
+        }
+      }`,
         cursor,
         maxFilesChanged,
         owner: this.owner,
@@ -335,60 +352,44 @@ export class GitHub {
         perPage,
         repo: this.repo,
         baseRef: `refs/heads/${baseBranch}`,
-      });
-      return graphqlToCommits(this, response);
-    } catch (err) {
-      if (err.status === 502 && retries < 3) {
-        // GraphQL sometimes returns a 502 on the first request,
-        // this seems to relate to a cache being warmed and the
-        // second request generally works.
-        return this.commitsWithFiles(
-          cursor,
-          perPage,
-          path,
-          maxFilesChanged,
-          retries++
-        );
-      } else {
-        throw err;
-      }
-    }
+      },
+      3
+    );
+    return graphqlToCommits(this, response);
   }
 
   private async commitsWithLabels(
     cursor: string | undefined = undefined,
     perPage = 32,
     path: string | null = null,
-    maxLabels = 16,
-    retries = 0
+    maxLabels = 16
   ): Promise<CommitsResponse> {
     const baseBranch = await this.getDefaultBranch();
-    try {
-      const response = await this.graphqlRequest({
+    const response = await this.graphqlRequest(
+      {
         query: `query commitsWithLabels($cursor: String, $owner: String!, $repo: String!, $baseRef: String!, $perPage: Int, $maxLabels: Int, $path: String) {
-          repository(owner: $owner, name: $repo) {
-            ref(qualifiedName: $baseRef) {
-              target {
-                ... on Commit {
-                  history(first: $perPage, after: $cursor, path: $path) {
-                    edges {
-                      node {
-                        ... on Commit {
-                          message
-                          oid
-                          associatedPullRequests(first: 1) {
-                            edges {
-                              node {
-                                ... on PullRequest {
-                                  number
-                                  mergeCommit {
-                                    oid
-                                  }
-                                  labels(first: $maxLabels) {
-                                    edges {
-                                      node {
-                                        name
-                                      }
+        repository(owner: $owner, name: $repo) {
+          ref(qualifiedName: $baseRef) {
+            target {
+              ... on Commit {
+                history(first: $perPage, after: $cursor, path: $path) {
+                  edges {
+                    node {
+                      ... on Commit {
+                        message
+                        oid
+                        associatedPullRequests(first: 1) {
+                          edges {
+                            node {
+                              ... on PullRequest {
+                                number
+                                mergeCommit {
+                                  oid
+                                }
+                                labels(first: $maxLabels) {
+                                  edges {
+                                    node {
+                                      name
                                     }
                                   }
                                 }
@@ -398,16 +399,17 @@ export class GitHub {
                         }
                       }
                     }
-                    pageInfo {
-                      endCursor
-                      hasNextPage
-                    }
+                  }
+                  pageInfo {
+                    endCursor
+                    hasNextPage
                   }
                 }
               }
             }
           }
-        }`,
+        }
+      }`,
         cursor,
         maxLabels,
         owner: this.owner,
@@ -415,24 +417,10 @@ export class GitHub {
         perPage,
         repo: this.repo,
         baseRef: `refs/heads/${baseBranch}`,
-      });
-      return graphqlToCommits(this, response);
-    } catch (err) {
-      if (err.status === 502 && retries < 3) {
-        // GraphQL sometimes returns a 502 on the first request,
-        // this seems to relate to a cache being warmed and the
-        // second request generally works.
-        return this.commitsWithLabels(
-          cursor,
-          perPage,
-          path,
-          maxLabels,
-          retries++
-        );
-      } else {
-        throw err;
-      }
-    }
+      },
+      3
+    );
+    return graphqlToCommits(this, response);
   }
 
   async pullRequestFiles(

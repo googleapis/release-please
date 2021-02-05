@@ -81,6 +81,50 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('retries the graphql on a timeout', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
+          'utf8'
+        )
+      );
+      req
+        .post('/graphql')
+        .reply(502, 'unavailable')
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        });
+      const commitsSinceSha = await github.commitsSinceSha(
+        'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b'
+      );
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+
+    it('runs out of the graphql retries', async () => {
+      req
+        .post('/graphql')
+        .reply(502, 'unavailable')
+        .post('/graphql')
+        .reply(502, 'unavailable')
+        .post('/graphql')
+        .reply(502, 'unavailable')
+        .post('/graphql')
+        .reply(502, 'unavailable');
+      let thrown = false;
+      try {
+        await github.commitsSinceSha(
+          'cf52ec0bcdc777dc9c5e76153d7d253bea95d44b'
+        );
+        fail('should have thrown');
+      } catch (err) {
+        thrown = true;
+      }
+      expect(thrown).to.be.true;
+      req.done();
+    });
   });
 
   describe('normalizePrefix', () => {
@@ -713,6 +757,30 @@ describe('GitHub', () => {
         return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
       }, 10);
       expect(commitWithPullRequest).to.be.undefined;
+      req.done();
+    });
+
+    it('retries the graphql on a timeout', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req
+        .post('/graphql')
+        .reply(502, 'unavailable')
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        });
+      const commitWithPullRequest = await github.findMergeCommit(commit => {
+        // this commit is the 2nd most recent
+        return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+      });
+      expect(commitWithPullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.commit.sha).to.eql(
+        'b29149f890e6f76ee31ed128585744d4c598924c'
+      );
+      expect(commitWithPullRequest!.pullRequest).to.not.be.undefined;
+      expect(commitWithPullRequest!.pullRequest!.number).to.eql(7);
       req.done();
     });
   });
