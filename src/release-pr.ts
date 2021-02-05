@@ -324,7 +324,6 @@ export class ReleasePR {
   }
 
   protected async openPR(options: OpenPROptions): Promise<number | undefined> {
-    const sha = options.sha;
     const changelogEntry = options.changelogEntry;
     const updates = options.updates;
     const version = options.version;
@@ -334,8 +333,6 @@ export class ReleasePR {
     const branchName = await this.buildBranchName(version, includePackageName);
     const pr: number | undefined = await this.gh.openPR({
       branch: branchName.toString(),
-      version,
-      sha,
       updates,
       title,
       body,

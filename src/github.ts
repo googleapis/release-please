@@ -108,10 +108,8 @@ export interface GitHubFileContents {
 export interface GitHubPR {
   branch: string;
   fork: boolean;
-  version: string;
   title: string;
   body: string;
-  sha: string;
   updates: Update[];
   labels: string[];
 }
