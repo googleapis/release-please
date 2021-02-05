@@ -78,7 +78,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -139,7 +139,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -203,7 +203,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -267,7 +267,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -332,7 +332,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -398,7 +398,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -521,7 +521,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -583,7 +583,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
@@ -717,7 +717,7 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'commentOnIssue')
-        .withArgs('Release is at https://release.url', 1)
+        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
         .resolves();
 
       sandbox
