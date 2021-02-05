@@ -130,7 +130,7 @@ export class GitHubRelease {
 
     // Comment on the release PR with the
     await this.gh.commentOnIssue(
-      `Release is at ${release.html_url}`,
+      `:robot: Release is at ${release.html_url} :sunflower:`,
       candidate.pullNumber
     );
 
