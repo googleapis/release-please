@@ -14,11 +14,22 @@
 
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
-import {getReleasers, getReleaserTypes} from '../../src/releasers';
+import {
+  getReleasers,
+  getReleaserTypes,
+  getReleaserNames,
+} from '../../src/releasers';
 
 describe('getReleaserTypes', () => {
   it('gets types for all releasers', async () => {
     const releasers = getReleasers();
     expect(Object.keys(releasers)).to.eql(getReleaserTypes());
+  });
+});
+
+describe('getReleaserNames', () => {
+  it('gets types for all releasers', async () => {
+    const releasers = getReleasers();
+    expect(Object.keys(releasers)).to.eql(getReleaserNames());
   });
 });

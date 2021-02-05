@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as assert from 'assert';
+import {expect} from 'chai';
 import {factory} from '../src/factory';
 import {GitHubRelease} from '../src/github-release';
 import {ReleasePR} from '../src/release-pr';
@@ -20,6 +21,7 @@ import {describe, it, afterEach} from 'mocha';
 import * as sinon from 'sinon';
 
 import {parser} from '../src/bin/release-please';
+import {ParseCallback} from 'yargs';
 
 const sandbox = sinon.createSandbox();
 
@@ -49,6 +51,41 @@ describe('CLI', () => {
       assert.strictEqual(classToRun.packageName, 'cli-package');
       // Defaults to Node.js release type:
       assert.strictEqual(classToRun.releaseType, 'node');
+    });
+    it('validates releaseType choices', () => {
+      sandbox.stub(factory, 'run').resolves(undefined);
+
+      const cmd =
+        'release-pr ' +
+        '--release-type=foobar ' +
+        '--repo-url=googleapis/release-please-cli ' +
+        '--package-name=cli-package';
+      const choices = [
+        'go',
+        'go-yoshi',
+        'java-bom',
+        'java-yoshi',
+        'node',
+        'ocaml',
+        'php-yoshi',
+        'python',
+        'ruby',
+        'ruby-yoshi',
+        'rust',
+        'simple',
+        'terraform-module',
+      ];
+      const parseCallback: ParseCallback = (err, _argv, _output) => {
+        expect(err).to.be.an('Error');
+        expect(err)
+          .to.have.property('message')
+          .to.equal(
+            'Invalid values:\n  Argument: release-type, Given: "foobar", ' +
+              'Choices: ' +
+              choices.map(c => `"${c}"`).join(', ')
+          );
+      };
+      parser.parse(cmd, parseCallback);
     });
   });
   describe('github-release', () => {

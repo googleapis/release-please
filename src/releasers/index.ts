@@ -36,14 +36,14 @@ export type ReleaseType =
   | 'java-bom'
   | 'java-yoshi'
   | 'node'
+  | 'ocaml'
   | 'php-yoshi'
   | 'python'
-  | 'ruby-yoshi'
   | 'ruby'
-  | 'simple'
-  | 'terraform-module'
+  | 'ruby-yoshi'
   | 'rust'
-  | 'ocaml';
+  | 'simple'
+  | 'terraform-module';
 
 type Releasers = Partial<Record<ReleaseType, typeof ReleasePR>>;
 
@@ -53,18 +53,23 @@ const releasers: Releasers = {
   'java-bom': JavaBom,
   'java-yoshi': JavaYoshi,
   node: Node,
+  ocaml: OCaml,
   'php-yoshi': PHPYoshi,
   python: Python,
-  'ruby-yoshi': RubyYoshi,
   ruby: Ruby,
+  'ruby-yoshi': RubyYoshi,
+  rust: Rust,
   simple: Simple,
   'terraform-module': TerraformModule,
-  rust: Rust,
-  ocaml: OCaml,
 };
 
 export function getReleasers(): Releasers {
   return releasers;
+}
+
+// deprecated, use getReleaserTypes
+export function getReleaserNames(): string[] {
+  return getReleaserTypes() as string[];
 }
 
 export function getReleaserTypes(): readonly ReleaseType[] {
