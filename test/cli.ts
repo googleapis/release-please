@@ -52,7 +52,7 @@ describe('CLI', () => {
       // Defaults to Node.js release type:
       assert.strictEqual(classToRun.releaseType, 'node');
     });
-    it('validates releaseType choices', () => {
+    it('validates releaseType choices', done => {
       sandbox.stub(factory, 'run').resolves(undefined);
 
       const cmd =
@@ -84,6 +84,7 @@ describe('CLI', () => {
               'Choices: ' +
               choices.map(c => `"${c}"`).join(', ')
           );
+        done();
       };
       parser.parse(cmd, parseCallback);
     });
