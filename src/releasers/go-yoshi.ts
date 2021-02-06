@@ -47,14 +47,12 @@ const SUB_MODULES = [
 const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 
 export class GoYoshi extends ReleasePR {
-  static releaserName = 'go-yoshi';
   protected async _run(): Promise<number | undefined> {
     const latestTag = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined,
       false
     );
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_owner, repo] = parseGithubRepoUrl(this.repoUrl);
+    const [_, repo] = parseGithubRepoUrl(this.repoUrl);
     let regenPR: Commit | undefined;
     let sha: null | string = null;
     const commits = (

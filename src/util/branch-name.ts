@@ -54,10 +54,9 @@ export class BranchName {
       `${RELEASE_PLEASE}/branches/${targetBranch}/components/${component}`
     );
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(branchName: string) {}
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static matches(branchName: string): boolean {
+  constructor(_branchName: string) {}
+
+  static matches(_branchName: string): boolean {
     return false;
   }
   getTargetBranch(): string | undefined {

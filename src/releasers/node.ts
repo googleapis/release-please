@@ -27,7 +27,6 @@ import {PackageJson} from '../updaters/package-json';
 import {SamplesPackageJson} from '../updaters/samples-package-json';
 
 export class Node extends ReleasePR {
-  static releaserName = 'node';
   protected async _run(): Promise<number | undefined> {
     // Make an effort to populate packageName from the contents of
     // the package.json, rather than forcing this to be set:

@@ -28,7 +28,6 @@ import {CargoLock} from '../updaters/rust/cargo-lock';
 import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
 
 export class Rust extends ReleasePR {
-  static releaserName = 'rust';
   protected async _run(): Promise<number | undefined> {
     const prefix = this.monorepoTags ? `${this.packageName}-` : undefined;
     const addPrefix = (tagOrBranch: string | undefined): string | undefined => {

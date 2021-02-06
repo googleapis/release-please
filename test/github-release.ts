@@ -20,7 +20,7 @@ import * as crypto from 'crypto';
 import {strictEqual} from 'assert';
 nock.disableNetConnect();
 
-import {GitHubRelease} from '../src/github-release';
+import {GitHubRelease, GitHubReleaseOptions} from '../src/github-release';
 import {GitHubFileContents} from '../src/github';
 
 const sandbox = sinon.createSandbox();
@@ -39,13 +39,17 @@ describe('GitHubRelease', () => {
     sandbox.restore();
   });
   describe('createRelease', () => {
-    it('creates and labels release on GitHub', async () => {
-      const release = new GitHubRelease({
+    const gitHubReleaserForVersion = (
+      version: string,
+      options?: Partial<GitHubReleaseOptions>
+    ) => {
+      const defaultOptions = {
         label: 'autorelease: pending',
         repoUrl: 'googleapis/foo',
         packageName: 'foo',
         apiUrl: 'https://api.github.com',
-      });
+      };
+      const release = new GitHubRelease({...defaultOptions, ...options});
 
       sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
 
@@ -54,9 +58,9 @@ describe('GitHubRelease', () => {
           sha: 'abc123',
           number: 1,
           baseRefName: 'main',
-          headRefName: 'release-v1.0.3',
+          headRefName: `release-v${version}`,
           labels: ['autorelease: pending'],
-          title: 'Release v1.0.3',
+          title: `Release v${version}`,
           body: 'Some release notes',
         },
       ]);
@@ -64,14 +68,14 @@ describe('GitHubRelease', () => {
       sandbox
         .stub(release.gh, 'getFileContentsOnBranch')
         .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
+        .resolves(buildFileContent(`#Changelog\n\n## v${version}\n\n* entry`));
 
       sandbox
         .stub(release.gh, 'createRelease')
-        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withArgs('foo', `v${version}`, 'abc123', '\n* entry', !!options?.draft)
         .resolves({
-          tag_name: 'v1.0.3',
-          draft: false,
+          tag_name: `v${version}`,
+          draft: !!options?.draft,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
@@ -90,8 +94,12 @@ describe('GitHubRelease', () => {
         .stub(release.gh, 'removeLabels')
         .withArgs(['autorelease: pending'], 1)
         .resolves();
+      return release;
+    };
 
-      const created = await release.run();
+    it('creates and labels release on GitHub', async () => {
+      const releaser = gitHubReleaserForVersion('1.0.3');
+      const created = await releaser.run();
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
@@ -99,64 +107,17 @@ describe('GitHubRelease', () => {
       strictEqual(created!.draft, false);
     });
 
+    it('creates and labels release on GitHub with invalid semver', async () => {
+      const releaser = gitHubReleaserForVersion('1A.B.C');
+      const created = await releaser.run();
+      expect(created).to.be.undefined;
+    });
+
     it('creates a draft release', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        apiUrl: 'https://api.github.com',
+      const releaser = gitHubReleaserForVersion('1.0.3', {
         draft: true,
       });
-
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-v1.0.3',
-          labels: ['autorelease: pending'],
-          title: 'Release v1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
-
-      sandbox
-        .stub(release.gh, 'getFileContentsOnBranch')
-        .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
-
-      sandbox
-        .stub(release.gh, 'createRelease')
-        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', true)
-        .resolves({
-          tag_name: 'v1.0.3',
-          draft: true,
-          html_url: 'https://release.url',
-          upload_url: 'https://upload.url/',
-        });
-
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
-
-      const created = await release.run();
-      strictEqual(created!.tag_name, 'v1.0.3');
-      strictEqual(created!.major, 1);
-      strictEqual(created!.minor, 0);
-      strictEqual(created!.patch, 3);
+      const created = await releaser.run();
       strictEqual(created!.draft, true);
     });
 

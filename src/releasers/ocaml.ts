@@ -42,7 +42,6 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class OCaml extends ReleasePR {
-  static releaserName = 'ocaml';
   protected async _run(): Promise<number | undefined> {
     const latestTag: GitHubTag | undefined = await this.gh.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined

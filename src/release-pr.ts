@@ -31,6 +31,7 @@ import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {extractReleaseNotes} from './util/release-notes';
+import {ReleaseType} from './releasers';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -51,7 +52,7 @@ export interface ReleasePROptions extends SharedOptions {
   octokitAPIs?: OctokitAPIs;
   // Path to version.rb file
   versionFile?: string;
-  releaseType: string;
+  releaseType: ReleaseType;
   changelogSections?: [];
   // Optionally provide GitHub instance
   github?: GitHub;
@@ -87,8 +88,6 @@ export interface OpenPROptions {
 }
 
 export class ReleasePR {
-  static releaserName = 'base';
-
   apiUrl: string;
   defaultBranch?: string;
   labels: string[];
@@ -197,10 +196,8 @@ export class ReleasePR {
   // the release name when creating a GitHub release, for instance by returning
   // name in package.json, or setup.py.
   static async lookupPackageName(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    gh: GitHub,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    path?: string
+    _gh: GitHub,
+    _path?: string
   ): Promise<string | undefined> {
     return Promise.resolve(undefined);
   }
@@ -292,7 +289,6 @@ export class ReleasePR {
 
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected detectReleaseVersionFromTitle(title: string): string | undefined {
     const pattern = /^chore: release ?(?<component>.*) (?<version>\d+\.\d+\.\d+)$/;
     const match = title.match(pattern);
@@ -317,7 +313,7 @@ export class ReleasePR {
 
   // Override this method to modify the pull request body
   protected async buildPullRequestBody(
-    version: string,
+    _version: string,
     changelogEntry: string
   ): Promise<string> {
     return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation](https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;
