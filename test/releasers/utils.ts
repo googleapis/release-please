@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../../src/github';
+import {GitHubFileContents, GitHub} from '../../src/github';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as crypto from 'crypto';
+import {SinonSandbox} from 'sinon';
 
 export function buildGitHubFileContent(
   fixturesPath: string,
@@ -33,4 +34,32 @@ export function buildGitHubFileRaw(content: string): GitHubFileContents {
     // fake a consistent sha
     sha: crypto.createHash('md5').update(content).digest('hex'),
   };
+}
+
+/**
+ * Stub files on github with fixtures.
+ *
+ * @param fixturePath - Parent dir of fixture files. Fixture files must be
+ *  direct children (no sub folders).
+ * @param sandbox - created in test file.
+ * @param gh - GitHub instance's `getFileContentsOnBranch` to stub
+ * @param files - list of file paths from repo root to stub
+ * @param defaultBranch - branch arg to `getFileContentsOnBranch`
+ */
+export function stubFilesFromFixtures(
+  fixturePath: string,
+  sandbox: SinonSandbox,
+  gh: GitHub,
+  files: string[],
+  defaultBranch = 'master'
+) {
+  const stub = sandbox.stub(gh, 'getFileContentsOnBranch');
+  for (const file of files) {
+    const parts = file.split('/');
+    const name = parts[parts.length - 1];
+    stub
+      .withArgs(file, defaultBranch)
+      .resolves(buildGitHubFileContent(fixturePath, name));
+  }
+  stub.rejects(Object.assign(Error('not found'), {status: 404}));
 }
