@@ -36,7 +36,7 @@ describe('YoshiGo', () => {
     it('creates a release PR for google-cloud-go', async () => {
       const releasePR = new GoYoshi({
         repoUrl: 'googleapis/google-cloud-go',
-        releaseType: 'yoshi-go',
+        releaseType: 'go-yoshi',
         // not actually used by this type of repo.
         packageName: 'yoshi-go',
         apiUrl: 'https://api.github.com',
@@ -111,7 +111,7 @@ describe('YoshiGo', () => {
     it('creates a release PR for google-api-go-client', async () => {
       const releasePR = new GoYoshi({
         repoUrl: 'googleapis/google-api-go-client',
-        releaseType: 'yoshi-go',
+        releaseType: 'go-yoshi',
         // not actually used by this type of repo.
         packageName: 'yoshi-go',
         apiUrl: 'https://api.github.com',
@@ -197,7 +197,7 @@ describe('YoshiGo', () => {
   it('supports releasing submodule from google-cloud-go', async () => {
     const releasePR = new GoYoshi({
       repoUrl: 'googleapis/google-cloud-go',
-      releaseType: 'yoshi-go',
+      releaseType: 'go-yoshi',
       packageName: 'pubsublite',
       monorepoTags: true,
       path: 'pubsublite',

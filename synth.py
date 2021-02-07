@@ -11,7 +11,7 @@ s.copy(templates, excludes=[
   'README.md',
   'CONTRIBUTING.md',
   '.eslintignore',
-  '.eslintrc.yml',
+  '.eslintrc.json',
   '.prettierignore',
   '.prettierrc',
   '.nycrc',

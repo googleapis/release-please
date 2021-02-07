@@ -19,7 +19,7 @@ import {coerceOption} from '../util/coerce-option';
 import {GitHubReleaseOptions} from '../github-release';
 import {ReleasePROptions} from '../release-pr';
 import {factory} from '../factory';
-import {getReleaserNames} from '../releasers';
+import {getReleaserTypes, ReleaseType} from '../releasers';
 import * as yargs from 'yargs';
 
 interface ErrorObject {
@@ -31,7 +31,7 @@ interface ErrorObject {
 
 interface YargsOptions {
   describe: string;
-  choices?: string[];
+  choices?: readonly ReleaseType[];
   demand?: boolean;
   type?: string;
   default?: string | boolean;
@@ -113,7 +113,7 @@ export const parser = yargs
   })
   .option('release-type', {
     describe: 'what type of repo is a release being created for?',
-    choices: getReleaserNames(),
+    choices: getReleaserTypes(),
     default: 'node',
   })
   .option('bump-minor-pre-major', {

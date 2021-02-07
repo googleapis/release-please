@@ -22,7 +22,7 @@ import {
   GitHubRelease,
   ReleaseResponse,
 } from './github-release';
-import {getReleasers} from './releasers';
+import {ReleaseType, getReleasers} from './releasers';
 
 function runCommand(
   command: string,
@@ -55,7 +55,7 @@ function releasePR(options: ReleasePROptions): ReleasePR {
   return new (factory.releasePRClass(options.releaseType))(releaseOptions);
 }
 
-export function releasePRClass(releaseType: string): typeof ReleasePR {
+export function releasePRClass(releaseType: ReleaseType): typeof ReleasePR {
   const releasers = getReleasers();
   const releaser = releasers[releaseType];
   if (!releaser) {

@@ -233,7 +233,7 @@ describe('Release-PR', () => {
           packageName: input,
           repoUrl: 'owner/repo',
           apiUrl: 'unused',
-          releaseType: 'unused',
+          releaseType: 'base',
         });
         expect(releasePR.packagePrefix).to.eql(input);
       });

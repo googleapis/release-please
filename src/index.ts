@@ -30,7 +30,7 @@ export interface SharedOptions {
 }
 
 export {factory} from './factory';
-export {getReleaserNames, getReleasers} from './releasers';
+export {getReleaserTypes, getReleasers} from './releasers';
 export {GitHubRelease, GitHubReleaseOptions} from './github-release';
 export {JavaYoshi} from './releasers/java-yoshi';
 export {Ruby} from './releasers/ruby';

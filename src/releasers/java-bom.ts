@@ -47,7 +47,6 @@ const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)(\s\(#\d+
 const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
 export class JavaBom extends ReleasePR {
-  static releaserName = 'java-bom';
   protected async _run(): Promise<number | undefined> {
     const versionsManifestContent = await this.gh.getFileContents(
       'versions.txt'
