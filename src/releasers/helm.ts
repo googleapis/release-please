@@ -28,13 +28,14 @@ import {ChartYaml} from '../updaters/helm/chart-yaml';
 
 export class Helm extends ReleasePR {
   static releaserName = 'helm';
+
   protected async _run(): Promise<number | undefined> {
     // Make an effort to populate packageName from the contents of
     // the package.json, rather than forcing this to be set:
     const contents: GitHubFileContents = await this.gh.getFileContents(
       this.addPath('Chart.yaml')
     );
-    const file = yaml.load (contents.parsedContent, {json: true});
+    const file = yaml.load(contents.parsedContent, {json: true});
     if (file === null || file === undefined)
       return undefined;
     const pkg = JSON.parse(file.toString());
@@ -123,7 +124,7 @@ export class Helm extends ReleasePR {
     const contents: GitHubFileContents = await gh.getFileContents(
       this.addPathStatic('Chart.yaml', path)
     );
-    const file = yaml.load (contents.parsedContent, {json: true});
+    const file = yaml.load(contents.parsedContent, {json: true});
     if (file === null || file === undefined)
       return undefined;
     const pkg = JSON.parse(file.toString());

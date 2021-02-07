@@ -63,11 +63,10 @@ const releasers: Releasers = {
   rust: Rust,
   simple: Simple,
   'terraform-module': TerraformModule,
-   helm: Helm,
+  helm: Helm,
 };
 
 export function getReleasers(): Releasers {
-
   return releasers;
 }
 
