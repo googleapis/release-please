@@ -36,8 +36,9 @@ export class Helm extends ReleasePR {
       this.addPath('Chart.yaml')
     );
     const file = yaml.load(contents.parsedContent, {json: true});
-    if (file === null || file === undefined)
+    if (file === null || file === undefined) {
       return undefined;
+    }
     const pkg = JSON.parse(file.toString());
     if (pkg.name) {
       this.packageName = pkg.name;
@@ -125,8 +126,9 @@ export class Helm extends ReleasePR {
       this.addPathStatic('Chart.yaml', path)
     );
     const file = yaml.load(contents.parsedContent, {json: true});
-    if (file === null || file === undefined)
+    if (file === null || file === undefined) {
       return undefined;
+    }
     const pkg = JSON.parse(file.toString());
     if (pkg.name) return pkg.name;
     else return undefined;

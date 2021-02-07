@@ -36,8 +36,9 @@ export class ChartYaml implements Update {
 
   updateContent(content: string): string {
     const data = yaml.load(content, {json: true});
-    if (data === null || data === undefined)
+    if (data === null || data === undefined) {
       return '';
+    }
     const parsed = JSON.parse(data.toString());
     checkpoint(
       `updating ${this.path} from ${parsed.version} to ${this.version}`,
