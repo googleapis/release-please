@@ -15,7 +15,7 @@
 import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
-import * as yaml from 'yaml';
+import * as yaml from 'js-yaml';
 
 export class ChartYaml implements Update {
   path: string;
@@ -35,12 +35,15 @@ export class ChartYaml implements Update {
   }
 
   updateContent(content: string): string {
-    const parsed = yaml.parse(content);
+    const data = yaml.load (content, {json: true});
+    if (data === null || data === undefined)
+      return '';
+    const parsed = JSON.parse(data.toString());
     checkpoint(
       `updating ${this.path} from ${parsed.version} to ${this.version}`,
       CheckpointType.Success
     );
     parsed.version = this.version;
-    return yaml.stringify(parsed) + '\n';
+    return yaml.dump(parsed) + '\n';
   }
 }

@@ -22,7 +22,7 @@ import {Commit} from '../graphql-to-commits';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
-import * as yaml from 'yaml';
+import * as yaml from 'js-yaml';
 // helm
 import {ChartYaml} from '../updaters/helm/chart-yaml';
 
@@ -34,7 +34,10 @@ export class Helm extends ReleasePR {
     const contents: GitHubFileContents = await this.gh.getFileContents(
       this.addPath('Chart.yaml')
     );
-    const pkg = yaml.parse(contents.parsedContent);
+    const file = yaml.load (contents.parsedContent, {json: true});
+    if (file === null || file === undefined)
+      return undefined;
+    const pkg = JSON.parse(file.toString());
     if (pkg.name) {
       this.packageName = pkg.name;
       // we've rewritten the package name, recalculate the package prefix
@@ -120,7 +123,10 @@ export class Helm extends ReleasePR {
     const contents: GitHubFileContents = await gh.getFileContents(
       this.addPathStatic('Chart.yaml', path)
     );
-    const pkg = yaml.parse(contents.parsedContent);
+    const file = yaml.load (contents.parsedContent, {json: true});
+    if (file === null || file === undefined)
+      return undefined;
+    const pkg = JSON.parse(file.toString());
     if (pkg.name) return pkg.name;
     else return undefined;
   }

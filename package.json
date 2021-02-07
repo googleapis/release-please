@@ -52,8 +52,8 @@
     "sinon": "^9.0.3",
     "snap-shot-it": "^7.0.0",
     "typescript": "^3.8.3",
-    "yaml": "^1.10.0",
-    "@types/yaml": "^1.9.7"
+    "js-yaml": "^4.0.0",
+    "@types/js-yaml": "^4.0.0"
   },
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
