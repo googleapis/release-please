@@ -44,7 +44,7 @@ export type ReleaseType =
   | 'ruby-yoshi'
   | 'rust'
   | 'simple'
-  | 'terraform-module';
+  | 'terraform-module'
   | 'helm';
 
 type Releasers = Partial<Record<ReleaseType, typeof ReleasePR>>;
