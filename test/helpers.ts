@@ -14,6 +14,8 @@
 
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
+import {Commit} from '../src/graphql-to-commits';
+import * as crypto from 'crypto';
 
 /*
  * Given an object of chnages expected to be made by code-suggester API,
@@ -43,4 +45,12 @@ export function readPOJO(name: string): object {
     'utf8'
   );
   return JSON.parse(content);
+}
+
+export function buildMockCommit(message: string, files: string[] = []): Commit {
+  return {
+    sha: crypto.createHash('md5').update(message).digest('hex'),
+    message,
+    files: files,
+  };
 }

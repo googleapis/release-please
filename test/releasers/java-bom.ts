@@ -20,7 +20,8 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents} from '../../src/github';
-import {buildGitHubFileContent, buildMockCommit} from './utils';
+import {buildGitHubFileContent} from './utils';
+import {buildMockCommit} from '../helpers';
 
 const sandbox = sinon.createSandbox();
 

@@ -15,31 +15,85 @@
 import {Commit} from './graphql-to-commits';
 import {relative} from 'path';
 
-interface CommitSplitOptions {
+export interface CommitSplitOptions {
+  // Defaults to './'
   root?: string;
+  // Include empty git commits: each empty commit is included
+  // in the list of commits for each path.
+  // This allows using the `git commit --allow-empty` workflow
+  // of setting a package's version without changing source code.
+  // For example the following empty commit would bump the minor
+  // version for all packages:
+  //
+  // "feat: bump all the versions"
+  //
+  // And this commit would set all package versions to 7.7.7
+  //
+  // "chore: bump all the versions
+  //
+  // release-as: 7.7.7"
+  includeEmpty?: boolean;
+  // rather than split by top level folder, split by these package
+  // paths (e.g. ["packages/pkg1", "python/pkg1"]). Commits that
+  // only touch files under paths not specified here are ignored.
+  // Paths must be unique and non-overlapping.
+  packagePaths?: string[];
 }
 
 export class CommitSplit {
   root: string;
+  includeEmpty: boolean;
+  packagePaths?: string[];
   constructor(opts?: CommitSplitOptions) {
     opts = opts || {};
     this.root = opts.root || './';
+    this.includeEmpty = !!opts.includeEmpty;
+    if (opts.packagePaths) {
+      const paths: string[] = [];
+      for (let newPath of opts.packagePaths) {
+        newPath = newPath.replace(/[/\\]$/, '');
+        for (const exPath of paths) {
+          if (newPath.indexOf(exPath) >= 0 || exPath.indexOf(newPath) >= 0) {
+            throw new Error(
+              `Path prefixes must be unique: ${newPath}, ${exPath}`
+            );
+          }
+        }
+        paths.push(newPath);
+      }
+      this.packagePaths = paths;
+    }
   }
+
   split(commits: Commit[]): {[key: string]: Commit[]} {
     const splitCommits: {[key: string]: Commit[]} = {};
     commits.forEach((commit: Commit) => {
       const dedupe: Set<string> = new Set();
       for (let i = 0; i < commit.files.length; i++) {
         const file: string = commit.files[i];
-        const splitPath = relative(this.root, file).split(/[/\\]/);
+        const path = relative(this.root, file);
+        const splitPath = path.split(/[/\\]/);
         // indicates that we have a top-level file and not a folder
         // in this edge-case we should not attempt to update the path.
         if (splitPath.length === 1) continue;
-        const pkgName = splitPath[0];
-        if (dedupe.has(pkgName)) continue;
+
+        let pkgName;
+        if (this.packagePaths) {
+          // only track paths under this.packagePaths
+          pkgName = this.packagePaths.find(p => path.indexOf(p) >= 0);
+        } else {
+          // track paths by top level folder
+          pkgName = splitPath[0];
+        }
+        if (!pkgName || dedupe.has(pkgName)) continue;
         else dedupe.add(pkgName);
         if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
         splitCommits[pkgName].push(commit);
+      }
+      if (commit.files.length === 0 && this.includeEmpty) {
+        for (const pkgName in splitCommits) {
+          splitCommits[pkgName].push(commit);
+        }
       }
     });
     return splitCommits;

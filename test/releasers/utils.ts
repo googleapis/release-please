@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {GitHubFileContents} from '../../src/github';
-import {Commit} from '../../src/graphql-to-commits';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as crypto from 'crypto';
@@ -33,13 +32,5 @@ export function buildGitHubFileRaw(content: string): GitHubFileContents {
     parsedContent: content,
     // fake a consistent sha
     sha: crypto.createHash('md5').update(content).digest('hex'),
-  };
-}
-
-export function buildMockCommit(message: string): Commit {
-  return {
-    sha: crypto.createHash('md5').update(message).digest('hex'),
-    message,
-    files: [],
   };
 }
