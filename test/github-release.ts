@@ -20,8 +20,11 @@ import * as crypto from 'crypto';
 import {strictEqual} from 'assert';
 nock.disableNetConnect();
 
-import {GitHubRelease, GitHubReleaseOptions} from '../src/github-release';
-import {GitHubFileContents} from '../src/github';
+import {GitHubRelease} from '../src/github-release';
+import {GitHubFileContents, GitHub} from '../src/github';
+import {ReleasePR, JavaYoshi} from '../src';
+import {GoYoshi} from '../src/releasers/go-yoshi';
+import {Node} from '../src/releasers/node';
 
 const sandbox = sinon.createSandbox();
 
@@ -38,69 +41,72 @@ describe('GitHubRelease', () => {
   afterEach(() => {
     sandbox.restore();
   });
+  const stubDefaultBranch = (github: GitHub) => {
+    sandbox.stub(github, 'getDefaultBranch').resolves('main');
+  };
+
+  const stubPRs = (github: GitHub, head: string, title: string) => {
+    sandbox.stub(github, 'findMergedPullRequests').resolves([
+      {
+        sha: 'abc123',
+        number: 1,
+        baseRefName: 'main',
+        headRefName: head,
+        labels: ['autorelease: pending'],
+        title: title,
+        body: 'Some release notes',
+      },
+    ]);
+  };
+
+  const stubChangeLog = (
+    github: GitHub,
+    file = 'CHANGELOG.md',
+    version = '1.0.3'
+  ): sinon.SinonStub => {
+    const stub = sandbox.stub(github, 'getFileContentsOnBranch');
+    stub
+      .withArgs(file, 'main')
+      .resolves(buildFileContent(`#Changelog\n\n## v${version}\n\n* entry`));
+    return stub;
+  };
+
+  const stubCommentsAndLabels = (github: GitHub) => {
+    sandbox
+      .stub(github, 'commentOnIssue')
+      .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
+      .resolves();
+
+    sandbox
+      .stub(github, 'addLabels')
+      .withArgs(['autorelease: tagged'], 1)
+      .resolves();
+
+    sandbox.stub(github, 'removeLabels').withArgs(['autorelease: pending'], 1);
+  };
+
   describe('createRelease', () => {
-    const gitHubReleaserForVersion = (
-      version: string,
-      options?: Partial<GitHubReleaseOptions>
-    ) => {
-      const defaultOptions = {
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        apiUrl: 'https://api.github.com',
-      };
-      const release = new GitHubRelease({...defaultOptions, ...options});
-
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: `release-v${version}`,
-          labels: ['autorelease: pending'],
-          title: `Release v${version}`,
-          body: 'Some release notes',
-        },
-      ]);
-
+    it('creates and labels release on GitHub', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
+      stubChangeLog(github);
+      stubCommentsAndLabels(github);
       sandbox
-        .stub(release.gh, 'getFileContentsOnBranch')
-        .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent(`#Changelog\n\n## v${version}\n\n* entry`));
-
-      sandbox
-        .stub(release.gh, 'createRelease')
-        .withArgs('foo', `v${version}`, 'abc123', '\n* entry', !!options?.draft)
+        .stub(github, 'createRelease')
+        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
-          name: `foo v${version}`,
-          tag_name: `v${version}`,
-          draft: !!options?.draft,
+          name: 'foo v1.0.3',
+          tag_name: 'v1.0.3',
+          draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
 
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
-      return release;
-    };
-
-    it('creates and labels release on GitHub', async () => {
-      const releaser = gitHubReleaserForVersion('1.0.3');
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const releaser = new GitHubRelease({github, releasePR});
       const created = await releaser.run();
+
       strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
@@ -110,52 +116,61 @@ describe('GitHubRelease', () => {
     });
 
     it('creates and labels release on GitHub with invalid semver', async () => {
-      const releaser = gitHubReleaserForVersion('1A.B.C');
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-v1A.B.C', 'Release v1A.B.C');
+      stubChangeLog(github, 'CHANGELOG.md', '1A.B.C');
+      stubCommentsAndLabels(github);
+      sandbox
+        .stub(github, 'createRelease')
+        .withArgs('foo', 'v1A.B.C', 'abc123', '\n* entry', false)
+        .resolves({
+          name: 'foo v1A.B.C',
+          tag_name: 'v1A.B.C',
+          draft: false,
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+        });
+
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const releaser = new GitHubRelease({github, releasePR});
       const created = await releaser.run();
+
       expect(created).to.be.undefined;
     });
 
     it('creates a draft release', async () => {
-      const releaser = gitHubReleaserForVersion('1.0.3', {
-        draft: true,
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
+      stubChangeLog(github);
+      stubCommentsAndLabels(github);
+      sandbox
+        .stub(github, 'createRelease')
+        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', true)
+        .resolves({
+          name: 'foo v1.0.3',
+          tag_name: 'v1.0.3',
+          draft: true,
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+        });
+
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const releaser = new GitHubRelease({github, releasePR, draft: true});
       const created = await releaser.run();
+
       strictEqual(created!.draft, true);
     });
 
     it('creates releases for submodule in monorepo', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'bigquery',
-        path: 'bigquery',
-        monorepoTags: true,
-        releaseType: 'go-yoshi',
-        apiUrl: 'https://api.github.com',
-        changelogPath: 'CHANGES.md',
-      });
-
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-bigquery-v1.0.3',
-          labels: ['autorelease: pending'],
-          title: 'Release bigquery v1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
-
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-bigquery-v1.0.3', 'Release bigquery v1.0.3');
+      stubChangeLog(github, 'bigquery/CHANGES.md');
+      stubCommentsAndLabels(github);
       sandbox
-        .stub(release.gh, 'getFileContentsOnBranch')
-        .withArgs('bigquery/CHANGES.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
-
-      sandbox
-        .stub(release.gh, 'createRelease')
+        .stub(github, 'createRelease')
         .withArgs('bigquery', 'bigquery/v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
           name: 'bigquery bigquery/v1.0.3',
@@ -165,22 +180,19 @@ describe('GitHubRelease', () => {
           upload_url: 'https://upload.url/',
         });
 
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
-
+      const releasePR = new GoYoshi({
+        github,
+        path: 'bigquery',
+        packageName: 'bigquery',
+        monorepoTags: true,
+      });
+      const release = new GitHubRelease({
+        github,
+        releasePR,
+        changelogPath: 'CHANGES.md',
+      });
       const created = await release.run();
+
       expect(created).to.not.be.undefined;
       strictEqual(created!.name, 'bigquery bigquery/v1.0.3');
       strictEqual(created!.tag_name, 'bigquery/v1.0.3');
@@ -190,38 +202,13 @@ describe('GitHubRelease', () => {
     });
 
     it('supports submodules in nested folders', async () => {
-      const release = new GitHubRelease({
-        path: 'src/apis/foo',
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        monorepoTags: true,
-        releaseType: 'go-yoshi',
-        apiUrl: 'https://api.github.com',
-        changelogPath: 'CHANGES.md',
-      });
-
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-foo-v1.0.3',
-          labels: ['autorelease: pending'],
-          title: 'Release foo v1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
-
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-foo-v1.0.3', 'Release foo v1.0.3');
+      stubChangeLog(github, 'src/apis/foo/CHANGES.md');
+      stubCommentsAndLabels(github);
       sandbox
-        .stub(release.gh, 'getFileContentsOnBranch')
-        .withArgs('src/apis/foo/CHANGES.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
-
-      sandbox
-        .stub(release.gh, 'createRelease')
+        .stub(github, 'createRelease')
         .withArgs('foo', 'foo/v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
           name: 'foo foo/v1.0.3',
@@ -231,64 +218,40 @@ describe('GitHubRelease', () => {
           upload_url: 'https://upload.url/',
         });
 
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
-
+      const releasePR = new GoYoshi({
+        github,
+        path: 'src/apis/foo',
+        packageName: 'foo',
+        monorepoTags: true,
+      });
+      const release = new GitHubRelease({
+        github,
+        releasePR,
+        changelogPath: 'CHANGES.md',
+      });
       const created = await release.run();
+
       strictEqual(created!.name, 'foo foo/v1.0.3');
       strictEqual(created!.tag_name, 'foo/v1.0.3');
     });
 
     it('attempts to guess package name for submodule release', async () => {
-      const release = new GitHubRelease({
-        path: 'src/apis/foo',
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        apiUrl: 'https://api.github.com',
-        monorepoTags: true,
-        releaseType: 'node',
-      });
-
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-foo-v1.0.3',
-          labels: ['autorelease: pending'],
-          title: 'Release bigquery v1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
-
-      const getFileContentsStub = sandbox.stub(
-        release.gh,
-        'getFileContentsOnBranch'
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-foo-v1.0.3', 'Release foo v1.0.3');
+      stubCommentsAndLabels(github);
+      const getFileContentsStub = stubChangeLog(
+        github,
+        'src/apis/foo/CHANGELOG.md'
       );
-      getFileContentsStub
-        .withArgs('src/apis/foo/CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
       getFileContentsStub
         .withArgs('src/apis/foo/package.json', 'main')
         .resolves(buildFileContent('{"name": "@google-cloud/foo"}'));
-      getFileContentsStub.throwsArg(0);
-
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
       sandbox
-        .stub(release.gh, 'createRelease')
+        .stub(github, 'createRelease')
         .withArgs(
           '@google-cloud/foo',
           'foo-v1.0.3',
@@ -304,65 +267,33 @@ describe('GitHubRelease', () => {
           upload_url: 'https://upload.url/',
         });
 
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
-
+      const releasePR = new Node({
+        github,
+        path: 'src/apis/foo',
+        monorepoTags: true,
+      });
+      const release = new GitHubRelease({github, releasePR});
       const created = await release.run();
+
       expect(created).to.not.be.undefined;
       strictEqual(created!.name, '@google-cloud/foo foo-v1.0.3');
       strictEqual(created!.tag_name, 'foo-v1.0.3');
     });
 
     it('attempts to guess package name for release', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'node',
-      });
-
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-v1.0.3',
-          labels: ['autorelease: pending'],
-          title: 'Release v1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
-
-      const getFileContentsStub = sandbox.stub(
-        release.gh,
-        'getFileContentsOnBranch'
-      );
-      getFileContentsStub
-        .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
+      stubCommentsAndLabels(github);
+      const getFileContentsStub = stubChangeLog(github);
       getFileContentsStub
         .withArgs('package.json', 'main')
         .resolves(buildFileContent('{"name": "@google-cloud/foo"}'));
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404})
       );
-
       sandbox
-        .stub(release.gh, 'createRelease')
+        .stub(github, 'createRelease')
         .withArgs('@google-cloud/foo', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
           name: '@google-cloud/foo v1.0.3',
@@ -372,122 +303,71 @@ describe('GitHubRelease', () => {
           upload_url: 'https://upload.url/',
         });
 
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
-
+      const releasePR = new Node({github});
+      const release = new GitHubRelease({github, releasePR});
       const created = await release.run();
+
       strictEqual(created!.name, '@google-cloud/foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
     });
 
-    it('errors when no packageName (no lookupPackageName impl: python)', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'python',
-      });
-      let failed = true;
-      try {
-        await release.run();
-        failed = false;
-      } catch (error) {
-        expect(error.message).to.equal(
-          'could not determine package name for release repo = googleapis/foo'
-        );
-      }
-      expect(failed).to.be.true;
+    it('empty packageName ok (non-monorepo)', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
+      stubChangeLog(github);
+      stubCommentsAndLabels(github);
+      sandbox
+        .stub(github, 'createRelease')
+        .withArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
+        .resolves({
+          name: 'v1.0.3',
+          tag_name: 'v1.0.3',
+          draft: false,
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+        });
+
+      const releasePR = new ReleasePR({github});
+      const releaser = new GitHubRelease({github, releasePR});
+      const created = await releaser.run();
+
+      strictEqual(created!.name, 'v1.0.3');
+      strictEqual(created!.tag_name, 'v1.0.3');
     });
 
-    it('errors when no packageName (lookupPackageName impl: node)', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'node',
-      });
-
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-v1.0.3',
-          labels: ['autorelease: pending'],
-          title: 'Release v1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
-
-      const getFileContentsStub = sandbox.stub(
-        release.gh,
-        'getFileContentsOnBranch'
-      );
-      getFileContentsStub
-        .withArgs('package.json', 'main')
-        .resolves(buildFileContent('{"no-the-name": "@google-cloud/foo"}'));
-      getFileContentsStub
-        .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
-      getFileContentsStub.rejects(
-        Object.assign(Error('not found'), {status: 404})
-      );
-
+    it('empty packageName not ok (monorepo)', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
+      stubChangeLog(github);
+      stubCommentsAndLabels(github);
+      const releasePR = new ReleasePR({github, monorepoTags: true});
+      const release = new GitHubRelease({github, releasePR});
       let failed = true;
       try {
         await release.run();
         failed = false;
       } catch (error) {
         expect(error.message).to.equal(
-          'could not determine package name for release repo = googleapis/foo'
+          'package-name required for monorepo releases'
         );
       }
       expect(failed).to.be.true;
     });
 
     it('parses version from PR title (detectReleaseVersionFromTitle impl: base)', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        apiUrl: 'https://api.github.com',
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
 
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-please/branches/main',
-          labels: ['autorelease: pending'],
-          title: 'chore: release 1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-please/branches/main', 'chore: release 1.0.3');
+      stubChangeLog(github);
+      stubCommentsAndLabels(github);
 
       sandbox
-        .stub(release.gh, 'getFileContentsOnBranch')
-        .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
-
-      sandbox
-        .stub(release.gh, 'createRelease')
+        .stub(github, 'createRelease')
         .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
           name: 'foo v1.0.3',
@@ -496,21 +376,6 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
-
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
 
       const created = await release.run();
       expect(created).to.not.be.undefined;
@@ -523,35 +388,21 @@ describe('GitHubRelease', () => {
     });
 
     it('parses version from PR title (detectReleaseVersionFromTitle impl: java-yoshi)', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'java-yoshi',
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const releasePR = new JavaYoshi({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
 
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-please/branches/main',
-          labels: ['autorelease: pending'],
-          title: 'chore(main): release 1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
+      stubDefaultBranch(github);
+      stubPRs(
+        github,
+        'release-please/branches/main',
+        'chore(main): release 1.0.3'
+      );
+      stubChangeLog(github);
+      stubCommentsAndLabels(github);
 
       sandbox
-        .stub(release.gh, 'getFileContentsOnBranch')
-        .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
-
-      sandbox
-        .stub(release.gh, 'createRelease')
+        .stub(github, 'createRelease')
         .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
           name: 'foo v1.0.3',
@@ -560,21 +411,6 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
-
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
 
       const created = await release.run();
       expect(created).to.not.be.undefined;
@@ -587,59 +423,41 @@ describe('GitHubRelease', () => {
     });
 
     it('does nothing when no merged release PRs found', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        apiUrl: 'https://api.github.com',
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
 
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([]);
+      stubDefaultBranch(github);
+      sandbox.stub(github, 'findMergedPullRequests').resolves([]);
 
       const created = await release.run();
       expect(created).to.be.undefined;
     });
 
     it('does nothing when we find a release PR, but cannot determine the version', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        apiUrl: 'https://api.github.com',
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
 
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-please/branches/main',
-          labels: ['autorelease: pending'],
-          title: 'Some not matching release name',
-          body: 'Some release notes',
-        },
-      ]);
+      stubDefaultBranch(github);
+      stubPRs(
+        github,
+        'release-please/branches/main',
+        'Some not matching release name'
+      );
 
       const created = await release.run();
       expect(created).to.be.undefined;
     });
 
     it('ignores tagged pull requests', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: 'foo',
-        apiUrl: 'https://api.github.com',
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
 
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
+      stubDefaultBranch(github);
       sandbox
-        .stub(release.gh, 'findMergedPullRequests')
+        .stub(github, 'findMergedPullRequests')
         .onFirstCall()
         .resolves([
           {
@@ -660,34 +478,17 @@ describe('GitHubRelease', () => {
     });
 
     it('allows blank packageName', async () => {
-      const release = new GitHubRelease({
-        label: 'autorelease: pending',
-        repoUrl: 'googleapis/foo',
-        packageName: '',
-        apiUrl: 'https://api.github.com',
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const releasePR = new ReleasePR({github});
+      const release = new GitHubRelease({github, releasePR});
 
-      sandbox.stub(release.gh, 'getDefaultBranch').resolves('main');
-
-      sandbox.stub(release.gh, 'findMergedPullRequests').resolves([
-        {
-          sha: 'abc123',
-          number: 1,
-          baseRefName: 'main',
-          headRefName: 'release-v1.0.3',
-          labels: ['autorelease: pending'],
-          title: 'Release v1.0.3',
-          body: 'Some release notes',
-        },
-      ]);
+      stubDefaultBranch(github);
+      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
+      stubChangeLog(github);
+      stubCommentsAndLabels(github);
 
       sandbox
-        .stub(release.gh, 'getFileContentsOnBranch')
-        .withArgs('CHANGELOG.md', 'main')
-        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
-
-      sandbox
-        .stub(release.gh, 'createRelease')
+        .stub(github, 'createRelease')
         .withArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
           name: 'v1.0.3',
@@ -696,21 +497,6 @@ describe('GitHubRelease', () => {
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
         });
-
-      sandbox
-        .stub(release.gh, 'commentOnIssue')
-        .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'addLabels')
-        .withArgs(['autorelease: tagged'], 1)
-        .resolves();
-
-      sandbox
-        .stub(release.gh, 'removeLabels')
-        .withArgs(['autorelease: pending'], 1)
-        .resolves();
 
       const created = await release.run();
       strictEqual(created!.name, 'v1.0.3');

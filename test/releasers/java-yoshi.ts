@@ -20,7 +20,7 @@ import {JavaYoshi} from '../../src/releasers/java-yoshi';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
-import {GitHubFileContents} from '../../src/github';
+import {GitHubFileContents, GitHub} from '../../src/github';
 import {expect} from 'chai';
 import {buildGitHubFileContent} from './utils';
 import {buildMockCommit} from '../helpers';
@@ -43,11 +43,8 @@ describe('JavaYoshi', () => {
   });
   it('creates a release PR', async () => {
     const releasePR = new JavaYoshi({
-      repoUrl: 'googleapis/java-trace',
-      releaseType: 'java-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
-      apiUrl: 'https://api.github.com',
     });
 
     sandbox
@@ -144,11 +141,8 @@ describe('JavaYoshi', () => {
 
   it('creates a snapshot PR', async () => {
     const releasePR = new JavaYoshi({
-      repoUrl: 'googleapis/java-trace',
-      releaseType: 'java-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
-      apiUrl: 'https://api.github.com',
       snapshot: true,
     });
 
@@ -242,11 +236,8 @@ describe('JavaYoshi', () => {
 
   it('creates a snapshot PR, when latest release sha is head', async () => {
     const releasePR = new JavaYoshi({
-      repoUrl: 'googleapis/java-trace',
-      releaseType: 'java-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
-      apiUrl: 'https://api.github.com',
       snapshot: true,
     });
 
@@ -334,11 +325,8 @@ describe('JavaYoshi', () => {
 
   it('ignores a snapshot release if no snapshot needed', async () => {
     const releasePR = new JavaYoshi({
-      repoUrl: 'googleapis/java-trace',
-      releaseType: 'java-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
-      apiUrl: 'https://api.github.com',
       snapshot: true,
     });
 
@@ -371,11 +359,8 @@ describe('JavaYoshi', () => {
 
   it('creates a snapshot PR if an explicit release is requested, but a snapshot is needed', async () => {
     const releasePR = new JavaYoshi({
-      repoUrl: 'googleapis/java-trace',
-      releaseType: 'java-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
-      apiUrl: 'https://api.github.com',
       snapshot: false,
     });
 
@@ -469,11 +454,8 @@ describe('JavaYoshi', () => {
 
   it('handles promotion to 1.0.0', async () => {
     const releasePR = new JavaYoshi({
-      repoUrl: 'googleapis/java-trace',
-      releaseType: 'java-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
-      apiUrl: 'https://api.github.com',
     });
 
     sandbox
@@ -563,13 +545,14 @@ describe('JavaYoshi', () => {
   });
 
   it('creates a release PR against a feature branch', async () => {
+    const defaultBranch = '1.x';
     const releasePR = new JavaYoshi({
-      repoUrl: 'googleapis/java-trace',
-      releaseType: 'java-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({
+        defaultBranch,
+        owner: 'googleapis',
+        repo: 'java-trace',
+      }),
       packageName: 'java-trace',
-      apiUrl: 'https://api.github.com',
-      defaultBranch: '1.x',
     });
 
     // No open release PRs, so create a new release PR
@@ -594,10 +577,14 @@ describe('JavaYoshi', () => {
       releasePR.gh,
       'findFilesByFilenameAndRef'
     );
-    findFilesStub.withArgs('pom.xml', '1.x', undefined).resolves(['pom.xml']);
-    findFilesStub.withArgs('build.gradle', '1.x', undefined).resolves([]);
     findFilesStub
-      .withArgs('dependencies.properties', '1.x', undefined)
+      .withArgs('pom.xml', defaultBranch, undefined)
+      .resolves(['pom.xml']);
+    findFilesStub
+      .withArgs('build.gradle', defaultBranch, undefined)
+      .resolves([]);
+    findFilesStub
+      .withArgs('dependencies.properties', defaultBranch, undefined)
       .resolves([]);
 
     const getFileContentsStub = sandbox.stub(
@@ -605,18 +592,18 @@ describe('JavaYoshi', () => {
       'getFileContentsOnBranch'
     );
     getFileContentsStub
-      .withArgs('versions.txt', '1.x')
+      .withArgs('versions.txt', defaultBranch)
       .resolves(buildFileContent('versions.txt'));
     getFileContentsStub
-      .withArgs('README.md', '1.x')
+      .withArgs('README.md', defaultBranch)
       .resolves(buildFileContent('README.md'));
     getFileContentsStub
-      .withArgs('pom.xml', '1.x')
+      .withArgs('pom.xml', defaultBranch)
       .resolves(buildFileContent('pom.xml'));
     getFileContentsStub
       .withArgs(
         'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
-        '1.x'
+        defaultBranch
       )
       .resolves(buildFileContent('GoogleUtils.java'));
     getFileContentsStub.rejects(
@@ -668,12 +655,9 @@ describe('JavaYoshi', () => {
 
     beforeEach(() => {
       req = nock('https://api.github.com/');
+
       releasePR = new JavaYoshi({
-        repoUrl: 'googleapis/java-trace',
-        releaseType: 'java-yoshi',
-        // not actually used by this type of repo.
-        packageName: 'java-trace',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       });
 
       sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');

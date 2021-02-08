@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePROptions, ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePRConstructorOptions} from '..';
+import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
@@ -27,20 +28,16 @@ import {Changelog} from '../updaters/changelog';
 // Ruby
 import {VersionRB} from '../updaters/version-rb';
 
-export interface RubyReleasePROptions extends ReleasePROptions {
-  // should be full path to version.rb file.
-  versionFile: string;
-}
-
 export class Ruby extends ReleasePR {
   versionFile: string;
-  constructor(options: RubyReleasePROptions) {
-    super(options as ReleasePROptions);
-    this.versionFile = options.versionFile;
+  constructor(options: ReleasePRConstructorOptions) {
+    super(options);
+    this.versionFile = options.versionFile ?? '';
   }
   protected async _run(): Promise<number | undefined> {
+    const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined,
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined,
       false
     );
     const commits: Commit[] = await this.commits({
@@ -50,7 +47,8 @@ export class Ruby extends ReleasePR {
 
     const cc = new ConventionalCommits({
       commits: postProcessCommits(commits),
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: this.changelogSections,
     });
@@ -85,7 +83,7 @@ export class Ruby extends ReleasePR {
         path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -94,7 +92,7 @@ export class Ruby extends ReleasePR {
         path: this.addPath(this.versionFile),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 

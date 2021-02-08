@@ -15,18 +15,22 @@
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
 
-import {ReleasePR, ReleasePROptions} from './release-pr';
-import {RubyReleasePROptions} from './releasers/ruby';
-import {
-  GitHubReleaseOptions,
-  GitHubRelease,
-  ReleaseResponse,
-} from './github-release';
+import {ReleasePR} from './release-pr';
+import {GitHubRelease, ReleaseResponse} from './github-release';
 import {ReleaseType, getReleasers} from './releasers';
+import {GitHub} from './github';
+import {
+  ReleasePRFactoryOptions,
+  GitHubReleaseFactoryOptions,
+  GitHubFactoryOptions,
+} from '.';
+import {DEFAULT_LABELS} from './constants';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const parseGithubRepoUrl = require('parse-github-repo-url');
 
 function runCommand(
   command: string,
-  options: GitHubReleaseOptions | ReleasePROptions
+  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
 ): Promise<number | undefined | ReleaseResponse> {
   if (isGitHubRelease(command, options)) {
     return factory.run(githubRelease(options));
@@ -37,8 +41,8 @@ function runCommand(
 
 function isGitHubRelease(
   command: string,
-  options: GitHubReleaseOptions | ReleasePROptions
-): options is GitHubReleaseOptions {
+  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
+): options is GitHubReleaseFactoryOptions {
   return command === 'github-release' && typeof options === 'object';
 }
 
@@ -46,13 +50,97 @@ function run(runnable: ReleasePR | GitHubRelease) {
   return runnable.run();
 }
 
-function githubRelease(options: GitHubReleaseOptions): GitHubRelease {
-  return new GitHubRelease(options);
+function getLabels(label?: string): string[] {
+  return label ? label.split(',') : DEFAULT_LABELS;
 }
 
-function releasePR(options: ReleasePROptions): ReleasePR {
-  const releaseOptions: ReleasePROptions | RubyReleasePROptions = options;
-  return new (factory.releasePRClass(options.releaseType))(releaseOptions);
+function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
+  const {
+    label,
+    repoUrl,
+    defaultBranch,
+    token,
+    apiUrl,
+    octokitAPIs,
+    releaseType,
+    path,
+    packageName,
+    bumpMinorPreMajor,
+    releaseAs,
+    snapshot,
+    monorepoTags,
+    fork,
+    changelogSections,
+    lastPackageVersion,
+    versionFile,
+    ...remaining
+  } = options;
+
+  const github = gitHubInstance({
+    repoUrl,
+    defaultBranch,
+    token,
+    apiUrl,
+    octokitAPIs,
+  });
+
+  const labels = getLabels(label);
+  const prClass = releaseType ? releasePRClass(releaseType) : ReleasePR;
+  const releasePR = new prClass({
+    github,
+    labels,
+    path,
+    packageName,
+    bumpMinorPreMajor,
+    releaseAs,
+    snapshot,
+    monorepoTags,
+    fork,
+    changelogSections,
+    lastPackageVersion,
+    versionFile,
+  });
+
+  return new GitHubRelease({github, releasePR, ...remaining});
+}
+
+function releasePR(options: ReleasePRFactoryOptions): ReleasePR {
+  const {
+    repoUrl,
+    defaultBranch,
+    token,
+    apiUrl,
+    octokitAPIs,
+    releaseType,
+    label,
+    ...remaining
+  } = options;
+  const github = gitHubInstance({
+    repoUrl,
+    defaultBranch,
+    token,
+    apiUrl,
+    octokitAPIs,
+  });
+
+  const labels = getLabels(label);
+  return new (factory.releasePRClass(releaseType))({
+    github,
+    labels,
+    ...remaining,
+  });
+}
+
+export function gitHubInstance(options: GitHubFactoryOptions) {
+  const [owner, repo] = parseGithubRepoUrl(options.repoUrl);
+  return new GitHub({
+    owner,
+    repo,
+    defaultBranch: options.defaultBranch,
+    token: options.token,
+    apiUrl: options.apiUrl,
+    octokitAPIs: options.octokitAPIs,
+  });
 }
 
 export function releasePRClass(releaseType: ReleaseType): typeof ReleasePR {
@@ -65,6 +153,7 @@ export function releasePRClass(releaseType: ReleaseType): typeof ReleasePR {
 }
 
 export const factory = {
+  gitHubInstance,
   githubRelease,
   releasePR,
   releasePRClass,

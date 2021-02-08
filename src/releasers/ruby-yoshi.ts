@@ -42,14 +42,15 @@ const CHANGELOG_SECTIONS = [
 
 export class RubyYoshi extends ReleasePR {
   protected async _run(): Promise<number | undefined> {
+    const packageName = await this.getPackageName();
     const lastReleaseSha: string | undefined = this.lastPackageVersion
       ? await this.gh.getTagSha(
-          `${this.packageName}/v${this.lastPackageVersion}`
+          `${packageName.getComponent()}/v${this.lastPackageVersion}`
         )
       : undefined;
     const commits: Commit[] = await this.commits({
       sha: lastReleaseSha,
-      path: this.packageName,
+      path: packageName.name,
     });
     if (commits.length === 0) {
       checkpoint(
@@ -60,7 +61,8 @@ export class RubyYoshi extends ReleasePR {
     } else {
       const cc = new ConventionalCommits({
         commits: postProcessCommits(commits),
-        githubRepoUrl: this.repoUrl,
+        owner: this.gh.owner,
+        repository: this.gh.repo,
         bumpMinorPreMajor: this.bumpMinorPreMajor,
         commitPartial: readFileSync(
           resolve(__dirname, '../../../templates/commit.hbs'),
@@ -106,22 +108,22 @@ export class RubyYoshi extends ReleasePR {
 
       updates.push(
         new Changelog({
-          path: `${this.packageName}/CHANGELOG.md`,
+          path: `${packageName.name}/CHANGELOG.md`,
           changelogEntry,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
 
       updates.push(
         new VersionRB({
-          path: `${this.packageName}/lib/${this.packageName.replace(
+          path: `${packageName.name}/lib/${packageName.name.replace(
             /-/g,
             '/'
           )}/version.rb`,
           changelogEntry,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
 
@@ -129,7 +131,8 @@ export class RubyYoshi extends ReleasePR {
         sha: commits[0].sha!,
         changelogEntry: `${changelogEntry}\n---\n${this.summarizeCommits(
           lastReleaseSha,
-          commits
+          commits,
+          packageName.name
         )}\n`,
         updates,
         version: candidate.version,
@@ -141,22 +144,24 @@ export class RubyYoshi extends ReleasePR {
   // for the benefit of the release PR.
   private summarizeCommits(
     lastReleaseSha: string | undefined,
-    commits: Commit[]
+    commits: Commit[],
+    packageName: string
   ): string {
     // summarize the commits that landed:
     let summary = '### Commits since last release:\n\n';
     const updatedFiles: {[key: string]: boolean} = {};
+    const repoUrl = `${this.gh.owner}/${this.gh.repo}`;
     commits.forEach(commit => {
       if (commit.sha === null) return;
       const splitMessage = commit.message.split('\n');
-      summary += `* [${splitMessage[0]}](https://github.com/${this.repoUrl}/commit/${commit.sha})\n`;
+      summary += `* [${splitMessage[0]}](https://github.com/${repoUrl}/commit/${commit.sha})\n`;
       if (splitMessage.length > 2) {
         summary = `${summary}<pre><code>${splitMessage
           .slice(1)
           .join('\n')}</code></pre>\n`;
       }
       commit.files.forEach(file => {
-        if (file.startsWith(this.packageName)) {
+        if (file.startsWith(packageName)) {
           updatedFiles[file] = true;
         }
       });
@@ -166,7 +171,7 @@ export class RubyYoshi extends ReleasePR {
     Object.keys(updatedFiles).forEach(file => {
       summary += `${file}\n`;
     });
-    return `${summary}</code></pre>\n[Compare Changes](https://github.com/${this.repoUrl}/compare/${lastReleaseSha}...HEAD)\n`;
+    return `${summary}</code></pre>\n[Compare Changes](https://github.com/${repoUrl}/compare/${lastReleaseSha}...HEAD)\n`;
   }
 }
 

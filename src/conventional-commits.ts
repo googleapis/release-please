@@ -32,13 +32,12 @@ const conventionalCommitsFilter = require('conventional-commits-filter');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalChangelogWriter = require('conventional-changelog-writer');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const parseGithubRepoUrl = require('parse-github-repo-url');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const presetFactory = require('conventional-changelog-conventionalcommits');
 
 interface ConventionalCommitsOptions {
   commits: Commit[];
-  githubRepoUrl: string;
+  owner: string;
+  repository: string;
   host?: string;
   bumpMinorPreMajor?: boolean;
   // allow for customized commit template.
@@ -49,7 +48,7 @@ interface ConventionalCommitsOptions {
   commitFilter?: (c: ConventionalChangelogCommit) => boolean;
 }
 
-interface ChangelogSection {
+export interface ChangelogSection {
   type: string;
   section: string;
   hidden?: boolean;
@@ -156,14 +155,11 @@ export class ConventionalCommits {
   private commitFilter?: (c: ConventionalChangelogCommit) => boolean;
 
   constructor(options: ConventionalCommitsOptions) {
-    const parsedGithubRepoUrl = parseGithubRepoUrl(options.githubRepoUrl);
-    if (!parsedGithubRepoUrl) throw Error('could not parse githubRepoUrl');
-    const [owner, repository] = parsedGithubRepoUrl;
     this.commits = options.commits;
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.host = options.host || 'https://www.github.com';
-    this.owner = owner;
-    this.repository = repository;
+    this.owner = options.owner;
+    this.repository = options.repository;
     // we allow some languages (currently Ruby) to provide their own
     // template style:
     this.commitPartial = options.commitPartial;

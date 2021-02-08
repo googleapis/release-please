@@ -28,9 +28,6 @@ import {Commit} from '../graphql-to-commits';
 // Generic
 import {Changelog} from '../updaters/changelog';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const parseGithubRepoUrl = require('parse-github-repo-url');
-
 // Commits containing a scope prefixed with an item in this array will be
 // ignored when generating a release PR for the parent module.
 const SUB_MODULES = [
@@ -48,11 +45,11 @@ const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 
 export class GoYoshi extends ReleasePR {
   protected async _run(): Promise<number | undefined> {
+    const packageName = await this.getPackageName();
     const latestTag = await this.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined,
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined,
       false
     );
-    const [_, repo] = parseGithubRepoUrl(this.repoUrl);
     let regenPR: Commit | undefined;
     let sha: null | string = null;
     const commits = (
@@ -68,7 +65,7 @@ export class GoYoshi extends ReleasePR {
       }
 
       if (
-        repo === 'google-api-go-client' &&
+        this.gh.repo === 'google-api-go-client' &&
         REGEN_PR_REGEX.test(commit.message)
       ) {
         // Only have a single entry of the nightly regen listed in the changelog.
@@ -95,9 +92,10 @@ export class GoYoshi extends ReleasePR {
     });
     const cc = new ConventionalCommits({
       commits: commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
-      commitFilter: this.filterSubModuleCommits(repo),
+      commitFilter: this.filterSubModuleCommits(this.gh.repo, packageName.name),
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
       cc,
@@ -133,7 +131,7 @@ export class GoYoshi extends ReleasePR {
         path: this.addPath('CHANGES.md'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
     if (!sha) {
@@ -165,7 +163,8 @@ export class GoYoshi extends ReleasePR {
   }
 
   private filterSubModuleCommits(
-    repo: string
+    repo: string,
+    packageName: string
   ): (c: ConventionalChangelogCommit) => boolean {
     return (c: ConventionalChangelogCommit) => {
       if (this.isGapicRepo(repo)) {
@@ -184,10 +183,7 @@ export class GoYoshi extends ReleasePR {
           }
         } else {
           if (
-            !(
-              c.scope === this.packageName ||
-              c.scope.startsWith(this.packageName + '/')
-            )
+            !(c.scope === packageName || c.scope.startsWith(packageName + '/'))
           ) {
             return true;
           }

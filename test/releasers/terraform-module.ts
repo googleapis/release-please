@@ -21,16 +21,13 @@ import * as nock from 'nock';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
+import {GitHub} from '../../src/github';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/releasers/fixtures/terraform';
 const releasePR = new TerraformModule({
-  repoUrl: 'googleapis/terraform-test-repo',
-  releaseType: 'terraform-module',
-  // not actually used by this type of repo.
-  packageName: 'terraform-test-repo',
-  apiUrl: 'https://api.github.com',
+  github: new GitHub({owner: 'googleapis', repo: 'terraform-test-repo'}),
 });
 
 describe('terraform-module', () => {

@@ -45,7 +45,8 @@ export class Rust extends ReleasePR {
 
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: this.changelogSections,
     });

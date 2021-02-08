@@ -93,7 +93,8 @@ export class JavaBom extends ReleasePR {
     const prSHA = commits[0].sha;
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: CHANGELOG_SECTIONS,
     });
@@ -145,6 +146,7 @@ export class JavaBom extends ReleasePR {
 
     const updates: Update[] = [];
 
+    const packageName = await this.getPackageName();
     if (!this.snapshot) {
       updates.push(
         new Changelog({
@@ -152,7 +154,7 @@ export class JavaBom extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
 
@@ -162,7 +164,7 @@ export class JavaBom extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     }
@@ -173,7 +175,7 @@ export class JavaBom extends ReleasePR {
         changelogEntry,
         versions: candidateVersions,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
         contents: versionsManifestContent,
       })
     );
@@ -186,7 +188,7 @@ export class JavaBom extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });

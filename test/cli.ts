@@ -47,10 +47,11 @@ describe('CLI', () => {
         'release-pr --repo-url=googleapis/release-please-cli --package-name=cli-package'
       );
       assert.ok(classToRun! instanceof ReleasePR);
-      assert.strictEqual(classToRun.repoUrl, 'googleapis/release-please-cli');
+      assert.strictEqual(classToRun.gh.owner, 'googleapis');
+      assert.strictEqual(classToRun.gh.repo, 'release-please-cli');
       assert.strictEqual(classToRun.packageName, 'cli-package');
       // Defaults to Node.js release type:
-      assert.strictEqual(classToRun.releaseType, 'node');
+      assert.strictEqual(classToRun.constructor.name, 'Node');
     });
     it('validates releaseType choices', done => {
       sandbox.stub(factory, 'run').resolves(undefined);
@@ -91,7 +92,7 @@ describe('CLI', () => {
     });
   });
   describe('github-release', () => {
-    it('instantiates a GitHub released based on command line arguments', () => {
+    it('instantiates a GitHub released based on command line arguments', async () => {
       let classToRun: GitHubRelease;
       // This logic is used to capture the class that would
       // be executed, allowing us to validate that the appropriate
@@ -104,15 +105,53 @@ describe('CLI', () => {
           return Promise.resolve(undefined);
         }
       );
-      parser.parse(
-        'github-release --repo-url=googleapis/release-please-cli --package-name=cli-package'
-      );
+      const pkgName = 'cli-package';
+      const cmd =
+        'github-release ' +
+        '--repo-url=googleapis/release-please-cli ' +
+        '--release-type=node ' +
+        `--package-name=${pkgName}`;
+      parser.parse(cmd);
       assert.ok(classToRun! instanceof GitHubRelease);
-      assert.strictEqual(classToRun.repoUrl, 'googleapis/release-please-cli');
-      assert.strictEqual(classToRun.packageName, 'cli-package');
-      // Defaults to Node.js release type:
-      assert.strictEqual(classToRun.releaseType, 'node');
+      assert.strictEqual(classToRun.gh.owner, 'googleapis');
+      assert.strictEqual(classToRun.gh.repo, 'release-please-cli');
       assert.strictEqual(classToRun.changelogPath, 'CHANGELOG.md');
+
+      const jsonPkg = `{"name": "${pkgName}"}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sandbox.stub(classToRun.releasePR, 'getPkgJsonContents' as any).resolves({
+        sha: 'abc123',
+        content: Buffer.from(jsonPkg, 'utf8').toString('base64'),
+        parsedContent: jsonPkg,
+      });
+      assert.strictEqual(
+        (await classToRun.releasePR.getPackageName()).name,
+        'cli-package'
+      );
+      // Defaults to Node.js release type:
+      assert.strictEqual(classToRun.releasePR.constructor.name, 'Node');
+    });
+    it('instantiates a GitHub released without releaseType', async () => {
+      let classToRun: GitHubRelease;
+      // This logic is used to capture the class that would
+      // be executed, allowing us to validate that the appropriate
+      // properties were assigned from the argument parser:
+      sandbox.replace(
+        factory,
+        'run',
+        (runnable): Promise<undefined> => {
+          classToRun = runnable as GitHubRelease;
+          return Promise.resolve(undefined);
+        }
+      );
+      const cmd = 'github-release --repo-url=googleapis/release-please-cli ';
+      parser.parse(cmd);
+      assert.ok(classToRun! instanceof GitHubRelease);
+      assert.strictEqual(classToRun.releasePR.constructor.name, 'ReleasePR');
+      assert.strictEqual(
+        (await classToRun.releasePR.getPackageName()).name,
+        ''
+      );
     });
   });
 });

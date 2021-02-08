@@ -18,7 +18,7 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {ConventionalCommits} from '../src/conventional-commits';
-import {GitHub, GitHubTag, GitHubPR} from '../src/github';
+import {GitHub, GitHubTag, GitHubPR, GitHubFileContents} from '../src/github';
 import {ReleaseCandidate, ReleasePR, OpenPROptions} from '../src/release-pr';
 import * as sinon from 'sinon';
 import {Node} from '../src/releasers/node';
@@ -33,15 +33,18 @@ class TestableReleasePR extends Node {
   async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag?: GitHubTag,
-    preRelese = false
+    preRelease = false
   ): Promise<ReleaseCandidate> {
-    return super.coerceReleaseCandidate(cc, latestTag, preRelese);
+    return super.coerceReleaseCandidate(cc, latestTag, preRelease);
   }
   async openPR(options: OpenPROptions) {
     this.gh = {
       openPR: async (opts: GitHubPR): Promise<number> => {
         this.openPROpts = opts;
         return 0;
+      },
+      getFileContents: async (_file: string): Promise<GitHubFileContents> => {
+        return {sha: 'abc123', content: '{}', parsedContent: '{}'};
       },
     } as GitHub;
     return super.openPR(options);
@@ -56,10 +59,7 @@ describe('Release-PR', () => {
   describe('coerceReleaseCandidate', () => {
     it('suggests next version #, based on commit types', async () => {
       const rp = new TestableReleasePR({
-        repoUrl: 'googleapis/nodejs',
-        packageName: '@google-cloud/nodejs',
-        apiUrl: 'github.com',
-        releaseType: 'node',
+        github: new GitHub({owner: 'googleapis', repo: 'nodejs'}),
       });
       const cc = new ConventionalCommits({
         commits: [
@@ -79,7 +79,8 @@ describe('Release-PR', () => {
             files: [],
           },
         ],
-        githubRepoUrl: 'googleapis/nodejs',
+        owner: 'googleapis',
+        repository: 'nodejs',
       });
       const candidate = await rp.coerceReleaseCandidate(cc, {
         name: 'tag',
@@ -91,10 +92,7 @@ describe('Release-PR', () => {
 
     it('reads release-as footer, and allows it to override recommended bump', async () => {
       const rp = new TestableReleasePR({
-        repoUrl: 'googleapis/nodejs',
-        packageName: '@google-cloud/nodejs',
-        apiUrl: 'github.com',
-        releaseType: 'node',
+        github: new GitHub({owner: 'googleapis', repo: 'nodejs'}),
       });
       const cc = new ConventionalCommits({
         commits: [
@@ -114,7 +112,8 @@ describe('Release-PR', () => {
             files: [],
           },
         ],
-        githubRepoUrl: 'googleapis/nodejs',
+        owner: 'googleapis',
+        repository: 'nodejs',
       });
       const candidate = await rp.coerceReleaseCandidate(cc);
       expect(candidate.version).to.equal('2.0.0');
@@ -122,10 +121,7 @@ describe('Release-PR', () => {
 
     it('it handles additional content after release-as: footer', async () => {
       const rp = new TestableReleasePR({
-        repoUrl: 'googleapis/nodejs',
-        packageName: '@google-cloud/nodejs',
-        apiUrl: 'github.com',
-        releaseType: 'node',
+        github: new GitHub({owner: 'googleapis', repo: 'nodejs'}),
       });
       const cc = new ConventionalCommits({
         commits: [
@@ -146,7 +142,8 @@ describe('Release-PR', () => {
             files: [],
           },
         ],
-        githubRepoUrl: 'googleapis/nodejs',
+        owner: 'googleapis',
+        repository: 'nodejs',
       });
       const candidate = await rp.coerceReleaseCandidate(cc);
       expect(candidate.version).to.equal('2.0.0');
@@ -155,14 +152,12 @@ describe('Release-PR', () => {
     describe('preRelease', () => {
       it('increments a prerelease appropriately', async () => {
         const rp = new TestableReleasePR({
-          repoUrl: 'googleapis/nodejs',
-          packageName: '@google-cloud/nodejs',
-          apiUrl: 'github.com',
-          releaseType: 'node',
+          github: new GitHub({owner: 'googleapis', repo: 'nodejs'}),
         });
         const cc = new ConventionalCommits({
           commits: [],
-          githubRepoUrl: 'googleapis/nodejs',
+          owner: 'googleapis',
+          repository: 'nodejs',
         });
         const candidate = await rp.coerceReleaseCandidate(
           cc,
@@ -178,14 +173,12 @@ describe('Release-PR', () => {
 
       it('handles pre-release when there is no suffix', async () => {
         const rp = new TestableReleasePR({
-          repoUrl: 'googleapis/nodejs',
-          packageName: '@google-cloud/nodejs',
-          apiUrl: 'github.com',
-          releaseType: 'node',
+          github: new GitHub({owner: 'googleapis', repo: 'nodejs'}),
         });
         const cc = new ConventionalCommits({
           commits: [],
-          githubRepoUrl: 'googleapis/nodejs',
+          owner: 'googleapis',
+          repository: 'nodejs',
         });
         const candidate = await rp.coerceReleaseCandidate(
           cc,
@@ -204,10 +197,8 @@ describe('Release-PR', () => {
   describe('openPR', () => {
     it('drops npm style @org/ prefix', async () => {
       const rp = new TestableReleasePR({
-        repoUrl: 'googleapis/nodejs',
+        github: new GitHub({owner: 'googleapis', repo: 'nodejs'}),
         packageName: '@google-cloud/nodejs',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'node',
       });
       await rp.openPR({
         sha: 'abc123',
@@ -220,27 +211,16 @@ describe('Release-PR', () => {
     });
   });
 
-  describe('lookupPackageName', () => {
-    it('noop, child releasers need to implement', async () => {
-      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
-      const name = await ReleasePR.lookupPackageName(github);
-      expect(name).to.be.undefined;
-    });
-  });
-
-  describe('coercePackagePrefix', () => {
-    it('should default to the package name', () => {
-      const inputs = ['foo/bar', 'foobar', ''];
-      inputs.forEach(input => {
-        const releasePR = new ReleasePR({
-          packageName: input,
-          repoUrl: 'owner/repo',
-          apiUrl: 'unused',
-          releaseType: 'base',
-        });
-        expect(releasePR.packagePrefix).to.eql(input);
+  describe('getPackageName', () => {
+    const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+    for (const name of ['foo', '@foo/bar', '@foo-bar/baz']) {
+      it(`base implementation: ${name}`, async () => {
+        const releasePR = new ReleasePR({github, packageName: name});
+        const packageName = await releasePR.getPackageName();
+        expect(packageName.name).to.equal(name);
+        expect(packageName.getComponent()).to.equal(name);
       });
-    });
+    }
   });
 
   describe('latestTag', () => {
@@ -250,9 +230,7 @@ describe('Release-PR', () => {
     beforeEach(() => {
       req = nock('https://api.github.com/');
       releasePR = new ReleasePR({
-        repoUrl: 'fake/fake',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'base',
+        github: new GitHub({owner: 'fake', repo: 'fake'}),
       });
 
       sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
@@ -307,10 +285,11 @@ describe('Release-PR', () => {
 
       // We need a special one here to set an alternate branch.
       releasePR = new ReleasePR({
-        repoUrl: 'fake/fake',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'base',
-        defaultBranch: 'legacy-8',
+        github: new GitHub({
+          owner: 'fake',
+          repo: 'fake',
+          defaultBranch: 'legacy-8',
+        }),
       });
 
       const latestTag = await releasePR.latestTag();
@@ -356,10 +335,11 @@ describe('Release-PR', () => {
 
       // We need a special one here to set an alternate branch.
       releasePR = new ReleasePR({
-        repoUrl: 'fake/fake',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'base',
-        defaultBranch: 'prerelease',
+        github: new GitHub({
+          owner: 'fake',
+          repo: 'fake',
+          defaultBranch: 'prerelease',
+        }),
       });
 
       const latestTag = await releasePR.latestTag(undefined, true);

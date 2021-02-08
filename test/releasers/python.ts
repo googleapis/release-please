@@ -71,10 +71,8 @@ describe('Python', () => {
     it('returns release PR changes with defaultInitialVersion', async () => {
       const expectedVersion = '0.1.0';
       const releasePR = new Python({
-        repoUrl: 'googleapis/py-test-repo',
-        releaseType: 'python',
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
-        apiUrl: 'https://api.github.com',
       });
       stubGithub(releasePR, ['src/version.py']);
 
@@ -131,10 +129,8 @@ describe('Python', () => {
     it('returns release PR changes with semver patch bump', async () => {
       const expectedVersion = '0.123.5';
       const releasePR = new Python({
-        repoUrl: 'googleapis/py-test-repo',
-        releaseType: 'python',
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
-        apiUrl: 'https://api.github.com',
       });
       stubGithub(releasePR, ['src/version.py']);
 
@@ -192,10 +188,8 @@ describe('Python', () => {
     });
     it('returns undefined for no CC changes', async () => {
       const releasePR = new Python({
-        repoUrl: 'googleapis/py-test-repo',
-        releaseType: 'python',
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
-        apiUrl: 'https://api.github.com',
       });
       stubGithub(releasePR);
       const openPROptions = await releasePR.getOpenPROptions(
@@ -212,10 +206,8 @@ describe('Python', () => {
     // just testing the releaser does try to update all 3.
     it('creates a release PR', async () => {
       const releasePR = new Python({
-        repoUrl: 'googleapis/py-test-repo',
-        releaseType: 'python',
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
-        apiUrl: 'https://api.github.com',
       });
 
       // We stub the entire suggester API, asserting only that the
@@ -247,10 +239,8 @@ describe('Python', () => {
 
     it('creates a release PR relative to a path', async () => {
       const releasePR = new Python({
-        repoUrl: 'googleapis/py-test-repo',
-        releaseType: 'python',
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
-        apiUrl: 'https://api.github.com',
         path: 'projects/python',
       });
 

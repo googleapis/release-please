@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import {readPOJO, stringifyExpectedChanges} from '../helpers';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
+import {GitHub} from '../../src/github';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
@@ -48,10 +49,8 @@ describe('OCaml', () => {
 
       it(`creates a release PR for non-monorepo (${suiteName})`, async () => {
         const releasePR = new OCaml({
-          repoUrl: 'phated/ocaml-sample-repo',
-          releaseType: 'ocaml',
+          github: new GitHub({owner: 'phated', repo: 'ocaml-sample-repo'}),
           packageName: 'sample',
-          apiUrl: 'https://api.github.com',
         });
 
         // Indicates that there are no PRs currently waiting to be released:
@@ -158,10 +157,8 @@ describe('OCaml', () => {
 
     it('skips JSON files that don\'t contain a "version" field', async () => {
       const releasePR = new OCaml({
-        repoUrl: 'phated/ocaml-sample-repo',
-        releaseType: 'ocaml',
+        github: new GitHub({owner: 'phated', repo: 'ocaml-sample-repo'}),
         packageName: 'sample',
-        apiUrl: 'https://api.github.com',
       });
 
       // Indicates that there are no PRs currently waiting to be released:
@@ -252,10 +249,8 @@ describe('OCaml', () => {
 
     it('does not support snapshot releases', async () => {
       const releasePR = new OCaml({
-        repoUrl: 'phated/ocaml-sample-repo',
-        releaseType: 'ocaml',
+        github: new GitHub({owner: 'phated', repo: 'ocaml-sample-repo'}),
         packageName: 'sample',
-        apiUrl: 'https://api.github.com',
         snapshot: true,
       });
       const pr = await releasePR.run();

@@ -28,8 +28,9 @@ import {ModuleVersion} from '../updaters/terraform/module-version';
 
 export class TerraformModule extends ReleasePR {
   protected async _run(): Promise<number | undefined> {
+    const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -38,7 +39,8 @@ export class TerraformModule extends ReleasePR {
 
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: this.changelogSections,
     });
@@ -73,7 +75,7 @@ export class TerraformModule extends ReleasePR {
         path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -86,7 +88,7 @@ export class TerraformModule extends ReleasePR {
           path: this.addPath(path),
           changelogEntry,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });
@@ -100,7 +102,7 @@ export class TerraformModule extends ReleasePR {
           path: this.addPath(path),
           changelogEntry,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });

@@ -19,7 +19,7 @@ import {JavaBom} from '../../src/releasers/java-bom';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
-import {GitHubFileContents} from '../../src/github';
+import {GitHubFileContents, GitHub} from '../../src/github';
 import {buildGitHubFileContent} from './utils';
 import {buildMockCommit} from '../helpers';
 
@@ -36,11 +36,8 @@ describe('JavaBom', () => {
   describe('run', () => {
     it('creates a release PR', async () => {
       const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'java-cloud-bom'}),
         packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
       });
 
       sandbox
@@ -131,11 +128,8 @@ describe('JavaBom', () => {
 
     it('creates a snapshot PR', async () => {
       const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'java-cloud-bom'}),
         packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
         snapshot: true,
       });
 
@@ -227,11 +221,8 @@ describe('JavaBom', () => {
 
     it('ignores a snapshot release if no snapshot needed', async () => {
       const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'java-cloud-bom'}),
         packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
         snapshot: true,
       });
 
@@ -264,11 +255,8 @@ describe('JavaBom', () => {
 
     it('creates a snapshot PR if an explicit release is requested, but a snapshot is needed', async () => {
       const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'java-cloud-bom'}),
         packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
         snapshot: false,
       });
       sandbox
@@ -359,11 +347,8 @@ describe('JavaBom', () => {
 
     it('merges conventional commit messages', async () => {
       const releasePR = new JavaBom({
-        repoUrl: 'googleapis/java-cloud-bom',
-        releaseType: 'java-bom',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'java-cloud-bom'}),
         packageName: 'java-cloud-bom',
-        apiUrl: 'https://api.github.com',
       });
 
       sandbox

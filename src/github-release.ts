@@ -12,17 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {SharedOptions} from './';
-import {DEFAULT_LABELS} from './constants';
+import {GitHubReleaseConstructorOptions} from './';
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import {factory} from './factory';
-import {GitHub, OctokitAPIs} from './github';
+import {GitHub} from './github';
 import {parse} from 'semver';
 import {ReleasePR} from './release-pr';
-import {ReleaseType} from './releasers';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const parseGithubRepoUrl = require('parse-github-repo-url');
 const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
 export interface ReleaseResponse {
@@ -39,83 +35,21 @@ export interface ReleaseResponse {
   draft: boolean;
 }
 
-export interface GitHubReleaseOptions extends SharedOptions {
-  releaseType?: ReleaseType;
-  changelogPath?: string;
-  draft?: boolean;
-  defaultBranch?: string;
-}
-
 export class GitHubRelease {
-  apiUrl: string;
   changelogPath: string;
+  releasePR: ReleasePR;
   gh: GitHub;
-  labels: string[];
-  repoUrl: string;
-  path?: string;
-  packageName?: string;
-  monorepoTags?: boolean;
-  token?: string;
-  releaseType?: ReleaseType;
   draft: boolean;
-  defaultBranch?: string;
 
-  constructor(options: GitHubReleaseOptions) {
-    this.apiUrl = options.apiUrl;
-    this.labels = options.label
-      ? options.label.split(',')
-      : DEFAULT_LABELS.split(',');
-    this.repoUrl = options.repoUrl;
-    this.monorepoTags = options.monorepoTags;
-    this.token = options.token;
-    this.path = options.path;
-    this.packageName = options.packageName;
-    this.releaseType = options.releaseType;
+  constructor(options: GitHubReleaseConstructorOptions) {
     this.draft = !!options.draft;
-    this.defaultBranch = options.defaultBranch;
-
     this.changelogPath = options.changelogPath ?? 'CHANGELOG.md';
-
-    this.gh = this.gitHubInstance(options.octokitAPIs);
+    this.gh = options.github;
+    this.releasePR = options.releasePR;
   }
 
   async run(): Promise<ReleaseResponse | undefined> {
-    // Attempt to lookup the package name from a well known location, such
-    // as package.json, if none is provided:
-    if (this.packageName === undefined && this.releaseType) {
-      this.packageName = await factory
-        .releasePRClass(this.releaseType)
-        .lookupPackageName(this.gh, this.path);
-    }
-    if (this.packageName === undefined) {
-      throw Error(
-        `could not determine package name for release repo = ${this.repoUrl}`
-      );
-    }
-
-    const releaseOptions = {
-      packageName: this.packageName,
-      repoUrl: this.repoUrl,
-      apiUrl: this.apiUrl,
-      defaultBranch: this.defaultBranch,
-      label: this.labels.join(','),
-      path: this.path,
-      github: this.gh,
-      monorepoTags: this.monorepoTags,
-    };
-    const releasePR = this.releaseType
-      ? factory.releasePR({
-          ...releaseOptions,
-          ...{releaseType: this.releaseType},
-        })
-      : new ReleasePR({
-          ...releaseOptions,
-          ...{releaseType: 'base'},
-        });
-
-    const candidate = await releasePR.buildRelease(
-      this.addPath(this.changelogPath)
-    );
+    const candidate = await this.releasePR.buildRelease(this.changelogPath);
     if (!candidate) {
       checkpoint('Unable to build candidate', CheckpointType.Failure);
       return undefined;
@@ -141,7 +75,7 @@ export class GitHubRelease {
     await this.gh.addLabels([GITHUB_RELEASE_LABEL], candidate.pullNumber);
     // Remove 'autorelease: pending' which indicates a GitHub release
     // has not yet been created.
-    await this.gh.removeLabels(this.labels, candidate.pullNumber);
+    await this.gh.removeLabels(this.releasePR.labels, candidate.pullNumber);
 
     const parsedVersion = parse(candidate.version, {loose: true});
     if (parsedVersion) {
@@ -164,27 +98,5 @@ export class GitHubRelease {
       );
       return undefined;
     }
-  }
-
-  addPath(file: string) {
-    if (this.path === undefined) {
-      return file;
-    } else {
-      const path = this.path.replace(/[/\\]$/, '');
-      file = file.replace(/^[/\\]/, '');
-      return `${path}/${file}`;
-    }
-  }
-
-  private gitHubInstance(octokitAPIs?: OctokitAPIs): GitHub {
-    const [owner, repo] = parseGithubRepoUrl(this.repoUrl);
-    return new GitHub({
-      token: this.token,
-      defaultBranch: this.defaultBranch,
-      owner,
-      repo,
-      apiUrl: this.apiUrl,
-      octokitAPIs,
-    });
   }
 }

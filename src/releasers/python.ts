@@ -43,13 +43,14 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class Python extends ReleasePR {
-  async getOpenPROptions(
+  protected async _getOpenPROptions(
     commits: Commit[],
     latestTag?: GitHubTag
   ): Promise<OpenPROptions | undefined> {
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: this.changelogSections || CHANGELOG_SECTIONS,
     });
@@ -79,12 +80,13 @@ export class Python extends ReleasePR {
 
     const updates: Update[] = [];
 
+    const packageName = await this.getPackageName();
     updates.push(
       new Changelog({
         path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -93,7 +95,7 @@ export class Python extends ReleasePR {
         path: this.addPath('setup.cfg'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
     updates.push(
@@ -101,7 +103,7 @@ export class Python extends ReleasePR {
         path: this.addPath('setup.py'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -112,12 +114,14 @@ export class Python extends ReleasePR {
     );
     const versionPyFiles = await versionPyFilesSearch;
     versionPyFiles.forEach(path => {
+      const vpath = this.addPath(path);
+      console.log(vpath);
       updates.push(
         new VersionPy({
           path: this.addPath(path),
           changelogEntry,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });
@@ -131,8 +135,9 @@ export class Python extends ReleasePR {
   }
 
   protected async _run(): Promise<number | undefined> {
+    const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,

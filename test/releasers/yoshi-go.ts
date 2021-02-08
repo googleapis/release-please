@@ -22,6 +22,7 @@ import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {buildMockCommit} from '../helpers';
+import {GitHub} from '../../src/github';
 
 const sandbox = sinon.createSandbox();
 
@@ -35,11 +36,8 @@ describe('YoshiGo', () => {
     });
     it('creates a release PR for google-cloud-go', async () => {
       const releasePR = new GoYoshi({
-        repoUrl: 'googleapis/google-cloud-go',
-        releaseType: 'go-yoshi',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'google-cloud-go'}),
         packageName: 'yoshi-go',
-        apiUrl: 'https://api.github.com',
       });
 
       // We stub the entire suggester API, asserting only that the
@@ -110,11 +108,8 @@ describe('YoshiGo', () => {
     });
     it('creates a release PR for google-api-go-client', async () => {
       const releasePR = new GoYoshi({
-        repoUrl: 'googleapis/google-api-go-client',
-        releaseType: 'go-yoshi',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'google-api-go-client'}),
         packageName: 'yoshi-go',
-        apiUrl: 'https://api.github.com',
       });
 
       // We stub the entire suggester API, asserting only that the
@@ -196,12 +191,10 @@ describe('YoshiGo', () => {
   });
   it('supports releasing submodule from google-cloud-go', async () => {
     const releasePR = new GoYoshi({
-      repoUrl: 'googleapis/google-cloud-go',
-      releaseType: 'go-yoshi',
+      github: new GitHub({owner: 'googleapis', repo: 'google-cloud-go'}),
       packageName: 'pubsublite',
       monorepoTags: true,
       path: 'pubsublite',
-      apiUrl: 'https://api.github.com',
     });
 
     // We stub the entire suggester API, asserting only that the
