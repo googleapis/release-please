@@ -184,7 +184,7 @@ describe('CommitSplit', () => {
 
   // Test invalid CommitSplitOptions.packagePaths combinations.
   // Intentionally inconsistent trailing slashes to test path normalization.
-  const invaldPaths = [
+  const invalidPaths = [
     // "foo/bar" overlaps "foo"
     ['foo/bar', 'foo/'],
     // ditto, testing order
@@ -192,7 +192,7 @@ describe('CommitSplit', () => {
     // "one/two/three" overlaps "one/two"
     ['one/two/', 'foo/bar/', 'one/two/three'],
   ];
-  for (const invalid of invaldPaths) {
+  for (const invalid of invalidPaths) {
     it(`validates configured paths: ${invalid}`, () => {
       let caught = false;
       try {
