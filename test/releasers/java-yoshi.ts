@@ -22,7 +22,8 @@ import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents} from '../../src/github';
 import {expect} from 'chai';
-import {buildGitHubFileContent, buildMockCommit} from './utils';
+import {buildGitHubFileContent} from './utils';
+import {buildMockCommit} from '../helpers';
 
 const sandbox = sinon.createSandbox();
 

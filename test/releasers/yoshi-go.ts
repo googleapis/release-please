@@ -21,7 +21,7 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
-import {buildMockCommit} from './utils';
+import {buildMockCommit} from '../helpers';
 
 const sandbox = sinon.createSandbox();
 

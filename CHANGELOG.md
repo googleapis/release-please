@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [10.1.0](https://www.github.com/googleapis/release-please/compare/v10.0.0...v10.1.0) (2021-02-08)
+
+
+### Features
+
+* add GitHub#commitsSince and GitHub#findMergeCommit ([#741](https://www.github.com/googleapis/release-please/issues/741)) ([27eb7b1](https://www.github.com/googleapis/release-please/commit/27eb7b13daedaf6d44374bdce9bc70ec14ab026d))
+* allow explicitly empty packageName when creating a release ([#743](https://www.github.com/googleapis/release-please/issues/743)) ([c3580c6](https://www.github.com/googleapis/release-please/commit/c3580c60c26af8c197f2ed3ee83736523c48f8fe))
+* tagging the release also comments on the release PR ([#751](https://www.github.com/googleapis/release-please/issues/751)) ([f78fc93](https://www.github.com/googleapis/release-please/commit/f78fc93d1a96ee419bc99e9b3b2a46abc507131f))
+
 ## [10.0.0](https://www.github.com/googleapis/release-please/compare/v9.4.1...v10.0.0) (2021-02-03)
 
 
