@@ -39,7 +39,7 @@ export class Helm extends ReleasePR {
     if (file === null || file === undefined) {
       return undefined;
     }
-    const pkg = JSON.parse(file.toString());
+    const pkg = JSON.parse(JSON.stringify(file));
     if (pkg.name) {
       this.packageName = pkg.name;
       // we've rewritten the package name, recalculate the package prefix
@@ -129,7 +129,7 @@ export class Helm extends ReleasePR {
     if (file === null || file === undefined) {
       return undefined;
     }
-    const pkg = JSON.parse(file.toString());
+    const pkg = JSON.parse(JSON.stringify(file));
     if (pkg.name) return pkg.name;
     else return undefined;
   }

@@ -39,7 +39,7 @@ export class ChartYaml implements Update {
     if (data === null || data === undefined) {
       return '';
     }
-    const parsed = JSON.parse(data.toString());
+    const parsed = JSON.parse(JSON.stringify(data));
     checkpoint(
       `updating ${this.path} from ${parsed.version} to ${this.version}`,
       CheckpointType.Success
