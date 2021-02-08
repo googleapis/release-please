@@ -20,10 +20,23 @@ export interface CommitSplitOptions {
   root?: string;
   // Include empty git commits: each empty commit is included
   // in the list of commits for each path.
+  // This allows using the `git commit --allow-empty` workflow
+  // of setting a package's version without changing source code.
+  // For example the following empty commit would bump the minor
+  // version for all packages:
+  //
+  // "feat: bump all the versions"
+  //
+  // And this commit would set all package versions to 7.7.7
+  //
+  // "chore: bump all the versions
+  //
+  // release-as: 7.7.7"
   includeEmpty?: boolean;
   // rather than split by top level folder, split by these package
   // paths (e.g. ["packages/pkg1", "python/pkg1"]). Commits that
   // only touch files under paths not specified here are ignored.
+  // Paths must be unique and non-overlapping.
   packagePaths?: string[];
 }
 
@@ -63,9 +76,15 @@ export class CommitSplit {
         // indicates that we have a top-level file and not a folder
         // in this edge-case we should not attempt to update the path.
         if (splitPath.length === 1) continue;
-        const pkgName = this.packagePaths
-          ? this.packagePaths.find(p => path.indexOf(p) >= 0)
-          : splitPath[0];
+
+        let pkgName;
+        if (this.packagePaths) {
+          // only track paths under this.packagePaths
+          pkgName = this.packagePaths.find(p => path.indexOf(p) >= 0);
+        } else {
+          // track paths by top level folder
+          pkgName = splitPath[0];
+        }
         if (!pkgName || dedupe.has(pkgName)) continue;
         else dedupe.add(pkgName);
         if (!splitCommits[pkgName]) splitCommits[pkgName] = [];

@@ -42,6 +42,26 @@ describe('CommitSplit', () => {
 
   type ExpectedCommitSplit = Record<string, Commit[]>;
   type PackagePaths = string[];
+
+  // Fixture data and expected results for "partitions commits by ..." tests.
+  // Returns a tuple of
+  // [
+  //   expected CommitSplit.split() output,
+  //   input to use for CommitSplitOptions.packagePaths,
+  //   input to use for CommitSplit.split()
+  // ]
+  //
+  // includeEmpty == true:
+  //   - adds an empty commit to input to use for CommitSplit.split()
+  //   - adds that empty commit to each list of expected CommitSplit.split()
+  //     output commits
+  // usePackagePaths == true:
+  //   - populate input to use for CommitSplitOptions.packagePaths
+  //   - populate expected CommitSplit.split() keyed by packagePaths entries
+  //     and restricted to commits touching child-path files
+  // usePackagePaths == false:
+  //   - undefined for CommitSplitOptions.packagePaths
+  //   - populate expected CommitSplit.split() keyed by top level folders
   const setupPackagePathCommits = (
     includeEmpty: boolean,
     usePackagePaths: boolean
@@ -76,14 +96,20 @@ describe('CommitSplit', () => {
       'chore: empty\n\nrelease-packages/foo-as: 1.2.3',
       []
     );
+    const topLevelFileCommit = buildMockCommit('fix(file): top level file', [
+      'topLevelFile.ts',
+    ]);
     const commits = [
       fooCommit,
       barCommit,
       bazCommit,
       foobarCommit,
       foobarbazCommit,
+      // should only appear in usePackagePaths == false case
       someCommit,
       emptyCommit,
+      // should not appear in any case
+      topLevelFileCommit,
     ];
 
     let packagePaths: string[] = [];
@@ -93,6 +119,7 @@ describe('CommitSplit', () => {
       // trailing slash to test path normalization.
       packagePaths = [fooPath, barPath, bazPath + '/'];
       // Expected output of commit-split with packagePaths
+      // someCommit and topLevelFileCommit not present
       perPathCommits = {
         [fooPath]: [fooCommit, foobarCommit, foobarbazCommit],
         [barPath]: [barCommit, foobarCommit, foobarbazCommit],
@@ -100,6 +127,7 @@ describe('CommitSplit', () => {
       };
     } else {
       // Expected output of commit-split with default behavior
+      // topLevelFileCommit not present
       perPathCommits = {
         [pkgsPath]: [fooCommit, barCommit, foobarCommit, foobarbazCommit],
         [bazPath]: [bazCommit, foobarbazCommit],
@@ -115,10 +143,20 @@ describe('CommitSplit', () => {
     return [perPathCommits, packagePaths, commits];
   };
 
+  // Test combinations of commit splitting with CommitSplitOptions.includeEmpty
+  // and CommitSplitOptions.packagePaths set to the following values
   const emptyVsPaths = [
+    // CommitSplitOptions.includeEmpty == true
+    // CommitSplitOptions.packagePaths == ["packages/foo", "packages/bar", "python"]
     [true, true],
+    // CommitSplitOptions.includeEmpty == true
+    // CommitSplitOptions.packagePaths == undefined
     [true, false],
+    // CommitSplitOptions.includeEmpty == undefined
+    // CommitSplitOptions.packagePaths == ["packages/foo", "packages/bar", "python"]
     [false, true],
+    // CommitSplitOptions.includeEmpty == undefined
+    // CommitSplitOptions.packagePaths == undefined
     [false, false],
   ];
   for (const [includeEmpty, usePackagePaths] of emptyVsPaths) {
@@ -144,10 +182,14 @@ describe('CommitSplit', () => {
     });
   }
 
+  // Test invalid CommitSplitOptions.packagePaths combinations.
+  // Intentionally inconsistent trailing slashes to test path normalization.
   const invaldPaths = [
-    // intentionally inconsistent trailing slashes to test path normalization.
+    // "foo/bar" overlaps "foo"
     ['foo/bar', 'foo/'],
+    // ditto, testing order
     ['foo', 'foo/bar/'],
+    // "one/two/three" overlaps "one/two"
     ['one/two/', 'foo/bar/', 'one/two/three'],
   ];
   for (const invalid of invaldPaths) {
