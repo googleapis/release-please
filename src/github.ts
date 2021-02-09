@@ -1136,7 +1136,7 @@ export class GitHub {
   // into a fully qualified ref.
   //
   // e.g. main -> refs/heads/main
-  static qualifyRef(refName: string): string {
+  static fullyQualifyBranchRef(refName: string): string {
     let final = refName;
     if (final.indexOf('/') < 0) {
       final = `refs/heads/${final}`;
@@ -1147,15 +1147,16 @@ export class GitHub {
 
   async getFileContentsWithSimpleAPI(
     path: string,
-    branch: string
+    ref: string,
+    isBranch = true
   ): Promise<GitHubFileContents> {
-    const ref = GitHub.qualifyRef(branch);
+    ref = isBranch ? GitHub.fullyQualifyBranchRef(ref) : ref;
     const options: RequestOptionsType = {
       owner: this.owner,
       repo: this.repo,
       path,
+      ref,
     };
-    if (ref) options.ref = ref;
     const resp = await this.request(
       'GET /repos/:owner/:repo/contents/:path',
       options
