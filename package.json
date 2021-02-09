@@ -51,7 +51,6 @@
     "nock": "^13.0.0",
     "sinon": "^9.0.3",
     "snap-shot-it": "^7.0.0",
-    "typescript": "^3.8.3",
     "js-yaml": "^4.0.0",
     "@types/js-yaml": "^4.0.0"
   },
@@ -72,7 +71,8 @@
     "type-fest": "^0.20.0",
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
-    "yargs": "^16.0.0"
+    "yargs": "^16.0.0",
+    "typescript": "^3.8.3"
   },
   "engines": {
     "node": ">=10.12.0"

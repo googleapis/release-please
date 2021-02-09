@@ -20,7 +20,7 @@ import {ChartYaml} from '../../src/updaters/helm/chart-yaml';
 
 const fixturesPath = './test/updaters/fixtures';
 
-describe('Chart.yaml', () => {
+describe('ChartYaml', () => {
   describe('updateContent', () => {
     it('updates version in Chart.yaml', async () => {
       const oldContent = readFileSync(
