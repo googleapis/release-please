@@ -12,4 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+name: helm-test-repo
 version: 1.0.0
+apiVersion: v2
+appVersion: 2.0.0
+dependencies:
+  - name: another-repo
+    version: 0.15.3
+    repository: "linkToHelmChartRepo"
+maintainers:
+  - Abhinav Khanna
