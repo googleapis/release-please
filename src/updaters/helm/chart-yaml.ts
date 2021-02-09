@@ -45,6 +45,6 @@ export class ChartYaml implements Update {
       CheckpointType.Success
     );
     parsed.version = this.version;
-    return yaml.dump(parsed) + '\n';
+    return yaml.dump(parsed);
   }
 }
