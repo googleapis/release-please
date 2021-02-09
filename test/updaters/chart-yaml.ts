@@ -24,11 +24,11 @@ describe('ChartYaml', () => {
   describe('updateContent', () => {
     it('updates version in Chart.yaml', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './Chart.yaml'),
+        resolve(fixturesPath, './helm/Chart.yaml'),
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new ChartYaml({
-        path: 'Chart.yaml',
+        path: './helm/Chart.yaml',
         changelogEntry: '',
         version: '1.1.0',
         packageName: '',
