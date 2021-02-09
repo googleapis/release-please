@@ -63,3 +63,27 @@ exports['Python run creates a release PR relative to a path 1'] = `
   ]
 ]
 `
+
+exports['Python getOpenPROptions returns release PR changes with defaultInitialVersion 1'] = `
+## 0.1.0 (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/py-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/py-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
+---
+
+`
+
+exports['Python getOpenPROptions returns release PR changes with semver patch bump 1'] = `
+### [0.123.5](https://www.github.com/googleapis/py-test-repo/compare/v0.123.4...v0.123.5) (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/py-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/py-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
+---
+
+`

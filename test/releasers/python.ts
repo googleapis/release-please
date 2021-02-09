@@ -88,21 +88,12 @@ describe('Python', () => {
       expect(openPROptions).to.have.property('includePackageName').to.be.false;
       expect(openPROptions).to.have.property('changelogEntry');
 
-      const normalizedChangelog = openPROptions!.changelogEntry.replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10'
+      snapshot(
+        openPROptions!.changelogEntry.replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10'
+        )
       );
-      const expectedChangelog = `
-## ${expectedVersion} (1983-10-10)
-
-
-### Bug Fixes
-
-* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/py-test-repo/commit/${COMMITS[1].sha}))
-* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/py-test-repo/commit/${COMMITS[0].sha}))
----
-`.substring(1); // leading \n is aesthetic
-      expect(normalizedChangelog).to.equal(expectedChangelog);
 
       const perUpdateChangelog = openPROptions!.changelogEntry.substring(
         0,
@@ -159,21 +150,12 @@ describe('Python', () => {
       expect(openPROptions).to.have.property('includePackageName').to.be.false;
       expect(openPROptions).to.have.property('changelogEntry');
 
-      const normalizedChangelog = openPROptions!.changelogEntry.replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10'
+      snapshot(
+        openPROptions!.changelogEntry.replace(
+          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
+          '1983-10-10'
+        )
       );
-      const expectedChangelog = `
-### [${expectedVersion}](https://www.github.com/googleapis/py-test-repo/compare/v0.123.4...v${expectedVersion}) (1983-10-10)
-
-
-### Bug Fixes
-
-* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/py-test-repo/commit/${COMMITS[1].sha}))
-* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/py-test-repo/commit/${COMMITS[0].sha}))
----
-`.substring(1); // leading \n is aesthetic
-      expect(normalizedChangelog).to.equal(expectedChangelog);
 
       const perUpdateChangelog = openPROptions!.changelogEntry.substring(
         0,

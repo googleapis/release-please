@@ -43,7 +43,8 @@ export function buildGitHubFileRaw(content: string): GitHubFileContents {
  *  direct children (no sub folders).
  * @param sandbox - created in test file.
  * @param gh - GitHub instance's `getFileContentsOnBranch` to stub
- * @param files - list of file paths from repo root to stub
+ * @param files - list of mock/repo/full/path/filename.ext. The stub file is
+ *   then read from fixturePath/filename.ext.
  * @param defaultBranch - branch arg to `getFileContentsOnBranch`
  */
 export function stubFilesFromFixtures(
