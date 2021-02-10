@@ -381,7 +381,6 @@ export class ReleasePR {
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
   protected async detectReleaseVersionFromCode(): Promise<string | undefined> {
-    console.log('looking in code');
     return undefined;
   }
 
@@ -392,15 +391,12 @@ export class ReleasePR {
     // try from branch name
     let version = branchName?.getVersion();
     if (version) {
-      console.log('found version from branchname');
       return version;
     }
 
     // try from PR title
-    console.log(mergedPR.title);
     version = this.detectReleaseVersionFromTitle(mergedPR.title);
     if (version) {
-      console.log('found version from title');
       return version;
     }
 
@@ -501,7 +497,7 @@ export class ReleasePR {
 
     // FIXME: this assumes that the version is in the branch name
     const branchName = BranchName.parse(pull.headRefName)!;
-    const version = branchName.getVersion()!;
+    const version = await this.detectReleaseVersion(pull, branchName);
     const normalizedVersion = semver.valid(version)!;
 
     return {
@@ -537,8 +533,7 @@ export class ReleasePR {
       : branchPrefix;
 
     const generator = this.gh.mergeCommitIterator(maxResults);
-    for await (let commitWithPullRequest of generator) {
-      const commit = commitWithPullRequest.commit;
+    for await (const commitWithPullRequest of generator) {
       const mergedPullRequest = commitWithPullRequest.pullRequest;
       if (!mergedPullRequest) {
         continue;
@@ -549,7 +544,7 @@ export class ReleasePR {
         labels.length > 0 &&
         !this.hasAllLabels(labels, mergedPullRequest.labels)
       ) {
-        continue
+        continue;
       }
 
       const branchName = BranchName.parse(mergedPullRequest.headRefName);
@@ -563,7 +558,10 @@ export class ReleasePR {
         continue;
       }
 
-      const version = await this.detectReleaseVersion(mergedPullRequest, branchName);
+      const version = await this.detectReleaseVersion(
+        mergedPullRequest,
+        branchName
+      );
       if (!version) {
         continue;
       }
@@ -580,8 +578,8 @@ export class ReleasePR {
         continue;
       }
       return mergedPullRequest;
-    };
-    
+    }
+
     return undefined;
   }
 

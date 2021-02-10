@@ -665,8 +665,10 @@ export class GitHub {
     maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<CommitWithPullRequest | undefined> {
     const generator = this.mergeCommitIterator(maxResults);
-    for await (let commitWithPullRequest of generator) {
-      if (filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)) {
+    for await (const commitWithPullRequest of generator) {
+      if (
+        filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)
+      ) {
         return commitWithPullRequest;
       }
     }
@@ -675,7 +677,7 @@ export class GitHub {
 
   /**
    * Iterate through commit history with a max number of results scanned.
-   * 
+   *
    * @param maxResults {number} maxResults - Limit the number of results searched.
    *   Defaults to unlimited.
    * @yields {CommitWithPullRequest}
@@ -712,13 +714,12 @@ export class GitHub {
     filter: CommitFilter,
     maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<Commit[]> {
-    let cursor: string | undefined = undefined;
     const commits: Commit[] = [];
-    let found: CommitWithPullRequest | undefined = undefined;
-    let results = 0;
     const generator = this.mergeCommitIterator(maxResults);
-    for await (let commitWithPullRequest of generator) {
-      if (filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)) {
+    for await (const commitWithPullRequest of generator) {
+      if (
+        filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)
+      ) {
         break;
       }
       commits.push(commitWithPullRequest.commit);
