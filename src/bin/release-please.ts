@@ -99,6 +99,29 @@ export const parser = yargs
       factory.runCommand('github-release', argv).catch(handleError);
     }
   )
+  .command(
+    'latest-tag',
+    'find the sha of the latest release',
+    (yargs: YargsOptionsBuilder) => {
+      yargs
+        .option('version-file', {
+          describe: 'path to version file to update, e.g., version.rb',
+        })
+        .option('default-branch', {
+          describe: 'default branch to open release PR against',
+          type: 'string',
+        });
+    },
+    (argv: ReleasePROptions) => {
+      const releasePR = factory.releasePR(argv);
+      releasePR
+        .latestTag()
+        .catch(handleError)
+        .then(latestTag => {
+          console.log(latestTag);
+        });
+    }
+  )
   .middleware(_argv => {
     const argv = _argv as GitHubReleaseOptions;
     // allow secrets to be loaded from file path

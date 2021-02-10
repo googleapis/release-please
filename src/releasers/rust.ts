@@ -37,7 +37,7 @@ export class Rust extends ReleasePR {
       return tagOrBranch;
     };
 
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(prefix);
+    const latestTag: GitHubTag | undefined = await this.latestTag(prefix);
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
       path: this.path,

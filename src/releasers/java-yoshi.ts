@@ -76,7 +76,7 @@ export class JavaYoshi extends ReleasePR {
       this.labels = ['type: process'];
     }
 
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
+    const latestTag: GitHubTag | undefined = await this.latestTag();
     const commits: Commit[] = this.snapshot
       ? [
           {

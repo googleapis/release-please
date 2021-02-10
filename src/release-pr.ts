@@ -381,6 +381,7 @@ export class ReleasePR {
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
   protected async detectReleaseVersionFromCode(): Promise<string | undefined> {
+    console.log('looking in code');
     return undefined;
   }
 
@@ -391,12 +392,15 @@ export class ReleasePR {
     // try from branch name
     let version = branchName?.getVersion();
     if (version) {
+      console.log('found version from branchname');
       return version;
     }
 
     // try from PR title
+    console.log(mergedPR.title);
     version = this.detectReleaseVersionFromTitle(mergedPR.title);
     if (version) {
+      console.log('found version from title');
       return version;
     }
 
@@ -483,5 +487,128 @@ export class ReleasePR {
     }
 
     return this.defaultBranch;
+  }
+
+  async latestTag(
+    prefix?: string,
+    preRelease = false
+  ): Promise<GitHubTag | undefined> {
+    // only look at the last 250 or so commits to find the latest tag - we
+    // don't want to scan the entire repository history if this repo has never
+    // been released
+    const pull = await this.findMergedReleasePR([], prefix, preRelease, 250);
+    if (!pull) return await this.gh.latestTagFallback(prefix, preRelease);
+
+    // FIXME: this assumes that the version is in the branch name
+    const branchName = BranchName.parse(pull.headRefName)!;
+    const version = branchName.getVersion()!;
+    const normalizedVersion = semver.valid(version)!;
+
+    return {
+      name: `v${normalizedVersion}`,
+      sha: pull.sha,
+      version: normalizedVersion,
+    };
+  }
+
+  // The default matcher will rule out pre-releases.
+  /**
+   * Find the last merged pull request that targeted the default
+   * branch and looks like a release PR.
+   *
+   * @param {string[]} labels - If provided, ensure that the pull
+   *   request has all of the specified labels
+   * @param {string|undefined} branchPrefix - If provided, limit
+   *   release pull requests that contain the specified component
+   * @param {boolean} preRelease - Whether to include pre-release
+   *   versions in the response. Defaults to true.
+   * @param {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @returns {MergedGitHubPR|undefined}
+   */
+  protected async findMergedReleasePR(
+    labels: string[],
+    branchPrefix: string | undefined = undefined,
+    preRelease = true,
+    maxResults: number = Number.MAX_SAFE_INTEGER
+  ): Promise<MergedGitHubPR | undefined> {
+    branchPrefix = branchPrefix?.endsWith('-')
+      ? branchPrefix.replace(/-$/, '')
+      : branchPrefix;
+
+    const mergedCommit = await this.gh.findMergeCommit(
+      (commit, mergedPullRequest) => {
+        if (!mergedPullRequest) {
+          return false;
+        }
+
+        // If labels specified, ensure the pull request has all the specified labels
+        if (
+          labels.length > 0 &&
+          !this.hasAllLabels(labels, mergedPullRequest.labels)
+        ) {
+          return false;
+        }
+
+        const branchName = BranchName.parse(mergedPullRequest.headRefName);
+        if (!branchName) {
+          return false;
+        }
+
+        // If branchPrefix is specified, ensure it is found in the branch name.
+        // If branchPrefix is not specified, component should also be undefined.
+        if (branchName.getComponent() !== branchPrefix) {
+          return false;
+        }
+
+        console.log('looking up version');
+        console.log(mergedPullRequest);
+        console.log(branchName);
+        let version: string | undefined | void = undefined;
+        const ret = this.detectReleaseVersion(mergedPullRequest, branchName)
+          // .catch(err => {
+          //   console.log(err);
+          // })
+          .then(result => {
+            const value = result;
+            console.log('resolved', typeof value);
+            return value;
+          });
+        console.log('version:', version);
+        console.log('ret', ret);
+        const waited = Promise.all([ret]);
+        console.log('waited', waited);
+
+        if (!version) {
+          return false;
+        }
+
+        version = "1.2.3";
+
+        // What's left by now should just be the version string.
+        // Check for pre-releases if needed.
+        if (!preRelease && version.indexOf('-') >= 0) {
+          return false;
+        }
+
+        // Make sure we did get a valid semver.
+        const normalizedVersion = semver.valid(version);
+        if (!normalizedVersion) {
+          return false;
+        }
+
+        return true;
+      },
+      maxResults
+    );
+    return mergedCommit?.pullRequest;
+  }
+
+  private hasAllLabels(labelsA: string[], labelsB: string[]) {
+    let hasAll = true;
+    labelsA.forEach(label => {
+      if (labelsB.indexOf(label) === -1) hasAll = false;
+    });
+    return hasAll;
   }
 }
