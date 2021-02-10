@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [10.2.0](https://www.github.com/googleapis/release-please/compare/v10.1.0...v10.2.0) (2021-02-10)
+
+
+### Features
+
+* add async interator for searching commit history ([#759](https://www.github.com/googleapis/release-please/issues/759)) ([f42bab1](https://www.github.com/googleapis/release-please/commit/f42bab11d9d737d64f8b4a7184b58951fc6a9d44))
+
 ## [10.1.0](https://www.github.com/googleapis/release-please/compare/v10.0.0...v10.1.0) (2021-02-08)
 
 
