@@ -64,7 +64,7 @@ describe('JavaYoshi', () => {
       .stub(releasePR.gh, 'findMergedReleasePR')
       .returns(Promise.resolve(undefined));
 
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -166,7 +166,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -264,7 +264,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -393,7 +393,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -490,7 +490,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -582,7 +582,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',

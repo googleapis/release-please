@@ -536,72 +536,53 @@ export class ReleasePR {
       ? branchPrefix.replace(/-$/, '')
       : branchPrefix;
 
-    const mergedCommit = await this.gh.findMergeCommit(
-      (commit, mergedPullRequest) => {
-        if (!mergedPullRequest) {
-          return false;
-        }
+    const generator = this.gh.mergeCommitIterator(maxResults);
+    for await (let commitWithPullRequest of generator) {
+      const commit = commitWithPullRequest.commit;
+      const mergedPullRequest = commitWithPullRequest.pullRequest;
+      if (!mergedPullRequest) {
+        continue;
+      }
 
-        // If labels specified, ensure the pull request has all the specified labels
-        if (
-          labels.length > 0 &&
-          !this.hasAllLabels(labels, mergedPullRequest.labels)
-        ) {
-          return false;
-        }
+      // If labels specified, ensure the pull request has all the specified labels
+      if (
+        labels.length > 0 &&
+        !this.hasAllLabels(labels, mergedPullRequest.labels)
+      ) {
+        continue
+      }
 
-        const branchName = BranchName.parse(mergedPullRequest.headRefName);
-        if (!branchName) {
-          return false;
-        }
+      const branchName = BranchName.parse(mergedPullRequest.headRefName);
+      if (!branchName) {
+        continue;
+      }
 
-        // If branchPrefix is specified, ensure it is found in the branch name.
-        // If branchPrefix is not specified, component should also be undefined.
-        if (branchName.getComponent() !== branchPrefix) {
-          return false;
-        }
+      // If branchPrefix is specified, ensure it is found in the branch name.
+      // If branchPrefix is not specified, component should also be undefined.
+      if (branchName.getComponent() !== branchPrefix) {
+        continue;
+      }
 
-        console.log('looking up version');
-        console.log(mergedPullRequest);
-        console.log(branchName);
-        let version: string | undefined | void = undefined;
-        const ret = this.detectReleaseVersion(mergedPullRequest, branchName)
-          // .catch(err => {
-          //   console.log(err);
-          // })
-          .then(result => {
-            const value = result;
-            console.log('resolved', typeof value);
-            return value;
-          });
-        console.log('version:', version);
-        console.log('ret', ret);
-        const waited = Promise.all([ret]);
-        console.log('waited', waited);
+      const version = await this.detectReleaseVersion(mergedPullRequest, branchName);
+      if (!version) {
+        continue;
+      }
 
-        if (!version) {
-          return false;
-        }
+      // What's left by now should just be the version string.
+      // Check for pre-releases if needed.
+      if (!preRelease && version.indexOf('-') >= 0) {
+        continue;
+      }
 
-        version = "1.2.3";
-
-        // What's left by now should just be the version string.
-        // Check for pre-releases if needed.
-        if (!preRelease && version.indexOf('-') >= 0) {
-          return false;
-        }
-
-        // Make sure we did get a valid semver.
-        const normalizedVersion = semver.valid(version);
-        if (!normalizedVersion) {
-          return false;
-        }
-
-        return true;
-      },
-      maxResults
-    );
-    return mergedCommit?.pullRequest;
+      // Make sure we did get a valid semver.
+      const normalizedVersion = semver.valid(version);
+      if (!normalizedVersion) {
+        continue;
+      }
+      return mergedPullRequest;
+    };
+    
+    return undefined;
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {

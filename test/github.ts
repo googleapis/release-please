@@ -334,36 +334,6 @@ describe('GitHub', () => {
       req.done();
     });
 
-    it('returns a stable branch pull request', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-stable-branch.json'),
-          'utf8'
-        )
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-      const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.127.0');
-      req.done();
-    });
-
-    it('returns a prerelease tag stable branch', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-stable-branch.json'),
-          'utf8'
-        )
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-      const latestTag = await github.latestTag(undefined, true);
-      expect(latestTag!.version).to.equal('1.127.1-SNAPSHOT');
-      req.done();
-    });
-
     it('does not return pre-releases as latest tag', async () => {
       const graphql = JSON.parse(
         readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')

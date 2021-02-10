@@ -39,7 +39,7 @@ function mockRequest(releasePR: Node) {
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
 
-  sandbox.stub(releasePR.gh, 'latestTag').returns(
+  sandbox.stub(releasePR, 'latestTag').returns(
     Promise.resolve({
       name: 'v0.123.4',
       sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
