@@ -664,27 +664,40 @@ export class GitHub {
     filter: CommitFilter,
     maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<CommitWithPullRequest | undefined> {
+    const generator = this.mergeCommitIterator(maxResults);
+    for await (const commitWithPullRequest of generator) {
+      if (
+        filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)
+      ) {
+        return commitWithPullRequest;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Iterate through commit history with a max number of results scanned.
+   *
+   * @param maxResults {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @yields {CommitWithPullRequest}
+   */
+  async *mergeCommitIterator(maxResults: number = Number.MAX_SAFE_INTEGER) {
     let cursor: string | undefined = undefined;
-    let found: CommitWithPullRequest | undefined = undefined;
     let results = 0;
-    while (!found && results < maxResults) {
+    while (results < maxResults) {
       const response: PullRequestHistory = await this.mergeCommitsGraphQL(
         cursor
       );
-      found = response.data.find(commitWithPullRequest => {
+      for (let i = 0; i < response.data.length; i++) {
         results += 1;
-        return filter(
-          commitWithPullRequest.commit,
-          commitWithPullRequest.pullRequest
-        );
-      });
+        yield response.data[i];
+      }
       if (!response.pageInfo.hasNextPage) {
         break;
       }
       cursor = response.pageInfo.endCursor;
     }
-
-    return found;
   }
 
   /**
@@ -701,33 +714,16 @@ export class GitHub {
     filter: CommitFilter,
     maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<Commit[]> {
-    let cursor: string | undefined = undefined;
     const commits: Commit[] = [];
-    let found: CommitWithPullRequest | undefined = undefined;
-    let results = 0;
-    while (!found && results < maxResults) {
-      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
-        cursor
-      );
-      found = response.data.find(commitWithPullRequest => {
-        results += 1;
-        if (
-          filter(
-            commitWithPullRequest.commit,
-            commitWithPullRequest.pullRequest
-          )
-        ) {
-          return true;
-        }
-        commits.push(commitWithPullRequest.commit);
-        return false;
-      });
-      if (!response.pageInfo.hasNextPage) {
+    const generator = this.mergeCommitIterator(maxResults);
+    for await (const commitWithPullRequest of generator) {
+      if (
+        filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)
+      ) {
         break;
       }
-      cursor = response.pageInfo.endCursor;
+      commits.push(commitWithPullRequest.commit);
     }
-
     return commits;
   }
 
