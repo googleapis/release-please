@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePR, ReleaseCandidate, OpenPROptions} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
@@ -43,15 +43,10 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class Python extends ReleasePR {
-  protected async _run(): Promise<number | undefined> {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined
-    );
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
-    });
-
+  async getOpenPROptions(
+    commits: Commit[],
+    latestTag?: GitHubTag
+  ): Promise<OpenPROptions | undefined> {
     const cc = new ConventionalCommits({
       commits,
       githubRepoUrl: this.repoUrl,
@@ -126,14 +121,25 @@ export class Python extends ReleasePR {
         })
       );
     });
-
-    return await this.openPR({
+    return {
       sha: commits[0].sha!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,
       version: candidate.version,
       includePackageName: this.monorepoTags,
+    };
+  }
+
+  protected async _run(): Promise<number | undefined> {
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packageName}-` : undefined
+    );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
     });
+    const openPROptions = await this.getOpenPROptions(commits, latestTag);
+    return openPROptions ? await this.openPR(openPROptions) : undefined;
   }
 
   protected defaultInitialVersion(): string {

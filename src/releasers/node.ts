@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePR, ReleaseCandidate, OpenPROptions} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHub, GitHubTag, GitHubFileContents} from '../github';
@@ -27,7 +27,10 @@ import {PackageJson} from '../updaters/package-json';
 import {SamplesPackageJson} from '../updaters/samples-package-json';
 
 export class Node extends ReleasePR {
-  protected async _run(): Promise<number | undefined> {
+  async getOpenPROptions(
+    commits: Commit[],
+    latestTag?: GitHubTag
+  ): Promise<OpenPROptions | undefined> {
     // Make an effort to populate packageName from the contents of
     // the package.json, rather than forcing this to be set:
     const contents: GitHubFileContents = await this.gh.getFileContents(
@@ -39,14 +42,6 @@ export class Node extends ReleasePR {
       // we've rewritten the package name, recalculate the package prefix
       this.packagePrefix = this.coercePackagePrefix(pkg.name);
     }
-
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
-      this.monorepoTags ? `${this.packagePrefix}-` : undefined
-    );
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
-    });
 
     const cc = new ConventionalCommits({
       commits,
@@ -115,14 +110,25 @@ export class Node extends ReleasePR {
         contents,
       })
     );
-
-    return await this.openPR({
+    return {
       sha: commits[0].sha!,
       changelogEntry: `${changelogEntry}\n---\n`,
       updates,
       version: candidate.version,
       includePackageName: this.monorepoTags,
+    };
+  }
+
+  protected async _run(): Promise<number | undefined> {
+    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+      this.monorepoTags ? `${this.packagePrefix}-` : undefined
+    );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
     });
+    const openPROptions = await this.getOpenPROptions(commits, latestTag);
+    return openPROptions ? await this.openPR(openPROptions) : undefined;
   }
 
   // A releaser can implement this method to automatically detect
