@@ -492,6 +492,14 @@ export class ReleasePR {
     return this.defaultBranch;
   }
 
+  /**
+   * Find the most recent matching release tag on the branch we're
+   * configured for.
+   *
+   * @param {string} prefix - Limit the release to a specific component.
+   * @param {boolean} preRelease - Whether or not to return pre-release
+   *   versions. Defaults to false.
+   */
   async latestTag(
     prefix?: string,
     preRelease = false
@@ -502,7 +510,7 @@ export class ReleasePR {
     const pull = await this.findMergedReleasePR([], prefix, preRelease, 250);
     if (!pull) return await this.gh.latestTagFallback(prefix, preRelease);
 
-    // FIXME: this assumes that the version is in the branch name
+    // TODO: shouldn't need to do this twice
     const branchName = BranchName.parse(pull.headRefName)!;
     const version = await this.detectReleaseVersion(pull, branchName);
     const normalizedVersion = semver.valid(version)!;
