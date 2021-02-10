@@ -134,6 +134,13 @@ export class ReleasePR {
     this.packagePrefix = this.coercePackagePrefix(this.packageName);
   }
 
+  async getOpenPROptions(
+    _commits: Commit[],
+    _latestTag?: GitHubTag
+  ): Promise<OpenPROptions | undefined> {
+    throw Error('must be implemented by subclass');
+  }
+
   async run(): Promise<number | undefined> {
     if (this.snapshot && !this.supportsSnapshots()) {
       checkpoint(
