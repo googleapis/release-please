@@ -46,6 +46,7 @@ type CreateIssueCommentResponse = PromiseValue<
 //  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 // >['data'];
 export type ReleaseCreateResponse = {
+  name: string;
   tag_name: string;
   draft: boolean;
   html_url: string;

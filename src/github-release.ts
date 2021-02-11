@@ -32,6 +32,7 @@ export interface ReleaseResponse {
   version: string;
   sha: string;
   html_url: string;
+  name: string;
   tag_name: string;
   upload_url: string;
   pr: number;
@@ -152,6 +153,7 @@ export class GitHubRelease {
         version: candidate.version,
         pr: candidate.pullNumber,
         html_url: release.html_url,
+        name: release.name,
         tag_name: release.tag_name,
         upload_url: release.upload_url,
         draft: release.draft,

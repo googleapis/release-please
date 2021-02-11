@@ -74,6 +74,7 @@ describe('GitHubRelease', () => {
         .stub(release.gh, 'createRelease')
         .withArgs('foo', `v${version}`, 'abc123', '\n* entry', !!options?.draft)
         .resolves({
+          name: `foo v${version}`,
           tag_name: `v${version}`,
           draft: !!options?.draft,
           html_url: 'https://release.url',
@@ -100,6 +101,7 @@ describe('GitHubRelease', () => {
     it('creates and labels release on GitHub', async () => {
       const releaser = gitHubReleaserForVersion('1.0.3');
       const created = await releaser.run();
+      strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
@@ -156,6 +158,7 @@ describe('GitHubRelease', () => {
         .stub(release.gh, 'createRelease')
         .withArgs('bigquery', 'bigquery/v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
+          name: 'bigquery bigquery/v1.0.3',
           tag_name: 'bigquery/v1.0.3',
           draft: false,
           html_url: 'https://release.url',
@@ -179,6 +182,7 @@ describe('GitHubRelease', () => {
 
       const created = await release.run();
       expect(created).to.not.be.undefined;
+      strictEqual(created!.name, 'bigquery bigquery/v1.0.3');
       strictEqual(created!.tag_name, 'bigquery/v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
@@ -220,6 +224,7 @@ describe('GitHubRelease', () => {
         .stub(release.gh, 'createRelease')
         .withArgs('foo', 'foo/v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
+          name: 'foo foo/v1.0.3',
           tag_name: 'foo/v1.0.3',
           draft: false,
           html_url: 'https://release.url',
@@ -242,6 +247,7 @@ describe('GitHubRelease', () => {
         .resolves();
 
       const created = await release.run();
+      strictEqual(created!.name, 'foo foo/v1.0.3');
       strictEqual(created!.tag_name, 'foo/v1.0.3');
     });
 
@@ -283,8 +289,15 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'createRelease')
-        .withArgs('foo', 'foo-v1.0.3', 'abc123', '\n* entry', false)
+        .withArgs(
+          '@google-cloud/foo',
+          'foo-v1.0.3',
+          'abc123',
+          '\n* entry',
+          false
+        )
         .resolves({
+          name: '@google-cloud/foo foo-v1.0.3',
           tag_name: 'foo-v1.0.3',
           draft: false,
           html_url: 'https://release.url',
@@ -308,6 +321,7 @@ describe('GitHubRelease', () => {
 
       const created = await release.run();
       expect(created).to.not.be.undefined;
+      strictEqual(created!.name, '@google-cloud/foo foo-v1.0.3');
       strictEqual(created!.tag_name, 'foo-v1.0.3');
     });
 
@@ -349,8 +363,9 @@ describe('GitHubRelease', () => {
 
       sandbox
         .stub(release.gh, 'createRelease')
-        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withArgs('@google-cloud/foo', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
+          name: '@google-cloud/foo v1.0.3',
           tag_name: 'v1.0.3',
           draft: false,
           html_url: 'https://release.url',
@@ -373,6 +388,7 @@ describe('GitHubRelease', () => {
         .resolves();
 
       const created = await release.run();
+      strictEqual(created!.name, '@google-cloud/foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
     });
 
@@ -474,6 +490,7 @@ describe('GitHubRelease', () => {
         .stub(release.gh, 'createRelease')
         .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
+          name: 'foo v1.0.3',
           tag_name: 'v1.0.3',
           draft: false,
           html_url: 'https://release.url',
@@ -497,6 +514,7 @@ describe('GitHubRelease', () => {
 
       const created = await release.run();
       expect(created).to.not.be.undefined;
+      strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
@@ -536,6 +554,7 @@ describe('GitHubRelease', () => {
         .stub(release.gh, 'createRelease')
         .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
+          name: 'foo v1.0.3',
           tag_name: 'v1.0.3',
           draft: false,
           html_url: 'https://release.url',
@@ -559,6 +578,7 @@ describe('GitHubRelease', () => {
 
       const created = await release.run();
       expect(created).to.not.be.undefined;
+      strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
@@ -670,6 +690,7 @@ describe('GitHubRelease', () => {
         .stub(release.gh, 'createRelease')
         .withArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
         .resolves({
+          name: 'v1.0.3',
           tag_name: 'v1.0.3',
           draft: false,
           html_url: 'https://release.url',
@@ -692,6 +713,7 @@ describe('GitHubRelease', () => {
         .resolves();
 
       const created = await release.run();
+      strictEqual(created!.name, 'v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
