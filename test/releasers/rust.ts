@@ -49,7 +49,7 @@ describe('Rust', () => {
           .returns(Promise.resolve(undefined));
 
         // Return latest tag used to determine next version #:
-        sandbox.stub(releasePR.gh, 'latestTag').returns(
+        sandbox.stub(releasePR, 'latestTag').returns(
           Promise.resolve({
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             name: 'v0.123.4',
@@ -150,7 +150,7 @@ describe('Rust', () => {
           .returns(Promise.resolve(undefined));
 
         // Return latest tag used to determine next version #:
-        sandbox.stub(releasePR.gh, 'latestTag').returns(
+        sandbox.stub(releasePR, 'latestTag').returns(
           Promise.resolve({
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             name: 'v0.123.4',

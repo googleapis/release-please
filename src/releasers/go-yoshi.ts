@@ -48,7 +48,7 @@ const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 
 export class GoYoshi extends ReleasePR {
   protected async _run(): Promise<number | undefined> {
-    const latestTag = await this.gh.latestTag(
+    const latestTag = await this.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined,
       false
     );

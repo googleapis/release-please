@@ -56,7 +56,7 @@ function stubGithub(releasePR: Python, versionFiles: string[] = []) {
   sandbox
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
-  sandbox.stub(releasePR.gh, 'latestTag').resolves(LATEST_TAG);
+  sandbox.stub(releasePR, 'latestTag').resolves(LATEST_TAG);
   sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(COMMITS);
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'findFilesByFilename').resolves(versionFiles);

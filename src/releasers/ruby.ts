@@ -39,7 +39,7 @@ export class Ruby extends ReleasePR {
     this.versionFile = options.versionFile;
   }
   protected async _run(): Promise<number | undefined> {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+    const latestTag: GitHubTag | undefined = await this.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined,
       false
     );

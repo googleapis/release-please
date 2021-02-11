@@ -471,31 +471,6 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  // This looks for the most recent matching release tag on
-  // the branch we're configured for.
-  async latestTag(
-    prefix?: string,
-    preRelease = false
-  ): Promise<GitHubTag | undefined> {
-    // only look at the last 250 or so commits to find the latest tag - we
-    // don't want to scan the entire repository history if this repo has never
-    // been released
-    const pull = await this.findMergedReleasePR([], prefix, preRelease, 250);
-    if (!pull) return await this.latestTagFallback(prefix, preRelease);
-
-    // FIXME: this assumes that the version is in the branch name
-    const branchName = BranchName.parse(pull.headRefName)!;
-    const version = branchName.getVersion()!;
-    const normalizedVersion = semver.valid(version)!;
-
-    const tag = {
-      name: `v${normalizedVersion}`,
-      sha: pull.sha,
-      version: normalizedVersion,
-    } as GitHubTag;
-    return tag;
-  }
-
   // If we can't find a release branch (a common cause of this, as an example
   // is that we might be dealing with the first relese), use the last semver
   // tag that's available on the repository:

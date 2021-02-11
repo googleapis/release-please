@@ -74,7 +74,7 @@ export class JavaBom extends ReleasePR {
       this.labels = ['type: process'];
     }
 
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
+    const latestTag: GitHubTag | undefined = await this.latestTag();
 
     const commits = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,

@@ -60,7 +60,7 @@ describe('OCaml', () => {
           .returns(Promise.resolve(undefined));
 
         // Return latest tag used to determine next version #:
-        sandbox.stub(releasePR.gh, 'latestTag').returns(
+        sandbox.stub(releasePR, 'latestTag').returns(
           Promise.resolve({
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
             name: 'v0.5.0',
@@ -170,7 +170,7 @@ describe('OCaml', () => {
         .returns(Promise.resolve(undefined));
 
       // Return latest tag used to determine next version #:
-      sandbox.stub(releasePR.gh, 'latestTag').returns(
+      sandbox.stub(releasePR, 'latestTag').returns(
         Promise.resolve({
           sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
           name: 'v0.5.0',

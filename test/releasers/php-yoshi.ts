@@ -58,7 +58,7 @@ describe('PHPYoshi', () => {
       .stub(releasePR.gh, 'findMergedReleasePR')
       .returns(Promise.resolve(undefined));
 
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'bf69d0f204474b88b3f8b5a72a392129d16a3929',

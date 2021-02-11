@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it, afterEach} from 'mocha';
+import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as nock from 'nock';
 nock.disableNetConnect();
 
@@ -24,6 +24,9 @@ import {GitHubFileContents} from '../../src/github';
 import {expect} from 'chai';
 import {buildGitHubFileContent} from './utils';
 import {buildMockCommit} from '../helpers';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
+import {ReleasePR} from '../../src/release-pr';
 
 const sandbox = sinon.createSandbox();
 
@@ -61,7 +64,7 @@ describe('JavaYoshi', () => {
       .stub(releasePR.gh, 'findMergedReleasePR')
       .returns(Promise.resolve(undefined));
 
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -163,7 +166,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -261,7 +264,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -390,7 +393,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -487,7 +490,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -579,7 +582,7 @@ describe('JavaYoshi', () => {
       .returns(Promise.resolve(undefined));
 
     // Indicates that there are no PRs currently waiting to be released:
-    sandbox.stub(releasePR.gh, 'latestTag').returns(
+    sandbox.stub(releasePR, 'latestTag').returns(
       Promise.resolve({
         name: 'v0.20.3',
         sha: 'abc123',
@@ -657,5 +660,52 @@ describe('JavaYoshi', () => {
         '1983-10-10' // don't save a real date, this will break tests.
       )
     );
+  });
+
+  describe('latestTag', () => {
+    let req: nock.Scope;
+    let releasePR: ReleasePR;
+
+    beforeEach(() => {
+      req = nock('https://api.github.com/');
+      releasePR = new JavaYoshi({
+        repoUrl: 'googleapis/java-trace',
+        releaseType: 'java-yoshi',
+        // not actually used by this type of repo.
+        packageName: 'java-trace',
+        apiUrl: 'https://api.github.com',
+      });
+
+      sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
+    });
+    it('returns a stable branch pull request', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve('./test/fixtures', 'latest-tag-stable-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('1.127.0');
+      req.done();
+    });
+
+    it('returns a prerelease tag stable branch', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve('./test/fixtures', 'latest-tag-stable-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag(undefined, true);
+      expect(latestTag!.version).to.equal('1.127.1-SNAPSHOT');
+      req.done();
+    });
   });
 });
