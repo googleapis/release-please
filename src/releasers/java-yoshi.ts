@@ -76,7 +76,7 @@ export class JavaYoshi extends ReleasePR {
       this.labels = ['type: process'];
     }
 
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag();
+    const latestTag: GitHubTag | undefined = await this.latestTag();
     const commits: Commit[] = this.snapshot
       ? [
           {
@@ -321,7 +321,7 @@ export class JavaYoshi extends ReleasePR {
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
   protected detectReleaseVersionFromTitle(title: string): string | undefined {
-    const pattern = /^chore\((?<branch>[^(]+)\): release ?(?<component>.*) (?<version>\d+\.\d+\.\d+)$/;
+    const pattern = /^chore\((?<branch>[^(]+)\): release ?(?<component>.*) (?<version>\d+\.\d+\.\d+(-\w+)?)$/;
     const match = title.match(pattern);
     if (match?.groups) {
       return match.groups['version'];

@@ -28,7 +28,7 @@ import {ModuleVersion} from '../updaters/terraform/module-version';
 
 export class TerraformModule extends ReleasePR {
   protected async _run(): Promise<number | undefined> {
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+    const latestTag: GitHubTag | undefined = await this.latestTag(
       this.monorepoTags ? `${this.packageName}-` : undefined
     );
     const commits: Commit[] = await this.commits({

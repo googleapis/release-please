@@ -471,31 +471,6 @@ export class GitHub {
     return refResponse.data.object.sha;
   }
 
-  // This looks for the most recent matching release tag on
-  // the branch we're configured for.
-  async latestTag(
-    prefix?: string,
-    preRelease = false
-  ): Promise<GitHubTag | undefined> {
-    // only look at the last 250 or so commits to find the latest tag - we
-    // don't want to scan the entire repository history if this repo has never
-    // been released
-    const pull = await this.findMergedReleasePR([], prefix, preRelease, 250);
-    if (!pull) return await this.latestTagFallback(prefix, preRelease);
-
-    // FIXME: this assumes that the version is in the branch name
-    const branchName = BranchName.parse(pull.headRefName)!;
-    const version = branchName.getVersion()!;
-    const normalizedVersion = semver.valid(version)!;
-
-    const tag = {
-      name: `v${normalizedVersion}`,
-      sha: pull.sha,
-      version: normalizedVersion,
-    } as GitHubTag;
-    return tag;
-  }
-
   // If we can't find a release branch (a common cause of this, as an example
   // is that we might be dealing with the first relese), use the last semver
   // tag that's available on the repository:
@@ -585,7 +560,7 @@ export class GitHub {
               ... on Commit {
                 history(first: $num, after: $cursor) {
                   nodes {
-                    associatedPullRequests(last: 1) {
+                    associatedPullRequests(first: 1) {
                       nodes {
                         number
                         title
@@ -664,27 +639,40 @@ export class GitHub {
     filter: CommitFilter,
     maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<CommitWithPullRequest | undefined> {
+    const generator = this.mergeCommitIterator(maxResults);
+    for await (const commitWithPullRequest of generator) {
+      if (
+        filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)
+      ) {
+        return commitWithPullRequest;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Iterate through commit history with a max number of results scanned.
+   *
+   * @param maxResults {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @yields {CommitWithPullRequest}
+   */
+  async *mergeCommitIterator(maxResults: number = Number.MAX_SAFE_INTEGER) {
     let cursor: string | undefined = undefined;
-    let found: CommitWithPullRequest | undefined = undefined;
     let results = 0;
-    while (!found && results < maxResults) {
+    while (results < maxResults) {
       const response: PullRequestHistory = await this.mergeCommitsGraphQL(
         cursor
       );
-      found = response.data.find(commitWithPullRequest => {
+      for (let i = 0; i < response.data.length; i++) {
         results += 1;
-        return filter(
-          commitWithPullRequest.commit,
-          commitWithPullRequest.pullRequest
-        );
-      });
+        yield response.data[i];
+      }
       if (!response.pageInfo.hasNextPage) {
         break;
       }
       cursor = response.pageInfo.endCursor;
     }
-
-    return found;
   }
 
   /**
@@ -701,33 +689,16 @@ export class GitHub {
     filter: CommitFilter,
     maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<Commit[]> {
-    let cursor: string | undefined = undefined;
     const commits: Commit[] = [];
-    let found: CommitWithPullRequest | undefined = undefined;
-    let results = 0;
-    while (!found && results < maxResults) {
-      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
-        cursor
-      );
-      found = response.data.find(commitWithPullRequest => {
-        results += 1;
-        if (
-          filter(
-            commitWithPullRequest.commit,
-            commitWithPullRequest.pullRequest
-          )
-        ) {
-          return true;
-        }
-        commits.push(commitWithPullRequest.commit);
-        return false;
-      });
-      if (!response.pageInfo.hasNextPage) {
+    const generator = this.mergeCommitIterator(maxResults);
+    for await (const commitWithPullRequest of generator) {
+      if (
+        filter(commitWithPullRequest.commit, commitWithPullRequest.pullRequest)
+      ) {
         break;
       }
-      cursor = response.pageInfo.endCursor;
+      commits.push(commitWithPullRequest.commit);
     }
-
     return commits;
   }
 

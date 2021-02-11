@@ -274,255 +274,6 @@ describe('GitHub', () => {
     // Todo - not finding things from other branches
   });
 
-  describe('latestTag', () => {
-    it('handles monorepo composite branch names properly', async () => {
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'latest-tag-monorepo.json'), 'utf8')
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-      const latestTag = await github.latestTag('complex-package_name-v1-');
-      expect(latestTag!.version).to.equal('1.1.0');
-      req.done();
-    });
-
-    it('does not return monorepo composite tag, if no prefix provided', async () => {
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'latest-tag-monorepo.json'), 'utf8')
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-      const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.3.0');
-      req.done();
-    });
-
-    it('returns the latest tag on the main branch, based on PR date', async () => {
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-      const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.3.0');
-      req.done();
-    });
-
-    it('returns the latest tag on a sub branch, based on PR date', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-alternate-branch.json'),
-          'utf8'
-        )
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-
-      // We need a special one here to set an alternate branch.
-      github = new GitHub({
-        owner: 'fake',
-        repo: 'fake',
-        defaultBranch: 'legacy-8',
-      });
-
-      const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.3.0');
-      req.done();
-    });
-
-    it('does not return pre-releases as latest tag', async () => {
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-
-      const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.3.0');
-      req.done();
-    });
-
-    it('returns pre-releases on the main branch as latest, when preRelease is true', async () => {
-      const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-      const latestTag = await github.latestTag(undefined, true);
-      expect(latestTag!.version).to.equal('2.0.0-rc1');
-      req.done();
-    });
-
-    it('returns pre-releases on a sub branch as latest, when preRelease is true', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-alternate-branch.json'),
-          'utf8'
-        )
-      );
-      req.post('/graphql').reply(200, {
-        data: graphql,
-      });
-
-      // We need a special one here to set an alternate branch.
-      github = new GitHub({
-        owner: 'fake',
-        repo: 'fake',
-        defaultBranch: 'prerelease',
-      });
-      const latestTag = await github.latestTag(undefined, true);
-      expect(latestTag!.version).to.equal('2.0.0-rc1');
-      req.done();
-    });
-
-    it('falls back to using tags, for simple case', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-no-commits.json'),
-          'utf8'
-        )
-      );
-      req
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        .get('/repos/fake/fake/tags?per_page=100')
-        .reply(200, [
-          {
-            name: 'v1.0.0',
-            commit: {sha: 'abc123'},
-          },
-          {
-            name: 'v1.1.0',
-            commit: {sha: 'deadbeef'},
-          },
-        ]);
-      const latestTag = await github.latestTag();
-      expect(latestTag!.version).to.equal('1.1.0');
-      req.done();
-    });
-    it('falls back to using tags, when prefix is provided', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-no-commits.json'),
-          'utf8'
-        )
-      );
-      req
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        .get('/repos/fake/fake/tags?per_page=100')
-        .reply(200, [
-          {
-            name: 'v1.0.0',
-            commit: {sha: 'abc123'},
-          },
-          {
-            name: 'v1.1.0',
-            commit: {sha: 'deadbeef'},
-          },
-          {
-            name: 'foo-v1.9.0',
-            commit: {sha: 'deadbeef'},
-          },
-          {
-            name: 'v1.2.0',
-            commit: {sha: 'deadbeef'},
-          },
-        ]);
-      const latestTag = await github.latestTag('foo-');
-      expect(latestTag!.version).to.equal('1.9.0');
-      req.done();
-    });
-    it('allows for "@" rather than "-" when fallback used', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-no-commits.json'),
-          'utf8'
-        )
-      );
-      req
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        .get('/repos/fake/fake/tags?per_page=100')
-        .reply(200, [
-          {
-            name: 'v1.0.0',
-            commit: {sha: 'abc123'},
-          },
-          {
-            name: 'v1.1.0',
-            commit: {sha: 'deadbeef'},
-          },
-          {
-            name: 'foo@v1.9.0',
-            commit: {sha: 'dead'},
-          },
-          {
-            name: 'v1.2.0',
-            commit: {sha: 'beef'},
-          },
-          {
-            name: 'foo@v2.1.0',
-            commit: {sha: '123abc'},
-          },
-        ]);
-      const latestTag = await github.latestTag('foo-');
-      expect(latestTag!.version).to.equal('2.1.0');
-      req.done();
-    });
-    it('allows for "/" rather than "-" when fallback used', async () => {
-      const graphql = JSON.parse(
-        readFileSync(
-          resolve(fixturesPath, 'latest-tag-no-commits.json'),
-          'utf8'
-        )
-      );
-      req
-        .post('/graphql')
-        .reply(200, {
-          data: graphql,
-        })
-        .get('/repos/fake/fake/tags?per_page=100')
-        .reply(200, [
-          {
-            name: 'v1.0.0',
-            commit: {sha: 'abc123'},
-          },
-          {
-            name: 'v1.1.0',
-            commit: {sha: 'deadbeef'},
-          },
-          {
-            name: 'foo/v2.3.0',
-            commit: {sha: 'dead'},
-          },
-          {
-            name: 'v1.2.0',
-            commit: {sha: 'beef'},
-          },
-          {
-            name: 'foo/v2.1.0',
-            commit: {sha: '123abc'},
-          },
-        ]);
-      const latestTag = await github.latestTag('foo-');
-      expect(latestTag!.version).to.equal('2.3.0');
-      req.done();
-    });
-  });
-
   describe('getFileContents', () => {
     it('should support Github Data API in case of a big file', async () => {
       const simpleAPIResponse = JSON.parse(
@@ -578,6 +329,7 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
   describe('getFileContentsWithSimpleAPI', () => {
     const setupReq = (ref: string) => {
       req
@@ -926,6 +678,104 @@ describe('GitHub', () => {
         expect(err.status).to.eql(410);
       }
       expect(thrown).to.be.true;
+    });
+  });
+
+  describe('latestTagFallback', () => {
+    it('falls back to using tags, for simple case', async () => {
+      req.get('/repos/fake/fake/tags?per_page=100').reply(200, [
+        {
+          name: 'v1.0.0',
+          commit: {sha: 'abc123'},
+        },
+        {
+          name: 'v1.1.0',
+          commit: {sha: 'deadbeef'},
+        },
+      ]);
+      const latestTag = await github.latestTagFallback();
+      expect(latestTag!.version).to.equal('1.1.0');
+      req.done();
+    });
+
+    it('falls back to using tags, when prefix is provided', async () => {
+      req.get('/repos/fake/fake/tags?per_page=100').reply(200, [
+        {
+          name: 'v1.0.0',
+          commit: {sha: 'abc123'},
+        },
+        {
+          name: 'v1.1.0',
+          commit: {sha: 'deadbeef'},
+        },
+        {
+          name: 'foo-v1.9.0',
+          commit: {sha: 'deadbeef'},
+        },
+        {
+          name: 'v1.2.0',
+          commit: {sha: 'deadbeef'},
+        },
+      ]);
+      const latestTag = await github.latestTagFallback('foo-');
+      expect(latestTag!.version).to.equal('1.9.0');
+      req.done();
+    });
+
+    it('allows for "@" rather than "-" when fallback used', async () => {
+      req.get('/repos/fake/fake/tags?per_page=100').reply(200, [
+        {
+          name: 'v1.0.0',
+          commit: {sha: 'abc123'},
+        },
+        {
+          name: 'v1.1.0',
+          commit: {sha: 'deadbeef'},
+        },
+        {
+          name: 'foo@v1.9.0',
+          commit: {sha: 'dead'},
+        },
+        {
+          name: 'v1.2.0',
+          commit: {sha: 'beef'},
+        },
+        {
+          name: 'foo@v2.1.0',
+          commit: {sha: '123abc'},
+        },
+      ]);
+      const latestTag = await github.latestTagFallback('foo-');
+      expect(latestTag!.version).to.equal('2.1.0');
+      req.done();
+    });
+
+    it('allows for "/" rather than "-" when fallback used', async () => {
+      req.get('/repos/fake/fake/tags?per_page=100').reply(200, [
+        {
+          name: 'v1.0.0',
+          commit: {sha: 'abc123'},
+        },
+        {
+          name: 'v1.1.0',
+          commit: {sha: 'deadbeef'},
+        },
+        {
+          name: 'foo/v2.3.0',
+          commit: {sha: 'dead'},
+        },
+        {
+          name: 'v1.2.0',
+          commit: {sha: 'beef'},
+        },
+        {
+          name: 'foo/v2.1.0',
+          commit: {sha: '123abc'},
+        },
+      ]);
+      const latestTag = await github.latestTagFallback('foo-');
+      expect(latestTag!.version).to.equal('2.3.0');
+      req.done();
     });
   });
 });

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it, afterEach} from 'mocha';
+import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
 import * as nock from 'nock';
 nock.disableNetConnect();
@@ -22,8 +22,11 @@ import {GitHub, GitHubTag, GitHubPR} from '../src/github';
 import {ReleaseCandidate, ReleasePR, OpenPROptions} from '../src/release-pr';
 import * as sinon from 'sinon';
 import {Node} from '../src/releasers/node';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 
 const sandbox = sinon.createSandbox();
+const fixturesPath = './test/fixtures';
 
 class TestableReleasePR extends Node {
   openPROpts?: GitHubPR;
@@ -237,6 +240,131 @@ describe('Release-PR', () => {
         });
         expect(releasePR.packagePrefix).to.eql(input);
       });
+    });
+  });
+
+  describe('latestTag', () => {
+    let req: nock.Scope;
+    let releasePR: ReleasePR;
+
+    beforeEach(() => {
+      req = nock('https://api.github.com/');
+      releasePR = new ReleasePR({
+        repoUrl: 'fake/fake',
+        apiUrl: 'https://api.github.com',
+        releaseType: 'base',
+      });
+
+      sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
+    });
+
+    it('handles monorepo composite branch names properly', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag-monorepo.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag('complex-package_name-v1-');
+      expect(latestTag!.version).to.equal('1.1.0');
+      req.done();
+    });
+
+    it('does not return monorepo composite tag, if no prefix provided', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag-monorepo.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('1.3.0');
+      req.done();
+    });
+
+    it('returns the latest tag on the main branch, based on PR date', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('1.3.0');
+      req.done();
+    });
+
+    it('returns the latest tag on a sub branch, based on PR date', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-alternate-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+
+      // We need a special one here to set an alternate branch.
+      releasePR = new ReleasePR({
+        repoUrl: 'fake/fake',
+        apiUrl: 'https://api.github.com',
+        releaseType: 'base',
+        defaultBranch: 'legacy-8',
+      });
+
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('1.3.0');
+      req.done();
+    });
+
+    it('does not return pre-releases as latest tag', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('1.3.0');
+      req.done();
+    });
+
+    it('returns pre-releases on the main branch as latest, when preRelease is true', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag(undefined, true);
+      expect(latestTag!.version).to.equal('2.0.0-rc1');
+      req.done();
+    });
+
+    it('returns pre-releases on a sub branch as latest, when preRelease is true', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-alternate-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+
+      // We need a special one here to set an alternate branch.
+      releasePR = new ReleasePR({
+        repoUrl: 'fake/fake',
+        apiUrl: 'https://api.github.com',
+        releaseType: 'base',
+        defaultBranch: 'prerelease',
+      });
+
+      const latestTag = await releasePR.latestTag(undefined, true);
+      expect(latestTag!.version).to.equal('2.0.0-rc1');
+      req.done();
     });
   });
 });

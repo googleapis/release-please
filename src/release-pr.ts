@@ -134,6 +134,13 @@ export class ReleasePR {
     this.packagePrefix = this.coercePackagePrefix(this.packageName);
   }
 
+  async getOpenPROptions(
+    _commits: Commit[],
+    _latestTag?: GitHubTag
+  ): Promise<OpenPROptions | undefined> {
+    throw Error('must be implemented by subclass');
+  }
+
   async run(): Promise<number | undefined> {
     if (this.snapshot && !this.supportsSnapshots()) {
       checkpoint(
@@ -483,5 +490,71 @@ export class ReleasePR {
     }
 
     return this.defaultBranch;
+  }
+
+  /**
+   * Find the most recent matching release tag on the branch we're
+   * configured for.
+   *
+   * @param {string} prefix - Limit the release to a specific component.
+   * @param {boolean} preRelease - Whether or not to return pre-release
+   *   versions. Defaults to false.
+   */
+  async latestTag(
+    prefix?: string,
+    preRelease = false
+  ): Promise<GitHubTag | undefined> {
+    const branchPrefix = prefix?.endsWith('-')
+      ? prefix.replace(/-$/, '')
+      : prefix;
+    // only look at the last 250 or so commits to find the latest tag - we
+    // don't want to scan the entire repository history if this repo has never
+    // been released
+    const generator = this.gh.mergeCommitIterator(250);
+    for await (const commitWithPullRequest of generator) {
+      const mergedPullRequest = commitWithPullRequest.pullRequest;
+      if (!mergedPullRequest) {
+        continue;
+      }
+
+      const branchName = BranchName.parse(mergedPullRequest.headRefName);
+      if (!branchName) {
+        continue;
+      }
+
+      // If branchPrefix is specified, ensure it is found in the branch name.
+      // If branchPrefix is not specified, component should also be undefined.
+      if (branchName.getComponent() !== branchPrefix) {
+        continue;
+      }
+
+      const version = await this.detectReleaseVersion(
+        mergedPullRequest,
+        branchName
+      );
+      if (!version) {
+        continue;
+      }
+
+      // What's left by now should just be the version string.
+      // Check for pre-releases if needed.
+      if (!preRelease && version.indexOf('-') >= 0) {
+        continue;
+      }
+
+      // Make sure we did get a valid semver.
+      const normalizedVersion = semver.valid(version);
+      if (!normalizedVersion) {
+        continue;
+      }
+      return {
+        name: `v${normalizedVersion}`,
+        sha: mergedPullRequest.sha,
+        version: normalizedVersion,
+      };
+    }
+
+    // did not find a recent merged release PR, fallback to tags on the repo
+    return await this.gh.latestTagFallback(prefix, preRelease);
   }
 }

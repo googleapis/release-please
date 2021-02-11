@@ -57,7 +57,7 @@ describe('JavaBom', () => {
         .returns(Promise.resolve(undefined));
 
       // Indicates that there are no PRs currently waiting to be released:
-      sandbox.stub(releasePR.gh, 'latestTag').returns(
+      sandbox.stub(releasePR, 'latestTag').returns(
         Promise.resolve({
           name: 'v0.123.4',
           sha: 'abc123',
@@ -153,7 +153,7 @@ describe('JavaBom', () => {
         .returns(Promise.resolve(undefined));
 
       // Indicates that there are no PRs currently waiting to be released:
-      sandbox.stub(releasePR.gh, 'latestTag').returns(
+      sandbox.stub(releasePR, 'latestTag').returns(
         Promise.resolve({
           name: 'v0.123.4',
           sha: 'abc123',
@@ -285,7 +285,7 @@ describe('JavaBom', () => {
         .returns(Promise.resolve(undefined));
 
       // Indicates that there are no PRs currently waiting to be released:
-      sandbox.stub(releasePR.gh, 'latestTag').returns(
+      sandbox.stub(releasePR, 'latestTag').returns(
         Promise.resolve({
           name: 'v0.123.4',
           sha: 'abc123',
@@ -380,7 +380,7 @@ describe('JavaBom', () => {
         .returns(Promise.resolve(undefined));
 
       // Indicates that there are no PRs currently waiting to be released:
-      sandbox.stub(releasePR.gh, 'latestTag').returns(
+      sandbox.stub(releasePR, 'latestTag').returns(
         Promise.resolve({
           name: 'v0.123.4',
           sha: 'abc123',
