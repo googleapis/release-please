@@ -504,61 +504,16 @@ export class ReleasePR {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
+    const branchPrefix = prefix?.endsWith('-')
+      ? prefix.replace(/-$/, '')
+      : prefix;
     // only look at the last 250 or so commits to find the latest tag - we
     // don't want to scan the entire repository history if this repo has never
     // been released
-    const pull = await this.findMergedReleasePR([], prefix, preRelease, 250);
-    if (!pull) return await this.gh.latestTagFallback(prefix, preRelease);
-
-    // TODO: shouldn't need to do this twice
-    const branchName = BranchName.parse(pull.headRefName)!;
-    const version = await this.detectReleaseVersion(pull, branchName);
-    const normalizedVersion = semver.valid(version)!;
-
-    return {
-      name: `v${normalizedVersion}`,
-      sha: pull.sha,
-      version: normalizedVersion,
-    };
-  }
-
-  // The default matcher will rule out pre-releases.
-  /**
-   * Find the last merged pull request that targeted the default
-   * branch and looks like a release PR.
-   *
-   * @param {string[]} labels - If provided, ensure that the pull
-   *   request has all of the specified labels
-   * @param {string|undefined} branchPrefix - If provided, limit
-   *   release pull requests that contain the specified component
-   * @param {boolean} preRelease - Whether to include pre-release
-   *   versions in the response. Defaults to true.
-   * @param {number} maxResults - Limit the number of results searched.
-   *   Defaults to unlimited.
-   * @returns {MergedGitHubPR|undefined}
-   */
-  protected async findMergedReleasePR(
-    labels: string[],
-    branchPrefix: string | undefined = undefined,
-    preRelease = true,
-    maxResults: number = Number.MAX_SAFE_INTEGER
-  ): Promise<MergedGitHubPR | undefined> {
-    branchPrefix = branchPrefix?.endsWith('-')
-      ? branchPrefix.replace(/-$/, '')
-      : branchPrefix;
-
-    const generator = this.gh.mergeCommitIterator(maxResults);
+    const generator = this.gh.mergeCommitIterator(250);
     for await (const commitWithPullRequest of generator) {
       const mergedPullRequest = commitWithPullRequest.pullRequest;
       if (!mergedPullRequest) {
-        continue;
-      }
-
-      // If labels specified, ensure the pull request has all the specified labels
-      if (
-        labels.length > 0 &&
-        !this.hasAllLabels(labels, mergedPullRequest.labels)
-      ) {
         continue;
       }
 
@@ -592,17 +547,14 @@ export class ReleasePR {
       if (!normalizedVersion) {
         continue;
       }
-      return mergedPullRequest;
+      return {
+        name: `v${normalizedVersion}`,
+        sha: mergedPullRequest.sha,
+        version: normalizedVersion,
+      };
     }
 
-    return undefined;
-  }
-
-  private hasAllLabels(labelsA: string[], labelsB: string[]) {
-    let hasAll = true;
-    labelsA.forEach(label => {
-      if (labelsB.indexOf(label) === -1) hasAll = false;
-    });
-    return hasAll;
+    // did not find a recent merged release PR, fallback to tags on the repo
+    return await this.gh.latestTagFallback(prefix, preRelease);
   }
 }
