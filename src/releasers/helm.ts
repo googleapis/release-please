@@ -46,7 +46,7 @@ export class Helm extends ReleasePR {
       this.packagePrefix = this.coercePackagePrefix(pkg.name);
     }
 
-    const latestTag: GitHubTag | undefined = await this.gh.latestTag(
+    const latestTag: GitHubTag | undefined = await this.latestTag(
       this.monorepoTags ? `${this.packagePrefix}-` : undefined
     );
     const commits: Commit[] = await this.commits({
