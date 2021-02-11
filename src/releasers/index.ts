@@ -26,6 +26,7 @@ import {Simple} from './simple';
 import {TerraformModule} from './terraform-module';
 import {Rust} from './rust';
 import {OCaml} from './ocaml';
+import {Helm} from './helm';
 
 // add any new releasers you create to this type as well as the `releasers`
 // object below.
@@ -43,7 +44,8 @@ export type ReleaseType =
   | 'ruby-yoshi'
   | 'rust'
   | 'simple'
-  | 'terraform-module';
+  | 'terraform-module'
+  | 'helm';
 
 type Releasers = Partial<Record<ReleaseType, typeof ReleasePR>>;
 
@@ -61,6 +63,7 @@ const releasers: Releasers = {
   rust: Rust,
   simple: Simple,
   'terraform-module': TerraformModule,
+  helm: Helm,
 };
 
 export function getReleasers(): Releasers {

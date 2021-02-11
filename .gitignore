@@ -7,3 +7,4 @@ system-test/fixtures/gh/*
 __pycache__
 package-lock.json
 debug.sh
+.idea/
