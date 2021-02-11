@@ -560,7 +560,7 @@ export class GitHub {
               ... on Commit {
                 history(first: $num, after: $cursor) {
                   nodes {
-                    associatedPullRequests(last: 1) {
+                    associatedPullRequests(first: 1) {
                       nodes {
                         number
                         title
