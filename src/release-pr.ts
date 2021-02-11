@@ -444,7 +444,7 @@ export class ReleasePR {
       sha: mergedPR.sha,
       tag,
       notes,
-      name: this.packagePrefix,
+      name: this.packageName,
       version,
       pullNumber: mergedPR.number,
     };
