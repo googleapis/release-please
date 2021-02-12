@@ -20,14 +20,37 @@ import {ReleasePR} from '../src/release-pr';
 import {describe, it, afterEach} from 'mocha';
 import * as sinon from 'sinon';
 
-import {parser} from '../src/bin/release-please';
+import {parser, handleError} from '../src/bin/release-please';
 import {ParseCallback} from 'yargs';
+import chalk = require('chalk');
 
 const sandbox = sinon.createSandbox();
 
 describe('CLI', () => {
   afterEach(() => {
     sandbox.restore();
+  });
+  describe('handleError', () => {
+    it('handles an error', () => {
+      const stack = 'bad\nmore\nbad';
+      const err = {
+        body: {a: 1},
+        status: 404,
+        message: 'bad',
+        stack,
+      };
+      const logs: string[] = [];
+      handleError.logger = ({
+        error: (msg: string) => logs.push(msg),
+      } as unknown) as Console;
+      handleError.yargsArgs = {debug: true, _: ['foobar'], $0: 'mocha?'};
+      handleError(err);
+      expect(logs).to.eql([
+        chalk.red('command foobar failed with status 404'),
+        '---------',
+        stack,
+      ]);
+    });
   });
   describe('release-pr', () => {
     it('instantiates release PR based on command line arguments', () => {
@@ -38,6 +61,11 @@ describe('CLI', () => {
       sandbox.replace(
         factory,
         'run',
+        // Parameter 'runnable' implicitly has an 'any' type.
+        // Attempting to properly type this arrow func as matching the
+        // factory.run overloads is unduly complex if even possible?
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: stubbing an overloaded function.
         (runnable): Promise<undefined> => {
           classToRun = runnable as ReleasePR;
           return Promise.resolve(undefined);
@@ -91,6 +119,33 @@ describe('CLI', () => {
       parser.parse(cmd, parseCallback);
     });
   });
+  describe('latest-tag', () => {
+    it('instantiates release PR for latestTag', () => {
+      let classToRun: ReleasePR;
+      sandbox.replace(
+        factory,
+        'run',
+        // Parameter 'runnable' implicitly has an 'any' type.
+        // Attempting to properly type this arrow func as matching the
+        // factory.run overloads is unduly complex if even possible?
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: stubbing an overloaded function.
+        (runnable): Promise<undefined> => {
+          classToRun = runnable as ReleasePR;
+          return Promise.resolve(undefined);
+        }
+      );
+      parser.parse(
+        'latest-tag --repo-url=googleapis/release-please-cli --package-name=cli-package'
+      );
+      assert.ok(classToRun! instanceof ReleasePR);
+      assert.strictEqual(classToRun.gh.owner, 'googleapis');
+      assert.strictEqual(classToRun.gh.repo, 'release-please-cli');
+      assert.strictEqual(classToRun.packageName, 'cli-package');
+      // Defaults to Node.js release type:
+      assert.strictEqual(classToRun.constructor.name, 'Node');
+    });
+  });
   describe('github-release', () => {
     it('instantiates a GitHub released based on command line arguments', async () => {
       let classToRun: GitHubRelease;
@@ -100,6 +155,11 @@ describe('CLI', () => {
       sandbox.replace(
         factory,
         'run',
+        // Parameter 'runnable' implicitly has an 'any' type.
+        // Attempting to properly type this arrow func as matching the
+        // factory.run overloads is unduly complex if even possible?
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: stubbing an overloaded function.
         (runnable): Promise<undefined> => {
           classToRun = runnable as GitHubRelease;
           return Promise.resolve(undefined);
@@ -139,6 +199,11 @@ describe('CLI', () => {
       sandbox.replace(
         factory,
         'run',
+        // Parameter 'runnable' implicitly has an 'any' type.
+        // Attempting to properly type this arrow func as matching the
+        // factory.run overloads is unduly complex if even possible?
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: stubbing an overloaded function.
         (runnable): Promise<undefined> => {
           classToRun = runnable as GitHubRelease;
           return Promise.resolve(undefined);

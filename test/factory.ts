@@ -194,7 +194,7 @@ describe('factory', () => {
         releaseType: 'simple',
       });
       sandbox.stub(runnable, 'run').resolves(47);
-      expect(await factory.run(runnable)).to.equal(47);
+      expect(await factory.run(runnable, 'run')).to.equal(47);
     });
   });
 });

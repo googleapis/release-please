@@ -18,7 +18,7 @@
 import {ReleasePR} from './release-pr';
 import {GitHubRelease, ReleaseResponse} from './github-release';
 import {ReleaseType, getReleasers} from './releasers';
-import {GitHub} from './github';
+import {GitHub, GitHubTag} from './github';
 import {
   ReleasePRFactoryOptions,
   GitHubReleaseFactoryOptions,
@@ -31,11 +31,12 @@ const parseGithubRepoUrl = require('parse-github-repo-url');
 function runCommand(
   command: string,
   options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
-): Promise<number | undefined | ReleaseResponse> {
+): Promise<number | GitHubTag | undefined | ReleaseResponse> {
   if (isGitHubRelease(command, options)) {
-    return factory.run(githubRelease(options));
+    return factory.run(githubRelease(options), 'run');
   } else {
-    return factory.run(releasePR(options));
+    const cmd = command === 'release-pr' ? 'run' : 'latestTag';
+    return factory.run(releasePR(options), cmd);
   }
 }
 
@@ -46,8 +47,17 @@ function isGitHubRelease(
   return command === 'github-release' && typeof options === 'object';
 }
 
-function run(runnable: ReleasePR | GitHubRelease) {
-  return runnable.run();
+function run(
+  runnable: ReleasePR,
+  cmd: 'run' | 'latestTag'
+): Promise<number | GitHubTag | undefined>;
+function run(
+  runnable: GitHubRelease,
+  cmd: 'run'
+): Promise<ReleaseResponse | undefined>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function run(runnable: any, cmd: any = 'run') {
+  return runnable[cmd]();
 }
 
 function getLabels(label?: string): string[] {
