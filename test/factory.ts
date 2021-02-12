@@ -35,6 +35,22 @@ describe('factory', () => {
       `https://github.com/${owner}/${repo}.git`,
       `git@github.com:${owner}/${repo}`,
     ];
+    it('returns a fully configured GitHub instance', async () => {
+      const gh = factory.gitHubInstance({
+        repoUrl,
+        fork: true,
+        token: 'my-token',
+        apiUrl: 'my-api-url',
+        defaultBranch: '1.x',
+      });
+      expect(gh.owner).to.equal(owner);
+      expect(gh.repo).to.equal(repo);
+      expect(gh.fork).to.be.true;
+      expect(gh.apiUrl).to.equal('my-api-url');
+      expect(gh.token).to.equal('my-token');
+      const branch = await gh.getDefaultBranch();
+      expect(branch).to.equal('1.x');
+    });
     for (const repoUrl of repoUrls) {
       it(`parses github repo url: ${repoUrl}`, () => {
         const gh = factory.gitHubInstance({repoUrl});
@@ -72,10 +88,14 @@ describe('factory', () => {
         packageName: 'ruby-test-repo',
         releaseType: 'ruby',
       });
+      expect(releasePR.gh.fork).to.be.false;
+      expect(releasePR.gh.token).to.be.undefined;
+      expect(releasePR.gh.owner).to.equal('googleapis');
+      expect(releasePR.gh.repo).to.equal('ruby-test-repo');
+      expect(releasePR.gh.apiUrl).to.equal('https://api.github.com');
       expect(releasePR.constructor.name).to.equal('Ruby');
       expect(releasePR.labels).to.eql(['autorelease: pending']);
       expect(releasePR.bumpMinorPreMajor).to.be.false;
-      expect(releasePR.fork).to.be.false;
       expect(releasePR.path).to.be.undefined;
       expect(releasePR.monorepoTags).to.be.false;
       expect(releasePR.releaseAs).to.be.undefined;
@@ -148,6 +168,7 @@ describe('factory', () => {
       const ghr = factory.githubRelease({
         repoUrl: 'googleapis/simple-test-repo',
         defaultBranch: '1.x',
+        fork: true,
         token: 'some-token',
         apiUrl: 'https://some.api.com',
         releaseType: 'ruby',
@@ -158,7 +179,6 @@ describe('factory', () => {
         releaseAs: '1.2.3',
         snapshot: true,
         monorepoTags: true,
-        fork: true,
         changelogSections: [{type: 'feat', section: 'Features'}],
         lastPackageVersion: '0.0.1',
         versionFile: 'some/ruby/version.rb',
@@ -168,6 +188,7 @@ describe('factory', () => {
       expect(ghr.gh.repo).to.equal('simple-test-repo');
       expect(ghr.gh.token).to.equal('some-token');
       expect(ghr.gh.apiUrl).to.equal('https://some.api.com');
+      expect(ghr.gh.fork).to.be.true;
       expect(ghr.releasePR.constructor.name).to.equal('Ruby');
       expect(ghr.releasePR.labels).to.eql(['foo', 'bar']);
       expect(ghr.releasePR.path).to.equal('some/path');
@@ -175,7 +196,6 @@ describe('factory', () => {
       expect(ghr.releasePR.releaseAs).to.equal('1.2.3');
       expect(ghr.releasePR.bumpMinorPreMajor).to.be.true;
       expect(ghr.releasePR.monorepoTags).to.be.true;
-      expect(ghr.releasePR.fork).to.be.true;
       expect(ghr.releasePR.changelogSections).to.eql([
         {type: 'feat', section: 'Features'},
       ]);

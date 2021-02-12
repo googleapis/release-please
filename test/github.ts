@@ -274,6 +274,36 @@ describe('GitHub', () => {
     // Todo - not finding things from other branches
   });
 
+  describe('addLabels', () => {
+    it('labels a PR', async () => {
+      req
+        .post('/repos/fake/fake/issues/1/labels', {labels: ['foo']})
+        .reply(200);
+      const created = await github.addLabels(['foo'], 1);
+      expect(created).to.be.true;
+      req.done();
+    });
+    it('does not label a PR on a forked repo', async () => {
+      const gh = new GitHub({owner: 'fake', repo: 'fake', fork: true});
+      const created = await gh.addLabels(['foo'], 1);
+      expect(created).to.be.false;
+    });
+  });
+
+  describe('removeLabels', () => {
+    it('unlabels a PR', async () => {
+      req.delete('/repos/fake/fake/issues/1/labels/foo').reply(200);
+      const removed = await github.removeLabels(['foo'], 1);
+      expect(removed).to.be.true;
+      req.done();
+    });
+    it('does not unlabel a PR on a forked repo', async () => {
+      const gh = new GitHub({owner: 'fake', repo: 'fake', fork: true});
+      const removed = await gh.removeLabels(['foo'], 1);
+      expect(removed).to.be.false;
+    });
+  });
+
   describe('getFileContents', () => {
     it('should support Github Data API in case of a big file', async () => {
       const simpleAPIResponse = JSON.parse(
@@ -400,8 +430,14 @@ describe('GitHub', () => {
   describe('closePR', () => {
     it('updates a PR to state.closed', async () => {
       req.patch('/repos/fake/fake/pulls/1', {state: 'closed'}).reply(200);
-      await github.closePR(1);
+      const closed = await github.closePR(1);
+      expect(closed).to.be.true;
       req.done();
+    });
+    it('does not close a PR from a forked repo', async () => {
+      const gh = new GitHub({owner: 'fake', repo: 'fake', fork: true});
+      const closed = await gh.closePR(1);
+      expect(closed).to.be.false;
     });
   });
 

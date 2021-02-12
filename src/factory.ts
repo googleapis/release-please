@@ -128,20 +128,20 @@ function getLabels(label?: string): string[] {
 
 function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
   const {
-    label,
     repoUrl,
     defaultBranch,
+    fork,
     token,
     apiUrl,
     octokitAPIs,
     releaseType,
+    label,
     path,
     packageName,
     bumpMinorPreMajor,
     releaseAs,
     snapshot,
     monorepoTags,
-    fork,
     changelogSections,
     lastPackageVersion,
     versionFile,
@@ -151,6 +151,7 @@ function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
   const github = gitHubInstance({
     repoUrl,
     defaultBranch,
+    fork,
     token,
     apiUrl,
     octokitAPIs,
@@ -167,7 +168,6 @@ function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
     releaseAs,
     snapshot,
     monorepoTags,
-    fork,
     changelogSections,
     lastPackageVersion,
     versionFile,
@@ -204,14 +204,12 @@ function releasePR(options: ReleasePRFactoryOptions): ReleasePR {
 }
 
 export function gitHubInstance(options: GitHubFactoryOptions) {
-  const [owner, repo] = parseGithubRepoUrl(options.repoUrl);
+  const {repoUrl, ...remaining} = options;
+  const [owner, repo] = parseGithubRepoUrl(repoUrl);
   return new GitHub({
     owner,
     repo,
-    defaultBranch: options.defaultBranch,
-    token: options.token,
-    apiUrl: options.apiUrl,
-    octokitAPIs: options.octokitAPIs,
+    ...remaining,
   });
 }
 

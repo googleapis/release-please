@@ -22,6 +22,7 @@ export {ReleaseCandidate, ReleasePR} from './release-pr';
 // Used by GitHub: Factory and Constructor
 interface GitHubOptions {
   defaultBranch?: string;
+  fork?: boolean;
   token?: string;
   apiUrl?: string;
   octokitAPIs?: OctokitAPIs;
@@ -41,7 +42,6 @@ interface ReleasePROptions {
   releaseAs?: string;
   snapshot?: boolean;
   monorepoTags?: boolean;
-  fork?: boolean;
   changelogSections?: ChangelogSection[];
   // only for Ruby: TODO replace with generic bootstrap option
   lastPackageVersion?: string;
