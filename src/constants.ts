@@ -13,4 +13,4 @@
 // limitations under the License.
 
 export const RELEASE_PLEASE = 'release-please';
-export const DEFAULT_LABELS = 'autorelease: pending';
+export const DEFAULT_LABELS = ['autorelease: pending'];

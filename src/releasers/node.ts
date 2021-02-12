@@ -12,10 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate, OpenPROptions} from '../release-pr';
+import {
+  ReleasePR,
+  ReleaseCandidate,
+  OpenPROptions,
+  PackageName,
+} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHub, GitHubTag, GitHubFileContents} from '../github';
+import {GitHubTag, GitHubFileContents} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -27,25 +32,17 @@ import {PackageJson} from '../updaters/package-json';
 import {SamplesPackageJson} from '../updaters/samples-package-json';
 
 export class Node extends ReleasePR {
-  async getOpenPROptions(
+  private pkgJsonContents?: GitHubFileContents;
+  private _packageName?: string;
+
+  protected async _getOpenPROptions(
     commits: Commit[],
     latestTag?: GitHubTag
   ): Promise<OpenPROptions | undefined> {
-    // Make an effort to populate packageName from the contents of
-    // the package.json, rather than forcing this to be set:
-    const contents: GitHubFileContents = await this.gh.getFileContents(
-      this.addPath('package.json')
-    );
-    const pkg = JSON.parse(contents.parsedContent);
-    if (pkg.name) {
-      this.packageName = pkg.name;
-      // we've rewritten the package name, recalculate the package prefix
-      this.packagePrefix = this.coercePackagePrefix(pkg.name);
-    }
-
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: this.changelogSections,
     });
@@ -74,12 +71,13 @@ export class Node extends ReleasePR {
 
     const updates: Update[] = [];
 
+    const packageName = (await this.getPackageName()).name;
     updates.push(
       new PackageJson({
         path: this.addPath('package-lock.json'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName,
       })
     );
 
@@ -88,7 +86,7 @@ export class Node extends ReleasePR {
         path: this.addPath('samples/package.json'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName,
       })
     );
 
@@ -97,7 +95,7 @@ export class Node extends ReleasePR {
         path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName,
       })
     );
 
@@ -106,8 +104,8 @@ export class Node extends ReleasePR {
         path: this.addPath('package.json'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
-        contents,
+        packageName,
+        contents: await this.getPkgJsonContents(),
       })
     );
     return {
@@ -119,9 +117,26 @@ export class Node extends ReleasePR {
     };
   }
 
+  // Always prefer the package.json name
+  async getPackageName(): Promise<PackageName> {
+    if (this._packageName === undefined) {
+      const pkgJsonContents = await this.getPkgJsonContents();
+      const pkg = JSON.parse(pkgJsonContents.parsedContent);
+      this.packageName = this._packageName = pkg.name ?? this.packageName;
+    }
+    return {
+      name: this.packageName,
+      getComponent: () =>
+        this.packageName.match(/^@[\w-]+\//)
+          ? this.packageName.split('/')[1]
+          : this.packageName,
+    };
+  }
+
   protected async _run(): Promise<number | undefined> {
+    const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${this.packagePrefix}-` : undefined
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -131,28 +146,12 @@ export class Node extends ReleasePR {
     return openPROptions ? await this.openPR(openPROptions) : undefined;
   }
 
-  // A releaser can implement this method to automatically detect
-  // the release name when creating a GitHub release, for instance by returning
-  // name in package.json, or setup.py.
-  static async lookupPackageName(
-    gh: GitHub,
-    path?: string
-  ): Promise<string | undefined> {
-    // Make an effort to populate packageName from the contents of
-    // the package.json, rather than forcing this to be set:
-    const contents: GitHubFileContents = await gh.getFileContents(
-      this.addPathStatic('package.json', path)
-    );
-    const pkg = JSON.parse(contents.parsedContent);
-    if (pkg.name) return pkg.name;
-    else return undefined;
-  }
-
-  // Parse the package prefix for releases from the full package name
-  // The package name usually looks like `@[group]/[library]`
-  protected coercePackagePrefix(packageName: string): string {
-    return packageName.match(/^@[\w-]+\//)
-      ? packageName.split('/')[1]
-      : packageName;
+  private async getPkgJsonContents(): Promise<GitHubFileContents> {
+    if (!this.pkgJsonContents) {
+      this.pkgJsonContents = await this.gh.getFileContents(
+        this.addPath('package.json')
+      );
+    }
+    return this.pkgJsonContents;
   }
 }

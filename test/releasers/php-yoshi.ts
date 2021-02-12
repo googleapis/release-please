@@ -24,6 +24,7 @@ import {expect} from 'chai';
 import {buildGitHubFileRaw} from './utils';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
+import {GitHub} from '../../src/github';
 
 const sandbox = sinon.createSandbox();
 
@@ -36,12 +37,8 @@ describe('PHPYoshi', () => {
 
   it('generates CHANGELOG and aborts if duplicate', async () => {
     const releasePR = new PHPYoshi({
-      repoUrl: 'googleapis/release-please',
-      label: 'autorelease: pending',
-      releaseType: 'php-yoshi',
-      // not actually used by this type of repo.
+      github: new GitHub({owner: 'googleapis', repo: 'release-please'}),
       packageName: 'yoshi-php',
-      apiUrl: 'https://api.github.com',
     });
 
     sandbox

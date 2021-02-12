@@ -16,11 +16,10 @@
 
 import chalk = require('chalk');
 import {coerceOption} from '../util/coerce-option';
-import {GitHubReleaseOptions} from '../github-release';
-import {ReleasePROptions} from '../release-pr';
 import {factory} from '../factory';
 import {getReleaserTypes, ReleaseType} from '../releasers';
 import * as yargs from 'yargs';
+import {GitHubReleaseFactoryOptions, ReleasePRFactoryOptions} from '..';
 
 interface ErrorObject {
   body?: object;
@@ -41,46 +40,52 @@ interface YargsOptionsBuilder {
   option(opt: string, options: YargsOptions): YargsOptionsBuilder;
 }
 
+function releaseType(ya: YargsOptionsBuilder, defaultType?: string) {
+  const relTypeOptions: YargsOptions = {
+    describe: 'what type of repo is a release being created for?',
+    choices: getReleaserTypes(),
+  };
+  if (defaultType) {
+    relTypeOptions.default = defaultType;
+  }
+  ya.option('release-type', relTypeOptions);
+}
+
 export const parser = yargs
   .command(
     'release-pr',
     'create or update a PR representing the next release',
+    // options unique to ReleasePR
     (yargs: YargsOptionsBuilder) => {
-      yargs
-        .option('version-file', {
-          describe: 'path to version file to update, e.g., version.rb',
-        })
-        .option('last-package-version', {
-          describe: 'last version # that package was released as',
-        })
-        .option('fork', {
-          describe: 'should the PR be created from a fork',
-          type: 'boolean',
-          default: false,
-        })
-        .option('snapshot', {
-          describe: 'is it a snapshot (or pre-release) being generated?',
-          type: 'boolean',
-          default: false,
-        })
-        .option('default-branch', {
-          describe: 'default branch to open release PR against',
-          type: 'string',
-        })
-        .option('monorepo-tags', {
-          describe: 'include library name in tags and release branches',
-          type: 'boolean',
-          default: false,
-        });
+      releaseType(yargs, 'node');
     },
-    (argv: ReleasePROptions) => {
+    (argv: ReleasePRFactoryOptions) => {
       factory.runCommand('release-pr', argv).catch(handleError);
+    }
+  )
+  .command(
+    'latest-tag',
+    'find the sha of the latest release',
+    // options unique to ReleasePR
+    (yargs: YargsOptionsBuilder) => {
+      releaseType(yargs, 'node');
+    },
+    (argv: ReleasePRFactoryOptions) => {
+      const releasePR = factory.releasePR(argv);
+      releasePR
+        .latestTag()
+        .catch(handleError)
+        .then(latestTag => {
+          console.log(latestTag);
+        });
     }
   )
   .command(
     'github-release',
     'create a GitHub release from a release PR',
+    // options unique to GitHubRelease
     (yargs: YargsOptionsBuilder) => {
+      releaseType(yargs);
       yargs
         .option('changelog-path', {
           default: 'CHANGELOG.md',
@@ -95,77 +100,53 @@ export const parser = yargs
           default: false,
         });
     },
-    (argv: GitHubReleaseOptions) => {
+    (argv: GitHubReleaseFactoryOptions) => {
       factory.runCommand('github-release', argv).catch(handleError);
     }
   )
-  .command(
-    'latest-tag',
-    'find the sha of the latest release',
-    (yargs: YargsOptionsBuilder) => {
-      yargs
-        .option('version-file', {
-          describe: 'path to version file to update, e.g., version.rb',
-        })
-        .option('default-branch', {
-          describe: 'default branch to open release PR against',
-          type: 'string',
-        });
-    },
-    (argv: ReleasePROptions) => {
-      const releasePR = factory.releasePR(argv);
-      releasePR
-        .latestTag()
-        .catch(handleError)
-        .then(latestTag => {
-          console.log(latestTag);
-        });
-    }
-  )
   .middleware(_argv => {
-    const argv = _argv as GitHubReleaseOptions;
+    const argv = _argv as GitHubReleaseFactoryOptions;
     // allow secrets to be loaded from file path
     // rather than being passed directly to the bin.
     if (argv.token) argv.token = coerceOption(argv.token);
     if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
-  })
-  .option('token', {describe: 'GitHub token with repo write permissions'})
-  .option('release-as', {
-    describe: 'override the semantically determined release version',
-    type: 'string',
-  })
-  .option('release-type', {
-    describe: 'what type of repo is a release being created for?',
-    choices: getReleaserTypes(),
-    default: 'node',
-  })
-  .option('bump-minor-pre-major', {
-    describe:
-      'should we bump the semver minor prior to the first major release',
-    default: false,
-    type: 'boolean',
-  })
-  .option('api-url', {
-    describe: 'URL to use when making API requests',
-    default: 'https://api.github.com',
-    type: 'string',
   })
   .option('debug', {
     describe: 'print verbose errors (use only for local debugging).',
     default: false,
     type: 'boolean',
   })
-  .option('default-branch', {
-    describe: '',
+
+  // See base GitHub options (e.g. GitHubFactoryOptions)
+  .option('token', {describe: 'GitHub token with repo write permissions'})
+  .option('api-url', {
+    describe: 'URL to use when making API requests',
+    default: 'https://api.github.com',
     type: 'string',
   })
-  .option('label', {
-    default: 'autorelease: pending',
-    describe: 'label to remove from release PR',
+  .option('default-branch', {
+    describe: 'The branch to open release PRs against and tag releases on',
+    type: 'string',
   })
   .option('repo-url', {
     describe: 'GitHub URL to generate release for',
     demand: true,
+  })
+
+  // common to ReleasePR and GitHubRelease
+  .option('label', {
+    default: 'autorelease: pending',
+    describe: 'label to remove from release PR',
+  })
+  .option('release-as', {
+    describe: 'override the semantically determined release version',
+    type: 'string',
+  })
+  .option('bump-minor-pre-major', {
+    describe:
+      'should we bump the semver minor prior to the first major release',
+    default: false,
+    type: 'boolean',
   })
   .option('path', {
     describe: 'release from path other than root directory',
@@ -176,6 +157,22 @@ export const parser = yargs
   })
   .option('monorepo-tags', {
     describe: 'include library name in tags and release branches',
+    type: 'boolean',
+    default: false,
+  })
+  .option('version-file', {
+    describe: 'path to version file to update, e.g., version.rb',
+  })
+  .option('last-package-version', {
+    describe: 'last version # that package was released as',
+  })
+  .option('fork', {
+    describe: 'should the PR be created from a fork',
+    type: 'boolean',
+    default: false,
+  })
+  .option('snapshot', {
+    describe: 'is it a snapshot (or pre-release) being generated?',
     type: 'boolean',
     default: false,
   })

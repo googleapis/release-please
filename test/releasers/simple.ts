@@ -21,6 +21,7 @@ import * as nock from 'nock';
 import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
+import {GitHub} from '../../src/github';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
@@ -33,11 +34,8 @@ describe('Simple', () => {
   describe('run', () => {
     it('creates a release PR', async () => {
       const releasePR = new Simple({
-        repoUrl: 'googleapis/simple-test-repo',
-        releaseType: 'simple',
-        // not actually used by this type of repo.
+        github: new GitHub({owner: 'googleapis', repo: 'simple-test-repo'}),
         packageName: 'simple-test-repo',
-        apiUrl: 'https://api.github.com',
       });
 
       // Indicates that there are no PRs currently waiting to be released:

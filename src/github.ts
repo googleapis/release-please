@@ -82,20 +82,12 @@ import {
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {RELEASE_PLEASE} from './constants';
+import {GitHubConstructorOptions} from '.';
 
 export interface OctokitAPIs {
   graphql: Function;
   request: RequestFunctionType;
   octokit: OctokitType;
-}
-
-interface GitHubOptions {
-  defaultBranch?: string;
-  token?: string;
-  owner: string;
-  repo: string;
-  apiUrl?: string;
-  octokitAPIs?: OctokitAPIs;
 }
 
 export interface GitHubTag {
@@ -173,7 +165,7 @@ export class GitHub {
   repo: string;
   apiUrl: string;
 
-  constructor(options: GitHubOptions) {
+  constructor(options: GitHubConstructorOptions) {
     this.defaultBranch = options.defaultBranch;
     this.token = options.token;
     this.owner = options.owner;
@@ -191,7 +183,6 @@ export class GitHub {
           'user-agent': `${RELEASE_PLEASE}/${
             require('../../package.json').version
           }`,
-          // some proxies do not require the token prefix.
           Authorization: `token ${this.token}`,
         },
       };

@@ -43,8 +43,9 @@ const CHANGELOG_SECTIONS = [
 
 export class OCaml extends ReleasePR {
   protected async _run(): Promise<number | undefined> {
+    const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${this.packageName}-` : undefined
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -53,7 +54,8 @@ export class OCaml extends ReleasePR {
 
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       // TODO: Is this configurable?
       changelogSections: CHANGELOG_SECTIONS,
@@ -96,7 +98,7 @@ export class OCaml extends ReleasePR {
               path: this.addPath(path),
               changelogEntry,
               version: candidate.version,
-              packageName: this.packageName,
+              packageName: packageName.name,
               contents,
             })
           );
@@ -111,7 +113,7 @@ export class OCaml extends ReleasePR {
           path: this.addPath(path),
           changelogEntry,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });
@@ -121,7 +123,7 @@ export class OCaml extends ReleasePR {
         path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 

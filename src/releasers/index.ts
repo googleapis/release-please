@@ -31,7 +31,6 @@ import {Helm} from './helm';
 // add any new releasers you create to this type as well as the `releasers`
 // object below.
 export type ReleaseType =
-  | 'base' // not exposed to end users
   | 'go'
   | 'go-yoshi'
   | 'java-bom'

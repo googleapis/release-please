@@ -115,7 +115,8 @@ export class JavaYoshi extends ReleasePR {
 
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: CHANGELOG_SECTIONS,
     });
@@ -159,6 +160,7 @@ export class JavaYoshi extends ReleasePR {
 
     const updates: Update[] = [];
 
+    const packageName = await this.getPackageName();
     if (!this.snapshot) {
       updates.push(
         new Changelog({
@@ -166,7 +168,7 @@ export class JavaYoshi extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
 
@@ -176,7 +178,7 @@ export class JavaYoshi extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
 
@@ -188,7 +190,7 @@ export class JavaYoshi extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
           contents: versionsManifestContent,
         })
       );
@@ -200,7 +202,7 @@ export class JavaYoshi extends ReleasePR {
         changelogEntry,
         versions: candidateVersions,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
         contents: versionsManifestContent,
       })
     );
@@ -219,7 +221,7 @@ export class JavaYoshi extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });
@@ -232,7 +234,7 @@ export class JavaYoshi extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });
@@ -245,7 +247,7 @@ export class JavaYoshi extends ReleasePR {
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     });
@@ -297,10 +299,11 @@ export class JavaYoshi extends ReleasePR {
     _version: string,
     includePackageName: boolean
   ): Promise<BranchName> {
-    const defaultBranch = await this.getDefaultBranch();
-    if (includePackageName && this.packageName) {
+    const defaultBranch = await this.gh.getDefaultBranch();
+    const packageName = await this.getPackageName();
+    if (includePackageName && packageName.getComponent()) {
       return BranchName.ofComponentTargetBranch(
-        this.packageName,
+        packageName.getComponent(),
         defaultBranch
       );
     }
@@ -312,9 +315,10 @@ export class JavaYoshi extends ReleasePR {
     version: string,
     includePackageName: boolean
   ): Promise<string> {
-    const defaultBranch = await this.getDefaultBranch();
+    const defaultBranch = await this.gh.getDefaultBranch();
+    const packageName = await this.getPackageName();
     return includePackageName
-      ? `chore(${defaultBranch}): release ${this.packageName} ${version}`
+      ? `chore(${defaultBranch}): release ${packageName.name} ${version}`
       : `chore(${defaultBranch}): release ${version}`;
   }
 

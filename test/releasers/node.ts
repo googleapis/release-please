@@ -74,9 +74,7 @@ describe('Node', () => {
       const expectedVersion = '1.0.0';
       const pkgName = 'node-test-repo';
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'node',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
       mockRequest(releasePR);
       // this stub is required only because Node lookupPackageName calls
@@ -147,9 +145,7 @@ describe('Node', () => {
       const expectedVersion = '0.123.5';
       const pkgName = 'node-test-repo';
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'node',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
       mockRequest(releasePR);
       // this stub is required only because Node lookupPackageName calls
@@ -220,9 +216,7 @@ describe('Node', () => {
     });
     it('returns undefined for no CC changes', async () => {
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'python',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
       mockRequest(releasePR);
       // this stub is required only because Node lookupPackageName calls
@@ -241,11 +235,7 @@ describe('Node', () => {
   describe('run', () => {
     it('creates a release PR without package-lock.json', async () => {
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'node',
-        // not actually used by this type of repo.
-        packageName: 'node-testno-package-lock-repo',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
 
       // We stub the entire suggester API, asserting only that the
@@ -273,11 +263,7 @@ describe('Node', () => {
 
     it('creates a release PR with package-lock.json', async () => {
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'node',
-        // not actually used by this type of repo.
-        packageName: 'node-test-repo',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
 
       // We stub the entire suggester API, asserting only that the
@@ -305,11 +291,7 @@ describe('Node', () => {
 
     it('creates release PR relative to a path', async () => {
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'node',
-        // not actually used by this type of repo.
-        packageName: 'node-test-repo',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
         path: 'packages/foo',
       });
 
@@ -338,11 +320,7 @@ describe('Node', () => {
 
     it('does not support snapshot releases', async () => {
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'node',
-        // not actually used by this type of repo.
-        packageName: 'node-test-repo',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
         snapshot: true,
       });
       const pr = await releasePR.run();
@@ -364,11 +342,7 @@ describe('Node', () => {
         }
       );
       const releasePR = new Node({
-        repoUrl: 'googleapis/node-test-repo',
-        releaseType: 'node',
-        // not actually used by this type of repo.
-        packageName: 'node-testno-package-lock-repo',
-        apiUrl: 'https://api.github.com',
+        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
         monorepoTags: true,
       });
       mockRequest(releasePR);
@@ -386,55 +360,37 @@ describe('Node', () => {
     });
   });
 
-  describe('lookupPackageName', () => {
+  describe('getPackageName', () => {
+    const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+    sandbox.stub(github, 'getDefaultBranch').resolves('main');
+    const stubPkgJson = (node: Node, pkgName: string) => {
+      const content = JSON.stringify({name: pkgName});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sandbox.stub(node, 'getPkgJsonContents' as any).resolves({
+        sha: 'abc123',
+        content: Buffer.from(content, 'utf8').toString('base64'),
+        parsedContent: content,
+      });
+    };
+
     it('finds package name in package.json', async () => {
-      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
-
-      sandbox.stub(github, 'getDefaultBranch').resolves('master');
-      stubFilesToUpdate(github, ['package.json']);
-
-      const expectedPackageName = await Node.lookupPackageName(github);
-      expect(expectedPackageName).to.equal('node-test-repo');
+      const node = new Node({github});
+      const refSafePkgName = 'pkg-name';
+      const pkgName = `@google-cloud/${refSafePkgName}`;
+      stubPkgJson(node, pkgName);
+      const packageName = await node.getPackageName();
+      expect(packageName.name).to.equal(pkgName);
+      expect(packageName.getComponent()).to.equal(refSafePkgName);
     });
 
-    it('finds package name in submodule package.json', async () => {
-      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
-
-      sandbox.stub(github, 'getDefaultBranch').resolves('master');
-      stubFilesToUpdate(github, ['some-path/package.json']);
-
-      const expectedPackageName = await Node.lookupPackageName(
-        github,
-        'some-path'
-      );
-      expect(expectedPackageName).to.equal('node-test-repo');
-    });
-  });
-
-  describe('coercePackagePrefix', () => {
-    it('should parse out the @scope', () => {
-      const inputs = ['@foo/bar', '@foo-baz/bar'];
-      inputs.forEach(input => {
-        const releasePR = new Node({
-          packageName: input,
-          repoUrl: 'owner/repo',
-          apiUrl: 'unused',
-          releaseType: 'node',
-        });
-        expect(releasePR.packagePrefix).to.eql('bar');
-      });
-    });
-    it('should default to the package name', () => {
-      const inputs = ['foo/bar', 'foobar', ''];
-      inputs.forEach(input => {
-        const releasePR = new Node({
-          packageName: input,
-          repoUrl: 'owner/repo',
-          apiUrl: 'unused',
-          releaseType: 'node',
-        });
-        expect(releasePR.packagePrefix).to.eql(input);
-      });
+    it('pkgjson name overwrites input packageName', async () => {
+      const node = new Node({github, packageName: '@over/write-me'});
+      const refSafePkgName = 'pkg-name';
+      const pkgName = `@google-cloud/${refSafePkgName}`;
+      stubPkgJson(node, pkgName);
+      const packageName = await node.getPackageName();
+      expect(packageName.name).to.equal(pkgName);
+      expect(packageName.getComponent()).to.equal(refSafePkgName);
     });
   });
 });

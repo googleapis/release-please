@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import {readPOJO, stringifyExpectedChanges} from '../helpers';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
+import {GitHub} from '../../src/github';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
@@ -37,10 +38,8 @@ describe('Rust', () => {
 
       it(`creates a release PR for non-monorepo ${suffix}`, async () => {
         const releasePR = new Rust({
-          repoUrl: 'fasterthanlime/rust-test-repo',
-          releaseType: 'rust',
+          github: new GitHub({owner: 'fasterthanlime', repo: 'rust-test-repo'}),
           packageName: 'crate1',
-          apiUrl: 'https://api.github.com',
         });
 
         // Indicates that there are no PRs currently waiting to be released:
@@ -136,10 +135,8 @@ describe('Rust', () => {
 
       it(`creates a release PR for monorepo ${suffix}`, async () => {
         const releasePR = new Rust({
-          repoUrl: 'fasterthanlime/rust-test-repo',
-          releaseType: 'rust',
+          github: new GitHub({owner: 'fasterthanlime', repo: 'rust-test-repo'}),
           packageName: 'crate1',
-          apiUrl: 'https://api.github.com',
           path: 'crates/crate1',
           monorepoTags: true,
         });
@@ -272,10 +269,8 @@ describe('Rust', () => {
 
     it('does not support snapshot releases', async () => {
       const releasePR = new Rust({
-        repoUrl: 'fasterthanlime/rust-test-repo',
-        releaseType: 'rust',
+        github: new GitHub({owner: 'fasterthanlime', repo: 'rust-test-repo'}),
         packageName: 'crate1',
-        apiUrl: 'https://api.github.com',
         snapshot: true,
       });
       const pr = await releasePR.run();

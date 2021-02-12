@@ -36,7 +36,8 @@ describe('ConventionalCommits', () => {
           },
           {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const bump = await cc.suggestBump('0.3.0');
@@ -57,7 +58,8 @@ describe('ConventionalCommits', () => {
           },
           {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const cl = await cc.generateChangelogEntry({
@@ -77,7 +79,8 @@ describe('ConventionalCommits', () => {
           },
           {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const cl = await cc.generateChangelogEntry({
@@ -97,7 +100,8 @@ describe('ConventionalCommits', () => {
           },
           {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const cl = await cc.generateChangelogEntry({
@@ -118,7 +122,8 @@ describe('ConventionalCommits', () => {
           },
           {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const cl = await cc.generateChangelogEntry({
@@ -138,7 +143,8 @@ describe('ConventionalCommits', () => {
           },
           {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const cl = await cc.generateChangelogEntry({
@@ -168,7 +174,8 @@ fix(securitycenter): fixes security center.
           },
           {message: 'feat: awesome feature', sha: 'abc678', files: []},
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const cl = await cc.generateChangelogEntry({
@@ -202,7 +209,8 @@ fix(securitycenter): fixes security center.
             files: [],
           },
         ],
-        githubRepoUrl: 'https://github.com/bcoe/release-please.git',
+        owner: 'bcoe',
+        repository: 'release-please',
         bumpMinorPreMajor: true,
       });
       const cl = await cc.generateChangelogEntry({

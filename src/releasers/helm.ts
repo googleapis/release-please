@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {GitHub, GitHubTag, GitHubFileContents} from '../github';
+import {GitHubTag, GitHubFileContents} from '../github';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -27,27 +27,16 @@ import * as yaml from 'js-yaml';
 import {ChartYaml} from '../updaters/helm/chart-yaml';
 
 export class Helm extends ReleasePR {
-  static releaserName = 'helm';
+  private chartYmlContents?: GitHubFileContents;
+  private _packageName?: string;
 
   protected async _run(): Promise<number | undefined> {
     // Make an effort to populate packageName from the contents of
     // the package.json, rather than forcing this to be set:
-    const contents: GitHubFileContents = await this.gh.getFileContents(
-      this.addPath('Chart.yaml')
-    );
-    const file = yaml.load(contents.parsedContent, {json: true});
-    if (file === null || file === undefined) {
-      return undefined;
-    }
-    const pkg = JSON.parse(JSON.stringify(file));
-    if (pkg.name) {
-      this.packageName = pkg.name;
-      // we've rewritten the package name, recalculate the package prefix
-      this.packagePrefix = this.coercePackagePrefix(pkg.name);
-    }
 
+    const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${this.packagePrefix}-` : undefined
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -56,7 +45,8 @@ export class Helm extends ReleasePR {
 
     const cc = new ConventionalCommits({
       commits,
-      githubRepoUrl: this.repoUrl,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       changelogSections: this.changelogSections,
     });
@@ -90,7 +80,7 @@ export class Helm extends ReleasePR {
         path: this.addPath('CHANGELOG.md'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -99,8 +89,8 @@ export class Helm extends ReleasePR {
         path: this.addPath('Chart.yaml'),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
-        contents,
+        packageName: packageName.name,
+        contents: await this.getChartYmlContents(),
       })
     );
 
@@ -113,32 +103,29 @@ export class Helm extends ReleasePR {
     });
   }
 
-  // A releaser can implement this method to automatically detect
-  // the release name when creating a GitHub release, for instance by returning
-  // name in package.json, or setup.py.
-  static async lookupPackageName(
-    gh: GitHub,
-    path?: string
-  ): Promise<string | undefined> {
-    // Make an effort to populate packageName from the contents of
-    // the package.json, rather than forcing this to be set:
-    const contents: GitHubFileContents = await gh.getFileContents(
-      this.addPathStatic('Chart.yaml', path)
-    );
-    const file = yaml.load(contents.parsedContent, {json: true});
-    if (file === null || file === undefined) {
-      return undefined;
+  async getPackageName(): Promise<PackageName> {
+    if (this._packageName === undefined) {
+      const chartYmlContents = await this.getChartYmlContents();
+      const chart = yaml.load(chartYmlContents.parsedContent, {json: true});
+      if (typeof chart === 'object') {
+        this.packageName = this._packageName =
+          (chart as {name: string}).name ?? this.packageName;
+      } else {
+        this._packageName = this.packageName;
+      }
     }
-    const pkg = JSON.parse(JSON.stringify(file));
-    if (pkg.name) return pkg.name;
-    else return undefined;
+    return {
+      name: this.packageName,
+      getComponent: () => this.packageName,
+    };
   }
 
-  // Parse the package prefix for releases from the full package name
-  // The package name usually looks like `@[group]/[library]`
-  protected coercePackagePrefix(packageName: string): string {
-    return packageName.match(/^@[\w-]+\//)
-      ? packageName.split('/')[1]
-      : packageName;
+  private async getChartYmlContents(): Promise<GitHubFileContents> {
+    if (!this.chartYmlContents) {
+      this.chartYmlContents = await this.gh.getFileContents(
+        this.addPath('Chart.yaml')
+      );
+    }
+    return this.chartYmlContents;
   }
 }
