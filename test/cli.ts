@@ -14,7 +14,15 @@
 
 import * as assert from 'assert';
 import {expect} from 'chai';
-import {factory} from '../src/factory';
+import {
+  factory,
+  ReleasePRRunResult,
+  RunResult,
+  ReleasePRMethod,
+  GitHubReleaseRunResult,
+  Method,
+  GitHubReleaseMethod,
+} from '../src/factory';
 import {GitHubRelease} from '../src/github-release';
 import {ReleasePR} from '../src/release-pr';
 import {describe, it, afterEach} from 'mocha';
@@ -25,6 +33,24 @@ import {ParseCallback} from 'yargs';
 import chalk = require('chalk');
 
 const sandbox = sinon.createSandbox();
+
+let instanceToRun: ReleasePR | GitHubRelease;
+
+function callStub(
+  instance: ReleasePR,
+  method: ReleasePRMethod
+): ReleasePRRunResult;
+function callStub(
+  instance: GitHubRelease,
+  method: GitHubReleaseMethod
+): GitHubReleaseRunResult;
+function callStub(
+  instance: ReleasePR | GitHubRelease,
+  _method: Method
+): RunResult {
+  instanceToRun = instance;
+  return Promise.resolve(undefined);
+}
 
 describe('CLI', () => {
   afterEach(() => {
@@ -51,39 +77,37 @@ describe('CLI', () => {
         stack,
       ]);
     });
+    it('needs yargs', () => {
+      let err: Error;
+      let caught = false;
+      handleError.yargsArgs = undefined;
+      try {
+        handleError({message: '', stack: ''});
+      } catch (e) {
+        err = e;
+        caught = true;
+      }
+      expect(caught).to.be.true;
+      expect(err!.message).to.equal(
+        'Set handleError.yargsArgs with a yargs.Arguments instance.'
+      );
+    });
   });
   describe('release-pr', () => {
     it('instantiates release PR based on command line arguments', () => {
-      let classToRun: ReleasePR;
-      // This logic is used to capture the class that would
-      // be executed, allowing us to validate that the appropriate
-      // properties were assigned from the argument parser:
-      sandbox.replace(
-        factory,
-        'run',
-        // Parameter 'runnable' implicitly has an 'any' type.
-        // Attempting to properly type this arrow func as matching the
-        // factory.run overloads is unduly complex if even possible?
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore: stubbing an overloaded function.
-        (runnable): Promise<undefined> => {
-          classToRun = runnable as ReleasePR;
-          return Promise.resolve(undefined);
-        }
-      );
+      sandbox.replace(factory, 'call', callStub);
       parser.parse(
         'release-pr --repo-url=googleapis/release-please-cli --package-name=cli-package'
       );
-      assert.ok(classToRun! instanceof ReleasePR);
-      assert.strictEqual(classToRun.gh.owner, 'googleapis');
-      assert.strictEqual(classToRun.gh.repo, 'release-please-cli');
-      assert.strictEqual(classToRun.packageName, 'cli-package');
+      assert.ok(instanceToRun! instanceof ReleasePR);
+      assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
+      assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
+      assert.strictEqual(instanceToRun.packageName, 'cli-package');
       // Defaults to Node.js release type:
-      assert.strictEqual(classToRun.constructor.name, 'Node');
+      assert.strictEqual(instanceToRun.constructor.name, 'Node');
     });
     it('validates releaseType choices', done => {
-      sandbox.stub(factory, 'run').resolves(undefined);
-
+      sandbox.stub(factory, 'call').resolves(undefined);
       const cmd =
         'release-pr ' +
         '--release-type=foobar ' +
@@ -121,50 +145,21 @@ describe('CLI', () => {
   });
   describe('latest-tag', () => {
     it('instantiates release PR for latestTag', () => {
-      let classToRun: ReleasePR;
-      sandbox.replace(
-        factory,
-        'run',
-        // Parameter 'runnable' implicitly has an 'any' type.
-        // Attempting to properly type this arrow func as matching the
-        // factory.run overloads is unduly complex if even possible?
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore: stubbing an overloaded function.
-        (runnable): Promise<undefined> => {
-          classToRun = runnable as ReleasePR;
-          return Promise.resolve(undefined);
-        }
-      );
+      sandbox.replace(factory, 'call', callStub);
       parser.parse(
         'latest-tag --repo-url=googleapis/release-please-cli --package-name=cli-package'
       );
-      assert.ok(classToRun! instanceof ReleasePR);
-      assert.strictEqual(classToRun.gh.owner, 'googleapis');
-      assert.strictEqual(classToRun.gh.repo, 'release-please-cli');
-      assert.strictEqual(classToRun.packageName, 'cli-package');
+      assert.ok(instanceToRun! instanceof ReleasePR);
+      assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
+      assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
+      assert.strictEqual(instanceToRun.packageName, 'cli-package');
       // Defaults to Node.js release type:
-      assert.strictEqual(classToRun.constructor.name, 'Node');
+      assert.strictEqual(instanceToRun.constructor.name, 'Node');
     });
   });
   describe('github-release', () => {
     it('instantiates a GitHub released based on command line arguments', async () => {
-      let classToRun: GitHubRelease;
-      // This logic is used to capture the class that would
-      // be executed, allowing us to validate that the appropriate
-      // properties were assigned from the argument parser:
-      sandbox.replace(
-        factory,
-        'run',
-        // Parameter 'runnable' implicitly has an 'any' type.
-        // Attempting to properly type this arrow func as matching the
-        // factory.run overloads is unduly complex if even possible?
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore: stubbing an overloaded function.
-        (runnable): Promise<undefined> => {
-          classToRun = runnable as GitHubRelease;
-          return Promise.resolve(undefined);
-        }
-      );
+      sandbox.replace(factory, 'call', callStub);
       const pkgName = 'cli-package';
       const cmd =
         'github-release ' +
@@ -172,49 +167,32 @@ describe('CLI', () => {
         '--release-type=node ' +
         `--package-name=${pkgName}`;
       parser.parse(cmd);
-      assert.ok(classToRun! instanceof GitHubRelease);
-      assert.strictEqual(classToRun.gh.owner, 'googleapis');
-      assert.strictEqual(classToRun.gh.repo, 'release-please-cli');
-      assert.strictEqual(classToRun.changelogPath, 'CHANGELOG.md');
+      assert.ok(instanceToRun! instanceof GitHubRelease);
+      assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
+      assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
+      assert.strictEqual(instanceToRun.changelogPath, 'CHANGELOG.md');
 
       const jsonPkg = `{"name": "${pkgName}"}`;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sandbox.stub(classToRun.releasePR, 'getPkgJsonContents' as any).resolves({
+      sandbox.stub(instanceToRun.releasePR.gh, 'getFileContents').resolves({
         sha: 'abc123',
         content: Buffer.from(jsonPkg, 'utf8').toString('base64'),
         parsedContent: jsonPkg,
       });
       assert.strictEqual(
-        (await classToRun.releasePR.getPackageName()).name,
+        (await instanceToRun.releasePR.getPackageName()).name,
         'cli-package'
       );
       // Defaults to Node.js release type:
-      assert.strictEqual(classToRun.releasePR.constructor.name, 'Node');
+      assert.strictEqual(instanceToRun.releasePR.constructor.name, 'Node');
     });
     it('instantiates a GitHub released without releaseType', async () => {
-      let classToRun: GitHubRelease;
-      // This logic is used to capture the class that would
-      // be executed, allowing us to validate that the appropriate
-      // properties were assigned from the argument parser:
-      sandbox.replace(
-        factory,
-        'run',
-        // Parameter 'runnable' implicitly has an 'any' type.
-        // Attempting to properly type this arrow func as matching the
-        // factory.run overloads is unduly complex if even possible?
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore: stubbing an overloaded function.
-        (runnable): Promise<undefined> => {
-          classToRun = runnable as GitHubRelease;
-          return Promise.resolve(undefined);
-        }
-      );
+      sandbox.replace(factory, 'call', callStub);
       const cmd = 'github-release --repo-url=googleapis/release-please-cli ';
       parser.parse(cmd);
-      assert.ok(classToRun! instanceof GitHubRelease);
-      assert.strictEqual(classToRun.releasePR.constructor.name, 'ReleasePR');
+      assert.ok(instanceToRun! instanceof GitHubRelease);
+      assert.strictEqual(instanceToRun.releasePR.constructor.name, 'ReleasePR');
       assert.strictEqual(
-        (await classToRun.releasePR.getPackageName()).name,
+        (await instanceToRun.releasePR.getPackageName()).name,
         ''
       );
     });

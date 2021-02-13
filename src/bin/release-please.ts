@@ -75,7 +75,12 @@ export const parser = yargs
         .runCommand('latest-tag', argv)
         .catch(handleError)
         .then(latestTag => {
-          if (latestTag) console.log(latestTag);
+          if (latestTag) {
+            console.log(latestTag);
+          } else {
+            console.log('No latest tag found.');
+            process.exitCode = 1;
+          }
         });
     }
   )
@@ -191,8 +196,10 @@ interface HandleError {
 // the request object, don't do this in CI/CD).
 export const handleError: HandleError = (err: ErrorObject) => {
   let status = '';
-  if (!handleError.yargsArgs) {
-    return;
+  if (handleError.yargsArgs === undefined) {
+    throw new Error(
+      'Set handleError.yargsArgs with a yargs.Arguments instance.'
+    );
   }
   if (!handleError.logger) {
     handleError.logger = console;
