@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as assert from 'assert';
 import {describe, it, afterEach} from 'mocha';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
@@ -87,31 +86,30 @@ describe('Helm', () => {
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404}));
 
-
       // We stub the entire suggester API, these updates are generally the
-        // most interesting thing under test, as they represent the changes
-        // that will be pushed up to GitHub:
-        let expectedChanges: [string, object][] = [];
-        sandbox.replace(
-          suggester,
-          'createPullRequest',
-          (_octokit, changes): Promise<number> => {
-            expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-            return Promise.resolve(22);
-          }
-        );
+      // most interesting thing under test, as they represent the changes
+      // that will be pushed up to GitHub:
+      let expectedChanges: [string, object][] = [];
+      sandbox.replace(
+        suggester,
+        'createPullRequest',
+        (_octokit, changes): Promise<number> => {
+          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+          return Promise.resolve(22);
+        }
+      );
 
-        // Call made to close any stale release PRs still open on GitHub:
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
+      // Call made to close any stale release PRs still open on GitHub:
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
 
-        // Call to add autorelease: pending label:
-        sandbox.stub(releasePR.gh, 'addLabels');
+      // Call to add autorelease: pending label:
+      sandbox.stub(releasePR.gh, 'addLabels');
 
-        await releasePR.run();
+      await releasePR.run();
 
-        // Did we generate all the changes to files we expected to?
-        snapshot(stringifyExpectedChanges(expectedChanges));
-      });
+      // Did we generate all the changes to files we expected to?
+      snapshot(stringifyExpectedChanges(expectedChanges));
+    });
   });
 });
