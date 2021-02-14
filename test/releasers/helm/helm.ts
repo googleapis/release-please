@@ -36,7 +36,6 @@ describe('Helm', () => {
       const releasePR = new Helm({
         github: new GitHub({owner: 'abhinav-demo', repo: 'helm-test-repo'}),
         packageName: 'helm-test-repo',
-
       });
 
       // Indicates that there are no PRs currently waiting to be released:
@@ -83,8 +82,7 @@ describe('Helm', () => {
         parsedContent: manifestContent,
       });
       // CHANGELOG is not found, and will be created:
-      getFileContentsStub.rejects(
-        Object.assign(Error('not found'), {status: 404}));
+      getFileContentsStub.rejects(Object.assign(Error('not found'), {status: 404}));
 
       // We stub the entire suggester API, these updates are generally the
       // most interesting thing under test, as they represent the changes
