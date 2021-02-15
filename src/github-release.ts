@@ -21,7 +21,7 @@ import {ReleasePR} from './release-pr';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
-export interface ReleaseResponse {
+export interface GitHubReleaseResponse {
   major: number;
   minor: number;
   patch: number;
@@ -48,7 +48,7 @@ export class GitHubRelease {
     this.releasePR = options.releasePR;
   }
 
-  async run(): Promise<ReleaseResponse | undefined> {
+  async run(): Promise<GitHubReleaseResponse | undefined> {
     const candidate = await this.releasePR.buildRelease(this.changelogPath);
     if (!candidate) {
       checkpoint('Unable to build candidate', CheckpointType.Failure);

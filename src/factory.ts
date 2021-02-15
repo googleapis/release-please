@@ -16,9 +16,9 @@
 // and GitHub Releases:
 
 import {ReleasePR} from './release-pr';
-import {GitHubRelease, ReleaseResponse} from './github-release';
+import {GitHubRelease, GitHubReleaseResponse} from './github-release';
 import {ReleaseType, getReleasers} from './releasers';
-import {GitHub} from './github';
+import {GitHub, GitHubTag} from './github';
 import {
   ReleasePRFactoryOptions,
   GitHubReleaseFactoryOptions,
@@ -28,26 +28,98 @@ import {DEFAULT_LABELS} from './constants';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
-function runCommand(
-  command: string,
-  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
-): Promise<number | undefined | ReleaseResponse> {
-  if (isGitHubRelease(command, options)) {
-    return factory.run(githubRelease(options));
-  } else {
-    return factory.run(releasePR(options));
-  }
-}
+// types defining methods available to call on instances
+export type ReleasePRMethod = 'run' | 'latestTag';
+export type GitHubReleaseMethod = 'run';
+export type Method = ReleasePRMethod | GitHubReleaseMethod;
 
-function isGitHubRelease(
-  command: string,
-  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
-): options is GitHubReleaseFactoryOptions {
+// types defining cli commands and their options
+export type ReleasePRCommands = 'release-pr' | 'latest-tag';
+export type GitHubReleaseCommands = 'github-release';
+type Command = ReleasePRCommands | GitHubReleaseCommands;
+type IsReleasePRCmd = {
+  command: Command;
+  options: ReleasePRFactoryOptions;
+};
+type IsGitHubReleaseCmd = {
+  command: Command;
+  options: GitHubReleaseFactoryOptions;
+};
+
+// shorthand aliases for instance/method call return types
+export type ReleasePRRunResult = Promise<number | GitHubTag | undefined>;
+export type GitHubReleaseRunResult = Promise<GitHubReleaseResponse | undefined>;
+export type RunResult = ReleasePRRunResult | GitHubReleaseRunResult;
+
+function isGitHubReleaseCmd(
+  cmdOpts: IsReleasePRCmd | IsGitHubReleaseCmd
+): cmdOpts is IsGitHubReleaseCmd {
+  const {command, options} = cmdOpts;
   return command === 'github-release' && typeof options === 'object';
 }
 
-function run(runnable: ReleasePR | GitHubRelease) {
-  return runnable.run();
+function isReleasePRCmd(
+  cmdOpts: IsReleasePRCmd | IsGitHubReleaseCmd
+): cmdOpts is IsReleasePRCmd {
+  const {command, options} = cmdOpts;
+  return (
+    (command === 'release-pr' || command === 'latest-tag') &&
+    typeof options === 'object'
+  );
+}
+
+function runCommand(
+  command: ReleasePRCommands,
+  options: ReleasePRFactoryOptions
+): ReleasePRRunResult;
+function runCommand(
+  command: GitHubReleaseCommands,
+  options: GitHubReleaseFactoryOptions
+): GitHubReleaseRunResult;
+function runCommand(
+  command: Command,
+  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
+): RunResult {
+  let result: RunResult;
+  const cmdOpts = {command, options};
+  if (isReleasePRCmd(cmdOpts)) {
+    let method: ReleasePRMethod = 'run';
+    if (command === 'latest-tag') {
+      method = 'latestTag';
+    }
+    result = factory.call(releasePR(cmdOpts.options), method);
+  } else if (isGitHubReleaseCmd({command, options})) {
+    result = factory.call(githubRelease(cmdOpts.options), 'run');
+  } else {
+    throw new Error(
+      `Invalid command(${cmdOpts.command}) with options(${JSON.stringify(
+        cmdOpts.options
+      )})`
+    );
+  }
+  return result;
+}
+
+function call(instance: ReleasePR, method: ReleasePRMethod): ReleasePRRunResult;
+function call(
+  instance: GitHubRelease,
+  method: GitHubReleaseMethod
+): GitHubReleaseRunResult;
+function call(instance: ReleasePR | GitHubRelease, method: Method): RunResult {
+  if (!(method in instance)) {
+    throw new Error(
+      `No such method(${method}) on ${instance.constructor.name}`
+    );
+  }
+  let result: RunResult;
+  if (instance instanceof ReleasePR) {
+    result = instance[method as ReleasePRMethod]();
+  } else if (instance instanceof GitHubRelease) {
+    result = instance[method as GitHubReleaseMethod]();
+  } else {
+    throw new Error('Unknown instance.');
+  }
+  return result;
 }
 
 function getLabels(label?: string): string[] {
@@ -157,6 +229,6 @@ export const factory = {
   githubRelease,
   releasePR,
   releasePRClass,
-  run,
+  call,
   runCommand,
 };

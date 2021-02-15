@@ -14,11 +14,11 @@
 
 import {describe, it, afterEach} from 'mocha';
 import * as assert from 'assert';
-import {factory} from '../src/factory';
+import {factory, ReleasePRCommands} from '../src/factory';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {RequestHeaders} from '@octokit/types';
-import {Ruby} from '../src';
+import {Ruby, ReleasePRFactoryOptions, ReleasePR} from '../src';
 
 const sandbox = sinon.createSandbox();
 
@@ -185,16 +185,103 @@ describe('factory', () => {
       );
     });
   });
-  describe('run', () => {
-    it('runs a runnable', async () => {
-      const runnable = factory.releasePR({
+
+  describe('runCommand', () => {
+    it('errors on bad command', async () => {
+      sandbox.stub(factory, 'call').resolves(undefined);
+      let caught = false;
+      let err: Error;
+      try {
+        await factory.runCommand(
+          'foobar' as ReleasePRCommands,
+          ({bar: 'baz'} as unknown) as ReleasePRFactoryOptions
+        );
+      } catch (e) {
+        err = e;
+        caught = true;
+      }
+      expect(caught).to.be.true;
+      expect(err!.message).to.equal(
+        'Invalid command(foobar) with options({"bar":"baz"})'
+      );
+    });
+  });
+  describe('call', () => {
+    it('calls ReleasePR.run', async () => {
+      const instance = factory.releasePR({
         repoUrl: 'googleapis/simple-test-repo',
-        packageName: 'simple-test-repo',
-        apiUrl: 'https://api.github.com',
         releaseType: 'simple',
       });
-      sandbox.stub(runnable, 'run').resolves(47);
-      expect(await factory.run(runnable)).to.equal(47);
+      sandbox.stub(instance, 'run').resolves(47);
+      expect(await factory.call(instance, 'run')).to.equal(47);
+    });
+    it('errors with bad method on ReleasePR', async () => {
+      const instance = factory.releasePR({
+        repoUrl: 'googleapis/simple-test-repo',
+        releaseType: 'simple',
+      });
+      let caught = false;
+      let err: Error;
+      try {
+        await factory.call(instance, 'foo' as 'run');
+      } catch (e) {
+        err = e;
+        caught = true;
+      }
+      expect(caught).to.be.true;
+      expect(err!.message).to.equal('No such method(foo) on Simple');
+    });
+    it('calls a GitHubRelease instance', async () => {
+      const instance = factory.githubRelease({
+        repoUrl: 'googleapis/simple-test-repo',
+        releaseType: 'simple',
+      });
+      const ghRelease = {
+        major: 1,
+        minor: 2,
+        patch: 3,
+        version: '1.2.3',
+        sha: 'abc123',
+        html_url: 'https://release.url',
+        upload_url: 'https://upload.url/',
+        name: 'v1.2.3',
+        tag_name: 'v1.2.3',
+        pr: 1,
+        draft: false,
+      };
+      sandbox.stub(instance, 'run').resolves(ghRelease);
+      expect(await factory.call(instance, 'run')).to.eql(ghRelease);
+    });
+    it('errors with bad method on GitHubRelease', async () => {
+      const instance = factory.githubRelease({
+        repoUrl: 'googleapis/simple-test-repo',
+        releaseType: 'simple',
+      });
+      let caught = false;
+      let err: Error;
+      try {
+        await factory.call(instance, 'foo' as 'run');
+      } catch (e) {
+        err = e;
+        caught = true;
+      }
+      expect(caught).to.be.true;
+      expect(err!.message).to.equal('No such method(foo) on GitHubRelease');
+    });
+    it('errors with bad method on unknown', async () => {
+      let caught = false;
+      let err: Error;
+      try {
+        await factory.call(
+          ({foo: () => 'in foo'} as unknown) as ReleasePR,
+          'foo' as 'run'
+        );
+      } catch (e) {
+        err = e;
+        caught = true;
+      }
+      expect(caught).to.be.true;
+      expect(err!.message).to.equal('Unknown instance.');
     });
   });
 });

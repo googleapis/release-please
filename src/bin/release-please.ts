@@ -71,12 +71,16 @@ export const parser = yargs
       releaseType(yargs, 'node');
     },
     (argv: ReleasePRFactoryOptions) => {
-      const releasePR = factory.releasePR(argv);
-      releasePR
-        .latestTag()
+      factory
+        .runCommand('latest-tag', argv)
         .catch(handleError)
         .then(latestTag => {
-          console.log(latestTag);
+          if (latestTag) {
+            console.log(latestTag);
+          } else {
+            console.log('No latest tag found.');
+            process.exitCode = 1;
+          }
         });
     }
   )
@@ -179,11 +183,10 @@ export const parser = yargs
   .demandCommand(1)
   .strict(true);
 
-// Only run parser if executed with node bin, this allows
-// for the parser to be easily tested:
-let argv: yargs.Arguments;
-if (require.main === module) {
-  argv = parser.parse();
+interface HandleError {
+  (err: ErrorObject): void;
+  logger?: Console;
+  yargsArgs?: yargs.Arguments;
 }
 
 // The errors returned by octokit currently contain the
@@ -191,28 +194,45 @@ if (require.main === module) {
 // leak. For this reason, we capture exceptions and print
 // a less verbose error message (run with --debug to output
 // the request object, don't do this in CI/CD).
-function handleError(err: ErrorObject) {
+export const handleError: HandleError = (err: ErrorObject) => {
   let status = '';
-  const command = argv?._?.length ? argv._[0] : '';
+  if (handleError.yargsArgs === undefined) {
+    throw new Error(
+      'Set handleError.yargsArgs with a yargs.Arguments instance.'
+    );
+  }
+  if (!handleError.logger) {
+    handleError.logger = console;
+  }
+  const ya = handleError.yargsArgs;
+  const logger = handleError.logger;
+  const command = ya?._?.length ? ya._[0] : '';
   if (err.status) {
     status = '' + err.status;
   }
-  console.error(
+  logger.error(
     chalk.red(
       `command ${command} failed${status ? ` with status ${status}` : ''}`
     )
   );
-  if (argv?.debug) {
-    console.error('---------');
-    console.error(err.stack);
+  if (ya?.debug) {
+    logger.error('---------');
+    logger.error(err.stack);
   }
   process.exitCode = 1;
+};
+
+// Only run parser if executed with node bin, this allows
+// for the parser to be easily tested:
+let argv: yargs.Arguments;
+if (require.main === module) {
+  argv = parser.parse();
+  handleError.yargsArgs = argv;
+  process.on('unhandledRejection', err => {
+    handleError(err as ErrorObject);
+  });
+
+  process.on('uncaughtException', err => {
+    handleError(err as ErrorObject);
+  });
 }
-
-process.on('unhandledRejection', err => {
-  handleError(err as ErrorObject);
-});
-
-process.on('uncaughtException', err => {
-  handleError(err as ErrorObject);
-});
