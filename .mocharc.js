@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 const config = {
-  "enable-source-maps": true,
-  "throw-deprecation": true,
-  "timeout": 10000,
-  "recursive": true
-}
+  'enable-source-maps': true,
+  'throw-deprecation': true,
+  timeout: 10000,
+  recursive: true,
+};
 if (process.env.MOCHA_THROW_DEPRECATION === 'false') {
   delete config['throw-deprecation'];
 }
@@ -26,4 +26,9 @@ if (process.env.MOCHA_REPORTER) {
 if (process.env.MOCHA_REPORTER_OUTPUT) {
   config['reporter-option'] = `output=${process.env.MOCHA_REPORTER_OUTPUT}`;
 }
-module.exports = config
+process.on('unhandledRejection', err => {
+  console.error(err);
+  process.exit(1);
+});
+
+module.exports = config;

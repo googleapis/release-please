@@ -228,12 +228,11 @@ let argv: yargs.Arguments;
 if (require.main === module) {
   argv = parser.parse();
   handleError.yargsArgs = argv;
+  process.on('unhandledRejection', err => {
+    handleError(err as ErrorObject);
+  });
+
+  process.on('uncaughtException', err => {
+    handleError(err as ErrorObject);
+  });
 }
-
-process.on('unhandledRejection', err => {
-  handleError(err as ErrorObject);
-});
-
-process.on('uncaughtException', err => {
-  handleError(err as ErrorObject);
-});
