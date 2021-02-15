@@ -17,6 +17,12 @@ import {resolve} from 'path';
 import {Commit} from '../src/graphql-to-commits';
 import * as crypto from 'crypto';
 
+export function dateSafe(content: string): string {
+  return content.replace(
+    /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
+    '1983-10-10' // use a fake date, so that we don't break daily.
+  );
+}
 /*
  * Given an object of chnages expected to be made by code-suggester API,
  * stringify content in such a way that it works well for snapshots:
@@ -28,10 +34,7 @@ export function stringifyExpectedChanges(expected: [string, object][]): string {
     const obj = update[1] as {[key: string]: string};
     stringified = `${stringified}\n${obj.content.replace(/\r\n/g, '\n')}`;
   }
-  return stringified.replace(
-    /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
-    '1983-10-10' // use a fake date, so that we don't break daily.
-  );
+  return dateSafe(stringified);
 }
 
 /*
