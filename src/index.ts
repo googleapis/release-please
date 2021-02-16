@@ -85,19 +85,24 @@ interface FactoryOptions {
 // GitHub factory/builder options
 export interface GitHubFactoryOptions extends GitHubOptions, FactoryOptions {}
 
+// ReleasePR and GitHubRelease Factory
+interface ReleaserFactory {
+  releaseType?: ReleaseType;
+}
+
 // ReleasePR factory/builder options
-// `releaseType` is required for the ReleaserPR factory. Using a type alias
-// here because the `interface ... extends` syntax produces the following error:
-// "An interface can only extend an identifier/qualified-name with optional
-// type arguments."
-export type ReleasePRFactoryOptions = ReleasePROptions &
-  GitHubFactoryOptions & {releaseType: ReleaseType; label?: string};
+export interface ReleasePRFactoryOptions
+  extends ReleasePROptions,
+    GitHubFactoryOptions,
+    ReleaserFactory {
+  label?: string;
+}
 
 // GitHubRelease factory/builder options
 export interface GitHubReleaseFactoryOptions
   extends GitHubReleaseOptions,
     ReleasePROptions,
-    Omit<ReleasePRFactoryOptions, 'releaseType'>,
+    ReleasePRFactoryOptions,
     GitHubFactoryOptions {
   releaseType?: ReleaseType;
 }

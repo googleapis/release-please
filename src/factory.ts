@@ -82,19 +82,17 @@ function runCommand(
 ): RunResult {
   let result: RunResult;
   const cmdOpts = {command, options};
-  if (isReleasePRCmd(cmdOpts)) {
+  if (isGitHubReleaseCmd(cmdOpts)) {
+    result = factory.call(githubRelease(cmdOpts.options), 'run');
+  } else if (isReleasePRCmd(cmdOpts)) {
     let method: ReleasePRMethod = 'run';
     if (command === 'latest-tag') {
       method = 'latestTag';
     }
     result = factory.call(releasePR(cmdOpts.options), method);
-  } else if (isGitHubReleaseCmd({command, options})) {
-    result = factory.call(githubRelease(cmdOpts.options), 'run');
   } else {
     throw new Error(
-      `Invalid command(${cmdOpts.command}) with options(${JSON.stringify(
-        cmdOpts.options
-      )})`
+      `Invalid command(${command}) with options(${JSON.stringify(options)})`
     );
   }
   return result;
@@ -126,7 +124,18 @@ function getLabels(label?: string): string[] {
   return label ? label.split(',') : DEFAULT_LABELS;
 }
 
-function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
+function getGitHubFactoryOpts(
+  options: GitHubReleaseFactoryOptions
+): [GitHubFactoryOptions, Partial<GitHubReleaseFactoryOptions>];
+function getGitHubFactoryOpts(
+  options: ReleasePRFactoryOptions
+): [GitHubFactoryOptions, Partial<ReleasePRFactoryOptions>];
+function getGitHubFactoryOpts(
+  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
+): [
+  GitHubFactoryOptions,
+  Partial<ReleasePRFactoryOptions | GitHubReleaseFactoryOptions>
+] {
   const {
     repoUrl,
     defaultBranch,
@@ -134,6 +143,27 @@ function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
     token,
     apiUrl,
     octokitAPIs,
+    ...remaining
+  } = options;
+  return [
+    {
+      repoUrl,
+      defaultBranch,
+      fork,
+      token,
+      apiUrl,
+      octokitAPIs,
+    },
+    remaining,
+  ];
+}
+
+function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
+  const [GHFactoryOptions, GHRAndRPFactoryOptions] = getGitHubFactoryOpts(
+    options
+  );
+  const github = gitHubInstance(GHFactoryOptions);
+  const {
     releaseType,
     label,
     path,
@@ -145,21 +175,10 @@ function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
     changelogSections,
     lastPackageVersion,
     versionFile,
-    ...remaining
-  } = options;
-
-  const github = gitHubInstance({
-    repoUrl,
-    defaultBranch,
-    fork,
-    token,
-    apiUrl,
-    octokitAPIs,
-  });
-
+    ...GHRFactoryOptions
+  } = GHRAndRPFactoryOptions;
   const labels = getLabels(label);
-  const prClass = releaseType ? releasePRClass(releaseType) : ReleasePR;
-  const releasePR = new prClass({
+  const releasePR = new (releasePRClass(releaseType))({
     github,
     labels,
     path,
@@ -172,38 +191,23 @@ function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
     lastPackageVersion,
     versionFile,
   });
-
-  return new GitHubRelease({github, releasePR, ...remaining});
+  return new GitHubRelease({github, releasePR, ...GHRFactoryOptions});
 }
 
 function releasePR(options: ReleasePRFactoryOptions): ReleasePR {
-  const {
-    repoUrl,
-    defaultBranch,
-    token,
-    apiUrl,
-    octokitAPIs,
-    releaseType,
-    label,
-    ...remaining
-  } = options;
-  const github = gitHubInstance({
-    repoUrl,
-    defaultBranch,
-    token,
-    apiUrl,
-    octokitAPIs,
-  });
+  const [GHFactoryOptions, RPFactoryOptions] = getGitHubFactoryOpts(options);
+  const github = gitHubInstance(GHFactoryOptions);
 
+  const {releaseType, label, ...RPConstructorOptions} = RPFactoryOptions;
   const labels = getLabels(label);
   return new (factory.releasePRClass(releaseType))({
     github,
     labels,
-    ...remaining,
+    ...RPConstructorOptions,
   });
 }
 
-export function gitHubInstance(options: GitHubFactoryOptions) {
+function gitHubInstance(options: GitHubFactoryOptions) {
   const {repoUrl, ...remaining} = options;
   const [owner, repo] = parseGithubRepoUrl(repoUrl);
   return new GitHub({
@@ -213,12 +217,9 @@ export function gitHubInstance(options: GitHubFactoryOptions) {
   });
 }
 
-export function releasePRClass(releaseType: ReleaseType): typeof ReleasePR {
+function releasePRClass(releaseType?: ReleaseType): typeof ReleasePR {
   const releasers = getReleasers();
-  const releaser = releasers[releaseType];
-  if (!releaser) {
-    throw Error('unknown release type');
-  }
+  const releaser = releaseType ? releasers[releaseType] : ReleasePR;
   return releaser;
 }
 

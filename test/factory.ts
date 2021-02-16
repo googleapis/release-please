@@ -82,27 +82,40 @@ describe('factory', () => {
     });
   });
   describe('releasePR', () => {
-    it('returns instance of dynamically loaded releaser', async () => {
+    it('returns a ReleasePR with all the things', async () => {
       const releasePR = factory.releasePR({
         repoUrl: 'googleapis/ruby-test-repo',
+        fork: true,
+        token: 'some-token',
+        apiUrl: 'https://some.api.com',
         packageName: 'ruby-test-repo',
         releaseType: 'ruby',
+        label: 'foo,bar',
+        path: 'some/path',
+        bumpMinorPreMajor: true,
+        releaseAs: '1.2.3',
+        snapshot: true,
+        monorepoTags: true,
+        changelogSections: [{type: 'feat', section: 'Features'}],
+        lastPackageVersion: '0.0.1',
+        versionFile: 'some/ruby/version.rb',
       });
-      expect(releasePR.gh.fork).to.be.false;
-      expect(releasePR.gh.token).to.be.undefined;
+      expect(releasePR.gh.fork).to.be.true;
+      expect(releasePR.gh.token).to.equal('some-token');
       expect(releasePR.gh.owner).to.equal('googleapis');
       expect(releasePR.gh.repo).to.equal('ruby-test-repo');
-      expect(releasePR.gh.apiUrl).to.equal('https://api.github.com');
+      expect(releasePR.gh.apiUrl).to.equal('https://some.api.com');
       expect(releasePR.constructor.name).to.equal('Ruby');
-      expect(releasePR.labels).to.eql(['autorelease: pending']);
-      expect(releasePR.bumpMinorPreMajor).to.be.false;
-      expect(releasePR.path).to.be.undefined;
-      expect(releasePR.monorepoTags).to.be.false;
-      expect(releasePR.releaseAs).to.be.undefined;
-      expect(releasePR.snapshot).to.be.undefined;
-      expect(releasePR.lastPackageVersion).to.be.undefined;
-      expect(releasePR.changelogSections).to.be.undefined;
-      expect((releasePR as Ruby).versionFile).to.equal('');
+      expect(releasePR.labels).to.eql(['foo', 'bar']);
+      expect(releasePR.bumpMinorPreMajor).to.be.true;
+      expect(releasePR.path).to.equal('some/path');
+      expect(releasePR.monorepoTags).to.be.true;
+      expect(releasePR.releaseAs).to.equal('1.2.3');
+      expect(releasePR.snapshot).to.be.true;
+      expect(releasePR.lastPackageVersion).to.equal('0.0.1');
+      expect(releasePR.changelogSections).to.eql([
+        {type: 'feat', section: 'Features'},
+      ]);
       const packageName = await releasePR.getPackageName();
       expect(packageName.name).to.equal('ruby-test-repo');
       expect(packageName.getComponent()).to.equal('ruby-test-repo');
@@ -129,7 +142,10 @@ describe('factory', () => {
       const releaseClass = factory.releasePRClass('ruby');
       expect(releaseClass.name).to.equal('Ruby');
     });
-
+    it('returns base class when no releaseType', () => {
+      const releaseClass = factory.releasePRClass();
+      expect(releaseClass.name).to.equal('ReleasePR');
+    });
     it('throws and error on invalid release type', () => {
       let caught = false;
       try {
@@ -191,7 +207,6 @@ describe('factory', () => {
       expect(ghr.gh.fork).to.be.true;
       expect(ghr.releasePR.constructor.name).to.equal('Ruby');
       expect(ghr.releasePR.labels).to.eql(['foo', 'bar']);
-      expect(ghr.releasePR.path).to.equal('some/path');
       expect(ghr.releasePR.path).to.equal('some/path');
       expect(ghr.releasePR.releaseAs).to.equal('1.2.3');
       expect(ghr.releasePR.bumpMinorPreMajor).to.be.true;
