@@ -103,9 +103,7 @@ export interface GitHubReleaseFactoryOptions
   extends GitHubReleaseOptions,
     ReleasePROptions,
     ReleasePRFactoryOptions,
-    GitHubFactoryOptions {
-  releaseType?: ReleaseType;
-}
+    GitHubFactoryOptions {}
 
 export {factory} from './factory';
 export {getReleaserTypes, getReleasers} from './releasers';
