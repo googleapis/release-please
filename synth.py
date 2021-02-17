@@ -12,6 +12,7 @@ s.copy(templates, excludes=[
   'CONTRIBUTING.md',
   '.eslintignore',
   '.eslintrc.json',
+  '.mocharc.js',
   '.prettierignore',
   '.prettierrc',
   '.nycrc',

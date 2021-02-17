@@ -71,7 +71,6 @@ export interface OpenPROptions {
 
 export class ReleasePR {
   labels: string[];
-  fork: boolean;
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   path?: string;
@@ -84,7 +83,6 @@ export class ReleasePR {
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
-    this.fork = !!options.fork;
     this.labels = options.labels ?? DEFAULT_LABELS;
     this.path = options.path;
     this.packageName = options.packageName || '';
@@ -305,28 +303,16 @@ export class ReleasePR {
       updates,
       title,
       body,
-      fork: this.fork,
       labels: this.labels,
     });
     // a return of undefined indicates that PR was not updated.
     if (pr) {
-      // If the PR is being created from a fork, it will not have permission
-      // to add and remove labels from the PR:
-      if (!this.fork) {
-        await this.gh.addLabels(this.labels, pr);
-      } else {
-        checkpoint(
-          'release labels were not added, due to PR being created from fork',
-          CheckpointType.Failure
-        );
-      }
+      await this.gh.addLabels(this.labels, pr);
       checkpoint(
         `find stale PRs with label "${this.labels.join(',')}"`,
         CheckpointType.Success
       );
-      if (!this.fork) {
-        await this.closeStaleReleasePRs(pr, includePackageName);
-      }
+      await this.closeStaleReleasePRs(pr, includePackageName);
     }
     return pr;
   }
