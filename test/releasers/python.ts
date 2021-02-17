@@ -21,7 +21,7 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {stubFilesFromFixtures} from './utils';
-import {buildMockCommit} from '../helpers';
+import {buildMockCommit, dateSafe} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
@@ -29,8 +29,13 @@ import {VersionPy} from '../../src/updaters/python/version-py';
 
 const sandbox = sinon.createSandbox();
 
-function stubFilesToUpdate(gh: GitHub, files: string[]) {
-  stubFilesFromFixtures('./test/updaters/fixtures/', sandbox, gh, files);
+function stubFilesToUpdate(github: GitHub, files: string[]) {
+  stubFilesFromFixtures({
+    fixturePath: './test/updaters/fixtures',
+    sandbox,
+    github,
+    files,
+  });
 }
 
 const LATEST_TAG = {
@@ -86,12 +91,7 @@ describe('Python', () => {
       expect(openPROptions).to.have.property('includePackageName').to.be.false;
       expect(openPROptions).to.have.property('changelogEntry');
 
-      snapshot(
-        openPROptions!.changelogEntry.replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10'
-        )
-      );
+      snapshot(dateSafe(openPROptions!.changelogEntry));
 
       const perUpdateChangelog = openPROptions!.changelogEntry.substring(
         0,
@@ -146,12 +146,7 @@ describe('Python', () => {
       expect(openPROptions).to.have.property('includePackageName').to.be.false;
       expect(openPROptions).to.have.property('changelogEntry');
 
-      snapshot(
-        openPROptions!.changelogEntry.replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10'
-        )
-      );
+      snapshot(dateSafe(openPROptions!.changelogEntry));
 
       const perUpdateChangelog = openPROptions!.changelogEntry.substring(
         0,
@@ -229,12 +224,7 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('creates a release PR relative to a path', async () => {
@@ -263,12 +253,7 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
   });
 });

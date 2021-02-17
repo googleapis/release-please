@@ -114,8 +114,6 @@ export class Python extends ReleasePR {
     );
     const versionPyFiles = await versionPyFilesSearch;
     versionPyFiles.forEach(path => {
-      const vpath = this.addPath(path);
-      console.log(vpath);
       updates.push(
         new VersionPy({
           path: this.addPath(path),
