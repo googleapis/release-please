@@ -627,6 +627,7 @@ describe('JavaYoshi', () => {
 
       sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
     });
+
     it('returns a stable branch pull request', async () => {
       const graphql = JSON.parse(
         readFileSync(
@@ -654,6 +655,21 @@ describe('JavaYoshi', () => {
       });
       const latestTag = await releasePR.latestTag(undefined, true);
       expect(latestTag!.version).to.equal('1.127.1-SNAPSHOT');
+      req.done();
+    });
+
+    it('returns a renamed PR title', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve('./test/fixtures', 'latest-tag-renamed.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('1.2.1');
       req.done();
     });
   });
