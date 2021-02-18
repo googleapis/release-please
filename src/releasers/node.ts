@@ -156,6 +156,6 @@ export class Node extends ReleasePR {
   }
 
   protected defaultInitialVersion(): string {
-    return this.bumpMinorPreMajor ? '0.1.0' : '1.0.0';
+    return this.bumpMinorPreMajor ? '0.1.0' : super.defaultInitialVersion();
   }
 }
