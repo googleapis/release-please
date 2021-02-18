@@ -177,7 +177,7 @@ export class ReleasePR {
   }
 
   protected defaultInitialVersion(): string {
-    return '1.0.0';
+    return this.bumpMinorPreMajor ? '0.1.0' : '1.0.0';
   }
 
   tagSeparator(): string {
