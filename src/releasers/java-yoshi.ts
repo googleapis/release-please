@@ -317,6 +317,14 @@ export class JavaYoshi extends ReleasePR {
     includePackageName: boolean
   ): Promise<string> {
     const defaultBranch = await this.gh.getDefaultBranch();
+    const repoDefaultBranch = await this.gh.getRepositoryDefaultBranch();
+
+    // If we are proposing a release to a non-default branch, add the target
+    // branch in the pull request title.
+    // TODO: consider pushing this change up to the default pull request title
+    if (repoDefaultBranch === defaultBranch) {
+      return super.buildPullRequestTitle(version, includePackageName);
+    }
     const packageName = await this.getPackageName();
     const pullRequestTitle = includePackageName
       ? PullRequestTitle.ofComponentTargetBranchVersion(
