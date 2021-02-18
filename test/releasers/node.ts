@@ -21,15 +21,20 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {stubFilesFromFixtures} from './utils';
-import {buildMockCommit} from '../helpers';
+import {buildMockCommit, dateSafe} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {PackageJson} from '../../src/updaters/package-json';
 import {SamplesPackageJson} from '../../src/updaters/samples-package-json';
 
 const sandbox = sinon.createSandbox();
 
-function stubFilesToUpdate(gh: GitHub, files: string[]) {
-  stubFilesFromFixtures('./test/releasers/fixtures/node', sandbox, gh, files);
+function stubFilesToUpdate(github: GitHub, files: string[]) {
+  stubFilesFromFixtures({
+    fixturePath: './test/releasers/fixtures/node',
+    sandbox,
+    github,
+    files,
+  });
 }
 
 const LATEST_TAG = {
@@ -70,77 +75,76 @@ describe('Node', () => {
     sandbox.restore();
   });
   describe('getOpenPROptions', () => {
-    it('returns release PR changes with defaultInitialVersion', async () => {
-      const expectedVersion = '1.0.0';
-      const pkgName = 'node-test-repo';
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
-      });
-      mockRequest(releasePR);
-      // this stub is required only because Node lookupPackageName calls
-      // getFileContentsOnBranch('package.json'). Otherwise this test
-      // doesn't rely on getting the contents of each Update file.
-      stubFilesToUpdate(releasePR.gh, ['package.json']);
+    const testDefaultInitialVersion = [
+      {version: '1.0.0', bumpMinorPreMajor: false},
+      {version: '0.1.0', bumpMinorPreMajor: true},
+    ];
+    testDefaultInitialVersion.forEach(element => {
+      it(
+        `returns release PR changes with defaultInitialVersion ${element.version}, ` +
+          `when bumpMinorPreMajor is ${element.bumpMinorPreMajor}`,
+        async () => {
+          const expectedVersion = element.version;
+          const pkgName = 'node-test-repo';
+          const releasePR = new Node({
+            github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
+            bumpMinorPreMajor: element.bumpMinorPreMajor,
+          });
+          mockRequest(releasePR);
+          // for Node.getPackageName
+          stubFilesToUpdate(releasePR.gh, ['package.json']);
 
-      // no latestTag to pass to getOpenPROptions (never found a release)
-      // releaser should set defaultInitialVersion
-      const openPROptions = await releasePR.getOpenPROptions(COMMITS);
+          // no latestTag to pass to getOpenPROptions (never found a release)
+          // releaser should set defaultInitialVersion
+          const openPROptions = await releasePR.getOpenPROptions(COMMITS);
 
-      expect(openPROptions).to.not.be.undefined;
-      expect(openPROptions).to.have.property('sha').equal(COMMITS[0].sha);
-      expect(openPROptions).to.have.property('version').equal(expectedVersion);
-      expect(openPROptions).to.have.property('includePackageName').to.be.false;
-      expect(openPROptions).to.have.property('changelogEntry');
+          expect(openPROptions).to.not.be.undefined;
+          expect(openPROptions).to.have.property('sha').equal(COMMITS[0].sha);
+          expect(openPROptions)
+            .to.have.property('version')
+            .equal(expectedVersion);
+          expect(openPROptions).to.have.property('includePackageName').to.be
+            .false;
+          expect(openPROptions).to.have.property('changelogEntry');
 
-      const normalizedChangelog = openPROptions!.changelogEntry.replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10'
+          snapshot(dateSafe(openPROptions!.changelogEntry));
+
+          const perUpdateChangelog = openPROptions!.changelogEntry.substring(
+            0,
+            openPROptions!.changelogEntry.length - 5 // no trailing "\n---\n"
+          );
+          expect(openPROptions)
+            .to.have.property('updates')
+            .to.eql([
+              new PackageJson({
+                path: 'package-lock.json',
+                changelogEntry: perUpdateChangelog,
+                version: expectedVersion,
+                packageName: pkgName,
+              }),
+              new SamplesPackageJson({
+                path: 'samples/package.json',
+                changelogEntry: perUpdateChangelog,
+                version: expectedVersion,
+                packageName: pkgName,
+              }),
+              new Changelog({
+                path: 'CHANGELOG.md',
+                changelogEntry: perUpdateChangelog,
+                version: expectedVersion,
+                packageName: pkgName,
+              }),
+              new PackageJson({
+                path: 'package.json',
+                changelogEntry: perUpdateChangelog,
+                version: expectedVersion,
+                packageName: pkgName,
+              }),
+            ]);
+        }
       );
-      const expectedChangelog = `
-## ${expectedVersion} (1983-10-10)
-
-
-### Bug Fixes
-
-* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/node-test-repo/commit/${COMMITS[1].sha}))
-* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/node-test-repo/commit/${COMMITS[0].sha}))
----
-`.substring(1); // leading \n is aesthetic
-      expect(normalizedChangelog).to.equal(expectedChangelog);
-
-      const perUpdateChangelog = openPROptions!.changelogEntry.substring(
-        0,
-        openPROptions!.changelogEntry.length - 5 // no trailing "\n---\n"
-      );
-      expect(openPROptions)
-        .to.have.property('updates')
-        .to.eql([
-          new PackageJson({
-            path: 'package-lock.json',
-            changelogEntry: perUpdateChangelog,
-            version: expectedVersion,
-            packageName: pkgName,
-          }),
-          new SamplesPackageJson({
-            path: 'samples/package.json',
-            changelogEntry: perUpdateChangelog,
-            version: expectedVersion,
-            packageName: pkgName,
-          }),
-          new Changelog({
-            path: 'CHANGELOG.md',
-            changelogEntry: perUpdateChangelog,
-            version: expectedVersion,
-            packageName: pkgName,
-          }),
-          new PackageJson({
-            path: 'package.json',
-            changelogEntry: perUpdateChangelog,
-            version: expectedVersion,
-            packageName: pkgName,
-          }),
-        ]);
     });
+
     it('returns release PR changes with semver patch bump', async () => {
       const expectedVersion = '0.123.5';
       const pkgName = 'node-test-repo';
@@ -148,9 +152,7 @@ describe('Node', () => {
         github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
       mockRequest(releasePR);
-      // this stub is required only because Node lookupPackageName calls
-      // getFileContentsOnBranch('package.json'). Otherwise this test
-      // doesn't rely on getting the contents of each Update file.
+      // for Node.getPackageName
       stubFilesToUpdate(releasePR.gh, ['package.json']);
 
       // found last release (LATEST_TAG) so releaser should semver bump.
@@ -165,21 +167,7 @@ describe('Node', () => {
       expect(openPROptions).to.have.property('includePackageName').to.be.false;
       expect(openPROptions).to.have.property('changelogEntry');
 
-      const normalizedChangelog = openPROptions!.changelogEntry.replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10'
-      );
-      const expectedChangelog = `
-### [${expectedVersion}](https://www.github.com/googleapis/node-test-repo/compare/v0.123.4...v${expectedVersion}) (1983-10-10)
-
-
-### Bug Fixes
-
-* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/node-test-repo/commit/${COMMITS[1].sha}))
-* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/node-test-repo/commit/${COMMITS[0].sha}))
----
-`.substring(1); // leading \n is aesthetic
-      expect(normalizedChangelog).to.equal(expectedChangelog);
+      snapshot(dateSafe(openPROptions!.changelogEntry));
 
       const perUpdateChangelog = openPROptions!.changelogEntry.substring(
         0,
@@ -219,9 +207,7 @@ describe('Node', () => {
         github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
       mockRequest(releasePR);
-      // this stub is required only because Node lookupPackageName calls
-      // getFileContentsOnBranch('package.json'). Otherwise this test
-      // doesn't rely on getting the contents of each Update file.
+      // for Node.getPackageName
       stubFilesToUpdate(releasePR.gh, ['package.json']);
 
       const openPROptions = await releasePR.getOpenPROptions(
@@ -253,12 +239,7 @@ describe('Node', () => {
       stubFilesToUpdate(releasePR.gh, ['package.json']);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('creates a release PR with package-lock.json', async () => {
@@ -281,12 +262,7 @@ describe('Node', () => {
       mockRequest(releasePR);
       stubFilesToUpdate(releasePR.gh, ['package.json', 'package-lock.json']);
       await releasePR.run();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('creates release PR relative to a path', async () => {
@@ -310,12 +286,7 @@ describe('Node', () => {
         'package-lock.json',
       ]);
       await releasePR.run();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('does not support snapshot releases', async () => {
@@ -350,12 +321,7 @@ describe('Node', () => {
       stubFilesToUpdate(releasePR.gh, ['package.json']);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
       expect(expectedBranch).to.eql('release-node-test-repo-v0.123.5');
     });
   });

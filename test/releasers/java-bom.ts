@@ -21,7 +21,7 @@ import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents, GitHub} from '../../src/github';
 import {buildGitHubFileContent} from './utils';
-import {buildMockCommit} from '../helpers';
+import {buildMockCommit, dateSafe} from '../helpers';
 
 const sandbox = sinon.createSandbox();
 
@@ -118,12 +118,7 @@ describe('JavaBom', () => {
         }
       );
       await releasePR.run();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('creates a snapshot PR', async () => {
@@ -211,12 +206,7 @@ describe('JavaBom', () => {
         }
       );
       await releasePR.run();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('ignores a snapshot release if no snapshot needed', async () => {
@@ -337,12 +327,7 @@ describe('JavaBom', () => {
         }
       );
       await releasePR.run();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('merges conventional commit messages', async () => {
@@ -427,12 +412,7 @@ describe('JavaBom', () => {
         }
       );
       await releasePR.run();
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
   });
 

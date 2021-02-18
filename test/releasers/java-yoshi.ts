@@ -23,7 +23,7 @@ import * as sinon from 'sinon';
 import {GitHubFileContents, GitHub} from '../../src/github';
 import {expect} from 'chai';
 import {buildGitHubFileContent} from './utils';
-import {buildMockCommit} from '../helpers';
+import {buildMockCommit, dateSafe} from '../helpers';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {ReleasePR} from '../../src/release-pr';
@@ -129,12 +129,7 @@ describe('JavaYoshi', () => {
       }
     );
     await releasePR.run();
-    snapshot(
-      JSON.stringify(expectedChanges, null, 2).replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10' // don't save a real date, this will break tests.
-      )
-    );
+    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
 
     expect(addLabelStub.callCount).to.eql(1);
   });
@@ -226,12 +221,7 @@ describe('JavaYoshi', () => {
       }
     );
     await releasePR.run();
-    snapshot(
-      JSON.stringify(expectedChanges, null, 2).replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10' // don't save a real date, this will break tests.
-      )
-    );
+    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
   it('creates a snapshot PR, when latest release sha is head', async () => {
@@ -315,12 +305,7 @@ describe('JavaYoshi', () => {
       }
     );
     await releasePR.run();
-    snapshot(
-      JSON.stringify(expectedChanges, null, 2).replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10' // don't save a real date, this will break tests.
-      )
-    );
+    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
   it('ignores a snapshot release if no snapshot needed', async () => {
@@ -444,12 +429,7 @@ describe('JavaYoshi', () => {
       }
     );
     await releasePR.run();
-    snapshot(
-      JSON.stringify(expectedChanges, null, 2).replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10' // don't save a real date, this will break tests.
-      )
-    );
+    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
   it('handles promotion to 1.0.0', async () => {
@@ -536,12 +516,7 @@ describe('JavaYoshi', () => {
       }
     );
     await releasePR.run();
-    snapshot(
-      JSON.stringify(expectedChanges, null, 2).replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10' // don't save a real date, this will break tests.
-      )
-    );
+    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
   it('creates a release PR against a feature branch', async () => {
@@ -635,18 +610,8 @@ describe('JavaYoshi', () => {
       }
     );
     await releasePR.run();
-    snapshot(
-      JSON.stringify(expectedChanges, null, 2).replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10' // don't save a real date, this will break tests.
-      )
-    );
-    snapshot(
-      JSON.stringify(expectedOptions, null, 2).replace(
-        /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-        '1983-10-10' // don't save a real date, this will break tests.
-      )
-    );
+    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+    snapshot(dateSafe(JSON.stringify(expectedOptions, null, 2)));
   });
 
   describe('latestTag', () => {

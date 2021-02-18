@@ -80,3 +80,39 @@ exports['Node run uses detected package name in branch 1'] = `
   ]
 ]
 `
+
+exports['Node getOpenPROptions returns release PR changes with semver patch bump 1'] = `
+### [0.123.5](https://www.github.com/googleapis/node-test-repo/compare/v0.123.4...v0.123.5) (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/node-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/node-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
+---
+
+`
+
+exports['Node getOpenPROptions returns release PR changes with defaultInitialVersion 1.0.0, when bumpMinorPreMajor is false 1'] = `
+## 1.0.0 (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/node-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/node-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
+---
+
+`
+
+exports['Node getOpenPROptions returns release PR changes with defaultInitialVersion 0.1.0, when bumpMinorPreMajor is true 1'] = `
+## 0.1.0 (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/node-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/node-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
+---
+
+`
