@@ -81,7 +81,7 @@ describe('Node', () => {
     ];
     testDefaultInitialVersion.forEach(element => {
       it(
-        `returns release PR changes with defaultInitialVersion ${element.version} ` +
+        `returns release PR changes with defaultInitialVersion ${element.version}, ` +
           `when bumpMinorPreMajor is ${element.bumpMinorPreMajor}`,
         async () => {
           const expectedVersion = element.version;

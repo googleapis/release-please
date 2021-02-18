@@ -93,7 +93,7 @@ exports['Node getOpenPROptions returns release PR changes with semver patch bump
 
 `
 
-exports['Node getOpenPROptions returns release PR changes with defaultInitialVersion 1.0.0 when bumpMinorPreMajor is false 1'] = `
+exports['Node getOpenPROptions returns release PR changes with defaultInitialVersion 1.0.0, when bumpMinorPreMajor is false 1'] = `
 ## 1.0.0 (1983-10-10)
 
 
@@ -105,7 +105,7 @@ exports['Node getOpenPROptions returns release PR changes with defaultInitialVer
 
 `
 
-exports['Node getOpenPROptions returns release PR changes with defaultInitialVersion 0.1.0 when bumpMinorPreMajor is true 1'] = `
+exports['Node getOpenPROptions returns release PR changes with defaultInitialVersion 0.1.0, when bumpMinorPreMajor is true 1'] = `
 ## 0.1.0 (1983-10-10)
 
 
