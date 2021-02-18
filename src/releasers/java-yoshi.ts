@@ -32,6 +32,7 @@ import {fromSemverReleaseType} from './java/bump_type';
 import {JavaUpdate} from '../updaters/java/java_update';
 import {isStableArtifact} from './java/stability';
 import {BranchName} from '../util/branch-name';
+import {PullRequestTitle} from '../util/pull-request-title';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -317,19 +318,13 @@ export class JavaYoshi extends ReleasePR {
   ): Promise<string> {
     const defaultBranch = await this.gh.getDefaultBranch();
     const packageName = await this.getPackageName();
-    return includePackageName
-      ? `chore(${defaultBranch}): release ${packageName.name} ${version}`
-      : `chore(${defaultBranch}): release ${version}`;
-  }
-
-  // Override this method to detect the release version from code (if it cannot be
-  // inferred from the release PR head branch)
-  protected detectReleaseVersionFromTitle(title: string): string | undefined {
-    const pattern = /^chore(\((?<branch>[^(]+)\))?: release ?(?<component>.*) (?<version>\d+\.\d+\.\d+(-\w+)?)$/;
-    const match = title.match(pattern);
-    if (match?.groups) {
-      return match.groups['version'];
-    }
-    return undefined;
+    const pullRequestTitle = includePackageName
+      ? PullRequestTitle.ofComponentTargetBranchVersion(
+          packageName.name,
+          defaultBranch,
+          version
+        )
+      : PullRequestTitle.ofTargetBranchVersion(defaultBranch, version);
+    return pullRequestTitle.toString();
   }
 }

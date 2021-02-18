@@ -31,6 +31,7 @@ import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {extractReleaseNotes} from './util/release-notes';
+import {PullRequestTitle} from './util/pull-request-title';
 
 export interface ReleaseCandidate {
   version: string;
@@ -249,18 +250,18 @@ export class ReleasePR {
     includePackageName: boolean
   ): Promise<string> {
     const packageName = await this.getPackageName();
-    return includePackageName
-      ? `chore: release ${packageName.name} ${version}`
-      : `chore: release ${version}`;
+    const pullRequestTitle = includePackageName
+      ? PullRequestTitle.ofComponentVersion(packageName.name, version)
+      : PullRequestTitle.ofVersion(version);
+    return pullRequestTitle.toString();
   }
 
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
   protected detectReleaseVersionFromTitle(title: string): string | undefined {
-    const pattern = /^chore: release ?(?<component>.*) (?<version>\d+\.\d+\.\d+)$/;
-    const match = title.match(pattern);
-    if (match?.groups) {
-      return match.groups['version'];
+    const pullRequestTitle = PullRequestTitle.parse(title);
+    if (pullRequestTitle) {
+      return pullRequestTitle.getVersion();
     }
     return undefined;
   }
