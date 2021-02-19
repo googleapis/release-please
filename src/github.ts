@@ -164,6 +164,7 @@ export class GitHub {
   repo: string;
   apiUrl: string;
   fork: boolean;
+  repositoryDefaultBranch?: string;
 
   constructor(options: GitHubConstructorOptions) {
     this.defaultBranch = options.defaultBranch;
@@ -1080,10 +1081,29 @@ export class GitHub {
     return `${this.owner}:${baseBranch}`;
   }
 
+  /**
+   * Returns the branch we are targetting for releases. Defaults
+   * to the repository's default/primary branch.
+   *
+   * @returns {string}
+   */
   async getDefaultBranch(): Promise<string> {
     if (this.defaultBranch) {
       return this.defaultBranch;
     }
+    return this.getRepositoryDefaultBranch();
+  }
+
+  /**
+   * Returns the repository's default/primary branch.
+   *
+   * @returns {string}
+   */
+  async getRepositoryDefaultBranch(): Promise<string> {
+    if (this.repositoryDefaultBranch) {
+      return this.repositoryDefaultBranch;
+    }
+
     const {data} = await this.octokit.repos.get({
       repo: this.repo,
       owner: this.owner,
@@ -1091,8 +1111,10 @@ export class GitHub {
         Authorization: `token ${this.token}`,
       },
     });
-    this.defaultBranch = (data as {default_branch: string}).default_branch;
-    return this.defaultBranch as string;
+    this.repositoryDefaultBranch = (data as {
+      default_branch: string;
+    }).default_branch;
+    return this.repositoryDefaultBranch as string;
   }
 
   async closePR(prNumber: number): Promise<boolean> {

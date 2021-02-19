@@ -48,7 +48,7 @@ describe('JavaYoshi', () => {
     });
 
     sandbox
-      .stub(releasePR.gh, 'getDefaultBranch')
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
       .returns(Promise.resolve('master'));
 
     // No open release PRs, so create a new release PR
@@ -120,17 +120,19 @@ describe('JavaYoshi', () => {
     // We stub the entire suggester API, asserting only that the
     // the appropriate changes are proposed:
     let expectedChanges = null;
+    let prTitle = null;
     sandbox.replace(
       suggester,
       'createPullRequest',
-      (_octokit, changes): Promise<number> => {
+      (_octokit, changes, options): Promise<number> => {
         expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+        prTitle = options.title;
         return Promise.resolve(22);
       }
     );
     await releasePR.run();
     snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
-
+    expect(prTitle).to.eql('chore: release 0.20.4');
     expect(addLabelStub.callCount).to.eql(1);
   });
 
@@ -142,7 +144,7 @@ describe('JavaYoshi', () => {
     });
 
     sandbox
-      .stub(releasePR.gh, 'getDefaultBranch')
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
       .returns(Promise.resolve('master'));
 
     // No open release PRs, so create a new release PR
@@ -232,7 +234,7 @@ describe('JavaYoshi', () => {
     });
 
     sandbox
-      .stub(releasePR.gh, 'getDefaultBranch')
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
       .returns(Promise.resolve('master'));
 
     // No open release PRs, so create a new release PR
@@ -316,7 +318,7 @@ describe('JavaYoshi', () => {
     });
 
     sandbox
-      .stub(releasePR.gh, 'getDefaultBranch')
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
       .returns(Promise.resolve('master'));
 
     sandbox
@@ -350,7 +352,7 @@ describe('JavaYoshi', () => {
     });
 
     sandbox
-      .stub(releasePR.gh, 'getDefaultBranch')
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
       .returns(Promise.resolve('master'));
 
     // No open release PRs, so create a new release PR
@@ -439,7 +441,7 @@ describe('JavaYoshi', () => {
     });
 
     sandbox
-      .stub(releasePR.gh, 'getDefaultBranch')
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
       .returns(Promise.resolve('master'));
 
     // No open release PRs, so create a new release PR
@@ -530,6 +532,10 @@ describe('JavaYoshi', () => {
       packageName: 'java-trace',
     });
 
+    sandbox
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
+      .returns(Promise.resolve('master'));
+
     // No open release PRs, so create a new release PR
     sandbox
       .stub(releasePR.gh, 'findOpenReleasePRs')
@@ -600,16 +606,19 @@ describe('JavaYoshi', () => {
     // the appropriate changes are proposed:
     let expectedChanges = null;
     let expectedOptions = null;
+    let prTitle = null;
     sandbox.replace(
       suggester,
       'createPullRequest',
       (_octokit, changes, options): Promise<number> => {
         expectedOptions = options;
         expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
+        prTitle = options.title;
         return Promise.resolve(22);
       }
     );
     await releasePR.run();
+    expect(prTitle).to.eql('chore(1.x): release 0.20.4');
     snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     snapshot(dateSafe(JSON.stringify(expectedOptions, null, 2)));
   });
@@ -625,8 +634,9 @@ describe('JavaYoshi', () => {
         github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       });
 
-      sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
+      sandbox.stub(releasePR.gh, 'getRepositoryDefaultBranch').resolves('main');
     });
+
     it('returns a stable branch pull request', async () => {
       const graphql = JSON.parse(
         readFileSync(
@@ -654,6 +664,21 @@ describe('JavaYoshi', () => {
       });
       const latestTag = await releasePR.latestTag(undefined, true);
       expect(latestTag!.version).to.equal('1.127.1-SNAPSHOT');
+      req.done();
+    });
+
+    it('returns a renamed PR title', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve('./test/fixtures', 'latest-tag-renamed.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('1.2.1');
       req.done();
     });
   });
