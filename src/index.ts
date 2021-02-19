@@ -48,7 +48,7 @@ interface ReleasePROptions {
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
   // and then remove this property
   versionFile?: string;
-  PRTitlePattern?: string;
+  pullRequestTitlePattern?: string;
 }
 
 // GitHub Constructor options

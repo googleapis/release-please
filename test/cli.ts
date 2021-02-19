@@ -97,7 +97,10 @@ describe('CLI', () => {
     it('instantiates release PR based on command line arguments', () => {
       sandbox.replace(factory, 'call', callStub);
       parser.parse(
-        'release-pr --repo-url=googleapis/release-please-cli --package-name=cli-package'
+        'release-pr ' +
+          '--repo-url=googleapis/release-please-cli ' +
+          '--package-name=cli-package ' +
+          "--pull-request-title-pattern='chore${scope}: release${component} ${version}'"
       );
       assert.ok(instanceToRun! instanceof ReleasePR);
       assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
@@ -105,6 +108,10 @@ describe('CLI', () => {
       assert.strictEqual(instanceToRun.packageName, 'cli-package');
       // Defaults to Node.js release type:
       assert.strictEqual(instanceToRun.constructor.name, 'Node');
+      assert.strictEqual(
+        instanceToRun.pullRequestTitlePattern,
+        'chore${scope}: release${component} ${version}'
+      );
     });
     it('validates releaseType choices', done => {
       sandbox.stub(factory, 'call').resolves(undefined);

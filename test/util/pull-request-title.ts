@@ -120,7 +120,7 @@ describe('PullRequestTitle', () => {
   });
 });
 
-describe('PullRequestTitle with custom PRTitlePattern', () => {
+describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
   describe('parse', () => {
     describe('autorelease branch name', () => {
       it('parses a versioned branch name', () => {
@@ -250,19 +250,19 @@ describe('PullRequestTitle with custom PRTitlePattern', () => {
     it('throw Error with custom Pattern missing ${scope}', () => {
       expect(() =>
         generateMatchPattern('chore: 🔖 release${component} ${version}')
-      ).to.throw("PRTitlePattern miss the part of '${scope}'");
+      ).to.throw("pullRequestTitlePattern miss the part of '${scope}'");
     });
 
     it('throw Error with custom Pattern missing ${component}', () => {
       expect(() =>
         generateMatchPattern('chore${scope}: 🔖 release ${version}')
-      ).to.throw("PRTitlePattern miss the part of '${component}'");
+      ).to.throw("pullRequestTitlePattern miss the part of '${component}'");
     });
 
     it('throw Error with custom Pattern missing ${version}', () => {
       expect(() =>
         generateMatchPattern('chore${scope}: 🔖 release${component}')
-      ).to.throw("PRTitlePattern miss the part of '${version}'");
+      ).to.throw("pullRequestTitlePattern miss the part of '${version}'");
     });
   });
 });

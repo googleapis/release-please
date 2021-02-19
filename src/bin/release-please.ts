@@ -181,6 +181,10 @@ export const parser = yargs
     type: 'boolean',
     default: false,
   })
+  .option('pull-request-title-pattern', {
+    describe: 'Title pattern to make release PR',
+    type: 'string',
+  })
   .demandCommand(1)
   .strict(true);
 

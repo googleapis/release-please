@@ -18,15 +18,24 @@
 
 const DEFAULT_PR_TITLE_PATTERN =
   'chore${scope}: release${component} ${version}';
-export function generateMatchPattern(PRTitlePattern?: string): RegExp {
-  if (PRTitlePattern && PRTitlePattern.search(/\$\{scope\}/) === -1)
-    throw Error("PRTitlePattern miss the part of '${scope}'");
-  if (PRTitlePattern && PRTitlePattern.search(/\$\{component\}/) === -1)
-    throw Error("PRTitlePattern miss the part of '${component}'");
-  if (PRTitlePattern && PRTitlePattern.search(/\$\{version\}/) === -1)
-    throw Error("PRTitlePattern miss the part of '${version}'");
+export function generateMatchPattern(pullRequestTitlePattern?: string): RegExp {
+  if (
+    pullRequestTitlePattern &&
+    pullRequestTitlePattern.search(/\$\{scope\}/) === -1
+  )
+    throw Error("pullRequestTitlePattern miss the part of '${scope}'");
+  if (
+    pullRequestTitlePattern &&
+    pullRequestTitlePattern.search(/\$\{component\}/) === -1
+  )
+    throw Error("pullRequestTitlePattern miss the part of '${component}'");
+  if (
+    pullRequestTitlePattern &&
+    pullRequestTitlePattern.search(/\$\{version\}/) === -1
+  )
+    throw Error("pullRequestTitlePattern miss the part of '${version}'");
   return new RegExp(
-    `^${(PRTitlePattern || DEFAULT_PR_TITLE_PATTERN)
+    `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
       .replace('${scope}', '(\\((?<branch>[\\w-.]+)\\))?')
       .replace('${component}', ' ?(?<component>[\\w-.]*)?')
       .replace('${version}', 'v?(?<version>[0-9].*)')}$`
@@ -37,34 +46,35 @@ export class PullRequestTitle {
   component?: string;
   targetBranch?: string;
   version: string;
-  PRTitlePattern: string;
+  pullRequestTitlePattern: string;
   matchPattern: RegExp;
 
   private constructor(opts: {
     version: string;
     component?: string;
     targetBranch?: string;
-    PRTitlePattern?: string;
+    pullRequestTitlePattern?: string;
   }) {
     this.version = opts.version;
     this.component = opts.component;
     this.targetBranch = opts.targetBranch;
-    this.PRTitlePattern = opts.PRTitlePattern || DEFAULT_PR_TITLE_PATTERN;
-    this.matchPattern = generateMatchPattern(this.PRTitlePattern);
+    this.pullRequestTitlePattern =
+      opts.pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN;
+    this.matchPattern = generateMatchPattern(this.pullRequestTitlePattern);
   }
 
   static parse(
     title: string,
-    PRTitlePattern?: string
+    pullRequestTitlePattern?: string
   ): PullRequestTitle | undefined {
-    const matchPattern = generateMatchPattern(PRTitlePattern);
+    const matchPattern = generateMatchPattern(pullRequestTitlePattern);
     const match = title.match(matchPattern);
     if (match?.groups) {
       return new PullRequestTitle({
         version: match.groups['version'],
         component: match.groups['component'],
         targetBranch: match.groups['branch'],
-        PRTitlePattern: PRTitlePattern,
+        pullRequestTitlePattern: pullRequestTitlePattern,
       });
     }
     return undefined;
@@ -73,31 +83,38 @@ export class PullRequestTitle {
   static ofComponentVersion(
     component: string,
     version: string,
-    PRTitlePattern?: string
+    pullRequestTitlePattern?: string
   ): PullRequestTitle {
-    return new PullRequestTitle({version, component, PRTitlePattern});
+    return new PullRequestTitle({version, component, pullRequestTitlePattern});
   }
-  static ofVersion(version: string, PRTitlePattern?: string): PullRequestTitle {
-    return new PullRequestTitle({version, PRTitlePattern});
+  static ofVersion(
+    version: string,
+    pullRequestTitlePattern?: string
+  ): PullRequestTitle {
+    return new PullRequestTitle({version, pullRequestTitlePattern});
   }
   static ofTargetBranchVersion(
     targetBranch: string,
     version: string,
-    PRTitlePattern?: string
+    pullRequestTitlePattern?: string
   ): PullRequestTitle {
-    return new PullRequestTitle({version, targetBranch, PRTitlePattern});
+    return new PullRequestTitle({
+      version,
+      targetBranch,
+      pullRequestTitlePattern,
+    });
   }
   static ofComponentTargetBranchVersion(
     component: string,
     targetBranch: string,
     version: string,
-    PRTitlePattern?: string
+    pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
       version,
       component,
       targetBranch,
-      PRTitlePattern,
+      pullRequestTitlePattern,
     });
   }
 
@@ -114,7 +131,8 @@ export class PullRequestTitle {
   toString(): string {
     const scope = this.targetBranch ? `(${this.targetBranch})` : '';
     const component = this.component ? ` ${this.component}` : '';
-    return this.PRTitlePattern.replace('${scope}', scope)
+    return this.pullRequestTitlePattern
+      .replace('${scope}', scope)
       .replace('${component}', component)
       .replace('${version}', this.getVersion());
   }
