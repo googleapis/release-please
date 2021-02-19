@@ -54,6 +54,7 @@ describe('Helm', () => {
 
       // Commits, used to build CHANGELOG, and propose next version bump:
       sandbox
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .stub(releasePR.gh as any, 'commitsSinceSha')
         .returns(Promise.resolve(readPOJO('commits-fix')));
 
