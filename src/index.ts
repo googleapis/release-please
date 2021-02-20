@@ -16,6 +16,7 @@ import {OctokitAPIs, GitHub} from './github';
 import {ReleaseType} from './releasers';
 import {ReleasePR} from './release-pr';
 import {ChangelogSection} from './conventional-commits';
+import {Checkpoint} from './util/checkpoint';
 
 export {ReleaseCandidate, ReleasePR} from './release-pr';
 
@@ -61,6 +62,21 @@ export interface GitHubConstructorOptions extends GitHubOptions {
 interface ReleaserConstructorOptions {
   github: GitHub;
 }
+
+interface ManifestOptions {
+  configFile?: string;
+  manifestFile?: string;
+}
+
+export interface ManifestConstructorOptions
+  extends ReleaserConstructorOptions,
+    ManifestOptions {
+  checkpoint?: Checkpoint;
+}
+
+export interface ManifestFactoryOptions
+  extends GitHubFactoryOptions,
+    ManifestOptions {}
 
 // ReleasePR Constructor options
 export interface ReleasePRConstructorOptions

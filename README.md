@@ -120,7 +120,7 @@ The easiest way to run release please is as a GitHub action:
       release-please:
         runs-on: ubuntu-latest
         steps:
-          - uses: GoogleCloudPlatform/release-please-action@v1.3.0
+          - uses: GoogleCloudPlatform/release-please-action@v2
             with:
               token: ${{ secrets.GITHUB_TOKEN }}
               release-type: node
@@ -147,7 +147,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: GoogleCloudPlatform/release-please-action@v1.3.0
+      - uses: GoogleCloudPlatform/release-please-action@v2
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
