@@ -36,20 +36,18 @@ export interface GitHubReleaseResponse {
 }
 
 export class GitHubRelease {
-  changelogPath: string;
   releasePR: ReleasePR;
   gh: GitHub;
   draft: boolean;
 
   constructor(options: GitHubReleaseConstructorOptions) {
     this.draft = !!options.draft;
-    this.changelogPath = options.changelogPath ?? 'CHANGELOG.md';
     this.gh = options.github;
     this.releasePR = options.releasePR;
   }
 
   async run(): Promise<GitHubReleaseResponse | undefined> {
-    const candidate = await this.releasePR.buildRelease(this.changelogPath);
+    const candidate = await this.releasePR.buildRelease();
     if (!candidate) {
       checkpoint('Unable to build candidate', CheckpointType.Failure);
       return undefined;

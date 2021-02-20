@@ -71,7 +71,7 @@ export class Simple extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: 'CHANGELOG.md',
+        path: this.changelogPath,
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,

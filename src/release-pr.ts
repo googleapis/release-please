@@ -81,6 +81,7 @@ export class ReleasePR {
   snapshot?: boolean;
   lastPackageVersion?: string;
   changelogSections?: ChangelogSection[];
+  changelogPath = 'CHANGELOG.md';
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -98,6 +99,7 @@ export class ReleasePR {
     this.gh = options.github;
 
     this.changelogSections = options.changelogSections;
+    this.changelogPath = options.changelogPath ?? this.changelogPath;
   }
 
   // A releaser can override this method to automatically detect the
@@ -379,9 +381,7 @@ export class ReleasePR {
     }
   }
   // Logic for determining what to include in a GitHub release.
-  async buildRelease(
-    changelogPath: string
-  ): Promise<CandidateRelease | undefined> {
+  async buildRelease(): Promise<CandidateRelease | undefined> {
     await this.validateConfiguration();
     const packageName = await this.getPackageName();
     const mergedPR = await this.findMergedRelease();
@@ -398,7 +398,7 @@ export class ReleasePR {
 
     const tag = this.formatReleaseTagName(version, packageName);
     const changelogContents = (
-      await this.gh.getFileContents(this.addPath(changelogPath))
+      await this.gh.getFileContents(this.addPath(this.changelogPath))
     ).parsedContent;
     const notes = extractReleaseNotes(changelogContents, version);
 

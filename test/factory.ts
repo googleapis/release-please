@@ -35,6 +35,17 @@ describe('factory', () => {
       `https://github.com/${owner}/${repo}.git`,
       `git@github.com:${owner}/${repo}`,
     ];
+    it('returns a default configured GitHub instance', async () => {
+      const gh = factory.gitHubInstance({repoUrl});
+      expect(gh.owner).to.equal(owner);
+      expect(gh.repo).to.equal(repo);
+      expect(gh.fork).to.be.false;
+      expect(gh.apiUrl).to.equal('https://api.github.com');
+      expect(gh.token).to.be.undefined;
+      sandbox.stub(gh, 'getRepositoryDefaultBranch').resolves('main');
+      const branch = await gh.getDefaultBranch();
+      expect(branch).to.equal('main');
+    });
     it('returns a fully configured GitHub instance', async () => {
       const gh = factory.gitHubInstance({
         repoUrl,
@@ -82,7 +93,30 @@ describe('factory', () => {
     });
   });
   describe('releasePR', () => {
-    it('returns a ReleasePR with all the things', async () => {
+    it('returns a default configured ReleasePR instance', async () => {
+      const releasePR = factory.releasePR({
+        repoUrl: 'googleapis/ruby-test-repo',
+      });
+      expect(releasePR.gh.fork).to.be.false;
+      expect(releasePR.gh.token).to.be.undefined;
+      expect(releasePR.gh.owner).to.equal('googleapis');
+      expect(releasePR.gh.repo).to.equal('ruby-test-repo');
+      expect(releasePR.gh.apiUrl).to.equal('https://api.github.com');
+      expect(releasePR.constructor.name).to.equal('ReleasePR');
+      expect(releasePR.labels).to.eql(['autorelease: pending']);
+      expect(releasePR.bumpMinorPreMajor).to.be.false;
+      expect(releasePR.path).to.be.undefined;
+      expect(releasePR.monorepoTags).to.be.false;
+      expect(releasePR.releaseAs).to.be.undefined;
+      expect(releasePR.snapshot).to.be.undefined;
+      expect(releasePR.lastPackageVersion).to.be.undefined;
+      expect(releasePR.changelogSections).to.be.undefined;
+      expect(releasePR.changelogPath).to.equal('CHANGELOG.md');
+      const packageName = await releasePR.getPackageName();
+      expect(packageName.name).to.equal('');
+      expect(packageName.getComponent()).to.equal('');
+    });
+    it('returns a fully configured ReleasePR instance', async () => {
       const releasePR = factory.releasePR({
         repoUrl: 'googleapis/ruby-test-repo',
         fork: true,
@@ -97,6 +131,7 @@ describe('factory', () => {
         snapshot: true,
         monorepoTags: true,
         changelogSections: [{type: 'feat', section: 'Features'}],
+        changelogPath: 'HISTORY.md',
         lastPackageVersion: '0.0.1',
         versionFile: 'some/ruby/version.rb',
       });
@@ -113,9 +148,11 @@ describe('factory', () => {
       expect(releasePR.releaseAs).to.equal('1.2.3');
       expect(releasePR.snapshot).to.be.true;
       expect(releasePR.lastPackageVersion).to.equal('0.0.1');
+      expect((releasePR as Ruby).versionFile).to.equal('some/ruby/version.rb');
       expect(releasePR.changelogSections).to.eql([
         {type: 'feat', section: 'Features'},
       ]);
+      expect(releasePR.changelogPath).to.equal('HISTORY.md');
       const packageName = await releasePR.getPackageName();
       expect(packageName.name).to.equal('ruby-test-repo');
       expect(packageName.getComponent()).to.equal('ruby-test-repo');
@@ -159,30 +196,33 @@ describe('factory', () => {
   });
 
   describe('githubRelease', () => {
-    it('returns a GitHub release with a known release type', () => {
-      const githubRelease = factory.githubRelease({
-        repoUrl: 'googleapis/simple-test-repo',
-        packageName: 'simple-test-repo',
-        apiUrl: 'https://api.github.com',
-        releaseType: 'simple',
-      });
-      expect(githubRelease.constructor.name).to.eql('GitHubRelease');
-      expect(githubRelease.releasePR.constructor.name).to.eql('Simple');
-    });
-
-    it('allows releaseType to be empty', () => {
-      const githubRelease = factory.githubRelease({
-        repoUrl: 'googleapis/simple-test-repo',
-        packageName: 'simple-test-repo',
-        apiUrl: 'https://api.github.com',
-      });
-      expect(githubRelease.constructor.name).to.eql('GitHubRelease');
-      expect(githubRelease.releasePR.constructor.name).to.eql('ReleasePR');
-    });
-
-    it('returns a GitHubRelease with all the things', () => {
+    it('returns a default configured GitHubRelease instance', async () => {
       const ghr = factory.githubRelease({
         repoUrl: 'googleapis/simple-test-repo',
+      });
+      expect(ghr.constructor.name).to.equal('GitHubRelease');
+      expect(ghr.draft).to.be.false;
+      expect(ghr.gh.owner).to.equal('googleapis');
+      expect(ghr.gh.repo).to.equal('simple-test-repo');
+      expect(ghr.gh.token).to.be.undefined;
+      expect(ghr.gh.apiUrl).to.equal('https://api.github.com');
+      expect(ghr.gh.fork).to.be.false;
+      expect(ghr.releasePR.constructor.name).to.equal('ReleasePR');
+      expect(ghr.releasePR.labels).to.eql(['autorelease: pending']);
+      expect(ghr.releasePR.path).to.be.undefined;
+      expect(ghr.releasePR.releaseAs).to.be.undefined;
+      expect(ghr.releasePR.bumpMinorPreMajor).to.be.false;
+      expect(ghr.releasePR.monorepoTags).to.be.false;
+      expect(ghr.releasePR.changelogSections).to.be.undefined;
+      expect(ghr.releasePR.changelogPath).to.equal('CHANGELOG.md');
+      expect(ghr.releasePR.lastPackageVersion).to.be.undefined;
+      const packageName = await ghr.releasePR.getPackageName();
+      expect(packageName.name).to.equal('');
+      expect(packageName.getComponent()).to.equal('');
+    });
+    it('returns a fully configured GitHubRelease instance', async () => {
+      const ghr = factory.githubRelease({
+        repoUrl: 'googleapis/ruby-test-repo',
         defaultBranch: '1.x',
         fork: true,
         token: 'some-token',
@@ -190,18 +230,21 @@ describe('factory', () => {
         releaseType: 'ruby',
         label: 'foo,bar',
         path: 'some/path',
-        packageName: 'simple-test-repo',
+        packageName: 'ruby-test-repo',
         bumpMinorPreMajor: true,
         releaseAs: '1.2.3',
         snapshot: true,
         monorepoTags: true,
         changelogSections: [{type: 'feat', section: 'Features'}],
+        changelogPath: 'HISTORY.md',
         lastPackageVersion: '0.0.1',
         versionFile: 'some/ruby/version.rb',
+        draft: true,
       });
       expect(ghr.constructor.name).to.equal('GitHubRelease');
+      expect(ghr.draft).to.be.true;
       expect(ghr.gh.owner).to.equal('googleapis');
-      expect(ghr.gh.repo).to.equal('simple-test-repo');
+      expect(ghr.gh.repo).to.equal('ruby-test-repo');
       expect(ghr.gh.token).to.equal('some-token');
       expect(ghr.gh.apiUrl).to.equal('https://some.api.com');
       expect(ghr.gh.fork).to.be.true;
@@ -214,10 +257,14 @@ describe('factory', () => {
       expect(ghr.releasePR.changelogSections).to.eql([
         {type: 'feat', section: 'Features'},
       ]);
+      expect(ghr.releasePR.changelogPath).to.equal('HISTORY.md');
       expect(ghr.releasePR.lastPackageVersion).to.equal('0.0.1');
       expect((ghr.releasePR as Ruby).versionFile).to.equal(
         'some/ruby/version.rb'
       );
+      const packageName = await ghr.releasePR.getPackageName();
+      expect(packageName.name).to.equal('ruby-test-repo');
+      expect(packageName.getComponent()).to.equal('ruby-test-repo');
     });
   });
 

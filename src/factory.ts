@@ -173,6 +173,7 @@ function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
     snapshot,
     monorepoTags,
     changelogSections,
+    changelogPath,
     lastPackageVersion,
     versionFile,
     ...GHRFactoryOptions
@@ -188,6 +189,7 @@ function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
     snapshot,
     monorepoTags,
     changelogSections,
+    changelogPath,
     lastPackageVersion,
     versionFile,
   });

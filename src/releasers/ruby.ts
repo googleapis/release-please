@@ -80,7 +80,7 @@ export class Ruby extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: this.addPath('CHANGELOG.md'),
+        path: this.addPath(this.changelogPath),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,

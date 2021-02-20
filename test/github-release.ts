@@ -185,11 +185,11 @@ describe('GitHubRelease', () => {
         path: 'bigquery',
         packageName: 'bigquery',
         monorepoTags: true,
+        changelogPath: 'CHANGES.md',
       });
       const release = new GitHubRelease({
         github,
         releasePR,
-        changelogPath: 'CHANGES.md',
       });
       const created = await release.run();
 
@@ -223,11 +223,11 @@ describe('GitHubRelease', () => {
         path: 'src/apis/foo',
         packageName: 'foo',
         monorepoTags: true,
+        changelogPath: 'CHANGES.md',
       });
       const release = new GitHubRelease({
         github,
         releasePR,
-        changelogPath: 'CHANGES.md',
       });
       const created = await release.run();
 

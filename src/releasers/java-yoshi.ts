@@ -165,7 +165,7 @@ export class JavaYoshi extends ReleasePR {
     if (!this.snapshot) {
       updates.push(
         new Changelog({
-          path: 'CHANGELOG.md',
+          path: this.changelogPath,
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
