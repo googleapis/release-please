@@ -21,7 +21,12 @@ import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents, GitHub} from '../../src/github';
 import {buildGitHubFileContent} from './utils';
-import {buildMockCommit, dateSafe} from '../helpers';
+import {buildMockCommit, stringifyExpectedChanges} from '../helpers';
+import {
+  FileData,
+  CreatePullRequestUserOptions,
+} from 'code-suggester/build/src/types';
+import {Octokit} from '@octokit/rest';
 
 const sandbox = sinon.createSandbox();
 
@@ -29,8 +34,28 @@ function buildFileContent(fixture: string): GitHubFileContents {
   return buildGitHubFileContent('./test/releasers/fixtures/java-bom', fixture);
 }
 
+let expectedChanges: [string, FileData][] = [];
+let expectedOptions: CreatePullRequestUserOptions = {} as CreatePullRequestUserOptions;
+function replaceSuggester() {
+  sandbox.replace(
+    suggester,
+    'createPullRequest',
+    (
+      _octokit: Octokit,
+      changes: suggester.Changes | null | undefined,
+      options: CreatePullRequestUserOptions
+    ): Promise<number> => {
+      expectedChanges = [...changes!]; // Convert map to key/value pairs.
+      expectedOptions = options;
+      return Promise.resolve(22);
+    }
+  );
+}
+
 describe('JavaBom', () => {
   afterEach(() => {
+    expectedChanges = [];
+    expectedOptions = {} as CreatePullRequestUserOptions;
     sandbox.restore();
   });
   describe('run', () => {
@@ -106,19 +131,10 @@ describe('JavaBom', () => {
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      replaceSuggester();
       await releasePR.run();
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+      expect(expectedOptions.title).to.equal('chore: release 0.124.0');
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
 
     it('creates a snapshot PR', async () => {
@@ -194,19 +210,9 @@ describe('JavaBom', () => {
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      replaceSuggester();
       await releasePR.run();
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
 
     it('ignores a snapshot release if no snapshot needed', async () => {
@@ -315,19 +321,9 @@ describe('JavaBom', () => {
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      replaceSuggester();
       await releasePR.run();
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
 
     it('merges conventional commit messages', async () => {
@@ -400,19 +396,9 @@ describe('JavaBom', () => {
       // TODO: maybe assert which labels added
       sandbox.stub(releasePR.gh, 'addLabels');
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      replaceSuggester();
       await releasePR.run();
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
   });
 

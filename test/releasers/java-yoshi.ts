@@ -23,7 +23,12 @@ import * as sinon from 'sinon';
 import {GitHubFileContents, GitHub} from '../../src/github';
 import {expect} from 'chai';
 import {buildGitHubFileContent} from './utils';
-import {buildMockCommit, dateSafe} from '../helpers';
+import {buildMockCommit, stringifyExpectedChanges, dateSafe} from '../helpers';
+import {
+  FileData,
+  CreatePullRequestUserOptions,
+} from 'code-suggester/build/src/types';
+import {Octokit} from '@octokit/rest';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {ReleasePR} from '../../src/release-pr';
@@ -34,6 +39,25 @@ function buildFileContent(fixture: string): GitHubFileContents {
   return buildGitHubFileContent(
     './test/releasers/fixtures/java-yoshi',
     fixture
+  );
+}
+
+let expectedChanges: [string, FileData][] = [];
+let expectedOptions: CreatePullRequestUserOptions = {} as CreatePullRequestUserOptions;
+
+function replaceSuggester() {
+  sandbox.replace(
+    suggester,
+    'createPullRequest',
+    (
+      _octokit: Octokit,
+      changes: suggester.Changes | null | undefined,
+      options: CreatePullRequestUserOptions
+    ): Promise<number> => {
+      expectedChanges = [...changes!]; // Convert map to key/value pairs.
+      expectedOptions = options;
+      return Promise.resolve(22);
+    }
   );
 }
 
@@ -117,22 +141,10 @@ describe('JavaYoshi', () => {
       .withArgs(['autorelease: pending'], 22)
       .resolves();
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    let prTitle = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes, options): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        prTitle = options.title;
-        return Promise.resolve(22);
-      }
-    );
+    replaceSuggester();
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
-    expect(prTitle).to.eql('chore: release 0.20.4');
+    snapshot(stringifyExpectedChanges(expectedChanges));
+    expect(expectedOptions.title).to.eql('chore: release 0.20.4');
     expect(addLabelStub.callCount).to.eql(1);
   });
 
@@ -211,19 +223,9 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    replaceSuggester();
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+    snapshot(stringifyExpectedChanges(expectedChanges));
   });
 
   it('creates a snapshot PR, when latest release sha is head', async () => {
@@ -295,19 +297,9 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    replaceSuggester();
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+    snapshot(stringifyExpectedChanges(expectedChanges));
   });
 
   it('ignores a snapshot release if no snapshot needed', async () => {
@@ -419,19 +411,9 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    replaceSuggester();
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+    snapshot(stringifyExpectedChanges(expectedChanges));
   });
 
   it('handles promotion to 1.0.0', async () => {
@@ -506,19 +488,9 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    replaceSuggester();
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+    snapshot(stringifyExpectedChanges(expectedChanges));
   });
 
   it('creates a release PR against a feature branch', async () => {
@@ -602,24 +574,10 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    let expectedOptions = null;
-    let prTitle = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes, options): Promise<number> => {
-        expectedOptions = options;
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        prTitle = options.title;
-        return Promise.resolve(22);
-      }
-    );
+    replaceSuggester();
     await releasePR.run();
-    expect(prTitle).to.eql('chore(1.x): release 0.20.4');
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+    expect(expectedOptions.title).to.eql('chore(1.x): release 0.20.4');
+    snapshot(stringifyExpectedChanges(expectedChanges));
     snapshot(dateSafe(JSON.stringify(expectedOptions, null, 2)));
   });
 

@@ -1,24 +1,3 @@
-exports['YoshiGo run creates a release PR for google-cloud-go 1'] = `
-
-filename: CHANGES.md
-# Changelog
-
-## [0.124.0](https://www.github.com/googleapis/google-cloud-go/compare/v0.123.4...v0.124.0) (1983-10-10)
-
-
-### Features
-
-* **asset:** added a really cool feature ([df2e08e](https://www.github.com/googleapis/google-cloud-go/commit/df2e08e2237642c162d080064c1aa4da))
-* **language:** added a new one ([b12e5a1](https://www.github.com/googleapis/google-cloud-go/commit/b12e5a1554a0a6ac8bb3b2213ad33090))
-
-
-### Bug Fixes
-
-* **automl:** fixed a minor thing ([b12e5a1](https://www.github.com/googleapis/google-cloud-go/commit/b12e5a1554a0a6ac8bb3b2213ad33090))
-* **automl:** fixed a really bad bug ([2910926](https://www.github.com/googleapis/google-cloud-go/commit/29109261188e5c680a9508238b5c873b))
-
-`
-
 exports['YoshiGo run creates a release PR for google-api-go-client 1'] = `
 
 filename: CHANGES.md
@@ -39,6 +18,27 @@ filename: CHANGES.md
 * **pubsub/pstest:** this commit should also be included ([18928e9](https://www.github.com/googleapis/google-api-go-client/commit/18928e9edb0b75972e15d7154a2f4220))
 * **pubsub:** this commit should be included ([8685637](https://www.github.com/googleapis/google-api-go-client/commit/8685637f7d27f9cd12b41ed6a04702d1))
 * this commit should be included ([19da7da](https://www.github.com/googleapis/google-api-go-client/commit/19da7da9bf67e9017e99bf2ddfa385b2))
+
+`
+
+exports['YoshiGo run creates a release PR for google-cloud-go 1'] = `
+
+filename: CHANGES.md
+# Changelog
+
+## [0.124.0](https://www.github.com/googleapis/google-cloud-go/compare/v0.123.4...v0.124.0) (1983-10-10)
+
+
+### Features
+
+* **asset:** added a really cool feature ([df2e08e](https://www.github.com/googleapis/google-cloud-go/commit/df2e08e2237642c162d080064c1aa4da))
+* **language:** added a new one ([b12e5a1](https://www.github.com/googleapis/google-cloud-go/commit/b12e5a1554a0a6ac8bb3b2213ad33090))
+
+
+### Bug Fixes
+
+* **automl:** fixed a minor thing ([b12e5a1](https://www.github.com/googleapis/google-cloud-go/commit/b12e5a1554a0a6ac8bb3b2213ad33090))
+* **automl:** fixed a really bad bug ([2910926](https://www.github.com/googleapis/google-cloud-go/commit/29109261188e5c680a9508238b5c873b))
 
 `
 

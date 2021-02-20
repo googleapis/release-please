@@ -25,13 +25,39 @@ import {buildGitHubFileRaw} from './utils';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {GitHub} from '../../src/github';
+import {buildMockCommit, stringifyExpectedChanges} from '../helpers';
+import {
+  FileData,
+  CreatePullRequestUserOptions,
+} from 'code-suggester/build/src/types';
+import {Octokit} from '@octokit/rest';
 
 const sandbox = sinon.createSandbox();
+
+let expectedChanges: [string, FileData][] = [];
+let expectedOptions: CreatePullRequestUserOptions = {} as CreatePullRequestUserOptions;
+function replaceSuggester() {
+  sandbox.replace(
+    suggester,
+    'createPullRequest',
+    (
+      _octokit: Octokit,
+      changes: suggester.Changes | null | undefined,
+      options: CreatePullRequestUserOptions
+    ): Promise<number> => {
+      expectedChanges = [...changes!]; // Convert map to key/value pairs.
+      expectedOptions = options;
+      return Promise.resolve(22);
+    }
+  );
+}
 
 const fixturesPath = './test/fixtures';
 
 describe('PHPYoshi', () => {
   afterEach(() => {
+    expectedChanges = [];
+    expectedOptions = {} as CreatePullRequestUserOptions;
     sandbox.restore();
   });
 
@@ -132,21 +158,12 @@ describe('PHPYoshi', () => {
       .withArgs(['autorelease: pending'], 22)
       .resolves();
 
-    // Fake the createPullRequest step, and capture a set of files to
-    // assert against:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    replaceSuggester();
 
     await releasePR.run();
     req.done();
-    snapshot(JSON.stringify(expectedChanges, null, 2));
+    snapshot(stringifyExpectedChanges(expectedChanges));
+    expect(expectedOptions.title).to.eql('chore: release 0.21.0');
     expect(addLabelStub.callCount).to.eql(1);
   });
 });

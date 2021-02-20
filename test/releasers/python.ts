@@ -21,11 +21,16 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {stubFilesFromFixtures} from './utils';
-import {buildMockCommit, dateSafe} from '../helpers';
+import {buildMockCommit, dateSafe, stringifyExpectedChanges} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
 import {VersionPy} from '../../src/updaters/python/version-py';
+import {
+  FileData,
+  CreatePullRequestUserOptions,
+} from 'code-suggester/build/src/types';
+import {Octokit} from '@octokit/rest';
 
 const sandbox = sinon.createSandbox();
 
@@ -65,6 +70,24 @@ function stubGithub(releasePR: Python, versionFiles: string[] = []) {
   sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(COMMITS);
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'findFilesByFilename').resolves(versionFiles);
+}
+
+let expectedChanges: [string, FileData][] = [];
+let expectedOptions: CreatePullRequestUserOptions = {} as CreatePullRequestUserOptions;
+function replaceSuggester() {
+  sandbox.replace(
+    suggester,
+    'createPullRequest',
+    (
+      _octokit: Octokit,
+      changes: suggester.Changes | null | undefined,
+      options: CreatePullRequestUserOptions
+    ): Promise<number> => {
+      expectedChanges = [...changes!]; // Convert map to key/value pairs.
+      expectedOptions = options;
+      return Promise.resolve(22);
+    }
+  );
 }
 
 describe('Python', () => {
@@ -205,17 +228,7 @@ describe('Python', () => {
         packageName: pkgName,
       });
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      replaceSuggester();
       stubGithub(releasePR, ['src/version.py']);
       stubFilesToUpdate(releasePR.gh, [
         'setup.py',
@@ -224,7 +237,8 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+      snapshot(stringifyExpectedChanges(expectedChanges));
+      expect(expectedOptions.title).to.equal('chore: release 0.123.5');
     });
 
     it('creates a release PR relative to a path', async () => {
@@ -234,17 +248,7 @@ describe('Python', () => {
         path: 'projects/python',
       });
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      replaceSuggester();
       stubGithub(releasePR, ['src/version.py']);
       stubFilesToUpdate(releasePR.gh, [
         'projects/python/setup.py',
@@ -253,7 +257,7 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
+      snapshot(stringifyExpectedChanges(expectedChanges));
     });
   });
 });
