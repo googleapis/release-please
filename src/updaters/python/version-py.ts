@@ -33,8 +33,8 @@ export class VersionPy implements Update {
   }
   updateContent(content: string): string {
     return content.replace(
-      /__version__ ?= ?["'][0-9]+\.[0-9]+\.[0-9](-\w+)?["']/,
-      `__version__ = "${this.version}"`
+      /(__version__ ?= ?["'])[0-9]+\.[0-9]+\.[0-9](?:-\w+)?(["'])/,
+      `$1${this.version}$2`
     );
   }
 }

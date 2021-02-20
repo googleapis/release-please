@@ -13,6 +13,6 @@ exports['version.py updateContent updates version in version.py 1'] = `
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.6.0"
+__version__ = '0.6.0'
 
 `
