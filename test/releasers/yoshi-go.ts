@@ -16,9 +16,7 @@ import * as assert from 'assert';
 import {describe, it, before, afterEach} from 'mocha';
 import * as nock from 'nock';
 import {GoYoshi} from '../../src/releasers/go-yoshi';
-import {stringifyExpectedChanges} from '../helpers';
-import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
+import {stubSuggesterWithSnapshot} from '../helpers';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {buildMockCommit} from '../helpers';
@@ -34,23 +32,11 @@ describe('YoshiGo', () => {
     before(() => {
       nock.disableNetConnect();
     });
-    it('creates a release PR for google-cloud-go', async () => {
+    it('creates a release PR for google-cloud-go', async function () {
       const releasePR = new GoYoshi({
         github: new GitHub({owner: 'googleapis', repo: 'google-cloud-go'}),
         packageName: 'yoshi-go',
       });
-
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges: [string, object][] = [];
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
 
       sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
 
@@ -102,27 +88,15 @@ describe('YoshiGo', () => {
         .withArgs(['autorelease: pending'], 22)
         .resolves();
 
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       await releasePR.run();
-      snapshot(stringifyExpectedChanges(expectedChanges));
       expect(addLabelStub.callCount).to.eql(1);
     });
-    it('creates a release PR for google-api-go-client', async () => {
+    it('creates a release PR for google-api-go-client', async function () {
       const releasePR = new GoYoshi({
         github: new GitHub({owner: 'googleapis', repo: 'google-api-go-client'}),
         packageName: 'yoshi-go',
       });
-
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges: [string, object][] = [];
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
 
       sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
 
@@ -145,10 +119,6 @@ describe('YoshiGo', () => {
       sandbox
         .stub(releasePR.gh, 'findOpenReleasePRs')
         .returns(Promise.resolve([]));
-
-      // Call made to close any stale release PRs still open on GitHub:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
 
       const getFileContentsStub = sandbox.stub(
         releasePR.gh,
@@ -182,32 +152,19 @@ describe('YoshiGo', () => {
         .withArgs(['autorelease: pending'], 22)
         .resolves();
 
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snapshot(stringifyExpectedChanges(expectedChanges));
       expect(addLabelStub.callCount).to.eql(1);
     });
   });
-  it('supports releasing submodule from google-cloud-go', async () => {
+  it('supports releasing submodule from google-cloud-go', async function () {
     const releasePR = new GoYoshi({
       github: new GitHub({owner: 'googleapis', repo: 'google-cloud-go'}),
       packageName: 'pubsublite',
       monorepoTags: true,
       path: 'pubsublite',
     });
-
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges: [string, object][] = [];
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
 
     sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
 
@@ -256,21 +213,15 @@ describe('YoshiGo', () => {
       .stub(releasePR.gh, 'findOpenReleasePRs')
       .returns(Promise.resolve([]));
 
-    // Call made to close any stale release PRs still open on GitHub:
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
-
     // Call to add autorelease: pending label:
     const addLabelStub = sandbox
       .stub(releasePR.gh, 'addLabels')
       .withArgs(['autorelease: pending'], 22)
       .resolves();
 
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     const pr = await releasePR.run();
     assert.strictEqual(pr, 22);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    snapshot(stringifyExpectedChanges(expectedChanges));
     expect(addLabelStub.callCount).to.eql(1);
   });
 });

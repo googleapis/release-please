@@ -16,10 +16,8 @@ import * as assert from 'assert';
 import {describe, it, afterEach} from 'mocha';
 import * as nock from 'nock';
 import {OCaml} from '../../src/releasers/ocaml';
-import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
-import {readPOJO, stringifyExpectedChanges} from '../helpers';
+import {readPOJO, stubSuggesterWithSnapshot} from '../helpers';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {GitHub} from '../../src/github';
@@ -47,7 +45,7 @@ describe('OCaml', () => {
       }
       suiteName += opam.join(',');
 
-      it(`creates a release PR for non-monorepo (${suiteName})`, async () => {
+      it(`creates a release PR for non-monorepo (${suiteName})`, async function () {
         const releasePR = new OCaml({
           github: new GitHub({owner: 'phated', repo: 'ocaml-sample-repo'}),
           packageName: 'sample',
@@ -128,34 +126,15 @@ describe('OCaml', () => {
           Object.assign(Error('not found'), {status: 404})
         );
 
-        // We stub the entire suggester API, these updates are generally the
-        // most interesting thing under test, as they represent the changes
-        // that will be pushed up to GitHub:
-        let expectedChanges: [string, object][] = [];
-        sandbox.replace(
-          suggester,
-          'createPullRequest',
-          (_octokit, changes): Promise<number> => {
-            expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-            return Promise.resolve(22);
-          }
-        );
-
-        // Call made to close any stale release PRs still open on GitHub:
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
-
         // Call to add autorelease: pending label:
         sandbox.stub(releasePR.gh, 'addLabels');
 
+        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
         await releasePR.run();
-
-        // Did we generate all the changes to files we expected to?
-        snapshot(stringifyExpectedChanges(expectedChanges));
       });
     });
 
-    it('skips JSON files that don\'t contain a "version" field', async () => {
+    it('skips JSON files that don\'t contain a "version" field', async function () {
       const releasePR = new OCaml({
         github: new GitHub({owner: 'phated', repo: 'ocaml-sample-repo'}),
         packageName: 'sample',
@@ -219,30 +198,11 @@ describe('OCaml', () => {
         Object.assign(Error('not found'), {status: 404})
       );
 
-      // We stub the entire suggester API, these updates are generally the
-      // most interesting thing under test, as they represent the changes
-      // that will be pushed up to GitHub:
-      let expectedChanges: [string, object][] = [];
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
-
-      // Call made to close any stale release PRs still open on GitHub:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
-
       // Call to add autorelease: pending label:
       sandbox.stub(releasePR.gh, 'addLabels');
 
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       await releasePR.run();
-
-      // Did we generate all the changes to files we expected to?
-      snapshot(stringifyExpectedChanges(expectedChanges));
     });
 
     // TODO(blaine): Monorepo setup

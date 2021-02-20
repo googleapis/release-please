@@ -16,10 +16,8 @@ import {describe, it, afterEach, beforeEach} from 'mocha';
 import {TerraformModule} from '../../src/releasers/terraform-module';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
-import {stringifyExpectedChanges, readPOJO} from '../helpers';
+import {readPOJO, stubSuggesterWithSnapshot} from '../helpers';
 import * as nock from 'nock';
-import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
 
@@ -94,7 +92,7 @@ describe('terraform-module', () => {
   });
   describe('run', () => {
     tests.forEach(test => {
-      it(`creates a release PR for ${test.name}`, async () => {
+      it(`creates a release PR for ${test.name}`, async function () {
         sandbox
           .stub(releasePR.gh, 'findFilesByFilename')
           .onFirstCall()
@@ -133,30 +131,11 @@ describe('terraform-module', () => {
           });
         });
 
-        // We stub the entire suggester API, these updates are generally the
-        // most interesting thing under test, as they represent the changes
-        // that will be pushed up to GitHub:
-        let expectedChanges: [string, object][] = [];
-        sandbox.replace(
-          suggester,
-          'createPullRequest',
-          (_octokit, changes): Promise<number> => {
-            expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-            return Promise.resolve(22);
-          }
-        );
-
-        // Call made to close any stale release PRs still open on GitHub:
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
-
         // Call to add autorelease: pending label:
         sandbox.stub(releasePR.gh, 'addLabels');
 
+        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
         await releasePR.run();
-
-        // Did we generate all the changes to files we expected to?
-        snapshot(stringifyExpectedChanges(expectedChanges));
       });
     });
   });
