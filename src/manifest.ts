@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {CommitSplit} from './commit-split';
-import {GitHub, GitHubFileContents} from './github';
+import {GitHub, GitHubFileContents, ReleaseCreateResponse} from './github';
 import {Update, VersionsMap} from './updaters/update';
 import {ReleaseType} from './releasers';
 import {Commit} from './graphql-to-commits';
@@ -24,17 +24,26 @@ import {
   RELEASE_PLEASE_MANIFEST,
 } from './constants';
 import {BranchName} from './util/branch-name';
-import {factory, ReleasePRFactoryOptions, ManifestConstructorOptions} from '.';
+import {
+  factory,
+  ManifestConstructorOptions,
+  GitHubReleaseFactoryOptions,
+} from '.';
 import {ChangelogSection} from './conventional-commits';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {CheckpointType, checkpoint, Checkpoint} from './util/checkpoint';
-import {GitHubReleaseResponse} from './github-release';
+import {
+  GitHubRelease,
+  GitHubReleaseResponse,
+  GITHUB_RELEASE_LABEL,
+} from './github-release';
 import {OpenPROptions} from './release-pr';
 
 interface ReleaserConfig {
   'release-type'?: ReleaseType;
   'bump-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
+  'release-draft'?: boolean;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfig {
@@ -53,10 +62,11 @@ interface Package {
   bumpMinorPreMajor?: boolean;
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
+  releaseDraft: boolean;
 }
 
 interface PackageReleaseData extends Package {
-  releaserOptions: Omit<ReleasePRFactoryOptions, 'repoUrl'>;
+  releaserOptions: Omit<GitHubReleaseFactoryOptions, 'repoUrl'>;
   commits: Commit[];
   lastVersion?: string;
 }
@@ -216,6 +226,7 @@ export class Manifest {
         changelogSections:
           pkgCfg['changelog-sections'] ?? config['changelog-sections'],
         changelogPath: pkgCfg['changelog-path'],
+        releaseDraft: !!(pkgCfg['release-draft'] ?? config['release-draft']),
       };
       packages.push(pkg);
     }
@@ -256,9 +267,11 @@ export class Manifest {
           CheckpointType.Success
         );
       }
+      const {releaseDraft, ...rest} = pkg;
       const releaserOptions = {
         monorepoTags: true,
-        ...pkg,
+        draft: releaseDraft,
+        ...rest,
       };
       packagesToRelease[pkg.path] = {
         commits,
@@ -463,26 +476,123 @@ export class Manifest {
     return pr;
   }
 
-  async githubRelease(): Promise<GitHubReleaseResponse[] | undefined> {
+  async githubRelease(): Promise<
+    Record<string, GitHubReleaseResponse | undefined> | undefined
+  > {
     const valid = await this.validate();
     if (!valid) {
       return;
     }
-    return [
-      {
-        major: 1,
-        minor: 1,
-        patch: 1,
-        version: '1.1.1',
-        sha: 'abc123',
-        html_url: 'https://release.url',
-        name: 'foo foo-v1.1.1',
-        tag_name: 'foo-v1.1.1',
-        upload_url: 'https://upload.url/',
-        pr: 1,
-        draft: false,
-        body: '',
-      },
-    ];
+    const branchName = (await this.getBranchName()).toString();
+    const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
+    if (lastMergedPR === undefined) {
+      this.checkpoint(
+        'Unable to find last merged Manifest PR for tagging',
+        CheckpointType.Failure
+      );
+      return;
+    }
+    const packages = await this.getPackagesToRelease(
+      // use the lastMergedPR.sha as a Commit: lastMergedPR.files will inform
+      // getPackagesToRelease() what packages had changes (i.e. at least one
+      // file under their path changed in the lastMergedPR such as
+      // "packages/mypkg/package.json"). These are exactly the packages we want
+      // to create releases/tags for.
+      [{sha: lastMergedPR.sha, message: '', files: lastMergedPR.files}],
+      lastMergedPR.sha
+    );
+    const releases: Record<string, GitHubReleaseResponse | undefined> = {};
+    let allReleasesCreated = !!packages.length;
+    for (const pkg of packages) {
+      const {releaseType, draft, ...options} = pkg.releaserOptions;
+      const releaserClass = factory.releasePRClass(releaseType);
+      const releasePR = new releaserClass({github: this.gh, ...options});
+      const pkgName = (await releasePR.getPackageName()).name;
+      const pkgLogDisp = `${releaserClass.name}(${pkgName})`;
+      if (!pkg.lastVersion) {
+        // a user manually modified the manifest file on the release branch
+        // right before merging it and deleted the entry for this pkg.
+        this.checkpoint(
+          `Unable to find last version for ${pkgLogDisp}.`,
+          CheckpointType.Failure
+        );
+        releases[pkg.path] = undefined;
+        continue;
+      }
+      this.checkpoint(
+        'Creating release for ' + `${pkgLogDisp}@${pkg.lastVersion}`,
+        CheckpointType.Success
+      );
+      const releaser = new GitHubRelease({
+        github: this.gh,
+        releasePR,
+        draft,
+      });
+      let release: ReleaseCreateResponse | undefined;
+      try {
+        release = await releaser.createRelease(pkg.lastVersion, lastMergedPR);
+      } catch (err) {
+        // There is no transactional bulk create releases API. Previous runs
+        // may have failed due to transient infrastructure problems part way
+        // through creating releases. Here we skip any releases that were
+        // already successfully created.
+        //
+        // Note about `draft` releases: The GitHub API Release unique key is
+        // `tag_name`. However, if `draft` is true, no git tag is created. Thus
+        // multiple `draft` releases can be created with the exact same inputs.
+        // (It's a tad confusing because `tag_name` still comes back populated
+        // in these calls but the tag doesn't actually exist).
+        // A draft release can even be created with a `tag_name` referring to an
+        // existing tag referenced by another release.
+        // However, GitHub will prevent "publishing" any draft release that
+        // would cause a duplicate tag to be created. release-please manifest
+        // users specifying the "release-draft" option could run into this
+        // duplicate releases scenario. It's easy enough to just delete the
+        // duplicate draft entries in the UI (or API).
+        if (err.status === 422 && err.errors?.length) {
+          if (
+            err.errors[0].code === 'already_exists' &&
+            err.errors[0].field === 'tag_name'
+          ) {
+            this.checkpoint(
+              `Release for ${pkgLogDisp}@${pkg.lastVersion} already exists`,
+              CheckpointType.Success
+            );
+          }
+        } else {
+          // PR will not be tagged with GITHUB_RELEASE_LABEL so another run
+          // can try again.
+          allReleasesCreated = false;
+          await this.gh.commentOnIssue(
+            `:robot: Failed to create release for ${pkgName} :cloud:`,
+            lastMergedPR.number
+          );
+          this.checkpoint(
+            'Failed to create release for ' +
+              `${pkgLogDisp}@${pkg.lastVersion}: ${err.message}`,
+            CheckpointType.Failure
+          );
+        }
+        releases[pkg.path] = undefined;
+        continue;
+      }
+      if (release) {
+        await this.gh.commentOnIssue(
+          `:robot: Release for ${pkgName} is at ${release.html_url} :sunflower:`,
+          lastMergedPR.number
+        );
+        releases[pkg.path] = releaser.releaseResponse({
+          release,
+          version: pkg.lastVersion,
+          sha: lastMergedPR.sha,
+          number: lastMergedPR.number,
+        });
+      }
+    }
+    if (allReleasesCreated) {
+      await this.gh.addLabels([GITHUB_RELEASE_LABEL], lastMergedPR.number);
+      await this.gh.removeLabels(DEFAULT_LABELS, lastMergedPR.number);
+    }
+    return releases;
   }
 }
