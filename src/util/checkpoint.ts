@@ -20,7 +20,11 @@ export enum CheckpointType {
   Failure = 'failure',
 }
 
-export function checkpoint(msg: string, type: CheckpointType) {
+export type Checkpoint = (msg: string, type: CheckpointType) => void;
+export const checkpoint: Checkpoint = function (
+  msg: string,
+  type: CheckpointType
+) {
   const prefix =
     type === CheckpointType.Success
       ? chalk.green(figures.tick)
@@ -28,4 +32,4 @@ export function checkpoint(msg: string, type: CheckpointType) {
   if (process.env.ENVIRONMENT !== 'test') {
     console.info(`${prefix} ${msg}`);
   }
-}
+};
