@@ -16,12 +16,51 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {Commit} from '../src/graphql-to-commits';
 import * as crypto from 'crypto';
+import * as sinon from 'sinon';
+import * as suggester from 'code-suggester';
+import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
+import {Octokit} from '@octokit/rest';
+import * as snapshot from 'snap-shot-it';
+
+export function stubSuggesterWithSnapshot(
+  sandbox: sinon.SinonSandbox,
+  snapName: string
+) {
+  sandbox.replace(
+    suggester,
+    'createPullRequest',
+    (
+      _octokit: Octokit,
+      changes: suggester.Changes | null | undefined,
+      options: CreatePullRequestUserOptions
+    ): Promise<number> => {
+      snapshot(snapName + ': changes', stringifyExpectedChanges([...changes!]));
+      snapshot(snapName + ': options', stringifyExpectedOptions(options));
+      return Promise.resolve(22);
+    }
+  );
+}
 
 export function dateSafe(content: string): string {
   return content.replace(
     /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
     '1983-10-10' // use a fake date, so that we don't break daily.
   );
+}
+
+function stringifyExpectedOptions(
+  expected: CreatePullRequestUserOptions
+): string {
+  expected.description = newLine(expected.description);
+  let stringified = '';
+  for (const [option, value] of Object.entries(expected)) {
+    stringified = `${stringified}\n${option}: ${value}`;
+  }
+  return dateSafe(stringified);
+}
+
+function newLine(content: string): string {
+  return content.replace(/\r\n/g, '\n');
 }
 /*
  * Given an object of chnages expected to be made by code-suggester API,
@@ -32,7 +71,7 @@ export function stringifyExpectedChanges(expected: [string, object][]): string {
   for (const update of expected) {
     stringified = `${stringified}\nfilename: ${update[0]}`;
     const obj = update[1] as {[key: string]: string};
-    stringified = `${stringified}\n${obj.content.replace(/\r\n/g, '\n')}`;
+    stringified = `${stringified}\n${newLine(obj.content)}`;
   }
   return dateSafe(stringified);
 }

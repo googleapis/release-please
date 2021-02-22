@@ -77,15 +77,6 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 
 `
 
-exports['ChangelogUpdater updateContent populates a new CHANGELOG if none exists 1'] = `
-# Changelog
-
-## 2.0.0
-
-* added a new foo to bar.
-
-`
-
 exports['ChangelogUpdater updateContent inserts content at appropriate location in yoshi-ruby style CHANGELOG 1'] = `
 # Release History
 
@@ -137,5 +128,14 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 ### 0.1.0 / 2017-12-26
 
 * Initial release
+
+`
+
+exports['ChangelogUpdater updateContent populates a new CHANGELOG if none exists 1'] = `
+# Changelog
+
+## 2.0.0
+
+* added a new foo to bar.
 
 `

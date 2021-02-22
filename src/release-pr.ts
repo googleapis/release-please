@@ -297,7 +297,7 @@ export class ReleasePR {
     _version: string,
     changelogEntry: string
   ): Promise<string> {
-    return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation](https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;
+    return `:robot: I have created a release \\*beep\\* \\*boop\\*\n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation](https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;
   }
 
   protected async openPR(options: OpenPROptions): Promise<number | undefined> {
