@@ -17,13 +17,12 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {JavaYoshi} from '../../src/releasers/java-yoshi';
-import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHubFileContents, GitHub} from '../../src/github';
 import {expect} from 'chai';
 import {buildGitHubFileContent} from './utils';
-import {buildMockCommit, dateSafe} from '../helpers';
+import {buildMockCommit, stubSuggesterWithSnapshot} from '../helpers';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {ReleasePR} from '../../src/release-pr';
@@ -41,7 +40,7 @@ describe('JavaYoshi', () => {
   afterEach(() => {
     sandbox.restore();
   });
-  it('creates a release PR', async () => {
+  it('creates a release PR', async function () {
     const releasePR = new JavaYoshi({
       github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
@@ -117,26 +116,12 @@ describe('JavaYoshi', () => {
       .withArgs(['autorelease: pending'], 22)
       .resolves();
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    let prTitle = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes, options): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        prTitle = options.title;
-        return Promise.resolve(22);
-      }
-    );
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
-    expect(prTitle).to.eql('chore: release 0.20.4');
     expect(addLabelStub.callCount).to.eql(1);
   });
 
-  it('creates a snapshot PR', async () => {
+  it('creates a snapshot PR', async function () {
     const releasePR = new JavaYoshi({
       github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
@@ -211,22 +196,11 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
-  it('creates a snapshot PR, when latest release sha is head', async () => {
+  it('creates a snapshot PR, when latest release sha is head', async function () {
     const releasePR = new JavaYoshi({
       github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
@@ -295,19 +269,8 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
   it('ignores a snapshot release if no snapshot needed', async () => {
@@ -344,7 +307,7 @@ describe('JavaYoshi', () => {
     await releasePR.run();
   });
 
-  it('creates a snapshot PR if an explicit release is requested, but a snapshot is needed', async () => {
+  it('creates a snapshot PR if an explicit release is requested, but a snapshot is needed', async function () {
     const releasePR = new JavaYoshi({
       github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
@@ -419,22 +382,11 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
-  it('handles promotion to 1.0.0', async () => {
+  it('handles promotion to 1.0.0', async function () {
     const releasePR = new JavaYoshi({
       github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
       packageName: 'java-trace',
@@ -506,22 +458,11 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
   });
 
-  it('creates a release PR against a feature branch', async () => {
+  it('creates a release PR against a feature branch', async function () {
     const defaultBranch = '1.x';
     const releasePR = new JavaYoshi({
       github: new GitHub({
@@ -602,25 +543,8 @@ describe('JavaYoshi', () => {
     // TODO: maybe assert which labels added
     sandbox.stub(releasePR.gh, 'addLabels');
 
-    // We stub the entire suggester API, asserting only that the
-    // the appropriate changes are proposed:
-    let expectedChanges = null;
-    let expectedOptions = null;
-    let prTitle = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes, options): Promise<number> => {
-        expectedOptions = options;
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        prTitle = options.title;
-        return Promise.resolve(22);
-      }
-    );
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
-    expect(prTitle).to.eql('chore(1.x): release 0.20.4');
-    snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
-    snapshot(dateSafe(JSON.stringify(expectedOptions, null, 2)));
   });
 
   describe('latestTag', () => {

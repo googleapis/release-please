@@ -15,13 +15,12 @@
 import {describe, it, afterEach} from 'mocha';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
-import {stringifyExpectedChanges, readPOJO} from '../../helpers';
+import {readPOJO, stubSuggesterWithSnapshot} from '../../helpers';
 import * as nock from 'nock';
 import {Helm} from '../../../src/releasers/helm';
-import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {GitHub} from '../../../src/github';
+import {Commit} from '../../../src/graphql-to-commits';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
@@ -32,7 +31,7 @@ describe('Helm', () => {
     sandbox.restore();
   });
   describe('run', () => {
-    it('creates a release PR', async () => {
+    it('creates a release PR', async function () {
       const releasePR = new Helm({
         github: new GitHub({owner: 'abhinav-demo', repo: 'helm-test-repo'}),
         packageName: 'helm-test-repo',
@@ -54,8 +53,8 @@ describe('Helm', () => {
 
       // Commits, used to build CHANGELOG, and propose next version bump:
       sandbox
-        .stub(releasePR.gh as any, 'commitsSinceSha')
-        .returns(Promise.resolve(readPOJO('commits-fix')));
+        .stub(releasePR.gh, 'commitsSinceSha')
+        .returns(Promise.resolve(readPOJO('commits-fix') as Commit[]));
 
       // See if there are any release PRs already open, we do this as
       // we consider opening a new release-pr:
@@ -86,30 +85,11 @@ describe('Helm', () => {
         Object.assign(Error('not found'), {status: 404})
       );
 
-      // We stub the entire suggester API, these updates are generally the
-      // most interesting thing under test, as they represent the changes
-      // that will be pushed up to GitHub:
-      let expectedChanges: [string, object][] = [];
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
-
-      // Call made to close any stale release PRs still open on GitHub:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sandbox.stub(releasePR as any, 'closeStaleReleasePRs');
-
       // Call to add autorelease: pending label:
       sandbox.stub(releasePR.gh, 'addLabels');
 
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       await releasePR.run();
-
-      // Did we generate all the changes to files we expected to?
-      snapshot(stringifyExpectedChanges(expectedChanges));
     });
   });
 });
