@@ -170,6 +170,7 @@ export class Manifest {
         upload_url: 'https://upload.url/',
         pr: 1,
         draft: false,
+        body: '',
       },
     ];
   }
