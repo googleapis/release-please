@@ -18,10 +18,9 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Python} from '../../src/releasers/python';
 import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {stubFilesFromFixtures} from './utils';
-import {buildMockCommit, dateSafe} from '../helpers';
+import {buildMockCommit, dateSafe, stubSuggesterWithSnapshot} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
@@ -199,23 +198,13 @@ describe('Python', () => {
     // normally you'd only have your version in one location
     // e.g. setup.py or setup.cfg or src/version.py, not all 3!
     // just testing the releaser does try to update all 3.
-    it('creates a release PR', async () => {
+    it('creates a release PR', async function () {
       const releasePR = new Python({
         github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
       });
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR, ['src/version.py']);
       stubFilesToUpdate(releasePR.gh, [
         'setup.py',
@@ -224,27 +213,16 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
-    it('creates a release PR relative to a path', async () => {
+    it('creates a release PR relative to a path', async function () {
       const releasePR = new Python({
         github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
         path: 'projects/python',
       });
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR, ['src/version.py']);
       stubFilesToUpdate(releasePR.gh, [
         'projects/python/setup.py',
@@ -253,7 +231,6 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
   });
 });

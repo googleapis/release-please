@@ -18,10 +18,9 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Node} from '../../src/releasers/node';
 import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {stubFilesFromFixtures} from './utils';
-import {buildMockCommit, dateSafe} from '../helpers';
+import {buildMockCommit, dateSafe, stubSuggesterWithSnapshot} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {PackageJson} from '../../src/updaters/package-json';
 import {SamplesPackageJson} from '../../src/updaters/samples-package-json';
@@ -219,74 +218,42 @@ describe('Node', () => {
     });
   });
   describe('run', () => {
-    it('creates a release PR without package-lock.json', async () => {
+    it('creates a release PR without package-lock.json', async function () {
       const releasePR = new Node({
         github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
       mockRequest(releasePR);
       stubFilesToUpdate(releasePR.gh, ['package.json']);
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
-    it('creates a release PR with package-lock.json', async () => {
+    it('creates a release PR with package-lock.json', async function () {
       const releasePR = new Node({
         github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
       });
-
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
 
       mockRequest(releasePR);
       stubFilesToUpdate(releasePR.gh, ['package.json', 'package-lock.json']);
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       await releasePR.run();
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
-    it('creates release PR relative to a path', async () => {
+    it('creates release PR relative to a path', async function () {
       const releasePR = new Node({
         github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
         path: 'packages/foo',
       });
 
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
       mockRequest(releasePR);
       stubFilesToUpdate(releasePR.gh, [
         'packages/foo/package.json',
         'package-lock.json',
       ]);
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       await releasePR.run();
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
     });
 
     it('does not support snapshot releases', async () => {
@@ -298,20 +265,7 @@ describe('Node', () => {
       assert.strictEqual(pr, undefined);
     });
 
-    it('uses detected package name in branch', async () => {
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      let expectedBranch = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes, options): Promise<number> => {
-          expectedBranch = options.branch;
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+    it('uses detected package name in branch', async function () {
       const releasePR = new Node({
         github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
         monorepoTags: true,
@@ -319,10 +273,9 @@ describe('Node', () => {
       mockRequest(releasePR);
 
       stubFilesToUpdate(releasePR.gh, ['package.json']);
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(dateSafe(JSON.stringify(expectedChanges, null, 2)));
-      expect(expectedBranch).to.eql('release-node-test-repo-v0.123.5');
     });
   });
 
