@@ -40,6 +40,9 @@ export class ModuleVersion implements Update {
         CheckpointType.Success
       );
     }
-    return content.replace(/v[0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g, `v${this.version}`);
+    return content.replace(
+      /v[0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g,
+      `v${this.version}`
+    );
   }
 }

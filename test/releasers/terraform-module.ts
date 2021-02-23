@@ -36,7 +36,7 @@ describe('terraform-module', () => {
       findVersionFiles: ['versions.tf'],
       findReadmeFiles: ['readme.md'],
       readFilePaths: ['simple-module/readme.md', 'simple-module/versions.tf'],
-      expectedVersion: "12.1.0"
+      expectedVersion: '12.1.0',
     },
     {
       // module-submodule with submodules
@@ -59,7 +59,7 @@ describe('terraform-module', () => {
         'module-submodule/versions.tf',
         'module-submodule/modules/sub-module-with-version/versions.tf',
       ],
-      expectedVersion: "2.1.0"
+      expectedVersion: '2.1.0',
     },
     {
       // module-no-versions with no module versions defined in versions.tf
@@ -67,7 +67,7 @@ describe('terraform-module', () => {
       findVersionFiles: [],
       findReadmeFiles: ['module-no-versions/README.MD'],
       readFilePaths: ['module-no-versions/README.MD'],
-      expectedVersion: "2.1.0"
+      expectedVersion: '2.1.0',
     },
   ];
   beforeEach(() => {
