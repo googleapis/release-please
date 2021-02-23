@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.0.1](https://www.github.com/googleapis/release-please/compare/v11.0.0...v11.0.1) (2021-02-23)
+
+
+### Bug Fixes
+
+* js-yaml should be a dependency not devDependency ([#792](https://www.github.com/googleapis/release-please/issues/792)) ([eaf031f](https://www.github.com/googleapis/release-please/commit/eaf031fb29ceb8ac7503c21bf730130fb29a2b95))
+
 ## [11.0.0](https://www.github.com/googleapis/release-please/compare/v10.1.0...v11.0.0) (2021-02-23)
 
 
