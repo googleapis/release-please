@@ -13,12 +13,7 @@
 // limitations under the License.
 
 import {ReleasePR, ReleaseCandidate} from '../release-pr';
-import {Octokit} from '@octokit/rest';
-import {PromiseValue} from 'type-fest';
 import {ConventionalChangelogCommit} from '@conventional-commits/parser';
-type PullsListResponseItems = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
->['data'];
 
 import {ConventionalCommits} from '../conventional-commits';
 import {checkpoint, CheckpointType} from '../util/checkpoint';
@@ -44,6 +39,8 @@ const SUB_MODULES = [
 const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 
 export class GoYoshi extends ReleasePR {
+  changelogPath = 'CHANGES.md';
+
   protected async _run(): Promise<number | undefined> {
     const packageName = await this.getPackageName();
     const latestTag = await this.latestTag(
@@ -128,7 +125,7 @@ export class GoYoshi extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: this.addPath('CHANGES.md'),
+        path: this.addPath(this.changelogPath),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,

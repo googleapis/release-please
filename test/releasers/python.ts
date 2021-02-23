@@ -53,7 +53,11 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
-function stubGithub(releasePR: Python, versionFiles: string[] = []) {
+function stubGithub(
+  releasePR: Python,
+  versionFiles: string[] = [],
+  commits = COMMITS
+) {
   sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
   // No open release PRs, so create a new release PR
   sandbox.stub(releasePR.gh, 'findOpenReleasePRs').returns(Promise.resolve([]));
@@ -61,7 +65,7 @@ function stubGithub(releasePR: Python, versionFiles: string[] = []) {
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
   sandbox.stub(releasePR, 'latestTag').resolves(LATEST_TAG);
-  sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(COMMITS);
+  sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(commits);
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'findFilesByFilename').resolves(versionFiles);
 }
@@ -198,7 +202,7 @@ describe('Python', () => {
     // normally you'd only have your version in one location
     // e.g. setup.py or setup.cfg or src/version.py, not all 3!
     // just testing the releaser does try to update all 3.
-    it('creates a release PR', async function () {
+    it('creates a release PR with defaults', async function () {
       const releasePR = new Python({
         github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
@@ -224,6 +228,29 @@ describe('Python', () => {
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR, ['src/version.py']);
+      stubFilesToUpdate(releasePR.gh, [
+        'projects/python/setup.py',
+        'projects/python/src/version.py',
+        'projects/python/setup.cfg',
+      ]);
+      const pr = await releasePR.run();
+      assert.strictEqual(pr, 22);
+    });
+
+    it('creates a release PR with custom config', async function () {
+      const releasePR = new Python({
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
+        packageName: pkgName,
+        path: 'projects/python',
+        bumpMinorPreMajor: true,
+        monorepoTags: true,
+        changelogPath: 'HISTORY.md',
+      });
+
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const commits = [buildMockCommit('feat!: still no major version')];
+      commits.push(...COMMITS);
+      stubGithub(releasePR, ['src/version.py'], commits);
       stubFilesToUpdate(releasePR.gh, [
         'projects/python/setup.py',
         'projects/python/src/version.py',
