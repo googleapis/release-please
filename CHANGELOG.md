@@ -4,6 +4,47 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.0.0](https://www.github.com/googleapis/release-please/compare/v10.1.0...v11.0.0) (2021-02-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* move changelogPath down to ReleasePR (#790)
+* move fork down to GitHub (#770)
+* factory.run becomes factory.call
+* remove GitHubRelease.labels in favor of ReleasePR.labels
+* normalize configuration accross classes (#763)
+* move latestTag logic to ReleasePR (#758)
+
+### Features
+
+* add async interator for searching commit history ([#759](https://www.github.com/googleapis/release-please/issues/759)) ([f42bab1](https://www.github.com/googleapis/release-please/commit/f42bab11d9d737d64f8b4a7184b58951fc6a9d44))
+* add latest-tag command which will print out the detected latest tag for a branch ([#765](https://www.github.com/googleapis/release-please/issues/765)) ([07e2969](https://www.github.com/googleapis/release-please/commit/07e29696c13b323ff8c79bfa350809f8d6b91230))
+* add support for helm ([#748](https://www.github.com/googleapis/release-please/issues/748)) ([c9fbf78](https://www.github.com/googleapis/release-please/commit/c9fbf78832c65425d5efdace2fc0f24233749f6e))
+* expose the release body to consumers ([#789](https://www.github.com/googleapis/release-please/issues/789)) ([6848e8e](https://www.github.com/googleapis/release-please/commit/6848e8e635a710925bdf78ca0b1eb246d7a1836d))
+* pull request title resource ([#780](https://www.github.com/googleapis/release-please/issues/780)) ([4e7f524](https://www.github.com/googleapis/release-please/commit/4e7f524d0ce2a9560998de57f8c0d3a14815b4d5))
+
+
+### Bug Fixes
+
+* **deps:** update dependency type-fest to ^0.21.0 ([#768](https://www.github.com/googleapis/release-please/issues/768)) ([eb68033](https://www.github.com/googleapis/release-please/commit/eb68033095777b1687275947c7117601ad2e333a))
+* do not change format of Python version files ([#782](https://www.github.com/googleapis/release-please/issues/782)) ([10f7ab9](https://www.github.com/googleapis/release-please/commit/10f7ab98ce1a277864a383959a6f7338985f0bfa))
+* find first associate pull request ([#764](https://www.github.com/googleapis/release-please/issues/764)) ([b277b89](https://www.github.com/googleapis/release-please/commit/b277b8909e78047797796c0428f545ce482a0b2a))
+* **github-release:** release name is packageName ([#757](https://www.github.com/googleapis/release-please/issues/757)) ([869f1a1](https://www.github.com/googleapis/release-please/commit/869f1a1ad7395dd6889033ddc103f99a310ac06b))
+* only add the target branch to PR title for non-default branches ([#781](https://www.github.com/googleapis/release-please/issues/781)) ([00ca2ad](https://www.github.com/googleapis/release-please/commit/00ca2ad9953baeb69f7ed28fc7958f7868ee127f))
+* **pagination:** looking for pending PRs had no pagination limit ([#791](https://www.github.com/googleapis/release-please/issues/791)) ([9b36d25](https://www.github.com/googleapis/release-please/commit/9b36d25451f988ec921b9abd54ff94fa8f5da295))
+* **release-pr:** update default initial version ([#776](https://www.github.com/googleapis/release-please/issues/776)) ([5f62443](https://www.github.com/googleapis/release-please/commit/5f624439cafe6702ac45d70ad39a2330258dfe03))
+
+
+### Code Refactoring
+
+* move changelogPath down to ReleasePR ([#790](https://www.github.com/googleapis/release-please/issues/790)) ([65c4147](https://www.github.com/googleapis/release-please/commit/65c41479c0a12c900b0850591f5223d436062e45))
+* move fork down to GitHub ([#770](https://www.github.com/googleapis/release-please/issues/770)) ([d25f490](https://www.github.com/googleapis/release-please/commit/d25f49028092602190535bd94c5b17d0e984a3bc))
+* move latestTag logic to ReleasePR ([#758](https://www.github.com/googleapis/release-please/issues/758)) ([746d1c8](https://www.github.com/googleapis/release-please/commit/746d1c893a95894420a5fe65706a438492e6605c))
+* normalize configuration accross classes ([#763](https://www.github.com/googleapis/release-please/issues/763)) ([44a3fd2](https://www.github.com/googleapis/release-please/commit/44a3fd2ef61b7083f6bbc88d20c51d57b4f7998e))
+* remove GitHubRelease.labels in favor of ReleasePR.labels ([44a3fd2](https://www.github.com/googleapis/release-please/commit/44a3fd2ef61b7083f6bbc88d20c51d57b4f7998e))
+* rename factory.run -> call ([#767](https://www.github.com/googleapis/release-please/issues/767)) ([24ecc3e](https://www.github.com/googleapis/release-please/commit/24ecc3e1a1e986cfdd10f069f4705ce869297787))
+
 ## [10.1.0](https://www.github.com/googleapis/release-please/compare/v10.0.0...v10.1.0) (2021-02-08)
 
 
