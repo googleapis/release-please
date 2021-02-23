@@ -5,6 +5,6 @@
 ```hcl
 module "vpc" {
     source  = "terraform-google-modules/mine/google"
-    version = "~> 2.0"
+    version = "~> 12.0"
 }
 ```
