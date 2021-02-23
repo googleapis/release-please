@@ -18,10 +18,9 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Python} from '../../src/releasers/python';
 import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {stubFilesFromFixtures} from './utils';
-import {buildMockCommit} from '../helpers';
+import {buildMockCommit, dateSafe, stubSuggesterWithSnapshot} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
@@ -29,8 +28,13 @@ import {VersionPy} from '../../src/updaters/python/version-py';
 
 const sandbox = sinon.createSandbox();
 
-function stubFilesToUpdate(gh: GitHub, files: string[]) {
-  stubFilesFromFixtures('./test/updaters/fixtures/', sandbox, gh, files);
+function stubFilesToUpdate(github: GitHub, files: string[]) {
+  stubFilesFromFixtures({
+    fixturePath: './test/updaters/fixtures',
+    sandbox,
+    github,
+    files,
+  });
 }
 
 const LATEST_TAG = {
@@ -49,7 +53,11 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
-function stubGithub(releasePR: Python, versionFiles: string[] = []) {
+function stubGithub(
+  releasePR: Python,
+  versionFiles: string[] = [],
+  commits = COMMITS
+) {
   sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
   // No open release PRs, so create a new release PR
   sandbox.stub(releasePR.gh, 'findOpenReleasePRs').returns(Promise.resolve([]));
@@ -57,7 +65,7 @@ function stubGithub(releasePR: Python, versionFiles: string[] = []) {
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
   sandbox.stub(releasePR, 'latestTag').resolves(LATEST_TAG);
-  sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(COMMITS);
+  sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(commits);
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'findFilesByFilename').resolves(versionFiles);
 }
@@ -86,12 +94,7 @@ describe('Python', () => {
       expect(openPROptions).to.have.property('includePackageName').to.be.false;
       expect(openPROptions).to.have.property('changelogEntry');
 
-      snapshot(
-        openPROptions!.changelogEntry.replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10'
-        )
-      );
+      snapshot(dateSafe(openPROptions!.changelogEntry));
 
       const perUpdateChangelog = openPROptions!.changelogEntry.substring(
         0,
@@ -146,12 +149,7 @@ describe('Python', () => {
       expect(openPROptions).to.have.property('includePackageName').to.be.false;
       expect(openPROptions).to.have.property('changelogEntry');
 
-      snapshot(
-        openPROptions!.changelogEntry.replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10'
-        )
-      );
+      snapshot(dateSafe(openPROptions!.changelogEntry));
 
       const perUpdateChangelog = openPROptions!.changelogEntry.substring(
         0,
@@ -204,23 +202,13 @@ describe('Python', () => {
     // normally you'd only have your version in one location
     // e.g. setup.py or setup.cfg or src/version.py, not all 3!
     // just testing the releaser does try to update all 3.
-    it('creates a release PR', async () => {
+    it('creates a release PR with defaults', async function () {
       const releasePR = new Python({
         github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
       });
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR, ['src/version.py']);
       stubFilesToUpdate(releasePR.gh, [
         'setup.py',
@@ -229,32 +217,16 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
     });
 
-    it('creates a release PR relative to a path', async () => {
+    it('creates a release PR relative to a path', async function () {
       const releasePR = new Python({
         github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
         packageName: pkgName,
         path: 'projects/python',
       });
 
-      // We stub the entire suggester API, asserting only that the
-      // the appropriate changes are proposed:
-      let expectedChanges = null;
-      sandbox.replace(
-        suggester,
-        'createPullRequest',
-        (_octokit, changes): Promise<number> => {
-          expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-          return Promise.resolve(22);
-        }
-      );
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR, ['src/version.py']);
       stubFilesToUpdate(releasePR.gh, [
         'projects/python/setup.py',
@@ -263,12 +235,29 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
-      snapshot(
-        JSON.stringify(expectedChanges, null, 2).replace(
-          /[0-9]{4}-[0-9]{2}-[0-9]{2}/,
-          '1983-10-10' // don't save a real date, this will break tests.
-        )
-      );
+    });
+
+    it('creates a release PR with custom config', async function () {
+      const releasePR = new Python({
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
+        packageName: pkgName,
+        path: 'projects/python',
+        bumpMinorPreMajor: true,
+        monorepoTags: true,
+        changelogPath: 'HISTORY.md',
+      });
+
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const commits = [buildMockCommit('feat!: still no major version')];
+      commits.push(...COMMITS);
+      stubGithub(releasePR, ['src/version.py'], commits);
+      stubFilesToUpdate(releasePR.gh, [
+        'projects/python/setup.py',
+        'projects/python/src/version.py',
+        'projects/python/setup.cfg',
+      ]);
+      const pr = await releasePR.run();
+      assert.strictEqual(pr, 22);
     });
   });
 });

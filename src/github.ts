@@ -51,6 +51,7 @@ export type ReleaseCreateResponse = {
   draft: boolean;
   html_url: string;
   upload_url: string;
+  body: string;
 };
 
 type ReposListTagsResponseItems = PromiseValue<
@@ -81,7 +82,7 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
-import {RELEASE_PLEASE} from './constants';
+import {RELEASE_PLEASE, GH_API_URL} from './constants';
 import {GitHubConstructorOptions} from '.';
 
 export interface OctokitAPIs {
@@ -104,7 +105,6 @@ export interface GitHubFileContents {
 
 export interface GitHubPR {
   branch: string;
-  fork: boolean;
   title: string;
   body: string;
   updates: Update[];
@@ -164,13 +164,16 @@ export class GitHub {
   owner: string;
   repo: string;
   apiUrl: string;
+  fork: boolean;
+  repositoryDefaultBranch?: string;
 
   constructor(options: GitHubConstructorOptions) {
     this.defaultBranch = options.defaultBranch;
     this.token = options.token;
     this.owner = options.owner;
     this.repo = options.repo;
-    this.apiUrl = options.apiUrl || 'https://api.github.com';
+    this.fork = !!options.fork;
+    this.apiUrl = options.apiUrl || GH_API_URL;
 
     if (options.octokitAPIs === undefined) {
       this.octokit = new Octokit({
@@ -814,7 +817,7 @@ export class GitHub {
       : branchPrefix;
 
     const mergedCommit = await this.findMergeCommit(
-      (commit, mergedPullRequest) => {
+      (_commit, mergedPullRequest) => {
         if (!mergedPullRequest) {
           return false;
         }
@@ -904,22 +907,30 @@ export class GitHub {
     return openReleasePRs;
   }
 
-  async addLabels(labels: string[], pr: number) {
+  async addLabels(labels: string[], pr: number): Promise<boolean> {
+    // If the PR is being created from a fork, it will not have permission
+    // to add and remove labels from the PR:
+    if (this.fork) {
+      checkpoint(
+        'release labels were not added, due to PR being created from fork',
+        CheckpointType.Failure
+      );
+      return false;
+    }
+
     checkpoint(
       `adding label ${chalk.green(labels.join(','))} to https://github.com/${
         this.owner
       }/${this.repo}/pull/${pr}`,
       CheckpointType.Success
     );
-    return this.request(
-      'POST /repos/:owner/:repo/issues/:issue_number/labels',
-      {
-        owner: this.owner,
-        repo: this.repo,
-        issue_number: pr,
-        labels,
-      }
-    );
+    await this.request('POST /repos/:owner/:repo/issues/:issue_number/labels', {
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: pr,
+      labels,
+    });
+    return true;
   }
 
   async findExistingReleaseIssue(
@@ -992,7 +1003,7 @@ export class GitHub {
         description: options.body,
         primary: defaultBranch,
         force: true,
-        fork: options.fork,
+        fork: this.fork,
         message: options.title,
       },
       {level: 'error'}
@@ -1071,10 +1082,29 @@ export class GitHub {
     return `${this.owner}:${baseBranch}`;
   }
 
+  /**
+   * Returns the branch we are targetting for releases. Defaults
+   * to the repository's default/primary branch.
+   *
+   * @returns {string}
+   */
   async getDefaultBranch(): Promise<string> {
     if (this.defaultBranch) {
       return this.defaultBranch;
     }
+    return this.getRepositoryDefaultBranch();
+  }
+
+  /**
+   * Returns the repository's default/primary branch.
+   *
+   * @returns {string}
+   */
+  async getRepositoryDefaultBranch(): Promise<string> {
+    if (this.repositoryDefaultBranch) {
+      return this.repositoryDefaultBranch;
+    }
+
     const {data} = await this.octokit.repos.get({
       repo: this.repo,
       owner: this.owner,
@@ -1082,17 +1112,22 @@ export class GitHub {
         Authorization: `token ${this.token}`,
       },
     });
-    this.defaultBranch = (data as {default_branch: string}).default_branch;
-    return this.defaultBranch as string;
+    this.repositoryDefaultBranch = (data as {
+      default_branch: string;
+    }).default_branch;
+    return this.repositoryDefaultBranch as string;
   }
 
-  async closePR(prNumber: number) {
+  async closePR(prNumber: number): Promise<boolean> {
+    if (this.fork) return false;
+
     await this.request('PATCH /repos/:owner/:repo/pulls/:pull_number', {
       owner: this.owner,
       repo: this.repo,
       pull_number: prNumber,
       state: 'closed',
     });
+    return true;
   }
 
   // Takes a potentially unqualified branch name, and turns it
@@ -1206,7 +1241,9 @@ export class GitHub {
     ).data;
   }
 
-  async removeLabels(labels: string[], prNumber: number) {
+  async removeLabels(labels: string[], prNumber: number): Promise<boolean> {
+    if (this.fork) return false;
+
     for (let i = 0, label; i < labels.length; i++) {
       label = labels[i];
       checkpoint(
@@ -1225,6 +1262,7 @@ export class GitHub {
         }
       );
     }
+    return true;
   }
 
   normalizePrefix(prefix: string) {

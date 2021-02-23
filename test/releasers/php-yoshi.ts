@@ -17,14 +17,13 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import {PHPYoshi} from '../../src/releasers/php-yoshi';
-import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {buildGitHubFileRaw} from './utils';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {GitHub} from '../../src/github';
+import {stubSuggesterWithSnapshot} from '../helpers';
 
 const sandbox = sinon.createSandbox();
 
@@ -35,7 +34,7 @@ describe('PHPYoshi', () => {
     sandbox.restore();
   });
 
-  it('generates CHANGELOG and aborts if duplicate', async () => {
+  it('generates CHANGELOG and aborts if duplicate', async function () {
     const releasePR = new PHPYoshi({
       github: new GitHub({owner: 'googleapis', repo: 'release-please'}),
       packageName: 'yoshi-php',
@@ -132,21 +131,9 @@ describe('PHPYoshi', () => {
       .withArgs(['autorelease: pending'], 22)
       .resolves();
 
-    // Fake the createPullRequest step, and capture a set of files to
-    // assert against:
-    let expectedChanges = null;
-    sandbox.replace(
-      suggester,
-      'createPullRequest',
-      (_octokit, changes): Promise<number> => {
-        expectedChanges = [...(changes as Map<string, object>)]; // Convert map to key/value pairs.
-        return Promise.resolve(22);
-      }
-    );
-
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
     req.done();
-    snapshot(JSON.stringify(expectedChanges, null, 2));
     expect(addLabelStub.callCount).to.eql(1);
   });
 });

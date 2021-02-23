@@ -83,7 +83,7 @@ export class Python extends ReleasePR {
     const packageName = await this.getPackageName();
     updates.push(
       new Changelog({
-        path: this.addPath('CHANGELOG.md'),
+        path: this.addPath(this.changelogPath),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,
@@ -114,8 +114,6 @@ export class Python extends ReleasePR {
     );
     const versionPyFiles = await versionPyFilesSearch;
     versionPyFiles.forEach(path => {
-      const vpath = this.addPath(path);
-      console.log(vpath);
       updates.push(
         new VersionPy({
           path: this.addPath(path),

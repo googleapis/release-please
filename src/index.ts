@@ -16,12 +16,14 @@ import {OctokitAPIs, GitHub} from './github';
 import {ReleaseType} from './releasers';
 import {ReleasePR} from './release-pr';
 import {ChangelogSection} from './conventional-commits';
+import {Checkpoint} from './util/checkpoint';
 
 export {ReleaseCandidate, ReleasePR} from './release-pr';
 
 // Used by GitHub: Factory and Constructor
 interface GitHubOptions {
   defaultBranch?: string;
+  fork?: boolean;
   token?: string;
   apiUrl?: string;
   octokitAPIs?: OctokitAPIs;
@@ -29,7 +31,6 @@ interface GitHubOptions {
 
 // Used by GitHubRelease: Factory and Constructor
 interface GitHubReleaseOptions {
-  changelogPath?: string;
   draft?: boolean;
 }
 
@@ -41,8 +42,8 @@ interface ReleasePROptions {
   releaseAs?: string;
   snapshot?: boolean;
   monorepoTags?: boolean;
-  fork?: boolean;
   changelogSections?: ChangelogSection[];
+  changelogPath?: string;
   // only for Ruby: TODO replace with generic bootstrap option
   lastPackageVersion?: string;
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
@@ -60,6 +61,21 @@ export interface GitHubConstructorOptions extends GitHubOptions {
 interface ReleaserConstructorOptions {
   github: GitHub;
 }
+
+interface ManifestOptions {
+  configFile?: string;
+  manifestFile?: string;
+}
+
+export interface ManifestConstructorOptions
+  extends ReleaserConstructorOptions,
+    ManifestOptions {
+  checkpoint?: Checkpoint;
+}
+
+export interface ManifestFactoryOptions
+  extends GitHubFactoryOptions,
+    ManifestOptions {}
 
 // ReleasePR Constructor options
 export interface ReleasePRConstructorOptions
@@ -85,22 +101,25 @@ interface FactoryOptions {
 // GitHub factory/builder options
 export interface GitHubFactoryOptions extends GitHubOptions, FactoryOptions {}
 
+// ReleasePR and GitHubRelease Factory
+interface ReleaserFactory {
+  releaseType?: ReleaseType;
+}
+
 // ReleasePR factory/builder options
-// `releaseType` is required for the ReleaserPR factory. Using a type alias
-// here because the `interface ... extends` syntax produces the following error:
-// "An interface can only extend an identifier/qualified-name with optional
-// type arguments."
-export type ReleasePRFactoryOptions = ReleasePROptions &
-  GitHubFactoryOptions & {releaseType: ReleaseType; label?: string};
+export interface ReleasePRFactoryOptions
+  extends ReleasePROptions,
+    GitHubFactoryOptions,
+    ReleaserFactory {
+  label?: string;
+}
 
 // GitHubRelease factory/builder options
 export interface GitHubReleaseFactoryOptions
   extends GitHubReleaseOptions,
     ReleasePROptions,
-    Omit<ReleasePRFactoryOptions, 'releaseType'>,
-    GitHubFactoryOptions {
-  releaseType?: ReleaseType;
-}
+    ReleasePRFactoryOptions,
+    GitHubFactoryOptions {}
 
 export {factory} from './factory';
 export {getReleaserTypes, getReleasers} from './releasers';

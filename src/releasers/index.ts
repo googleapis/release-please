@@ -46,7 +46,7 @@ export type ReleaseType =
   | 'terraform-module'
   | 'helm';
 
-type Releasers = Partial<Record<ReleaseType, typeof ReleasePR>>;
+type Releasers = Record<ReleaseType, typeof ReleasePR>;
 
 const releasers: Releasers = {
   go: GoYoshi, // TODO(codyoss): refactor this into a more generic go strategy.

@@ -347,4 +347,37 @@ describe('Release-PR', () => {
       req.done();
     });
   });
+
+  it('returns early if outstanding release is found', async () => {
+    const releasePR = new ReleasePR({
+      github: new GitHub({
+        owner: 'fake',
+        repo: 'fake',
+        defaultBranch: 'legacy-8',
+      }),
+    });
+    const findMergedReleasePRStub = sandbox
+      .stub(releasePR.gh, 'findMergedReleasePR')
+      .resolves({
+        sha: 'abc123',
+        number: 33,
+        baseRefName: 'main',
+        headRefName: 'foo',
+        labels: [],
+        title: 'chore: release',
+        body: 'release',
+      });
+    await releasePR.run();
+    // It's important to assert that we only iterate over a reasonable
+    // number of commits looking for outstanding release PRs, if this
+    // step is allowed to run to completion it may timeout on large
+    // repos with no open PRs:
+    sandbox.assert.calledWith(
+      findMergedReleasePRStub,
+      sandbox.match(['autorelease: pending']),
+      sandbox.match.any,
+      sinon.match.truthy,
+      sandbox.match(100)
+    );
+  });
 });

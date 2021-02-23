@@ -20,6 +20,7 @@ import {factory} from '../factory';
 import {getReleaserTypes, ReleaseType} from '../releasers';
 import * as yargs from 'yargs';
 import {GitHubReleaseFactoryOptions, ReleasePRFactoryOptions} from '..';
+import {GH_API_URL} from '../constants';
 
 interface ErrorObject {
   body?: object;
@@ -125,12 +126,17 @@ export const parser = yargs
   .option('token', {describe: 'GitHub token with repo write permissions'})
   .option('api-url', {
     describe: 'URL to use when making API requests',
-    default: 'https://api.github.com',
+    default: GH_API_URL,
     type: 'string',
   })
   .option('default-branch', {
     describe: 'The branch to open release PRs against and tag releases on',
     type: 'string',
+  })
+  .option('fork', {
+    describe: 'should the PR be created from a fork',
+    type: 'boolean',
+    default: false,
   })
   .option('repo-url', {
     describe: 'GitHub URL to generate release for',
@@ -169,11 +175,6 @@ export const parser = yargs
   })
   .option('last-package-version', {
     describe: 'last version # that package was released as',
-  })
-  .option('fork', {
-    describe: 'should the PR be created from a fork',
-    type: 'boolean',
-    default: false,
   })
   .option('snapshot', {
     describe: 'is it a snapshot (or pre-release) being generated?',

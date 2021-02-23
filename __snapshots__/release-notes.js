@@ -1,3 +1,32 @@
+exports['extractReleaseNotes extracts appropriate release notes when prior release is patch 1'] = `
+
+
+### ⚠ BREAKING CHANGES
+
+* temp directory now defaults to setting for report directory
+
+### Features
+
+* default temp directory to report directory ([#102](https://www.github.com/bcoe/c8/issues/102)) ([8602f4a](https://www.github.com/bcoe/c8/commit/8602f4a))
+* load .nycrc/.nycrc.json to simplify migration ([#100](https://www.github.com/bcoe/c8/issues/100)) ([bd7484f](https://www.github.com/bcoe/c8/commit/bd7484f))
+
+`
+
+exports['extractReleaseNotes handles CHANGELOG with new format entries 1'] = `
+
+
+### Bug Fixes
+
+* candidate issue should only be updated every 15 minutes. ([#70](https://www.github.com/googleapis/release-please/issues/70)) ([edcd1f7](https://www.github.com/googleapis/release-please/commit/edcd1f7))
+
+
+### Features
+
+* add GitHub action for generating candidate issue ([#69](https://www.github.com/googleapis/release-please/issues/69)) ([6373aed](https://www.github.com/googleapis/release-please/commit/6373aed))
+* checkbox based releases ([#77](https://www.github.com/googleapis/release-please/issues/77)) ([1e4193c](https://www.github.com/googleapis/release-please/commit/1e4193c))
+
+`
+
 exports['extractReleaseNotes handles CHANGELOG with old and new format entries 1'] = `
 
 
@@ -33,35 +62,6 @@ exports['extractReleaseNotes handles CHANGELOG with old format entries 1'] = `
 ### Internal / Testing Changes
 - chore: publish to npm using wombat ([#218](https://github.com/googleapis/nodejs-language/pull/218))
 - build: use per-repo npm publish token ([#216](https://github.com/googleapis/nodejs-language/pull/216))
-
-`
-
-exports['extractReleaseNotes handles CHANGELOG with new format entries 1'] = `
-
-
-### Bug Fixes
-
-* candidate issue should only be updated every 15 minutes. ([#70](https://www.github.com/googleapis/release-please/issues/70)) ([edcd1f7](https://www.github.com/googleapis/release-please/commit/edcd1f7))
-
-
-### Features
-
-* add GitHub action for generating candidate issue ([#69](https://www.github.com/googleapis/release-please/issues/69)) ([6373aed](https://www.github.com/googleapis/release-please/commit/6373aed))
-* checkbox based releases ([#77](https://www.github.com/googleapis/release-please/issues/77)) ([1e4193c](https://www.github.com/googleapis/release-please/commit/1e4193c))
-
-`
-
-exports['extractReleaseNotes extracts appropriate release notes when prior release is patch 1'] = `
-
-
-### ⚠ BREAKING CHANGES
-
-* temp directory now defaults to setting for report directory
-
-### Features
-
-* default temp directory to report directory ([#102](https://www.github.com/bcoe/c8/issues/102)) ([8602f4a](https://www.github.com/bcoe/c8/commit/8602f4a))
-* load .nycrc/.nycrc.json to simplify migration ([#100](https://www.github.com/bcoe/c8/issues/100)) ([bd7484f](https://www.github.com/bcoe/c8/commit/bd7484f))
 
 `
 

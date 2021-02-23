@@ -32,6 +32,7 @@ import {fromSemverReleaseType} from './java/bump_type';
 import {JavaUpdate} from '../updaters/java/java_update';
 import {isStableArtifact} from './java/stability';
 import {BranchName} from '../util/branch-name';
+import {PullRequestTitle} from '../util/pull-request-title';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -164,7 +165,7 @@ export class JavaYoshi extends ReleasePR {
     if (!this.snapshot) {
       updates.push(
         new Changelog({
-          path: 'CHANGELOG.md',
+          path: this.changelogPath,
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,
@@ -316,20 +317,22 @@ export class JavaYoshi extends ReleasePR {
     includePackageName: boolean
   ): Promise<string> {
     const defaultBranch = await this.gh.getDefaultBranch();
-    const packageName = await this.getPackageName();
-    return includePackageName
-      ? `chore(${defaultBranch}): release ${packageName.name} ${version}`
-      : `chore(${defaultBranch}): release ${version}`;
-  }
+    const repoDefaultBranch = await this.gh.getRepositoryDefaultBranch();
 
-  // Override this method to detect the release version from code (if it cannot be
-  // inferred from the release PR head branch)
-  protected detectReleaseVersionFromTitle(title: string): string | undefined {
-    const pattern = /^chore\((?<branch>[^(]+)\): release ?(?<component>.*) (?<version>\d+\.\d+\.\d+(-\w+)?)$/;
-    const match = title.match(pattern);
-    if (match?.groups) {
-      return match.groups['version'];
+    // If we are proposing a release to a non-default branch, add the target
+    // branch in the pull request title.
+    // TODO: consider pushing this change up to the default pull request title
+    if (repoDefaultBranch === defaultBranch) {
+      return super.buildPullRequestTitle(version, includePackageName);
     }
-    return undefined;
+    const packageName = await this.getPackageName();
+    const pullRequestTitle = includePackageName
+      ? PullRequestTitle.ofComponentTargetBranchVersion(
+          packageName.name,
+          defaultBranch,
+          version
+        )
+      : PullRequestTitle.ofTargetBranchVersion(defaultBranch, version);
+    return pullRequestTitle.toString();
   }
 }

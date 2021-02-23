@@ -31,6 +31,7 @@ import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {extractReleaseNotes} from './util/release-notes';
+import {PullRequestTitle} from './util/pull-request-title';
 
 export interface ReleaseCandidate {
   version: string;
@@ -71,7 +72,6 @@ export interface OpenPROptions {
 
 export class ReleasePR {
   labels: string[];
-  fork: boolean;
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   path?: string;
@@ -81,10 +81,10 @@ export class ReleasePR {
   snapshot?: boolean;
   lastPackageVersion?: string;
   changelogSections?: ChangelogSection[];
+  changelogPath = 'CHANGELOG.md';
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
-    this.fork = !!options.fork;
     this.labels = options.labels ?? DEFAULT_LABELS;
     this.path = options.path;
     this.packageName = options.packageName || '';
@@ -99,6 +99,7 @@ export class ReleasePR {
     this.gh = options.github;
 
     this.changelogSections = options.changelogSections;
+    this.changelogPath = options.changelogPath ?? this.changelogPath;
   }
 
   // A releaser can override this method to automatically detect the
@@ -134,7 +135,12 @@ export class ReleasePR {
       );
       return;
     }
-    const mergedPR = await this.gh.findMergedReleasePR(this.labels);
+    const mergedPR = await this.gh.findMergedReleasePR(
+      this.labels,
+      undefined,
+      true,
+      100
+    );
     if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
       checkpoint(
@@ -179,7 +185,7 @@ export class ReleasePR {
   }
 
   protected defaultInitialVersion(): string {
-    return '1.0.0';
+    return this.bumpMinorPreMajor ? '0.1.0' : '1.0.0';
   }
 
   tagSeparator(): string {
@@ -251,18 +257,18 @@ export class ReleasePR {
     includePackageName: boolean
   ): Promise<string> {
     const packageName = await this.getPackageName();
-    return includePackageName
-      ? `chore: release ${packageName.name} ${version}`
-      : `chore: release ${version}`;
+    const pullRequestTitle = includePackageName
+      ? PullRequestTitle.ofComponentVersion(packageName.name, version)
+      : PullRequestTitle.ofVersion(version);
+    return pullRequestTitle.toString();
   }
 
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
   protected detectReleaseVersionFromTitle(title: string): string | undefined {
-    const pattern = /^chore: release ?(?<component>.*) (?<version>\d+\.\d+\.\d+)$/;
-    const match = title.match(pattern);
-    if (match?.groups) {
-      return match.groups['version'];
+    const pullRequestTitle = PullRequestTitle.parse(title);
+    if (pullRequestTitle) {
+      return pullRequestTitle.getVersion();
     }
     return undefined;
   }
@@ -289,7 +295,7 @@ export class ReleasePR {
     _version: string,
     changelogEntry: string
   ): Promise<string> {
-    return `:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation](https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;
+    return `:robot: I have created a release \\*beep\\* \\*boop\\*\n---\n${changelogEntry}\n\nThis PR was generated with [Release Please](https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation](https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;
   }
 
   protected async openPR(options: OpenPROptions): Promise<number | undefined> {
@@ -305,28 +311,16 @@ export class ReleasePR {
       updates,
       title,
       body,
-      fork: this.fork,
       labels: this.labels,
     });
     // a return of undefined indicates that PR was not updated.
     if (pr) {
-      // If the PR is being created from a fork, it will not have permission
-      // to add and remove labels from the PR:
-      if (!this.fork) {
-        await this.gh.addLabels(this.labels, pr);
-      } else {
-        checkpoint(
-          'release labels were not added, due to PR being created from fork',
-          CheckpointType.Failure
-        );
-      }
+      await this.gh.addLabels(this.labels, pr);
       checkpoint(
         `find stale PRs with label "${this.labels.join(',')}"`,
         CheckpointType.Success
       );
-      if (!this.fork) {
-        await this.closeStaleReleasePRs(pr, includePackageName);
-      }
+      await this.closeStaleReleasePRs(pr, includePackageName);
     }
     return pr;
   }
@@ -392,9 +386,7 @@ export class ReleasePR {
     }
   }
   // Logic for determining what to include in a GitHub release.
-  async buildRelease(
-    changelogPath: string
-  ): Promise<CandidateRelease | undefined> {
+  async buildRelease(): Promise<CandidateRelease | undefined> {
     await this.validateConfiguration();
     const packageName = await this.getPackageName();
     const mergedPR = await this.findMergedRelease();
@@ -411,7 +403,7 @@ export class ReleasePR {
 
     const tag = this.formatReleaseTagName(version, packageName);
     const changelogContents = (
-      await this.gh.getFileContents(this.addPath(changelogPath))
+      await this.gh.getFileContents(this.addPath(this.changelogPath))
     ).parsedContent;
     const notes = extractReleaseNotes(changelogContents, version);
 
