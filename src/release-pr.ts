@@ -135,7 +135,12 @@ export class ReleasePR {
       );
       return;
     }
-    const mergedPR = await this.gh.findMergedReleasePR(this.labels);
+    const mergedPR = await this.gh.findMergedReleasePR(
+      this.labels,
+      undefined,
+      true,
+      100
+    );
     if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
       checkpoint(
