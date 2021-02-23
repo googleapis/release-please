@@ -81,6 +81,7 @@ export class ReleasePR {
   snapshot?: boolean;
   lastPackageVersion?: string;
   changelogSections?: ChangelogSection[];
+  changelogPath = 'CHANGELOG.md';
   pullRequestTitlePattern?: string;
 
   constructor(options: ReleasePRConstructorOptions) {
@@ -99,6 +100,7 @@ export class ReleasePR {
     this.gh = options.github;
 
     this.changelogSections = options.changelogSections;
+    this.changelogPath = options.changelogPath ?? this.changelogPath;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
   }
 
@@ -135,7 +137,12 @@ export class ReleasePR {
       );
       return;
     }
-    const mergedPR = await this.gh.findMergedReleasePR(this.labels);
+    const mergedPR = await this.gh.findMergedReleasePR(
+      this.labels,
+      undefined,
+      true,
+      100
+    );
     if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
       checkpoint(
@@ -388,9 +395,7 @@ export class ReleasePR {
     }
   }
   // Logic for determining what to include in a GitHub release.
-  async buildRelease(
-    changelogPath: string
-  ): Promise<CandidateRelease | undefined> {
+  async buildRelease(): Promise<CandidateRelease | undefined> {
     await this.validateConfiguration();
     const packageName = await this.getPackageName();
     const mergedPR = await this.findMergedRelease();
@@ -407,7 +412,7 @@ export class ReleasePR {
 
     const tag = this.formatReleaseTagName(version, packageName);
     const changelogContents = (
-      await this.gh.getFileContents(this.addPath(changelogPath))
+      await this.gh.getFileContents(this.addPath(this.changelogPath))
     ).parsedContent;
     const notes = extractReleaseNotes(changelogContents, version);
 

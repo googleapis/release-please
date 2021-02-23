@@ -31,7 +31,6 @@ interface GitHubOptions {
 
 // Used by GitHubRelease: Factory and Constructor
 interface GitHubReleaseOptions {
-  changelogPath?: string;
   draft?: boolean;
 }
 
@@ -44,6 +43,7 @@ interface ReleasePROptions {
   snapshot?: boolean;
   monorepoTags?: boolean;
   changelogSections?: ChangelogSection[];
+  changelogPath?: string;
   // only for Ruby: TODO replace with generic bootstrap option
   lastPackageVersion?: string;
   // for Ruby: TODO refactor to find version.rb like Python finds version.py

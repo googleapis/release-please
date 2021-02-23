@@ -177,7 +177,6 @@ describe('CLI', () => {
       assert.ok(instanceToRun! instanceof GitHubRelease);
       assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
       assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
-      assert.strictEqual(instanceToRun.changelogPath, 'CHANGELOG.md');
 
       const jsonPkg = `{"name": "${pkgName}"}`;
       sandbox.stub(instanceToRun.releasePR.gh, 'getFileContents').resolves({
@@ -189,6 +188,7 @@ describe('CLI', () => {
         (await instanceToRun.releasePR.getPackageName()).name,
         'cli-package'
       );
+      assert.strictEqual(instanceToRun.releasePR.changelogPath, 'CHANGELOG.md');
       // Defaults to Node.js release type:
       assert.strictEqual(instanceToRun.releasePR.constructor.name, 'Node');
     });
