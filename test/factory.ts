@@ -330,6 +330,7 @@ describe('factory', () => {
         tag_name: 'v1.2.3',
         pr: 1,
         draft: false,
+        body: '\n* entry',
       };
       sandbox.stub(instance, 'run').resolves(ghRelease);
       expect(await factory.call(instance, 'run')).to.eql(ghRelease);

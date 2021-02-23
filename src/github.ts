@@ -51,6 +51,7 @@ export type ReleaseCreateResponse = {
   draft: boolean;
   html_url: string;
   upload_url: string;
+  body: string;
 };
 
 type ReposListTagsResponseItems = PromiseValue<

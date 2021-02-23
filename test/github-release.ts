@@ -101,6 +101,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new ReleasePR({github, packageName: 'foo'});
@@ -130,6 +131,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new ReleasePR({github, packageName: 'foo'});
@@ -154,6 +156,7 @@ describe('GitHubRelease', () => {
           draft: true,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new ReleasePR({github, packageName: 'foo'});
@@ -178,6 +181,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new GoYoshi({
@@ -216,6 +220,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new GoYoshi({
@@ -265,6 +270,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new Node({
@@ -301,6 +307,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new Node({github});
@@ -326,6 +333,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const releasePR = new ReleasePR({github});
@@ -375,6 +383,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const created = await release.run();
@@ -410,6 +419,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const created = await release.run();
@@ -496,6 +506,7 @@ describe('GitHubRelease', () => {
           draft: false,
           html_url: 'https://release.url',
           upload_url: 'https://upload.url/',
+          body: '\n* entry',
         });
 
       const created = await release.run();
