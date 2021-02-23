@@ -33,6 +33,7 @@ export interface GitHubReleaseResponse {
   upload_url: string;
   pr: number;
   draft: boolean;
+  body: string;
 }
 
 export class GitHubRelease {
@@ -91,6 +92,7 @@ export class GitHubRelease {
         tag_name: release.tag_name,
         upload_url: release.upload_url,
         draft: release.draft,
+        body: release.body,
       };
     } else {
       console.warn(
