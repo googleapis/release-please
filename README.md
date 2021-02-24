@@ -6,7 +6,7 @@
 [![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/master.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
 
 Release Please automates CHANGELOG generation, the creation of GitHub releases,
-and version bumps for your projects. 
+and version bumps for your projects.
 
 It does so by parsing your
 git history, looking for [Conventional Commit messages](https://www.conventionalcommits.org/),
@@ -28,7 +28,7 @@ Release Please assumes you are using [Conventional Commit messages](https://www.
 
 The most important prefixes you should have in mind are:
 
-* `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/) 
+* `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
   patch.
 * `feat:` which represents a new feature, and correlates to a SemVer minor.
 * `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
@@ -39,7 +39,7 @@ The most important prefixes you should have in mind are:
 Release Please allows you to represent multiple changes in a single commit,
 using footers:
 
-```
+```txt
 feat: adds v4 UUID to crypto
 
 This adds support for v4 UUIDs to the library.
@@ -63,17 +63,17 @@ The above commit message will contain:
 
 ## How do I change the version number?
 
-When a commit to the main branch has `Release-As: x.x.x` in the **commit body**, Release Please will open a new pull request for the specified version.
+When a commit to the main branch has `Release-As: x.x.x`(case insensitive) in the **commit body**, Release Please will open a new pull request for the specified version.
 
 **Empty commit example:**
 
 `git commit --allow-empty -m "chore: release 2.0.0" -m "Release-As: 2.0.0"` results in the following commit message:
-```
+
+```txt
 chore: release 2.0.0
 
 Release-As: 2.0.0
 ```
-
 
 ## Release types supported
 
@@ -88,6 +88,7 @@ Release Please automates releases for the following flavors of repositories:
 | ocaml             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | simple            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | helm              | A repository with a Chart.yaml and a CHANGELOG.md |
+
 ## Adding additional release types
 
 To add a new release type, simply use the existing [releasers](https://github.com/googleapis/release-please/tree/master/src/releasers) and [updaters](https://github.com/googleapis/release-please/tree/master/src/updaters)
@@ -198,6 +199,7 @@ release-please release-pr --package-name=@google-cloud/firestore" \
 | `--default-branch`| branch to open pull release PR against (detected by default). |
 | `--path`          | create a release from a path other than the repository's root |
 | `--monorepo-tags` | add prefix to tags and branches, allowing multiple libraries to be released from the same repository. |
+| `--pull-request-title-pattern` | add title pattern to make release PR, defaults to using `chore${scope}: release${component} ${version}`. |
 
 ### Creating a release on GitHub
 

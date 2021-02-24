@@ -82,6 +82,7 @@ export class ReleasePR {
   lastPackageVersion?: string;
   changelogSections?: ChangelogSection[];
   changelogPath = 'CHANGELOG.md';
+  pullRequestTitlePattern?: string;
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -100,6 +101,7 @@ export class ReleasePR {
 
     this.changelogSections = options.changelogSections;
     this.changelogPath = options.changelogPath ?? this.changelogPath;
+    this.pullRequestTitlePattern = options.pullRequestTitlePattern;
   }
 
   // A releaser can override this method to automatically detect the
@@ -258,15 +260,22 @@ export class ReleasePR {
   ): Promise<string> {
     const packageName = await this.getPackageName();
     const pullRequestTitle = includePackageName
-      ? PullRequestTitle.ofComponentVersion(packageName.name, version)
-      : PullRequestTitle.ofVersion(version);
+      ? PullRequestTitle.ofComponentVersion(
+          packageName.name,
+          version,
+          this.pullRequestTitlePattern
+        )
+      : PullRequestTitle.ofVersion(version, this.pullRequestTitlePattern);
     return pullRequestTitle.toString();
   }
 
   // Override this method to detect the release version from code (if it cannot be
   // inferred from the release PR head branch)
   protected detectReleaseVersionFromTitle(title: string): string | undefined {
-    const pullRequestTitle = PullRequestTitle.parse(title);
+    const pullRequestTitle = PullRequestTitle.parse(
+      title,
+      this.pullRequestTitlePattern
+    );
     if (pullRequestTitle) {
       return pullRequestTitle.getVersion();
     }

@@ -16,59 +16,106 @@
 // at the script level are undefined, they are only defined inside function
 // or instance methods/properties.
 
-const DEFAULT_PATTERN = /^chore(\((?<branch>[\w-.]+)\))?: release ?(?<component>[\w-.]*)? v?(?<version>[0-9].*)$/;
+const DEFAULT_PR_TITLE_PATTERN =
+  'chore${scope}: release${component} ${version}';
+export function generateMatchPattern(pullRequestTitlePattern?: string): RegExp {
+  if (
+    pullRequestTitlePattern &&
+    pullRequestTitlePattern.search(/\$\{scope\}/) === -1
+  )
+    throw Error("pullRequestTitlePattern miss the part of '${scope}'");
+  if (
+    pullRequestTitlePattern &&
+    pullRequestTitlePattern.search(/\$\{component\}/) === -1
+  )
+    throw Error("pullRequestTitlePattern miss the part of '${component}'");
+  if (
+    pullRequestTitlePattern &&
+    pullRequestTitlePattern.search(/\$\{version\}/) === -1
+  )
+    throw Error("pullRequestTitlePattern miss the part of '${version}'");
+  return new RegExp(
+    `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
+      .replace('${scope}', '(\\((?<branch>[\\w-.]+)\\))?')
+      .replace('${component}', ' ?(?<component>[\\w-.]*)?')
+      .replace('${version}', 'v?(?<version>[0-9].*)')}$`
+  );
+}
+
 export class PullRequestTitle {
   component?: string;
   targetBranch?: string;
   version: string;
+  pullRequestTitlePattern: string;
+  matchPattern: RegExp;
 
   private constructor(opts: {
     version: string;
     component?: string;
     targetBranch?: string;
+    pullRequestTitlePattern?: string;
   }) {
     this.version = opts.version;
     this.component = opts.component;
     this.targetBranch = opts.targetBranch;
+    this.pullRequestTitlePattern =
+      opts.pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN;
+    this.matchPattern = generateMatchPattern(this.pullRequestTitlePattern);
   }
 
-  static parse(title: string): PullRequestTitle | undefined {
-    const match = title.match(DEFAULT_PATTERN);
+  static parse(
+    title: string,
+    pullRequestTitlePattern?: string
+  ): PullRequestTitle | undefined {
+    const matchPattern = generateMatchPattern(pullRequestTitlePattern);
+    const match = title.match(matchPattern);
     if (match?.groups) {
       return new PullRequestTitle({
         version: match.groups['version'],
         component: match.groups['component'],
         targetBranch: match.groups['branch'],
+        pullRequestTitlePattern: pullRequestTitlePattern,
       });
     }
     return undefined;
   }
 
-  static create(_title: string): PullRequestTitle | undefined {
-    return undefined;
-  }
-
   static ofComponentVersion(
     component: string,
-    version: string
+    version: string,
+    pullRequestTitlePattern?: string
   ): PullRequestTitle {
-    return new PullRequestTitle({version, component});
+    return new PullRequestTitle({version, component, pullRequestTitlePattern});
   }
-  static ofVersion(version: string): PullRequestTitle {
-    return new PullRequestTitle({version});
+  static ofVersion(
+    version: string,
+    pullRequestTitlePattern?: string
+  ): PullRequestTitle {
+    return new PullRequestTitle({version, pullRequestTitlePattern});
   }
   static ofTargetBranchVersion(
     targetBranch: string,
-    version: string
+    version: string,
+    pullRequestTitlePattern?: string
   ): PullRequestTitle {
-    return new PullRequestTitle({version, targetBranch});
+    return new PullRequestTitle({
+      version,
+      targetBranch,
+      pullRequestTitlePattern,
+    });
   }
   static ofComponentTargetBranchVersion(
     component: string,
     targetBranch: string,
-    version: string
+    version: string,
+    pullRequestTitlePattern?: string
   ): PullRequestTitle {
-    return new PullRequestTitle({version, component, targetBranch});
+    return new PullRequestTitle({
+      version,
+      component,
+      targetBranch,
+      pullRequestTitlePattern,
+    });
   }
 
   getTargetBranch(): string | undefined {
@@ -77,12 +124,16 @@ export class PullRequestTitle {
   getComponent(): string | undefined {
     return this.component;
   }
-  getVersion(): string | undefined {
+  getVersion(): string {
     return this.version;
   }
+
   toString(): string {
     const scope = this.targetBranch ? `(${this.targetBranch})` : '';
     const component = this.component ? ` ${this.component}` : '';
-    return `chore${scope}: release${component} ${this.version}`;
+    return this.pullRequestTitlePattern
+      .replace('${scope}', scope)
+      .replace('${component}', component)
+      .replace('${version}', this.getVersion());
   }
 }
