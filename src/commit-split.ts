@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Commit} from './graphql-to-commits';
-import {relative} from 'path';
+import * as path from 'path';
 
 export interface CommitSplitOptions {
   // Defaults to './'
@@ -51,7 +51,7 @@ export class CommitSplit {
     if (opts.packagePaths) {
       const paths: string[] = [];
       for (let newPath of opts.packagePaths) {
-        newPath = newPath.replace(/[/\\]$/, '');
+        newPath = newPath.replace(/[/\\]$/, '').replace(/\//g, path.sep);
         for (const exPath of paths) {
           if (newPath.indexOf(exPath) >= 0 || exPath.indexOf(newPath) >= 0) {
             throw new Error(
@@ -71,16 +71,16 @@ export class CommitSplit {
       const dedupe: Set<string> = new Set();
       for (let i = 0; i < commit.files.length; i++) {
         const file: string = commit.files[i];
-        const path = relative(this.root, file);
-        const splitPath = path.split(/[/\\]/);
+        const fpath = path.relative(this.root, file);
+        const splitPath = fpath.split(path.sep);
         // indicates that we have a top-level file and not a folder
-        // in this edge-case we should not attempt to update the path.
+        // in this edge-case we should not attempt to update the fpath.
         if (splitPath.length === 1) continue;
 
         let pkgName;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
-          pkgName = this.packagePaths.find(p => path.indexOf(p) >= 0);
+          pkgName = this.packagePaths.find(p => fpath.indexOf(p) >= 0);
         } else {
           // track paths by top level folder
           pkgName = splitPath[0];
