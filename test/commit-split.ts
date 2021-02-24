@@ -67,30 +67,30 @@ describe('CommitSplit', () => {
     usePackagePaths: boolean
   ): [ExpectedCommitSplit, PackagePaths, Commit[]] => {
     const pkgsPath = 'packages';
-    const fooPath = path.join(pkgsPath, 'foo');
-    const barPath = path.join(pkgsPath, 'bar');
+    const fooPath = pkgsPath + '/foo';
+    const barPath = pkgsPath + '/bar';
     const bazPath = 'python';
     const somePath = 'some';
     const fooCommit = buildMockCommit('fix(foo): fix foo', [
-      path.join(fooPath, 'foo.ts'),
+      fooPath + '/foo.ts',
     ]);
     const barCommit = buildMockCommit('fix(bar): fix bar', [
-      path.join(barPath, 'bar.ts'),
+      barPath + '/bar.ts',
     ]);
     const bazCommit = buildMockCommit('fix(baz): fix baz', [
-      path.join(bazPath, 'baz', 'baz.py'),
+      bazPath + '/baz/baz.py',
     ]);
     const foobarCommit = buildMockCommit('fix(foobar): fix foobar', [
-      path.join(fooPath, 'foo.ts'),
-      path.join(barPath, 'bar.ts'),
+      fooPath + '/foo.ts',
+      barPath + '/bar.ts',
     ]);
     const foobarbazCommit = buildMockCommit('fix(foobarbaz): fix foobarbaz', [
-      path.join(fooPath, 'foo.ts'),
-      path.join(barPath, 'bar.ts'),
-      path.join(bazPath, 'baz', 'baz.py'),
+      fooPath + '/foo.ts',
+      barPath + '/bar.ts',
+      bazPath + '/baz/baz.py',
     ]);
     const someCommit = buildMockCommit('fix(some): fix something', [
-      path.join(somePath, 'other', 'file.ts'),
+      somePath + '/other/file.ts',
     ]);
     const emptyCommit = buildMockCommit(
       'chore: empty\n\nrelease-packages/foo-as: 1.2.3',
