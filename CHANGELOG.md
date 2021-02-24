@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.0.2](https://www.github.com/googleapis/release-please/compare/v11.0.1...v11.0.2) (2021-02-24)
+
+
+### Bug Fixes
+
+* bug in Terraform version updater  ([#795](https://www.github.com/googleapis/release-please/issues/795)) ([24d5b8b](https://www.github.com/googleapis/release-please/commit/24d5b8bde7f8b3d261c7d010719f6b2f697ccb5f))
+
 ### [11.0.1](https://www.github.com/googleapis/release-please/compare/v11.0.0...v11.0.1) (2021-02-23)
 
 
