@@ -498,7 +498,7 @@ export class GitHub {
   }
 
   /**
-   * Find the most "last" merged PR given a headBranch. "last" here means
+   * Find the "last" merged PR given a headBranch. "last" here means
    * the most recently created. Includes all associated files.
    *
    * @param {string} headBranch - e.g. "release-please/branches/main"
