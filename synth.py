@@ -18,5 +18,6 @@ s.copy(templates, excludes=[
   '.nycrc',
   '.kokoro/presubmit/node10/system-test.cfg',
   '.kokoro/continuous/node10/system-test.cfg',
-  '.kokoro/system-test.sh'
+  '.kokoro/system-test.sh',
+  '.mocharc.js'
 ])
