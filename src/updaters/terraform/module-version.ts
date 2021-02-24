@@ -33,13 +33,16 @@ export class ModuleVersion implements Update {
     this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    const oldVersion = content.match(/v[0-9]\.[0-9]+\.[0-9](-\w+)?/);
+    const oldVersion = content.match(/v[0-9]+\.[0-9]+\.[0-9]+(-\w+)?/);
     if (oldVersion) {
       checkpoint(
         `updating ${this.path} from ${oldVersion} to v${this.version}`,
         CheckpointType.Success
       );
     }
-    return content.replace(/v[0-9]\.[0-9]+\.[0-9](-\w+)?/g, `v${this.version}`);
+    return content.replace(
+      /v[0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g,
+      `v${this.version}`
+    );
   }
 }
