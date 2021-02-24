@@ -25,8 +25,10 @@ export function buildGitHubFileContent(
   return buildGitHubFileRaw(
     readFileSync(
       path.resolve(
-        fixturesPath.replace(/\//g, path.sep),
-        fixture.replace(/\//g, path.sep)
+        path.join(
+          fixturesPath.replace(/\//g, path.sep),
+          fixture.replace(/\//g, path.sep)
+        )
       ),
       'utf8'
     ).replace(/\r\n/g, '\n')
