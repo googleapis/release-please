@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.1.0](https://www.github.com/googleapis/release-please/compare/v11.0.1...v11.1.0) (2021-02-24)
+
+
+### Features
+
+* support custom pull request title ([#784](https://www.github.com/googleapis/release-please/issues/784)) ([d34e069](https://www.github.com/googleapis/release-please/commit/d34e069b6c8262a69d97309791d3b371c4dbbb0d))
+
+
+### Bug Fixes
+
+* bug in Terraform version updater  ([#795](https://www.github.com/googleapis/release-please/issues/795)) ([24d5b8b](https://www.github.com/googleapis/release-please/commit/24d5b8bde7f8b3d261c7d010719f6b2f697ccb5f))
+
 ### [11.0.1](https://www.github.com/googleapis/release-please/compare/v11.0.0...v11.0.1) (2021-02-23)
 
 
