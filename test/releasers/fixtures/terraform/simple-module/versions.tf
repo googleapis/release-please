@@ -22,10 +22,10 @@ terraform {
   }
 
   provider_meta "google" {
-    module_name = "foo/bar/baz/v2.0.0"
+    module_name = "foo/bar/baz/v12.0.0"
   }
 
   provider_meta "google-beta" {
-    module_name = "foo/bar/baz/v2.0.0"
+    module_name = "foo/bar/baz/v12.0.0"
   }
 }

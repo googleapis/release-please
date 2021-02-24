@@ -197,7 +197,7 @@ exports['terraform-module run creates a release PR for simple-module: changes'] 
 filename: CHANGELOG.md
 # Changelog
 
-### [2.1.1](https://www.github.com/googleapis/terraform-test-repo/compare/v2.1.0...v2.1.1) (1983-10-10)
+### [12.1.1](https://www.github.com/googleapis/terraform-test-repo/compare/v12.1.0...v12.1.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -213,7 +213,7 @@ filename: readme.md
 \`\`\`hcl
 module "vpc" {
     source  = "terraform-google-modules/mine/google"
-    version = "~> 2.1"
+    version = "~> 12.1"
 }
 \`\`\`
 
@@ -242,11 +242,11 @@ terraform {
   }
 
   provider_meta "google" {
-    module_name = "foo/bar/baz/v2.1.1"
+    module_name = "foo/bar/baz/v12.1.1"
   }
 
   provider_meta "google-beta" {
-    module_name = "foo/bar/baz/v2.1.1"
+    module_name = "foo/bar/baz/v12.1.1"
   }
 }
 
@@ -256,11 +256,11 @@ exports['terraform-module run creates a release PR for simple-module: options'] 
 
 upstreamOwner: googleapis
 upstreamRepo: terraform-test-repo
-title: chore: release 2.1.1
-branch: release-v2.1.1
+title: chore: release 12.1.1
+branch: release-v12.1.1
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
-### [2.1.1](https://www.github.com/googleapis/terraform-test-repo/compare/v2.1.0...v2.1.1) (1983-10-10)
+### [12.1.1](https://www.github.com/googleapis/terraform-test-repo/compare/v12.1.0...v12.1.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -274,5 +274,5 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release 2.1.1
+message: chore: release 12.1.1
 `
