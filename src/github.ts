@@ -1191,10 +1191,10 @@ export class GitHub {
    * @returns {string}
    */
   async getDefaultBranch(): Promise<string> {
-    if (this.defaultBranch) {
-      return this.defaultBranch;
+    if (!this.defaultBranch) {
+      this.defaultBranch = await this.getRepositoryDefaultBranch();
     }
-    return this.getRepositoryDefaultBranch();
+    return this.defaultBranch;
   }
 
   /**

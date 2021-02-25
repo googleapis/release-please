@@ -128,6 +128,15 @@ describe('GitHub', () => {
     });
   });
 
+  describe('getRepositoryDefaultBranch', () => {
+    it('gets default repository branch', async () => {
+      const branch = await github.getRepositoryDefaultBranch();
+      expect(branch).to.equal('main');
+      const branchAgain = await github.getRepositoryDefaultBranch();
+      expect(branchAgain).to.equal('main');
+    });
+  });
+
   describe('normalizePrefix', () => {
     it('removes a leading slash', async () => {
       expect(github.normalizePrefix('/test')).to.equal('test');

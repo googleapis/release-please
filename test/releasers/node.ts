@@ -19,26 +19,19 @@ import {GitHub} from '../../src/github';
 import {Node} from '../../src/releasers/node';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
-import {stubFilesFromFixtures} from './utils';
+import {buildGitHubFileContent, buildGitHubFileRaw} from './utils';
 import {buildMockCommit, dateSafe, stubSuggesterWithSnapshot} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {PackageJson} from '../../src/updaters/package-json';
 import {SamplesPackageJson} from '../../src/updaters/samples-package-json';
+import {basename} from 'path';
 
 const sandbox = sinon.createSandbox();
 
-function stubFilesToUpdate(github: GitHub, files: string[]) {
-  stubFilesFromFixtures({
-    fixturePath: './test/releasers/fixtures/node',
-    sandbox,
-    github,
-    files,
-  });
-}
-
+const LATEST_SHA = 'da6e52d956c1e35d19e75e0f2fdba439739ba364';
 const LATEST_TAG = {
   name: 'v0.123.4',
-  sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+  sha: LATEST_SHA,
   version: '0.123.4',
 };
 
@@ -52,21 +45,89 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
-function mockRequest(releasePR: Node) {
-  sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
-
+function mockGithub(options: {
+  github: GitHub;
+  fixtures: string[];
+  notFound: string[];
+  branchComponent?: string;
+}) {
+  const {github, fixtures, notFound, branchComponent} = options;
+  const mock = sandbox.mock(github);
+  mock.expects('getRepositoryDefaultBranch').atMost(1).resolves('master');
   // No open release PRs, so create a new release PR
-  sandbox.stub(releasePR.gh, 'findOpenReleasePRs').returns(Promise.resolve([]));
+  mock
+    .expects('findOpenReleasePRs')
+    .withExactArgs(['autorelease: pending'])
+    // once in openPR and once again in closeStaleReleasePRs
+    .atMost(2)
+    .resolves([]);
+  mock.expects('findMergedReleasePR').atMost(1).resolves(undefined);
+  let headRefName = 'release-';
+  if (branchComponent) {
+    headRefName += branchComponent;
+  }
+  headRefName += '-v0.123.4';
+  mock
+    .expects('mergeCommitIterator')
+    .atMost(1)
+    .returns(
+      (async function* () {
+        yield {
+          commit: {
+            sha: LATEST_SHA,
+            message: '',
+            files: [],
+          },
+          pullRequest: {
+            sha: LATEST_SHA,
+            number: 22,
+            baseRefName: 'master',
+            headRefName: headRefName,
+            labels: [],
+            title: '',
+            body: '',
+          },
+        };
+      })()
+    );
+  mock
+    .expects('commitsSinceSha')
+    .withArgs(LATEST_SHA)
+    .atMost(1)
+    .resolves(COMMITS);
+  mock
+    .expects('addLabels')
+    .withExactArgs(['autorelease: pending'], 22)
+    .atMost(1)
+    .resolves(true);
 
-  sandbox
-    .stub(releasePR.gh, 'findMergedReleasePR')
-    .returns(Promise.resolve(undefined));
-
-  sandbox.stub(releasePR, 'latestTag').resolves(LATEST_TAG);
-
-  sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(COMMITS);
-
-  sandbox.stub(releasePR.gh, 'addLabels');
+  if (fixtures.length !== 0) {
+    for (const fixture of fixtures) {
+      mock
+        .expects('getFileContentsOnBranch')
+        .withExactArgs(fixture, 'master')
+        .once()
+        .resolves(
+          buildGitHubFileContent(
+            './test/releasers/fixtures/node',
+            basename(fixture)
+          )
+        );
+    }
+  }
+  if (notFound.length !== 0) {
+    for (const file of notFound) {
+      if (fixtures.includes(file)) {
+        continue;
+      }
+      mock
+        .expects('getFileContentsOnBranch')
+        .withExactArgs(file, 'master')
+        .once()
+        .rejects(Object.assign(Error('not found'), {status: 404}));
+    }
+  }
+  return mock;
 }
 
 describe('Node', () => {
@@ -85,18 +146,25 @@ describe('Node', () => {
         async () => {
           const expectedVersion = element.version;
           const pkgName = 'node-test-repo';
+          const github = new GitHub({
+            owner: 'googleapis',
+            repo: 'node-test-repo',
+          });
+          const mock = mockGithub({
+            github,
+            fixtures: ['package.json'],
+            notFound: [],
+          });
           const releasePR = new Node({
-            github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
+            github,
             bumpMinorPreMajor: element.bumpMinorPreMajor,
           });
-          mockRequest(releasePR);
-          // for Node.getPackageName
-          stubFilesToUpdate(releasePR.gh, ['package.json']);
 
           // no latestTag to pass to getOpenPROptions (never found a release)
           // releaser should set defaultInitialVersion
           const openPROptions = await releasePR.getOpenPROptions(COMMITS);
 
+          mock.verify();
           expect(openPROptions).to.not.be.undefined;
           expect(openPROptions).to.have.property('sha').equal(COMMITS[0].sha);
           expect(openPROptions)
@@ -138,6 +206,10 @@ describe('Node', () => {
                 changelogEntry: perUpdateChangelog,
                 version: expectedVersion,
                 packageName: pkgName,
+                contents: buildGitHubFileContent(
+                  './test/releasers/fixtures/node',
+                  'package.json'
+                ),
               }),
             ]);
         }
@@ -147,12 +219,13 @@ describe('Node', () => {
     it('returns release PR changes with semver patch bump', async () => {
       const expectedVersion = '0.123.5';
       const pkgName = 'node-test-repo';
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({
+        github,
+        fixtures: ['package.json'],
+        notFound: [],
       });
-      mockRequest(releasePR);
-      // for Node.getPackageName
-      stubFilesToUpdate(releasePR.gh, ['package.json']);
+      const releasePR = new Node({github});
 
       // found last release (LATEST_TAG) so releaser should semver bump.
       const openPROptions = await releasePR.getOpenPROptions(
@@ -160,6 +233,7 @@ describe('Node', () => {
         LATEST_TAG
       );
 
+      mock.verify();
       expect(openPROptions).to.not.be.undefined;
       expect(openPROptions).to.have.property('sha').equal(COMMITS[0].sha);
       expect(openPROptions).to.have.property('version').equal(expectedVersion);
@@ -198,118 +272,121 @@ describe('Node', () => {
             changelogEntry: perUpdateChangelog,
             version: expectedVersion,
             packageName: pkgName,
+            contents: buildGitHubFileContent(
+              './test/releasers/fixtures/node',
+              'package.json'
+            ),
           }),
         ]);
     });
     it('returns undefined for no CC changes', async () => {
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
-      });
-      mockRequest(releasePR);
-      // for Node.getPackageName
-      stubFilesToUpdate(releasePR.gh, ['package.json']);
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({github, fixtures: [], notFound: []});
+      const releasePR = new Node({github});
 
       const openPROptions = await releasePR.getOpenPROptions(
         [buildMockCommit('chore: update common templates')],
         LATEST_TAG
       );
 
+      mock.verify();
       expect(openPROptions).to.be.undefined;
     });
   });
   describe('run', () => {
     it('creates a release PR without package-lock.json', async function () {
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({
+        github,
+        fixtures: ['package.json'],
+        notFound: ['package-lock.json', 'samples/package.json', 'CHANGELOG.md'],
       });
-
-      mockRequest(releasePR);
-      stubFilesToUpdate(releasePR.gh, ['package.json']);
+      const releasePR = new Node({github});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const pr = await releasePR.run();
+      mock.verify();
       assert.strictEqual(pr, 22);
     });
 
     it('creates a release PR with package-lock.json', async function () {
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({
+        github,
+        fixtures: ['package.json', 'package-lock.json'],
+        notFound: ['samples/package.json', 'CHANGELOG.md'],
       });
-
-      mockRequest(releasePR);
-      stubFilesToUpdate(releasePR.gh, ['package.json', 'package-lock.json']);
+      const releasePR = new Node({github});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       await releasePR.run();
+      mock.verify();
     });
 
     it('creates release PR relative to a path', async function () {
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
-        path: 'packages/foo',
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({
+        github,
+        fixtures: ['packages/foo/package.json'],
+        notFound: [
+          'packages/foo/package-lock.json',
+          'packages/foo/samples/package.json',
+          'packages/foo/CHANGELOG.md',
+        ],
       });
+      const releasePR = new Node({github, path: 'packages/foo'});
 
-      mockRequest(releasePR);
-      stubFilesToUpdate(releasePR.gh, [
-        'packages/foo/package.json',
-        'package-lock.json',
-      ]);
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       await releasePR.run();
+      mock.verify();
     });
 
     it('does not support snapshot releases', async () => {
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
-        snapshot: true,
-      });
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({github, fixtures: [], notFound: []});
+      const releasePR = new Node({github, snapshot: true});
       const pr = await releasePR.run();
+      mock.verify();
       assert.strictEqual(pr, undefined);
     });
 
     it('uses detected package name in branch', async function () {
-      const releasePR = new Node({
-        github: new GitHub({owner: 'googleapis', repo: 'node-test-repo'}),
-        monorepoTags: true,
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({
+        github,
+        fixtures: ['package.json'],
+        notFound: ['package-lock.json', 'samples/package.json', 'CHANGELOG.md'],
+        branchComponent: 'node-test-repo',
       });
-      mockRequest(releasePR);
-
-      stubFilesToUpdate(releasePR.gh, ['package.json']);
+      const releasePR = new Node({github, monorepoTags: true});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const pr = await releasePR.run();
+      mock.verify();
       assert.strictEqual(pr, 22);
     });
   });
 
   describe('getPackageName', () => {
-    const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
-    sandbox.stub(github, 'getDefaultBranch').resolves('main');
-    const stubPkgJson = (node: Node, pkgName: string) => {
-      const content = JSON.stringify({name: pkgName});
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sandbox.stub(node, 'getPkgJsonContents' as any).resolves({
-        sha: 'abc123',
-        content: Buffer.from(content, 'utf8').toString('base64'),
-        parsedContent: content,
-      });
-    };
-
-    it('finds package name in package.json', async () => {
-      const node = new Node({github});
-      const refSafePkgName = 'pkg-name';
-      const pkgName = `@google-cloud/${refSafePkgName}`;
-      stubPkgJson(node, pkgName);
-      const packageName = await node.getPackageName();
-      expect(packageName.name).to.equal(pkgName);
-      expect(packageName.getComponent()).to.equal(refSafePkgName);
-    });
-
-    it('pkgjson name overwrites input packageName', async () => {
-      const node = new Node({github, packageName: '@over/write-me'});
-      const refSafePkgName = 'pkg-name';
-      const pkgName = `@google-cloud/${refSafePkgName}`;
-      stubPkgJson(node, pkgName);
-      const packageName = await node.getPackageName();
-      expect(packageName.name).to.equal(pkgName);
-      expect(packageName.getComponent()).to.equal(refSafePkgName);
-    });
+    for (const packageName of ['@over/write-me', undefined]) {
+      it(
+        'finds package name in package.json using ' +
+          `packageName input option: ${packageName}`,
+        async () => {
+          const github = new GitHub({
+            owner: 'googleapis',
+            repo: 'node-test-repo',
+          });
+          const mock = sandbox.mock(github);
+          mock.expects('getDefaultBranch').once().resolves('main');
+          mock
+            .expects('getFileContentsOnBranch')
+            .withExactArgs('package.json', 'main')
+            .once()
+            .resolves(buildGitHubFileRaw('{"name":"@google-cloud/pkg-name"}'));
+          const node = new Node({github, packageName});
+          const expectedPackageName = await node.getPackageName();
+          expect(expectedPackageName.name).to.equal('@google-cloud/pkg-name');
+          expect(expectedPackageName.getComponent()).to.equal('pkg-name');
+        }
+      );
+    }
   });
 });
