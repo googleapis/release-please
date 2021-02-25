@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from './github';
+import {PageInfo, GitHub} from './github';
 
 const CONVENTIONAL_COMMIT_REGEX = /^[\w]+(\(\w+\))?!?: /;
 
@@ -70,11 +70,6 @@ interface FileEdge {
 
 interface LabelEdge {
   node: {name: string};
-}
-
-interface PageInfo {
-  endCursor: string;
-  hasNextPage: boolean;
 }
 
 export async function graphqlToCommits(
