@@ -85,11 +85,16 @@ export class Manifest {
     return BranchName.ofTargetBranch(await this.gh.getDefaultBranch());
   }
 
+  protected async getFile(fileName: string): Promise<GitHubFileContents>;
+  protected async getFile(
+    fileName: string,
+    sha: string
+  ): Promise<GitHubFileContents | undefined>;
   protected async getFile(
     fileName: string,
     sha?: string
-  ): Promise<GitHubFileContents> {
-    let data;
+  ): Promise<GitHubFileContents | undefined> {
+    let data: GitHubFileContents | undefined;
     try {
       if (sha) {
         data = await this.gh.getFileContentsWithSimpleAPI(fileName, sha, false);
@@ -101,22 +106,94 @@ export class Manifest {
         `Failed to get ${fileName} at ${sha ?? 'HEAD'}: ${e.status}`,
         CheckpointType.Failure
       );
-      throw e;
+      // If a sha is provided this is a request for the manifest file at the
+      // last merged Release PR. The only reason it would not exist is if a user
+      // checkedout that branch and deleted the manifest file right before
+      // merging. There is no recovery from that so we'll fall back to using
+      // the manifest at the tip of the defaultBranch.
+      if (sha === undefined) {
+        // !sha means this is a request against the tip of the defaultBranch and
+        // we require that the manifest and config exist there. If they don't,
+        // they can be added and this exception will not be thrown.
+        throw e;
+      }
     }
     return data;
   }
 
-  protected async getManifest(sha?: string): Promise<GitHubFileContents> {
+  protected async getManifest(): Promise<GitHubFileContents>;
+  protected async getManifest(
+    sha: string
+  ): Promise<GitHubFileContents | undefined>;
+  protected async getManifest(
+    sha?: string
+  ): Promise<GitHubFileContents | undefined> {
+    // cache headManifest since it's loaded in validate() as well as later on
+    // and we never write to it.
+    let manifest: GitHubFileContents | undefined;
     if (sha === undefined) {
       if (!this.headManifest) {
-        this.headManifest = await this.getFile(this.manifestFileName, sha);
+        this.headManifest = await this.getFile(this.manifestFileName);
       }
-      return this.headManifest;
+      manifest = this.headManifest;
+    } else {
+      manifest = await this.getFile(this.manifestFileName, sha);
     }
-    return await this.getFile(this.manifestFileName, sha);
+    return manifest;
+  }
+
+  protected async getManifestVersions(
+    sha?: string
+  ): Promise<[VersionsMap, string]>;
+  protected async getManifestVersions(
+    sha: false,
+    newPaths: string[]
+  ): Promise<VersionsMap>;
+  protected async getManifestVersions(
+    sha?: string | false,
+    newPaths?: string[]
+  ): Promise<[VersionsMap, string] | VersionsMap> {
+    let manifest: GitHubFileContents | undefined;
+    const defaultBranch = await this.gh.getDefaultBranch();
+    const bootstrapMsg =
+      `Bootstrapping from ${this.manifestFileName} ` +
+      `at tip of ${defaultBranch}`;
+    if (sha === undefined) {
+      this.checkpoint(bootstrapMsg, CheckpointType.Failure);
+    }
+    if (sha === false) {
+      this.checkpoint(
+        `${bootstrapMsg} for missing paths [${newPaths!.join(', ')}]`,
+        CheckpointType.Failure
+      );
+    }
+    let atSha = 'tip';
+    if (!sha) {
+      manifest = await this.getManifest();
+    } else {
+      // try to retrieve manifest from last release sha.
+      manifest = await this.getManifest(sha);
+      atSha = sha;
+      if (manifest === undefined) {
+        // user deleted manifest from last release PR before merging.
+        this.checkpoint(bootstrapMsg, CheckpointType.Failure);
+        manifest = await this.getManifest();
+        atSha = 'tip';
+      }
+    }
+    const parsed: VersionsMap = new Map(
+      Object.entries(JSON.parse(manifest.parsedContent))
+    );
+    if (sha === false) {
+      return parsed;
+    } else {
+      return [parsed, atSha];
+    }
   }
 
   protected async getConfig(): Promise<GitHubFileContents> {
+    // cache config since it's loaded in validate() as well as later on and we
+    // never write to it.
     if (!this.configFile) {
       this.configFile = await this.getFile(this.configFileName);
     }
@@ -147,12 +224,10 @@ export class Manifest {
 
   protected async getPackagesToRelease(
     commits: Commit[],
-    lastReleaseSha?: string
+    sha?: string
   ): Promise<PackageReleaseData[]> {
     const packages = await this.readConfig();
-    const manifestVersions = JSON.parse(
-      (await this.getManifest(lastReleaseSha)).parsedContent
-    );
+    const [manifestVersions, atSha] = await this.getManifestVersions(sha);
     const cs = new CommitSplit({
       includeEmpty: true,
       packagePaths: packages.map(p => p.path),
@@ -160,17 +235,29 @@ export class Manifest {
     const commitsPerPath = cs.split(commits);
     const packagesToRelease: Record<string, PackageReleaseData> = {};
     const missingVersionPaths = [];
+    const defaultBranch = await this.gh.getDefaultBranch();
     for (const pkg of packages) {
       const commits = commitsPerPath[pkg.path];
       if (!commits || commits.length === 0) {
         continue;
       }
-      const lastVersion = manifestVersions[pkg.path];
+      const lastVersion = manifestVersions.get(pkg.path);
       if (!lastVersion) {
+        this.checkpoint(
+          `Failed to find version for ${pkg.path} in ` +
+            `${this.manifestFileName} at ${atSha} of ${defaultBranch}`,
+          CheckpointType.Failure
+        );
         missingVersionPaths.push(pkg.path);
+      } else {
+        this.checkpoint(
+          `Found version ${lastVersion} for ${pkg.path} in ` +
+            `${this.manifestFileName} at ${atSha} of ${defaultBranch}`,
+          CheckpointType.Success
+        );
       }
       const releaserOptions = {
-        monorepoTags: packages.length > 1,
+        monorepoTags: true,
         ...pkg,
       };
       packagesToRelease[pkg.path] = {
@@ -181,28 +268,38 @@ export class Manifest {
       };
     }
     if (missingVersionPaths.length > 0) {
-      const headManifestVersions = JSON.parse(
-        (await this.getManifest()).parsedContent
+      const headManifestVersions = await this.getManifestVersions(
+        false,
+        missingVersionPaths
       );
       for (const missingVersionPath of missingVersionPaths) {
-        packagesToRelease[missingVersionPath].lastVersion =
-          headManifestVersions[missingVersionPath];
+        const headVersion = headManifestVersions.get(missingVersionPath);
+        if (headVersion === undefined) {
+          this.checkpoint(
+            `Failed to find version for ${missingVersionPath} in ` +
+              `${this.manifestFileName} at tip of ${defaultBranch}`,
+            CheckpointType.Failure
+          );
+        }
+        packagesToRelease[missingVersionPath].lastVersion = headVersion;
       }
     }
     return Object.values(packagesToRelease);
   }
 
-  private async validateJsonFile<T extends object>(
+  private async validateJsonFile(
     getFileMethod: 'getConfig' | 'getManifest',
     fileName: string
-  ): Promise<{valid: true; obj: T} | {valid: false; obj: undefined}> {
-    let response: {valid: true; obj: T} | {valid: false; obj: undefined} = {
+  ): Promise<{valid: true; obj: object} | {valid: false; obj: undefined}> {
+    let response:
+      | {valid: true; obj: object}
+      | {valid: false; obj: undefined} = {
       valid: false,
       obj: undefined,
     };
     const file = await this[getFileMethod]();
     try {
-      const obj: T = JSON.parse(file.parsedContent);
+      const obj = JSON.parse(file.parsedContent);
       if (obj.constructor.name === 'Object') {
         response = {valid: true, obj: obj};
       }
@@ -213,13 +310,14 @@ export class Manifest {
   }
 
   protected async validate(): Promise<boolean> {
-    const configValidation = await this.validateJsonFile<ManifestConfig>(
+    const configValidation = await this.validateJsonFile(
       'getConfig',
       this.configFileName
     );
     let validConfig = false;
     if (configValidation.valid) {
-      validConfig = !!Object.keys(configValidation.obj.packages ?? {}).length;
+      const obj = configValidation.obj as ManifestConfig;
+      validConfig = !!Object.keys(obj.packages ?? {}).length;
       if (!validConfig) {
         this.checkpoint(
           `No packages found: ${this.configFileName}`,
@@ -228,15 +326,18 @@ export class Manifest {
       }
     }
 
-    const manifestValidation = await this.validateJsonFile<
-      Record<string, string>
-    >('getManifest', this.manifestFileName);
+    const manifestValidation = await this.validateJsonFile(
+      'getManifest',
+      this.manifestFileName
+    );
     let validManifest = false;
     if (manifestValidation.valid) {
       validManifest = true;
-      const versions = manifestValidation.obj;
-      for (const version in versions) {
-        if (typeof versions[version] !== 'string') {
+      const versions: VersionsMap = new Map(
+        Object.entries(manifestValidation.obj)
+      );
+      for (const [_, version] of versions) {
+        if (typeof version !== 'string') {
           validManifest = false;
           this.checkpoint(
             `${this.manifestFileName} must only contain string values`,
@@ -252,7 +353,7 @@ export class Manifest {
   private async runReleasers(
     packages: PackageReleaseData[],
     sha?: string
-  ): Promise<[Map<string, string>, PackageWithPRData[]]> {
+  ): Promise<[VersionsMap, PackageWithPRData[]]> {
     const manifestUpdates: VersionsMap = new Map();
     const openPRPackages: PackageWithPRData[] = [];
     for (const pkg of packages) {
@@ -264,6 +365,14 @@ export class Manifest {
         `Processing package: ${releaserClass.name}(${pkgName})`,
         CheckpointType.Success
       );
+      if (pkg.lastVersion === undefined) {
+        this.checkpoint(
+          `Falling back to default version for ${
+            releaserClass.name
+          }(${pkgName}): ${releasePR.defaultInitialVersion()}`,
+          CheckpointType.Failure
+        );
+      }
       const openPROptions = await releasePR.getOpenPROptions(
         pkg.commits,
         pkg.lastVersion
@@ -283,7 +392,7 @@ export class Manifest {
   }
 
   private async buildManifestPR(
-    manifestUpdates: Map<string, string>,
+    manifestUpdates: VersionsMap,
     openPRPackages: PackageWithPRData[]
   ): Promise<[string, Update[]]> {
     let body = ':robot: I have created a release \\*beep\\* \\*boop\\*';

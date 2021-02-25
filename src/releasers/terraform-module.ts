@@ -116,7 +116,7 @@ export class TerraformModule extends ReleasePR {
     });
   }
 
-  protected defaultInitialVersion(): string {
+  defaultInitialVersion(): string {
     return '0.1.0';
   }
 }

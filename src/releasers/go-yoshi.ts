@@ -151,7 +151,7 @@ export class GoYoshi extends ReleasePR {
     return repo === 'google-cloud-go' || repo === 'google-api-go-client';
   }
 
-  protected defaultInitialVersion(): string {
+  defaultInitialVersion(): string {
     return '0.1.0';
   }
 

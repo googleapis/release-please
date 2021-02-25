@@ -186,7 +186,7 @@ export class ReleasePR {
     }
   }
 
-  protected defaultInitialVersion(): string {
+  defaultInitialVersion(): string {
     return this.bumpMinorPreMajor ? '0.1.0' : '1.0.0';
   }
 

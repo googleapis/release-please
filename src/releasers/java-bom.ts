@@ -206,7 +206,7 @@ export class JavaBom extends ReleasePR {
     return true;
   }
 
-  protected defaultInitialVersion(): string {
+  defaultInitialVersion(): string {
     return '0.1.0';
   }
 
