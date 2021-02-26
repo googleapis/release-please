@@ -31,6 +31,7 @@ export class PackageJson implements Update {
     this.changelogEntry = options.changelogEntry;
     this.version = options.version;
     this.packageName = options.packageName;
+    this.contents = options.contents;
   }
 
   updateContent(content: string): string {
