@@ -394,10 +394,10 @@ export class ReleasePR {
       }
     }
   }
+
   // Logic for determining what to include in a GitHub release.
   async buildRelease(): Promise<CandidateRelease | undefined> {
     await this.validateConfiguration();
-    const packageName = await this.getPackageName();
     const mergedPR = await this.findMergedRelease();
     if (!mergedPR) {
       checkpoint('No merged release PR found', CheckpointType.Failure);
@@ -409,7 +409,14 @@ export class ReleasePR {
       checkpoint('Unable to detect release version', CheckpointType.Failure);
       return undefined;
     }
+    return this.buildReleaseForVersion(version, mergedPR);
+  }
 
+  async buildReleaseForVersion(
+    version: string,
+    mergedPR: MergedGitHubPR
+  ): Promise<CandidateRelease> {
+    const packageName = await this.getPackageName();
     const tag = this.formatReleaseTagName(version, packageName);
     const changelogContents = (
       await this.gh.getFileContents(this.addPath(this.changelogPath))

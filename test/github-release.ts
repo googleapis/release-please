@@ -41,60 +41,86 @@ describe('GitHubRelease', () => {
   afterEach(() => {
     sandbox.restore();
   });
-  const stubDefaultBranch = (github: GitHub) => {
-    sandbox.stub(github, 'getDefaultBranch').resolves('main');
-  };
+  function mockGithub(options: {
+    github: GitHub;
+    prHead: string;
+    prTitle: string;
+    changeLog?: string;
+    version?: string;
+    mockLabelsAndComment?: boolean;
+  }) {
+    const {
+      github,
+      prHead,
+      prTitle,
+      changeLog,
+      version,
+      mockLabelsAndComment,
+    } = options;
+    const mock = sandbox.mock(github);
+    mock.expects('getRepositoryDefaultBranch').once().resolves('main');
+    mock
+      .expects('findMergedPullRequests')
+      .once()
+      .resolves([
+        {
+          sha: 'abc123',
+          number: 1,
+          baseRefName: 'main',
+          headRefName: prHead,
+          labels: ['autorelease: pending'],
+          title: prTitle,
+          body: 'Some release notes',
+        },
+      ]);
+    mock
+      .expects('getFileContentsOnBranch')
+      .withExactArgs(changeLog ?? 'CHANGELOG.md', 'main')
+      .once()
+      .resolves(
+        buildFileContent(`#Changelog\n\n## v${version ?? '1.0.3'}\n\n* entry`)
+      );
+    const doMockLabelsAndComment = mockLabelsAndComment ?? true;
+    if (doMockLabelsAndComment) {
+      mock
+        .expects('commentOnIssue')
+        .withExactArgs(
+          ':robot: Release is at https://release.url :sunflower:',
+          1
+        )
+        .once()
+        .resolves();
+      mock
+        .expects('addLabels')
+        .withExactArgs(['autorelease: tagged'], 1)
+        .once()
+        .resolves();
+      mock
+        .expects('removeLabels')
+        .withExactArgs(['autorelease: pending'], 1)
+        .once()
+        .resolves();
+    } else {
+      mock.expects('commentOnIssue').never();
+      mock.expects('addLabels').never();
+      mock.expects('removeLabels').never();
+    }
+    return mock;
+  }
 
-  const stubPRs = (github: GitHub, head: string, title: string) => {
-    sandbox.stub(github, 'findMergedPullRequests').resolves([
-      {
-        sha: 'abc123',
-        number: 1,
-        baseRefName: 'main',
-        headRefName: head,
-        labels: ['autorelease: pending'],
-        title: title,
-        body: 'Some release notes',
-      },
-    ]);
-  };
-
-  const stubChangeLog = (
-    github: GitHub,
-    file = 'CHANGELOG.md',
-    version = '1.0.3'
-  ): sinon.SinonStub => {
-    const stub = sandbox.stub(github, 'getFileContentsOnBranch');
-    stub
-      .withArgs(file, 'main')
-      .resolves(buildFileContent(`#Changelog\n\n## v${version}\n\n* entry`));
-    return stub;
-  };
-
-  const stubCommentsAndLabels = (github: GitHub) => {
-    sandbox
-      .stub(github, 'commentOnIssue')
-      .withArgs(':robot: Release is at https://release.url :sunflower:', 1)
-      .resolves();
-
-    sandbox
-      .stub(github, 'addLabels')
-      .withArgs(['autorelease: tagged'], 1)
-      .resolves();
-
-    sandbox.stub(github, 'removeLabels').withArgs(['autorelease: pending'], 1);
-  };
-
-  describe('createRelease', () => {
+  describe('run', () => {
     it('creates and labels release on GitHub', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
-      stubChangeLog(github);
-      stubCommentsAndLabels(github);
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+      const mock = mockGithub({
+        github,
+        prHead: 'release-v1.0.3',
+        prTitle: 'Release v1.0.3',
+      });
+      mock
+        .expects('createRelease')
+        .once()
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .once()
         .resolves({
           name: 'foo v1.0.3',
           tag_name: 'v1.0.3',
@@ -107,6 +133,7 @@ describe('GitHubRelease', () => {
       const releasePR = new ReleasePR({github, packageName: 'foo'});
       const releaser = new GitHubRelease({github, releasePR});
       const created = await releaser.run();
+      mock.verify();
 
       strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
@@ -118,13 +145,16 @@ describe('GitHubRelease', () => {
 
     it('creates and labels release on GitHub with invalid semver', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-v1A.B.C', 'Release v1A.B.C');
-      stubChangeLog(github, 'CHANGELOG.md', '1A.B.C');
-      stubCommentsAndLabels(github);
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('foo', 'v1A.B.C', 'abc123', '\n* entry', false)
+      const mock = mockGithub({
+        github,
+        prHead: 'release-v1A.B.C',
+        prTitle: 'Release v1A.B.C',
+        version: '1A.B.C',
+      });
+      mock
+        .expects('createRelease')
+        .withExactArgs('foo', 'v1A.B.C', 'abc123', '\n* entry', false)
+        .once()
         .resolves({
           name: 'foo v1A.B.C',
           tag_name: 'v1A.B.C',
@@ -143,13 +173,15 @@ describe('GitHubRelease', () => {
 
     it('creates a draft release', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
-      stubChangeLog(github);
-      stubCommentsAndLabels(github);
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', true)
+      const mock = mockGithub({
+        github,
+        prHead: 'release-v1.0.3',
+        prTitle: 'Release v1.0.3',
+      });
+      mock
+        .expects('createRelease')
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', true)
+        .once()
         .resolves({
           name: 'foo v1.0.3',
           tag_name: 'v1.0.3',
@@ -168,13 +200,22 @@ describe('GitHubRelease', () => {
 
     it('creates releases for submodule in monorepo', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-bigquery-v1.0.3', 'Release bigquery v1.0.3');
-      stubChangeLog(github, 'bigquery/CHANGES.md');
-      stubCommentsAndLabels(github);
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('bigquery', 'bigquery/v1.0.3', 'abc123', '\n* entry', false)
+      const mock = mockGithub({
+        github,
+        prHead: 'release-bigquery-v1.0.3',
+        prTitle: 'Release bigquery v1.0.3',
+        changeLog: 'bigquery/CHANGES.md',
+      });
+      mock
+        .expects('createRelease')
+        .withExactArgs(
+          'bigquery',
+          'bigquery/v1.0.3',
+          'abc123',
+          '\n* entry',
+          false
+        )
+        .once()
         .resolves({
           name: 'bigquery bigquery/v1.0.3',
           tag_name: 'bigquery/v1.0.3',
@@ -197,6 +238,7 @@ describe('GitHubRelease', () => {
       });
       const created = await release.run();
 
+      mock.verify();
       expect(created).to.not.be.undefined;
       strictEqual(created!.name, 'bigquery bigquery/v1.0.3');
       strictEqual(created!.tag_name, 'bigquery/v1.0.3');
@@ -207,13 +249,16 @@ describe('GitHubRelease', () => {
 
     it('supports submodules in nested folders', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-foo-v1.0.3', 'Release foo v1.0.3');
-      stubChangeLog(github, 'src/apis/foo/CHANGES.md');
-      stubCommentsAndLabels(github);
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('foo', 'foo/v1.0.3', 'abc123', '\n* entry', false)
+      const mock = mockGithub({
+        github,
+        prHead: 'release-foo-v1.0.3',
+        prTitle: 'Release foo v1.0.3',
+        changeLog: 'src/apis/foo/CHANGES.md',
+      });
+      mock
+        .expects('createRelease')
+        .withExactArgs('foo', 'foo/v1.0.3', 'abc123', '\n* entry', false)
+        .once()
         .resolves({
           name: 'foo foo/v1.0.3',
           tag_name: 'foo/v1.0.3',
@@ -236,34 +281,34 @@ describe('GitHubRelease', () => {
       });
       const created = await release.run();
 
+      mock.verify();
       strictEqual(created!.name, 'foo foo/v1.0.3');
       strictEqual(created!.tag_name, 'foo/v1.0.3');
     });
 
     it('attempts to guess package name for submodule release', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-foo-v1.0.3', 'Release foo v1.0.3');
-      stubCommentsAndLabels(github);
-      const getFileContentsStub = stubChangeLog(
+      const mock = mockGithub({
         github,
-        'src/apis/foo/CHANGELOG.md'
-      );
-      getFileContentsStub
-        .withArgs('src/apis/foo/package.json', 'main')
+        prHead: 'release-foo-v1.0.3',
+        prTitle: 'Release foo v1.0.3',
+        changeLog: 'src/apis/foo/CHANGELOG.md',
+      });
+      mock
+        .expects('getFileContentsOnBranch')
+        .withExactArgs('src/apis/foo/package.json', 'main')
+        .once()
         .resolves(buildFileContent('{"name": "@google-cloud/foo"}'));
-      getFileContentsStub.rejects(
-        Object.assign(Error('not found'), {status: 404})
-      );
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs(
+      mock
+        .expects('createRelease')
+        .withExactArgs(
           '@google-cloud/foo',
           'foo-v1.0.3',
           'abc123',
           '\n* entry',
           false
         )
+        .once()
         .resolves({
           name: '@google-cloud/foo foo-v1.0.3',
           tag_name: 'foo-v1.0.3',
@@ -281,6 +326,7 @@ describe('GitHubRelease', () => {
       const release = new GitHubRelease({github, releasePR});
       const created = await release.run();
 
+      mock.verify();
       expect(created).to.not.be.undefined;
       strictEqual(created!.name, '@google-cloud/foo foo-v1.0.3');
       strictEqual(created!.tag_name, 'foo-v1.0.3');
@@ -288,19 +334,26 @@ describe('GitHubRelease', () => {
 
     it('attempts to guess package name for release', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
-      stubCommentsAndLabels(github);
-      const getFileContentsStub = stubChangeLog(github);
-      getFileContentsStub
-        .withArgs('package.json', 'main')
+      const mock = mockGithub({
+        github,
+        prHead: 'release-v1.0.3',
+        prTitle: 'Release v1.0.3',
+      });
+      mock
+        .expects('getFileContentsOnBranch')
+        .withExactArgs('package.json', 'main')
+        .once()
         .resolves(buildFileContent('{"name": "@google-cloud/foo"}'));
-      getFileContentsStub.rejects(
-        Object.assign(Error('not found'), {status: 404})
-      );
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('@google-cloud/foo', 'v1.0.3', 'abc123', '\n* entry', false)
+      mock
+        .expects('createRelease')
+        .withExactArgs(
+          '@google-cloud/foo',
+          'v1.0.3',
+          'abc123',
+          '\n* entry',
+          false
+        )
+        .once()
         .resolves({
           name: '@google-cloud/foo v1.0.3',
           tag_name: 'v1.0.3',
@@ -314,19 +367,23 @@ describe('GitHubRelease', () => {
       const release = new GitHubRelease({github, releasePR});
       const created = await release.run();
 
+      mock.verify();
       strictEqual(created!.name, '@google-cloud/foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
     });
 
     it('empty packageName ok (non-monorepo)', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
-      stubChangeLog(github);
-      stubCommentsAndLabels(github);
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
+      const mock = mockGithub({
+        github,
+        prHead: 'release-v1.0.3',
+        prTitle: 'Release v1.0.3',
+      });
+      mock
+        .expects('createRelease')
+        .once()
+        .withExactArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
+        .once()
         .resolves({
           name: 'v1.0.3',
           tag_name: 'v1.0.3',
@@ -340,16 +397,13 @@ describe('GitHubRelease', () => {
       const releaser = new GitHubRelease({github, releasePR});
       const created = await releaser.run();
 
+      mock.verify();
       strictEqual(created!.name, 'v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
     });
 
     it('empty packageName not ok (monorepo)', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
-      stubChangeLog(github);
-      stubCommentsAndLabels(github);
       const releasePR = new ReleasePR({github, monorepoTags: true});
       const release = new GitHubRelease({github, releasePR});
       let failed = true;
@@ -366,17 +420,15 @@ describe('GitHubRelease', () => {
 
     it('parses version from PR title (detectReleaseVersionFromTitle impl: base)', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const releasePR = new ReleasePR({github, packageName: 'foo'});
-      const release = new GitHubRelease({github, releasePR});
-
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-please/branches/main', 'chore: release 1.0.3');
-      stubChangeLog(github);
-      stubCommentsAndLabels(github);
-
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+      const mock = mockGithub({
+        github,
+        prHead: 'release-please/branches/main',
+        prTitle: 'chore: release 1.0.3',
+      });
+      mock
+        .expects('createRelease')
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .once()
         .resolves({
           name: 'foo v1.0.3',
           tag_name: 'v1.0.3',
@@ -385,8 +437,11 @@ describe('GitHubRelease', () => {
           upload_url: 'https://upload.url/',
           body: '\n* entry',
         });
-
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
       const created = await release.run();
+
+      mock.verify();
       expect(created).to.not.be.undefined;
       strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
@@ -398,21 +453,15 @@ describe('GitHubRelease', () => {
 
     it('parses version from PR title (detectReleaseVersionFromTitle impl: java-yoshi)', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const releasePR = new JavaYoshi({github, packageName: 'foo'});
-      const release = new GitHubRelease({github, releasePR});
-
-      stubDefaultBranch(github);
-      stubPRs(
+      const mock = mockGithub({
         github,
-        'release-please/branches/main',
-        'chore(main): release 1.0.3'
-      );
-      stubChangeLog(github);
-      stubCommentsAndLabels(github);
-
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        prHead: 'release-please/branches/main',
+        prTitle: 'chore(main): release 1.0.3',
+      });
+      mock
+        .expects('createRelease')
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .once()
         .resolves({
           name: 'foo v1.0.3',
           tag_name: 'v1.0.3',
@@ -421,8 +470,11 @@ describe('GitHubRelease', () => {
           upload_url: 'https://upload.url/',
           body: '\n* entry',
         });
-
+      const releasePR = new JavaYoshi({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
       const created = await release.run();
+
+      mock.verify();
       expect(created).to.not.be.undefined;
       strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
@@ -434,41 +486,50 @@ describe('GitHubRelease', () => {
 
     it('does nothing when no merged release PRs found', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const mock = sandbox.mock(github);
+      mock.expects('getRepositoryDefaultBranch').once().resolves('main');
+      mock.expects('findMergedPullRequests').once().resolves([]);
       const releasePR = new ReleasePR({github, packageName: 'foo'});
       const release = new GitHubRelease({github, releasePR});
-
-      stubDefaultBranch(github);
-      sandbox.stub(github, 'findMergedPullRequests').resolves([]);
-
       const created = await release.run();
+
+      mock.verify();
       expect(created).to.be.undefined;
     });
 
     it('does nothing when we find a release PR, but cannot determine the version', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const mock = sandbox.mock(github);
+      mock.expects('getRepositoryDefaultBranch').once().resolves('main');
+      mock
+        .expects('findMergedPullRequests')
+        .once()
+        .resolves([
+          {
+            sha: 'abc123',
+            number: 1,
+            baseRefName: 'main',
+            headRefName: 'release-please/branches/main',
+            labels: ['autorelease: pending'],
+            title: 'Not a match!',
+            body: 'Some release notes',
+          },
+        ]);
       const releasePR = new ReleasePR({github, packageName: 'foo'});
       const release = new GitHubRelease({github, releasePR});
-
-      stubDefaultBranch(github);
-      stubPRs(
-        github,
-        'release-please/branches/main',
-        'Some not matching release name'
-      );
-
       const created = await release.run();
+
+      mock.verify();
       expect(created).to.be.undefined;
     });
 
     it('ignores tagged pull requests', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const releasePR = new ReleasePR({github, packageName: 'foo'});
-      const release = new GitHubRelease({github, releasePR});
-
-      stubDefaultBranch(github);
-      sandbox
-        .stub(github, 'findMergedPullRequests')
-        .onFirstCall()
+      const mock = sandbox.mock(github);
+      mock.expects('getRepositoryDefaultBranch').once().resolves('main');
+      mock
+        .expects('findMergedPullRequests')
+        .once()
         .resolves([
           {
             sha: 'abc123',
@@ -479,43 +540,96 @@ describe('GitHubRelease', () => {
             title: 'Release foo v1.0.3',
             body: 'Some release notes',
           },
-        ])
-        .onSecondCall()
-        .resolves([]);
-
+        ]);
+      mock.expects('findMergedPullRequests').once().resolves([]);
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
       const created = await release.run();
+
+      mock.verify();
       expect(created).to.be.undefined;
     });
-
-    it('allows blank packageName', async () => {
+  });
+  describe('createRelease', () => {
+    it('uses version for createRelease', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const releasePR = new ReleasePR({github});
-      const release = new GitHubRelease({github, releasePR});
+      const expectedCreateReleaseResponse = {
+        name: 'foo v1.0.3',
+        tag_name: 'v1.0.3',
+        draft: false,
+        html_url: 'https://release.url',
+        upload_url: 'https://upload.url/',
+        body: '\n* entry',
+      };
+      const mock = sandbox.mock(github);
+      mock.expects('getRepositoryDefaultBranch').once().resolves('main');
+      mock
+        .expects('getFileContentsOnBranch')
+        .withExactArgs('CHANGELOG.md', 'main')
+        .once()
+        .resolves(buildFileContent('#Changelog\n\n## v1.0.3\n\n* entry'));
+      mock
+        .expects('createRelease')
+        .once()
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .once()
+        .resolves(expectedCreateReleaseResponse);
 
-      stubDefaultBranch(github);
-      stubPRs(github, 'release-v1.0.3', 'Release v1.0.3');
-      stubChangeLog(github);
-      stubCommentsAndLabels(github);
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const releaser = new GitHubRelease({github, releasePR});
+      const release = await releaser.createRelease('1.0.3', {
+        sha: 'abc123',
+        number: 1,
+        baseRefName: 'main',
+        headRefName: 'release-please/branches/main',
+        labels: [],
+        title: 'chore: release',
+        body: 'the body',
+      });
+      mock.verify();
 
-      sandbox
-        .stub(github, 'createRelease')
-        .withArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
-        .resolves({
-          name: 'v1.0.3',
-          tag_name: 'v1.0.3',
-          draft: false,
-          html_url: 'https://release.url',
-          upload_url: 'https://upload.url/',
-          body: '\n* entry',
-        });
+      expect(release).to.not.be.undefined;
+      expect(release).to.eql(expectedCreateReleaseResponse);
+    });
+    it('finds version for createRelease', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const expectedCreateReleaseResponse = {
+        name: 'foo v1.0.3',
+        tag_name: 'v1.0.3',
+        draft: false,
+        html_url: 'https://release.url',
+        upload_url: 'https://upload.url/',
+        body: '\n* entry',
+      };
+      const mock = mockGithub({
+        github,
+        prHead: 'release-v1.0.3',
+        prTitle: 'Release v1.0.3',
+        mockLabelsAndComment: false,
+      });
+      mock
+        .expects('createRelease')
+        .once()
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .once()
+        .resolves(expectedCreateReleaseResponse);
 
-      const created = await release.run();
-      strictEqual(created!.name, 'v1.0.3');
-      strictEqual(created!.tag_name, 'v1.0.3');
-      strictEqual(created!.major, 1);
-      strictEqual(created!.minor, 0);
-      strictEqual(created!.patch, 3);
-      strictEqual(created!.draft, false);
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const releaser = new GitHubRelease({github, releasePR});
+      const [candidate, release] = await releaser.createRelease();
+      mock.verify();
+
+      expect(candidate).to.not.be.undefined;
+      expect(candidate).to.eql({
+        sha: 'abc123',
+        tag: 'v1.0.3',
+        notes: '\n* entry',
+        name: 'foo',
+        version: '1.0.3',
+        pullNumber: 1,
+      });
+      expect(release).to.not.be.undefined;
+      expect(release).to.eql(expectedCreateReleaseResponse);
     });
   });
 });
