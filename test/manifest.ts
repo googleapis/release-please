@@ -17,7 +17,7 @@ import {describe, it, afterEach} from 'mocha';
 import {Manifest, ManifestConfig} from '../src/manifest';
 import * as sinon from 'sinon';
 import {GitHub, MergedGitHubPRWithFiles} from '../src/github';
-import {stubFilesFromFixtures, buildGitHubFileRaw} from './releasers/utils';
+import {buildGitHubFileRaw, buildGitHubFileContent} from './releasers/utils';
 import {expect} from 'chai';
 import {Commit} from '../src/graphql-to-commits';
 import {CheckpointType} from '../src/util/checkpoint';
@@ -28,17 +28,21 @@ const defaultBranch = 'main';
 const lastReleaseSha = 'abc123';
 const sandbox = sinon.createSandbox();
 
+type InlineFiles = [string, string][];
+
 describe('Manifest', () => {
   afterEach(() => {
     sandbox.restore();
   });
 
-  function stubGithub(options: {
+  function mockGithub(options: {
     github: GitHub;
     commits?: Commit[];
-    manifest?: string;
+    manifest?: string | false;
     lastReleaseSha?: string;
     mergedPRFiles?: string[];
+    fixtureFiles?: string[];
+    inlineFiles?: InlineFiles;
     addLabel?: string | false;
   }) {
     const {
@@ -47,13 +51,25 @@ describe('Manifest', () => {
       manifest,
       lastReleaseSha,
       mergedPRFiles,
+      fixtureFiles,
+      inlineFiles,
       addLabel,
     } = options;
-    if (manifest !== undefined && lastReleaseSha) {
-      sandbox
-        .stub(github, 'getFileContentsWithSimpleAPI')
-        .withArgs('.release-please-manifest.json', lastReleaseSha, false)
+    const mock = sandbox.mock(github);
+    if (manifest) {
+      mock
+        .expects('getFileContentsWithSimpleAPI')
+        .once()
+        .withExactArgs('.release-please-manifest.json', lastReleaseSha, false)
         .resolves(buildGitHubFileRaw(manifest));
+    } else if (manifest === false) {
+      mock
+        .expects('getFileContentsWithSimpleAPI')
+        .once()
+        .withExactArgs('.release-please-manifest.json', lastReleaseSha, false)
+        .rejects(Object.assign(Error('not found'), {status: 404}));
+    } else {
+      mock.expects('getFileContentsWithSimpleAPI').never();
     }
     let mergedPR: MergedGitHubPRWithFiles | undefined;
     if (lastReleaseSha) {
@@ -68,31 +84,78 @@ describe('Manifest', () => {
         labels: [],
       };
     }
-    sandbox.stub(github, 'lastMergedPRByHeadBranch').resolves(mergedPR);
-    sandbox
-      .stub(github, 'findFilesByFilename')
-      // implementation strips leading `path`
-      .resolves(['src/foolib/version.py']);
-    // creating a new PR
-    sandbox.stub(github, 'findOpenReleasePRs').resolves([]);
-    sandbox
-      .stub(github, 'commitsSinceSha')
-      .withArgs(lastReleaseSha)
-      .resolves(commits ?? []);
+    mock
+      .expects('lastMergedPRByHeadBranch')
+      .atMost(1)
+      .withExactArgs('release-please/branches/main')
+      .resolves(mergedPR);
 
-    const addLabelsStub = sandbox.stub(github, 'addLabels');
+    // implementation strips leading `path` from results
+    mock
+      .expects('findFilesByFilename')
+      .atMost(1)
+      .withExactArgs('version.py', 'python')
+      .resolves(['src/foolib/version.py']);
+
+    // creating a new PR
+    mock.expects('findOpenReleasePRs').atMost(1).resolves([]);
+    if (commits) {
+      mock
+        .expects('commitsSinceSha')
+        .once()
+        .withExactArgs(lastReleaseSha)
+        .resolves(commits);
+    } else {
+      mock.expects('commitsSinceSha').never();
+    }
+    if (fixtureFiles || inlineFiles) {
+      const fixtures = fixtureFiles ?? [];
+      const inlines = inlineFiles ?? [];
+      for (const fixture of fixtures) {
+        mock
+          .expects('getFileContentsOnBranch')
+          .withExactArgs(fixture, 'main')
+          .once()
+          .resolves(buildGitHubFileContent(fixturePath, fixture));
+      }
+      for (const [file, contents] of inlines) {
+        mock
+          .expects('getFileContentsOnBranch')
+          .withExactArgs(file, 'main')
+          .once()
+          .resolves(buildGitHubFileRaw(contents));
+      }
+      const expectedNotFound = [
+        'node/pkg1/package-lock.json',
+        'node/pkg1/samples/package.json',
+        'node/pkg1/CHANGELOG.md',
+        'node/pkg1/HISTORY.md',
+        'node/pkg2/package-lock.json',
+        'node/pkg2/samples/package.json',
+        'node/pkg2/CHANGELOG.md',
+        'python/CHANGELOG.md',
+        'python/HISTORY.md',
+      ];
+      for (const notFound of expectedNotFound) {
+        mock
+          .expects('getFileContentsOnBranch')
+          .withExactArgs(notFound, 'main')
+          .atMost(1)
+          .rejects(Object.assign(Error('not found'), {status: 404}));
+      }
+    } else {
+      mock.expects('getFileContentsOnBranch').never();
+    }
+
+    const addLabelsExp = mock.expects('addLabels');
     const labelToAdd = addLabel ?? 'autorelease: pending';
     if (labelToAdd) {
-      addLabelsStub.withArgs([labelToAdd], 22).resolves(true);
+      addLabelsExp.once().withExactArgs([labelToAdd], 22).resolves(true);
+    } else {
+      addLabelsExp.never();
     }
-    addLabelsStub.throws(() => {
-      const argsArr = addLabelsStub.getCalls().map(c => c.args);
-      const unexpected = argsArr.filter(args => args[0][0] !== labelToAdd);
-      return new Error(
-        'addLabelsStub called with unexpected args: ' +
-          JSON.stringify(unexpected[0])
-      );
-    });
+
+    return mock;
   }
 
   describe('pullRequest', () => {
@@ -131,14 +194,12 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      stubGithub({github, commits, manifest, lastReleaseSha});
-      stubFilesFromFixtures({
-        sandbox,
+      const mock = mockGithub({
         github,
-        defaultBranch,
-        fixturePath,
-        flatten: false,
-        files: [
+        commits,
+        manifest,
+        lastReleaseSha,
+        fixtureFiles: [
           'node/pkg1/package.json',
           'python/setup.py',
           'python/setup.cfg',
@@ -153,9 +214,22 @@ describe('Manifest', () => {
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
+
       const pr = await new Manifest({github, checkpoint}).pullRequest();
+
+      mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Python(foolib)', CheckpointType.Success],
       ]);
@@ -212,14 +286,12 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      stubGithub({github, commits, manifest, lastReleaseSha});
-      stubFilesFromFixtures({
-        sandbox,
+      const mock = mockGithub({
         github,
-        defaultBranch,
-        fixturePath,
-        flatten: false,
-        files: [
+        commits,
+        manifest,
+        lastReleaseSha,
+        fixtureFiles: [
           'node/pkg1/package.json',
           'python/setup.py',
           'python/setup.cfg',
@@ -236,8 +308,19 @@ describe('Manifest', () => {
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
       const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found version 0.1.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 0.1.1 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Python(foolib)', CheckpointType.Success],
       ]);
@@ -285,14 +368,12 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      stubGithub({github, commits, manifest, lastReleaseSha});
-      stubFilesFromFixtures({
-        sandbox,
+      const mock = mockGithub({
         github,
-        defaultBranch,
-        fixturePath,
-        flatten: false,
-        files: [
+        commits,
+        manifest,
+        lastReleaseSha,
+        fixtureFiles: [
           'node/pkg1/package.json',
           'node/pkg2/package.json',
           'python/setup.py',
@@ -309,8 +390,29 @@ describe('Manifest', () => {
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
       const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Failed to find version for node/pkg2 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Failure,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Bootstrapping from .release-please-manifest.json at tip of main ' +
+            'for missing paths [node/pkg2]',
+          CheckpointType.Failure,
+        ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
         ['Processing package: Python(foolib)', CheckpointType.Success],
@@ -350,14 +452,12 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      stubGithub({github, commits, manifest, lastReleaseSha});
-      stubFilesFromFixtures({
-        sandbox,
+      const mock = mockGithub({
         github,
-        defaultBranch,
-        fixturePath,
-        flatten: false,
-        files: [
+        commits,
+        manifest,
+        lastReleaseSha,
+        fixtureFiles: [
           'node/pkg1/package.json',
           'node/pkg2/package.json',
           'python/setup.py',
@@ -375,10 +475,40 @@ describe('Manifest', () => {
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
       const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Failed to find version for node/pkg2 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Failure,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Bootstrapping from .release-please-manifest.json at tip of main ' +
+            'for missing paths [node/pkg2]',
+          CheckpointType.Failure,
+        ],
+        [
+          'Failed to find version for node/pkg2 in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Failure,
+        ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
+        [
+          'Falling back to default version for Node(@node/pkg2): 1.0.0',
+          CheckpointType.Failure,
+        ],
         ['Processing package: Python(foolib)', CheckpointType.Success],
       ]);
     });
@@ -412,14 +542,12 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      stubGithub({github, commits, manifest, lastReleaseSha});
-      stubFilesFromFixtures({
-        sandbox,
+      const mock = mockGithub({
         github,
-        defaultBranch,
-        fixturePath,
-        flatten: false,
-        files: ['node/pkg2/package.json'],
+        commits,
+        manifest,
+        lastReleaseSha,
+        fixtureFiles: ['node/pkg2/package.json'],
         inlineFiles: [
           ['release-please-config.json', config],
           // manifest has not been changed.
@@ -431,8 +559,14 @@ describe('Manifest', () => {
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
       const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found version 0.1.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
         ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
       ]);
     });
@@ -473,20 +607,18 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      stubGithub({github, commits, manifest, lastReleaseSha});
-      stubFilesFromFixtures({
-        sandbox,
+      const mock = mockGithub({
         github,
-        defaultBranch,
-        fixturePath,
-        flatten: false,
-        // node releaser looks up its package.json before anything else.
-        files: ['node/pkg1/package.json', 'node/pkg2/package.json'],
+        commits,
+        manifest,
+        lastReleaseSha,
+        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
         inlineFiles: [
           ['release-please-config.json', config],
           // manifest has not been changed.
           ['.release-please-manifest.json', manifest],
         ],
+        addLabel: false,
       });
       // there should be no snapshot created for this test
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
@@ -494,8 +626,24 @@ describe('Manifest', () => {
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
       const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
       expect(pr).to.be.undefined;
       expect(logs).to.eql([
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 0.1.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
         ['Processing package: Python(foolib)', CheckpointType.Success],
@@ -540,14 +688,11 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      stubGithub({github, commits}); // no lastReleaseSha/manifest
-      stubFilesFromFixtures({
-        sandbox,
+      // no lastReleaseSha/manifest
+      const mock = mockGithub({
         github,
-        defaultBranch,
-        fixturePath,
-        flatten: false,
-        files: [
+        commits,
+        fixtureFiles: [
           'node/pkg1/package.json',
           'node/pkg2/package.json',
           'python/setup.py',
@@ -564,14 +709,126 @@ describe('Manifest', () => {
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
       const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Bootstrapping from .release-please-manifest.json at tip of main',
+          CheckpointType.Failure,
+        ],
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 0.1.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
+        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
+        ['Processing package: Python(foolib)', CheckpointType.Success],
+      ]);
+    });
+
+    it('boostraps from HEAD manifest if manifest was deleted in last release PR', async function () {
+      // no previously merged PR found, will use this as bootstrap
+      const manifestFileAtHEAD = JSON.stringify({
+        'node/pkg1': '3.2.1',
+        'node/pkg2': '0.1.2',
+        python: '1.2.3',
+      });
+      const manifestConfig: ManifestConfig = {
+        'release-type': 'node',
+        'bump-minor-pre-major': true,
+        packages: {
+          'node/pkg1': {},
+          'node/pkg2': {},
+          python: {
+            'release-type': 'python',
+            'package-name': 'foolib',
+          },
+        },
+      };
+      const config = JSON.stringify(manifestConfig);
+      const commits = [
+        buildMockCommit('fix(foolib): bufix python foolib', [
+          'python/src/foolib/foo.py',
+        ]),
+        buildMockCommit('feat(@node/pkg1)!: major new feature', [
+          'node/pkg1/src/foo.ts',
+        ]),
+        buildMockCommit('feat(@node/pkg2): new feature', [
+          'node/pkg2/src/bar.ts',
+        ]),
+      ];
+
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub({
+        github,
+        commits,
+        manifest: false,
+        lastReleaseSha,
+        fixtureFiles: [
+          'node/pkg1/package.json',
+          'node/pkg2/package.json',
+          'python/setup.py',
+          'python/setup.cfg',
+          'python/src/foolib/version.py',
+        ],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifestFileAtHEAD],
+        ],
+      });
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
+      expect(pr).to.equal(22);
+      expect(logs).to.eql([
+        [
+          'Failed to get .release-please-manifest.json at abc123: 404',
+          CheckpointType.Failure,
+        ],
+        [
+          'Bootstrapping from .release-please-manifest.json at tip of main',
+          CheckpointType.Failure,
+        ],
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 0.1.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
         ['Processing package: Python(foolib)', CheckpointType.Success],
       ]);
     });
   });
+
   describe('validate', () => {
     const entryPoints: ('pullRequest' | 'githubRelease')[] = [
       'pullRequest',
@@ -629,18 +886,13 @@ describe('Manifest', () => {
             repo: 'repo',
             defaultBranch,
           });
-          stubGithub({github, manifest, lastReleaseSha});
-          stubFilesFromFixtures({
-            sandbox,
+          const mock = mockGithub({
             github,
-            defaultBranch,
-            fixturePath,
-            flatten: false,
-            files: [],
             inlineFiles: [
               ['release-please-config.json', config],
               ['.release-please-manifest.json', manifest],
             ],
+            addLabel: false,
           });
           const logs: [string, CheckpointType][] = [];
           const checkpoint = (msg: string, type: CheckpointType) =>
@@ -648,6 +900,7 @@ describe('Manifest', () => {
 
           const m = new Manifest({github, checkpoint});
           const result = await m[method]();
+          mock.verify();
 
           expect(result).to.be.undefined;
           expect(logs).to.eql(expectedLogs);

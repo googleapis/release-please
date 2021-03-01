@@ -510,27 +510,28 @@ export class GitHub {
     const baseBranch = await this.getDefaultBranch();
     const response: Repository<PullRequests> = await this.graphqlRequest({
       query: `query lastMergedPRByHeadBranch($owner: String!, $repo: String!, $baseBranch: String!, $headBranch: String!) {
-        repository(owner: $owner, name: $repo) {
-          pullRequests(baseRefName: $baseBranch, states: MERGED, orderBy: {field: CREATED_AT, direction: DESC}, first: 1, headRefName: $headBranch) {
-          nodes {
-            title
-            body
-            number
-            mergeCommit {
-              oid
-            }
-            files(first: 100) {
-              nodes {
-                path
+          repository(owner: $owner, name: $repo) {
+            pullRequests(baseRefName: $baseBranch, states: MERGED, orderBy: {field: CREATED_AT, direction: DESC}, first: 1, headRefName: $headBranch) {
+            nodes {
+              title
+              body
+              number
+              mergeCommit {
+                oid
               }
-              pageInfo {
-                hasNextPage
-                endCursor
+              files(first: 100) {
+                nodes {
+                  path
+                }
+                pageInfo {
+                  hasNextPage
+                  endCursor
+                }
               }
-            }
-            labels(first: 10) {
-              nodes {
-                name
+              labels(first: 10) {
+                nodes {
+                  name
+                }
               }
             }
           }

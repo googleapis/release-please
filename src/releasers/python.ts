@@ -145,7 +145,7 @@ export class Python extends ReleasePR {
     return openPROptions ? await this.openPR(openPROptions) : undefined;
   }
 
-  protected defaultInitialVersion(): string {
+  defaultInitialVersion(): string {
     return '0.1.0';
   }
 }

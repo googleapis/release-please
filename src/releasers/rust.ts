@@ -206,7 +206,7 @@ export class Rust extends ReleasePR {
     return commits;
   }
 
-  protected defaultInitialVersion(): string {
+  defaultInitialVersion(): string {
     return '0.1.0';
   }
 
