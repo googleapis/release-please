@@ -186,7 +186,15 @@ describe('CommitSplit', () => {
   // Intentionally inconsistent trailing slashes to test path normalization.
   it('validates configured paths on / separator', () => {
     const cs = new CommitSplit({
-      packagePaths: ['two-three', 'one-two', 'three/', 'one', 'one-two-three'],
+      packagePaths: [
+        '/two-three',
+        'one-two',
+        'three/',
+        'one',
+        'one-two-three',
+        'foo/bar',
+        'foo/bar-baz',
+      ],
     });
     expect(cs.packagePaths).to.be.eql([
       'two-three',
@@ -194,6 +202,8 @@ describe('CommitSplit', () => {
       'three',
       'one',
       'one-two-three',
+      'foo/bar',
+      'foo/bar-baz',
     ]);
   });
 
