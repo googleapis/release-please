@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.1.1](https://www.github.com/googleapis/release-please/compare/v11.1.0...v11.1.1) (2021-03-01)
+
+
+### Bug Fixes
+
+* commit-split paths validation ([#806](https://www.github.com/googleapis/release-please/issues/806)) ([0b1da99](https://www.github.com/googleapis/release-please/commit/0b1da99c3c7e395f98c7625e2664845b58111a09))
+* **node:** PackageJson updater sets this.contents ([#803](https://www.github.com/googleapis/release-please/issues/803)) ([732e453](https://www.github.com/googleapis/release-please/commit/732e453e7f00c93bcc0e39c66dd600fb1e9386e6))
+
 ## [11.1.0](https://www.github.com/googleapis/release-please/compare/v11.0.1...v11.1.0) (2021-02-24)
 
 
