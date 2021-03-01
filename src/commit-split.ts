@@ -34,6 +34,9 @@ export interface CommitSplitOptions {
   // paths (e.g. ["packages/pkg1", "python/pkg1"]). Commits that
   // only touch files under paths not specified here are ignored.
   // Paths must be unique and non-overlapping.
+  //
+  // NOTE: GitHub API always returns paths using the `/` separator, regardless
+  // of what platform the client code is running on
   packagePaths?: string[];
 }
 
@@ -46,14 +49,26 @@ export class CommitSplit {
     if (opts.packagePaths) {
       const paths: string[] = [];
       for (let newPath of opts.packagePaths) {
+        // normalize so that all paths have leading and trailing slashes for
+        // non-overlap validation.
+        // NOTE: GitHub API always returns paths using the `/` separator,
+        // regardless of what platform the client code is running on
         newPath = newPath.replace(/\/$/, '');
-        for (const exPath of paths) {
+        newPath = newPath.replace(/^\//, '');
+        newPath = newPath.replace(/$/, '/');
+        newPath = newPath.replace(/^/, '/');
+        for (let exPath of paths) {
+          exPath = exPath.replace(/$/, '/');
+          exPath = exPath.replace(/^/, '/');
           if (newPath.indexOf(exPath) >= 0 || exPath.indexOf(newPath) >= 0) {
             throw new Error(
               `Path prefixes must be unique: ${newPath}, ${exPath}`
             );
           }
         }
+        // store them with leading and trailing slashes removed.
+        newPath = newPath.replace(/\/$/, '');
+        newPath = newPath.replace(/^\//, '');
         paths.push(newPath);
       }
       this.packagePaths = paths;
@@ -66,6 +81,8 @@ export class CommitSplit {
       const dedupe: Set<string> = new Set();
       for (let i = 0; i < commit.files.length; i++) {
         const file: string = commit.files[i];
+        // NOTE: GitHub API always returns paths using the `/` separator,
+        // regardless of what platform the client code is running on
         const splitPath = file.split('/');
         // indicates that we have a top-level file and not a folder
         // in this edge-case we should not attempt to update the path.

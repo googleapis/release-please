@@ -182,6 +182,31 @@ describe('CommitSplit', () => {
     });
   }
 
+  // Test valid CommitSplitOptions.packagePaths combinations.
+  // Intentionally inconsistent trailing slashes to test path normalization.
+  it('validates configured paths on / separator', () => {
+    const cs = new CommitSplit({
+      packagePaths: [
+        '/two-three',
+        'one-two',
+        'three/',
+        'one',
+        'one-two-three',
+        'foo/bar',
+        'foo/bar-baz',
+      ],
+    });
+    expect(cs.packagePaths).to.be.eql([
+      'two-three',
+      'one-two',
+      'three',
+      'one',
+      'one-two-three',
+      'foo/bar',
+      'foo/bar-baz',
+    ]);
+  });
+
   // Test invalid CommitSplitOptions.packagePaths combinations.
   // Intentionally inconsistent trailing slashes to test path normalization.
   const invalidPaths = [
