@@ -119,35 +119,35 @@ export class GitHubRelease {
     });
   }
 
-  releaseResponse(options: {
+  releaseResponse(params: {
     release: ReleaseCreateResponse;
     version: string;
     sha: string;
     number: number;
   }): GitHubReleaseResponse | undefined {
     checkpoint(
-      `Created release: ${options.release.html_url}.`,
+      `Created release: ${params.release.html_url}.`,
       CheckpointType.Success
     );
-    const parsedVersion = parse(options.version, {loose: true});
+    const parsedVersion = parse(params.version, {loose: true});
     if (parsedVersion) {
       return {
         major: parsedVersion.major,
         minor: parsedVersion.minor,
         patch: parsedVersion.patch,
-        sha: options.sha,
-        version: options.version,
-        pr: options.number,
-        html_url: options.release.html_url,
-        name: options.release.name,
-        tag_name: options.release.tag_name,
-        upload_url: options.release.upload_url,
-        draft: options.release.draft,
-        body: options.release.body,
+        sha: params.sha,
+        version: params.version,
+        pr: params.number,
+        html_url: params.release.html_url,
+        name: params.release.name,
+        tag_name: params.release.tag_name,
+        upload_url: params.release.upload_url,
+        draft: params.release.draft,
+        body: params.release.body,
       };
     } else {
       console.warn(
-        `failed to parse version information from ${options.version}`
+        `failed to parse version information from ${params.version}`
       );
       return undefined;
     }

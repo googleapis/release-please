@@ -41,7 +41,7 @@ describe('GitHubRelease', () => {
   afterEach(() => {
     sandbox.restore();
   });
-  function mockGithub(options: {
+  function mockGithubCommon(params: {
     github: GitHub;
     prHead: string;
     prTitle: string;
@@ -49,14 +49,7 @@ describe('GitHubRelease', () => {
     version?: string;
     mockLabelsAndComment?: boolean;
   }) {
-    const {
-      github,
-      prHead,
-      prTitle,
-      changeLog,
-      version,
-      mockLabelsAndComment,
-    } = options;
+    const {github, prHead, prTitle, changeLog, version} = params;
     const mock = sandbox.mock(github);
     mock.expects('getRepositoryDefaultBranch').once().resolves('main');
     mock
@@ -80,8 +73,14 @@ describe('GitHubRelease', () => {
       .resolves(
         buildFileContent(`#Changelog\n\n## v${version ?? '1.0.3'}\n\n* entry`)
       );
-    const doMockLabelsAndComment = mockLabelsAndComment ?? true;
-    if (doMockLabelsAndComment) {
+    return mock;
+  }
+
+  function mockGithubLabelsAndComment(
+    mock: sinon.SinonMock,
+    mockLabelsAndComment: boolean
+  ) {
+    if (mockLabelsAndComment) {
       mock
         .expects('commentOnIssue')
         .withExactArgs(
@@ -105,17 +104,17 @@ describe('GitHubRelease', () => {
       mock.expects('addLabels').never();
       mock.expects('removeLabels').never();
     }
-    return mock;
   }
 
   describe('run', () => {
     it('creates and labels release on GitHub', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-v1.0.3',
         prTitle: 'Release v1.0.3',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .once()
@@ -145,12 +144,13 @@ describe('GitHubRelease', () => {
 
     it('creates and labels release on GitHub with invalid semver', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-v1A.B.C',
         prTitle: 'Release v1A.B.C',
         version: '1A.B.C',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .withExactArgs('foo', 'v1A.B.C', 'abc123', '\n* entry', false)
@@ -173,11 +173,12 @@ describe('GitHubRelease', () => {
 
     it('creates a draft release', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-v1.0.3',
         prTitle: 'Release v1.0.3',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', true)
@@ -200,12 +201,13 @@ describe('GitHubRelease', () => {
 
     it('creates releases for submodule in monorepo', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-bigquery-v1.0.3',
         prTitle: 'Release bigquery v1.0.3',
         changeLog: 'bigquery/CHANGES.md',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .withExactArgs(
@@ -249,12 +251,13 @@ describe('GitHubRelease', () => {
 
     it('supports submodules in nested folders', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-foo-v1.0.3',
         prTitle: 'Release foo v1.0.3',
         changeLog: 'src/apis/foo/CHANGES.md',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .withExactArgs('foo', 'foo/v1.0.3', 'abc123', '\n* entry', false)
@@ -288,12 +291,13 @@ describe('GitHubRelease', () => {
 
     it('attempts to guess package name for submodule release', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-foo-v1.0.3',
         prTitle: 'Release foo v1.0.3',
         changeLog: 'src/apis/foo/CHANGELOG.md',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('getFileContentsOnBranch')
         .withExactArgs('src/apis/foo/package.json', 'main')
@@ -334,11 +338,12 @@ describe('GitHubRelease', () => {
 
     it('attempts to guess package name for release', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-v1.0.3',
         prTitle: 'Release v1.0.3',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('getFileContentsOnBranch')
         .withExactArgs('package.json', 'main')
@@ -374,11 +379,12 @@ describe('GitHubRelease', () => {
 
     it('empty packageName ok (non-monorepo)', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-v1.0.3',
         prTitle: 'Release v1.0.3',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .once()
@@ -420,11 +426,12 @@ describe('GitHubRelease', () => {
 
     it('parses version from PR title (detectReleaseVersionFromTitle impl: base)', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-please/branches/main',
         prTitle: 'chore: release 1.0.3',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
@@ -453,11 +460,12 @@ describe('GitHubRelease', () => {
 
     it('parses version from PR title (detectReleaseVersionFromTitle impl: java-yoshi)', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-please/branches/main',
         prTitle: 'chore(main): release 1.0.3',
       });
+      mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
         .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
@@ -601,12 +609,12 @@ describe('GitHubRelease', () => {
         upload_url: 'https://upload.url/',
         body: '\n* entry',
       };
-      const mock = mockGithub({
+      const mock = mockGithubCommon({
         github,
         prHead: 'release-v1.0.3',
         prTitle: 'Release v1.0.3',
-        mockLabelsAndComment: false,
       });
+      mockGithubLabelsAndComment(mock, false);
       mock
         .expects('createRelease')
         .once()
