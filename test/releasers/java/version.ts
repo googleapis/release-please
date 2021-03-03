@@ -216,7 +216,9 @@ describe('Version', () => {
         expect(version.toString()).to.equal('1.23.45-beta-lts.2-SNAPSHOT');
       });
       it('should make an LTS bump on an LTS version', async () => {
-        const version = Version.parse('1.23.45-beta-lts.1-SNAPSHOT').bump('lts');
+        const version = Version.parse('1.23.45-beta-lts.1-SNAPSHOT').bump(
+          'lts'
+        );
         expect(version.major).to.equal(1);
         expect(version.minor).to.equal(23);
         expect(version.patch).to.equal(45);

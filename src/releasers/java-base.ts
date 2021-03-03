@@ -190,17 +190,14 @@ export class JavaBase extends ReleasePR {
     preRelease = false
   ): Promise<ReleaseCandidate> {
     if (this.snapshot) {
-      if (latestTag) {
-        return {
-          previousTag: latestTag.version,
-          version: Version.parse(latestTag.version).bump('snapshot').toString(),
-        };
-      }
-
+      const version = Version.parse(
+        latestTag?.version ?? this.defaultInitialVersion()
+      )
+        .bump('snapshot')
+        .toString();
       return {
-        version: Version.parse(this.defaultInitialVersion())
-          .bump('snapshot')
-          .toString(),
+        previousTag: latestTag?.version,
+        version,
       };
     }
 

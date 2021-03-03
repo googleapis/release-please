@@ -30,7 +30,7 @@ export class Version {
     patch: number,
     extra: string,
     snapshot: boolean,
-    lts?: number,
+    lts?: number
   ) {
     this.major = major;
     this.minor = minor;
@@ -110,8 +110,8 @@ export class Version {
   }
 
   toString(): string {
-    return `${this.major}.${this.minor}.${this.patch}${this.extra}${this.lts ? `-lts.${this.lts}` : ''}${
-      this.snapshot ? '-SNAPSHOT' : ''
-    }`;
+    return `${this.major}.${this.minor}.${this.patch}${this.extra}${
+      this.lts ? `-lts.${this.lts}` : ''
+    }${this.snapshot ? '-SNAPSHOT' : ''}`;
   }
 }
