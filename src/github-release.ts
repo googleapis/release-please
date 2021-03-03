@@ -14,11 +14,10 @@
 
 import {GitHubReleaseConstructorOptions} from './';
 import {checkpoint, CheckpointType} from './util/checkpoint';
-import {GitHub} from './github';
+import {GitHub, MergedGitHubPR, ReleaseCreateResponse} from './github';
 import {parse} from 'semver';
-import {ReleasePR} from './release-pr';
+import {ReleasePR, CandidateRelease} from './release-pr';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
 export interface GitHubReleaseResponse {
@@ -47,21 +46,58 @@ export class GitHubRelease {
     this.releasePR = options.releasePR;
   }
 
-  async run(): Promise<GitHubReleaseResponse | undefined> {
-    const candidate = await this.releasePR.buildRelease();
-    if (!candidate) {
-      checkpoint('Unable to build candidate', CheckpointType.Failure);
-      return undefined;
+  async createRelease(): Promise<
+    [CandidateRelease, ReleaseCreateResponse] | [undefined, undefined]
+  >;
+  async createRelease(
+    version: string,
+    mergedPR: MergedGitHubPR
+  ): Promise<ReleaseCreateResponse | undefined>;
+  async createRelease(
+    version?: string,
+    mergedPR?: MergedGitHubPR
+  ): Promise<
+    | [CandidateRelease, ReleaseCreateResponse]
+    | [undefined, undefined]
+    | ReleaseCreateResponse
+    | undefined
+  > {
+    let candidate: CandidateRelease | undefined;
+    if (version && mergedPR) {
+      candidate = await this.releasePR.buildReleaseForVersion(
+        version,
+        mergedPR
+      );
+      return await this.gh.createRelease(
+        candidate.name,
+        candidate.tag,
+        candidate.sha,
+        candidate.notes,
+        this.draft
+      );
+    } else {
+      candidate = await this.releasePR.buildRelease();
     }
+    if (candidate !== undefined) {
+      const release = await this.gh.createRelease(
+        candidate.name,
+        candidate.tag,
+        candidate.sha,
+        candidate.notes,
+        this.draft
+      );
+      return [candidate, release];
+    } else {
+      checkpoint('Unable to build candidate', CheckpointType.Failure);
+      return [undefined, undefined];
+    }
+  }
 
-    const release = await this.gh.createRelease(
-      candidate.name,
-      candidate.tag,
-      candidate.sha,
-      candidate.notes,
-      this.draft
-    );
-    checkpoint(`Created release: ${release.html_url}.`, CheckpointType.Success);
+  async run(): Promise<GitHubReleaseResponse | undefined> {
+    const [candidate, release] = await this.createRelease();
+    if (!(candidate && release)) {
+      return;
+    }
 
     // Comment on the release PR with the
     await this.gh.commentOnIssue(
@@ -75,26 +111,43 @@ export class GitHubRelease {
     // Remove 'autorelease: pending' which indicates a GitHub release
     // has not yet been created.
     await this.gh.removeLabels(this.releasePR.labels, candidate.pullNumber);
+    return this.releaseResponse({
+      release,
+      version: candidate.version,
+      sha: candidate.sha,
+      number: candidate.pullNumber,
+    });
+  }
 
-    const parsedVersion = parse(candidate.version, {loose: true});
+  releaseResponse(params: {
+    release: ReleaseCreateResponse;
+    version: string;
+    sha: string;
+    number: number;
+  }): GitHubReleaseResponse | undefined {
+    checkpoint(
+      `Created release: ${params.release.html_url}.`,
+      CheckpointType.Success
+    );
+    const parsedVersion = parse(params.version, {loose: true});
     if (parsedVersion) {
       return {
         major: parsedVersion.major,
         minor: parsedVersion.minor,
         patch: parsedVersion.patch,
-        sha: candidate.sha,
-        version: candidate.version,
-        pr: candidate.pullNumber,
-        html_url: release.html_url,
-        name: release.name,
-        tag_name: release.tag_name,
-        upload_url: release.upload_url,
-        draft: release.draft,
-        body: release.body,
+        sha: params.sha,
+        version: params.version,
+        pr: params.number,
+        html_url: params.release.html_url,
+        name: params.release.name,
+        tag_name: params.release.tag_name,
+        upload_url: params.release.upload_url,
+        draft: params.release.draft,
+        body: params.release.body,
       };
     } else {
       console.warn(
-        `failed to parse version information from ${candidate.version}`
+        `failed to parse version information from ${params.version}`
       );
       return undefined;
     }
