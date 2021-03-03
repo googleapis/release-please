@@ -44,7 +44,7 @@ export class JavaBom extends JavaBase {
     return newVersions;
   }
 
-  protected async getBumpType(
+  private async getBumpType(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined
   ): Promise<BumpType> {
