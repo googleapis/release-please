@@ -572,8 +572,8 @@ exports['JavaLTS creates a release PR against a feature branch: options'] = `
 
 upstreamOwner: googleapis
 upstreamRepo: java-trace
-title: chore: release 0.20.4-lts.1
-branch: release-v0.20.4-lts.1
+title: chore(1.x): release 0.20.4-lts.1
+branch: release-please/branches/1.x
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ### [0.20.4-lts.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-lts.1) (1983-10-10)
@@ -589,7 +589,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: 1.x
 force: true
 fork: false
-message: chore: release 0.20.4-lts.1
+message: chore(1.x): release 0.20.4-lts.1
 `
 
 exports['JavaLTS creates a release PR: changes'] = `
@@ -1167,7 +1167,7 @@ exports['JavaLTS creates a release PR: options'] = `
 upstreamOwner: googleapis
 upstreamRepo: java-trace
 title: chore: release 0.20.4-lts.1
-branch: release-v0.20.4-lts.1
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ### [0.20.4-lts.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-lts.1) (1983-10-10)
@@ -1554,7 +1554,7 @@ exports['JavaLTS creates a snapshot PR if an explicit release is requested, but 
 upstreamOwner: googleapis
 upstreamRepo: java-trace
 title: chore: release 0.20.4-SNAPSHOT
-branch: release-v0.20.4-SNAPSHOT
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ### Updating meta-information for bleeding-edge SNAPSHOT release.
@@ -1936,7 +1936,7 @@ exports['JavaLTS creates a snapshot PR, when latest release sha is head: options
 upstreamOwner: googleapis
 upstreamRepo: java-trace
 title: chore: release 0.20.4-SNAPSHOT
-branch: release-v0.20.4-SNAPSHOT
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ### Updating meta-information for bleeding-edge SNAPSHOT release.
@@ -2318,7 +2318,7 @@ exports['JavaLTS creates a snapshot PR: options'] = `
 upstreamOwner: googleapis
 upstreamRepo: java-trace
 title: chore: release 0.20.4-SNAPSHOT
-branch: release-v0.20.4-SNAPSHOT
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ### Updating meta-information for bleeding-edge SNAPSHOT release.
