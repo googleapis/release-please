@@ -471,8 +471,7 @@ describe('JavaLTS', () => {
     await releasePR.run();
   });
 
-
-  it('ignores non-release commits', async function () {
+  it('ignores non-release commits', async () => {
     const defaultBranch = '1.x';
     const releasePR = new JavaLTS({
       github: new GitHub({
@@ -544,11 +543,7 @@ describe('JavaLTS', () => {
 
     sandbox
       .stub(releasePR.gh, 'commitsSinceSha')
-      .resolves([
-        buildMockCommit(
-          'chore: something irrelevant'
-        ),
-      ]);
+      .resolves([buildMockCommit('chore: something irrelevant')]);
 
     // should not attempt to create a pull request
     sandbox
