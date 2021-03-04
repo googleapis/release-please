@@ -21,8 +21,6 @@ import {VersionsMap} from '../updaters/update';
 // Java
 import {Version} from './java/version';
 import {JavaYoshi} from './java-yoshi';
-import {BranchName} from '../util/branch-name';
-import {PullRequestTitle} from '../util/pull-request-title';
 
 export class JavaLTS extends JavaYoshi {
   protected async coerceVersions(
