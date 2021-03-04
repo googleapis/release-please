@@ -471,6 +471,93 @@ describe('JavaLTS', () => {
     await releasePR.run();
   });
 
+
+  it('ignores non-release commits', async function () {
+    const defaultBranch = '1.x';
+    const releasePR = new JavaLTS({
+      github: new GitHub({
+        defaultBranch,
+        owner: 'googleapis',
+        repo: 'java-trace',
+      }),
+      packageName: 'java-trace',
+    });
+
+    sandbox
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
+      .returns(Promise.resolve('master'));
+
+    // No open release PRs, so create a new release PR
+    sandbox
+      .stub(releasePR.gh, 'findOpenReleasePRs')
+      .returns(Promise.resolve([]));
+
+    sandbox
+      .stub(releasePR.gh, 'findMergedReleasePR')
+      .returns(Promise.resolve(undefined));
+
+    // Indicates that there are no PRs currently waiting to be released:
+    sandbox.stub(releasePR, 'latestTag').returns(
+      Promise.resolve({
+        name: 'v0.20.3',
+        sha: 'abc123',
+        version: '0.20.3',
+      })
+    );
+
+    const findFilesStub = sandbox.stub(
+      releasePR.gh,
+      'findFilesByFilenameAndRef'
+    );
+    findFilesStub
+      .withArgs('pom.xml', defaultBranch, undefined)
+      .resolves(['pom.xml']);
+    findFilesStub
+      .withArgs('build.gradle', defaultBranch, undefined)
+      .resolves([]);
+    findFilesStub
+      .withArgs('dependencies.properties', defaultBranch, undefined)
+      .resolves([]);
+
+    const getFileContentsStub = sandbox.stub(
+      releasePR.gh,
+      'getFileContentsOnBranch'
+    );
+    getFileContentsStub
+      .withArgs('versions.txt', defaultBranch)
+      .resolves(buildFileContent('versions.txt'));
+    getFileContentsStub
+      .withArgs('README.md', defaultBranch)
+      .resolves(buildFileContent('README.md'));
+    getFileContentsStub
+      .withArgs('pom.xml', defaultBranch)
+      .resolves(buildFileContent('pom.xml'));
+    getFileContentsStub
+      .withArgs(
+        'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
+        defaultBranch
+      )
+      .resolves(buildFileContent('GoogleUtils.java'));
+    getFileContentsStub.rejects(
+      Object.assign(Error('not found'), {status: 404})
+    );
+
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit(
+          'chore: something irrelevant'
+        ),
+      ]);
+
+    // should not attempt to create a pull request
+    sandbox
+      .stub(suggester, 'createPullRequest')
+      .rejects(Error('should not get here'));
+
+    await releasePR.run();
+  });
+
   describe('latestTag', () => {
     let req: nock.Scope;
     let releasePR: ReleasePR;
