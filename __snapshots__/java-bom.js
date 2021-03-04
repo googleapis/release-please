@@ -820,7 +820,7 @@ exports['JavaBom run creates a release PR: options'] = `
 upstreamOwner: googleapis
 upstreamRepo: java-cloud-bom
 title: chore: release 0.124.0
-branch: release-v0.124.0
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) (1983-10-10)
@@ -1607,7 +1607,7 @@ exports['JavaBom run creates a snapshot PR if an explicit release is requested, 
 upstreamOwner: googleapis
 upstreamRepo: java-cloud-bom
 title: chore: release 0.123.5-SNAPSHOT
-branch: release-v0.123.5-SNAPSHOT
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ### Updating meta-information for bleeding-edge SNAPSHOT release.
@@ -2388,7 +2388,7 @@ exports['JavaBom run creates a snapshot PR: options'] = `
 upstreamOwner: googleapis
 upstreamRepo: java-cloud-bom
 title: chore: release 0.123.5-SNAPSHOT
-branch: release-v0.123.5-SNAPSHOT
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ### Updating meta-information for bleeding-edge SNAPSHOT release.
@@ -3228,7 +3228,7 @@ exports['JavaBom run merges conventional commit messages: options'] = `
 upstreamOwner: googleapis
 upstreamRepo: java-cloud-bom
 title: chore: release 0.124.0
-branch: release-v0.124.0
+branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
 ## [0.124.0](https://www.github.com/googleapis/java-cloud-bom/compare/0.123.4...v0.124.0) (1983-10-10)

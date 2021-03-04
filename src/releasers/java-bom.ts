@@ -22,12 +22,12 @@ import {Commit} from '../graphql-to-commits';
 // Java
 import {BumpType, maxBumpType, fromSemverReleaseType} from './java/bump_type';
 import {Version} from './java/version';
-import {JavaBase} from './java-base';
+import {JavaYoshi} from './java-yoshi';
 
 const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
 const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
-export class JavaBom extends JavaBase {
+export class JavaBom extends JavaYoshi {
   private bumpType?: BumpType;
 
   protected async coerceVersions(
