@@ -124,6 +124,7 @@ describe('CLI', () => {
         'go',
         'go-yoshi',
         'java-bom',
+        'java-lts',
         'java-yoshi',
         'node',
         'ocaml',
