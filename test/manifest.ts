@@ -28,8 +28,6 @@ const defaultBranch = 'main';
 const lastReleaseSha = 'abc123';
 const sandbox = sinon.createSandbox();
 
-type InlineFiles = [string, string][];
-
 describe('Manifest', () => {
   afterEach(() => {
     sandbox.restore();
@@ -43,7 +41,7 @@ describe('Manifest', () => {
     // used by githubRelease to figure out which packages had actual changes
     mergedPRFiles?: string[];
     fixtureFiles?: string[];
-    inlineFiles?: InlineFiles;
+    inlineFiles?: [string, string][];
     addLabel?: string | false;
     removeLabel?: string | false;
     prComments?: string[];
@@ -180,7 +178,7 @@ describe('Manifest', () => {
   }
 
   describe('pullRequest', () => {
-    it('python and node package', async function () {
+    it('creates a PR for python and node packages', async function () {
       const manifest = JSON.stringify({
         'node/pkg1': '3.2.1',
         python: '1.2.3',
@@ -256,7 +254,7 @@ describe('Manifest', () => {
       ]);
     });
 
-    it('python specific releaser config overrides defaults', async function () {
+    it('respects python releaser specific config over defaults', async function () {
       // https://github.com/googleapis/release-please/pull/790#issuecomment-783792069
       if (process.versions.node.split('.')[0] === '10') {
         this.skip();
@@ -851,7 +849,7 @@ describe('Manifest', () => {
   });
 
   describe('githubRelease', () => {
-    it('python draft and node package', async () => {
+    it('releases python and node packages', async () => {
       const manifest = JSON.stringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
@@ -974,7 +972,7 @@ describe('Manifest', () => {
       });
     });
 
-    it('no mergedPR found', async () => {
+    it('logs when no mergedPR found', async () => {
       const github = new GitHub({
         owner: 'fake',
         repo: 'repo',
@@ -1003,7 +1001,8 @@ describe('Manifest', () => {
         ],
       ]);
     });
-    it('user deleted a manifest entry before merging last PR', async () => {
+
+    it('logs a user deleting a manifest entry before merging last PR', async () => {
       const manifest = JSON.stringify({
         'node/pkg1': '3.2.1',
         // python: '1.2.3', - user deleted this one
@@ -1100,6 +1099,8 @@ describe('Manifest', () => {
         },
         python: undefined,
       });
+      // python entry was manually deleted from manifest (user error)
+      // log the problem, continue releasing other pkgs from manifest
       expect(logs).to.eql([
         [
           'Found version 3.2.1 for node/pkg1 in ' +
@@ -1128,7 +1129,8 @@ describe('Manifest', () => {
         ],
       ]);
     });
-    it('node/pkg2 release creation errors out', async () => {
+
+    it('logs transient pkg release creation errors', async () => {
       const manifest = JSON.stringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
@@ -1174,8 +1176,12 @@ describe('Manifest', () => {
           'python/src/foolib/version.py',
           '.release-please-manifest.json',
         ],
+
+        // labels only swapped when every package is successfully released
+        // or its release has been found to already exist
         addLabel: false,
         removeLabel: false,
+
         prComments: [
           ':robot: Release for @node/pkg1 is at https://pkg1@3.2.1:html :sunflower:',
           ':robot: Failed to create release for @node/pkg2 :cloud:',
@@ -1285,13 +1291,15 @@ describe('Manifest', () => {
         ['Creating release for Node(@node/pkg1)@3.2.1', CheckpointType.Success],
         ['Creating release for Node(@node/pkg2)@0.1.2', CheckpointType.Success],
         [
+          // node/pkg2 failed when we tried to create it.
           'Failed to create release for Node(@node/pkg2)@0.1.2: Boom!',
           CheckpointType.Failure,
         ],
         ['Creating release for Python(foolib)@1.2.3', CheckpointType.Success],
       ]);
     });
-    it('node/pkg1 and python releases already exist', async () => {
+
+    it('gracefully handles re-running after node/pkg2 failure', async () => {
       const manifest = JSON.stringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
@@ -1349,6 +1357,9 @@ describe('Manifest', () => {
         errors = [{code: 'already_exists', field: 'tag_name'}];
       }
 
+      // @node/pkg1 and foolib releases were created successfully in last run but
+      // @node/pkg2 had errored out. Rerunning we get 422/already_exists errors
+      // for the first two.
       mock
         .expects('createRelease')
         .withArgs(
@@ -1443,7 +1454,8 @@ describe('Manifest', () => {
         ],
       ]);
     });
-    it('Non-already_exists 422 error ', async () => {
+
+    it('handles non-already_exists 422 error ', async () => {
       const manifest = JSON.stringify({
         'node/pkg1': '3.2.1',
       });
@@ -1470,8 +1482,6 @@ describe('Manifest', () => {
           ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
         ],
         mergedPRFiles: [
-          // lack of any "node/pkg2/ files indicates that package did not
-          // change in the last merged PR.
           'node/pkg1/package.json',
           'node/pkg1/CHANGELOG.md',
           '.release-please-manifest.json',
@@ -1511,6 +1521,8 @@ describe('Manifest', () => {
         ],
         ['Creating release for Node(@node/pkg1)@3.2.1', CheckpointType.Success],
         [
+          // an 'already_exists' 422 would have logged as:
+          // "Release ... already exists" / CheckpointType.Success
           'Failed to create release for Node(@node/pkg1)@3.2.1: A different 422',
           CheckpointType.Failure,
         ],
@@ -1595,7 +1607,7 @@ describe('Manifest', () => {
           expect(logs).to.eql(expectedLogs);
         });
       }
-      it(`missing config in ${method}`, async () => {
+      it(`is missing config for ${method}`, async () => {
         const github = new GitHub({
           owner: 'fake',
           repo: 'repo',
@@ -1622,7 +1634,7 @@ describe('Manifest', () => {
           ],
         ]);
       });
-      it(`missing manifest in ${method}`, async () => {
+      it(`is missing manifest for ${method}`, async () => {
         const github = new GitHub({
           owner: 'fake',
           repo: 'repo',

@@ -470,6 +470,96 @@ fork: false
 message: chore: release
 `
 
+exports['Manifest pullRequest creates a PR for python and node packages: changes'] = `
+
+filename: node/pkg1/CHANGELOG.md
+# Changelog
+
+## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **@node/pkg1:** major new feature
+
+### Features
+
+* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
+
+filename: node/pkg1/package.json
+{
+  "name": "@node/pkg1",
+  "version": "4.0.0"
+}
+
+filename: python/CHANGELOG.md
+# Changelog
+
+### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+
+
+### Bug Fixes
+
+* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
+
+filename: python/setup.cfg
+version=1.2.4
+
+filename: python/setup.py
+version = "1.2.4"
+
+filename: python/src/foolib/version.py
+__version__ = "1.2.4"
+
+filename: .release-please-manifest.json
+{
+  "node/pkg1": "4.0.0",
+  "python": "1.2.4"
+}
+
+`
+
+exports['Manifest pullRequest creates a PR for python and node packages: options'] = `
+
+upstreamOwner: fake
+upstreamRepo: repo
+title: chore: release
+branch: release-please/branches/main
+description: :robot: I have created a release \\*beep\\* \\*boop\\*
+
+---
+@node/pkg1: 4.0.0
+## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **@node/pkg1:** major new feature
+
+### Features
+
+* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
+---
+
+
+---
+foolib: 1.2.4
+### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+
+
+### Bug Fixes
+
+* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
+---
+
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+primary: main
+force: true
+fork: false
+message: chore: release
+`
+
 exports['Manifest pullRequest only includes packages that have version bumps: changes'] = `
 
 filename: node/pkg2/CHANGELOG.md
@@ -523,97 +613,7 @@ fork: false
 message: chore: release
 `
 
-exports['Manifest pullRequest python and node package: changes'] = `
-
-filename: node/pkg1/CHANGELOG.md
-# Changelog
-
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
-
-
-### ⚠ BREAKING CHANGES
-
-* **@node/pkg1:** major new feature
-
-### Features
-
-* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
-
-filename: node/pkg1/package.json
-{
-  "name": "@node/pkg1",
-  "version": "4.0.0"
-}
-
-filename: python/CHANGELOG.md
-# Changelog
-
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
-
-
-### Bug Fixes
-
-* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
-
-filename: python/setup.cfg
-version=1.2.4
-
-filename: python/setup.py
-version = "1.2.4"
-
-filename: python/src/foolib/version.py
-__version__ = "1.2.4"
-
-filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "python": "1.2.4"
-}
-
-`
-
-exports['Manifest pullRequest python and node package: options'] = `
-
-upstreamOwner: fake
-upstreamRepo: repo
-title: chore: release
-branch: release-please/branches/main
-description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
----
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
-
-
-### ⚠ BREAKING CHANGES
-
-* **@node/pkg1:** major new feature
-
-### Features
-
-* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
-
-
-### Bug Fixes
-
-* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
----
-
-
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
-primary: main
-force: true
-fork: false
-message: chore: release
-`
-
-exports['Manifest pullRequest python specific releaser config overrides defaults: changes'] = `
+exports['Manifest pullRequest respects python releaser specific config over defaults: changes'] = `
 
 filename: node/pkg1/HISTORY.md
 # Changelog
@@ -671,7 +671,7 @@ filename: .release-please-manifest.json
 
 `
 
-exports['Manifest pullRequest python specific releaser config overrides defaults: options'] = `
+exports['Manifest pullRequest respects python releaser specific config over defaults: options'] = `
 
 upstreamOwner: fake
 upstreamRepo: repo
