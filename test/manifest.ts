@@ -40,6 +40,7 @@ describe('Manifest', () => {
     lastReleaseSha?: string;
     // used by githubRelease to figure out which packages had actual changes
     mergedPRFiles?: string[];
+    mergedPRLabels?: string[];
     fixtureFiles?: string[];
     inlineFiles?: [string, string][];
     addLabel?: string | false;
@@ -52,6 +53,7 @@ describe('Manifest', () => {
       manifest,
       lastReleaseSha,
       mergedPRFiles,
+      mergedPRLabels,
       fixtureFiles,
       inlineFiles,
       addLabel,
@@ -84,7 +86,7 @@ describe('Manifest', () => {
         baseRefName: '',
         headRefName: '',
         files: mergedPRFiles ?? [],
-        labels: [],
+        labels: mergedPRLabels ?? ['autorelease: pending'],
       };
     }
     mock
@@ -972,7 +974,7 @@ describe('Manifest', () => {
       });
     });
 
-    it('logs when no mergedPR found', async () => {
+    it('logs when no last mergedPR found', async () => {
       const github = new GitHub({
         owner: 'fake',
         repo: 'repo',
@@ -997,6 +999,73 @@ describe('Manifest', () => {
       expect(logs).to.eql([
         [
           'Unable to find last merged Manifest PR for tagging',
+          CheckpointType.Failure,
+        ],
+      ]);
+    });
+
+    it('logs when last mergedPR found is already released', async () => {
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub({
+        github,
+        lastReleaseSha,
+        mergedPRLabels: ['autorelease: tagged'],
+        addLabel: false,
+        removeLabel: false,
+        inlineFiles: [
+          // minimal manifest/config to pass validation
+          ['.release-please-manifest.json', '{}'],
+          ['release-please-config.json', '{"packages": {"path":{}}}'],
+        ],
+      });
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const releases = await new Manifest({github, checkpoint}).githubRelease();
+      mock.verify();
+      expect(releases).to.be.undefined;
+      expect(logs).to.eql([
+        [
+          'Releases already created for last merged release PR',
+          CheckpointType.Success,
+        ],
+      ]);
+    });
+
+    it('logs when last mergedPR found is missing labels', async () => {
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub({
+        github,
+        lastReleaseSha,
+        mergedPRLabels: [],
+        addLabel: false,
+        removeLabel: false,
+        inlineFiles: [
+          // minimal manifest/config to pass validation
+          ['.release-please-manifest.json', '{}'],
+          ['release-please-config.json', '{"packages": {"path":{}}}'],
+        ],
+      });
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const releases = await new Manifest({github, checkpoint}).githubRelease();
+      mock.verify();
+      expect(releases).to.be.undefined;
+      expect(logs).to.eql([
+        [
+          'Warning: last merged PR(#22) is missing label ' +
+            '"autorelease: pending" but has not yet been labeled ' +
+            '"autorelease: tagged". If PR(#22) is meant to be a release PR, ' +
+            'please apply the label "autorelease: pending".',
           CheckpointType.Failure,
         ],
       ]);

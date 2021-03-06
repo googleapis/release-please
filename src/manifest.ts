@@ -492,6 +492,24 @@ export class Manifest {
       );
       return;
     }
+    if (lastMergedPR.labels.includes(GITHUB_RELEASE_LABEL)) {
+      this.checkpoint(
+        'Releases already created for last merged release PR',
+        CheckpointType.Success
+      );
+      return;
+    }
+    if (!lastMergedPR.labels.includes(DEFAULT_LABELS[0])) {
+      this.checkpoint(
+        `Warning: last merged PR(#${lastMergedPR.number}) is missing ` +
+          `label "${DEFAULT_LABELS[0]}" but has not yet been ` +
+          `labeled "${GITHUB_RELEASE_LABEL}". If PR(#${lastMergedPR.number}) ` +
+          'is meant to be a release PR, please apply the ' +
+          `label "${DEFAULT_LABELS[0]}".`,
+        CheckpointType.Failure
+      );
+      return;
+    }
     const packages = await this.getPackagesToRelease(
       // use the lastMergedPR.sha as a Commit: lastMergedPR.files will inform
       // getPackagesToRelease() what packages had changes (i.e. at least one
