@@ -40,7 +40,7 @@ type IssuesListResponseItem = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['issues']['get']>
 >['data'];
 type CreateIssueCommentResponse = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['issues']['create']>
+  ReturnType<InstanceType<typeof Octokit>['issues']['createComment']>
 >['data'];
 // see: PromiseValue<
 //  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
