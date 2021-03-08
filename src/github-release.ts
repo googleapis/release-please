@@ -18,7 +18,7 @@ import {GitHub, MergedGitHubPR, ReleaseCreateResponse} from './github';
 import {parse} from 'semver';
 import {ReleasePR, CandidateRelease} from './release-pr';
 
-const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
+export const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
 export interface GitHubReleaseResponse {
   major: number;
