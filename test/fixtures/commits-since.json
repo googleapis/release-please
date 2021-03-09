@@ -15,7 +15,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "e6daec403626c9987c7af0d97b34f324cd84320a"
+                    }
                   }
                 ]
               },
@@ -33,7 +36,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "b29149f890e6f76ee31ed128585744d4c598924c"
+                    }
                   }
                 ]
               },
@@ -51,7 +57,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "27d7d7232e2e312d1380e906984f0823f5decf61"
+                    }
                   }
                 ]
               },
@@ -69,7 +78,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5"
+                    }
                   }
                 ]
               },
@@ -87,7 +99,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "a257514a541d483425118d973674b1ce006a5489"
+                    }
                   }
                 ]
               },
@@ -105,7 +120,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088"
+                    }
                   }
                 ]
               },
@@ -123,7 +141,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "520b6f42551c86002197d033564a76a3f99b0019"
+                    }
                   }
                 ]
               },
@@ -145,7 +166,10 @@
                         }
                       ]
                     },
-                    "body": ":robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please)."
+                    "body": ":robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+                    "mergeCommit": {
+                      "oid": "9dda1a331d311d0a7643015cc9e6802548c8d943"
+                    }
                   }
                 ]
               },
@@ -163,7 +187,10 @@
                     "labels": {
                       "nodes": []
                     },
-                    "body": ""
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "e86984fb22ccc5eafb6c3d815851ade3463193da"
+                    }
                   }
                 ]
               },
@@ -192,7 +219,10 @@
                         }
                       ]
                     },
-                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure"
+                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure",
+                    "mergeCommit": {
+                      "oid": "959ee48c95f254300eb040c46ebdc8248317efe4"
+                    }
                   }
                 ]
               },

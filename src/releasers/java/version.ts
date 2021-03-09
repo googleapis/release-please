@@ -14,29 +14,39 @@
 
 import {BumpType} from './bump_type';
 
-const VERSION_REGEX = /(\d+)\.(\d+)\.(\d+)(-\w+)?(-SNAPSHOT)?/;
+const VERSION_REGEX = /(\d+)\.(\d+)\.(\d+)(-.+)?/;
+const LTS_REGEX = /(-.+)?-lts.(\d+)/;
 export class Version {
   major: number;
   minor: number;
   patch: number;
   extra: string;
   snapshot: boolean;
+  lts?: number;
 
   constructor(
     major: number,
     minor: number,
     patch: number,
     extra: string,
-    snapshot: boolean
+    snapshot: boolean,
+    lts?: number
   ) {
     this.major = major;
     this.minor = minor;
     this.patch = patch;
     this.extra = extra;
     this.snapshot = snapshot;
+    this.lts = lts;
   }
 
   static parse(version: string): Version {
+    let extra = '';
+    let snapshot = false;
+    if (version.endsWith('-SNAPSHOT')) {
+      snapshot = true;
+      version = version.slice(0, -9);
+    }
     const match = version.match(VERSION_REGEX);
     if (!match) {
       throw Error(`unable to parse version string: ${version}`);
@@ -44,19 +54,17 @@ export class Version {
     const major = Number(match[1]);
     const minor = Number(match[2]);
     const patch = Number(match[3]);
-    let extra = '';
-    let snapshot = false;
-    if (match[5]) {
-      extra = match[4];
-      snapshot = match[5] === '-SNAPSHOT';
-    } else if (match[4]) {
-      if (match[4] === '-SNAPSHOT') {
-        snapshot = true;
+    let lts = undefined;
+    if (match[4]) {
+      const ltsMatch = match[4].match(LTS_REGEX);
+      if (ltsMatch && ltsMatch[2]) {
+        extra = ltsMatch[1] ?? '';
+        lts = Number(ltsMatch[2]);
       } else {
         extra = match[4];
       }
     }
-    return new Version(major, minor, patch, extra, snapshot);
+    return new Version(major, minor, patch, extra, snapshot, lts);
   }
 
   bump(bumpType: BumpType): Version {
@@ -77,8 +85,23 @@ export class Version {
         this.snapshot = false;
         break;
       case 'snapshot':
-        this.patch += 1;
+        if (this.lts) {
+          this.lts += 1;
+        } else {
+          this.patch += 1;
+        }
         this.snapshot = true;
+        break;
+      case 'lts':
+        if (this.lts) {
+          this.lts += 1;
+        } else {
+          if (!this.snapshot) {
+            this.patch += 1;
+          }
+          this.lts = 1;
+        }
+        this.snapshot = false;
         break;
       default:
         throw Error(`unsupported bump type: ${bumpType}`);
@@ -88,7 +111,7 @@ export class Version {
 
   toString(): string {
     return `${this.major}.${this.minor}.${this.patch}${this.extra}${
-      this.snapshot ? '-SNAPSHOT' : ''
-    }`;
+      this.lts ? `-lts.${this.lts}` : ''
+    }${this.snapshot ? '-SNAPSHOT' : ''}`;
   }
 }

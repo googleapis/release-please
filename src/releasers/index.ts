@@ -16,6 +16,7 @@ import {ReleasePR} from '../release-pr';
 
 import {GoYoshi} from './go-yoshi';
 import {JavaBom} from './java-bom';
+import {JavaLTS} from './java-lts';
 import {JavaYoshi} from './java-yoshi';
 import {Node} from './node';
 import {PHPYoshi} from './php-yoshi';
@@ -34,6 +35,7 @@ export type ReleaseType =
   | 'go'
   | 'go-yoshi'
   | 'java-bom'
+  | 'java-lts'
   | 'java-yoshi'
   | 'node'
   | 'ocaml'
@@ -52,6 +54,7 @@ const releasers: Releasers = {
   go: GoYoshi, // TODO(codyoss): refactor this into a more generic go strategy.
   'go-yoshi': GoYoshi,
   'java-bom': JavaBom,
+  'java-lts': JavaLTS,
   'java-yoshi': JavaYoshi,
   node: Node,
   ocaml: OCaml,
