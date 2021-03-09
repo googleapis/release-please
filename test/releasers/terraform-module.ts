@@ -34,8 +34,13 @@ describe('terraform-module', () => {
       // simple-module with module versions defined
       name: 'simple-module',
       findVersionFiles: ['versions.tf'],
+      findTemplatedVersionFiles: ['versions.tf.tmpl'],
       findReadmeFiles: ['readme.md'],
-      readFilePaths: ['simple-module/readme.md', 'simple-module/versions.tf'],
+      readFilePaths: [
+        'simple-module/readme.md',
+        'simple-module/versions.tf',
+        'simple-module/versions.tf.tmpl',
+      ],
       expectedVersion: '12.1.0',
     },
     {
@@ -47,6 +52,7 @@ describe('terraform-module', () => {
         'versions.tf',
         'modules/sub-module-with-version/versions.tf',
       ],
+      findTemplatedVersionFiles: [],
       findReadmeFiles: [
         'README.md',
         'modules/sub-module-with-version/readme.md',
@@ -65,6 +71,7 @@ describe('terraform-module', () => {
       // module-no-versions with no module versions defined in versions.tf
       name: 'module-no-versions',
       findVersionFiles: [],
+      findTemplatedVersionFiles: [],
       findReadmeFiles: ['module-no-versions/README.MD'],
       readFilePaths: ['module-no-versions/README.MD'],
       expectedVersion: '2.1.0',
@@ -101,7 +108,9 @@ describe('terraform-module', () => {
           .onFirstCall()
           .returns(Promise.resolve(test.findReadmeFiles))
           .onSecondCall()
-          .returns(Promise.resolve(test.findVersionFiles));
+          .returns(Promise.resolve(test.findVersionFiles))
+          .onThirdCall()
+          .returns(Promise.resolve(test.findTemplatedVersionFiles));
 
         // Return latest tag used to determine next version #:
         sandbox.stub(releasePR, 'latestTag').returns(
