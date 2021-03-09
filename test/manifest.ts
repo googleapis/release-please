@@ -2049,4 +2049,80 @@ describe('Manifest', () => {
       });
     }
   });
+
+  describe('plugins', () => {
+    it('runs the node-workspace plugin', async function () {
+      const manifest = JSON.stringify({
+        'node/pkg1': '0.123.4',
+        'node/pkg2': '0.1.2',
+        python: '1.2.3',
+      });
+      const config = JSON.stringify({
+        plugins: ['node-workspace'],
+        packages: {
+          'node/pkg1': {},
+          'node/pkg2': {},
+          python: {
+            'release-type': 'python',
+            'package-name': 'foolib',
+          },
+        },
+      });
+      const commits = [
+        buildMockCommit('fix(foolib): bufix python foolib', [
+          'python/src/foolib/foo.py',
+        ]),
+        buildMockCommit('fix(@node/pkg1): bugfix pkg1', [
+          'node/pkg1/src/foo.ts',
+        ]),
+      ];
+
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
+        fixtureFiles: [
+          'node/pkg1/package.json',
+          'node/pkg2/package.json',
+          'python/setup.py',
+          'python/setup.cfg',
+          'python/src/foolib/version.py',
+        ],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+        ],
+      });
+      expectLabelAndComment(mock, {addLabel});
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+
+      const pr = await new Manifest({github, checkpoint}).pullRequest();
+
+      mock.verify();
+      expect(pr).to.equal(22);
+      expect(logs).to.eql([
+        [
+          'Found version 0.123.4 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
+        ['Processing package: Python(foolib)', CheckpointType.Success],
+      ]);
+    });
+  });
 });

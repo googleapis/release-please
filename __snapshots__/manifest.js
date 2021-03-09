@@ -1,3 +1,110 @@
+exports['Manifest plugins runs the node-workspace plugin: changes'] = `
+
+filename: node/pkg1/CHANGELOG.md
+# Changelog
+
+### [0.123.5](https://www.github.com/fake/repo/compare/pkg1-v0.123.4...pkg1-v0.123.5) (1983-10-10)
+
+
+### Bug Fixes
+
+* **@node/pkg1:** bugfix pkg1 ([43e6f0d](https://www.github.com/fake/repo/commit/43e6f0d178468c33349fe3faac287d4c))
+
+filename: node/pkg1/package.json
+{
+  "name": "@node/pkg1",
+  "version": "0.123.5"
+}
+
+filename: python/CHANGELOG.md
+# Changelog
+
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+
+
+### Bug Fixes
+
+* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
+
+filename: python/setup.cfg
+version=1.2.4
+
+filename: python/setup.py
+version = "1.2.4"
+
+filename: python/src/foolib/version.py
+__version__ = "1.2.4"
+
+filename: node/pkg2/package.json
+{
+  "name": "@node/pkg2",
+  "version": "0.1.3",
+  "dependencies": {
+    "@node/pkg1": "^0.123.5"
+  }
+}
+
+filename: node/pkg2/CHANGELOG.md
+# Changelog
+
+### [0.1.3](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.1.3) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @node/pkg1 bumped from ^0.123.4 to ^0.123.5
+
+filename: .release-please-manifest.json
+{
+  "node/pkg1": "0.123.5",
+  "node/pkg2": "0.1.3",
+  "python": "1.2.4"
+}
+
+`
+
+exports['Manifest plugins runs the node-workspace plugin: options'] = `
+
+upstreamOwner: fake
+upstreamRepo: repo
+title: chore: release
+branch: release-please/branches/main
+description: :robot: I have created a release \\*beep\\* \\*boop\\*
+---
+<details><summary>@node/pkg1: 0.123.5</summary>
+
+
+### Bug Fixes
+
+* **@node/pkg1:** bugfix pkg1 ([43e6f0d](https://www.github.com/fake/repo/commit/43e6f0d178468c33349fe3faac287d4c))
+</details>
+<details><summary>foolib: 1.2.4</summary>
+
+
+### Bug Fixes
+
+* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
+</details>
+<details><summary>@node/pkg2: 0.1.3</summary>
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @node/pkg1 bumped from ^0.123.4 to ^0.123.5
+</details>
+
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+primary: main
+force: true
+fork: false
+message: chore: release
+`
+
 exports['Manifest pullRequest allows root module to be published, via special "." path: changes'] = `
 
 filename: CHANGELOG.md
@@ -64,7 +171,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "2.0.0"
+  "version": "2.0.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: .release-please-manifest.json
@@ -83,10 +193,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-googleapis: 3.0.0
-## [3.0.0](https://www.github.com/fake/repo/compare/googleapis-v2.0.0...googleapis-v3.0.0) (1983-10-10)
+<details><summary>googleapis: 3.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -103,12 +211,8 @@ googleapis: 3.0.0
 ### Bug Fixes
 
 * **root:** root only change ([8b55db3](https://www.github.com/fake/repo/commit/8b55db3f6115306cc9c132bec0bb1447))
----
-
-
----
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+</details>
+<details><summary>@node/pkg1: 4.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -118,12 +222,8 @@ googleapis: 3.0.0
 ### Features
 
 * **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-@node/pkg2: 2.0.0
-## [2.0.0](https://www.github.com/fake/repo/compare/pkg2-v1.2.3...pkg2-v2.0.0) (1983-10-10)
+</details>
+<details><summary>@node/pkg2: 2.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -133,7 +233,7 @@ googleapis: 3.0.0
 ### Features
 
 * **@node/pkg2:** major new feature ([72f962d](https://www.github.com/fake/repo/commit/72f962d44ba0bcee15594ea6bdc67d8b))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -178,7 +278,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "0.2.0"
+  "version": "0.2.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: python/CHANGELOG.md
@@ -216,10 +319,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+<details><summary>@node/pkg1: 4.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -229,29 +330,21 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Features
 
 * **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-@node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
+</details>
+<details><summary>@node/pkg2: 0.2.0</summary>
 
 
 ### Features
 
 * **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
----
-
-
----
-foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+</details>
+<details><summary>foolib: 1.2.4</summary>
 
 
 ### Bug Fixes
 
 * **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -296,7 +389,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "0.2.0"
+  "version": "0.2.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: python/CHANGELOG.md
@@ -334,10 +430,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+<details><summary>@node/pkg1: 4.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -347,29 +441,21 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Features
 
 * **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-@node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
+</details>
+<details><summary>@node/pkg2: 0.2.0</summary>
 
 
 ### Features
 
 * **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
----
-
-
----
-foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+</details>
+<details><summary>foolib: 1.2.4</summary>
 
 
 ### Bug Fixes
 
 * **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -414,7 +500,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "0.2.0"
+  "version": "0.2.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: python/CHANGELOG.md
@@ -452,10 +541,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+<details><summary>@node/pkg1: 4.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -465,29 +552,21 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Features
 
 * **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-@node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
+</details>
+<details><summary>@node/pkg2: 0.2.0</summary>
 
 
 ### Features
 
 * **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
----
-
-
----
-foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+</details>
+<details><summary>foolib: 1.2.4</summary>
 
 
 ### Bug Fixes
 
 * **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -532,7 +611,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "0.2.0"
+  "version": "0.2.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: python/CHANGELOG.md
@@ -570,10 +652,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+<details><summary>@node/pkg1: 4.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -583,29 +663,21 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Features
 
 * **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-@node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
+</details>
+<details><summary>@node/pkg2: 0.2.0</summary>
 
 
 ### Features
 
 * **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
----
-
-
----
-foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+</details>
+<details><summary>foolib: 1.2.4</summary>
 
 
 ### Bug Fixes
 
 * **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -650,7 +722,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: python/CHANGELOG.md
@@ -688,10 +763,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+<details><summary>@node/pkg1: 4.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -701,29 +774,21 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Features
 
 * **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-@node/pkg2: 1.0.0
-## 1.0.0 (1983-10-10)
+</details>
+<details><summary>@node/pkg2: 1.0.0</summary>
 
 
 ### Features
 
 * **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
----
-
-
----
-foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+</details>
+<details><summary>foolib: 1.2.4</summary>
 
 
 ### Bug Fixes
 
 * **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -789,10 +854,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+<details><summary>@node/pkg1: 4.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -802,18 +865,14 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Features
 
 * **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
----
-
-
----
-foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+</details>
+<details><summary>foolib: 1.2.4</summary>
 
 
 ### Bug Fixes
 
 * **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -838,7 +897,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "0.2.0"
+  "version": "0.2.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: .release-please-manifest.json
@@ -857,16 +919,14 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
+<details><summary>@node/pkg2: 0.2.0</summary>
 
 
 ### Features
 
 * **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -915,7 +975,10 @@ filename: node/pkg2/CHANGELOG.md
 filename: node/pkg2/package.json
 {
   "name": "@node/pkg2",
-  "version": "0.3.0"
+  "version": "0.3.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }
 
 filename: python/CHANGELOG.md
@@ -962,10 +1025,8 @@ upstreamRepo: repo
 title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
-
 ---
-@node/pkg1: 5.5.5
-### [5.5.5](https://www.github.com/fake/repo/compare/pkg1-v0.1.1...pkg1-v5.5.5) (1983-10-10)
+<details><summary>@node/pkg1: 5.5.5</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -975,12 +1036,8 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Default Features Section
 
 * **@node/pkg1:** node feature ([8ef6b52](https://www.github.com/fake/repo/commit/8ef6b521e268395ded9b66bb1ff89696))
----
-
-
----
-@node/pkg2: 0.3.0
-## [0.3.0](https://www.github.com/fake/repo/compare/pkg2-v0.2.2...pkg2-v0.3.0) (1983-10-10)
+</details>
+<details><summary>@node/pkg2: 0.3.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -990,12 +1047,8 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Default Features Section
 
 * **@node/pkg2:** node2 feature ([f3373c7](https://www.github.com/fake/repo/commit/f3373c71ffaf1a67b19ce6a116e861ea))
----
-
-
----
-foolib: 1.0.0
-## [1.0.0](https://www.github.com/fake/repo/compare/foolib-v0.1.1...foolib-v1.0.0) (1983-10-10)
+</details>
+<details><summary>foolib: 1.0.0</summary>
 
 
 ### ⚠ BREAKING CHANGES
@@ -1010,7 +1063,7 @@ foolib: 1.0.0
 ### Python Features Section
 
 * **foolib:** python feature ([33fcc00](https://www.github.com/fake/repo/commit/33fcc0047b2eb3a66854f25c480b5b7e))
----
+</details>
 
 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

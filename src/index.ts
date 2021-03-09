@@ -17,6 +17,7 @@ import {ReleaseType} from './releasers';
 import {ReleasePR} from './release-pr';
 import {ChangelogSection} from './conventional-commits';
 import {Checkpoint} from './util/checkpoint';
+import {Changes} from 'code-suggester';
 
 export {ReleaseCandidate, ReleasePR} from './release-pr';
 
@@ -78,6 +79,35 @@ export interface ManifestConstructorOptions
 export interface ManifestFactoryOptions
   extends GitHubFactoryOptions,
     ManifestOptions {}
+
+// allow list of releaser options used to build ReleasePR subclass instances
+// and GitHubRelease instances for each package. Rejected items:
+// 1. `monorepoTags` and `pullRequestTitlePattern` will never apply
+// 2. `lastPackageVersion` and `versionFile` could be supported if/when ruby
+//    support in the manifest is made available. However, ideally they'd be
+//    factored out of the ruby ReleasePR prior to adding support here.
+// 3. currently unsupported but possible future support:
+//   - `snapshot`
+//   - `label`
+export type ManifestPackage = Pick<
+  ReleasePROptions & GitHubReleaseOptions,
+  | 'draft'
+  | 'packageName'
+  | 'bumpMinorPreMajor'
+  | 'bumpPatchForMinorPreMajor'
+  | 'releaseAs'
+  | 'changelogSections'
+  | 'changelogPath'
+> & {
+  // these items are not optional in the manifest context.
+  path: string;
+  releaseType: ReleaseType;
+};
+
+export interface ManifestPackageWithPRData {
+  config: ManifestPackage;
+  prData: {version: string; changes: Changes};
+}
 
 // ReleasePR Constructor options
 export interface ReleasePRConstructorOptions

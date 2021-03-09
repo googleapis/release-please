@@ -56,12 +56,20 @@ function stringifyExpectedOptions(
   for (const [option, value] of Object.entries(expected)) {
     stringified = `${stringified}\n${option}: ${value}`;
   }
-  return dateSafe(stringified);
+  return dateSafe(hashSafe(stringified));
 }
 
 function newLine(content: string): string {
   return content.replace(/\r\n/g, '\n');
 }
+
+function hashSafe(content: string): string {
+  return content.replace(
+    /Internally used has to detect PR diff [a-f0-9]{32}/gi,
+    'Internally used has to detect PR diff stableMD5hash_3e81955b1ba8f1553b'
+  );
+}
+
 /*
  * Given an object of chnages expected to be made by code-suggester API,
  * stringify content in such a way that it works well for snapshots:
