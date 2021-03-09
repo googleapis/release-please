@@ -40,7 +40,7 @@ describe('JavaBom', () => {
       });
 
       sandbox
-        .stub(releasePR.gh, 'getDefaultBranch')
+        .stub(releasePR.gh, 'getRepositoryDefaultBranch')
         .returns(Promise.resolve('master'));
 
       // No open release PRs, so create a new release PR
@@ -117,7 +117,7 @@ describe('JavaBom', () => {
       });
 
       sandbox
-        .stub(releasePR.gh, 'getDefaultBranch')
+        .stub(releasePR.gh, 'getRepositoryDefaultBranch')
         .returns(Promise.resolve('master'));
 
       // No open release PRs, so create a new release PR
@@ -194,7 +194,7 @@ describe('JavaBom', () => {
       });
 
       sandbox
-        .stub(releasePR.gh, 'getDefaultBranch')
+        .stub(releasePR.gh, 'getRepositoryDefaultBranch')
         .returns(Promise.resolve('master'));
 
       sandbox
@@ -226,8 +226,9 @@ describe('JavaBom', () => {
         packageName: 'java-cloud-bom',
         snapshot: false,
       });
+
       sandbox
-        .stub(releasePR.gh, 'getDefaultBranch')
+        .stub(releasePR.gh, 'getRepositoryDefaultBranch')
         .returns(Promise.resolve('master'));
 
       // No open release PRs, so create a new release PR
@@ -303,7 +304,7 @@ describe('JavaBom', () => {
       });
 
       sandbox
-        .stub(releasePR.gh, 'getDefaultBranch')
+        .stub(releasePR.gh, 'getRepositoryDefaultBranch')
         .returns(Promise.resolve('master'));
 
       // No open release PRs, so create a new release PR

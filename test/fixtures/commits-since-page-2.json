@@ -19,7 +19,10 @@
                         }
                       ]
                     },
-                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure"
+                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure",
+                    "mergeCommit": {
+                      "oid": "959ee48c95f254300eb040c46ebdc8248317efe4"
+                    }
                   }
                 ]
               },

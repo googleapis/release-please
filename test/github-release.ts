@@ -25,6 +25,7 @@ import {GitHubFileContents, GitHub} from '../src/github';
 import {ReleasePR, JavaYoshi} from '../src';
 import {GoYoshi} from '../src/releasers/go-yoshi';
 import {Node} from '../src/releasers/node';
+import {JavaLTS} from '../src/releasers/java-lts';
 
 const sandbox = sinon.createSandbox();
 
@@ -486,6 +487,41 @@ describe('GitHubRelease', () => {
       expect(created).to.not.be.undefined;
       strictEqual(created!.name, 'foo v1.0.3');
       strictEqual(created!.tag_name, 'v1.0.3');
+      strictEqual(created!.major, 1);
+      strictEqual(created!.minor, 0);
+      strictEqual(created!.patch, 3);
+      strictEqual(created!.draft, false);
+    });
+
+    it('parses version from PR title (detectReleaseVersionFromTitle impl: java-lts)', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const mock = mockGithubCommon({
+        github,
+        prHead: 'release-please/branches/main',
+        prTitle: 'chore: release 1.0.3-lts.1',
+        version: '1.0.3-lts.1',
+      });
+      mockGithubLabelsAndComment(mock, true);
+      mock
+        .expects('createRelease')
+        .withExactArgs('foo', 'v1.0.3-lts.1', 'abc123', '\n* entry', false)
+        .once()
+        .resolves({
+          name: 'foo v1.0.3-lts.1',
+          tag_name: 'v1.0.3-lts.1',
+          draft: false,
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+          body: '\n* entry',
+        });
+      const releasePR = new JavaLTS({github, packageName: 'foo'});
+      const release = new GitHubRelease({github, releasePR});
+      const created = await release.run();
+
+      mock.verify();
+      expect(created).to.not.be.undefined;
+      strictEqual(created!.name, 'foo v1.0.3-lts.1');
+      strictEqual(created!.tag_name, 'v1.0.3-lts.1');
       strictEqual(created!.major, 1);
       strictEqual(created!.minor, 0);
       strictEqual(created!.patch, 3);

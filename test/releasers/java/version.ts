@@ -55,6 +55,46 @@ describe('Version', () => {
       expect(version.extra).to.equal('-beta');
       expect(version.snapshot).to.equal(true);
     });
+    it('can read an lts version', async () => {
+      const input = '1.23.45-lts.1';
+      const version = Version.parse(input);
+      expect(version.major).to.equal(1);
+      expect(version.minor).to.equal(23);
+      expect(version.patch).to.equal(45);
+      expect(version.extra).to.equal('');
+      expect(version.lts).to.equal(1);
+      expect(version.snapshot).to.equal(false);
+    });
+    it('can read an lts beta version', async () => {
+      const input = '1.23.45-beta-lts.1';
+      const version = Version.parse(input);
+      expect(version.major).to.equal(1);
+      expect(version.minor).to.equal(23);
+      expect(version.patch).to.equal(45);
+      expect(version.extra).to.equal('-beta');
+      expect(version.lts).to.equal(1);
+      expect(version.snapshot).to.equal(false);
+    });
+    it('can read an lts snapshot version', async () => {
+      const input = '1.23.45-lts.1-SNAPSHOT';
+      const version = Version.parse(input);
+      expect(version.major).to.equal(1);
+      expect(version.minor).to.equal(23);
+      expect(version.patch).to.equal(45);
+      expect(version.extra).to.equal('');
+      expect(version.lts).to.equal(1);
+      expect(version.snapshot).to.equal(true);
+    });
+    it('can read an lts beta snapshot version', async () => {
+      const input = '1.23.45-beta-lts.1-SNAPSHOT';
+      const version = Version.parse(input);
+      expect(version.major).to.equal(1);
+      expect(version.minor).to.equal(23);
+      expect(version.patch).to.equal(45);
+      expect(version.extra).to.equal('-beta');
+      expect(version.lts).to.equal(1);
+      expect(version.snapshot).to.equal(true);
+    });
   });
 
   describe('bump', () => {
@@ -131,6 +171,61 @@ describe('Version', () => {
         expect(version.patch).to.equal(46);
         expect(version.extra).to.equal('-beta');
         expect(version.snapshot).to.equal(true);
+      });
+    });
+
+    describe('LTS', () => {
+      it('should make an initial LTS bump', async () => {
+        const version = Version.parse('1.23.45').bump('lts');
+        expect(version.major).to.equal(1);
+        expect(version.minor).to.equal(23);
+        expect(version.patch).to.equal(46);
+        expect(version.extra).to.equal('');
+        expect(version.lts).to.equal(1);
+        expect(version.snapshot).to.equal(false);
+        expect(version.toString()).to.equal('1.23.46-lts.1');
+      });
+      it('should make an initial LTS bump on a SNAPSHOT', async () => {
+        const version = Version.parse('1.23.45-SNAPSHOT').bump('lts');
+        expect(version.major).to.equal(1);
+        expect(version.minor).to.equal(23);
+        expect(version.patch).to.equal(45);
+        expect(version.extra).to.equal('');
+        expect(version.lts).to.equal(1);
+        expect(version.snapshot).to.equal(false);
+        expect(version.toString()).to.equal('1.23.45-lts.1');
+      });
+      it('should make an initial LTS bump on beta version', async () => {
+        const version = Version.parse('1.23.45-beta').bump('lts');
+        expect(version.major).to.equal(1);
+        expect(version.minor).to.equal(23);
+        expect(version.patch).to.equal(46);
+        expect(version.extra).to.equal('-beta');
+        expect(version.lts).to.equal(1);
+        expect(version.snapshot).to.equal(false);
+        expect(version.toString()).to.equal('1.23.46-beta-lts.1');
+      });
+      it('should make a snapshot on an LTS version', async () => {
+        const version = Version.parse('1.23.45-beta-lts.1').bump('snapshot');
+        expect(version.major).to.equal(1);
+        expect(version.minor).to.equal(23);
+        expect(version.patch).to.equal(45);
+        expect(version.extra).to.equal('-beta');
+        expect(version.lts).to.equal(2);
+        expect(version.snapshot).to.equal(true);
+        expect(version.toString()).to.equal('1.23.45-beta-lts.2-SNAPSHOT');
+      });
+      it('should make an LTS bump on an LTS version', async () => {
+        const version = Version.parse('1.23.45-beta-lts.1-SNAPSHOT').bump(
+          'lts'
+        );
+        expect(version.major).to.equal(1);
+        expect(version.minor).to.equal(23);
+        expect(version.patch).to.equal(45);
+        expect(version.extra).to.equal('-beta');
+        expect(version.lts).to.equal(2);
+        expect(version.snapshot).to.equal(false);
+        expect(version.toString()).to.equal('1.23.45-beta-lts.2');
       });
     });
   });

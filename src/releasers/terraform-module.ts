@@ -94,8 +94,13 @@ export class TerraformModule extends ReleasePR {
     });
 
     // Update versions.tf to current candidate version.
-    // A module may have submodules, so find all versions.tf to update.
-    const versionFiles = await this.gh.findFilesByFilename('versions.tf');
+    // A module may have submodules, so find all versions.tfand versions.tf.tmpl to update.
+    const versionFiles = await Promise.all([
+      this.gh.findFilesByFilename('versions.tf'),
+      this.gh.findFilesByFilename('versions.tf.tmpl'),
+    ]).then(([v, vt]) => {
+      return v.concat(vt);
+    });
     versionFiles.forEach(path => {
       updates.push(
         new ModuleVersion({
