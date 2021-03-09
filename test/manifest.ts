@@ -1085,7 +1085,7 @@ describe('Manifest', () => {
           python: {
             'release-type': 'python',
             'package-name': 'foolib',
-            'release-draft': true,
+            draft: true,
           },
         },
       });
