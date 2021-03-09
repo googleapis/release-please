@@ -349,7 +349,10 @@ describe('Release-PR', () => {
 
     it('ignores associatedPullRequests that do not match the commit sha', async () => {
       const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'latest-tag-extra-pull-requests.json'), 'utf8')
+        readFileSync(
+          resolve(fixturesPath, 'latest-tag-extra-pull-requests.json'),
+          'utf8'
+        )
       );
       req.post('/graphql').reply(200, {
         data: graphql,

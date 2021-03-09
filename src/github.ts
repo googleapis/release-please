@@ -151,7 +151,7 @@ interface GraphQLCommit {
       };
       mergeCommit?: {
         oid: string;
-      }
+      };
     }[];
   };
 }
@@ -707,9 +707,11 @@ export class GitHub {
           message: graphCommit.message,
           files: [] as string[],
         };
-        const pullRequest = graphCommit.associatedPullRequests.nodes.find((pr) => {
-          return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
-        });
+        const pullRequest = graphCommit.associatedPullRequests.nodes.find(
+          pr => {
+            return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
+          }
+        );
         if (pullRequest) {
           return {
             commit,
