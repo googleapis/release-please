@@ -1,7 +1,7 @@
 # Java Release Strategies
 
 The Java release strategies that are currently implemented are tailored towards
-the Java client libraries team.
+Google Cloud's Java client libraries team.
 
 To manage versions, we maintain a `versions.txt` manifest which keeps track of
 artifact versions. To mark versions in code which need to be replaced, we use
