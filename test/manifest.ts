@@ -26,6 +26,7 @@ import {stubSuggesterWithSnapshot, buildMockCommit} from './helpers';
 const fixturePath = './test/fixtures/manifest/repo';
 const defaultBranch = 'main';
 const lastReleaseSha = 'abc123';
+const addLabel = 'autorelease: pending';
 const sandbox = sinon.createSandbox();
 
 describe('Manifest', () => {
@@ -33,34 +34,14 @@ describe('Manifest', () => {
     sandbox.restore();
   });
 
-  function mockGithub(options: {
-    github: GitHub;
-    commits?: Commit[];
-    manifest?: string | false;
-    lastReleaseSha?: string;
-    // used by githubRelease to figure out which packages had actual changes
-    mergedPRFiles?: string[];
-    mergedPRLabels?: string[];
-    fixtureFiles?: string[];
-    inlineFiles?: [string, string][];
-    addLabel?: string | false;
-    removeLabel?: string | false;
-    prComments?: string[];
-  }) {
-    const {
-      github,
-      commits,
-      manifest,
-      lastReleaseSha,
-      mergedPRFiles,
-      mergedPRLabels,
-      fixtureFiles,
-      inlineFiles,
-      addLabel,
-      removeLabel,
-      prComments,
-    } = options;
-    const mock = sandbox.mock(github);
+  function expectManifest(
+    mock: sinon.SinonMock,
+    params?: {
+      manifest?: string | false;
+      lastReleaseSha?: string;
+    }
+  ) {
+    const {manifest, lastReleaseSha} = params ?? {};
     if (manifest) {
       mock
         .expects('getFileContentsWithSimpleAPI')
@@ -76,6 +57,17 @@ describe('Manifest', () => {
     } else {
       mock.expects('getFileContentsWithSimpleAPI').never();
     }
+  }
+
+  function expectPR(
+    mock: sinon.SinonMock,
+    params?: {
+      mergedPRFiles?: string[];
+      mergedPRLabels?: string[];
+      lastReleaseSha?: string;
+    }
+  ) {
+    const {mergedPRFiles, mergedPRLabels, lastReleaseSha} = params ?? {};
     let mergedPR: MergedGitHubPRWithFiles | undefined;
     if (lastReleaseSha) {
       mergedPR = {
@@ -95,15 +87,18 @@ describe('Manifest', () => {
       .withExactArgs('release-please/branches/main')
       .resolves(mergedPR);
 
-    // implementation strips leading `path` from results
-    mock
-      .expects('findFilesByFilename')
-      .atMost(1)
-      .withExactArgs('version.py', 'python')
-      .resolves(['src/foolib/version.py']);
-
     // creating a new PR
     mock.expects('findOpenReleasePRs').atMost(1).resolves([]);
+  }
+
+  function expectCommitsSinceSha(
+    mock: sinon.SinonMock,
+    params?: {
+      commits?: Commit[];
+      lastReleaseSha?: string;
+    }
+  ) {
+    const {commits, lastReleaseSha} = params ?? {};
     if (commits) {
       mock
         .expects('commitsSinceSha')
@@ -113,6 +108,16 @@ describe('Manifest', () => {
     } else {
       mock.expects('commitsSinceSha').never();
     }
+  }
+
+  function expectGetFiles(
+    mock: sinon.SinonMock,
+    params?: {
+      fixtureFiles?: string[];
+      inlineFiles?: [string, string][];
+    }
+  ) {
+    const {fixtureFiles, inlineFiles} = params ?? {};
     if (fixtureFiles || inlineFiles) {
       const fixtures = fixtureFiles ?? [];
       const inlines = inlineFiles ?? [];
@@ -151,11 +156,20 @@ describe('Manifest', () => {
     } else {
       mock.expects('getFileContentsOnBranch').never();
     }
+  }
 
+  function expectLabelAndComment(
+    mock: sinon.SinonMock,
+    params?: {
+      addLabel?: string;
+      removeLabel?: string;
+      prComments?: string[];
+    }
+  ) {
+    const {addLabel, removeLabel, prComments} = params ?? {};
     const addLabelsExp = mock.expects('addLabels');
-    const labelToAdd = addLabel ?? 'autorelease: pending';
-    if (labelToAdd) {
-      addLabelsExp.once().withExactArgs([labelToAdd], 22).resolves(true);
+    if (addLabel) {
+      addLabelsExp.once().withExactArgs([addLabel], 22).resolves(true);
     } else {
       addLabelsExp.never();
     }
@@ -175,7 +189,20 @@ describe('Manifest', () => {
           .once()
           .resolves();
       }
+    } else {
+      mock.expects('commentOnIssue').never();
     }
+  }
+
+  function mockGithub(github: GitHub) {
+    const mock = sandbox.mock(github);
+
+    // implementation strips leading `path` from results
+    mock
+      .expects('findFilesByFilename')
+      .atMost(1)
+      .withExactArgs('version.py', 'python')
+      .resolves(['src/foolib/version.py']);
     return mock;
   }
 
@@ -215,11 +242,11 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        commits,
-        manifest,
-        lastReleaseSha,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
           'python/setup.py',
@@ -231,6 +258,7 @@ describe('Manifest', () => {
           ['.release-please-manifest.json', manifestFileAtHEAD],
         ],
       });
+      expectLabelAndComment(mock, {addLabel});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
@@ -307,11 +335,8 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        commits,
-        manifest,
-        lastReleaseSha,
+      const mock = mockGithub(github);
+      expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
           'python/setup.py',
@@ -324,6 +349,10 @@ describe('Manifest', () => {
           ['.release-please-manifest.json', manifest],
         ],
       });
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectLabelAndComment(mock, {addLabel});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
@@ -389,11 +418,11 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        commits,
-        manifest,
-        lastReleaseSha,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
           'node/pkg2/package.json',
@@ -406,6 +435,7 @@ describe('Manifest', () => {
           ['.release-please-manifest.json', manifestFileAtHEAD],
         ],
       });
+      expectLabelAndComment(mock, {addLabel});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
@@ -473,11 +503,11 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        commits,
-        manifest,
-        lastReleaseSha,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
           'node/pkg2/package.json',
@@ -491,6 +521,7 @@ describe('Manifest', () => {
           ['.release-please-manifest.json', manifest],
         ],
       });
+      expectLabelAndComment(mock, {addLabel});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
@@ -563,11 +594,11 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        commits,
-        manifest,
-        lastReleaseSha,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
         fixtureFiles: ['node/pkg2/package.json'],
         inlineFiles: [
           ['release-please-config.json', config],
@@ -575,6 +606,7 @@ describe('Manifest', () => {
           ['.release-please-manifest.json', manifest],
         ],
       });
+      expectLabelAndComment(mock, {addLabel});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
@@ -628,19 +660,19 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        commits,
-        manifest,
-        lastReleaseSha,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
         fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
         inlineFiles: [
           ['release-please-config.json', config],
           // manifest has not been changed.
           ['.release-please-manifest.json', manifest],
         ],
-        addLabel: false,
       });
+      expectLabelAndComment(mock);
       // there should be no snapshot created for this test
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
@@ -709,10 +741,11 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      // no lastReleaseSha/manifest
-      const mock = mockGithub({
-        github,
-        commits,
+      const mock = mockGithub(github);
+      expectManifest(mock);
+      expectPR(mock);
+      expectCommitsSinceSha(mock, {commits});
+      expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
           'node/pkg2/package.json',
@@ -725,6 +758,7 @@ describe('Manifest', () => {
           ['.release-please-manifest.json', manifestFileAtHEAD],
         ],
       });
+      expectLabelAndComment(mock, {addLabel});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
@@ -760,6 +794,7 @@ describe('Manifest', () => {
 
     it('boostraps from HEAD manifest if manifest was deleted in last release PR', async function () {
       // no previously merged PR found, will use this as bootstrap
+      const manifest = false;
       const manifestFileAtHEAD = JSON.stringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
@@ -795,11 +830,11 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        commits,
-        manifest: false,
-        lastReleaseSha,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
           'node/pkg2/package.json',
@@ -812,6 +847,7 @@ describe('Manifest', () => {
           ['.release-please-manifest.json', manifestFileAtHEAD],
         ],
       });
+      expectLabelAndComment(mock, {addLabel});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
@@ -874,17 +910,10 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        manifest,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {
         lastReleaseSha,
-        fixtureFiles: ['node/pkg1/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
-        ],
         mergedPRFiles: [
           // lack of any "node/pkg2/ files indicates that package did not
           // change in the last merged PR.
@@ -896,6 +925,17 @@ describe('Manifest', () => {
           'python/src/foolib/version.py',
           '.release-please-manifest.json',
         ],
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: ['node/pkg1/package.json'],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
+          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
+        ],
+      });
+      expectLabelAndComment(mock, {
         addLabel: 'autorelease: tagged',
         removeLabel: 'autorelease: pending',
         prComments: [
@@ -980,16 +1020,17 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        addLabel: false,
-        removeLabel: false,
+      const mock = mockGithub(github);
+      expectManifest(mock);
+      expectPR(mock);
+      expectGetFiles(mock, {
         inlineFiles: [
           // minimal manifest/config to pass validation
           ['.release-please-manifest.json', '{}'],
           ['release-please-config.json', '{"packages": {"path":{}}}'],
         ],
       });
+      expectLabelAndComment(mock);
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
@@ -1010,18 +1051,17 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        lastReleaseSha,
-        mergedPRLabels: ['autorelease: tagged'],
-        addLabel: false,
-        removeLabel: false,
+      const mock = mockGithub(github);
+      expectManifest(mock);
+      expectPR(mock, {mergedPRLabels: ['autorelease: tagged'], lastReleaseSha});
+      expectGetFiles(mock, {
         inlineFiles: [
           // minimal manifest/config to pass validation
           ['.release-please-manifest.json', '{}'],
           ['release-please-config.json', '{"packages": {"path":{}}}'],
         ],
       });
+      expectLabelAndComment(mock);
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
@@ -1042,18 +1082,17 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        lastReleaseSha,
-        mergedPRLabels: [],
-        addLabel: false,
-        removeLabel: false,
+      const mock = mockGithub(github);
+      expectManifest(mock);
+      expectPR(mock, {mergedPRLabels: [], lastReleaseSha});
+      expectGetFiles(mock, {
         inlineFiles: [
           // minimal manifest/config to pass validation
           ['.release-please-manifest.json', '{}'],
           ['release-please-config.json', '{"packages": {"path":{}}}'],
         ],
       });
+      expectLabelAndComment(mock);
       const logs: [string, CheckpointType][] = [];
       const checkpoint = (msg: string, type: CheckpointType) =>
         logs.push([msg, type]);
@@ -1092,16 +1131,10 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        manifest,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {
         lastReleaseSha,
-        fixtureFiles: ['node/pkg1/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-        ],
         mergedPRFiles: [
           'node/pkg1/package.json',
           'node/pkg1/CHANGELOG.md',
@@ -1111,6 +1144,16 @@ describe('Manifest', () => {
           'python/src/foolib/version.py',
           '.release-please-manifest.json',
         ],
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: ['node/pkg1/package.json'],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
+        ],
+      });
+      expectLabelAndComment(mock, {
         addLabel: 'autorelease: tagged',
         removeLabel: 'autorelease: pending',
         prComments: [
@@ -1222,18 +1265,10 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        manifest,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {
         lastReleaseSha,
-        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-          ['node/pkg2/CHANGELOG.md', '#Changelog\n\n## v0.1.2\n\n* entry'],
-          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
-        ],
         mergedPRFiles: [
           'node/pkg1/package.json',
           'node/pkg1/CHANGELOG.md',
@@ -1245,12 +1280,18 @@ describe('Manifest', () => {
           'python/src/foolib/version.py',
           '.release-please-manifest.json',
         ],
-
-        // labels only swapped when every package is successfully released
-        // or its release has been found to already exist
-        addLabel: false,
-        removeLabel: false,
-
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
+          ['node/pkg2/CHANGELOG.md', '#Changelog\n\n## v0.1.2\n\n* entry'],
+          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
+        ],
+      });
+      expectLabelAndComment(mock, {
         prComments: [
           ':robot: Release for @node/pkg1 is at https://pkg1@3.2.1:html :sunflower:',
           ':robot: Failed to create release for @node/pkg2 :cloud:',
@@ -1391,18 +1432,10 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        manifest,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {
         lastReleaseSha,
-        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-          ['node/pkg2/CHANGELOG.md', '#Changelog\n\n## v0.1.2\n\n* entry'],
-          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
-        ],
         mergedPRFiles: [
           'node/pkg1/package.json',
           'node/pkg1/CHANGELOG.md',
@@ -1414,6 +1447,18 @@ describe('Manifest', () => {
           'python/src/foolib/version.py',
           '.release-please-manifest.json',
         ],
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
+          ['node/pkg2/CHANGELOG.md', '#Changelog\n\n## v0.1.2\n\n* entry'],
+          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
+        ],
+      });
+      expectLabelAndComment(mock, {
         addLabel: 'autorelease: tagged',
         removeLabel: 'autorelease: pending',
         prComments: [
@@ -1540,23 +1585,25 @@ describe('Manifest', () => {
         repo: 'repo',
         defaultBranch,
       });
-      const mock = mockGithub({
-        github,
-        manifest,
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {
         lastReleaseSha,
+        mergedPRFiles: [
+          'node/pkg1/package.json',
+          'node/pkg1/CHANGELOG.md',
+          '.release-please-manifest.json',
+        ],
+      });
+      expectGetFiles(mock, {
         fixtureFiles: ['node/pkg1/package.json'],
         inlineFiles: [
           ['release-please-config.json', config],
           ['.release-please-manifest.json', manifest],
           ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
         ],
-        mergedPRFiles: [
-          'node/pkg1/package.json',
-          'node/pkg1/CHANGELOG.md',
-          '.release-please-manifest.json',
-        ],
-        addLabel: false,
-        removeLabel: false,
+      });
+      expectLabelAndComment(mock, {
         prComments: [':robot: Failed to create release for @node/pkg1 :cloud:'],
       });
 
@@ -1656,13 +1703,12 @@ describe('Manifest', () => {
             repo: 'repo',
             defaultBranch,
           });
-          const mock = mockGithub({
-            github,
+          const mock = mockGithub(github);
+          expectGetFiles(mock, {
             inlineFiles: [
               ['release-please-config.json', config],
               ['.release-please-manifest.json', manifest],
             ],
-            addLabel: false,
           });
           const logs: [string, CheckpointType][] = [];
           const checkpoint = (msg: string, type: CheckpointType) =>
