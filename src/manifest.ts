@@ -43,6 +43,7 @@ interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
   'bump-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
+  'release-as'?: string;
   'release-draft'?: boolean;
 }
 
@@ -54,6 +55,7 @@ interface ReleaserPackageConfig extends ReleaserConfigJson {
 export interface Config extends ReleaserConfigJson {
   packages: Record<string, ReleaserPackageConfig>;
   parsedPackages: Package[];
+  'bootstrap-sha'?: string;
 }
 
 interface Package {
@@ -63,6 +65,7 @@ interface Package {
   bumpMinorPreMajor?: boolean;
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
+  releaseAs?: string;
   releaseDraft: boolean;
 }
 
@@ -234,6 +237,10 @@ export class Manifest {
           changelogSections:
             pkgCfg['changelog-sections'] ?? config['changelog-sections'],
           changelogPath: pkgCfg['changelog-path'],
+          releaseAs: this.resolveReleaseAs(
+            pkgCfg['release-as'],
+            config['release-as']
+          ),
           releaseDraft: !!(pkgCfg['release-draft'] ?? config['release-draft']),
         };
         packages.push(pkg);
@@ -241,6 +248,30 @@ export class Manifest {
       this.configFile = {parsedPackages: packages, ...config};
     }
     return this.configFile;
+  }
+
+  // Default release-as only considered if non-empty string.
+  // Per-pkg release-as may be:
+  //   1. undefined: use default release-as if present, otherwise normal version
+  //      resolution (auto-increment from CC, fallback to defaultInitialVersion)
+  //   1. non-empty string: use this version
+  //   2. empty string: override default release-as if present, otherwise normal
+  //      version resolution.
+  private resolveReleaseAs(
+    pkgRA?: string,
+    defaultRA?: string
+  ): string | undefined {
+    let releaseAs: string | undefined;
+    if (defaultRA) {
+      releaseAs = defaultRA;
+    }
+    if (pkgRA !== undefined) {
+      releaseAs = pkgRA;
+    }
+    if (!releaseAs) {
+      releaseAs = undefined;
+    }
+    return releaseAs;
   }
 
   protected async getPackagesToRelease(
@@ -464,6 +495,14 @@ export class Manifest {
     return [body, updates];
   }
 
+  private async commitsSinceSha(sha?: string): Promise<Commit[]> {
+    let fromSha = sha;
+    if (fromSha === undefined) {
+      fromSha = (await this.getConfigJson())['bootstrap-sha'];
+    }
+    return this.gh.commitsSinceSha(fromSha);
+  }
+
   async pullRequest(): Promise<number | undefined> {
     const valid = await this.validate();
     if (!valid) {
@@ -472,7 +511,7 @@ export class Manifest {
 
     const branchName = (await this.getBranchName()).toString();
     const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
-    const commits = await this.gh.commitsSinceSha(lastMergedPR?.sha);
+    const commits = await this.commitsSinceSha(lastMergedPR?.sha);
     const packages = await this.getPackagesToRelease(
       commits,
       lastMergedPR?.sha
