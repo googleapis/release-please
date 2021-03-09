@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.2.0](https://www.github.com/googleapis/release-please/compare/v11.1.1...v11.2.0) (2021-03-09)
+
+
+### Features
+
+* **java:** add LTS versioning scheme and releaser ([#810](https://www.github.com/googleapis/release-please/issues/810)) ([89e5bed](https://www.github.com/googleapis/release-please/commit/89e5bedf00cccc756dbbe6c61013a5a54a724be9))
+
+
+### Bug Fixes
+
+* associated pull requests should match merge commit sha ([#817](https://www.github.com/googleapis/release-please/issues/817)) ([c144f8b](https://www.github.com/googleapis/release-please/commit/c144f8b8dd090b6133e73546a03ce55ebf08b68b))
+* update templated tf versions ([#812](https://www.github.com/googleapis/release-please/issues/812)) ([d222746](https://www.github.com/googleapis/release-please/commit/d22274690c3a2117d620af76537b7e641e4734fd))
+
 ### [11.1.1](https://www.github.com/googleapis/release-please/compare/v11.1.0...v11.1.1) (2021-03-01)
 
 
