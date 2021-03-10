@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach} from 'mocha';
 
-import {Manifest, ManifestConfig} from '../src/manifest';
+import {Manifest} from '../src/manifest';
 import * as sinon from 'sinon';
 import {GitHub, MergedGitHubPRWithFiles} from '../src/github';
 import {buildGitHubFileRaw, buildGitHubFileContent} from './releasers/utils';
@@ -218,7 +218,7 @@ describe('Manifest', () => {
         // to change.
         python: '9.9.9',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         packages: {
           'node/pkg1': {},
           python: {
@@ -226,8 +226,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
       const commits = [
         buildMockCommit('fix(foolib): bufix python foolib', [
           'python/src/foolib/foo.py',
@@ -293,7 +292,7 @@ describe('Manifest', () => {
         'node/pkg1': '0.1.1',
         python: '0.1.1',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         'bump-minor-pre-major': true,
         'changelog-sections': [
           {type: 'feat', section: 'Default Features Section'},
@@ -313,8 +312,7 @@ describe('Manifest', () => {
             ],
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
       const commits = [
         buildMockCommit('feat(foolib)!: python feature', [
           'python/src/foolib/foo.py',
@@ -388,7 +386,7 @@ describe('Manifest', () => {
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -399,8 +397,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
       const commits = [
         buildMockCommit('fix(foolib): bufix python foolib', [
           'python/src/foolib/foo.py',
@@ -475,7 +472,7 @@ describe('Manifest', () => {
         'node/pkg1': '3.2.1',
         python: '1.2.3',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         packages: {
           'node/pkg1': {},
           'node/pkg2': {}, // should default to Node.defaultInitialVersion
@@ -484,8 +481,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
       const commits = [
         buildMockCommit('fix(foolib): bufix python foolib', [
           'python/src/foolib/foo.py',
@@ -711,7 +707,7 @@ describe('Manifest', () => {
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -722,8 +718,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
       const commits = [
         buildMockCommit('fix(foolib): bufix python foolib', [
           'python/src/foolib/foo.py',
@@ -800,7 +795,7 @@ describe('Manifest', () => {
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -811,8 +806,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
       const commits = [
         buildMockCommit('fix(foolib): bufix python foolib', [
           'python/src/foolib/foo.py',
@@ -893,7 +887,7 @@ describe('Manifest', () => {
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         packages: {
           'node/pkg1': {},
           python: {
@@ -902,8 +896,7 @@ describe('Manifest', () => {
             'release-draft': true,
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
 
       const github = new GitHub({
         owner: 'fake',
@@ -1115,7 +1108,7 @@ describe('Manifest', () => {
         'node/pkg1': '3.2.1',
         // python: '1.2.3', - user deleted this one
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         packages: {
           'node/pkg1': {},
           python: {
@@ -1123,8 +1116,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
 
       const github = new GitHub({
         owner: 'fake',
@@ -1248,7 +1240,7 @@ describe('Manifest', () => {
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         packages: {
           'node/pkg1': {},
           'node/pkg2': {},
@@ -1257,8 +1249,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
 
       const github = new GitHub({
         owner: 'fake',
@@ -1415,7 +1406,7 @@ describe('Manifest', () => {
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         packages: {
           'node/pkg1': {},
           'node/pkg2': {},
@@ -1424,8 +1415,7 @@ describe('Manifest', () => {
             'package-name': 'foolib',
           },
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
 
       const github = new GitHub({
         owner: 'fake',
@@ -1573,12 +1563,11 @@ describe('Manifest', () => {
       const manifest = JSON.stringify({
         'node/pkg1': '3.2.1',
       });
-      const manifestConfig: ManifestConfig = {
+      const config = JSON.stringify({
         packages: {
           'node/pkg1': {},
         },
-      };
-      const config = JSON.stringify(manifestConfig);
+      });
 
       const github = new GitHub({
         owner: 'fake',
@@ -1735,16 +1724,22 @@ describe('Manifest', () => {
         const checkpoint = (msg: string, type: CheckpointType) =>
           logs.push([msg, type]);
         const m = new Manifest({github, checkpoint});
-        let caught = false;
-        try {
-          await m[method]();
-        } catch (e) {
-          caught = true;
-        }
-        expect(caught).to.be.true;
+        await m[method]();
         expect(logs).to.eql([
           [
             'Failed to get release-please-config.json at HEAD: 404',
+            CheckpointType.Failure,
+          ],
+          [
+            'Unable to getConfigJson(release-please-config.json): not found',
+            CheckpointType.Failure,
+          ],
+          [
+            'Failed to get .release-please-manifest.json at HEAD: 404',
+            CheckpointType.Failure,
+          ],
+          [
+            'Unable to getManifestJson(.release-please-manifest.json): not found',
             CheckpointType.Failure,
           ],
         ]);
@@ -1768,16 +1763,14 @@ describe('Manifest', () => {
         const checkpoint = (msg: string, type: CheckpointType) =>
           logs.push([msg, type]);
         const m = new Manifest({github, checkpoint});
-        let caught = false;
-        try {
-          await m[method]();
-        } catch (e) {
-          caught = true;
-        }
-        expect(caught).to.be.true;
+        await m[method]();
         expect(logs).to.eql([
           [
             'Failed to get .release-please-manifest.json at HEAD: 404',
+            CheckpointType.Failure,
+          ],
+          [
+            'Unable to getManifestJson(.release-please-manifest.json): not found',
             CheckpointType.Failure,
           ],
         ]);

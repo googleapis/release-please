@@ -39,20 +39,21 @@ import {
 } from './github-release';
 import {OpenPROptions} from './release-pr';
 
-interface ReleaserConfig {
+interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
   'bump-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
   'release-draft'?: boolean;
 }
 
-interface ReleaserPackageConfig extends ReleaserConfig {
+interface ReleaserPackageConfig extends ReleaserConfigJson {
   'package-name'?: string;
   'changelog-path'?: string;
 }
 
-export interface ManifestConfig extends ReleaserConfig {
+export interface Config extends ReleaserConfigJson {
   packages: Record<string, ReleaserPackageConfig>;
+  parsedPackages: Package[];
 }
 
 interface Package {
@@ -76,13 +77,15 @@ interface PackageWithPRData {
   openPROptions: OpenPROptions;
 }
 
+type ManifestJson = Record<string, string>;
+
 export class Manifest {
   gh: GitHub;
   configFileName: string;
   manifestFileName: string;
   checkpoint: Checkpoint;
-  configFile?: GitHubFileContents;
-  headManifest?: GitHubFileContents;
+  configFile?: Config;
+  headManifest?: ManifestJson;
 
   constructor(options: ManifestConstructorOptions) {
     this.gh = options.github;
@@ -95,21 +98,25 @@ export class Manifest {
     return BranchName.ofTargetBranch(await this.gh.getDefaultBranch());
   }
 
-  protected async getFile(fileName: string): Promise<GitHubFileContents>;
-  protected async getFile(
+  protected async getFileJson<T>(fileName: string): Promise<T>;
+  protected async getFileJson<T>(
     fileName: string,
     sha: string
-  ): Promise<GitHubFileContents | undefined>;
-  protected async getFile(
+  ): Promise<T | undefined>;
+  protected async getFileJson<T>(
     fileName: string,
     sha?: string
-  ): Promise<GitHubFileContents | undefined> {
-    let data: GitHubFileContents | undefined;
+  ): Promise<T | undefined> {
+    let content: GitHubFileContents;
     try {
       if (sha) {
-        data = await this.gh.getFileContentsWithSimpleAPI(fileName, sha, false);
+        content = await this.gh.getFileContentsWithSimpleAPI(
+          fileName,
+          sha,
+          false
+        );
       } else {
-        data = await this.gh.getFileContents(fileName);
+        content = await this.gh.getFileContents(fileName);
       }
     } catch (e) {
       this.checkpoint(
@@ -127,27 +134,33 @@ export class Manifest {
         // they can be added and this exception will not be thrown.
         throw e;
       }
+      return;
     }
-    return data;
+    return JSON.parse(content.parsedContent);
   }
 
-  protected async getManifest(): Promise<GitHubFileContents>;
-  protected async getManifest(
+  protected async getManifestJson(): Promise<ManifestJson>;
+  protected async getManifestJson(
     sha: string
-  ): Promise<GitHubFileContents | undefined>;
-  protected async getManifest(
+  ): Promise<ManifestJson | undefined>;
+  protected async getManifestJson(
     sha?: string
-  ): Promise<GitHubFileContents | undefined> {
+  ): Promise<ManifestJson | undefined> {
     // cache headManifest since it's loaded in validate() as well as later on
     // and we never write to it.
-    let manifest: GitHubFileContents | undefined;
+    let manifest: ManifestJson | undefined;
     if (sha === undefined) {
       if (!this.headManifest) {
-        this.headManifest = await this.getFile(this.manifestFileName);
+        this.headManifest = await this.getFileJson<ManifestJson>(
+          this.manifestFileName
+        );
       }
       manifest = this.headManifest;
     } else {
-      manifest = await this.getFile(this.manifestFileName, sha);
+      manifest = await this.getFileJson<ManifestJson>(
+        this.manifestFileName,
+        sha
+      );
     }
     return manifest;
   }
@@ -163,7 +176,7 @@ export class Manifest {
     sha?: string | false,
     newPaths?: string[]
   ): Promise<[VersionsMap, string] | VersionsMap> {
-    let manifest: GitHubFileContents | undefined;
+    let manifestJson: object;
     const defaultBranch = await this.gh.getDefaultBranch();
     const bootstrapMsg =
       `Bootstrapping from ${this.manifestFileName} ` +
@@ -179,21 +192,21 @@ export class Manifest {
     }
     let atSha = 'tip';
     if (!sha) {
-      manifest = await this.getManifest();
+      manifestJson = await this.getManifestJson();
     } else {
       // try to retrieve manifest from last release sha.
-      manifest = await this.getManifest(sha);
+      const maybeManifestJson = await this.getManifestJson(sha);
       atSha = sha;
-      if (manifest === undefined) {
+      if (maybeManifestJson === undefined) {
         // user deleted manifest from last release PR before merging.
         this.checkpoint(bootstrapMsg, CheckpointType.Failure);
-        manifest = await this.getManifest();
+        manifestJson = await this.getManifestJson();
         atSha = 'tip';
+      } else {
+        manifestJson = maybeManifestJson;
       }
     }
-    const parsed: VersionsMap = new Map(
-      Object.entries(JSON.parse(manifest.parsedContent))
-    );
+    const parsed: VersionsMap = new Map(Object.entries(manifestJson));
     if (sha === false) {
       return parsed;
     } else {
@@ -201,43 +214,40 @@ export class Manifest {
     }
   }
 
-  protected async getConfig(): Promise<GitHubFileContents> {
+  protected async getConfigJson(): Promise<Config> {
     // cache config since it's loaded in validate() as well as later on and we
     // never write to it.
     if (!this.configFile) {
-      this.configFile = await this.getFile(this.configFileName);
+      const config = await this.getFileJson<Omit<Config, 'parsedPackages'>>(
+        this.configFileName
+      );
+      const packages = [];
+      for (const pkgPath in config.packages) {
+        const pkgCfg = config.packages[pkgPath];
+        const pkg = {
+          path: pkgPath,
+          releaseType:
+            pkgCfg['release-type'] ?? config['release-type'] ?? 'node',
+          packageName: pkgCfg['package-name'],
+          bumpMinorPreMajor:
+            pkgCfg['bump-minor-pre-major'] ?? config['bump-minor-pre-major'],
+          changelogSections:
+            pkgCfg['changelog-sections'] ?? config['changelog-sections'],
+          changelogPath: pkgCfg['changelog-path'],
+          releaseDraft: !!(pkgCfg['release-draft'] ?? config['release-draft']),
+        };
+        packages.push(pkg);
+      }
+      this.configFile = {parsedPackages: packages, ...config};
     }
     return this.configFile;
-  }
-
-  protected async readConfig(): Promise<Package[]> {
-    const config: ManifestConfig = JSON.parse(
-      (await this.getConfig()).parsedContent
-    );
-    const packages: Package[] = [];
-    for (const pkgPath in config.packages) {
-      const pkgCfg = config.packages[pkgPath];
-      const pkg: Package = {
-        path: pkgPath,
-        releaseType: pkgCfg['release-type'] ?? config['release-type'] ?? 'node',
-        packageName: pkgCfg['package-name'],
-        bumpMinorPreMajor:
-          pkgCfg['bump-minor-pre-major'] ?? config['bump-minor-pre-major'],
-        changelogSections:
-          pkgCfg['changelog-sections'] ?? config['changelog-sections'],
-        changelogPath: pkgCfg['changelog-path'],
-        releaseDraft: !!(pkgCfg['release-draft'] ?? config['release-draft']),
-      };
-      packages.push(pkg);
-    }
-    return packages;
   }
 
   protected async getPackagesToRelease(
     commits: Commit[],
     sha?: string
   ): Promise<PackageReleaseData[]> {
-    const packages = await this.readConfig();
+    const packages = (await this.getConfigJson()).parsedPackages;
     const [manifestVersions, atSha] = await this.getManifestVersions(sha);
     const cs = new CommitSplit({
       includeEmpty: true,
@@ -301,7 +311,7 @@ export class Manifest {
   }
 
   private async validateJsonFile(
-    getFileMethod: 'getConfig' | 'getManifest',
+    getFileMethod: 'getConfigJson' | 'getManifestJson',
     fileName: string
   ): Promise<{valid: true; obj: object} | {valid: false; obj: undefined}> {
     let response:
@@ -310,26 +320,31 @@ export class Manifest {
       valid: false,
       obj: undefined,
     };
-    const file = await this[getFileMethod]();
     try {
-      const obj = JSON.parse(file.parsedContent);
+      const obj = await this[getFileMethod]();
       if (obj.constructor.name === 'Object') {
         response = {valid: true, obj: obj};
       }
     } catch (e) {
-      this.checkpoint(`Invalid JSON in ${fileName}`, CheckpointType.Failure);
+      let errMsg;
+      if (e instanceof SyntaxError) {
+        errMsg = `Invalid JSON in ${fileName}`;
+      } else {
+        errMsg = `Unable to ${getFileMethod}(${fileName}): ${e.message}`;
+      }
+      this.checkpoint(errMsg, CheckpointType.Failure);
     }
     return response;
   }
 
   protected async validate(): Promise<boolean> {
     const configValidation = await this.validateJsonFile(
-      'getConfig',
+      'getConfigJson',
       this.configFileName
     );
     let validConfig = false;
     if (configValidation.valid) {
-      const obj = configValidation.obj as ManifestConfig;
+      const obj = configValidation.obj as Config;
       validConfig = !!Object.keys(obj.packages ?? {}).length;
       if (!validConfig) {
         this.checkpoint(
@@ -340,7 +355,7 @@ export class Manifest {
     }
 
     const manifestValidation = await this.validateJsonFile(
-      'getManifest',
+      'getManifestJson',
       this.manifestFileName
     );
     let validManifest = false;
@@ -417,6 +432,17 @@ export class Manifest {
         `${openPRPackage.openPROptions.changelogEntry}`;
       updates.push(...openPRPackage.openPROptions.updates);
     }
+
+    // TODO: `Update` interface to supply cached contents for use in
+    // GitHub.getChangeSet processing could be simplified to just use a
+    // string - no need for a full blown GitHubFileContents
+    const manifestContents: GitHubFileContents = {
+      sha: '',
+      parsedContent: '',
+      content: Buffer.from(
+        JSON.stringify(await this.getManifestJson())
+      ).toString('base64'),
+    };
     updates.push(
       new ReleasePleaseManifest({
         changelogEntry: '',
@@ -424,7 +450,7 @@ export class Manifest {
         path: this.manifestFileName,
         version: '',
         versions: manifestUpdates,
-        contents: await this.getManifest(),
+        contents: manifestContents,
       })
     );
     body +=
