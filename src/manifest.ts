@@ -504,7 +504,7 @@ export class Manifest {
     if (fromSha === undefined) {
       fromSha = (await this.getConfigJson())['bootstrap-sha'];
     }
-    return this.gh.commitsSinceSha(fromSha);
+    return this.gh.commitsSinceShaRest(fromSha);
   }
 
   async pullRequest(): Promise<number | undefined> {
