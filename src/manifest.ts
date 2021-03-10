@@ -39,19 +39,19 @@ import {
 } from './github-release';
 import {OpenPROptions} from './release-pr';
 
-interface ReleaserConfig {
+interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
   'bump-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
   'release-draft'?: boolean;
 }
 
-interface ReleaserPackageConfig extends ReleaserConfig {
+interface ReleaserPackageConfig extends ReleaserConfigJson {
   'package-name'?: string;
   'changelog-path'?: string;
 }
 
-export interface Config extends ReleaserConfig {
+export interface Config extends ReleaserConfigJson {
   packages: Record<string, ReleaserPackageConfig>;
   parsedPackages: Package[];
 }
@@ -77,13 +77,15 @@ interface PackageWithPRData {
   openPROptions: OpenPROptions;
 }
 
+type ManifestJson = Record<string, string>;
+
 export class Manifest {
   gh: GitHub;
   configFileName: string;
   manifestFileName: string;
   checkpoint: Checkpoint;
   configFile?: Config;
-  headManifest?: object;
+  headManifest?: ManifestJson;
 
   constructor(options: ManifestConstructorOptions) {
     this.gh = options.github;
@@ -96,15 +98,15 @@ export class Manifest {
     return BranchName.ofTargetBranch(await this.gh.getDefaultBranch());
   }
 
-  protected async getFileJson(fileName: string): Promise<object>;
-  protected async getFileJson(
+  protected async getFileJson<T>(fileName: string): Promise<T>;
+  protected async getFileJson<T>(
     fileName: string,
     sha: string
-  ): Promise<object | undefined>;
-  protected async getFileJson(
+  ): Promise<T | undefined>;
+  protected async getFileJson<T>(
     fileName: string,
     sha?: string
-  ): Promise<object | undefined> {
+  ): Promise<T | undefined> {
     let content: GitHubFileContents;
     try {
       if (sha) {
@@ -137,19 +139,28 @@ export class Manifest {
     return JSON.parse(content.parsedContent);
   }
 
-  protected async getManifestJson(): Promise<object>;
-  protected async getManifestJson(sha: string): Promise<object | undefined>;
-  protected async getManifestJson(sha?: string): Promise<object | undefined> {
+  protected async getManifestJson(): Promise<ManifestJson>;
+  protected async getManifestJson(
+    sha: string
+  ): Promise<ManifestJson | undefined>;
+  protected async getManifestJson(
+    sha?: string
+  ): Promise<ManifestJson | undefined> {
     // cache headManifest since it's loaded in validate() as well as later on
     // and we never write to it.
-    let manifest: object | undefined;
+    let manifest: ManifestJson | undefined;
     if (sha === undefined) {
       if (!this.headManifest) {
-        this.headManifest = await this.getFileJson(this.manifestFileName);
+        this.headManifest = await this.getFileJson<ManifestJson>(
+          this.manifestFileName
+        );
       }
       manifest = this.headManifest;
     } else {
-      manifest = await this.getFileJson(this.manifestFileName, sha);
+      manifest = await this.getFileJson<ManifestJson>(
+        this.manifestFileName,
+        sha
+      );
     }
     return manifest;
   }
@@ -207,7 +218,9 @@ export class Manifest {
     // cache config since it's loaded in validate() as well as later on and we
     // never write to it.
     if (!this.configFile) {
-      const config = (await this.getFileJson(this.configFileName)) as Config;
+      const config = await this.getFileJson<Omit<Config, 'parsedPackages'>>(
+        this.configFileName
+      );
       const packages = [];
       for (const pkgPath in config.packages) {
         const pkgCfg = config.packages[pkgPath];
@@ -225,8 +238,7 @@ export class Manifest {
         };
         packages.push(pkg);
       }
-      config.parsedPackages = packages;
-      this.configFile = config;
+      this.configFile = {parsedPackages: packages, ...config};
     }
     return this.configFile;
   }
