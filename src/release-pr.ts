@@ -194,6 +194,16 @@ export class ReleasePR {
     return '-';
   }
 
+  protected async normalizeTagName(versionOrTagName: string): Promise<string> {
+    if (!this.monorepoTags) {
+      return versionOrTagName.replace(/^v?/, 'v');
+    }
+    const pkgName = await this.getPackageName();
+    const tagPrefix = pkgName.getComponent() + this.tagSeparator() + 'v';
+    const re = new RegExp(`^(${tagPrefix}|)`);
+    return versionOrTagName.replace(re, tagPrefix);
+  }
+
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined,
@@ -519,7 +529,7 @@ export class ReleasePR {
         continue;
       }
       return {
-        name: `v${normalizedVersion}`,
+        name: await this.normalizeTagName(normalizedVersion),
         sha: mergedPullRequest.sha,
         version: normalizedVersion,
       };

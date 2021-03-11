@@ -47,14 +47,18 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
-function stubGithub(releasePR: Ruby, commits = COMMITS) {
+function stubGithub(
+  releasePR: Ruby,
+  commits = COMMITS,
+  latestTag = LATEST_TAG
+) {
   sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
   // No open release PRs, so create a new release PR
   sandbox.stub(releasePR.gh, 'findOpenReleasePRs').returns(Promise.resolve([]));
   sandbox
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
-  sandbox.stub(releasePR, 'latestTag').resolves(LATEST_TAG);
+  sandbox.stub(releasePR, 'latestTag').resolves(latestTag);
   sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(commits);
   sandbox.stub(releasePR.gh, 'addLabels');
 }
@@ -107,7 +111,9 @@ describe('Ruby', () => {
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const commits = [buildMockCommit('feat!: still no major version')];
       commits.push(...COMMITS);
-      stubGithub(releasePR, commits);
+      const latestTag = {...LATEST_TAG};
+      latestTag.name = pkgName + '/v' + latestTag.version;
+      stubGithub(releasePR, commits, latestTag);
       stubFilesToUpdate(releasePR.gh, ['projects/ruby/version.rb']);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);

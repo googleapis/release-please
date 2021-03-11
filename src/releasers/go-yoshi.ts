@@ -103,8 +103,10 @@ export class GoYoshi extends ReleasePR {
     const changelogEntry: string = (
       await cc.generateChangelogEntry({
         version: candidate.version,
-        currentTag: `v${candidate.version}`,
-        previousTag: candidate.previousTag,
+        currentTag: await this.normalizeTagName(candidate.version),
+        previousTag: candidate.previousTag
+          ? await this.normalizeTagName(candidate.previousTag)
+          : undefined,
       })
     ).replace(/, closes /g, ', refs ');
 

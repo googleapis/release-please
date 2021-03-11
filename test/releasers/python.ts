@@ -56,7 +56,8 @@ const COMMITS = [
 function stubGithub(
   releasePR: Python,
   versionFiles: string[] = [],
-  commits = COMMITS
+  commits = COMMITS,
+  latestTag = LATEST_TAG
 ) {
   sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
   // No open release PRs, so create a new release PR
@@ -64,7 +65,7 @@ function stubGithub(
   sandbox
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
-  sandbox.stub(releasePR, 'latestTag').resolves(LATEST_TAG);
+  sandbox.stub(releasePR, 'latestTag').resolves(latestTag);
   sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(commits);
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'findFilesByFilename').resolves(versionFiles);
@@ -250,7 +251,9 @@ describe('Python', () => {
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       const commits = [buildMockCommit('feat!: still no major version')];
       commits.push(...COMMITS);
-      stubGithub(releasePR, ['src/version.py'], commits);
+      const latestTag = {...LATEST_TAG};
+      latestTag.name = pkgName + '-v' + latestTag.version;
+      stubGithub(releasePR, ['src/version.py'], commits, latestTag);
       stubFilesToUpdate(releasePR.gh, [
         'projects/python/setup.py',
         'projects/python/src/version.py',

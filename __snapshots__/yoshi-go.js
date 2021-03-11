@@ -107,7 +107,7 @@ exports['YoshiGo supports releasing submodule from google-cloud-go: changes'] = 
 filename: pubsublite/CHANGES.md
 # Changelog
 
-### [0.123.5](https://www.github.com/googleapis/google-cloud-go/compare/v0.123.4...v0.123.5) (1983-10-10)
+### [0.123.5](https://www.github.com/googleapis/google-cloud-go/compare/pubsublite/v0.123.4...pubsublite/v0.123.5) (1983-10-10)
 
 
 ### Bug Fixes
@@ -125,7 +125,7 @@ title: chore: release pubsublite 0.123.5
 branch: release-pubsublite-v0.123.5
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
-### [0.123.5](https://www.github.com/googleapis/google-cloud-go/compare/v0.123.4...v0.123.5) (1983-10-10)
+### [0.123.5](https://www.github.com/googleapis/google-cloud-go/compare/pubsublite/v0.123.4...pubsublite/v0.123.5) (1983-10-10)
 
 
 ### Bug Fixes

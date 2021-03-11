@@ -388,16 +388,16 @@ export class Manifest {
       const {releaseType, ...options} = pkg.releaserOptions;
       const releaserClass = factory.releasePRClass(releaseType);
       const releasePR = new releaserClass({github: this.gh, ...options});
-      const pkgName = (await releasePR.getPackageName()).name;
+      const pkgName = await releasePR.getPackageName();
       this.checkpoint(
-        `Processing package: ${releaserClass.name}(${pkgName})`,
+        `Processing package: ${releaserClass.name}(${pkgName.name})`,
         CheckpointType.Success
       );
       if (pkg.lastVersion === undefined) {
         this.checkpoint(
-          `Falling back to default version for ${
-            releaserClass.name
-          }(${pkgName}): ${releasePR.defaultInitialVersion()}`,
+          `Falling back to default version for ${releaserClass.name}(${
+            pkgName.name
+          }): ${releasePR.defaultInitialVersion()}`,
           CheckpointType.Failure
         );
       }
@@ -405,7 +405,11 @@ export class Manifest {
         pkg.commits,
         pkg.lastVersion
           ? {
-              name: `v${pkg.lastVersion}`,
+              name:
+                pkgName.getComponent() +
+                releasePR.tagSeparator() +
+                'v' +
+                pkg.lastVersion,
               sha: sha ?? 'beginning of time',
               version: pkg.lastVersion,
             }

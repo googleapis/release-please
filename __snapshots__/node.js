@@ -195,7 +195,7 @@ exports['Node run uses detected package name in branch: changes'] = `
 filename: CHANGELOG.md
 # Changelog
 
-### [0.123.5](https://www.github.com/googleapis/node-test-repo/compare/v0.123.4...v0.123.5) (1983-10-10)
+### [0.123.5](https://www.github.com/googleapis/node-test-repo/compare/node-test-repo-v0.123.4...node-test-repo-v0.123.5) (1983-10-10)
 
 
 ### Bug Fixes
@@ -222,7 +222,7 @@ title: chore: release node-test-repo 0.123.5
 branch: release-node-test-repo-v0.123.5
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
-### [0.123.5](https://www.github.com/googleapis/node-test-repo/compare/v0.123.4...v0.123.5) (1983-10-10)
+### [0.123.5](https://www.github.com/googleapis/node-test-repo/compare/node-test-repo-v0.123.4...node-test-repo-v0.123.5) (1983-10-10)
 
 
 ### Bug Fixes

@@ -43,7 +43,7 @@ exports['Ruby run creates a release PR with custom config: changes'] = `
 filename: projects/ruby/HISTORY.md
 # Changelog
 
-## [0.6.0](https://www.github.com/googleapis/ruby-test-repo/compare/v0.5.0...v0.6.0) (1983-10-10)
+## [0.6.0](https://www.github.com/googleapis/ruby-test-repo/compare/google-cloud-automl/v0.5.0...google-cloud-automl/v0.6.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -70,7 +70,7 @@ title: chore: release google-cloud-automl 0.6.0
 branch: release-google-cloud-automl-v0.6.0
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
-## [0.6.0](https://www.github.com/googleapis/ruby-test-repo/compare/v0.5.0...v0.6.0) (1983-10-10)
+## [0.6.0](https://www.github.com/googleapis/ruby-test-repo/compare/google-cloud-automl/v0.5.0...google-cloud-automl/v0.6.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
