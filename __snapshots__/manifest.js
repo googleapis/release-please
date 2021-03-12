@@ -3,7 +3,7 @@ exports['Manifest pullRequest boostraps from HEAD manifest if first PR: changes'
 filename: node/pkg1/CHANGELOG.md
 # Changelog
 
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -23,7 +23,7 @@ filename: node/pkg1/package.json
 filename: node/pkg2/CHANGELOG.md
 # Changelog
 
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -39,7 +39,7 @@ filename: node/pkg2/package.json
 filename: python/CHANGELOG.md
 # Changelog
 
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -74,7 +74,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -89,7 +89,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -100,7 +100,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -121,7 +121,7 @@ exports['Manifest pullRequest boostraps from HEAD manifest if manifest was delet
 filename: node/pkg1/CHANGELOG.md
 # Changelog
 
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -141,7 +141,7 @@ filename: node/pkg1/package.json
 filename: node/pkg2/CHANGELOG.md
 # Changelog
 
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -157,7 +157,7 @@ filename: node/pkg2/package.json
 filename: python/CHANGELOG.md
 # Changelog
 
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -192,7 +192,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -207,7 +207,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -218,7 +218,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -239,7 +239,7 @@ exports['Manifest pullRequest bootstraps a new package from curated manifest: ch
 filename: node/pkg1/CHANGELOG.md
 # Changelog
 
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -259,7 +259,7 @@ filename: node/pkg1/package.json
 filename: node/pkg2/CHANGELOG.md
 # Changelog
 
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -275,7 +275,7 @@ filename: node/pkg2/package.json
 filename: python/CHANGELOG.md
 # Changelog
 
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -310,7 +310,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -325,7 +325,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -336,7 +336,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -357,7 +357,7 @@ exports['Manifest pullRequest bootstraps a new package using default version: ch
 filename: node/pkg1/CHANGELOG.md
 # Changelog
 
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -393,7 +393,7 @@ filename: node/pkg2/package.json
 filename: python/CHANGELOG.md
 # Changelog
 
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -428,7 +428,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -454,7 +454,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -475,7 +475,7 @@ exports['Manifest pullRequest creates a PR for python and node packages: changes
 filename: node/pkg1/CHANGELOG.md
 # Changelog
 
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -495,7 +495,7 @@ filename: node/pkg1/package.json
 filename: python/CHANGELOG.md
 # Changelog
 
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -529,7 +529,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg1: 4.0.0
-## [4.0.0](https://www.github.com/fake/repo/compare/v3.2.1...v4.0.0) (1983-10-10)
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -544,7 +544,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 foolib: 1.2.4
-### [1.2.4](https://www.github.com/fake/repo/compare/v1.2.3...v1.2.4) (1983-10-10)
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -565,7 +565,7 @@ exports['Manifest pullRequest only includes packages that have version bumps: ch
 filename: node/pkg2/CHANGELOG.md
 # Changelog
 
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -597,7 +597,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg2: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.2...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
 
 
 ### Features
@@ -618,7 +618,7 @@ exports['Manifest pullRequest respects python releaser specific config over defa
 filename: node/pkg1/HISTORY.md
 # Changelog
 
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.1...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg1-v0.1.1...pkg1-v0.2.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -638,7 +638,7 @@ filename: node/pkg1/package.json
 filename: python/CHANGELOG.md
 # Changelog
 
-## [1.0.0](https://www.github.com/fake/repo/compare/v0.1.1...v1.0.0) (1983-10-10)
+## [1.0.0](https://www.github.com/fake/repo/compare/foolib-v0.1.1...foolib-v1.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -681,7 +681,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg1: 0.2.0
-## [0.2.0](https://www.github.com/fake/repo/compare/v0.1.1...v0.2.0) (1983-10-10)
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg1-v0.1.1...pkg1-v0.2.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -696,7 +696,7 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 foolib: 1.0.0
-## [1.0.0](https://www.github.com/fake/repo/compare/v0.1.1...v1.0.0) (1983-10-10)
+## [1.0.0](https://www.github.com/fake/repo/compare/foolib-v0.1.1...foolib-v1.0.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES

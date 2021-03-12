@@ -129,7 +129,7 @@ describe('Rust', () => {
         sandbox.stub(releasePR, 'latestTag').returns(
           Promise.resolve({
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            name: 'v0.123.4',
+            name: 'crate1-v0.123.4',
             version: '0.123.4',
           })
         );

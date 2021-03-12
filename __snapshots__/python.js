@@ -209,7 +209,7 @@ exports['Python run creates a release PR with custom config: changes'] = `
 filename: projects/python/HISTORY.md
 # Changelog
 
-## [0.124.0](https://www.github.com/googleapis/py-test-repo/compare/v0.123.4...v0.124.0) (1983-10-10)
+## [0.124.0](https://www.github.com/googleapis/py-test-repo/compare/google-cloud-automl-v0.123.4...google-cloud-automl-v0.124.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -378,7 +378,7 @@ title: chore: release google-cloud-automl 0.124.0
 branch: release-google-cloud-automl-v0.124.0
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
-## [0.124.0](https://www.github.com/googleapis/py-test-repo/compare/v0.123.4...v0.124.0) (1983-10-10)
+## [0.124.0](https://www.github.com/googleapis/py-test-repo/compare/google-cloud-automl-v0.123.4...google-cloud-automl-v0.124.0) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES

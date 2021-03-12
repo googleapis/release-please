@@ -61,8 +61,10 @@ export class Python extends ReleasePR {
 
     const changelogEntry: string = await cc.generateChangelogEntry({
       version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
+      currentTag: await this.normalizeTagName(candidate.version),
+      previousTag: candidate.previousTag
+        ? await this.normalizeTagName(candidate.previousTag)
+        : undefined,
     });
 
     // don't create a release candidate until user facing changes
