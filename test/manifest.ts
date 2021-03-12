@@ -290,22 +290,33 @@ describe('Manifest', () => {
       }
       const manifest = JSON.stringify({
         'node/pkg1': '0.1.1',
+        'node/pkg2': '0.2.2',
         python: '0.1.1',
       });
       const config = JSON.stringify({
         'bump-minor-pre-major': true,
+        'release-as': '5.5.5',
         'changelog-sections': [
           {type: 'feat', section: 'Default Features Section'},
           {type: 'fix', section: 'Default Bug Fixes Section'},
         ],
         packages: {
+          // expect to see 5.5.5 from default release-as
           'node/pkg1': {
             'changelog-path': 'HISTORY.md',
           },
+          // expect to see 0.3.0 because commit feat(@node/pkg2)! and default
+          // bump-minor-pre-major is true and release-as is locally turned off
+          'node/pkg2': {
+            'release-as': '',
+          },
+          // expect to see 1.0.1 because commit feat(foolib)! and local
+          // bump-minor-pre-major is false and release-as is locally turned off
           python: {
             'release-type': 'python',
             'package-name': 'foolib',
             'bump-minor-pre-major': false,
+            'release-as': '',
             'changelog-sections': [
               {type: 'feat', section: 'Python Features Section'},
               {type: 'fix', section: 'Python Bug Fixes Section'},
@@ -319,6 +330,9 @@ describe('Manifest', () => {
         ]),
         buildMockCommit('fix(foolib): python bufix', [
           'python/src/foolib/bar.py',
+        ]),
+        buildMockCommit('feat(@node/pkg2)!: node2 feature', [
+          'node/pkg2/src/foo.ts',
         ]),
         buildMockCommit('feat(@node/pkg1)!: node feature', [
           'node/pkg1/src/foo.ts',
@@ -337,6 +351,7 @@ describe('Manifest', () => {
       expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
+          'node/pkg2/package.json',
           'python/setup.py',
           'python/setup.cfg',
           'python/src/foolib/version.py',
@@ -365,11 +380,17 @@ describe('Manifest', () => {
           CheckpointType.Success,
         ],
         [
+          'Found version 0.2.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 0.1.1 for python in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
         ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
+        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
         ['Processing package: Python(foolib)', CheckpointType.Success],
       ]);
     });
@@ -739,7 +760,103 @@ describe('Manifest', () => {
       const mock = mockGithub(github);
       expectManifest(mock);
       expectPR(mock);
+      // lastReleaseSha is undefined and no bootstrap-sha so we expect
+      // gh.commitsSinceSha to be called with undefined meaning go all the way
+      // back.
       expectCommitsSinceSha(mock, {commits});
+      expectGetFiles(mock, {
+        fixtureFiles: [
+          'node/pkg1/package.json',
+          'node/pkg2/package.json',
+          'python/setup.py',
+          'python/setup.cfg',
+          'python/src/foolib/version.py',
+        ],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifestFileAtHEAD],
+        ],
+      });
+      expectLabelAndComment(mock, {addLabel});
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
+      expect(pr).to.equal(22);
+      expect(logs).to.eql([
+        [
+          'Bootstrapping from .release-please-manifest.json at tip of main',
+          CheckpointType.Failure,
+        ],
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 0.1.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
+        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
+        ['Processing package: Python(foolib)', CheckpointType.Success],
+      ]);
+    });
+
+    it('boostraps from HEAD manifest starting at bootstrap-sha if first PR', async function () {
+      // no previously merged PR found, will use this as bootstrap
+      const manifestFileAtHEAD = JSON.stringify({
+        'node/pkg1': '3.2.1',
+        'node/pkg2': '0.1.2',
+        python: '1.2.3',
+      });
+      const config = JSON.stringify({
+        'release-type': 'node',
+        'bump-minor-pre-major': true,
+        'bootstrap-sha': 'some-sha-in-mains-history',
+        packages: {
+          'node/pkg1': {},
+          'node/pkg2': {},
+          python: {
+            'release-type': 'python',
+            'package-name': 'foolib',
+          },
+        },
+      });
+      const commits = [
+        buildMockCommit('fix(foolib): bufix python foolib', [
+          'python/src/foolib/foo.py',
+        ]),
+        buildMockCommit('feat(@node/pkg1)!: major new feature', [
+          'node/pkg1/src/foo.ts',
+        ]),
+        buildMockCommit('feat(@node/pkg2): new feature', [
+          'node/pkg2/src/bar.ts',
+        ]),
+      ];
+
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub(github);
+      expectManifest(mock);
+      expectPR(mock);
+      // not actually testing gh.CommitsSinceSha, sufficient to know that
+      // Manifest called it with the 'bootstrap-sha' config value.
+      expectCommitsSinceSha(mock, {
+        lastReleaseSha: 'some-sha-in-mains-history',
+        commits,
+      });
       expectGetFiles(mock, {
         fixtureFiles: [
           'node/pkg1/package.json',
