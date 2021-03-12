@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.2.1](https://www.github.com/googleapis/release-please/compare/v11.2.0...v11.2.1) (2021-03-12)
+
+
+### Bug Fixes
+
+* **changelog:** monorepoTags links in changelog ([#822](https://www.github.com/googleapis/release-please/issues/822)) ([405ac9d](https://www.github.com/googleapis/release-please/commit/405ac9df779031ce60294d5f88ec11d698aae492))
+
 ## [11.2.0](https://www.github.com/googleapis/release-please/compare/v11.1.1...v11.2.0) (2021-03-09)
 
 
