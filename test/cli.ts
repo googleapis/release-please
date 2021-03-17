@@ -87,17 +87,8 @@ describe('CLI', () => {
       ]);
     });
     it('needs yargs', () => {
-      let err: Error;
-      let caught = false;
       handleError.yargsArgs = undefined;
-      try {
-        handleError({message: '', stack: ''});
-      } catch (e) {
-        err = e;
-        caught = true;
-      }
-      expect(caught).to.be.true;
-      expect(err!.message).to.equal(
+      expect(() => handleError({message: '', stack: ''})).to.throw(
         'Set handleError.yargsArgs with a yargs.Arguments instance.'
       );
     });
