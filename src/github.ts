@@ -324,6 +324,20 @@ export class GitHub {
       let page = 1;
       let moreFiles = true;
       while (moreFiles) {
+        // the "Get Commit" resource is a bit of an outlier in terms of GitHub's
+        // normal pagination: https://git.io/JmVZq
+        // The behavior is to return an object representing the commit, a
+        // property of which is an array of files. GitHub will return as many
+        // associated files as there are, up to a limit of 300, on the initial
+        // request. If there are more associated files, it will send "Links"
+        // headers to get the next set. There is a total limit of 3000
+        // files returned per commit.
+        // In practice, the links headers are just the same resourceID plus a
+        // "page=N" query parameter with "page=1" being the initial set.
+        //
+        // TODO: it is more robust to follow the link.next headers (in case
+        // GitHub ever changes the pattern) OR use ocktokit pagination for this
+        // endpoint when https://git.io/JmVll is addressed.
         const response = (await this.request(
           'GET /repos/{owner}/{repo}/commits/{ref}{?page}',
           {owner: this.owner, repo: this.repo, ref, page}
@@ -334,7 +348,10 @@ export class GitHub {
           break;
         }
         files.push(...commitFiles.map(f => f.filename ?? ''));
-        if (commitFiles.length < 300) {
+        // < 300 files means we hit the end
+        // page === 10 means we're at 3000 and that's the limit GH is gonna
+        // cough up anyway.
+        if (commitFiles.length < 300 || page === 10) {
           moreFiles = false;
           break;
         }
