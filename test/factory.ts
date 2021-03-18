@@ -13,8 +13,13 @@
 // limitations under the License.
 
 import {describe, it, afterEach} from 'mocha';
-import * as assert from 'assert';
-import {factory, ReleasePRCommands} from '../src/factory';
+import {
+  factory,
+  ReleasePRCommand,
+  GitHubReleaseMethod,
+  ManifestMethod,
+  ReleasePRMethod,
+} from '../src/factory';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {RequestHeaders} from '@octokit/types';
@@ -59,6 +64,7 @@ describe('factory', () => {
       expect(gh.fork).to.be.true;
       expect(gh.apiUrl).to.equal('my-api-url');
       expect(gh.token).to.equal('my-token');
+      sandbox.mock(gh).expects('getRepositoryDefaultBranch').never();
       const branch = await gh.getDefaultBranch();
       expect(branch).to.equal('1.x');
     });
@@ -158,19 +164,14 @@ describe('factory', () => {
       expect(packageName.getComponent()).to.equal('ruby-test-repo');
     });
     it('throws an error on invalid release type', () => {
-      let caught = false;
-      try {
+      expect(() =>
         factory.releasePR({
           repoUrl: 'googleapis/simple-test-repo',
           packageName: 'simple-test-repo',
           apiUrl: 'https://api.github.com',
           releaseType: 'unknown' as 'go', //hack the typing
-        });
-        assert.fail();
-      } catch (e) {
-        caught = true;
-      }
-      expect(caught).to.be.true;
+        })
+      ).to.throw();
     });
   });
 
@@ -183,15 +184,9 @@ describe('factory', () => {
       const releaseClass = factory.releasePRClass();
       expect(releaseClass.name).to.equal('ReleasePR');
     });
-    it('throws and error on invalid release type', () => {
-      let caught = false;
-      try {
-        factory.releasePRClass('unknown' as 'go'); // hack the typing
-        assert.fail();
-      } catch (e) {
-        caught = true;
-      }
-      expect(caught).to.be.true;
+    it('returns base class when unrecognized releaseType', () => {
+      const releaseClass = factory.releasePRClass();
+      expect(releaseClass.name).to.equal('ReleasePR');
     });
   });
 
@@ -248,6 +243,8 @@ describe('factory', () => {
       expect(ghr.gh.token).to.equal('some-token');
       expect(ghr.gh.apiUrl).to.equal('https://some.api.com');
       expect(ghr.gh.fork).to.be.true;
+      const branch = await ghr.gh.getDefaultBranch();
+      expect(branch).to.equal('1.x');
       expect(ghr.releasePR.constructor.name).to.equal('Ruby');
       expect(ghr.releasePR.labels).to.eql(['foo', 'bar']);
       expect(ghr.releasePR.path).to.equal('some/path');
@@ -267,27 +264,53 @@ describe('factory', () => {
       expect(packageName.getComponent()).to.equal('ruby-test-repo');
     });
   });
+  describe('manifest', () => {
+    it('returns a default configured Manifest class', () => {
+      const m = factory.manifest({repoUrl: 'googleapis/simple-test-repo'});
+      expect(m.constructor.name).to.equal('Manifest');
+      expect(m.gh.owner).to.equal('googleapis');
+      expect(m.gh.repo).to.equal('simple-test-repo');
+      expect(m.gh.token).to.be.undefined;
+      expect(m.gh.apiUrl).to.equal('https://api.github.com');
+      expect(m.gh.fork).to.be.false;
+      expect(m.configFileName).to.equal('release-please-config.json');
+      expect(m.manifestFileName).to.equal('.release-please-manifest.json');
+    });
+    it('returns a fully configured Manifest class', async () => {
+      const m = factory.manifest({
+        repoUrl: 'googleapis/ruby-test-repo',
+        defaultBranch: '1.x',
+        fork: true,
+        token: 'some-token',
+        apiUrl: 'https://some.api.com',
+        configFile: 'foo-config.json',
+        manifestFile: '.foo-manifest.json',
+      });
+      expect(m.constructor.name).to.equal('Manifest');
+      expect(m.gh.owner).to.equal('googleapis');
+      expect(m.gh.repo).to.equal('ruby-test-repo');
+      expect(m.gh.token).to.equal('some-token');
+      expect(m.gh.apiUrl).to.equal('https://some.api.com');
+      expect(m.gh.fork).to.be.true;
+      const branch = await m.gh.getDefaultBranch();
+      expect(branch).to.equal('1.x');
+      expect(m.configFileName).to.equal('foo-config.json');
+      expect(m.manifestFileName).to.equal('.foo-manifest.json');
+    });
+  });
 
   describe('runCommand', () => {
     it('errors on bad command', async () => {
       sandbox.stub(factory, 'call').resolves(undefined);
-      let caught = false;
-      let err: Error;
-      try {
-        await factory.runCommand(
-          'foobar' as ReleasePRCommands,
+      expect(() =>
+        factory.runCommand(
+          'foobar' as ReleasePRCommand,
           ({bar: 'baz'} as unknown) as ReleasePRFactoryOptions
-        );
-      } catch (e) {
-        err = e;
-        caught = true;
-      }
-      expect(caught).to.be.true;
-      expect(err!.message).to.equal(
-        'Invalid command(foobar) with options({"bar":"baz"})'
-      );
+        )
+      ).to.throw('Invalid command(foobar) with options({"bar":"baz"})');
     });
   });
+
   describe('call', () => {
     it('calls ReleasePR.run', async () => {
       const instance = factory.releasePR({
@@ -302,16 +325,9 @@ describe('factory', () => {
         repoUrl: 'googleapis/simple-test-repo',
         releaseType: 'simple',
       });
-      let caught = false;
-      let err: Error;
-      try {
-        await factory.call(instance, 'foo' as 'run');
-      } catch (e) {
-        err = e;
-        caught = true;
-      }
-      expect(caught).to.be.true;
-      expect(err!.message).to.equal('No such method(foo) on Simple');
+      expect(() => factory.call(instance, 'foo' as ReleasePRMethod)).to.throw(
+        'No such method(foo) on Simple'
+      );
     });
     it('calls a GitHubRelease instance', async () => {
       const instance = factory.githubRelease({
@@ -340,31 +356,32 @@ describe('factory', () => {
         repoUrl: 'googleapis/simple-test-repo',
         releaseType: 'simple',
       });
-      let caught = false;
-      let err: Error;
-      try {
-        await factory.call(instance, 'foo' as 'run');
-      } catch (e) {
-        err = e;
-        caught = true;
-      }
-      expect(caught).to.be.true;
-      expect(err!.message).to.equal('No such method(foo) on GitHubRelease');
+      expect(() =>
+        factory.call(instance, 'foo' as GitHubReleaseMethod)
+      ).to.throw('No such method(foo) on GitHubRelease');
+    });
+    it('calls a Manifest instance', async () => {
+      const instance = factory.manifest({
+        repoUrl: 'googleapis/simple-test-repo',
+      });
+      sandbox.stub(instance, 'pullRequest').resolves(32);
+      expect(await factory.call(instance, 'pullRequest')).to.eql(32);
+    });
+    it('errors with bad method on Manifest', async () => {
+      const instance = factory.manifest({
+        repoUrl: 'googleapis/simple-test-repo',
+      });
+      expect(() => factory.call(instance, 'foo' as ManifestMethod)).to.throw(
+        'No such method(foo) on Manifest'
+      );
     });
     it('errors with bad method on unknown', async () => {
-      let caught = false;
-      let err: Error;
-      try {
-        await factory.call(
+      expect(() =>
+        factory.call(
           ({foo: () => 'in foo'} as unknown) as ReleasePR,
-          'foo' as 'run'
-        );
-      } catch (e) {
-        err = e;
-        caught = true;
-      }
-      expect(caught).to.be.true;
-      expect(err!.message).to.equal('Unknown instance.');
+          'foo' as ReleasePRMethod
+        )
+      ).to.throw('Unknown instance.');
     });
   });
 });

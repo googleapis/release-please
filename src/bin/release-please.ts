@@ -19,7 +19,11 @@ import {coerceOption} from '../util/coerce-option';
 import {factory} from '../factory';
 import {getReleaserTypes, ReleaseType} from '../releasers';
 import * as yargs from 'yargs';
-import {GitHubReleaseFactoryOptions, ReleasePRFactoryOptions} from '..';
+import {
+  GitHubReleaseFactoryOptions,
+  ReleasePRFactoryOptions,
+  ManifestFactoryOptions,
+} from '..';
 import {GH_API_URL} from '../constants';
 
 interface ErrorObject {
@@ -52,7 +56,38 @@ function releaseType(ya: YargsOptionsBuilder, defaultType?: string) {
   ya.option('release-type', relTypeOptions);
 }
 
+function manifestOptions(ya: YargsOptionsBuilder) {
+  ya.option('config-file', {
+    default: 'release-please-config.json',
+    describe: 'where can the config file be found in the project?',
+  });
+  ya.option('manifest-file', {
+    default: '.release-please-manifest.json',
+    describe: 'where can the manifest file be found in the project?',
+  });
+}
+
 export const parser = yargs
+  .command(
+    'manifest-pr',
+    'create a release-PR using a manifest file',
+    (yargs: YargsOptionsBuilder) => {
+      manifestOptions(yargs);
+    },
+    (argv: ManifestFactoryOptions) => {
+      factory.runCommand('manifest-pr', argv).catch(handleError);
+    }
+  )
+  .command(
+    'manifest-release',
+    'create releases/tags from last release-PR using a manifest file',
+    (yargs: YargsOptionsBuilder) => {
+      manifestOptions(yargs);
+    },
+    (argv: ManifestFactoryOptions) => {
+      factory.runCommand('manifest-release', argv).catch(handleError);
+    }
+  )
   .command(
     'release-pr',
     'create or update a PR representing the next release',

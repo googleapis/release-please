@@ -20,46 +20,72 @@ import {GitHubRelease, GitHubReleaseResponse} from './github-release';
 import {ReleaseType, getReleasers} from './releasers';
 import {GitHub, GitHubTag} from './github';
 import {
+  ManifestFactoryOptions,
   ReleasePRFactoryOptions,
   GitHubReleaseFactoryOptions,
   GitHubFactoryOptions,
 } from '.';
 import {DEFAULT_LABELS} from './constants';
+import {ManifestGitHubReleaseResult, Manifest} from './manifest';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
 // types defining methods available to call on instances
+export type ManifestMethod = 'pullRequest' | 'githubRelease';
 export type ReleasePRMethod = 'run' | 'latestTag';
 export type GitHubReleaseMethod = 'run';
-export type Method = ReleasePRMethod | GitHubReleaseMethod;
+export type Method = ManifestMethod | ReleasePRMethod | GitHubReleaseMethod;
 
 // types defining cli commands and their options
-export type ReleasePRCommands = 'release-pr' | 'latest-tag';
-export type GitHubReleaseCommands = 'github-release';
-type Command = ReleasePRCommands | GitHubReleaseCommands;
+export type ManifestCommand = 'manifest-pr' | 'manifest-release';
+export type ReleasePRCommand = 'release-pr' | 'latest-tag';
+export type GitHubReleaseCommand = 'github-release';
+type Command = ManifestCommand | ReleasePRCommand | GitHubReleaseCommand;
+type IsManifestCmd = {
+  command: ManifestCommand;
+  options: ManifestFactoryOptions;
+};
 type IsReleasePRCmd = {
-  command: Command;
+  command: ReleasePRCommand;
   options: ReleasePRFactoryOptions;
 };
 type IsGitHubReleaseCmd = {
-  command: Command;
+  command: GitHubReleaseCommand;
   options: GitHubReleaseFactoryOptions;
 };
 
 // shorthand aliases for instance/method call return types
-export type ReleasePRRunResult = Promise<number | GitHubTag | undefined>;
-export type GitHubReleaseRunResult = Promise<GitHubReleaseResponse | undefined>;
-export type RunResult = ReleasePRRunResult | GitHubReleaseRunResult;
+export type ManifestCallResult = Promise<
+  number | undefined | ManifestGitHubReleaseResult
+>;
+export type ReleasePRCallResult = Promise<number | GitHubTag | undefined>;
+export type GitHubReleaseCallResult = Promise<
+  GitHubReleaseResponse | undefined
+>;
+export type CallResult =
+  | ManifestCallResult
+  | ReleasePRCallResult
+  | GitHubReleaseCallResult;
+
+function isManifestCmd(
+  cmdOpts: IsManifestCmd | IsReleasePRCmd | IsGitHubReleaseCmd
+): cmdOpts is IsManifestCmd {
+  const {command, options} = cmdOpts;
+  return (
+    (command === 'manifest-pr' || command === 'manifest-release') &&
+    typeof options === 'object'
+  );
+}
 
 function isGitHubReleaseCmd(
-  cmdOpts: IsReleasePRCmd | IsGitHubReleaseCmd
+  cmdOpts: IsManifestCmd | IsReleasePRCmd | IsGitHubReleaseCmd
 ): cmdOpts is IsGitHubReleaseCmd {
   const {command, options} = cmdOpts;
   return command === 'github-release' && typeof options === 'object';
 }
 
 function isReleasePRCmd(
-  cmdOpts: IsReleasePRCmd | IsGitHubReleaseCmd
+  cmdOpts: IsManifestCmd | IsReleasePRCmd | IsGitHubReleaseCmd
 ): cmdOpts is IsReleasePRCmd {
   const {command, options} = cmdOpts;
   return (
@@ -69,48 +95,77 @@ function isReleasePRCmd(
 }
 
 function runCommand(
-  command: ReleasePRCommands,
-  options: ReleasePRFactoryOptions
-): ReleasePRRunResult;
+  command: ManifestCommand,
+  options: ManifestFactoryOptions
+): ManifestCallResult;
 function runCommand(
-  command: GitHubReleaseCommands,
+  command: ReleasePRCommand,
+  options: ReleasePRFactoryOptions
+): ReleasePRCallResult;
+function runCommand(
+  command: GitHubReleaseCommand,
   options: GitHubReleaseFactoryOptions
-): GitHubReleaseRunResult;
+): GitHubReleaseCallResult;
 function runCommand(
   command: Command,
-  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
-): RunResult {
-  let result: RunResult;
+  options:
+    | ManifestFactoryOptions
+    | GitHubReleaseFactoryOptions
+    | ReleasePRFactoryOptions
+): CallResult {
+  const errMsg = `Invalid command(${command}) with options(${JSON.stringify(
+    options
+  )})`;
+  let result: CallResult;
   const cmdOpts = {command, options};
-  if (isGitHubReleaseCmd(cmdOpts)) {
+  if (isManifestCmd(cmdOpts)) {
+    const m = manifest(cmdOpts.options);
+    if (cmdOpts.command === 'manifest-pr') {
+      result = factory.call(m, 'pullRequest');
+    } else if (cmdOpts.command === 'manifest-release') {
+      result = factory.call(m, 'githubRelease');
+    } else {
+      throw new Error(errMsg);
+    }
+  } else if (isGitHubReleaseCmd(cmdOpts)) {
     result = factory.call(githubRelease(cmdOpts.options), 'run');
   } else if (isReleasePRCmd(cmdOpts)) {
-    let method: ReleasePRMethod = 'run';
-    if (command === 'latest-tag') {
-      method = 'latestTag';
+    const releasePr = releasePR(cmdOpts.options);
+    if (cmdOpts.command === 'release-pr') {
+      result = factory.call(releasePr, 'run');
+    } else if (cmdOpts.command === 'latest-tag') {
+      result = factory.call(releasePr, 'latestTag');
+    } else {
+      throw new Error(errMsg);
     }
-    result = factory.call(releasePR(cmdOpts.options), method);
   } else {
-    throw new Error(
-      `Invalid command(${command}) with options(${JSON.stringify(options)})`
-    );
+    throw new Error(errMsg);
   }
   return result;
 }
 
-function call(instance: ReleasePR, method: ReleasePRMethod): ReleasePRRunResult;
+function call(instance: Manifest, method: ManifestMethod): ManifestCallResult;
+function call(
+  instance: ReleasePR,
+  method: ReleasePRMethod
+): ReleasePRCallResult;
 function call(
   instance: GitHubRelease,
   method: GitHubReleaseMethod
-): GitHubReleaseRunResult;
-function call(instance: ReleasePR | GitHubRelease, method: Method): RunResult {
+): GitHubReleaseCallResult;
+function call(
+  instance: Manifest | ReleasePR | GitHubRelease,
+  method: Method
+): CallResult {
   if (!(method in instance)) {
     throw new Error(
       `No such method(${method}) on ${instance.constructor.name}`
     );
   }
-  let result: RunResult;
-  if (instance instanceof ReleasePR) {
+  let result: CallResult;
+  if (instance instanceof Manifest) {
+    result = instance[method as ManifestMethod]();
+  } else if (instance instanceof ReleasePR) {
     result = instance[method as ReleasePRMethod]();
   } else if (instance instanceof GitHubRelease) {
     result = instance[method as GitHubReleaseMethod]();
@@ -156,6 +211,14 @@ function getGitHubFactoryOpts(
     },
     remaining,
   ];
+}
+
+function manifest(options: ManifestFactoryOptions): Manifest {
+  const [GHFactoryOptions, ManifestFactoryOptions] = getGitHubFactoryOpts(
+    options
+  );
+  const github = gitHubInstance(GHFactoryOptions);
+  return new Manifest({github, ...ManifestFactoryOptions});
 }
 
 function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
@@ -228,6 +291,7 @@ function releasePRClass(releaseType?: ReleaseType): typeof ReleasePR {
 export const factory = {
   gitHubInstance,
   githubRelease,
+  manifest,
   releasePR,
   releasePRClass,
   call,
