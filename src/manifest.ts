@@ -82,6 +82,10 @@ interface PackageWithPRData {
 
 type ManifestJson = Record<string, string>;
 
+export type ManifestGitHubReleaseResult =
+  | Record<string, GitHubReleaseResponse | undefined>
+  | undefined;
+
 export class Manifest {
   gh: GitHub;
   configFileName: string;
@@ -545,9 +549,7 @@ export class Manifest {
     return pr;
   }
 
-  async githubRelease(): Promise<
-    Record<string, GitHubReleaseResponse | undefined> | undefined
-  > {
+  async githubRelease(): Promise<ManifestGitHubReleaseResult> {
     const valid = await this.validate();
     if (!valid) {
       return;

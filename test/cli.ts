@@ -16,12 +16,14 @@ import * as assert from 'assert';
 import {expect} from 'chai';
 import {
   factory,
-  ReleasePRRunResult,
-  RunResult,
+  ReleasePRCallResult,
+  CallResult,
   ReleasePRMethod,
-  GitHubReleaseRunResult,
+  GitHubReleaseCallResult,
   Method,
   GitHubReleaseMethod,
+  ManifestMethod,
+  ManifestCallResult,
 } from '../src/factory';
 import {GitHubRelease} from '../src/github-release';
 import {ReleasePR} from '../src/release-pr';
@@ -31,24 +33,31 @@ import * as sinon from 'sinon';
 import {parser, handleError} from '../src/bin/release-please';
 import {ParseCallback} from 'yargs';
 import chalk = require('chalk');
+import {Manifest} from '../src/manifest';
 
 const sandbox = sinon.createSandbox();
 
-let instanceToRun: ReleasePR | GitHubRelease;
+let instanceToRun: Manifest | ReleasePR | GitHubRelease;
+let methodCalled: Method;
 
+function callStub(
+  instance: Manifest,
+  method: ManifestMethod
+): ManifestCallResult;
 function callStub(
   instance: ReleasePR,
   method: ReleasePRMethod
-): ReleasePRRunResult;
+): ReleasePRCallResult;
 function callStub(
   instance: GitHubRelease,
   method: GitHubReleaseMethod
-): GitHubReleaseRunResult;
+): GitHubReleaseCallResult;
 function callStub(
-  instance: ReleasePR | GitHubRelease,
-  _method: Method
-): RunResult {
+  instance: Manifest | ReleasePR | GitHubRelease,
+  method: Method
+): CallResult {
   instanceToRun = instance;
+  methodCalled = method;
   return Promise.resolve(undefined);
 }
 
@@ -78,20 +87,47 @@ describe('CLI', () => {
       ]);
     });
     it('needs yargs', () => {
-      let err: Error;
-      let caught = false;
       handleError.yargsArgs = undefined;
-      try {
-        handleError({message: '', stack: ''});
-      } catch (e) {
-        err = e;
-        caught = true;
-      }
-      expect(caught).to.be.true;
-      expect(err!.message).to.equal(
+      expect(() => handleError({message: '', stack: ''})).to.throw(
         'Set handleError.yargsArgs with a yargs.Arguments instance.'
       );
     });
+  });
+  describe('manifest', () => {
+    for (const [cmd, mtd] of [
+      ['manifest-pr', 'pullRequest'],
+      ['manifest-release', 'githubRelease'],
+    ]) {
+      it(`instantiates Manifest for ${cmd}/${mtd}`, () => {
+        sandbox.replace(factory, 'call', callStub);
+        parser.parse(`${cmd} --repo-url=googleapis/release-please-cli`);
+        assert.strictEqual(methodCalled, mtd);
+        assert.ok(instanceToRun! instanceof Manifest);
+        assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
+        assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
+        assert.strictEqual(
+          instanceToRun.configFileName,
+          'release-please-config.json'
+        );
+        assert.strictEqual(
+          instanceToRun.manifestFileName,
+          '.release-please-manifest.json'
+        );
+      });
+      it(`instantiates Manifest for ${cmd}/${mtd} config/manifest`, () => {
+        sandbox.replace(factory, 'call', callStub);
+        parser.parse(
+          `${cmd} --repo-url=googleapis/release-please-cli ` +
+            '--config-file=foo.json --manifest-file=.bar.json'
+        );
+        assert.strictEqual(methodCalled, mtd);
+        assert.ok(instanceToRun! instanceof Manifest);
+        assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
+        assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
+        assert.strictEqual(instanceToRun.configFileName, 'foo.json');
+        assert.strictEqual(instanceToRun.manifestFileName, '.bar.json');
+      });
+    }
   });
   describe('release-pr', () => {
     it('instantiates release PR based on command line arguments', () => {
@@ -102,6 +138,7 @@ describe('CLI', () => {
           '--package-name=cli-package ' +
           "--pull-request-title-pattern='chore${scope}: release${component} ${version}'"
       );
+      assert.strictEqual(methodCalled, 'run');
       assert.ok(instanceToRun! instanceof ReleasePR);
       assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
       assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
@@ -157,6 +194,7 @@ describe('CLI', () => {
       parser.parse(
         'latest-tag --repo-url=googleapis/release-please-cli --package-name=cli-package'
       );
+      assert.strictEqual(methodCalled, 'latestTag');
       assert.ok(instanceToRun! instanceof ReleasePR);
       assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
       assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
@@ -175,6 +213,7 @@ describe('CLI', () => {
         '--release-type=node ' +
         `--package-name=${pkgName}`;
       parser.parse(cmd);
+      assert.strictEqual(methodCalled, 'run');
       assert.ok(instanceToRun! instanceof GitHubRelease);
       assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
       assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
@@ -197,6 +236,7 @@ describe('CLI', () => {
       sandbox.replace(factory, 'call', callStub);
       const cmd = 'github-release --repo-url=googleapis/release-please-cli ';
       parser.parse(cmd);
+      assert.strictEqual(methodCalled, 'run');
       assert.ok(instanceToRun! instanceof GitHubRelease);
       assert.strictEqual(instanceToRun.releasePR.constructor.name, 'ReleasePR');
       assert.strictEqual(

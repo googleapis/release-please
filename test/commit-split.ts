@@ -219,13 +219,7 @@ describe('CommitSplit', () => {
   ];
   for (const invalid of invalidPaths) {
     it(`validates configured paths: ${invalid}`, () => {
-      let caught = false;
-      try {
-        new CommitSplit({packagePaths: invalid});
-      } catch (e) {
-        caught = true;
-      }
-      expect(caught).to.be.true;
+      expect(() => new CommitSplit({packagePaths: invalid})).to.throw();
     });
   }
 });
