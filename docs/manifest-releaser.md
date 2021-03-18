@@ -14,7 +14,7 @@ Note: currently only `node` and `python` release types are supported.
 
 ## Quick Start
 
-Create a minimal `release-please-config.json`. E.g. for a single JS package:
+Create a minimal `release-please-config.json`, e.g., for a single JS package:
 ```js
 {
   "packages": {
