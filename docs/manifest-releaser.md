@@ -5,10 +5,10 @@ specific configuration (the `release-please-config.json`) as well package
 version tracking (the `.release-please-manifest.json`).
 
 
-The motivation to move to a config and manifest file approach is a new feature
-for monorepos: a combined release PR for all configured packages. Maintaining
-multiple package releaser configs and tracking multiple packages' versions is
-consolidated in these new files.
+The motivation of the manifest-based releaser is support support for monorepos:
+
+* a combined [Release PR](https://github.com/googleapis/release-please#whats-a-release-pr) will be created for all configured packages.
+* release configuration for potentially hundreds of libraries is combined in two configuration files.
 
 Note: currently only `node` and `python` release types are supported.
 
