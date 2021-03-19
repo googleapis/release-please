@@ -128,6 +128,122 @@ describe('GitHub', () => {
     });
   });
 
+  describe('commitsSinceShaRest', () => {
+    it('returns commits immediately before sha', async () => {
+      req
+        .get('/repos/fake/fake/commits?sha=main&page=1&per_page=100')
+        .reply(200, [
+          {
+            sha: 'abcdefg',
+            commit: {message: 'abcdefg message'},
+            parents: [{sha: 'skip-me'}],
+          },
+          {
+            sha: 'skip-me',
+            commit: {message: 'merge commit'},
+            // 2 parents for a merge commit
+            parents: [{sha: 'abc123'}, {sha: 'some-merged-branch'}],
+          },
+          {
+            sha: 'hikjlm',
+            commit: {message: 'hikjlm message'},
+            parents: [{sha: 'empty-commit'}],
+          },
+          {
+            sha: 'empty-commit',
+            commit: {message: 'no files'},
+            parents: [{sha: 'abc123'}],
+          },
+          {
+            sha: 'abc123',
+            commit: {message: 'hikjlm message'},
+            parents: [{sha: 'xyz321'}],
+          },
+        ]);
+      req.get('/repos/fake/fake/commits/abcdefg?page=1').reply(200, {
+        files: [
+          {
+            filename: 'abcdefg-file1',
+          },
+          {
+            filename: 'abcdefg-file2',
+          },
+          {
+            filename: 'abcdefg-file3',
+          },
+        ],
+      });
+      req.get('/repos/fake/fake/commits/empty-commit?page=1').reply(200, {});
+      const manyFiles = [];
+      for (const f of Array(601).keys()) {
+        manyFiles.push(`file${f}.txt`);
+      }
+      req.get('/repos/fake/fake/commits/hikjlm?page=1').reply(200, {
+        files: manyFiles.slice(0, 300).map(f => ({filename: f})),
+      });
+      req.get('/repos/fake/fake/commits/hikjlm?page=2').reply(200, {
+        files: manyFiles.slice(300, 600).map(f => ({filename: f})),
+      });
+      req.get('/repos/fake/fake/commits/hikjlm?page=3').reply(200, {
+        files: manyFiles.slice(600).map(f => ({filename: f})),
+      });
+      const commitsSinceShaRest = await github.commitsSinceShaRest('abc123');
+      req.done();
+      expect(commitsSinceShaRest).to.eql([
+        {
+          sha: 'abcdefg',
+          message: 'abcdefg message',
+          files: ['abcdefg-file1', 'abcdefg-file2', 'abcdefg-file3'],
+        },
+        {
+          sha: 'hikjlm',
+          message: 'hikjlm message',
+          files: manyFiles,
+        },
+        {
+          sha: 'empty-commit',
+          message: 'no files',
+          files: [],
+        },
+      ]);
+    });
+
+    it('finds more than 100 commits', async () => {
+      const commits = [];
+      for (const n of Array(102).keys()) {
+        commits.push({
+          sha: `abcdefg${n}`,
+          commit: {message: `some message ${n}`},
+          parents: [{sha: `abcdefg${n + 1}`}],
+        });
+      }
+      req
+        .get('/repos/fake/fake/commits?sha=main&page=1&per_page=100')
+        .reply(200, commits.slice(0, 100));
+      req
+        .get('/repos/fake/fake/commits?sha=main&page=2&per_page=100')
+        .reply(200, commits.slice(100, 102));
+      for (const commit of commits.slice(0, 101)) {
+        req.get(`/repos/fake/fake/commits/${commit.sha}?page=1`).reply(200, {
+          files: [{filename: 'file-' + commit.sha}],
+        });
+      }
+      const commitsSinceShaRest = await github.commitsSinceShaRest(
+        'abcdefg101'
+      );
+      req.done();
+      const expected = [];
+      for (const commit of commits.slice(0, 101)) {
+        expected.push({
+          sha: commit.sha,
+          message: commit.commit.message,
+          files: [`file-${commit.sha}`],
+        });
+      }
+      expect(commitsSinceShaRest).to.eql(expected);
+    });
+  });
+
   describe('getRepositoryDefaultBranch', () => {
     it('gets default repository branch', async () => {
       const branch = await github.getRepositoryDefaultBranch();
