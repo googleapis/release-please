@@ -101,12 +101,12 @@ describe('Manifest', () => {
     const {commits, lastReleaseSha} = params ?? {};
     if (commits) {
       mock
-        .expects('commitsSinceSha')
+        .expects('commitsSinceShaRest')
         .once()
         .withExactArgs(lastReleaseSha)
         .resolves(commits);
     } else {
-      mock.expects('commitsSinceSha').never();
+      mock.expects('commitsSinceShaRest').never();
     }
   }
 
@@ -761,8 +761,8 @@ describe('Manifest', () => {
       expectManifest(mock);
       expectPR(mock);
       // lastReleaseSha is undefined and no bootstrap-sha so we expect
-      // gh.commitsSinceSha to be called with undefined meaning go all the way
-      // back.
+      // gh.commitsSinceShaRest to be called with `undefined` meaning go all
+      // the way back to the first commit.
       expectCommitsSinceSha(mock, {commits});
       expectGetFiles(mock, {
         fixtureFiles: [

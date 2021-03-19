@@ -17,6 +17,7 @@ import {createPullRequest, Changes} from 'code-suggester';
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
+import {Endpoints} from '@octokit/types';
 // The return types for responses have not yet been exposed in the
 // @octokit/* libraries, we explicitly define the types below to work
 // around this,. See: https://github.com/octokit/rest.js/issues/1624
@@ -45,6 +46,8 @@ type CreateIssueCommentResponse = PromiseValue<
 // see: PromiseValue<
 //  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 // >['data'];
+type CommitsListResponse = Endpoints['GET /repos/{owner}/{repo}/commits']['response'];
+type CommitGetResponse = Endpoints['GET /repos/{owner}/{repo}/commits/{ref}']['response'];
 export type ReleaseCreateResponse = {
   name: string;
   tag_name: string;
@@ -279,6 +282,84 @@ export class GitHub {
         },
       });
     }
+  }
+
+  async commitsSinceShaRest(
+    sha?: string,
+    path?: string,
+    per_page = 100
+  ): Promise<Commit[]> {
+    let page = 1;
+    let found = false;
+    const baseBranch = await this.getDefaultBranch();
+    const commits = [];
+    while (!found) {
+      const response = await this.request(
+        'GET /repos/{owner}/{repo}/commits{?sha,page,per_page,path}',
+        {
+          owner: this.owner,
+          repo: this.repo,
+          sha: baseBranch,
+          page,
+          per_page,
+          path,
+        }
+      );
+      for (const commit of (response as CommitsListResponse).data) {
+        if (commit.sha === sha) {
+          found = true;
+          break;
+        }
+        // skip merge commits
+        if (commit.parents.length === 2) {
+          continue;
+        }
+        commits.push([commit.sha, commit.commit.message]);
+      }
+      page++;
+    }
+    const ret = [];
+    for (const [ref, message] of commits) {
+      const files = [];
+      let page = 1;
+      let moreFiles = true;
+      while (moreFiles) {
+        // the "Get Commit" resource is a bit of an outlier in terms of GitHub's
+        // normal pagination: https://git.io/JmVZq
+        // The behavior is to return an object representing the commit, a
+        // property of which is an array of files. GitHub will return as many
+        // associated files as there are, up to a limit of 300, on the initial
+        // request. If there are more associated files, it will send "Links"
+        // headers to get the next set. There is a total limit of 3000
+        // files returned per commit.
+        // In practice, the links headers are just the same resourceID plus a
+        // "page=N" query parameter with "page=1" being the initial set.
+        //
+        // TODO: it is more robust to follow the link.next headers (in case
+        // GitHub ever changes the pattern) OR use ocktokit pagination for this
+        // endpoint when https://git.io/JmVll is addressed.
+        const response = (await this.request(
+          'GET /repos/{owner}/{repo}/commits/{ref}{?page}',
+          {owner: this.owner, repo: this.repo, ref, page}
+        )) as CommitGetResponse;
+        const commitFiles = response.data.files;
+        if (!commitFiles) {
+          moreFiles = false;
+          break;
+        }
+        files.push(...commitFiles.map(f => f.filename ?? ''));
+        // < 300 files means we hit the end
+        // page === 10 means we're at 3000 and that's the limit GH is gonna
+        // cough up anyway.
+        if (commitFiles.length < 300 || page === 10) {
+          moreFiles = false;
+          break;
+        }
+        page++;
+      }
+      ret.push({sha: ref, message, files});
+    }
+    return ret;
   }
 
   // Commit.files only for commits from PRs.
