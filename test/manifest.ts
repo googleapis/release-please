@@ -145,6 +145,9 @@ describe('Manifest', () => {
         'node/pkg2/CHANGELOG.md',
         'python/CHANGELOG.md',
         'python/HISTORY.md',
+        'package-lock.json',
+        'samples/package.json',
+        'CHANGELOG.md',
       ];
       for (const notFound of expectedNotFound) {
         mock
@@ -280,6 +283,77 @@ describe('Manifest', () => {
         ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Python(foolib)', CheckpointType.Success],
+      ]);
+    });
+
+    it('allows root module to be published, via special "." path', async function () {
+      const manifest = JSON.stringify({
+        'node/pkg1': '3.2.1',
+        'node/pkg2': '1.2.3',
+        '.': '2.0.0',
+      });
+      const config = JSON.stringify({
+        packages: {
+          'node/pkg1': {},
+          'node/pkg2': {},
+          '.': {},
+        },
+      });
+      const commits = [
+        buildMockCommit('feat(@node/pkg1)!: major new feature', [
+          'node/pkg1/src/foo.ts',
+        ]),
+        buildMockCommit('feat(@node/pkg2)!: major new feature', [
+          'node/pkg2/src/bar.ts',
+        ]),
+      ];
+
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha});
+      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
+      expectGetFiles(mock, {
+        fixtureFiles: [
+          'node/pkg1/package.json',
+          'node/pkg2/package.json',
+          'package.json',
+        ],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+        ],
+      });
+      expectLabelAndComment(mock, {addLabel});
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+
+      const pr = await new Manifest({github, checkpoint}).pullRequest();
+
+      mock.verify();
+      expect(pr).to.equal(22);
+      expect(logs).to.eql([
+        [
+          'Found version 3.2.1 for node/pkg1 in .release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for node/pkg2 in .release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 2.0.0 for . in .release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
+        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
+        ['Processing package: Node(googleapis)', CheckpointType.Success],
       ]);
     });
 

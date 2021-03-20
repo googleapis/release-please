@@ -293,7 +293,9 @@ export class Manifest {
     const missingVersionPaths = [];
     const defaultBranch = await this.gh.getDefaultBranch();
     for (const pkg of packages) {
-      const commits = commitsPerPath[pkg.path];
+      // The special path of '.' indicates the root module is being released
+      // in this case, use the entire list of commits:
+      commits = pkg.path === '.' ? commits : commitsPerPath[pkg.path];
       if (!commits || commits.length === 0) {
         continue;
       }

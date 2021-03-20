@@ -87,7 +87,9 @@ export class ReleasePR {
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.labels = options.labels ?? DEFAULT_LABELS;
-    this.path = options.path;
+    // undefined represents the root path of the library, if the special
+    // '.' path is provided, simply ignore it:
+    this.path = options.path !== '.' ? options.path : undefined;
     this.packageName = options.packageName || '';
     this.monorepoTags = options.monorepoTags || false;
     this.releaseAs = options.releaseAs;
