@@ -48,8 +48,9 @@ There are two items to consider when running release-please for the first time:
 
 #### Starting commit
 You can add a top level `"bootstrap-sha": <full sha value>` key/value entry to
-the config which will cause release-please to start there for collecting
-changelog commits. Note: once a release-please generated PR has been merged,
+the config which will cause release-please to stop there for collecting
+changelog commits (so choose one commit earlier than the first commit you want
+to include). Note: once a release-please generated PR has been merged,
 this config value will be ignored for all subsequent runs and can be removed.
 
 #### Initial Version
@@ -92,7 +93,7 @@ documented in comments)
 ```js
 {
   // if this is the first time running `manifest-pr` on a repo
-  // this key will limit how far back (inclusive) to pull commits
+  // this key will limit how far back (exclusive) to pull commits
   // for conventional commit parsing.
   // Notes:
   //   - full sha required.
