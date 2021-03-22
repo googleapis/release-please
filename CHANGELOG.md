@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.3.0](https://www.github.com/googleapis/release-please/compare/v11.2.1...v11.3.0) (2021-03-22)
+
+
+### Features
+
+* **manifest:** factory/cli integration ([#824](https://www.github.com/googleapis/release-please/issues/824)) ([f3aad4d](https://www.github.com/googleapis/release-please/commit/f3aad4d5aeff263f7427f3884125fae317fd1d3e))
+
 ### [11.2.1](https://www.github.com/googleapis/release-please/compare/v11.2.0...v11.2.1) (2021-03-12)
 
 
