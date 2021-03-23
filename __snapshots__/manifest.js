@@ -48,10 +48,12 @@ filename: CHANGELOG.md
 
 ### ⚠ BREAKING CHANGES
 
+* **@node/pkg1:** major new feature
 * **@node/pkg2:** major new feature
 
 ### Features
 
+* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
 * **@node/pkg2:** major new feature ([72f962d](https://www.github.com/fake/repo/commit/72f962d44ba0bcee15594ea6bdc67d8b))
 
 filename: package.json
@@ -114,10 +116,12 @@ googleapis: 3.0.0
 
 ### ⚠ BREAKING CHANGES
 
+* **@node/pkg1:** major new feature
 * **@node/pkg2:** major new feature
 
 ### Features
 
+* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
 * **@node/pkg2:** major new feature ([72f962d](https://www.github.com/fake/repo/commit/72f962d44ba0bcee15594ea6bdc67d8b))
 ---
 

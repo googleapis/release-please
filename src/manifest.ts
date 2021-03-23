@@ -279,7 +279,7 @@ export class Manifest {
   }
 
   protected async getPackagesToRelease(
-    commits: Commit[],
+    allCommits: Commit[],
     sha?: string
   ): Promise<PackageReleaseData[]> {
     const packages = (await this.getConfigJson()).parsedPackages;
@@ -288,14 +288,14 @@ export class Manifest {
       includeEmpty: true,
       packagePaths: packages.map(p => p.path),
     });
-    const commitsPerPath = cs.split(commits);
+    const commitsPerPath = cs.split(allCommits);
     const packagesToRelease: Record<string, PackageReleaseData> = {};
     const missingVersionPaths = [];
     const defaultBranch = await this.gh.getDefaultBranch();
     for (const pkg of packages) {
       // The special path of '.' indicates the root module is being released
       // in this case, use the entire list of commits:
-      commits = pkg.path === '.' ? commits : commitsPerPath[pkg.path];
+      const commits = pkg.path === '.' ? allCommits : commitsPerPath[pkg.path];
       if (!commits || commits.length === 0) {
         continue;
       }
