@@ -233,3 +233,15 @@ PRs merge w/out running it). If successful it will remove the
 `"autorelease: pending"` label and adds the `"autorelease: tagged"` label.
 Creating all the releases is not transactional. If any fail to create the
 command can be re-run safely to finish creating releases.
+
+### Releasing Root Path of Library (".")
+
+One use-case that arose for [googleapis](https://github.com/googleapis/google-api-nodejs-client), was the need to publish individual libraries along
+with a combined version of the library, i.e.,
+
+* an individual library for `@googleapis/youtube`, `@googleapis/sheets`, etc.
+* a root library that combined all these API surfaces.
+
+This functionality can be achieved by using the special `"."` path.
+`"."` indicates a release should be created when any changes are made to the
+codebase.
