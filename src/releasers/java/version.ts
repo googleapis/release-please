@@ -15,7 +15,7 @@
 import {BumpType} from './bump_type';
 
 const VERSION_REGEX = /(\d+)\.(\d+)\.(\d+)(-.+)?/;
-const LTS_REGEX = /(-.+)?-lts.(\d+)/;
+const LTS_REGEX = /(-.+)?-sp.(\d+)/;
 export class Version {
   major: number;
   minor: number;
@@ -111,7 +111,7 @@ export class Version {
 
   toString(): string {
     return `${this.major}.${this.minor}.${this.patch}${this.extra}${
-      this.lts ? `-lts.${this.lts}` : ''
+      this.lts ? `-sp.${this.lts}` : ''
     }${this.snapshot ? '-SNAPSHOT' : ''}`;
   }
 }

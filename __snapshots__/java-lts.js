@@ -3,7 +3,7 @@ exports['JavaLTS creates a release PR against a feature branch: changes'] = `
 filename: CHANGELOG.md
 # Changelog
 
-### [0.20.4-lts.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-lts.1) (1983-10-10)
+### [0.20.4-sp.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-sp.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -31,16 +31,16 @@ If you are using Maven, add this to your pom.xml file
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-trace</artifactId>
-  <version>0.108.1-beta-lts.1</version>
+  <version>0.108.1-beta-sp.1</version>
 </dependency>
 \`\`\`
 If you are using Gradle, add this to your dependencies
 \`\`\`Groovy
-compile 'com.google.cloud:google-cloud-trace:0.108.1-beta-lts.1'
+compile 'com.google.cloud:google-cloud-trace:0.108.1-beta-sp.1'
 \`\`\`
 If you are using SBT, add this to your dependencies
 \`\`\`Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-trace" % "0.108.1-beta-lts.1"
+libraryDependencies += "com.google.cloud" % "google-cloud-trace" % "0.108.1-beta-sp.1"
 \`\`\`
 [//]: # ({x-version-update-end})
 
@@ -149,7 +149,7 @@ public final class GoogleUtils {
   // NOTE: toString() so compiler thinks it isn't a constant, so it won't inline it
   // {x-version-update-start:google-api-client:current}
   /** Current release version. */
-  public static final String VERSION = "0.20.4-lts.1".toString();
+  public static final String VERSION = "0.20.4-sp.1".toString();
   // {x-version-update-end:google-api-client:current}
 
   // NOTE: Integer instead of int so compiler thinks it isn't a constant, so it won't inline it
@@ -211,11 +211,11 @@ filename: versions.txt
 # Format:
 # module:released-version:current-version
 
-google-cloud-trace:0.108.1-beta-lts.1:0.108.1-beta-lts.1
-grpc-google-cloud-trace-v1:0.73.1-lts.1:0.73.1-lts.1
-grpc-google-cloud-trace-v2:0.73.1-lts.1:0.73.1-lts.1
-proto-google-cloud-trace-v1:0.73.1-lts.1:0.73.1-lts.1
-proto-google-cloud-trace-v2:0.73.1-lts.1:0.73.1-lts.1
+google-cloud-trace:0.108.1-beta-sp.1:0.108.1-beta-sp.1
+grpc-google-cloud-trace-v1:0.73.1-sp.1:0.73.1-sp.1
+grpc-google-cloud-trace-v2:0.73.1-sp.1:0.73.1-sp.1
+proto-google-cloud-trace-v1:0.73.1-sp.1:0.73.1-sp.1
+proto-google-cloud-trace-v2:0.73.1-sp.1:0.73.1-sp.1
 filename: pom.xml
 <?xml version='1.0' encoding='UTF-8'?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -223,7 +223,7 @@ filename: pom.xml
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-trace-parent</artifactId>
   <packaging>pom</packaging>
-  <version>0.108.1-beta-lts.1</version><!-- {x-version-update:google-cloud-trace:current} -->
+  <version>0.108.1-beta-sp.1</version><!-- {x-version-update:google-cloud-trace:current} -->
   <name>Google Cloud Trace Parent</name>
   <url>https://github.com/googleapis/java-core</url>
   <description>
@@ -387,22 +387,22 @@ filename: pom.xml
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>proto-google-cloud-trace-v1</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>proto-google-cloud-trace-v2</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:proto-google-cloud-trace-v2:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:proto-google-cloud-trace-v2:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>grpc-google-cloud-trace-v1</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:grpc-google-cloud-trace-v1:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:grpc-google-cloud-trace-v1:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>grpc-google-cloud-trace-v2</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:grpc-google-cloud-trace-v2:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:grpc-google-cloud-trace-v2:current} -->
       </dependency>
 
       <dependency>
@@ -572,11 +572,11 @@ exports['JavaLTS creates a release PR against a feature branch: options'] = `
 
 upstreamOwner: googleapis
 upstreamRepo: java-trace
-title: chore(1.x): release 0.20.4-lts.1
+title: chore(1.x): release 0.20.4-sp.1
 branch: release-please/branches/1.x
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
-### [0.20.4-lts.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-lts.1) (1983-10-10)
+### [0.20.4-sp.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-sp.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -589,7 +589,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: 1.x
 force: true
 fork: false
-message: chore(1.x): release 0.20.4-lts.1
+message: chore(1.x): release 0.20.4-sp.1
 `
 
 exports['JavaLTS creates a release PR: changes'] = `
@@ -597,7 +597,7 @@ exports['JavaLTS creates a release PR: changes'] = `
 filename: CHANGELOG.md
 # Changelog
 
-### [0.20.4-lts.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-lts.1) (1983-10-10)
+### [0.20.4-sp.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-sp.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -625,16 +625,16 @@ If you are using Maven, add this to your pom.xml file
 <dependency>
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-trace</artifactId>
-  <version>0.108.1-beta-lts.1</version>
+  <version>0.108.1-beta-sp.1</version>
 </dependency>
 \`\`\`
 If you are using Gradle, add this to your dependencies
 \`\`\`Groovy
-compile 'com.google.cloud:google-cloud-trace:0.108.1-beta-lts.1'
+compile 'com.google.cloud:google-cloud-trace:0.108.1-beta-sp.1'
 \`\`\`
 If you are using SBT, add this to your dependencies
 \`\`\`Scala
-libraryDependencies += "com.google.cloud" % "google-cloud-trace" % "0.108.1-beta-lts.1"
+libraryDependencies += "com.google.cloud" % "google-cloud-trace" % "0.108.1-beta-sp.1"
 \`\`\`
 [//]: # ({x-version-update-end})
 
@@ -743,7 +743,7 @@ public final class GoogleUtils {
   // NOTE: toString() so compiler thinks it isn't a constant, so it won't inline it
   // {x-version-update-start:google-api-client:current}
   /** Current release version. */
-  public static final String VERSION = "0.20.4-lts.1".toString();
+  public static final String VERSION = "0.20.4-sp.1".toString();
   // {x-version-update-end:google-api-client:current}
 
   // NOTE: Integer instead of int so compiler thinks it isn't a constant, so it won't inline it
@@ -805,11 +805,11 @@ filename: versions.txt
 # Format:
 # module:released-version:current-version
 
-google-cloud-trace:0.108.1-beta-lts.1:0.108.1-beta-lts.1
-grpc-google-cloud-trace-v1:0.73.1-lts.1:0.73.1-lts.1
-grpc-google-cloud-trace-v2:0.73.1-lts.1:0.73.1-lts.1
-proto-google-cloud-trace-v1:0.73.1-lts.1:0.73.1-lts.1
-proto-google-cloud-trace-v2:0.73.1-lts.1:0.73.1-lts.1
+google-cloud-trace:0.108.1-beta-sp.1:0.108.1-beta-sp.1
+grpc-google-cloud-trace-v1:0.73.1-sp.1:0.73.1-sp.1
+grpc-google-cloud-trace-v2:0.73.1-sp.1:0.73.1-sp.1
+proto-google-cloud-trace-v1:0.73.1-sp.1:0.73.1-sp.1
+proto-google-cloud-trace-v2:0.73.1-sp.1:0.73.1-sp.1
 filename: pom.xml
 <?xml version='1.0' encoding='UTF-8'?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -817,7 +817,7 @@ filename: pom.xml
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-trace-parent</artifactId>
   <packaging>pom</packaging>
-  <version>0.108.1-beta-lts.1</version><!-- {x-version-update:google-cloud-trace:current} -->
+  <version>0.108.1-beta-sp.1</version><!-- {x-version-update:google-cloud-trace:current} -->
   <name>Google Cloud Trace Parent</name>
   <url>https://github.com/googleapis/java-core</url>
   <description>
@@ -981,22 +981,22 @@ filename: pom.xml
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>proto-google-cloud-trace-v1</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>proto-google-cloud-trace-v2</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:proto-google-cloud-trace-v2:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:proto-google-cloud-trace-v2:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>grpc-google-cloud-trace-v1</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:grpc-google-cloud-trace-v1:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:grpc-google-cloud-trace-v1:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>grpc-google-cloud-trace-v2</artifactId>
-        <version>0.73.1-lts.1</version><!-- {x-version-update:grpc-google-cloud-trace-v2:current} -->
+        <version>0.73.1-sp.1</version><!-- {x-version-update:grpc-google-cloud-trace-v2:current} -->
       </dependency>
 
       <dependency>
@@ -1166,11 +1166,11 @@ exports['JavaLTS creates a release PR: options'] = `
 
 upstreamOwner: googleapis
 upstreamRepo: java-trace
-title: chore: release 0.20.4-lts.1
+title: chore: release 0.20.4-sp.1
 branch: release-please/branches/master
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
-### [0.20.4-lts.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-lts.1) (1983-10-10)
+### [0.20.4-sp.1](https://www.github.com/googleapis/java-trace/compare/0.20.3...v0.20.4-sp.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -1183,7 +1183,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: master
 force: true
 fork: false
-message: chore: release 0.20.4-lts.1
+message: chore: release 0.20.4-sp.1
 `
 
 exports['JavaLTS creates a snapshot PR if an explicit release is requested, but a snapshot is needed: changes'] = `
