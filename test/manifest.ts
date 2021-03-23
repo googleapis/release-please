@@ -1825,6 +1825,86 @@ describe('Manifest', () => {
         ],
       ]);
     });
+
+    it('releases library in root (".")', async () => {
+      const manifest = JSON.stringify({
+        '.': '3.2.1',
+      });
+      const config = JSON.stringify({
+        packages: {
+          '.': {},
+        },
+      });
+
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {
+        lastReleaseSha,
+        mergedPRFiles: [
+          // lack of any "node/pkg2/ files indicates that package did not
+          // change in the last merged PR.
+          'package.json',
+          'CHANGELOG.md',
+        ],
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: ['package.json'],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+          ['CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
+        ],
+      });
+      expectLabelAndComment(mock, {
+        addLabel: 'autorelease: tagged',
+        removeLabel: 'autorelease: pending',
+        prComments: [
+          ':robot: Release for googleapis is at https://pkg1@3.2.1:html :sunflower:',
+        ],
+      });
+      mock
+        .expects('createRelease')
+        .withArgs(
+          'googleapis',
+          'googleapis-v3.2.1',
+          lastReleaseSha,
+          sinon.match.string,
+          false
+        )
+        .once()
+        .resolves({
+          name: 'googleapis googleapis-v3.2.1',
+          tag_name: 'googleapis-v3.2.1',
+          draft: false,
+          body: '',
+          html_url: 'https://pkg1@3.2.1:html',
+          upload_url: 'https://pkg1@3.2.1:upload',
+        });
+
+      const releases = await new Manifest({github}).githubRelease();
+      mock.verify();
+      expect(releases).to.eql({
+        '.': {
+          version: '3.2.1',
+          major: 3,
+          minor: 2,
+          patch: 1,
+          pr: 22,
+          draft: false,
+          body: '',
+          sha: 'abc123',
+          html_url: 'https://pkg1@3.2.1:html',
+          tag_name: 'googleapis-v3.2.1',
+          name: 'googleapis googleapis-v3.2.1',
+          upload_url: 'https://pkg1@3.2.1:upload',
+        },
+      });
+    });
   });
 
   describe('validate', () => {
