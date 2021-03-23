@@ -306,6 +306,7 @@ describe('Manifest', () => {
         buildMockCommit('feat(@node/pkg2)!: major new feature', [
           'node/pkg2/src/bar.ts',
         ]),
+        buildMockCommit('fix(root): root only change', ['src/foo.ts']),
       ];
 
       const github = new GitHub({
