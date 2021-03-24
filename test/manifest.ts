@@ -1864,7 +1864,7 @@ describe('Manifest', () => {
         addLabel: 'autorelease: tagged',
         removeLabel: 'autorelease: pending',
         prComments: [
-          ':robot: Release for googleapis is at https://pkg1@3.2.1:html :sunflower:',
+          ':robot: Release for googleapis is at https://googleapis@3.2.1:html :sunflower:',
         ],
       });
       mock
