@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.3.1](https://www.github.com/googleapis/release-please/compare/v11.3.0...v11.3.1) (2021-03-24)
+
+
+### Bug Fixes
+
+* **deps:** update dependency type-fest to v1 ([#834](https://www.github.com/googleapis/release-please/issues/834)) ([f06894c](https://www.github.com/googleapis/release-please/commit/f06894ce84317230e3b86fe2005d306f12c43c2d))
+
 ## [11.3.0](https://www.github.com/googleapis/release-please/compare/v11.2.1...v11.3.0) (2021-03-22)
 
 
