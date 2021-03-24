@@ -1901,7 +1901,7 @@ describe('Manifest', () => {
           html_url: 'https://pkg1@3.2.1:html',
           tag_name: 'googleapis-v3.2.1',
           name: 'googleapis googleapis-v3.2.1',
-          upload_url: 'https://pkg1@3.2.1:upload',
+          upload_url: 'https://googleapis@3.2.1:upload',
         },
       });
     });
