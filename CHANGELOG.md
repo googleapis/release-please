@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.4.0](https://www.github.com/googleapis/release-please/compare/v11.3.0...v11.4.0) (2021-03-24)
+
+
+### Features
+
+* **manifest:** add support for releasing root module ([#833](https://www.github.com/googleapis/release-please/issues/833)) ([7ec1037](https://www.github.com/googleapis/release-please/commit/7ec103725ab96eb869c9bb8b83538efdf2e482b6))
+
+
+### Bug Fixes
+
+* **deps:** update dependency type-fest to v1 ([#834](https://www.github.com/googleapis/release-please/issues/834)) ([f06894c](https://www.github.com/googleapis/release-please/commit/f06894ce84317230e3b86fe2005d306f12c43c2d))
+
 ## [11.3.0](https://www.github.com/googleapis/release-please/compare/v11.2.1...v11.3.0) (2021-03-22)
 
 
