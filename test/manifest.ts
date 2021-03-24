@@ -1882,8 +1882,8 @@ describe('Manifest', () => {
           tag_name: 'googleapis-v3.2.1',
           draft: false,
           body: '',
-          html_url: 'https://pkg1@3.2.1:html',
-          upload_url: 'https://pkg1@3.2.1:upload',
+          html_url: 'https://googleapis@3.2.1:html',
+          upload_url: 'https://googleapis@3.2.1:upload',
         });
 
       const releases = await new Manifest({github}).githubRelease();
