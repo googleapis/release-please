@@ -1898,7 +1898,7 @@ describe('Manifest', () => {
           draft: false,
           body: '',
           sha: 'abc123',
-          html_url: 'https://pkg1@3.2.1:html',
+          html_url: 'https://googleapis@3.2.1:html',
           tag_name: 'googleapis-v3.2.1',
           name: 'googleapis googleapis-v3.2.1',
           upload_url: 'https://googleapis@3.2.1:upload',
