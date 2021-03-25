@@ -30,12 +30,12 @@ interface GitHubOptions {
 }
 
 // Used by GitHubRelease: Factory and Constructor
-interface GitHubReleaseOptions {
+export interface GitHubReleaseOptions {
   draft?: boolean;
 }
 
 // Used by ReleasePR: Factory and Constructor
-interface ReleasePROptions {
+export interface ReleasePROptions {
   path?: string;
   packageName?: string;
   bumpMinorPreMajor?: boolean;

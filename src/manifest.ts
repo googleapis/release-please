@@ -27,7 +27,8 @@ import {BranchName} from './util/branch-name';
 import {
   factory,
   ManifestConstructorOptions,
-  GitHubReleaseFactoryOptions,
+  ReleasePROptions,
+  GitHubReleaseOptions,
 } from '.';
 import {ChangelogSection} from './conventional-commits';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
@@ -38,13 +39,14 @@ import {
   GITHUB_RELEASE_LABEL,
 } from './github-release';
 import {OpenPROptions} from './release-pr';
+import {ReleasePR} from './release-pr';
 
 interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
   'bump-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
-  'release-draft'?: boolean;
+  draft?: boolean;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -58,25 +60,37 @@ export interface Config extends ReleaserConfigJson {
   'bootstrap-sha'?: string;
 }
 
-interface Package {
+// allow list of releaser options used to build ReleasePR subclass instances
+// and GitHubRelease instances for each package. Rejected items:
+// 1. `monorepoTags` and `pullRequestTitlePattern` will never apply
+// 2. `lastPackageVersion` and `versionFile` could be supported if/when ruby
+//    support in the manifest is made available. However, ideally they'd be
+//    factored out of the ruby ReleasePR prior to adding support here.
+// 3. currently unsupported but possible future support:
+//   - `snapshot`
+//   - `label`
+type Package = Pick<
+  ReleasePROptions & GitHubReleaseOptions,
+  | 'draft'
+  | 'packageName'
+  | 'bumpMinorPreMajor'
+  | 'releaseAs'
+  | 'changelogSections'
+  | 'changelogPath'
+> & {
+  // these items are not optional in the manifest context.
   path: string;
   releaseType: ReleaseType;
-  packageName?: string;
-  bumpMinorPreMajor?: boolean;
-  changelogSections?: ChangelogSection[];
-  changelogPath?: string;
-  releaseAs?: string;
-  releaseDraft: boolean;
-}
+};
 
-interface PackageReleaseData extends Package {
-  releaserOptions: Omit<GitHubReleaseFactoryOptions, 'repoUrl'>;
+interface PackageForReleaser {
+  config: Package;
   commits: Commit[];
   lastVersion?: string;
 }
 
 interface PackageWithPRData {
-  name: string;
+  config: Package;
   openPROptions: OpenPROptions;
 }
 
@@ -245,7 +259,7 @@ export class Manifest {
             pkgCfg['release-as'],
             config['release-as']
           ),
-          releaseDraft: !!(pkgCfg['release-draft'] ?? config['release-draft']),
+          draft: pkgCfg['draft'] ?? config['draft'],
         };
         packages.push(pkg);
       }
@@ -281,7 +295,7 @@ export class Manifest {
   protected async getPackagesToRelease(
     allCommits: Commit[],
     sha?: string
-  ): Promise<PackageReleaseData[]> {
+  ): Promise<PackageForReleaser[]> {
     const packages = (await this.getConfigJson()).parsedPackages;
     const [manifestVersions, atSha] = await this.getManifestVersions(sha);
     const cs = new CommitSplit({
@@ -289,7 +303,7 @@ export class Manifest {
       packagePaths: packages.map(p => p.path),
     });
     const commitsPerPath = cs.split(allCommits);
-    const packagesToRelease: Record<string, PackageReleaseData> = {};
+    const packagesToRelease: Record<string, PackageForReleaser> = {};
     const missingVersionPaths = [];
     const defaultBranch = await this.gh.getDefaultBranch();
     for (const pkg of packages) {
@@ -314,17 +328,10 @@ export class Manifest {
           CheckpointType.Success
         );
       }
-      const {releaseDraft, ...rest} = pkg;
-      const releaserOptions = {
-        monorepoTags: true,
-        draft: releaseDraft,
-        ...rest,
-      };
       packagesToRelease[pkg.path] = {
         commits,
         lastVersion,
-        releaserOptions,
-        ...pkg,
+        config: pkg,
       };
     }
     if (missingVersionPaths.length > 0) {
@@ -415,26 +422,40 @@ export class Manifest {
     return validConfig && validManifest;
   }
 
+  private async getReleasePR(
+    pkg: Package
+  ): Promise<[ReleasePR, boolean | undefined]> {
+    const {releaseType, draft, ...options} = pkg;
+    const releaserOptions = {
+      monorepoTags: true,
+      ...options,
+    };
+    const releaserClass = factory.releasePRClass(releaseType);
+    const releasePR = new releaserClass({
+      github: this.gh,
+      ...releaserOptions,
+    });
+    return [releasePR, draft];
+  }
+
   private async runReleasers(
-    packages: PackageReleaseData[],
+    packagesForReleasers: PackageForReleaser[],
     sha?: string
   ): Promise<[VersionsMap, PackageWithPRData[]]> {
-    const manifestUpdates: VersionsMap = new Map();
-    const openPRPackages: PackageWithPRData[] = [];
-    for (const pkg of packages) {
-      const {releaseType, ...options} = pkg.releaserOptions;
-      const releaserClass = factory.releasePRClass(releaseType);
-      const releasePR = new releaserClass({github: this.gh, ...options});
+    const manifestUpdates = new Map();
+    const openPRPackages = [];
+    for (const pkg of packagesForReleasers) {
+      const [releasePR] = await this.getReleasePR(pkg.config);
       const pkgName = await releasePR.getPackageName();
+      const displayTag = `${releasePR.constructor.name}(${pkgName.name})`;
       this.checkpoint(
-        `Processing package: ${releaserClass.name}(${pkgName.name})`,
+        `Processing package: ${displayTag}`,
         CheckpointType.Success
       );
       if (pkg.lastVersion === undefined) {
         this.checkpoint(
-          `Falling back to default version for ${releaserClass.name}(${
-            pkgName.name
-          }): ${releasePR.defaultInitialVersion()}`,
+          `Falling back to default version for ${displayTag}: ` +
+            releasePR.defaultInitialVersion(),
           CheckpointType.Failure
         );
       }
@@ -453,8 +474,9 @@ export class Manifest {
           : undefined
       );
       if (openPROptions) {
-        openPRPackages.push({name: releasePR.packageName, openPROptions});
-        manifestUpdates.set(pkg.path, openPROptions.version);
+        pkg.config.packageName = (await releasePR.getPackageName()).name;
+        openPRPackages.push({config: pkg.config, openPROptions});
+        manifestUpdates.set(pkg.config.path, openPROptions.version);
       }
     }
     return [manifestUpdates, openPRPackages];
@@ -469,7 +491,7 @@ export class Manifest {
     for (const openPRPackage of openPRPackages) {
       body +=
         '\n\n---\n' +
-        `${openPRPackage.name}: ${openPRPackage.openPROptions.version}\n` +
+        `${openPRPackage.config.packageName}: ${openPRPackage.openPROptions.version}\n` +
         `${openPRPackage.openPROptions.changelogEntry}`;
       updates.push(...openPRPackage.openPROptions.updates);
     }
@@ -518,12 +540,12 @@ export class Manifest {
     const branchName = (await this.getBranchName()).toString();
     const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
     const commits = await this.commitsSinceSha(lastMergedPR?.sha);
-    const packages = await this.getPackagesToRelease(
+    const packagesForReleasers = await this.getPackagesToRelease(
       commits,
       lastMergedPR?.sha
     );
     const [manifestUpdates, openPRPackages] = await this.runReleasers(
-      packages,
+      packagesForReleasers,
       lastMergedPR?.sha
     );
     if (openPRPackages.length === 0) {
@@ -583,7 +605,7 @@ export class Manifest {
       );
       return;
     }
-    const packages = await this.getPackagesToRelease(
+    const packagesForReleasers = await this.getPackagesToRelease(
       // use the lastMergedPR.sha as a Commit: lastMergedPR.files will inform
       // getPackagesToRelease() what packages had changes (i.e. at least one
       // file under their path changed in the lastMergedPR such as
@@ -593,13 +615,11 @@ export class Manifest {
       lastMergedPR.sha
     );
     const releases: Record<string, GitHubReleaseResponse | undefined> = {};
-    let allReleasesCreated = !!packages.length;
-    for (const pkg of packages) {
-      const {releaseType, draft, ...options} = pkg.releaserOptions;
-      const releaserClass = factory.releasePRClass(releaseType);
-      const releasePR = new releaserClass({github: this.gh, ...options});
+    let allReleasesCreated = !!packagesForReleasers.length;
+    for (const pkg of packagesForReleasers) {
+      const [releasePR, draft] = await this.getReleasePR(pkg.config);
       const pkgName = (await releasePR.getPackageName()).name;
-      const pkgLogDisp = `${releaserClass.name}(${pkgName})`;
+      const pkgLogDisp = `${releasePR.constructor.name}(${pkgName})`;
       if (!pkg.lastVersion) {
         // a user manually modified the manifest file on the release branch
         // right before merging it and deleted the entry for this pkg.
@@ -607,7 +627,7 @@ export class Manifest {
           `Unable to find last version for ${pkgLogDisp}.`,
           CheckpointType.Failure
         );
-        releases[pkg.path] = undefined;
+        releases[pkg.config.path] = undefined;
         continue;
       }
       this.checkpoint(
@@ -664,7 +684,7 @@ export class Manifest {
             CheckpointType.Failure
           );
         }
-        releases[pkg.path] = undefined;
+        releases[pkg.config.path] = undefined;
         continue;
       }
       if (release) {
@@ -672,7 +692,7 @@ export class Manifest {
           `:robot: Release for ${pkgName} is at ${release.html_url} :sunflower:`,
           lastMergedPR.number
         );
-        releases[pkg.path] = releaser.releaseResponse({
+        releases[pkg.config.path] = releaser.releaseResponse({
           release,
           version: pkg.lastVersion,
           sha: lastMergedPR.sha,
