@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "11.3.0",
+  "version": "11.4.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -55,7 +55,7 @@
     "gts": "^2.0.0",
     "mocha": "^8.0.0",
     "nock": "^13.0.0",
-    "sinon": "^9.0.3",
+    "sinon": "^10.0.0",
     "snap-shot-it": "^7.0.0"
   },
   "dependencies": {
@@ -73,7 +73,7 @@
     "js-yaml": "^4.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
-    "type-fest": "^0.21.0",
+    "type-fest": "^1.0.0",
     "typescript": "^3.8.3",
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
