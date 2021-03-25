@@ -34,6 +34,7 @@ import {parser, handleError} from '../src/bin/release-please';
 import {ParseCallback} from 'yargs';
 import chalk = require('chalk');
 import {Manifest} from '../src/manifest';
+import snapshot = require('snap-shot-it');
 
 const sandbox = sinon.createSandbox();
 
@@ -183,6 +184,53 @@ describe('CLI', () => {
               'Choices: ' +
               choices.map(c => `"${c}"`).join(', ')
           );
+        done();
+      };
+      parser.parse(cmd, parseCallback);
+    });
+  });
+  describe('flags', () => {
+    it('release-pr flags', done => {
+      sandbox.stub(factory, 'call').resolves(undefined);
+      const cmd = 'release-pr --help';
+      const parseCallback: ParseCallback = (_err, _argv, output) => {
+        snapshot(output);
+        done();
+      };
+      parser.parse(cmd, parseCallback);
+    });
+    it('latest-tag flags', done => {
+      sandbox.stub(factory, 'call').resolves(undefined);
+      const cmd = 'latest-tag --help';
+      const parseCallback: ParseCallback = (_err, _argv, output) => {
+        snapshot(output);
+        done();
+      };
+      parser.parse(cmd, parseCallback);
+    });
+    it('github-release flags', done => {
+      sandbox.stub(factory, 'call').resolves(undefined);
+      const cmd = 'github-release --help';
+      const parseCallback: ParseCallback = (_err, _argv, output) => {
+        snapshot(output);
+        done();
+      };
+      parser.parse(cmd, parseCallback);
+    });
+    it('manifest-pr flags', done => {
+      sandbox.stub(factory, 'call').resolves(undefined);
+      const cmd = 'manifest-pr --help';
+      const parseCallback: ParseCallback = (_err, _argv, output) => {
+        snapshot(output);
+        done();
+      };
+      parser.parse(cmd, parseCallback);
+    });
+    it('manifest-release flags', done => {
+      sandbox.stub(factory, 'call').resolves(undefined);
+      const cmd = 'manifest-release --help';
+      const parseCallback: ParseCallback = (_err, _argv, output) => {
+        snapshot(output);
         done();
       };
       parser.parse(cmd, parseCallback);

@@ -1,5 +1,32 @@
 exports['Manifest pullRequest allows root module to be published, via special "." path: changes'] = `
 
+filename: CHANGELOG.md
+# Changelog
+
+## [3.0.0](https://www.github.com/fake/repo/compare/googleapis-v2.0.0...googleapis-v3.0.0) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **@node/pkg1:** major new feature
+* **@node/pkg2:** major new feature
+
+### Features
+
+* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
+* **@node/pkg2:** major new feature ([72f962d](https://www.github.com/fake/repo/commit/72f962d44ba0bcee15594ea6bdc67d8b))
+
+
+### Bug Fixes
+
+* **root:** root only change ([8b55db3](https://www.github.com/fake/repo/commit/8b55db3f6115306cc9c132bec0bb1447))
+
+filename: package.json
+{
+  "name": "googleapis",
+  "version": "3.0.0"
+}
+
 filename: node/pkg1/CHANGELOG.md
 # Changelog
 
@@ -40,9 +67,25 @@ filename: node/pkg2/package.json
   "version": "2.0.0"
 }
 
-filename: CHANGELOG.md
-# Changelog
+filename: .release-please-manifest.json
+{
+  ".": "3.0.0",
+  "node/pkg1": "4.0.0",
+  "node/pkg2": "2.0.0"
+}
 
+`
+
+exports['Manifest pullRequest allows root module to be published, via special "." path: options'] = `
+
+upstreamOwner: fake
+upstreamRepo: repo
+title: chore: release
+branch: release-please/branches/main
+description: :robot: I have created a release \\*beep\\* \\*boop\\*
+
+---
+googleapis: 3.0.0
 ## [3.0.0](https://www.github.com/fake/repo/compare/googleapis-v2.0.0...googleapis-v3.0.0) (1983-10-10)
 
 
@@ -60,29 +103,8 @@ filename: CHANGELOG.md
 ### Bug Fixes
 
 * **root:** root only change ([8b55db3](https://www.github.com/fake/repo/commit/8b55db3f6115306cc9c132bec0bb1447))
+---
 
-filename: package.json
-{
-  "name": "googleapis",
-  "version": "3.0.0"
-}
-
-filename: .release-please-manifest.json
-{
-  ".": "3.0.0",
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "2.0.0"
-}
-
-`
-
-exports['Manifest pullRequest allows root module to be published, via special "." path: options'] = `
-
-upstreamOwner: fake
-upstreamRepo: repo
-title: chore: release
-branch: release-please/branches/main
-description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
 ---
 @node/pkg1: 4.0.0
@@ -111,28 +133,6 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Features
 
 * **@node/pkg2:** major new feature ([72f962d](https://www.github.com/fake/repo/commit/72f962d44ba0bcee15594ea6bdc67d8b))
----
-
-
----
-googleapis: 3.0.0
-## [3.0.0](https://www.github.com/fake/repo/compare/googleapis-v2.0.0...googleapis-v3.0.0) (1983-10-10)
-
-
-### ⚠ BREAKING CHANGES
-
-* **@node/pkg1:** major new feature
-* **@node/pkg2:** major new feature
-
-### Features
-
-* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
-* **@node/pkg2:** major new feature ([72f962d](https://www.github.com/fake/repo/commit/72f962d44ba0bcee15594ea6bdc67d8b))
-
-
-### Bug Fixes
-
-* **root:** root only change ([8b55db3](https://www.github.com/fake/repo/commit/8b55db3f6115306cc9c132bec0bb1447))
 ---
 
 
