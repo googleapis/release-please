@@ -45,6 +45,55 @@ interface YargsOptionsBuilder {
   option(opt: string, options: YargsOptions): YargsOptionsBuilder;
 }
 
+function releaserCommon(ya: YargsOptionsBuilder) {
+  // common to ReleasePR and GitHubRelease
+  ya.option('label', {
+    default: 'autorelease: pending',
+    describe: 'label to remove from release PR',
+  });
+  ya.option('release-as', {
+    describe: 'override the semantically determined release version',
+    type: 'string',
+  });
+  ya.option('bump-minor-pre-major', {
+    describe:
+      'should we bump the semver minor prior to the first major release',
+    default: false,
+    type: 'boolean',
+  });
+  ya.option('path', {
+    describe: 'release from path other than root directory',
+    type: 'string',
+  });
+  ya.option('package-name', {
+    describe: 'name of package release is being minted for',
+  });
+  ya.option('monorepo-tags', {
+    describe: 'include library name in tags and release branches',
+    type: 'boolean',
+    default: false,
+  });
+  ya.option('version-file', {
+    describe: 'path to version file to update, e.g., version.rb',
+  });
+  ya.option('last-package-version', {
+    describe: 'last version # that package was released as',
+  });
+  ya.option('snapshot', {
+    describe: 'is it a snapshot (or pre-release) being generated?',
+    type: 'boolean',
+    default: false,
+  });
+  ya.option('pull-request-title-pattern', {
+    describe: 'Title pattern to make release PR',
+    type: 'string',
+  });
+  ya.option('changelog-path', {
+    default: 'CHANGELOG.md',
+    describe: 'where can the CHANGELOG be found in the project?',
+  });
+}
+
 function releaseType(ya: YargsOptionsBuilder, defaultType?: string) {
   const relTypeOptions: YargsOptions = {
     describe: 'what type of repo is a release being created for?',
@@ -94,6 +143,7 @@ export const parser = yargs
     // options unique to ReleasePR
     (yargs: YargsOptionsBuilder) => {
       releaseType(yargs, 'node');
+      releaserCommon(yargs);
     },
     (argv: ReleasePRFactoryOptions) => {
       factory.runCommand('release-pr', argv).catch(handleError);
@@ -105,6 +155,7 @@ export const parser = yargs
     // options unique to ReleasePR
     (yargs: YargsOptionsBuilder) => {
       releaseType(yargs, 'node');
+      releaserCommon(yargs);
     },
     (argv: ReleasePRFactoryOptions) => {
       factory
@@ -126,19 +177,15 @@ export const parser = yargs
     // options unique to GitHubRelease
     (yargs: YargsOptionsBuilder) => {
       releaseType(yargs);
-      yargs
-        .option('changelog-path', {
-          default: 'CHANGELOG.md',
-          describe: 'where can the CHANGELOG be found in the project?',
-        })
-        .option('draft', {
-          describe:
-            'mark release as a draft. no tag is created but tag_name and ' +
-            'target_commitish are associated with the release for future ' +
-            'tag creation upon "un-drafting" the release.',
-          type: 'boolean',
-          default: false,
-        });
+      releaserCommon(yargs);
+      yargs.option('draft', {
+        describe:
+          'mark release as a draft. no tag is created but tag_name and ' +
+          'target_commitish are associated with the release for future ' +
+          'tag creation upon "un-drafting" the release.',
+        type: 'boolean',
+        default: false,
+      });
     },
     (argv: GitHubReleaseFactoryOptions) => {
       factory.runCommand('github-release', argv).catch(handleError);
@@ -176,49 +223,6 @@ export const parser = yargs
   .option('repo-url', {
     describe: 'GitHub URL to generate release for',
     demand: true,
-  })
-
-  // common to ReleasePR and GitHubRelease
-  .option('label', {
-    default: 'autorelease: pending',
-    describe: 'label to remove from release PR',
-  })
-  .option('release-as', {
-    describe: 'override the semantically determined release version',
-    type: 'string',
-  })
-  .option('bump-minor-pre-major', {
-    describe:
-      'should we bump the semver minor prior to the first major release',
-    default: false,
-    type: 'boolean',
-  })
-  .option('path', {
-    describe: 'release from path other than root directory',
-    type: 'string',
-  })
-  .option('package-name', {
-    describe: 'name of package release is being minted for',
-  })
-  .option('monorepo-tags', {
-    describe: 'include library name in tags and release branches',
-    type: 'boolean',
-    default: false,
-  })
-  .option('version-file', {
-    describe: 'path to version file to update, e.g., version.rb',
-  })
-  .option('last-package-version', {
-    describe: 'last version # that package was released as',
-  })
-  .option('snapshot', {
-    describe: 'is it a snapshot (or pre-release) being generated?',
-    type: 'boolean',
-    default: false,
-  })
-  .option('pull-request-title-pattern', {
-    describe: 'Title pattern to make release PR',
-    type: 'string',
   })
   .demandCommand(1)
   .strict(true);
