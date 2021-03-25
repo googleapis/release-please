@@ -288,15 +288,15 @@ describe('Manifest', () => {
 
     it('allows root module to be published, via special "." path', async function () {
       const manifest = JSON.stringify({
+        '.': '2.0.0',
         'node/pkg1': '3.2.1',
         'node/pkg2': '1.2.3',
-        '.': '2.0.0',
       });
       const config = JSON.stringify({
         packages: {
+          '.': {},
           'node/pkg1': {},
           'node/pkg2': {},
-          '.': {},
         },
       });
       const commits = [
@@ -341,6 +341,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found version 2.0.0 for . in .release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 3.2.1 for node/pkg1 in .release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
         ],
@@ -348,13 +352,9 @@ describe('Manifest', () => {
           'Found version 1.2.3 for node/pkg2 in .release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
         ],
-        [
-          'Found version 2.0.0 for . in .release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
+        ['Processing package: Node(googleapis)', CheckpointType.Success],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
         ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Node(googleapis)', CheckpointType.Success],
       ]);
     });
 

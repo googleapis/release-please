@@ -91,7 +91,11 @@ export class CommitSplit {
         let pkgName;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
-          pkgName = this.packagePaths.find(p => file.indexOf(p) >= 0);
+          pkgName = this.packagePaths.find(p => {
+            // The special "." path, representing the root of the module
+            // should be ignored by commit-split:
+            return file.indexOf(p) >= 0 && p !== '.';
+          });
         } else {
           // track paths by top level folder
           pkgName = splitPath[0];
