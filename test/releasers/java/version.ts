@@ -56,7 +56,7 @@ describe('Version', () => {
       expect(version.snapshot).to.equal(true);
     });
     it('can read an lts version', async () => {
-      const input = '1.23.45-lts.1';
+      const input = '1.23.45-sp.1';
       const version = Version.parse(input);
       expect(version.major).to.equal(1);
       expect(version.minor).to.equal(23);
@@ -66,7 +66,7 @@ describe('Version', () => {
       expect(version.snapshot).to.equal(false);
     });
     it('can read an lts beta version', async () => {
-      const input = '1.23.45-beta-lts.1';
+      const input = '1.23.45-beta-sp.1';
       const version = Version.parse(input);
       expect(version.major).to.equal(1);
       expect(version.minor).to.equal(23);
@@ -76,7 +76,7 @@ describe('Version', () => {
       expect(version.snapshot).to.equal(false);
     });
     it('can read an lts snapshot version', async () => {
-      const input = '1.23.45-lts.1-SNAPSHOT';
+      const input = '1.23.45-sp.1-SNAPSHOT';
       const version = Version.parse(input);
       expect(version.major).to.equal(1);
       expect(version.minor).to.equal(23);
@@ -86,7 +86,7 @@ describe('Version', () => {
       expect(version.snapshot).to.equal(true);
     });
     it('can read an lts beta snapshot version', async () => {
-      const input = '1.23.45-beta-lts.1-SNAPSHOT';
+      const input = '1.23.45-beta-sp.1-SNAPSHOT';
       const version = Version.parse(input);
       expect(version.major).to.equal(1);
       expect(version.minor).to.equal(23);
@@ -183,7 +183,7 @@ describe('Version', () => {
         expect(version.extra).to.equal('');
         expect(version.lts).to.equal(1);
         expect(version.snapshot).to.equal(false);
-        expect(version.toString()).to.equal('1.23.46-lts.1');
+        expect(version.toString()).to.equal('1.23.46-sp.1');
       });
       it('should make an initial LTS bump on a SNAPSHOT', async () => {
         const version = Version.parse('1.23.45-SNAPSHOT').bump('lts');
@@ -193,7 +193,7 @@ describe('Version', () => {
         expect(version.extra).to.equal('');
         expect(version.lts).to.equal(1);
         expect(version.snapshot).to.equal(false);
-        expect(version.toString()).to.equal('1.23.45-lts.1');
+        expect(version.toString()).to.equal('1.23.45-sp.1');
       });
       it('should make an initial LTS bump on beta version', async () => {
         const version = Version.parse('1.23.45-beta').bump('lts');
@@ -203,29 +203,27 @@ describe('Version', () => {
         expect(version.extra).to.equal('-beta');
         expect(version.lts).to.equal(1);
         expect(version.snapshot).to.equal(false);
-        expect(version.toString()).to.equal('1.23.46-beta-lts.1');
+        expect(version.toString()).to.equal('1.23.46-beta-sp.1');
       });
       it('should make a snapshot on an LTS version', async () => {
-        const version = Version.parse('1.23.45-beta-lts.1').bump('snapshot');
+        const version = Version.parse('1.23.45-beta-sp.1').bump('snapshot');
         expect(version.major).to.equal(1);
         expect(version.minor).to.equal(23);
         expect(version.patch).to.equal(45);
         expect(version.extra).to.equal('-beta');
         expect(version.lts).to.equal(2);
         expect(version.snapshot).to.equal(true);
-        expect(version.toString()).to.equal('1.23.45-beta-lts.2-SNAPSHOT');
+        expect(version.toString()).to.equal('1.23.45-beta-sp.2-SNAPSHOT');
       });
       it('should make an LTS bump on an LTS version', async () => {
-        const version = Version.parse('1.23.45-beta-lts.1-SNAPSHOT').bump(
-          'lts'
-        );
+        const version = Version.parse('1.23.45-beta-sp.1-SNAPSHOT').bump('lts');
         expect(version.major).to.equal(1);
         expect(version.minor).to.equal(23);
         expect(version.patch).to.equal(45);
         expect(version.extra).to.equal('-beta');
         expect(version.lts).to.equal(2);
         expect(version.snapshot).to.equal(false);
-        expect(version.toString()).to.equal('1.23.45-beta-lts.2');
+        expect(version.toString()).to.equal('1.23.45-beta-sp.2');
       });
     });
   });
