@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.4.1](https://www.github.com/googleapis/release-please/compare/v11.4.0...v11.4.1) (2021-03-25)
+
+
+### Bug Fixes
+
+* **java:** lts -> sp versioning numbers ([#837](https://www.github.com/googleapis/release-please/issues/837)) ([183b235](https://www.github.com/googleapis/release-please/commit/183b235798bfeedc0ee421d7cbd172efc91f1e12))
+* **manifest:** do not group changes under "." ([#841](https://www.github.com/googleapis/release-please/issues/841)) ([47b8b43](https://www.github.com/googleapis/release-please/commit/47b8b432d4c5e4130d47b1f9b97b61c19bdeff0e))
+
 ## [11.4.0](https://www.github.com/googleapis/release-please/compare/v11.3.0...v11.4.0) (2021-03-24)
 
 
