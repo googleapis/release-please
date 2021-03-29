@@ -196,7 +196,7 @@ describe('CommitSplit', () => {
         'foo/bar-baz',
       ],
     });
-    expect(cs.packagePaths).to.be.eql([
+    expect(cs.packagePaths).to.eql([
       'two-three',
       'one-two',
       'three',
@@ -205,6 +205,31 @@ describe('CommitSplit', () => {
       'foo/bar',
       'foo/bar-baz',
     ]);
+  });
+
+  it('ignore the "." package', () => {
+    const foo = buildMockCommit('fix(foo): fix foo', ['foo/foo.ts']);
+    const topLevel = buildMockCommit('fix: fix top level', ['bar.ts']);
+    const topAndFoo = buildMockCommit('fix: foo and top level', [
+      'foo/foo.ts',
+      'bar.ts',
+    ]);
+    const commits = [foo, topLevel, topAndFoo];
+    const cs = new CommitSplit({packagePaths: ['foo', '.']});
+    expect(cs.packagePaths).to.eql(['foo']);
+    const actualSplitCommits = cs.split(commits);
+    expect(actualSplitCommits).to.eql({foo: [foo, topAndFoo]});
+  });
+
+  it('package path exact start match', () => {
+    const foo = buildMockCommit('fix(foo): fix foo', ['foo/foo.ts']);
+    const notFoo = buildMockCommit('fix(not-foo): fix not foo', [
+      'not/foo/bar.ts',
+    ]);
+    const commits = [foo, notFoo];
+    const cs = new CommitSplit({packagePaths: ['foo']});
+    const actualSplitCommits = cs.split(commits);
+    expect(actualSplitCommits).to.eql({foo: [foo]});
   });
 
   // Test invalid CommitSplitOptions.packagePaths combinations.
