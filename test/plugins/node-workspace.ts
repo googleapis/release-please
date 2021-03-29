@@ -399,7 +399,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
           '# Changelog' +
             '\n\nAll notable changes to this project will be ' +
             'documented in this file.' +
-            '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
+            '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
             '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
             '\n\n\n### Bug Fixes' +
             '\n\n* We fixed a bug',
@@ -615,7 +615,276 @@ describe('NodeWorkspaceDependencyUpdates', () => {
                     '\n  * dependencies' +
                     '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
                     '\n    * @here/pkgB bumped from ^2.2.2 to ^2.3.0' +
-                    '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
+                    '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
+                    '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
+                    '\n\n\n### Bug Fixes' +
+                    '\n\n* We fixed a bug\n',
+                  mode: '100644',
+                },
+              ],
+            ]),
+          },
+        },
+      ];
+      fixDate(actualChanges);
+      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
+      // assert in both directions: https://git.io/JqbBl
+      expect(actualChanges).to.shallowDeepEqual(expected);
+      expect(expected).to.shallowDeepEqual(actualChanges);
+    });
+
+    it('does not update dependencies on preMajor versions with minor bump', async () => {
+      const config: Config = {
+        packages: {}, // unused, required by interface
+        parsedPackages: [
+          {path: 'packages/pkgA', releaseType: 'node'},
+          {path: 'packages/pkgB', releaseType: 'node'},
+          {path: 'packages/pkgC', releaseType: 'node'},
+        ],
+      };
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch: 'main',
+      });
+      const mock = mockGithub(github);
+      // package C did not get a release-please updated but it depends on both
+      // A and B which did get release-please bumps so it should receive a
+      // patch bump
+      expectGetFiles(mock, [
+        ['packages/pkgA/package.json', false],
+        ['packages/pkgA/CHANGELOG.md', false],
+        ['packages/pkgB/package.json', false],
+        ['packages/pkgB/CHANGELOG.md', false],
+        [
+          'packages/pkgC/package.json',
+          JSON.stringify({
+            name: '@here/pkgC',
+            version: '3.3.3',
+            dependencies: {
+              '@here/pkgA': '^1.1.1',
+              '@here/pkgB': '^0.2.1',
+              anotherExternal: '^4.3.1',
+            },
+          }),
+        ],
+        [
+          'packages/pkgC/CHANGELOG.md',
+          '# Changelog' +
+            '\n\nAll notable changes to this project will be ' +
+            'documented in this file.' +
+            '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
+            '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
+            '\n\n\n### Bug Fixes' +
+            '\n\n* We fixed a bug',
+        ],
+      ]);
+
+      // pkgA had a patch bump and pkgB had a minor bump from
+      // manifest.runReleasers()
+      const newManifestVersions = new Map([
+        ['packages/pkgA', '1.1.2'],
+        ['packages/pkgB', '0.3.0'],
+      ]);
+      const pkgsWithPRData: ManifestPackageWithPRData[] = [
+        pkgAData,
+        {
+          config: {
+            releaseType: 'node',
+            packageName: '@here/pkgB',
+            path: 'packages/pkgB',
+          },
+          prData: {
+            version: '0.3.0',
+            changes: new Map([
+              [
+                'packages/pkgB/package.json',
+                {
+                  content: packageJsonStringify({
+                    name: '@here/pkgB',
+                    version: '0.3.0',
+                    dependencies: {
+                      // release-please does not update dependency versions
+                      '@here/pkgA': '^1.1.1',
+                      someExternal: '^9.2.3',
+                    },
+                  }),
+                  mode: '100644',
+                },
+              ],
+              [
+                'packages/pkgB/CHANGELOG.md',
+                {
+                  content:
+                    '# Changelog' +
+                    '\n\nAll notable changes to this project will be ' +
+                    'documented in this file.' +
+                    '\n\n### [0.3.0](https://www.github.com/fake/repo/compare' +
+                    '/pkgB-v0.2.1...pkgB-v0.3.0) (1983-10-10)' +
+                    '\n\n\n### Features' +
+                    '\n\n* We added a feature' +
+                    '\n\n### [0.2.1](https://www.github.com/fake/repo/compare' +
+                    '/pkgB-v0.2.0...pkgB-v0.2.1) (1983-10-10)' +
+                    '\n\n\n### Bug Fixes' +
+                    '\n\n* We fixed a bug',
+                  mode: '100644',
+                },
+              ],
+            ]),
+          },
+        },
+      ];
+
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const nodeWS = new NodeWorkspaceDependencyUpdates(
+        github,
+        config,
+        'node-workspace',
+        checkpoint
+      );
+      const [actualManifest, actualChanges] = await nodeWS.run(
+        newManifestVersions,
+        pkgsWithPRData
+      );
+      mock.verify();
+      expect(logs).to.eql([
+        [
+          'node-workspace: found packages/pkgA/package.json in changes',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: found packages/pkgB/package.json in changes',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: loaded packages/pkgA/package.json from existing changes',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: loaded packages/pkgB/package.json from existing changes',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: loaded packages/pkgC/package.json from github',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: setting packages/pkgB/package.json to 0.3.0 from release-please',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
+          CheckpointType.Success,
+        ],
+        [
+          'node-workspace: @here/pkgC.@here/pkgA updated to ^1.1.2',
+          CheckpointType.Success,
+        ],
+      ]);
+
+      expect([...actualManifest]).to.eql([
+        ['packages/pkgA', '1.1.2'],
+        ['packages/pkgB', '0.3.0'],
+        ['packages/pkgC', '3.3.4'],
+      ]);
+      const expected = [
+        pkgAData,
+        {
+          config: {
+            releaseType: 'node',
+            packageName: '@here/pkgB',
+            path: 'packages/pkgB',
+          },
+          prData: {
+            version: '0.3.0',
+            changes: new Map([
+              [
+                'packages/pkgB/package.json',
+                {
+                  content: packageJsonStringify({
+                    name: '@here/pkgB',
+                    version: '0.3.0',
+                    dependencies: {
+                      '@here/pkgA': '^1.1.2',
+                      someExternal: '^9.2.3',
+                    },
+                  }),
+                  mode: '100644',
+                },
+              ],
+              [
+                'packages/pkgB/CHANGELOG.md',
+                {
+                  content:
+                    '# Changelog' +
+                    '\n\nAll notable changes to this project will be ' +
+                    'documented in this file.' +
+                    '\n\n### [0.3.0](https://www.github.com/fake/repo/compare' +
+                    '/pkgB-v0.2.1...pkgB-v0.3.0) (1983-10-10)' +
+                    '\n\n\n### Features' +
+                    '\n\n* We added a feature' +
+                    '\n\n\n### Dependencies' +
+                    '\n\n* The following workspace dependencies were updated' +
+                    '\n  * dependencies' +
+                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
+                    '\n\n### [0.2.1](https://www.github.com/fake/repo/compare' +
+                    '/pkgB-v0.2.0...pkgB-v0.2.1) (1983-10-10)' +
+                    '\n\n\n### Bug Fixes' +
+                    '\n\n* We fixed a bug',
+                  mode: '100644',
+                },
+              ],
+            ]),
+          },
+        },
+        {
+          config: {
+            releaseType: 'node',
+            packageName: '@here/pkgC',
+            path: 'packages/pkgC',
+          },
+          prData: {
+            version: '3.3.4',
+            changes: new Map([
+              [
+                'packages/pkgC/package.json',
+                {
+                  content: packageJsonStringify({
+                    name: '@here/pkgC',
+                    version: '3.3.4',
+                    dependencies: {
+                      '@here/pkgA': '^1.1.2',
+                      '@here/pkgB': '^0.2.1',
+                      anotherExternal: '^4.3.1',
+                    },
+                  }),
+                  mode: '100644',
+                },
+              ],
+              [
+                'packages/pkgC/CHANGELOG.md',
+                {
+                  content:
+                    '# Changelog' +
+                    '\n\nAll notable changes to this project will be ' +
+                    'documented in this file.' +
+                    '\n\n### [3.3.4](https://www.github.com/fake/repo/compare' +
+                    '/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)' +
+                    '\n\n\n### Dependencies' +
+                    '\n\n* The following workspace dependencies were updated' +
+                    '\n  * dependencies' +
+                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
+                    '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
                     '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
                     '\n\n\n### Bug Fixes' +
                     '\n\n* We fixed a bug\n',
