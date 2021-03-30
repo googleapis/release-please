@@ -80,7 +80,7 @@ exports['Manifest pullRequest allows root module to be published, via special ".
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -140,7 +140,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if first PR: changes'] = `
@@ -213,7 +213,7 @@ exports['Manifest pullRequest boostraps from HEAD manifest if first PR: options'
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -258,7 +258,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if manifest was deleted in last release PR: changes'] = `
@@ -331,7 +331,7 @@ exports['Manifest pullRequest boostraps from HEAD manifest if manifest was delet
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -376,7 +376,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest starting at bootstrap-sha if first PR: changes'] = `
@@ -449,7 +449,7 @@ exports['Manifest pullRequest boostraps from HEAD manifest starting at bootstrap
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -494,7 +494,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest bootstraps a new package from curated manifest: changes'] = `
@@ -567,7 +567,7 @@ exports['Manifest pullRequest bootstraps a new package from curated manifest: op
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -612,7 +612,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest bootstraps a new package using default version: changes'] = `
@@ -685,7 +685,7 @@ exports['Manifest pullRequest bootstraps a new package using default version: op
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -730,7 +730,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest creates a PR for python and node packages: changes'] = `
@@ -786,7 +786,7 @@ exports['Manifest pullRequest creates a PR for python and node packages: options
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -820,7 +820,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest only includes packages that have version bumps: changes'] = `
@@ -854,7 +854,7 @@ exports['Manifest pullRequest only includes packages that have version bumps: op
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -873,7 +873,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest respects python releaser specific config over defaults: changes'] = `
@@ -959,7 +959,7 @@ exports['Manifest pullRequest respects python releaser specific config over defa
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 
@@ -1017,5 +1017,5 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `

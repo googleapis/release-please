@@ -562,7 +562,7 @@ export class Manifest {
     );
     const pr = await this.gh.openPR({
       branch: branchName,
-      title: 'chore: release',
+      title: `chore: release ${await this.gh.getDefaultBranch()}`,
       body: body,
       updates,
       labels: DEFAULT_LABELS,
