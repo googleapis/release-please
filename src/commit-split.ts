@@ -49,6 +49,11 @@ export class CommitSplit {
     if (opts.packagePaths) {
       const paths: string[] = [];
       for (let newPath of opts.packagePaths) {
+        // The special "." path, representing the root of the module, should be
+        // ignored by commit-split as it is assigned all commits in manifest.ts
+        if (newPath === '.') {
+          continue;
+        }
         // normalize so that all paths have leading and trailing slashes for
         // non-overlap validation.
         // NOTE: GitHub API always returns paths using the `/` separator,
@@ -91,11 +96,7 @@ export class CommitSplit {
         let pkgName;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
-          pkgName = this.packagePaths.find(p => {
-            // The special "." path, representing the root of the module
-            // should be ignored by commit-split:
-            return file.indexOf(p) >= 0 && p !== '.';
-          });
+          pkgName = this.packagePaths.find(p => file.indexOf(p) === 0);
         } else {
           // track paths by top level folder
           pkgName = splitPath[0];
