@@ -14,30 +14,35 @@
 
 import NodeWorkspaceDependencyUpdates from '../../src/plugins/node-workspace';
 import {describe, it, afterEach} from 'mocha';
-import * as chai from 'chai';
+import {expect} from 'chai';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
 import {Config} from '../../src/manifest';
 import {buildGitHubFileRaw} from '../releasers/utils';
 import {ManifestPackageWithPRData} from '../../src';
-import * as chaiBetter from 'chai-better-shallow-deep-equal';
 import {packageJsonStringify} from '../../src/util/package-json-stringify';
 import {CheckpointType} from '../../src/util/checkpoint';
-import {dateSafe} from '../helpers';
-chai.use(chaiBetter);
-const expect = chai.expect;
+import {stringifyExpectedChanges} from '../helpers';
+import snapshot = require('snap-shot-it');
 
 const sandbox = sinon.createSandbox();
 
-function fixDate(changes: ManifestPackageWithPRData[]) {
-  for (const c of changes) {
-    for (const [path, chg] of c.prData.changes) {
-      c.prData.changes.set(path, {
-        content: dateSafe(chg.content ?? ''),
-        mode: chg.mode,
-      });
-    }
+function stringifyActual(actual: ManifestPackageWithPRData[]) {
+  let stringified = '';
+  for (const pkgsWithPRData of actual) {
+    const changes = pkgsWithPRData.prData.changes;
+    stringified +=
+      '='.repeat(20) +
+      '\n' +
+      JSON.stringify(
+        pkgsWithPRData,
+        (k, v) => (k === ' changes' ? undefined : v),
+        2
+      ) +
+      '\n';
+    stringified += stringifyExpectedChanges([...changes]) + '\n';
   }
+  return stringified;
 }
 
 const pkgAData: ManifestPackageWithPRData = {
@@ -116,7 +121,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
   }
 
   describe('run', () => {
-    it('handles a simple chain where root pkg update cascades to dependents', async () => {
+    it('handles a simple chain where root pkg update cascades to dependents', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -217,149 +222,18 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgC/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgC.@here/pkgB updated to ^2.2.3',
-          CheckpointType.Success,
-        ],
-      ]);
-
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['py/pkg', '1.1.2'],
         ['packages/pkgB', '2.2.3'],
         ['packages/pkgC', '3.3.4'],
       ]);
-      const expected = [
-        pkgAData,
-        pyPkgData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-          },
-          prData: {
-            version: '2.2.3',
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: '2.2.3',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [2.2.3](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
-                    '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgC',
-            path: 'packages/pkgC',
-          },
-          prData: {
-            version: '3.3.4',
-            changes: new Map([
-              [
-                'packages/pkgC/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgC',
-                    version: '3.3.4',
-                    dependencies: {
-                      '@here/pkgB': '^2.2.3',
-                      anotherExternal: '^4.3.1',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgC/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\n### [3.3.4](https://www.github.com/fake/repo/compare' +
-                    '/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgB bumped from ^2.2.2 to ^2.2.3\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('handles a triangle: root and one leg updates bumps other leg', async () => {
+    it('handles a triangle: root and one leg updates bumps other leg', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -475,165 +349,17 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: found packages/pkgB/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgC/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to 2.3.0 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgC.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgC.@here/pkgB updated to ^2.3.0',
-          CheckpointType.Success,
-        ],
-      ]);
-
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['packages/pkgB', '2.3.0'],
         ['packages/pkgC', '3.3.4'],
       ]);
-      const expected = [
-        pkgAData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-          },
-          prData: {
-            version: '2.3.0',
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: '2.3.0',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [2.3.0](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.2...pkgB-v2.3.0) (1983-10-10)' +
-                    '\n\n\n### Features' +
-                    '\n\n* We added a feature' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
-                    '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgC',
-            path: 'packages/pkgC',
-          },
-          prData: {
-            version: '3.3.4',
-            changes: new Map([
-              [
-                'packages/pkgC/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgC',
-                    version: '3.3.4',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      '@here/pkgB': '^2.3.0',
-                      anotherExternal: '^4.3.1',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgC/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [3.3.4](https://www.github.com/fake/repo/compare' +
-                    '/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
-                    '\n    * @here/pkgB bumped from ^2.2.2 to ^2.3.0' +
-                    '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
-                    '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('does not update dependencies on preMajor versions with minor bump', async () => {
+    it('does not update dependencies on preMajor versions with minor bump', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -749,160 +475,17 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: found packages/pkgB/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgC/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to 0.3.0 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgC.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-      ]);
-
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['packages/pkgB', '0.3.0'],
         ['packages/pkgC', '3.3.4'],
       ]);
-      const expected = [
-        pkgAData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-          },
-          prData: {
-            version: '0.3.0',
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: '0.3.0',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [0.3.0](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v0.2.1...pkgB-v0.3.0) (1983-10-10)' +
-                    '\n\n\n### Features' +
-                    '\n\n* We added a feature' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
-                    '\n\n### [0.2.1](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v0.2.0...pkgB-v0.2.1) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgC',
-            path: 'packages/pkgC',
-          },
-          prData: {
-            version: '3.3.4',
-            changes: new Map([
-              [
-                'packages/pkgC/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgC',
-                    version: '3.3.4',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      '@here/pkgB': '^0.2.1',
-                      anotherExternal: '^4.3.1',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgC/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [3.3.4](https://www.github.com/fake/repo/compare' +
-                    '/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
-                    '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
-                    '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('handles unusual changelog formats', async () => {
+    it('handles unusual changelog formats', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -991,102 +574,16 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: found packages/pkgB/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to 2.3.0 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: Appending update notes to end of changelog for @here/pkgB',
-          CheckpointType.Failure,
-        ],
-      ]);
-
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['packages/pkgB', '2.3.0'],
       ]);
-      const expected = [
-        pkgAData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-          },
-          prData: {
-            version: '2.3.0',
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: '2.3.0',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [2.3.0](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.2...pkgB-v2.3.0) (1983-10-10)' +
-                    '\n\n\n### Features' +
-                    '\n\n* We added a feature' +
-                    '\n\n### some stuff we did not expect' +
-                    '\n\n* and more unexpected stuff' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('handles errors retrieving changelogs', async () => {
+    it('handles errors retrieving changelogs', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -1152,137 +649,17 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgC/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgC.@here/pkgB updated to ^2.2.3',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: Failed to retrieve packages/pkgB/CHANGES.md: Error: error: 501',
-          CheckpointType.Failure,
-        ],
-        [
-          'node-workspace: Creating a new changelog at packages/pkgC/CHANGELOG.md',
-          CheckpointType.Success,
-        ],
-      ]);
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['packages/pkgB', '2.2.3'],
         ['packages/pkgC', '3.3.4'],
       ]);
-      const expected = [
-        pkgAData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-            changelogPath: 'CHANGES.md',
-          },
-          prData: {
-            version: '2.2.3',
-            // no changelog update because we got a non-404 error retrieving
-            // the original
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: '2.2.3',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgC',
-            path: 'packages/pkgC',
-          },
-          prData: {
-            version: '3.3.4',
-            changes: new Map([
-              [
-                'packages/pkgC/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgC',
-                    version: '3.3.4',
-                    dependencies: {
-                      '@here/pkgB': '^2.2.3',
-                      anotherExternal: '^4.3.1',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgC/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\n### [3.3.4](https://www.github.com/fake/repo/compare' +
-                    '/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgB bumped from ^2.2.2 to ^2.2.3\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('handles discontiguous graph', async () => {
+    it('handles discontiguous graph', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -1405,167 +782,18 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: found packages/pkgAA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgAA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgBB/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgAA/package.json to 11.2.0 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgBB/package.json to 22.2.3 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgBB.@here/pkgAA updated to ^11.2.0',
-          CheckpointType.Success,
-        ],
-      ]);
-
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['packages/pkgAA', '11.2.0'],
         ['packages/pkgB', '2.2.3'],
         ['packages/pkgBB', '22.2.3'],
       ]);
-      const expected = [
-        pkgAData,
-        pkgAAData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-          },
-          prData: {
-            version: '2.2.3',
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: '2.2.3',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [2.2.3](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
-                    '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgBB',
-            path: 'packages/pkgBB',
-          },
-          prData: {
-            version: '22.2.3',
-            changes: new Map([
-              [
-                'packages/pkgBB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgBB',
-                    version: '22.2.3',
-                    dependencies: {
-                      '@here/pkgAA': '^11.2.0',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgBB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [22.2.3](https://www.github.com/fake/repo/compare' +
-                    '/pkgBB-v22.2.2...pkgBB-v22.2.3) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgAA bumped from ^11.1.1 to ^11.2.0' +
-                    '\n\n### [22.2.2](https://www.github.com/fake/repo/compare' +
-                    '/pkgBB-v22.2.1...pkgBB-v22.2.2) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('updates dependent from pre-release version', async () => {
+    it('updates dependent from pre-release version', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -1627,94 +855,16 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-      ]);
-
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['packages/pkgB', '2.2.3'],
       ]);
-      const expected = [
-        pkgAData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-          },
-          prData: {
-            version: '2.2.3',
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: '2.2.3',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [2.2.3](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.2-alpha.0 to ^1.1.2' +
-                    '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('does not update dependency to pre-release version', async () => {
+    it('does not update dependency to pre-release version', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -1801,68 +951,13 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2-alpha.0 from release-please',
-          CheckpointType.Success,
-        ],
-      ]);
-
-      fixDate(actualChanges);
       expect([...actualManifest]).to.eql([['packages/pkgA', '1.1.2-alpha.0']]);
-      expect(actualChanges).to.shallowDeepEqual([
-        {
-          config: {
-            releaseType: 'node',
-            path: 'packages/pkgA',
-          },
-          prData: {
-            version: '1.1.2-alpha.0',
-            changes: new Map([
-              [
-                'packages/pkgA/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgA',
-                    version: '1.1.2-alpha.0',
-                    dependencies: {'@there/foo': '^4.1.7'},
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgA/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n### [1.1.2-alpha.0](https://www.github.com/fake/repo/compare' +
-                    '/pkgA-v1.1.1...pkgA-v1.1.2-alpha.0) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug!',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ]);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('does not update dependent with invalid version', async () => {
+    it('does not update dependent with invalid version', async function () {
       const github = new GitHub({
         owner: 'fake',
         repo: 'repo',
@@ -1920,95 +1015,13 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect(logs).to.eql([
-        [
-          'node-workspace: found packages/pkgA/package.json in changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgA/package.json from existing changes',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: loaded packages/pkgB/package.json from github',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please',
-          CheckpointType.Success,
-        ],
-        [
-          "node-workspace: Don't know how to patch @here/pkgB's version(some-invalid-version)",
-          CheckpointType.Failure,
-        ],
-        [
-          'node-workspace: setting packages/pkgB/package.json to some-invalid-version from failed to patch bump',
-          CheckpointType.Success,
-        ],
-        [
-          'node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2',
-          CheckpointType.Success,
-        ],
-      ]);
-
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
         ['packages/pkgB', 'some-invalid-version'],
       ]);
-      const expected = [
-        pkgAData,
-        {
-          config: {
-            releaseType: 'node',
-            packageName: '@here/pkgB',
-            path: 'packages/pkgB',
-          },
-          prData: {
-            version: 'some-invalid-version',
-            changes: new Map([
-              [
-                'packages/pkgB/package.json',
-                {
-                  content: packageJsonStringify({
-                    name: '@here/pkgB',
-                    version: 'some-invalid-version',
-                    dependencies: {
-                      '@here/pkgA': '^1.1.2',
-                      someExternal: '^9.2.3',
-                    },
-                  }),
-                  mode: '100644',
-                },
-              ],
-              [
-                'packages/pkgB/CHANGELOG.md',
-                {
-                  content:
-                    '# Changelog' +
-                    '\n\nAll notable changes to this project will be ' +
-                    'documented in this file.' +
-                    '\n\n## [some-invalid-version](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-vsome-invalid-version...pkgB-vsome-invalid-version) (1983-10-10)' +
-                    '\n\n\n### Dependencies' +
-                    '\n\n* The following workspace dependencies were updated' +
-                    '\n  * dependencies' +
-                    '\n    * @here/pkgA bumped from ^1.1.1 to ^1.1.2' +
-                    '\n\n### [some-invalid-version](https://www.github.com/fake/repo/compare' +
-                    '/pkgB-v2.2.1...pkgB-vsome-invalid-version) (1983-10-10)' +
-                    '\n\n\n### Bug Fixes' +
-                    '\n\n* We fixed a bug and set the version wonky on purpose?\n',
-                  mode: '100644',
-                },
-              ],
-            ]),
-          },
-        },
-      ];
-      fixDate(actualChanges);
-      // until shallowDeepEqual supports 'to *exhaustively* satisfy' we must
-      // assert in both directions: https://git.io/JqbBl
-      expect(actualChanges).to.shallowDeepEqual(expected);
-      expect(expected).to.shallowDeepEqual(actualChanges);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
   });
 });

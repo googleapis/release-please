@@ -69,7 +69,7 @@ exports['Manifest plugins runs the node-workspace plugin: options'] = `
 
 upstreamOwner: fake
 upstreamRepo: repo
-title: chore: release
+title: chore: release main
 branch: release-please/branches/main
 description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ---
@@ -102,7 +102,7 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 primary: main
 force: true
 fork: false
-message: chore: release
+message: chore: release main
 `
 
 exports['Manifest pullRequest allows root module to be published, via special "." path: changes'] = `
