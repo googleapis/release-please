@@ -69,6 +69,7 @@ describe('CommitSplit', () => {
     const pkgsPath = 'packages';
     const fooPath = pkgsPath + '/foo';
     const barPath = pkgsPath + '/bar';
+    const fooBarPath = pkgsPath + '/foobar';
     const bazPath = 'python';
     const somePath = 'some';
     const fooCommit = buildMockCommit('fix(foo): fix foo', [
@@ -80,7 +81,10 @@ describe('CommitSplit', () => {
     const bazCommit = buildMockCommit('fix(baz): fix baz', [
       bazPath + '/baz/baz.py',
     ]);
-    const foobarCommit = buildMockCommit('fix(foobar): fix foobar', [
+    const fooBarCommit = buildMockCommit('fix(foobar): fix foobar', [
+      fooBarPath + '/foobar.ts',
+    ]);
+    const foobarCommit = buildMockCommit('fix(foo+bar): fix foo+bar', [
       fooPath + '/foo.ts',
       barPath + '/bar.ts',
     ]);
@@ -103,6 +107,7 @@ describe('CommitSplit', () => {
       fooCommit,
       barCommit,
       bazCommit,
+      fooBarCommit,
       foobarCommit,
       foobarbazCommit,
       // should only appear in usePackagePaths == false case
@@ -113,47 +118,58 @@ describe('CommitSplit', () => {
     ];
 
     let packagePaths: string[] = [];
-    let perPathCommits: ExpectedCommitSplit = {};
+    let expectedPerPathCommits: ExpectedCommitSplit = {};
 
     if (usePackagePaths) {
-      // trailing slash to test path normalization.
-      packagePaths = [fooPath, barPath, bazPath + '/'];
+      // leading/trailing slashs to test path normalization.
+      packagePaths = ['/' + fooPath, barPath, bazPath + '/', fooBarPath];
       // Expected output of commit-split with packagePaths
       // someCommit and topLevelFileCommit not present
-      perPathCommits = {
+      expectedPerPathCommits = {
         [fooPath]: [fooCommit, foobarCommit, foobarbazCommit],
         [barPath]: [barCommit, foobarCommit, foobarbazCommit],
         [bazPath]: [bazCommit, foobarbazCommit],
+        [fooBarPath]: [fooBarCommit],
       };
     } else {
       // Expected output of commit-split with default behavior
       // topLevelFileCommit not present
-      perPathCommits = {
-        [pkgsPath]: [fooCommit, barCommit, foobarCommit, foobarbazCommit],
+      expectedPerPathCommits = {
+        [pkgsPath]: [
+          fooCommit,
+          barCommit,
+          fooBarCommit,
+          foobarCommit,
+          foobarbazCommit,
+        ],
         [bazPath]: [bazCommit, foobarbazCommit],
         [somePath]: [someCommit],
       };
     }
     if (includeEmpty) {
       // Expected that each splits' Commit[] will have the empty commit appended
-      for (const commitPath in perPathCommits) {
-        perPathCommits[commitPath].push(emptyCommit);
+      for (const commitPath in expectedPerPathCommits) {
+        expectedPerPathCommits[commitPath].push(emptyCommit);
       }
     }
-    return [perPathCommits, packagePaths, commits];
+    return [expectedPerPathCommits, packagePaths, commits];
   };
 
   // Test combinations of commit splitting with CommitSplitOptions.includeEmpty
   // and CommitSplitOptions.packagePaths set to the following values
   const emptyVsPaths = [
     // CommitSplitOptions.includeEmpty == true
-    // CommitSplitOptions.packagePaths == ["packages/foo", "packages/bar", "python"]
+    // CommitSplitOptions.packagePaths == [
+    //   "packages/foo", "packages/bar", "python", "packages/foobar"
+    // ]
     [true, true],
     // CommitSplitOptions.includeEmpty == true
     // CommitSplitOptions.packagePaths == undefined
     [true, false],
     // CommitSplitOptions.includeEmpty == undefined
-    // CommitSplitOptions.packagePaths == ["packages/foo", "packages/bar", "python"]
+    // CommitSplitOptions.packagePaths == [
+    //   "packages/foo", "packages/bar", "python", "packages/foobar"
+    // ]
     [false, true],
     // CommitSplitOptions.includeEmpty == undefined
     // CommitSplitOptions.packagePaths == undefined
