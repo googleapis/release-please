@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.5.0](https://www.github.com/googleapis/release-please/compare/v11.4.1...v11.5.0) (2021-03-30)
+
+
+### Features
+
+* **manifest:** include default branch name in PR title ([#843](https://www.github.com/googleapis/release-please/issues/843)) ([16f00dc](https://www.github.com/googleapis/release-please/commit/16f00dc4562d370b217da81476fba4d42407c567))
+
+
+### Bug Fixes
+
+* **manifest:** split commits on exact package path prefix ([#842](https://www.github.com/googleapis/release-please/issues/842)) ([2728bfe](https://www.github.com/googleapis/release-please/commit/2728bfe73717490326b5f1121d7da8cdd88e18a3))
+
 ### [11.4.1](https://www.github.com/googleapis/release-please/compare/v11.4.0...v11.4.1) (2021-03-25)
 
 
