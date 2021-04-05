@@ -67,34 +67,34 @@ describe('CommitSplit', () => {
     usePackagePaths: boolean
   ): [ExpectedCommitSplit, PackagePaths, Commit[]] => {
     const pkgsPath = 'packages';
-    const fooPath = pkgsPath + '/foo';
-    const barPath = pkgsPath + '/bar';
-    const fooBarPath = pkgsPath + '/foobar';
+    const fooPath = `${pkgsPath}/foo`;
+    const barPath = `${pkgsPath}/bar`;
+    const fooBarPath = `${pkgsPath}/foobar`;
     const bazPath = 'python';
     const somePath = 'some';
     const fooCommit = buildMockCommit('fix(foo): fix foo', [
-      fooPath + '/foo.ts',
+      `${fooPath}/foo.ts`,
     ]);
     const barCommit = buildMockCommit('fix(bar): fix bar', [
-      barPath + '/bar.ts',
+      `${barPath}/bar.ts`,
     ]);
     const bazCommit = buildMockCommit('fix(baz): fix baz', [
-      bazPath + '/baz/baz.py',
+      `${bazPath}/baz/baz.py`,
     ]);
     const fooBarCommit = buildMockCommit('fix(foobar): fix foobar', [
-      fooBarPath + '/foobar.ts',
+      `${fooBarPath}/foobar.ts`,
     ]);
     const foobarCommit = buildMockCommit('fix(foo+bar): fix foo+bar', [
-      fooPath + '/foo.ts',
-      barPath + '/bar.ts',
+      `${fooPath}/foo.ts`,
+      `${barPath}/bar.ts`,
     ]);
     const foobarbazCommit = buildMockCommit('fix(foobarbaz): fix foobarbaz', [
-      fooPath + '/foo.ts',
-      barPath + '/bar.ts',
-      bazPath + '/baz/baz.py',
+      `${fooPath}/foo.ts`,
+      `${barPath}/bar.ts`,
+      `${bazPath}/baz/baz.py`,
     ]);
     const someCommit = buildMockCommit('fix(some): fix something', [
-      somePath + '/other/file.ts',
+      `${somePath}/other/file.ts`,
     ]);
     const emptyCommit = buildMockCommit(
       'chore: empty\n\nrelease-packages/foo-as: 1.2.3',
@@ -122,7 +122,7 @@ describe('CommitSplit', () => {
 
     if (usePackagePaths) {
       // leading/trailing slashs to test path normalization.
-      packagePaths = ['/' + fooPath, barPath, bazPath + '/', fooBarPath];
+      packagePaths = [`/${fooPath}`, barPath, `${bazPath}/`, fooBarPath];
       // Expected output of commit-split with packagePaths
       // someCommit and topLevelFileCommit not present
       expectedPerPathCommits = {
