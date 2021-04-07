@@ -52,6 +52,7 @@ export class Python extends ReleasePR {
       owner: this.gh.owner,
       repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
+      bumpPatchForMinorPreMajor: this.bumpPatchForMinorPreMajor,
       changelogSections: this.changelogSections || CHANGELOG_SECTIONS,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(

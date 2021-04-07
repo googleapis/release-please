@@ -74,6 +74,7 @@ export class ReleasePR {
   labels: string[];
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
   path?: string;
   packageName: string;
   monorepoTags: boolean;
@@ -86,6 +87,7 @@ export class ReleasePR {
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
+    this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor || false;
     this.labels = options.labels ?? DEFAULT_LABELS;
     // undefined represents the root path of the library, if the special
     // '.' path is provided, simply ignore it:

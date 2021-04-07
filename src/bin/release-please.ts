@@ -61,6 +61,13 @@ function releaserCommon(ya: YargsOptionsBuilder) {
     default: false,
     type: 'boolean',
   });
+  ya.option('bump-minor-for-patch-pre-major', {
+    describe:
+      'should we bump the semver patch instead of the minor for non-breaking' +
+      ' changes prior to the first major release',
+    default: false,
+    type: 'boolean',
+  });
   ya.option('path', {
     describe: 'release from path other than root directory',
     type: 'string',

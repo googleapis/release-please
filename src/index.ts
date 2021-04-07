@@ -39,6 +39,7 @@ export interface ReleasePROptions {
   path?: string;
   packageName?: string;
   bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
   releaseAs?: string;
   snapshot?: boolean;
   monorepoTags?: boolean;

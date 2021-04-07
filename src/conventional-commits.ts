@@ -40,6 +40,7 @@ interface ConventionalCommitsOptions {
   repository: string;
   host?: string;
   bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
   // allow for customized commit template.
   commitPartial?: string;
   headerPartial?: string;
@@ -146,6 +147,7 @@ export class ConventionalCommits {
   owner: string;
   repository: string;
   bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
 
   // allow for customized commit template.
   commitPartial?: string;
@@ -157,6 +159,7 @@ export class ConventionalCommits {
   constructor(options: ConventionalCommitsOptions) {
     this.commits = options.commits;
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
+    this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor || false;
     this.host = options.host || 'https://www.github.com';
     this.owner = options.owner;
     this.repository = options.repository;
@@ -237,9 +240,11 @@ export class ConventionalCommits {
 
     // we have slightly different logic than the default of conventional commits,
     // the minor should be bumped when features are introduced for pre 1.x.x libs:
+    // turn off custom logic here by setting bumpPatchForMinorPreMajor = true
     if (
       result.reason.indexOf(' 0 features') === -1 &&
-      result.releaseType === 'patch'
+      result.releaseType === 'patch' &&
+      !this.bumpPatchForMinorPreMajor
     ) {
       result.releaseType = 'minor';
     }

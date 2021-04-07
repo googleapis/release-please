@@ -119,6 +119,10 @@ documented in comments)
   // absence defaults to false
   "bump-minor-pre-major": true,
 
+  // feat commits bump semver patch instead of minor if version < 1.0.0
+  // absence defaults to false
+  "bump-patch-for-minor-pre-major": true,
+
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...]
