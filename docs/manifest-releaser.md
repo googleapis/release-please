@@ -100,6 +100,8 @@ documented in comments)
   //   - only applicable at top-level config.
   "bootstrap-sha": "6fc119838885b0cb831e78ddd23ac01cb819e585",
 
+  // see Plugins section below
+  "plugins": ["node-workspace"],
 
   // optional top-level defaults that can be overriden per package:
 
@@ -249,3 +251,31 @@ with a combined version of the library, i.e.,
 This functionality can be achieved by using the special `"."` path.
 `"."` indicates a release should be created when any changes are made to the
 codebase.
+
+## Plugins
+
+During a `manifest-pr` run, there is an opportunity to perform extra processing
+across all the source files and changelogs of all the configured packages.
+Unlike the individual releasers, which only have the context of the source files
+relevant to one package, a plugin receives all the current changes for all
+updated packages as well as the configuration containing every package. One
+place this is particularly useful is for monorepos that have intra-repo local
+package dependencies. Examples are yarn/npm workspaces for node, or
+cargo workspaces for rust.
+
+Plugins can be added under src/plugins/ and referenced in
+release-please-config.json as an array under the `"plugins"` property. If
+multiple plugins are listed, they will run in their order in the config.
+
+
+### node-workspace
+
+The `node-workspace` plugin builds a graph of local node packages configured
+in release-please-config.json and the dependency relationships between them.
+It looks at what packages were updated by release-please and updates their
+reference in other packages' dependencies lists. Even when a particular package
+was not updated by release-please, if a dependency did have an update, it will
+be patch bump the package, create a changelog entry, and add it to the list of
+PR changes. Under the hood this plugin adapts specific dependency graph building
+and updating functionality from the popular
+[lerna](https://github.com/lerna/lerna) tool.
