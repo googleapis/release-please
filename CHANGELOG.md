@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.6.0](https://www.github.com/googleapis/release-please/compare/v11.5.0...v11.6.0) (2021-04-07)
+
+
+### Features
+
+* allow "standard" pre 1.0.0 patch bumps ([#847](https://www.github.com/googleapis/release-please/issues/847)) ([a5e2cc2](https://www.github.com/googleapis/release-please/commit/a5e2cc2020c71b2bc0f61add2abf2d7fdbe8920e))
+
+
+### Bug Fixes
+
+* **manifest:** package paths sharing same prefix being shadowed in commit-split ([#848](https://www.github.com/googleapis/release-please/issues/848)) ([29ba3b5](https://www.github.com/googleapis/release-please/commit/29ba3b598a4862b3d15a490712cf383a8838b502))
+
 ## [11.5.0](https://www.github.com/googleapis/release-please/compare/v11.4.1...v11.5.0) (2021-03-30)
 
 
