@@ -44,6 +44,7 @@ import {ReleasePR} from './release-pr';
 interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
   'bump-minor-pre-major'?: boolean;
+  'bump-patch-for-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   draft?: boolean;
@@ -74,6 +75,7 @@ type Package = Pick<
   | 'draft'
   | 'packageName'
   | 'bumpMinorPreMajor'
+  | 'bumpPatchForMinorPreMajor'
   | 'releaseAs'
   | 'changelogSections'
   | 'changelogPath'
@@ -252,6 +254,9 @@ export class Manifest {
           packageName: pkgCfg['package-name'],
           bumpMinorPreMajor:
             pkgCfg['bump-minor-pre-major'] ?? config['bump-minor-pre-major'],
+          bumpPatchForMinorPreMajor:
+            pkgCfg['bump-patch-for-minor-pre-major'] ??
+            config['bump-patch-for-minor-pre-major'],
           changelogSections:
             pkgCfg['changelog-sections'] ?? config['changelog-sections'],
           changelogPath: pkgCfg['changelog-path'],

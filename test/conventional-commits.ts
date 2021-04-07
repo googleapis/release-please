@@ -44,6 +44,28 @@ describe('ConventionalCommits', () => {
       expect(bump.releaseType).to.equal('minor');
       expect(bump.reason).to.equal('There is 1 BREAKING CHANGE and 1 features');
     });
+
+    it('follows standard patch for minor bump behavior pre 1.0', async () => {
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            message: 'fix: addressed issues with foo',
+            sha: 'abc123',
+            files: [],
+          },
+          {message: 'feat: awesome feature', sha: 'abc678', files: []},
+        ],
+        owner: 'bcoe',
+        repository: 'release-please',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+      });
+      const bump = await cc.suggestBump('0.3.0');
+      expect(bump.releaseType).to.equal('patch');
+      expect(bump.reason).to.equal(
+        'There are 0 BREAKING CHANGES and 1 features'
+      );
+    });
   });
 
   describe('generateChangelogEntry', () => {
