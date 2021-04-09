@@ -51,6 +51,7 @@ export interface ReleasePROptions {
   // and then remove this property
   versionFile?: string;
   pullRequestTitlePattern?: string;
+  extraFiles?: string[];
 }
 
 // GitHub Constructor options

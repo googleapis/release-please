@@ -299,6 +299,18 @@ export class JavaYoshi extends ReleasePR {
         })
       );
     });
+
+    this.extraFiles.forEach(path => {
+      updates.push(
+        new JavaUpdate({
+          path,
+          changelogEntry,
+          versions: candidateVersions,
+          version: candidate.version,
+          packageName: packageName.name,
+        })
+      );
+    });
     return updates;
   }
 
