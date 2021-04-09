@@ -37,8 +37,9 @@ export abstract class ManifestPlugin {
   /**
    * @param newManifestVersions - new package versions set by releasers and any
    *   previous plugins
-   * @param pkgsWithPRData - packages with PR data (e.g. changelog, package.json)
-   * @returns - tuple of input parameters potentially including any changes.
+   * @param pkgsWithPRData - PR data per package (e.g. changelog, package.json)
+   * @returns - tuple of the input arguments including any changes, additions
+   *   and/or subtractions.
    */
   abstract run(
     newManifestVersions: VersionsMap,
