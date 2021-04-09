@@ -547,6 +547,91 @@ describe('JavaYoshi', () => {
     await releasePR.run();
   });
 
+  it('handles extra custom files', async function () {
+    const releasePR = new JavaYoshi({
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
+      packageName: 'java-trace',
+      extraFiles: ['src/com/google/foo/Version.java'],
+    });
+
+    sandbox
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
+      .returns(Promise.resolve('master'));
+
+    // No open release PRs, so create a new release PR
+    sandbox
+      .stub(releasePR.gh, 'findOpenReleasePRs')
+      .returns(Promise.resolve([]));
+
+    // Indicates that there are no PRs currently waiting to be released:
+    sandbox
+      .stub(releasePR.gh, 'findMergedReleasePR')
+      .returns(Promise.resolve(undefined));
+
+    sandbox.stub(releasePR, 'latestTag').returns(
+      Promise.resolve({
+        name: 'v0.20.3',
+        sha: 'abc123',
+        version: '0.20.3',
+      })
+    );
+
+    const findFilesStub = sandbox.stub(
+      releasePR.gh,
+      'findFilesByFilenameAndRef'
+    );
+    findFilesStub
+      .withArgs('pom.xml', 'master', undefined)
+      .resolves(['pom.xml']);
+    findFilesStub.withArgs('build.gradle', 'master', undefined).resolves([]);
+    findFilesStub
+      .withArgs('dependencies.properties', 'master', undefined)
+      .resolves([]);
+
+    const getFileContentsStub = sandbox.stub(
+      releasePR.gh,
+      'getFileContentsOnBranch'
+    );
+    getFileContentsStub
+      .withArgs('versions.txt', 'master')
+      .resolves(buildFileContent('versions.txt'));
+    getFileContentsStub
+      .withArgs('README.md', 'master')
+      .resolves(buildFileContent('README.md'));
+    getFileContentsStub
+      .withArgs('pom.xml', 'master')
+      .resolves(buildFileContent('pom.xml'));
+    getFileContentsStub
+      .withArgs(
+        'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
+        'master'
+      )
+      .resolves(buildFileContent('GoogleUtils.java'));
+    getFileContentsStub
+      .withArgs('src/com/google/foo/Version.java', 'master')
+      .resolves(buildFileContent('Version.java'));
+    getFileContentsStub.rejects(
+      Object.assign(Error('not found'), {status: 404})
+    );
+
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit(
+          'fix: Fix declared dependencies from merge issue (#291)'
+        ),
+      ]);
+
+    const addLabelStub = sandbox
+      .stub(releasePR.gh, 'addLabels')
+      .withArgs(['autorelease: pending'], 22)
+      .resolves();
+
+    stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+    await releasePR.run();
+    expect(addLabelStub.callCount).to.eql(1);
+  });
+
   describe('latestTag', () => {
     let req: nock.Scope;
     let releasePR: ReleasePR;
