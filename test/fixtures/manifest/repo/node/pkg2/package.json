@@ -1,4 +1,7 @@
 {
   "name": "@node/pkg2",
-  "version": "0.1.2"
+  "version": "0.1.2",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
 }

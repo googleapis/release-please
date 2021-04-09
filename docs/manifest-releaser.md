@@ -100,6 +100,9 @@ documented in comments)
   //   - only applicable at top-level config.
   "bootstrap-sha": "6fc119838885b0cb831e78ddd23ac01cb819e585",
 
+  // see Plugins section below
+  // absence defaults to [] (i.e. no plugins)
+  "plugins": ["node-workspace"],
 
   // optional top-level defaults that can be overriden per package:
 
@@ -249,3 +252,72 @@ with a combined version of the library, i.e.,
 This functionality can be achieved by using the special `"."` path.
 `"."` indicates a release should be created when any changes are made to the
 codebase.
+
+## Plugins
+
+Plugins can be added to perform extra release processing that cannot be achieved
+by an individual releaser because that releaser only has the context of a single
+package on which to operate. A plugin operates in the context of all the
+packages in the monorepo after release-please has run individual releasers on
+each package but before the final PR is created or updated.
+
+### Plugin usage
+
+To use a plugin in your manifest based release-please setup, simply add it to
+the array of the `"plugins"` key in your release-please-config.json. (Note: the
+plugin must already be implemented, see below)
+
+### Plugin implementation
+
+A `ManifestPlugin` instance has these resources avilable:
+- `this.gh`: a `GitHub` instance for any API operations it might want to perform
+- `this.config`: a `Config` object representing all the packages configured for the monorepo
+
+It must implement a `run` method which receives two arguments:
+- the latest versions of all packages (ultimately be written to the manifest)
+- an array of the mapping of package-to-currently-proposed-changes
+and makes any modifications, additions, or deletions to either argument (in
+addition to any other out-of-band side effect) and returns both (potentially
+modified) arguments in a tuple.
+
+For example, a very basic plugin that simply logs the number of packages
+currently appearing in the release written as `src/plugins/num-packages.ts`:
+
+```typescript
+import {CheckpointType} from '../util/checkpoint';
+
+export default class LogNumberPkgsReleased extends ManifestPlugin {
+
+  async run(
+    newManifestVersions: VersionsMap,
+    pkgsWithPRData: ManifestPackageWithPRData[]
+  ): Promise<[VersionsMap, ManifestPackageWithPRData[]]> {
+    this.log(
+      `Number of packages to release: ${pkgsWithPRData.length}`,
+      CheckpointType.Success
+    );
+    return [newManifestVersions, pkgsWithPRData];
+  }
+}
+```
+
+The `num-packages` plugin is not very interesting. Also, if it is not last in
+the `"plugins"` configuration array, it might not be accurate (a subsequent
+plugin could add or remove entries to/from `pkgsWithPRData`)
+
+However, one place a plugin has particular value is in a monorepo where local
+packages depend on the latest version of each other (e.g. yarn/npm workspaces
+for Node, or cargo workspaces for Rust).
+
+
+### node-workspace
+
+The `node-workspace` plugin builds a graph of local node packages configured
+in release-please-config.json and the dependency relationships between them.
+It looks at what packages were updated by release-please and updates their
+reference in other packages' dependencies lists. Even when a particular package
+was not updated by release-please, if a dependency did have an update, it will
+be patch bump the package, create a changelog entry, and add it to the list of
+PR changes. Under the hood this plugin adapts specific dependency graph building
+and updating functionality from the popular
+[lerna](https://github.com/lerna/lerna) tool.

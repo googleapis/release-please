@@ -15,6 +15,7 @@
 import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
+import {packageJsonStringify} from '../util/package-json-stringify';
 
 export class PackageJson implements Update {
   path: string;
@@ -41,6 +42,6 @@ export class PackageJson implements Update {
       CheckpointType.Success
     );
     parsed.version = this.version;
-    return JSON.stringify(parsed, null, 2) + '\n';
+    return packageJsonStringify(parsed);
   }
 }
