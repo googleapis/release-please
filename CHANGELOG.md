@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.7.0](https://www.github.com/googleapis/release-please/compare/v11.6.0...v11.7.0) (2021-04-09)
+
+
+### Features
+
+* add ability to specify extra files for releasers to consider ([#850](https://www.github.com/googleapis/release-please/issues/850)) ([f7079fd](https://www.github.com/googleapis/release-please/commit/f7079fd7bb07104e9ed249d870f7ae59b1cdf15a))
+
 ## [11.6.0](https://www.github.com/googleapis/release-please/compare/v11.5.0...v11.6.0) (2021-04-07)
 
 
