@@ -5,7 +5,7 @@
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
-    "test": "cross-env ENVIRONMENT=test c8 mocha --recursive --timeout=5000 build/test",
+    "test": "cross-env ENVIRONMENT=test mocha --recursive --timeout=5000 build/test",
     "docs-test": "echo add docs tests",
     "test:snap": "SNAPSHOT_UPDATE=1 npm test",
     "clean": "gts clean",
