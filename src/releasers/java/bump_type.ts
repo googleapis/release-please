@@ -14,7 +14,13 @@
 
 import * as semver from 'semver';
 
-export type BumpType = 'major' | 'minor' | 'patch' | 'snapshot' | 'lts' | 'lts-snapshot';
+export type BumpType =
+  | 'major'
+  | 'minor'
+  | 'patch'
+  | 'snapshot'
+  | 'lts'
+  | 'lts-snapshot';
 
 export function maxBumpType(bumpTypes: BumpType[]): BumpType {
   if (bumpTypes.some(bumpType => bumpType === 'major')) {
