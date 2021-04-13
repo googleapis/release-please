@@ -34,7 +34,7 @@ export class VersionsManifest extends JavaUpdate {
         newLines.push(
           line.replace(
             new RegExp(
-              `${packageName}:(.*):[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
+              `${packageName}:(.*):(.*)`,
               'g'
             ),
             `${packageName}:$1:${version}`
@@ -44,7 +44,7 @@ export class VersionsManifest extends JavaUpdate {
         newLines.push(
           line.replace(
             new RegExp(
-              `${packageName}:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?:[0-9]+\\.[0-9]+\\.[0-9]+(-\\w+)?(-SNAPSHOT)?`,
+              `${packageName}:(.*):(.*)`,
               'g'
             ),
             `${packageName}:${version}:${version}`
