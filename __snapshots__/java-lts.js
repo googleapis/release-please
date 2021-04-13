@@ -1574,11 +1574,11 @@ filename: versions.txt
 # Format:
 # module:released-version:current-version
 
-google-cloud-trace:0.108.0-beta-sp.1:0.108.0-beta-sp.2-SNAPSHOT
-grpc-google-cloud-trace-v1:0.73.0-sp.1:0.73.0-sp.2-SNAPSHOT
-grpc-google-cloud-trace-v2:0.73.0-sp.1:0.73.0-sp.2-SNAPSHOT
-proto-google-cloud-trace-v1:0.73.0-sp.1:0.73.0-sp.2-SNAPSHOT
-proto-google-cloud-trace-v2:0.73.0-sp.1:0.73.0-sp.2-SNAPSHOT
+google-cloud-trace:0.108.0-beta:0.108.0-beta-sp.1-SNAPSHOT
+grpc-google-cloud-trace-v1:0.73.0:0.73.0-sp.1-SNAPSHOT
+grpc-google-cloud-trace-v2:0.73.0:0.73.0-sp.1-SNAPSHOT
+proto-google-cloud-trace-v1:0.73.0:0.73.0-sp.1-SNAPSHOT
+proto-google-cloud-trace-v2:0.73.0:0.73.0-sp.1-SNAPSHOT
 filename: pom.xml
 <?xml version='1.0' encoding='UTF-8'?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -1586,7 +1586,7 @@ filename: pom.xml
   <groupId>com.google.cloud</groupId>
   <artifactId>google-cloud-trace-parent</artifactId>
   <packaging>pom</packaging>
-  <version>0.108.0-beta-sp.2-SNAPSHOT</version><!-- {x-version-update:google-cloud-trace:current} -->
+  <version>0.108.0-beta-sp.1-SNAPSHOT</version><!-- {x-version-update:google-cloud-trace:current} -->
   <name>Google Cloud Trace Parent</name>
   <url>https://github.com/googleapis/java-core</url>
   <description>
@@ -1750,22 +1750,22 @@ filename: pom.xml
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>proto-google-cloud-trace-v1</artifactId>
-        <version>0.73.0-sp.2-SNAPSHOT</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
+        <version>0.73.0-sp.1-SNAPSHOT</version><!-- {x-version-update:proto-google-cloud-trace-v1:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>proto-google-cloud-trace-v2</artifactId>
-        <version>0.73.0-sp.2-SNAPSHOT</version><!-- {x-version-update:proto-google-cloud-trace-v2:current} -->
+        <version>0.73.0-sp.1-SNAPSHOT</version><!-- {x-version-update:proto-google-cloud-trace-v2:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>grpc-google-cloud-trace-v1</artifactId>
-        <version>0.73.0-sp.2-SNAPSHOT</version><!-- {x-version-update:grpc-google-cloud-trace-v1:current} -->
+        <version>0.73.0-sp.1-SNAPSHOT</version><!-- {x-version-update:grpc-google-cloud-trace-v1:current} -->
       </dependency>
       <dependency>
         <groupId>com.google.api.grpc</groupId>
         <artifactId>grpc-google-cloud-trace-v2</artifactId>
-        <version>0.73.0-sp.2-SNAPSHOT</version><!-- {x-version-update:grpc-google-cloud-trace-v2:current} -->
+        <version>0.73.0-sp.1-SNAPSHOT</version><!-- {x-version-update:grpc-google-cloud-trace-v2:current} -->
       </dependency>
 
       <dependency>

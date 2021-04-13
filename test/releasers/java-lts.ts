@@ -247,7 +247,7 @@ describe('JavaLTS', () => {
     );
     getFileContentsStub
       .withArgs('versions.txt', 'master')
-      .resolves(buildFileContent('released-lts-versions.txt'));
+      .resolves(buildFileContent('released-versions.txt'));
     getFileContentsStub
       .withArgs('README.md', 'master')
       .resolves(buildFileContent('README.md'));
