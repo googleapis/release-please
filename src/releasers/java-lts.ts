@@ -42,7 +42,7 @@ export class JavaLTS extends JavaYoshi {
     latestTag: GitHubTag | undefined,
     _preRelease = false
   ): Promise<ReleaseCandidate> {
-    const bumpType = this.snapshot ? 'snapshot' : 'lts';
+    const bumpType = this.snapshot ? 'snapshot' : 'lts-snapshot';
 
     const version = Version.parse(
       latestTag?.version ?? this.defaultInitialVersion()
