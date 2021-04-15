@@ -13,11 +13,12 @@
 // limitations under the License.
 
 import {ReleasePRConstructorOptions} from '..';
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
-
-import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag} from '../github';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {
+  ReleasePR,
+  ReleaseCandidate,
+  GetCommitsOptions,
+  PackageName,
+} from '../release-pr';
 import {indentCommit} from '../util/indent-commit';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -34,50 +35,12 @@ export class Ruby extends ReleasePR {
     super(options);
     this.versionFile = options.versionFile ?? '';
   }
-  protected async _run(): Promise<number | undefined> {
-    const packageName = await this.getPackageName();
-    const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${packageName.getComponent()}-` : undefined,
-      false
-    );
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
-    });
 
-    const cc = new ConventionalCommits({
-      commits: postProcessCommits(commits),
-      owner: this.gh.owner,
-      repository: this.gh.repo,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      changelogSections: this.changelogSections,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: await this.normalizeTagName(candidate.version),
-      previousTag: candidate.previousTag
-        ? await this.normalizeTagName(candidate.previousTag)
-        : undefined,
-    });
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
-      );
-      return undefined;
-    }
-
+  protected async buildUpdates(
+    changelogEntry: string,
+    candidate: ReleaseCandidate,
+    packageName: PackageName
+  ): Promise<Update[]> {
     const updates: Update[] = [];
 
     updates.push(
@@ -97,18 +60,15 @@ export class Ruby extends ReleasePR {
         packageName: packageName.name,
       })
     );
-
-    return await this.openPR({
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
-      updates,
-      version: candidate.version,
-      includePackageName: this.monorepoTags,
-    });
+    return updates;
   }
 
   tagSeparator(): string {
     return '/';
+  }
+
+  protected async commits(opts: GetCommitsOptions): Promise<Commit[]> {
+    return postProcessCommits(await super.commits(opts));
   }
 }
 
