@@ -39,5 +39,8 @@ version with an associated major version bump.
 
 This is a special case versioning strategy where we adopt a custom versioning scheme
 and is meant to be used against an LTS branch. Consider an LTS branch cut from the
-mainline at version `1.2.3`. The next version proposed will be `1.2.4-lts.1`, followed
-by `1.2.4-lts.2`.
+mainline at version `1.2.3`. The next version proposed will be `1.2.3-sp.1`, followed
+by `1.2.3-lts.2`.
+
+For LTS releases, we use a special "lts-snapshot" bump which will make the version
+following `1.2.3-sp.1` be `1.2.3-sp.2-SNAPSHOT`.
