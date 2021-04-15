@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
@@ -67,6 +67,26 @@ export class Simple extends ReleasePR {
       return undefined;
     }
 
+    const updates = await this.buildUpdates(
+      changelogEntry,
+      candidate,
+      packageName
+    );
+
+    return await this.openPR({
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
+      updates,
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
+  }
+
+  protected async buildUpdates(
+    changelogEntry: string,
+    candidate: ReleaseCandidate,
+    packageName: PackageName
+  ): Promise<Update[]> {
     const updates: Update[] = [];
 
     updates.push(
@@ -87,12 +107,6 @@ export class Simple extends ReleasePR {
       })
     );
 
-    return await this.openPR({
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
-      updates,
-      version: candidate.version,
-      includePackageName: this.monorepoTags,
-    });
+    return updates;
   }
 }
