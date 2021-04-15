@@ -129,10 +129,57 @@ export class ReleasePR {
   }
 
   protected async _getOpenPROptions(
-    _commits: Commit[],
-    _latestTag?: GitHubTag
+    commits: Commit[],
+    latestTag?: GitHubTag
   ): Promise<OpenPROptions | undefined> {
-    throw Error('must be implemented by subclass');
+    const cc = new ConventionalCommits({
+      commits,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
+      bumpMinorPreMajor: this.bumpMinorPreMajor,
+      bumpPatchForMinorPreMajor: this.bumpPatchForMinorPreMajor,
+      changelogSections: this.changelogSections,
+    });
+    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
+      cc,
+      latestTag
+    );
+
+    const changelogEntry: string = await cc.generateChangelogEntry({
+      version: candidate.version,
+      currentTag: await this.normalizeTagName(candidate.version),
+      previousTag: candidate.previousTag
+        ? await this.normalizeTagName(candidate.previousTag)
+        : undefined,
+    });
+
+    // don't create a release candidate until user facing changes
+    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
+    // one line is a good indicator that there were no interesting commits.
+    if (this.changelogEmpty(changelogEntry)) {
+      checkpoint(
+        `no user facing commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return undefined;
+    }
+
+    const packageName = await this.getPackageName();
+    const updates = await this.buildUpdates(
+      changelogEntry,
+      candidate,
+      packageName
+    );
+
+    return {
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
+      updates,
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    };
   }
 
   async run(): Promise<number | undefined> {
@@ -172,50 +219,8 @@ export class ReleasePR {
       path: this.path,
     });
 
-    const cc = new ConventionalCommits({
-      commits,
-      owner: this.gh.owner,
-      repository: this.gh.repo,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      changelogSections: this.changelogSections,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
-      );
-      return undefined;
-    }
-
-    const updates = await this.buildUpdates(
-      changelogEntry,
-      candidate,
-      packageName
-    );
-
-    return await this.openPR({
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
-      updates,
-      version: candidate.version,
-      includePackageName: this.monorepoTags,
-    });
+    const openPROptions = await this.getOpenPROptions(commits, latestTag);
+    return openPROptions ? await this.openPR(openPROptions) : undefined;
   }
 
   protected async buildUpdates(
