@@ -12,18 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  ReleasePR,
-  ReleaseCandidate,
-  OpenPROptions,
-  PackageName,
-} from '../release-pr';
+import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 
-import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag, GitHubFileContents} from '../github';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {GitHubFileContents} from '../github';
 import {Update} from '../updaters/update';
-import {Commit} from '../graphql-to-commits';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -35,52 +27,18 @@ export class Node extends ReleasePR {
   private pkgJsonContents?: GitHubFileContents;
   private _packageName?: string;
 
-  protected async _getOpenPROptions(
-    commits: Commit[],
-    latestTag?: GitHubTag
-  ): Promise<OpenPROptions | undefined> {
-    const cc = new ConventionalCommits({
-      commits,
-      owner: this.gh.owner,
-      repository: this.gh.repo,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      bumpPatchForMinorPreMajor: this.bumpPatchForMinorPreMajor,
-      changelogSections: this.changelogSections,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: await this.normalizeTagName(candidate.version),
-      previousTag: candidate.previousTag
-        ? await this.normalizeTagName(candidate.previousTag)
-        : undefined,
-    });
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
-      );
-      return undefined;
-    }
-
+  protected async buildUpdates(
+    changelogEntry: string,
+    candidate: ReleaseCandidate,
+    packageName: PackageName
+  ): Promise<Update[]> {
     const updates: Update[] = [];
-
-    const packageName = (await this.getPackageName()).name;
     updates.push(
       new PackageJson({
         path: this.addPath('package-lock.json'),
         changelogEntry,
         version: candidate.version,
-        packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -89,7 +47,7 @@ export class Node extends ReleasePR {
         path: this.addPath('samples/package.json'),
         changelogEntry,
         version: candidate.version,
-        packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -98,7 +56,7 @@ export class Node extends ReleasePR {
         path: this.addPath(this.changelogPath),
         changelogEntry,
         version: candidate.version,
-        packageName,
+        packageName: packageName.name,
       })
     );
 
@@ -107,17 +65,11 @@ export class Node extends ReleasePR {
         path: this.addPath('package.json'),
         changelogEntry,
         version: candidate.version,
-        packageName,
+        packageName: packageName.name,
         contents: await this.getPkgJsonContents(),
       })
     );
-    return {
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
-      updates,
-      version: candidate.version,
-      includePackageName: this.monorepoTags,
-    };
+    return updates;
   }
 
   // Always prefer the package.json name
@@ -134,19 +86,6 @@ export class Node extends ReleasePR {
           ? this.packageName.split('/')[1]
           : this.packageName,
     };
-  }
-
-  protected async _run(): Promise<number | undefined> {
-    const packageName = await this.getPackageName();
-    const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
-    );
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
-    });
-    const openPROptions = await this.getOpenPROptions(commits, latestTag);
-    return openPROptions ? await this.openPR(openPROptions) : undefined;
   }
 
   private async getPkgJsonContents(): Promise<GitHubFileContents> {
