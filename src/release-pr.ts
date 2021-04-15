@@ -32,6 +32,7 @@ import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {extractReleaseNotes} from './util/release-notes';
 import {PullRequestTitle} from './util/pull-request-title';
+import {Changelog} from './updaters/changelog';
 
 export interface ReleaseCandidate {
   version: string;
@@ -162,7 +163,77 @@ export class ReleasePR {
   }
 
   protected async _run(): Promise<number | undefined> {
-    throw Error('must be implemented by subclass');
+    const packageName = await this.getPackageName();
+    const latestTag: GitHubTag | undefined = await this.latestTag(
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
+    );
+    const commits: Commit[] = await this.commits({
+      sha: latestTag ? latestTag.sha : undefined,
+      path: this.path,
+    });
+
+    const cc = new ConventionalCommits({
+      commits,
+      owner: this.gh.owner,
+      repository: this.gh.repo,
+      bumpMinorPreMajor: this.bumpMinorPreMajor,
+      changelogSections: this.changelogSections,
+    });
+    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
+      cc,
+      latestTag
+    );
+
+    const changelogEntry: string = await cc.generateChangelogEntry({
+      version: candidate.version,
+      currentTag: `v${candidate.version}`,
+      previousTag: candidate.previousTag,
+    });
+
+    // don't create a release candidate until user facing changes
+    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
+    // one line is a good indicator that there were no interesting commits.
+    if (this.changelogEmpty(changelogEntry)) {
+      checkpoint(
+        `no user facing commits found since ${
+          latestTag ? latestTag.sha : 'beginning of time'
+        }`,
+        CheckpointType.Failure
+      );
+      return undefined;
+    }
+
+    const updates = await this.buildUpdates(
+      changelogEntry,
+      candidate,
+      packageName
+    );
+
+    return await this.openPR({
+      sha: commits[0].sha!,
+      changelogEntry: `${changelogEntry}\n---\n`,
+      updates,
+      version: candidate.version,
+      includePackageName: this.monorepoTags,
+    });
+  }
+
+  protected async buildUpdates(
+    changelogEntry: string,
+    candidate: ReleaseCandidate,
+    packageName: PackageName
+  ): Promise<Update[]> {
+    const updates: Update[] = [];
+
+    updates.push(
+      new Changelog({
+        path: this.changelogPath,
+        changelogEntry,
+        version: candidate.version,
+        packageName: packageName.name,
+      })
+    );
+    return updates;
   }
 
   protected supportsSnapshots(): boolean {
