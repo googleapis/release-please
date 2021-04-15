@@ -153,7 +153,7 @@ export class JavaYoshi extends ReleasePR {
     }
 
     const packageName = await this.getPackageName();
-    const updates = await this.buildUpdates(
+    const updates = await this.buildJavaUpdates(
       changelogEntry,
       candidateVersions,
       candidate,
@@ -203,7 +203,7 @@ export class JavaYoshi extends ReleasePR {
     return await super.coerceReleaseCandidate(cc, latestTag, preRelease);
   }
 
-  protected async buildUpdates(
+  protected async buildJavaUpdates(
     changelogEntry: string,
     candidateVersions: VersionsMap,
     candidate: ReleaseCandidate,

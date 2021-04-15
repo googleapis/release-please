@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
-
-import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag, GitHubFileContents} from '../github';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
+import {GitHubFileContents} from '../github';
 import {Update} from '../updaters/update';
-import {Commit} from '../graphql-to-commits';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
 // OCaml
 import {Opam} from '../updaters/ocaml/opam';
 import {EsyJson} from '../updaters/ocaml/esy-json';
+import {ReleasePRConstructorOptions} from '..';
 
 const notEsyLock = (path: string) => !path.startsWith('esy.lock');
 
@@ -42,47 +39,17 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class OCaml extends ReleasePR {
-  protected async _run(): Promise<number | undefined> {
-    const packageName = await this.getPackageName();
-    const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
-    );
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
-    });
+  constructor(options: ReleasePRConstructorOptions) {
+    super(options);
+    // FIXME: this was previously hard-coded, do allow overriding?
+    this.changelogSections = CHANGELOG_SECTIONS;
+  }
 
-    const cc = new ConventionalCommits({
-      commits,
-      owner: this.gh.owner,
-      repository: this.gh.repo,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      // TODO: Is this configurable?
-      changelogSections: CHANGELOG_SECTIONS,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: `v${candidate.version}`,
-      previousTag: candidate.previousTag,
-    });
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
-      );
-      return undefined;
-    }
-
+  protected async buildUpdates(
+    changelogEntry: string,
+    candidate: ReleaseCandidate,
+    packageName: PackageName
+  ): Promise<Update[]> {
     const updates: Update[] = [];
 
     const jsonPaths = await this.gh.findFilesByExtension('json');
@@ -126,13 +93,6 @@ export class OCaml extends ReleasePR {
         packageName: packageName.name,
       })
     );
-
-    return await this.openPR({
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
-      updates,
-      version: candidate.version,
-      includePackageName: this.monorepoTags,
-    });
+    return updates;
   }
 }
