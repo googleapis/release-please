@@ -48,7 +48,7 @@ export interface CandidateRelease {
   pullNumber: number;
 }
 
-interface GetCommitsOptions {
+export interface GetCommitsOptions {
   sha?: string;
   perPage?: number;
   labels?: boolean;
