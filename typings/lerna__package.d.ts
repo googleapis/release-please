@@ -27,27 +27,34 @@ declare module '@lerna/package' {
       optionalDependencies?: Record<string, string>;
       peerDependencies?: Record<string, string>;
     }
-  }
 
-  class Package {
-    location: string;
-    name: string;
-    version: string;
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-    optionalDependencies?: Record<string, string>;
-    peerDependencies?: Record<string, string>;
-    constructor(pkg: Package.PackageJson, location: string, rootPath?: string);
+    // unclear why we need this. Possibly related to
+    // https://github.com/typescript-eslint/typescript-eslint/issues/1856
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    class Package {
+      location: string;
+      name: string;
+      version: string;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      optionalDependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+      constructor(
+        pkg: Package.PackageJson,
+        location: string,
+        rootPath?: string
+      );
 
-    updateLocalDependency(
-      resolved: npa.Result,
-      depVersion: string,
-      savePrefix: string
-    ): void;
+      updateLocalDependency(
+        resolved: npa.Result,
+        depVersion: string,
+        savePrefix: string
+      ): void;
 
-    // real interface is `val: any` but we only ever set a string
-    set(key: string, val: string): this;
-    toJSON(): Package.PackageJson;
+      // real interface is `val: any` but we only ever set a string
+      set(key: string, val: string): this;
+      toJSON(): Package.PackageJson;
+    }
   }
 
   export = Package;

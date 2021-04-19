@@ -16,13 +16,10 @@
  * skeleton only representing what we use.
  */
 declare module '@lerna/package-graph' {
-  import Package = require('@lerna/package');
+  import {Package} from '@lerna/package';
   import npa = require('npm-package-arg');
 
   namespace PackageGraph {
-    // unclear why we need this. Possibly related to
-    // https://github.com/typescript-eslint/typescript-eslint/issues/1856
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     class PackageGraphNode {
       name: string;
       version: string;
@@ -33,17 +30,20 @@ declare module '@lerna/package-graph' {
       externalDependencies: Map<string, npa.Result>;
       constructor(pkg: Package);
     }
-  }
 
-  class PackageGraph extends Map {
-    rawPackageList: Package[];
-    constructor(
-      packages: Package[],
-      graphType: 'allDependencies' | 'dependencies'
-    );
+    // unclear why we need this. Possibly related to
+    // https://github.com/typescript-eslint/typescript-eslint/issues/1856
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    class PackageGraph extends Map {
+      rawPackageList: Package[];
+      constructor(
+        packages: Package[],
+        graphType: 'allDependencies' | 'dependencies'
+      );
 
-    get(name: string): PackageGraph.PackageGraphNode;
-    addDependents(filteredPackages: Package[]): Package[];
+      get(name: string): PackageGraph.PackageGraphNode;
+      addDependents(filteredPackages: Package[]): Package[];
+    }
   }
 
   export = PackageGraph;
