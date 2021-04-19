@@ -94,14 +94,21 @@ export class Version {
         break;
       case 'lts':
         if (this.lts) {
-          this.lts += 1;
-        } else {
           if (!this.snapshot) {
-            this.patch += 1;
+            this.lts += 1;
           }
+        } else {
           this.lts = 1;
         }
         this.snapshot = false;
+        break;
+      case 'lts-snapshot':
+        if (this.lts) {
+          this.lts += 1;
+        } else {
+          this.lts = 1;
+        }
+        this.snapshot = true;
         break;
       default:
         throw Error(`unsupported bump type: ${bumpType}`);
