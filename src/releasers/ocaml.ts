@@ -21,6 +21,7 @@ import {Changelog} from '../updaters/changelog';
 // OCaml
 import {Opam} from '../updaters/ocaml/opam';
 import {EsyJson} from '../updaters/ocaml/esy-json';
+import {DuneProject} from '../updaters/ocaml/dune-project';
 import {ReleasePRConstructorOptions} from '..';
 
 const notEsyLock = (path: string) => !path.startsWith('esy.lock');
@@ -84,6 +85,15 @@ export class OCaml extends ReleasePR {
         })
       );
     });
+
+    updates.push(
+      new DuneProject({
+        path: this.addPath('dune-project'),
+        changelogEntry,
+        version: candidate.version,
+        packageName: packageName.name,
+      })
+    );
 
     updates.push(
       new Changelog({
