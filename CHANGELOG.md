@@ -4,6 +4,22 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.8.0](https://www.github.com/googleapis/release-please/compare/v11.7.0...v11.8.0) (2021-04-19)
+
+
+### Features
+
+* **manifest:** node workspace package dependency updates ([#844](https://www.github.com/googleapis/release-please/issues/844)) ([9ebd422](https://www.github.com/googleapis/release-please/commit/9ebd422b6abd0d49e6d3d740d33bf1bbd58ec6a4))
+* **ocaml:** Add dune-project updater ([81422dc](https://www.github.com/googleapis/release-please/commit/81422dc7279d4999703a9c34ce1a559361be6953))
+
+
+### Bug Fixes
+
+* adjust patch rule for Java LTS strategy ([#857](https://www.github.com/googleapis/release-please/issues/857)) ([7f78dc5](https://www.github.com/googleapis/release-please/commit/7f78dc566a708ce3f98ba315685c79a37c4706f8))
+* **ocaml:** Avoid hardcoding changelogSections to allow configuration ([81422dc](https://www.github.com/googleapis/release-please/commit/81422dc7279d4999703a9c34ce1a559361be6953))
+* **ocaml:** Improve OCaml releaser for monorepos ([#867](https://www.github.com/googleapis/release-please/issues/867)) ([81422dc](https://www.github.com/googleapis/release-please/commit/81422dc7279d4999703a9c34ce1a559361be6953))
+* **ocaml:** Pass the path prefix when searching for files ([81422dc](https://www.github.com/googleapis/release-please/commit/81422dc7279d4999703a9c34ce1a559361be6953))
+
 ## [11.7.0](https://www.github.com/googleapis/release-please/compare/v11.6.0...v11.7.0) (2021-04-09)
 
 
