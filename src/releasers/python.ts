@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate, OpenPROptions} from '../release-pr';
-
-import {ConventionalCommits} from '../conventional-commits';
-import {GitHubTag} from '../github';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
+import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 import {Update} from '../updaters/update';
-import {Commit} from '../graphql-to-commits';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -26,6 +21,7 @@ import {Changelog} from '../updaters/changelog';
 import {SetupPy} from '../updaters/python/setup-py';
 import {SetupCfg} from '../updaters/python/setup-cfg';
 import {VersionPy} from '../updaters/python/version-py';
+import {ReleasePRConstructorOptions} from '..';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -43,47 +39,17 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class Python extends ReleasePR {
-  protected async _getOpenPROptions(
-    commits: Commit[],
-    latestTag?: GitHubTag
-  ): Promise<OpenPROptions | undefined> {
-    const cc = new ConventionalCommits({
-      commits,
-      owner: this.gh.owner,
-      repository: this.gh.repo,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      bumpPatchForMinorPreMajor: this.bumpPatchForMinorPreMajor,
-      changelogSections: this.changelogSections || CHANGELOG_SECTIONS,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
+  constructor(options: ReleasePRConstructorOptions) {
+    super(options);
+    this.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
+  }
 
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: await this.normalizeTagName(candidate.version),
-      previousTag: candidate.previousTag
-        ? await this.normalizeTagName(candidate.previousTag)
-        : undefined,
-    });
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
-      );
-      return undefined;
-    }
-
+  protected async buildUpdates(
+    changelogEntry: string,
+    candidate: ReleaseCandidate,
+    packageName: PackageName
+  ): Promise<Update[]> {
     const updates: Update[] = [];
-
-    const packageName = await this.getPackageName();
     updates.push(
       new Changelog({
         path: this.addPath(this.changelogPath),
@@ -126,26 +92,7 @@ export class Python extends ReleasePR {
         })
       );
     });
-    return {
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
-      updates,
-      version: candidate.version,
-      includePackageName: this.monorepoTags,
-    };
-  }
-
-  protected async _run(): Promise<number | undefined> {
-    const packageName = await this.getPackageName();
-    const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
-    );
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
-    });
-    const openPROptions = await this.getOpenPROptions(commits, latestTag);
-    return openPROptions ? await this.openPR(openPROptions) : undefined;
+    return updates;
   }
 
   defaultInitialVersion(): string {
