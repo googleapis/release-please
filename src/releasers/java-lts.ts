@@ -29,7 +29,12 @@ export class JavaLTS extends JavaYoshi {
     _latestTag: GitHubTag | undefined,
     currentVersions: VersionsMap
   ): Promise<VersionsMap> {
-    const bumpType = this.snapshot ? 'snapshot' : 'lts';
+    // Example versioning:
+    //   1.2.3
+    //   1.2.3-sp.1-SNAPSHOT
+    //   1.2.3-sp.1
+    //   1.2.3-sp.2-SNAPSHOT
+    const bumpType = this.snapshot ? 'lts-snapshot' : 'lts';
     const newVersions: VersionsMap = new Map<string, string>();
     for (const [k, version] of currentVersions) {
       newVersions.set(k, Version.parse(version).bump(bumpType).toString());
@@ -42,7 +47,7 @@ export class JavaLTS extends JavaYoshi {
     latestTag: GitHubTag | undefined,
     _preRelease = false
   ): Promise<ReleaseCandidate> {
-    const bumpType = this.snapshot ? 'snapshot' : 'lts';
+    const bumpType = this.snapshot ? 'lts-snapshot' : 'lts';
 
     const version = Version.parse(
       latestTag?.version ?? this.defaultInitialVersion()

@@ -86,7 +86,7 @@ describe('JavaLTS', () => {
     );
     getFileContentsStub
       .withArgs('versions.txt', 'master')
-      .resolves(buildFileContent('versions.txt'));
+      .resolves(buildFileContent('versions-lts-snapshot.txt'));
     getFileContentsStub
       .withArgs('README.md', 'master')
       .resolves(buildFileContent('README.md'));
@@ -168,7 +168,7 @@ describe('JavaLTS', () => {
     );
     getFileContentsStub
       .withArgs('versions.txt', 'master')
-      .resolves(buildFileContent('released-versions.txt'));
+      .resolves(buildFileContent('released-lts-versions.txt'));
     getFileContentsStub
       .withArgs('README.md', 'master')
       .resolves(buildFileContent('README.md'));
@@ -294,7 +294,7 @@ describe('JavaLTS', () => {
     );
     getFileContentsStub
       .withArgs('versions.txt', 'master')
-      .resolves(buildFileContent('versions.txt'));
+      .resolves(buildFileContent('versions-lts-snapshot.txt'));
     getFileContentsStub.rejects(
       Object.assign(Error('not found'), {status: 404})
     );
@@ -354,7 +354,7 @@ describe('JavaLTS', () => {
     );
     getFileContentsStub
       .withArgs('versions.txt', 'master')
-      .resolves(buildFileContent('released-versions.txt'));
+      .resolves(buildFileContent('released-lts-versions.txt'));
     getFileContentsStub
       .withArgs('README.md', 'master')
       .resolves(buildFileContent('README.md'));
@@ -439,7 +439,7 @@ describe('JavaLTS', () => {
     );
     getFileContentsStub
       .withArgs('versions.txt', defaultBranch)
-      .resolves(buildFileContent('versions.txt'));
+      .resolves(buildFileContent('versions-lts-snapshot.txt'));
     getFileContentsStub
       .withArgs('README.md', defaultBranch)
       .resolves(buildFileContent('README.md'));
@@ -524,7 +524,7 @@ describe('JavaLTS', () => {
     );
     getFileContentsStub
       .withArgs('versions.txt', defaultBranch)
-      .resolves(buildFileContent('versions.txt'));
+      .resolves(buildFileContent('versions-lts-snapshot.txt'));
     getFileContentsStub
       .withArgs('README.md', defaultBranch)
       .resolves(buildFileContent('README.md'));

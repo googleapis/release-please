@@ -179,11 +179,21 @@ describe('Version', () => {
         const version = Version.parse('1.23.45').bump('lts');
         expect(version.major).to.equal(1);
         expect(version.minor).to.equal(23);
-        expect(version.patch).to.equal(46);
+        expect(version.patch).to.equal(45);
         expect(version.extra).to.equal('');
         expect(version.lts).to.equal(1);
         expect(version.snapshot).to.equal(false);
-        expect(version.toString()).to.equal('1.23.46-sp.1');
+        expect(version.toString()).to.equal('1.23.45-sp.1');
+      });
+      it('should make an initial LTS snapshot bump', async () => {
+        const version = Version.parse('1.23.45').bump('lts-snapshot');
+        expect(version.major).to.equal(1);
+        expect(version.minor).to.equal(23);
+        expect(version.patch).to.equal(45);
+        expect(version.extra).to.equal('');
+        expect(version.lts).to.equal(1);
+        expect(version.snapshot).to.equal(true);
+        expect(version.toString()).to.equal('1.23.45-sp.1-SNAPSHOT');
       });
       it('should make an initial LTS bump on a SNAPSHOT', async () => {
         const version = Version.parse('1.23.45-SNAPSHOT').bump('lts');
@@ -199,14 +209,14 @@ describe('Version', () => {
         const version = Version.parse('1.23.45-beta').bump('lts');
         expect(version.major).to.equal(1);
         expect(version.minor).to.equal(23);
-        expect(version.patch).to.equal(46);
+        expect(version.patch).to.equal(45);
         expect(version.extra).to.equal('-beta');
         expect(version.lts).to.equal(1);
         expect(version.snapshot).to.equal(false);
-        expect(version.toString()).to.equal('1.23.46-beta-sp.1');
+        expect(version.toString()).to.equal('1.23.45-beta-sp.1');
       });
       it('should make a snapshot on an LTS version', async () => {
-        const version = Version.parse('1.23.45-beta-sp.1').bump('snapshot');
+        const version = Version.parse('1.23.45-beta-sp.1').bump('lts-snapshot');
         expect(version.major).to.equal(1);
         expect(version.minor).to.equal(23);
         expect(version.patch).to.equal(45);
@@ -216,7 +226,7 @@ describe('Version', () => {
         expect(version.toString()).to.equal('1.23.45-beta-sp.2-SNAPSHOT');
       });
       it('should make an LTS bump on an LTS version', async () => {
-        const version = Version.parse('1.23.45-beta-sp.1-SNAPSHOT').bump('lts');
+        const version = Version.parse('1.23.45-beta-sp.2-SNAPSHOT').bump('lts');
         expect(version.major).to.equal(1);
         expect(version.minor).to.equal(23);
         expect(version.patch).to.equal(45);
