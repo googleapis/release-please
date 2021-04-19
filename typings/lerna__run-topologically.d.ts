@@ -16,17 +16,19 @@
  * skeleton only representing what we use.
  */
 declare module '@lerna/run-topologically' {
-  import Package = require('@lerna/package');
-  interface Options {
-    concurrency: number;
-    graphType: 'allDependencies' | 'dependencies';
-    rejectCycles: boolean;
+  import {Package} from '@lerna/package';
+  namespace runTopologically {
+    interface Options {
+      concurrency: number;
+      graphType: 'allDependencies' | 'dependencies';
+      rejectCycles: boolean;
+    }
+    function runTopologically(
+      packages: Package[],
+      runner: (pkg: Package) => Promise<Package>,
+      opts: Options
+    ): Promise<Package[]>;
   }
-  function runTopologically(
-    packages: Package[],
-    runner: (pkg: Package) => Promise<Package>,
-    opts: Options
-  ): Promise<Package[]>;
 
   export = runTopologically;
 }

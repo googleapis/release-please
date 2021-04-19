@@ -14,10 +14,9 @@
 
 import * as semver from 'semver';
 import cu = require('@lerna/collect-updates');
-import Package = require('@lerna/package');
-import {PackageJson} from '@lerna/package';
-import PackageGraph = require('@lerna/package-graph');
-import runTopologically = require('@lerna/run-topologically');
+import {Package, PackageJson} from '@lerna/package';
+import {PackageGraph} from '@lerna/package-graph';
+import {runTopologically} from '@lerna/run-topologically';
 import {ManifestPlugin} from './plugin';
 import {ManifestPackageWithPRData, ManifestPackage} from '..';
 import {VersionsMap} from '../updaters/update';
