@@ -22,30 +22,10 @@ import {Changelog} from '../updaters/changelog';
 import {Opam} from '../updaters/ocaml/opam';
 import {EsyJson} from '../updaters/ocaml/esy-json';
 import {DuneProject} from '../updaters/ocaml/dune-project';
-import {ReleasePRConstructorOptions} from '..';
 
 const notEsyLock = (path: string) => !path.startsWith('esy.lock');
 
-const CHANGELOG_SECTIONS = [
-  {type: 'feat', section: 'Features'},
-  {type: 'fix', section: 'Bug Fixes'},
-  {type: 'perf', section: 'Performance Improvements'},
-  {type: 'revert', section: 'Reverts'},
-  {type: 'docs', section: 'Documentation'},
-  {type: 'chore', section: 'Miscellaneous Chores'},
-  {type: 'refactor', section: 'Code Refactoring'},
-  {type: 'test', section: 'Tests'},
-  {type: 'build', section: 'Build System'},
-  {type: 'ci', section: 'Continuous Integration'},
-];
-
 export class OCaml extends ReleasePR {
-  constructor(options: ReleasePRConstructorOptions) {
-    super(options);
-    // FIXME: this was previously hard-coded, do allow overriding?
-    this.changelogSections = CHANGELOG_SECTIONS;
-  }
-
   protected async buildUpdates(
     changelogEntry: string,
     candidate: ReleaseCandidate,
