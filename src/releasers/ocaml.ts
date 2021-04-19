@@ -21,30 +21,11 @@ import {Changelog} from '../updaters/changelog';
 // OCaml
 import {Opam} from '../updaters/ocaml/opam';
 import {EsyJson} from '../updaters/ocaml/esy-json';
-import {ReleasePRConstructorOptions} from '..';
+import {DuneProject} from '../updaters/ocaml/dune-project';
 
 const notEsyLock = (path: string) => !path.startsWith('esy.lock');
 
-const CHANGELOG_SECTIONS = [
-  {type: 'feat', section: 'Features'},
-  {type: 'fix', section: 'Bug Fixes'},
-  {type: 'perf', section: 'Performance Improvements'},
-  {type: 'revert', section: 'Reverts'},
-  {type: 'docs', section: 'Documentation'},
-  {type: 'chore', section: 'Miscellaneous Chores'},
-  {type: 'refactor', section: 'Code Refactoring'},
-  {type: 'test', section: 'Tests'},
-  {type: 'build', section: 'Build System'},
-  {type: 'ci', section: 'Continuous Integration'},
-];
-
 export class OCaml extends ReleasePR {
-  constructor(options: ReleasePRConstructorOptions) {
-    super(options);
-    // FIXME: this was previously hard-coded, do allow overriding?
-    this.changelogSections = CHANGELOG_SECTIONS;
-  }
-
   protected async buildUpdates(
     changelogEntry: string,
     candidate: ReleaseCandidate,
@@ -52,7 +33,7 @@ export class OCaml extends ReleasePR {
   ): Promise<Update[]> {
     const updates: Update[] = [];
 
-    const jsonPaths = await this.gh.findFilesByExtension('json');
+    const jsonPaths = await this.gh.findFilesByExtension('json', this.path);
     for (const path of jsonPaths) {
       if (notEsyLock(path)) {
         const contents: GitHubFileContents = await this.gh.getFileContents(
@@ -73,7 +54,7 @@ export class OCaml extends ReleasePR {
       }
     }
 
-    const opamPaths = await this.gh.findFilesByExtension('opam');
+    const opamPaths = await this.gh.findFilesByExtension('opam', this.path);
     opamPaths.filter(notEsyLock).forEach(path => {
       updates.push(
         new Opam({
@@ -84,6 +65,15 @@ export class OCaml extends ReleasePR {
         })
       );
     });
+
+    updates.push(
+      new DuneProject({
+        path: this.addPath('dune-project'),
+        changelogEntry,
+        version: candidate.version,
+        packageName: packageName.name,
+      })
+    );
 
     updates.push(
       new Changelog({
