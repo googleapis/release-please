@@ -20,7 +20,21 @@ release-please maintains Release PRs:
 <img width="400" src="/screen.png">
 
 These Release PRs are kept up-to-date as additional work is merged. When you're
-ready to tag a release, simply merge the release PR.
+ready to tag a release, simply merge the release PR. Both squash-merge and
+merge commits work with Release PRs.
+
+When the Release PR is merged, release-please takes the following steps:
+
+1. Updates your changelog file (for example `CHANGELOG.md`)
+2. Tags the commit with the version number
+3. Creates a GitHub Release based on the tag
+
+You can tell where the Release PR is its lifecycle by the status label on the
+PR itself:
+
+- `autorelease:pending` is the initial state of the Release PR before it is merged
+- `autorelease:tagged` means that the Release PR has been merged and the release has been tagged in GitHub
+- `autorelease:published` means that a GitHub release has been published based on the Release PR
 
 ## How should I write my commits?
 
