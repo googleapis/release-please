@@ -40,7 +40,7 @@ import {
 } from './github-release';
 import {ReleasePR} from './release-pr';
 import {Changes} from 'code-suggester';
-import {getPlugin} from './plugins';
+import {PluginType, getPlugin} from './plugins';
 import {ManifestPlugin} from './plugins/plugin';
 
 interface ReleaserConfigJson {
@@ -61,7 +61,7 @@ export interface Config extends ReleaserConfigJson {
   packages: Record<string, ReleaserPackageConfig>;
   parsedPackages: ManifestPackage[];
   'bootstrap-sha'?: string;
-  plugins?: string[];
+  plugins?: PluginType[];
 }
 
 interface PackageForReleaser {
@@ -570,7 +570,7 @@ export class Manifest {
     const plugins = [];
     const config = await this.getConfigJson();
     for (const p of config.plugins ?? []) {
-      plugins.push(await getPlugin(p, this.gh, config));
+      plugins.push(getPlugin(p, this.gh, config));
     }
     return plugins;
   }
