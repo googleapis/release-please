@@ -13,17 +13,21 @@
 // limitations under the License.
 
 import {ManifestPlugin} from './plugin';
+import NodeWorkspaceDependencyUpdates from './node-workspace';
 import {GitHub} from '../github';
 import {Config} from '../manifest';
 
-export async function getPlugin(
-  name: string,
+export type PluginType = 'node-workspace';
+
+const plugins = {
+  'node-workspace': NodeWorkspaceDependencyUpdates,
+};
+
+export function getPlugin(
+  pluginType: PluginType,
   github: GitHub,
   config: Config
-): Promise<ManifestPlugin> {
-  // the prefixed './' should be sufficient to tell webpack to include all the
-  // plugin files under src/plugins/
-  // https://webpack.js.org/api/module-methods/#dynamic-expressions-in-import
-  const instance = (await import(`./${name}`)).default;
-  return new instance(github, config, name);
+): ManifestPlugin {
+  const plugin = plugins[pluginType];
+  return new plugin(github, config, pluginType);
 }
