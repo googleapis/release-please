@@ -56,10 +56,19 @@ export type ReleaseCreateResponse = {
   upload_url: string;
   body: string;
 };
-
-type ReposListTagsResponseItems = PromiseValue<
-  ReturnType<InstanceType<typeof Octokit>['tags']['list']>
->['data'];
+type ReposListTagsResponseItems = {
+  name: string;
+  commit: {
+    sha: string;
+    url: string;
+  };
+  zipball_url: string;
+  tarball_url: string;
+  node_id: string;
+};
+function isReposListResponse(arg: unknown): arg is ReposListTagsResponseItems {
+  return typeof arg === 'object' && Object.hasOwnProperty.call(arg, 'name');
+}
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -709,9 +718,10 @@ export class GitHub {
         url: `/repos/${this.owner}/${this.repo}/tags?per_page=100`,
       })
     )) {
-      response.data.forEach((data: ReposListTagsResponseItems) => {
+      response.data.forEach(data => {
         // For monorepos, a prefix can be provided, indicating that only tags
         // matching the prefix should be returned:
+        if (!isReposListResponse(data)) return;
         let version = data.name;
         if (prefix) {
           let match = false;
@@ -723,7 +733,8 @@ export class GitHub {
           }
           if (!match) return;
         }
-        if ((version = semver.valid(version))) {
+        if (semver.valid(version)) {
+          version = semver.valid(version) as string;
           tags[version] = {sha: data.commit.sha, name: data.name, version};
         }
       });
