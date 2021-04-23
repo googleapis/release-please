@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.8.1](https://www.github.com/googleapis/release-please/compare/v11.8.0...v11.8.1) (2021-04-23)
+
+
+### Bug Fixes
+
+* Java replacer should handle `-sp.1` version replacements ([#874](https://www.github.com/googleapis/release-please/issues/874)) ([81131e5](https://www.github.com/googleapis/release-please/commit/81131e5f5b5263b487216d7643b34c27ccd51e1f)), closes [#873](https://www.github.com/googleapis/release-please/issues/873)
+* **manifest:** dynamic importing does not work with build for action ([#871](https://www.github.com/googleapis/release-please/issues/871)) ([e702c35](https://www.github.com/googleapis/release-please/commit/e702c35cc4f7cfede39a42e921de3a6b01332cb1))
+* **octokit:** address regression in internal octokit types ([#880](https://www.github.com/googleapis/release-please/issues/880)) ([d32f114](https://www.github.com/googleapis/release-please/commit/d32f1148d2380a3040fd043ace2d8a08627cd2e7))
+
 ## [11.8.0](https://www.github.com/googleapis/release-please/compare/v11.7.0...v11.8.0) (2021-04-19)
 
 
