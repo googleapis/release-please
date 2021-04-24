@@ -25,7 +25,7 @@ merge commits work with Release PRs.
 
 When the Release PR is merged, release-please takes the following steps:
 
-1. Updates your changelog file (for example `CHANGELOG.md`)
+1. Updates your changelog file (for example `CHANGELOG.md`), along with other language specific files (for example `package.json`).
 2. Tags the commit with the version number
 3. Creates a GitHub Release based on the tag
 
