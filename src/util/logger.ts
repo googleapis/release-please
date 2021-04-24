@@ -27,7 +27,7 @@ interface LogFn {
   (msg: string, ...args: any[]): void;
 }
 
-interface Logger {
+export interface Logger {
   error: LogFn;
   warn: LogFn;
   info: LogFn;

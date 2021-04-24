@@ -159,3 +159,4 @@ export {getReleaserTypes, getReleasers} from './releasers';
 export {GitHubRelease} from './github-release';
 export {JavaYoshi} from './releasers/java-yoshi';
 export {Ruby} from './releasers/ruby';
+export {setLogger, Logger} from './util/logger';
