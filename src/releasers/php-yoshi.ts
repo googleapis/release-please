@@ -16,7 +16,6 @@ import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag, GitHubFileContents} from '../github';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, VersionsMap} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 import {CommitSplit} from '../commit-split';
@@ -29,6 +28,7 @@ import {PHPClientVersion} from '../updaters/php-client-version';
 import {PHPManifest} from '../updaters/php-manifest';
 import {RootComposer} from '../updaters/root-composer';
 import {Version} from '../updaters/version';
+import {logger} from '../util/logger';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -176,10 +176,7 @@ export class PHPYoshi extends ReleasePR {
             bump.releaseType
           );
           if (!candidate) {
-            checkpoint(
-              `failed to update ${pkgKey} version`,
-              CheckpointType.Failure
-            );
+            logger.error(`failed to update ${pkgKey} version`);
             continue;
           }
 

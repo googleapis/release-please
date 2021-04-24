@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
+import {logger} from '../../util/logger';
 
 export class Opam implements Update {
   path: string;
@@ -35,9 +35,8 @@ export class Opam implements Update {
   updateContent(content: string): string {
     const oldVersion = content.match(/^version: "([A-Za-z0-9_\-+.~]+)"$/m);
     if (oldVersion) {
-      checkpoint(
-        `updating ${this.path} from ${oldVersion[1]} to ${this.version}`,
-        CheckpointType.Success
+      logger.info(
+        `updating ${this.path} from ${oldVersion[1]} to ${this.version}`
       );
     }
     return content.replace(

@@ -16,12 +16,12 @@ import {ReleasePR, ReleaseCandidate} from '../release-pr';
 import {ConventionalChangelogCommit} from '@conventional-commits/parser';
 
 import {ConventionalCommits} from '../conventional-commits';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
+import {logger} from '../util/logger';
 
 // Commits containing a scope prefixed with an item in this array will be
 // ignored when generating a release PR for the parent module.
@@ -114,11 +114,10 @@ export class GoYoshi extends ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
+      logger.error(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
+        }`
       );
       return undefined;
     }

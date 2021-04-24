@@ -18,13 +18,13 @@ import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubTag} from '../github';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {indentCommit} from '../util/indent-commit';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 
 import {Changelog} from '../updaters/changelog';
 import {VersionRB} from '../updaters/version-rb';
+import {logger} from '../util/logger';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -53,10 +53,7 @@ export class RubyYoshi extends ReleasePR {
       path: packageName.name,
     });
     if (commits.length === 0) {
-      checkpoint(
-        `no commits found since ${lastReleaseSha}`,
-        CheckpointType.Failure
-      );
+      logger.error(`no commits found since ${lastReleaseSha}`);
       return undefined;
     } else {
       const cc = new ConventionalCommits({
@@ -95,11 +92,10 @@ export class RubyYoshi extends ReleasePR {
       // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
       // one line is a good indicator that there were no interesting commits.
       if (this.changelogEmpty(changelogEntry)) {
-        checkpoint(
+        logger.error(
           `no user facing commits found since ${
             lastReleaseSha ? lastReleaseSha : 'beginning of time'
-          }`,
-          CheckpointType.Failure
+          }`
         );
         return undefined;
       }

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
 import {replaceTomlValue} from './toml-edit';
 import {parseCargoLockfile} from './common';
+import {logger} from '../../util/logger';
 
 /**
  * Updates `Cargo.lock` lockfiles, preserving formatting and comments.
@@ -48,10 +48,7 @@ export class CargoLock implements Update {
 
     const parsed = parseCargoLockfile(payload);
     if (!parsed.package) {
-      checkpoint(
-        `${this.path} is not a Cargo lockfile`,
-        CheckpointType.Failure
-      );
+      logger.error(`${this.path} is not a Cargo lockfile`);
       throw new Error(`${this.path} is not a Cargo lockfile`);
     }
 
@@ -76,10 +73,7 @@ export class CargoLock implements Update {
       // `path` argument.
       const packageIndex = i.toString();
 
-      checkpoint(
-        `updating ${pkg.name} in ${this.path}`,
-        CheckpointType.Success
-      );
+      logger.info(`updating ${pkg.name} in ${this.path}`);
       payload = replaceTomlValue(
         payload,
         ['package', packageIndex, 'version'],

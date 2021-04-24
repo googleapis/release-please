@@ -24,7 +24,6 @@ type PullsListResponseItems = PromiseValue<
 
 import * as semver from 'semver';
 
-import {checkpoint, CheckpointType} from './util/checkpoint';
 import {ConventionalCommits, ChangelogSection} from './conventional-commits';
 import {GitHub, GitHubTag, MergedGitHubPR} from './github';
 import {Commit} from './graphql-to-commits';
@@ -33,6 +32,7 @@ import {BranchName} from './util/branch-name';
 import {extractReleaseNotes} from './util/release-notes';
 import {PullRequestTitle} from './util/pull-request-title';
 import {Changelog} from './updaters/changelog';
+import {logger} from './util/logger';
 
 export interface ReleaseCandidate {
   version: string;
@@ -157,11 +157,10 @@ export class ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
+      logger.error(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
+        }`
       );
       return undefined;
     }
@@ -185,10 +184,7 @@ export class ReleasePR {
   async run(): Promise<number | undefined> {
     await this.validateConfiguration();
     if (this.snapshot && !this.supportsSnapshots()) {
-      checkpoint(
-        'snapshot releases not supported for this releaser',
-        CheckpointType.Failure
-      );
+      logger.error('snapshot releases not supported for this releaser');
       return;
     }
     const mergedPR = await this.gh.findMergedReleasePR(
@@ -199,9 +195,8 @@ export class ReleasePR {
     );
     if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
-      checkpoint(
-        `pull #${mergedPR.number} ${mergedPR.sha} has not yet been released`,
-        CheckpointType.Failure
+      logger.error(
+        `pull #${mergedPR.number} ${mergedPR.sha} has not yet been released`
       );
       return undefined;
     } else {
@@ -262,7 +257,7 @@ export class ReleasePR {
         if (includePackageName && !pr.title.includes(` ${packageName.name} `)) {
           continue;
         }
-        checkpoint(`closing pull #${pr.number}`, CheckpointType.Failure);
+        logger.error(`closing pull #${pr.number}`);
         await this.gh.closePR(pr.number);
       }
     }
@@ -333,14 +328,13 @@ export class ReleasePR {
     const path = opts.path || undefined;
     const commits = await this.gh.commitsSinceSha(sha, perPage, labels, path);
     if (commits.length) {
-      checkpoint(
+      logger.info(
         `found ${commits.length} commits since ${
           sha ? sha : 'beginning of time'
-        }`,
-        CheckpointType.Success
+        }`
       );
     } else {
-      checkpoint(`no commits found since ${sha}`, CheckpointType.Failure);
+      logger.warn(`no commits found since ${sha}`);
     }
     return commits;
   }
@@ -417,10 +411,7 @@ export class ReleasePR {
     // a return of undefined indicates that PR was not updated.
     if (pr) {
       await this.gh.addLabels(this.labels, pr);
-      checkpoint(
-        `find stale PRs with label "${this.labels.join(',')}"`,
-        CheckpointType.Success
-      );
+      logger.info(`find stale PRs with label "${this.labels.join(',')}"`);
       await this.closeStaleReleasePRs(pr, includePackageName);
     }
     return pr;
@@ -492,13 +483,13 @@ export class ReleasePR {
     await this.validateConfiguration();
     const mergedPR = await this.findMergedRelease();
     if (!mergedPR) {
-      checkpoint('No merged release PR found', CheckpointType.Failure);
+      logger.error('No merged release PR found');
       return undefined;
     }
     const branchName = BranchName.parse(mergedPR.headRefName);
     const version = await this.detectReleaseVersion(mergedPR, branchName);
     if (!version) {
-      checkpoint('Unable to detect release version', CheckpointType.Failure);
+      logger.error('Unable to detect release version');
       return undefined;
     }
     return this.buildReleaseForVersion(version, mergedPR);

@@ -16,7 +16,6 @@ import {ReleasePR, ReleaseCandidate} from '../release-pr';
 
 import {ConventionalCommits} from '../conventional-commits';
 import {GitHubFileContents, GitHubTag} from '../github';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 
@@ -26,6 +25,7 @@ import {Changelog} from '../updaters/changelog';
 import {CargoToml} from '../updaters/rust/cargo-toml';
 import {CargoLock} from '../updaters/rust/cargo-lock';
 import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
+import {logger} from '../util/logger';
 
 export class Rust extends ReleasePR {
   protected async _run(): Promise<number | undefined> {
@@ -61,11 +61,10 @@ export class Rust extends ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry)) {
-      checkpoint(
+      logger.error(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
+        }`
       );
       return undefined;
     }
@@ -92,9 +91,8 @@ export class Rust extends ReleasePR {
       workspaceManifest.workspace.members
     ) {
       const members = workspaceManifest.workspace.members;
-      checkpoint(
-        `found workspace with ${members.length} members, upgrading all`,
-        CheckpointType.Success
+      logger.info(
+        `found workspace with ${members.length} members, upgrading all`
       );
       for (const member of members) {
         manifestPaths.push(`${member}/Cargo.toml`);
@@ -102,10 +100,7 @@ export class Rust extends ReleasePR {
       lockPath = 'Cargo.lock';
     } else {
       const manifestPath = this.addPath('Cargo.toml');
-      checkpoint(
-        `single crate found, updating ${manifestPath}`,
-        CheckpointType.Success
-      );
+      logger.info(`single crate found, updating ${manifestPath}`);
       manifestPaths.push(this.addPath('Cargo.toml'));
       lockPath = this.addPath('Cargo.lock');
     }
@@ -187,14 +182,13 @@ export class Rust extends ReleasePR {
     );
 
     if (commits.length) {
-      checkpoint(
+      logger.info(
         `found ${commits.length} commits for ${path} since ${
           sha ? sha : 'beginning of time'
-        }`,
-        CheckpointType.Success
+        }`
       );
     } else {
-      checkpoint(`no commits found since ${sha}`, CheckpointType.Failure);
+      logger.error(`no commits found since ${sha}`);
     }
 
     return commits;

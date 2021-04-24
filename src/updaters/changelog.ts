@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
+import {logger} from '../util/logger';
 
 export class Changelog implements Update {
   path: string;
@@ -38,11 +38,11 @@ export class Changelog implements Update {
     // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
     const lastEntryIndex = content.search(/\n###? v?[0-9[]/s);
     if (lastEntryIndex === -1) {
-      checkpoint(`${this.path} not found`, CheckpointType.Failure);
-      checkpoint(`creating ${this.path}`, CheckpointType.Success);
+      logger.error(`${this.path} not found`);
+      logger.info(`creating ${this.path}`);
       return `${this.header()}\n${this.changelogEntry}\n`;
     } else {
-      checkpoint(`updating ${this.path}`, CheckpointType.Success);
+      logger.info(`updating ${this.path}`);
       const before = content.slice(0, lastEntryIndex);
       const after = content.slice(lastEntryIndex);
       return `${before}\n${this.changelogEntry}\n${after}`.trim() + '\n';

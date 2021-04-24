@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
+import {logger} from '../util/logger';
 
 interface ManifestModule {
   name: string;
@@ -41,10 +41,7 @@ export class PHPManifest implements Update {
 
   updateContent(content: string): string {
     if (!this.versions || this.versions.size === 0) {
-      checkpoint(
-        `no updates necessary for ${this.path}`,
-        CheckpointType.Failure
-      );
+      logger.error(`no updates necessary for ${this.path}`);
       return content;
     }
     const parsed = JSON.parse(content);
@@ -52,10 +49,7 @@ export class PHPManifest implements Update {
       if (!this.versions) return;
       for (const [key, version] of this.versions) {
         if (module.name === key) {
-          checkpoint(
-            `adding ${key}@${version} to manifest`,
-            CheckpointType.Success
-          );
+          logger.info(`adding ${key}@${version} to manifest`);
           module.versions.unshift(`v${version}`);
         }
       }

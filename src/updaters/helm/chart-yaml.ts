@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
 import * as yaml from 'js-yaml';
+import {logger} from '../../util/logger';
 
 export class ChartYaml implements Update {
   path: string;
@@ -40,9 +40,8 @@ export class ChartYaml implements Update {
       return '';
     }
     const parsed = JSON.parse(JSON.stringify(data));
-    checkpoint(
-      `updating ${this.path} from ${parsed.version} to ${this.version}`,
-      CheckpointType.Success
+    logger.info(
+      `updating ${this.path} from ${parsed.version} to ${this.version}`
     );
     parsed.version = this.version;
     return yaml.dump(parsed);
