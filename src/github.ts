@@ -1197,22 +1197,18 @@ export class GitHub {
     const changes =
       options.changes ??
       (await this.getChangeSet(options.updates, defaultBranch));
-    const prNumber = await createPullRequest(
-      this.octokit,
-      changes,
-      {
-        upstreamOwner: this.owner,
-        upstreamRepo: this.repo,
-        title: options.title,
-        branch: options.branch,
-        description: options.body,
-        primary: defaultBranch,
-        force: true,
-        fork: this.fork,
-        message: options.title,
-      },
-      logger
-    );
+    const prNumber = await createPullRequest(this.octokit, changes, {
+      upstreamOwner: this.owner,
+      upstreamRepo: this.repo,
+      title: options.title,
+      branch: options.branch,
+      description: options.body,
+      primary: defaultBranch,
+      force: true,
+      fork: this.fork,
+      message: options.title,
+      logger: logger,
+    });
 
     // If a release PR was already open, update the title and body:
     if (openReleasePR) {
