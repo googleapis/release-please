@@ -21,6 +21,7 @@ import {Update} from '../updaters/update';
 import {Changelog} from '../updaters/changelog';
 // JavaScript
 import {PackageJson} from '../updaters/package-json';
+import {PackageLockJson} from '../updaters/package-lock-json';
 import {SamplesPackageJson} from '../updaters/samples-package-json';
 
 export class Node extends ReleasePR {
@@ -33,14 +34,18 @@ export class Node extends ReleasePR {
     packageName: PackageName
   ): Promise<Update[]> {
     const updates: Update[] = [];
-    updates.push(
-      new PackageJson({
-        path: this.addPath('package-lock.json'),
-        changelogEntry,
-        version: candidate.version,
-        packageName: packageName.name,
-      })
-    );
+
+    const lockFiles = ['package-lock.json', 'npm-shrinkwrap.json'];
+    lockFiles.forEach(lockFile => {
+      updates.push(
+        new PackageLockJson({
+          path: this.addPath(lockFile),
+          changelogEntry,
+          version: candidate.version,
+          packageName: packageName.name,
+        })
+      );
+    });
 
     updates.push(
       new SamplesPackageJson({
