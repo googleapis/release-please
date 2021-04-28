@@ -343,6 +343,19 @@ describe('Node', () => {
       mock.verify();
     });
 
+    it('creates a release PR with npm-shrinkwrap.json', async function () {
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({
+        github,
+        fixtures: ['package.json', 'npm-shrinkwrap.json'],
+        notFound: ['samples/package.json', 'package-lock.json', 'CHANGELOG.md'],
+      });
+      const releasePR = new Node({github});
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      await releasePR.run();
+      mock.verify();
+    });
+
     it('creates release PR relative to a path', async function () {
       const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
       const mock = mockGithub({
