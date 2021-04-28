@@ -16,19 +16,36 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {PackageJson} from '../../src/updaters/package-json';
+import {PackageLockJson} from '../../src/updaters/package-lock-json';
 
 const fixturesPath = './test/updaters/fixtures';
 
-describe('PackageJson', () => {
-  describe('updateContent', () => {
+describe('PackageLockJson', () => {
+  describe('updateContent v1', () => {
     it('updates the package version', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './package.json'),
+        resolve(fixturesPath, './package-lock-v1.json'),
         'utf8'
       );
-      const packageJson = new PackageJson({
-        path: 'package.json',
+      const packageJson = new PackageLockJson({
+        path: 'package-lock.json',
+        changelogEntry: '',
+        version: '14.0.0',
+        packageName: '@google-cloud/foo',
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      snapshot(newContent);
+    });
+  });
+
+  describe('updateContent v2', () => {
+    it('updates the package version', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-lock-v2.json'),
+        'utf8'
+      );
+      const packageJson = new PackageLockJson({
+        path: 'package-lock.json',
         changelogEntry: '',
         version: '14.0.0',
         packageName: '@google-cloud/foo',
