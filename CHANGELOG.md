@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.9.0](https://www.github.com/googleapis/release-please/compare/v11.8.1...v11.9.0) (2021-04-28)
+
+
+### Features
+
+* **node:** update npm-shrinkwrap file ([#887](https://www.github.com/googleapis/release-please/issues/887)) ([1696c10](https://www.github.com/googleapis/release-please/commit/1696c104027e2fe69bb65d00eba0db109bb5de1d))
+
 ### [11.8.1](https://www.github.com/googleapis/release-please/compare/v11.8.0...v11.8.1) (2021-04-23)
 
 
