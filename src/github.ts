@@ -302,7 +302,7 @@ export class GitHub {
     let page = 1;
     let found = false;
     const baseBranch = await this.getDefaultBranch();
-    const commits = [];
+    const commits: [string | null, string][] = [];
     while (!found) {
       const response = await this.request(
         'GET /repos/{owner}/{repo}/commits{?sha,page,per_page,path}',

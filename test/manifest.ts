@@ -137,15 +137,18 @@ describe('Manifest', () => {
       }
       const expectedNotFound = [
         'node/pkg1/package-lock.json',
+        'node/pkg1/npm-shrinkwrap.json',
         'node/pkg1/samples/package.json',
         'node/pkg1/CHANGELOG.md',
         'node/pkg1/HISTORY.md',
         'node/pkg2/package-lock.json',
+        'node/pkg2/npm-shrinkwrap.json',
         'node/pkg2/samples/package.json',
         'node/pkg2/CHANGELOG.md',
         'python/CHANGELOG.md',
         'python/HISTORY.md',
         'package-lock.json',
+        'npm-shrinkwrap.json',
         'samples/package.json',
         'CHANGELOG.md',
       ];
