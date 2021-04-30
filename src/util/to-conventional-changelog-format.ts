@@ -212,7 +212,7 @@ export default function toConventionalChangelogFormat(
       if (parent.type === 'token') {
         parent = ancestors.pop();
         let footerText = '';
-        const semanticFooter = node.value.toLowerCase() === 'release-as'
+        const semanticFooter = node.value.toLowerCase() === 'release-as';
         visit(
           parent,
           ['type', 'scope', 'breaking-change', 'separator', 'text', 'newline'],
