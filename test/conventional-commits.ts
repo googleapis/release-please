@@ -240,5 +240,26 @@ fix(securitycenter): fixes security center.
       });
       snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
     });
+
+    it('includes any commits with a "Release-As" footer', async () => {
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            message: `meta: correct release
+
+Release-As: v3.0.0`,
+            sha: 'abc345',
+            files: [],
+          },
+        ],
+        owner: 'bcoe',
+        repository: 'release-please',
+        bumpMinorPreMajor: true,
+      });
+      const cl = await cc.generateChangelogEntry({
+        version: 'v1.0.0',
+      });
+      snapshot(cl.replace(/[0-9]{4}-[0-9]{2}-[0-9]{2}/g, '1665-10-10'));
+    });
   });
 });
