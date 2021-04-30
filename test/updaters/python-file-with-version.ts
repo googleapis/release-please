@@ -16,7 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {VersionPy} from '../../src/updaters/python/version-py';
+import {PythonFileWithVersion} from '../../src/updaters/python/python-file-with-version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -27,8 +27,27 @@ describe('version.py', () => {
         resolve(fixturesPath, './version.py'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const version = new VersionPy({
+      const version = new PythonFileWithVersion({
         path: 'version.py',
+        changelogEntry: '',
+        version: '0.6.0',
+        packageName: '',
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+  });
+});
+
+describe('project/__init__.py', () => {
+  describe('updateContent', () => {
+    it('updates version in project/__init__.py', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './project/__init__.py'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new PythonFileWithVersion({
+        path: 'project/__init__.py',
         changelogEntry: '',
         version: '0.6.0',
         packageName: '',

@@ -209,6 +209,13 @@ describe('Manifest', () => {
       .atMost(1)
       .withExactArgs('version.py', 'python')
       .resolves(['src/foolib/version.py']);
+
+    mock
+      .expects('getFileContentsOnBranch')
+      .atMost(1)
+      .withArgs('pyproject.toml', 'main')
+      .rejects();
+
     return mock;
   }
 
