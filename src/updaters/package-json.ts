@@ -35,12 +35,16 @@ export class PackageJson implements Update {
     this.contents = options.contents;
   }
 
+  updateVersion(parsed: {version: string}) {
+    parsed.version = this.version;
+  }
+
   updateContent(content: string): string {
     const parsed = JSON.parse(content);
     logger.info(
       `updating ${this.path} from ${parsed.version} to ${this.version}`
     );
-    parsed.version = this.version;
+    this.updateVersion(parsed);
     return packageJsonStringify(parsed);
   }
 }

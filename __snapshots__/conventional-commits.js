@@ -16,6 +16,15 @@ exports['ConventionalCommits generateChangelogEntry does not include content two
 * upgrade to Node 7 ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
 `
 
+exports['ConventionalCommits generateChangelogEntry includes any commits with a "Release-As" footer 1'] = `
+## v1.0.0 (1665-10-10)
+
+
+### meta
+
+* correct release ([abc345](https://www.github.com/bcoe/release-please/commit/abc345))
+`
+
 exports['ConventionalCommits generateChangelogEntry includes multi-line breaking changes 1'] = `
 ## v1.0.0 (1665-10-10)
 

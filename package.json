@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "11.8.1",
+  "version": "11.10.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -71,7 +71,7 @@
     "@types/npm-package-arg": "^6.1.0",
     "chalk": "^4.0.0",
     "code-suggester": "^2.0.0",
-    "conventional-changelog-conventionalcommits": "^4.4.0",
+    "conventional-changelog-conventionalcommits": "^4.6.0",
     "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
     "figures": "^3.0.0",

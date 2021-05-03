@@ -212,6 +212,7 @@ export default function toConventionalChangelogFormat(
       if (parent.type === 'token') {
         parent = ancestors.pop();
         let footerText = '';
+        const semanticFooter = node.value.toLowerCase() === 'release-as';
         visit(
           parent,
           ['type', 'scope', 'breaking-change', 'separator', 'text', 'newline'],
@@ -231,6 +232,12 @@ export default function toConventionalChangelogFormat(
             }
           }
         );
+        // Any footers that carry semantic meaning, e.g., Release-As, should
+        // be added to the footer field, for the benefits of post-processing:
+        if (semanticFooter) {
+          if (!headerCommit.footer) headerCommit.footer = '';
+          headerCommit.footer += `\n${footerText.toLowerCase()}`.trimStart();
+        }
         try {
           for (const commit of toConventionalChangelogFormat(
             parser.parser(footerText)

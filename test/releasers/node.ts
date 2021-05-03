@@ -23,6 +23,7 @@ import {buildGitHubFileContent, buildGitHubFileRaw} from './utils';
 import {buildMockCommit, dateSafe, stubSuggesterWithSnapshot} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {PackageJson} from '../../src/updaters/package-json';
+import {PackageLockJson} from '../../src/updaters/package-lock-json';
 import {SamplesPackageJson} from '../../src/updaters/samples-package-json';
 import {basename} from 'path';
 
@@ -183,8 +184,14 @@ describe('Node', () => {
           expect(openPROptions)
             .to.have.property('updates')
             .to.eql([
-              new PackageJson({
+              new PackageLockJson({
                 path: 'package-lock.json',
+                changelogEntry: perUpdateChangelog,
+                version: expectedVersion,
+                packageName: pkgName,
+              }),
+              new PackageLockJson({
+                path: 'npm-shrinkwrap.json',
                 changelogEntry: perUpdateChangelog,
                 version: expectedVersion,
                 packageName: pkgName,
@@ -255,6 +262,12 @@ describe('Node', () => {
             version: expectedVersion,
             packageName: pkgName,
           }),
+          new PackageLockJson({
+            path: 'npm-shrinkwrap.json',
+            changelogEntry: perUpdateChangelog,
+            version: expectedVersion,
+            packageName: pkgName,
+          }),
           new SamplesPackageJson({
             path: 'samples/package.json',
             changelogEntry: perUpdateChangelog,
@@ -299,7 +312,12 @@ describe('Node', () => {
       const mock = mockGithub({
         github,
         fixtures: ['package.json'],
-        notFound: ['package-lock.json', 'samples/package.json', 'CHANGELOG.md'],
+        notFound: [
+          'package-lock.json',
+          'npm-shrinkwrap.json',
+          'samples/package.json',
+          'CHANGELOG.md',
+        ],
       });
       const releasePR = new Node({github});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
@@ -313,7 +331,24 @@ describe('Node', () => {
       const mock = mockGithub({
         github,
         fixtures: ['package.json', 'package-lock.json'],
-        notFound: ['samples/package.json', 'CHANGELOG.md'],
+        notFound: [
+          'samples/package.json',
+          'npm-shrinkwrap.json',
+          'CHANGELOG.md',
+        ],
+      });
+      const releasePR = new Node({github});
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      await releasePR.run();
+      mock.verify();
+    });
+
+    it('creates a release PR with npm-shrinkwrap.json', async function () {
+      const github = new GitHub({owner: 'googleapis', repo: 'node-test-repo'});
+      const mock = mockGithub({
+        github,
+        fixtures: ['package.json', 'npm-shrinkwrap.json'],
+        notFound: ['samples/package.json', 'package-lock.json', 'CHANGELOG.md'],
       });
       const releasePR = new Node({github});
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
@@ -328,6 +363,7 @@ describe('Node', () => {
         fixtures: ['packages/foo/package.json'],
         notFound: [
           'packages/foo/package-lock.json',
+          'packages/foo/npm-shrinkwrap.json',
           'packages/foo/samples/package.json',
           'packages/foo/CHANGELOG.md',
         ],
@@ -353,7 +389,12 @@ describe('Node', () => {
       const mock = mockGithub({
         github,
         fixtures: ['package.json'],
-        notFound: ['package-lock.json', 'samples/package.json', 'CHANGELOG.md'],
+        notFound: [
+          'package-lock.json',
+          'npm-shrinkwrap.json',
+          'samples/package.json',
+          'CHANGELOG.md',
+        ],
         branchComponent: 'node-test-repo',
       });
       const releasePR = new Node({github, monorepoTags: true});
