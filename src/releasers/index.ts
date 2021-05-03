@@ -14,6 +14,7 @@
 
 import {ReleasePR} from '../release-pr';
 
+import {Go} from './go';
 import {GoYoshi} from './go-yoshi';
 import {JavaBom} from './java-bom';
 import {JavaLTS} from './java-lts';
@@ -51,7 +52,7 @@ export type ReleaseType =
 type Releasers = Record<ReleaseType, typeof ReleasePR>;
 
 const releasers: Releasers = {
-  go: GoYoshi, // TODO(codyoss): refactor this into a more generic go strategy.
+  go: Go,
   'go-yoshi': GoYoshi,
   'java-bom': JavaBom,
   'java-lts': JavaLTS,
