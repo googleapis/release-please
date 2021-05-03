@@ -71,7 +71,7 @@
     "@types/npm-package-arg": "^6.1.0",
     "chalk": "^4.0.0",
     "code-suggester": "^1.4.0",
-    "conventional-changelog-conventionalcommits": "^4.4.0",
+    "conventional-changelog-conventionalcommits": "^4.6.0",
     "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
     "figures": "^3.0.0",
