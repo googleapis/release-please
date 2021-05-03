@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.9.1](https://www.github.com/googleapis/release-please/compare/v11.9.0...v11.9.1) (2021-05-03)
+
+
+### Bug Fixes
+
+* **release-as:** commits with Release-As footer now create release ([#891](https://www.github.com/googleapis/release-please/issues/891)) ([f722b0c](https://www.github.com/googleapis/release-please/commit/f722b0c679c6b7c5ba80f20ba88be1bb7484126e))
+
 ## [11.9.0](https://www.github.com/googleapis/release-please/compare/v11.8.1...v11.9.0) (2021-04-28)
 
 
