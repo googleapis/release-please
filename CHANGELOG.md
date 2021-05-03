@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.10.0](https://www.github.com/googleapis/release-please/compare/v11.9.0...v11.10.0) (2021-05-03)
+
+
+### Features
+
+* add generic go releaser ([#890](https://www.github.com/googleapis/release-please/issues/890)) ([79cce57](https://www.github.com/googleapis/release-please/commit/79cce579ad256a162e221d76e70e45a351d795c7))
+
+
+### Bug Fixes
+
+* **release-as:** commits with Release-As footer now create release ([#891](https://www.github.com/googleapis/release-please/issues/891)) ([f722b0c](https://www.github.com/googleapis/release-please/commit/f722b0c679c6b7c5ba80f20ba88be1bb7484126e))
+
 ## [11.9.0](https://www.github.com/googleapis/release-please/compare/v11.8.1...v11.9.0) (2021-04-28)
 
 
