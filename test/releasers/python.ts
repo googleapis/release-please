@@ -24,7 +24,7 @@ import {buildMockCommit, dateSafe, stubSuggesterWithSnapshot} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
-import {VersionPy} from '../../src/updaters/python/version-py';
+import {PythonFileWithVersion} from '../../src/updaters/python/python-file-with-version';
 
 const sandbox = sinon.createSandbox();
 
@@ -57,8 +57,13 @@ function stubGithub(
   releasePR: Python,
   versionFiles: string[] = [],
   commits = COMMITS,
-  latestTag = LATEST_TAG
+  latestTag = LATEST_TAG,
+  stubGetFileContents = true
 ) {
+  if (stubGetFileContents) {
+    sandbox.stub(releasePR.gh, 'getFileContents').rejects();
+  }
+
   sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
   // No open release PRs, so create a new release PR
   sandbox.stub(releasePR.gh, 'findOpenReleasePRs').returns(Promise.resolve([]));
@@ -122,7 +127,7 @@ describe('Python', () => {
             version: expectedVersion,
             packageName: pkgName,
           }),
-          new VersionPy({
+          new PythonFileWithVersion({
             path: 'src/version.py',
             changelogEntry: perUpdateChangelog,
             version: expectedVersion,
@@ -177,7 +182,7 @@ describe('Python', () => {
             version: expectedVersion,
             packageName: pkgName,
           }),
-          new VersionPy({
+          new PythonFileWithVersion({
             path: 'src/version.py',
             changelogEntry: perUpdateChangelog,
             version: expectedVersion,
@@ -210,8 +215,15 @@ describe('Python', () => {
       });
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      stubGithub(releasePR, ['src/version.py']);
+      stubGithub(releasePR, ['src/version.py'], undefined, undefined, false);
+      sandbox.stub(releasePR.gh, 'getFileContents').resolves({
+        parsedContent: "[project]\nname = 'project'\nversion = '0.0.1'\n",
+        sha: '',
+        content: '',
+      });
       stubFilesToUpdate(releasePR.gh, [
+        'pyproject.toml',
+        'project/__init__.py',
         'setup.py',
         'src/version.py',
         'setup.cfg',

@@ -544,6 +544,14 @@ setuptools.setup(
     include_package_data=True,
     zip_safe=False,
 )
+filename: pyproject.toml
+[project]
+name = 'project'
+version = "0.123.5"
+
+filename: project/__init__.py
+__version__ = '0.123.5'
+
 filename: src/version.py
 # Copyright 2020 Google LLC
 #

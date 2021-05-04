@@ -14,7 +14,7 @@
 
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
-import {replaceTomlValue} from './toml-edit';
+import {replaceTomlValue} from '../toml-edit';
 import {parseCargoLockfile} from './common';
 import {logger} from '../../util/logger';
 

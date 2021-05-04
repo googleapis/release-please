@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as TOML from '@iarna/toml';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
+import {replaceTomlValue} from '../toml-edit';
+import {logger} from '../../util/logger';
 
-export class VersionPy implements Update {
+// TODO: remove support for `poetry.tool` when Poetry will use `project`.
+
+interface PyProjectContent {
+  name: string;
+  version: string;
+}
+
+/**
+ * A subset of the contents of a `pyproject.toml`
+ */
+export interface PyProject {
+  project?: PyProjectContent;
+  tool?: {
+    poetry?: PyProjectContent;
+  };
+}
+
+export function parsePyProject(content: string): PyProject {
+  return TOML.parse(content) as PyProject;
+}
+
+export class PyProjectToml implements Update {
   path: string;
   changelogEntry: string;
   version: string;
@@ -32,9 +56,19 @@ export class VersionPy implements Update {
     this.packageName = options.packageName;
   }
   updateContent(content: string): string {
-    return content.replace(
-      /(__version__ ?= ?["'])[0-9]+\.[0-9]+\.[0-9](?:-\w+)?(["'])/,
-      `$1${this.version}$2`
+    const parsed = parsePyProject(content);
+    const project = parsed.project || parsed.tool?.poetry;
+
+    if (!project?.version) {
+      const msg = `invalid ${this.path}`;
+      logger.error(msg);
+      throw new Error(msg);
+    }
+
+    return replaceTomlValue(
+      content,
+      (parsed.project ? ['project'] : ['tool', 'poetry']).concat('version'),
+      this.version
     );
   }
 }

@@ -14,7 +14,7 @@
 
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
-import {replaceTomlValue} from '../../src/updaters/rust/toml-edit';
+import {replaceTomlValue} from '../../src/updaters/toml-edit';
 
 describe('toml-edit', () => {
   it('replaces a double-quoted string', () => {

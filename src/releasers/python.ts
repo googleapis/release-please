@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import chalk = require('chalk');
+
 import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 import {Update} from '../updaters/update';
 
@@ -20,8 +22,15 @@ import {Changelog} from '../updaters/changelog';
 // Python specific.
 import {SetupPy} from '../updaters/python/setup-py';
 import {SetupCfg} from '../updaters/python/setup-cfg';
-import {VersionPy} from '../updaters/python/version-py';
+import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
 import {ReleasePRConstructorOptions} from '..';
+import {
+  parsePyProject,
+  PyProject,
+  PyProjectToml,
+} from '../updaters/python/pyproject-toml';
+import {GitHubFileContents} from '../github';
+import {logger} from '../util/logger';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -76,6 +85,36 @@ export class Python extends ReleasePR {
       })
     );
 
+    const parsedPyProject = await this.getPyProject();
+    const pyProject = parsedPyProject?.project || parsedPyProject?.tool?.poetry;
+    if (pyProject) {
+      updates.push(
+        new PyProjectToml({
+          path: this.addPath('pyproject.toml'),
+          changelogEntry,
+          version: candidate.version,
+          packageName: packageName.name,
+        })
+      );
+
+      if (pyProject.name) {
+        updates.push(
+          new PythonFileWithVersion({
+            path: this.addPath(`${pyProject.name}/__init__.py`),
+            changelogEntry,
+            version: candidate.version,
+            packageName: packageName.name,
+          })
+        );
+      }
+    } else {
+      logger.error(
+        parsedPyProject
+          ? 'invalid pyproject.toml'
+          : `file ${chalk.green('pyproject.toml')} did not exist`
+      );
+    }
+
     // There should be only one version.py, but foreach in case that is incorrect
     const versionPyFilesSearch = this.gh.findFilesByFilename(
       'version.py',
@@ -84,7 +123,7 @@ export class Python extends ReleasePR {
     const versionPyFiles = await versionPyFilesSearch;
     versionPyFiles.forEach(path => {
       updates.push(
-        new VersionPy({
+        new PythonFileWithVersion({
           path: this.addPath(path),
           changelogEntry,
           version: candidate.version,
@@ -93,6 +132,16 @@ export class Python extends ReleasePR {
       );
     });
     return updates;
+  }
+
+  protected async getPyProject(): Promise<PyProject | null> {
+    let content: GitHubFileContents;
+    try {
+      content = await this.gh.getFileContents('pyproject.toml');
+    } catch (e) {
+      return null;
+    }
+    return parsePyProject(content.parsedContent);
   }
 
   defaultInitialVersion(): string {

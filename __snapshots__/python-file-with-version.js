@@ -1,3 +1,8 @@
+exports['project/__init__.py updateContent updates version in project/__init__.py 1'] = `
+__version__ = '0.6.0'
+
+`
+
 exports['version.py updateContent updates version in version.py 1'] = `
 # Copyright 2020 Google LLC
 #
