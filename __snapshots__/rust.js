@@ -64,6 +64,7 @@ primary: main
 force: true
 fork: false
 message: chore: release crate1 0.123.5
+logger: [object Object]
 `
 
 exports['Rust run creates a release PR for monorepo without Cargo.lock: changes'] = `
@@ -118,6 +119,7 @@ primary: main
 force: true
 fork: false
 message: chore: release crate1 0.123.5
+logger: [object Object]
 `
 
 exports['Rust run creates a release PR for non-monorepo with Cargo.lock: changes'] = `
@@ -177,6 +179,7 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `
 
 exports['Rust run creates a release PR for non-monorepo without Cargo.lock: changes'] = `
@@ -222,4 +225,5 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `

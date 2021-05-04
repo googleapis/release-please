@@ -13,10 +13,10 @@
 // limitations under the License.
 
 import {GitHubReleaseConstructorOptions} from './';
-import {checkpoint, CheckpointType} from './util/checkpoint';
 import {GitHub, MergedGitHubPR, ReleaseCreateResponse} from './github';
 import {parse} from 'semver';
 import {ReleasePR, CandidateRelease} from './release-pr';
+import {logger} from './util/logger';
 
 export const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
@@ -88,7 +88,7 @@ export class GitHubRelease {
       );
       return [candidate, release];
     } else {
-      checkpoint('Unable to build candidate', CheckpointType.Failure);
+      logger.error('Unable to build candidate');
       return [undefined, undefined];
     }
   }
@@ -125,10 +125,7 @@ export class GitHubRelease {
     sha: string;
     number: number;
   }): GitHubReleaseResponse | undefined {
-    checkpoint(
-      `Created release: ${params.release.html_url}.`,
-      CheckpointType.Success
-    );
+    logger.info(`Created release: ${params.release.html_url}.`);
     const parsedVersion = parse(params.version, {loose: true});
     if (parsedVersion) {
       return {

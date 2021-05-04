@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {createPullRequest, Changes} from 'code-suggester';
+import {logger} from './util/logger';
 
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
@@ -85,7 +86,6 @@ type CommitFilter = (
 import chalk = require('chalk');
 import * as semver from 'semver';
 
-import {checkpoint, CheckpointType} from './util/checkpoint';
 import {
   Commit,
   CommitsResponse,
@@ -1117,18 +1117,16 @@ export class GitHub {
     // If the PR is being created from a fork, it will not have permission
     // to add and remove labels from the PR:
     if (this.fork) {
-      checkpoint(
-        'release labels were not added, due to PR being created from fork',
-        CheckpointType.Failure
+      logger.error(
+        'release labels were not added, due to PR being created from fork'
       );
       return false;
     }
 
-    checkpoint(
+    logger.info(
       `adding label ${chalk.green(labels.join(','))} to https://github.com/${
         this.owner
-      }/${this.repo}/pull/${pr}`,
-      CheckpointType.Success
+      }/${this.repo}/pull/${pr}`
     );
     await this.request('POST /repos/:owner/:repo/issues/:issue_number/labels', {
       owner: this.owner,
@@ -1189,9 +1187,8 @@ export class GitHub {
 
     // Short-circuit if there have been no changes to the pull-request body.
     if (openReleasePR && openReleasePR.body === options.body) {
-      checkpoint(
-        `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`,
-        CheckpointType.Failure
+      logger.error(
+        `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`
       );
       return undefined;
     }
@@ -1200,30 +1197,25 @@ export class GitHub {
     const changes =
       options.changes ??
       (await this.getChangeSet(options.updates, defaultBranch));
-    const prNumber = await createPullRequest(
-      this.octokit,
-      changes,
-      {
-        upstreamOwner: this.owner,
-        upstreamRepo: this.repo,
-        title: options.title,
-        branch: options.branch,
-        description: options.body,
-        primary: defaultBranch,
-        force: true,
-        fork: this.fork,
-        message: options.title,
-      },
-      {level: 'error'}
-    );
+    const prNumber = await createPullRequest(this.octokit, changes, {
+      upstreamOwner: this.owner,
+      upstreamRepo: this.repo,
+      title: options.title,
+      branch: options.branch,
+      description: options.body,
+      primary: defaultBranch,
+      force: true,
+      fork: this.fork,
+      message: options.title,
+      logger: logger,
+    });
 
     // If a release PR was already open, update the title and body:
     if (openReleasePR) {
-      checkpoint(
+      logger.info(
         `update pull-request #${openReleasePR.number}: ${chalk.yellow(
           options.title
-        )}`,
-        CheckpointType.Success
+        )}`
       );
       await this.request('PATCH /repos/:owner/:repo/pulls/:pull_number', {
         pull_number: openReleasePR.number,
@@ -1263,10 +1255,7 @@ export class GitHub {
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
         if (!update.create) {
-          checkpoint(
-            `file ${chalk.green(update.path)} did not exist`,
-            CheckpointType.Failure
-          );
+          logger.error(`file ${chalk.green(update.path)} did not exist`);
           continue;
         }
       }
@@ -1434,7 +1423,7 @@ export class GitHub {
     releaseNotes: string,
     draft: boolean
   ): Promise<ReleaseCreateResponse> {
-    checkpoint(`creating release ${tagName}`, CheckpointType.Success);
+    logger.info(`creating release ${tagName}`);
     const name = packageName ? `${packageName} ${tagName}` : tagName;
     return (
       await this.request('POST /repos/:owner/:repo/releases', {
@@ -1454,11 +1443,10 @@ export class GitHub {
 
     for (let i = 0, label; i < labels.length; i++) {
       label = labels[i];
-      checkpoint(
+      logger.info(
         `removing label ${chalk.green(label)} from ${chalk.green(
           '' + prNumber
-        )}`,
-        CheckpointType.Success
+        )}`
       );
       await this.request(
         'DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name',
@@ -1626,9 +1614,8 @@ export class GitHub {
     comment: string,
     number: number
   ): Promise<CreateIssueCommentResponse> {
-    checkpoint(
-      `adding comment to https://github.com/${this.owner}/${this.repo}/issue/${number}`,
-      CheckpointType.Success
+    logger.info(
+      `adding comment to https://github.com/${this.owner}/${this.repo}/issue/${number}`
     );
     return (
       await this.request(

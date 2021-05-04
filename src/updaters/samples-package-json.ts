@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
+import {logger} from '../util/logger';
 
 export class SamplesPackageJson implements Update {
   path: string;
@@ -38,11 +38,10 @@ export class SamplesPackageJson implements Update {
     if (!parsed.dependencies || !parsed.dependencies[this.packageName]) {
       return content;
     }
-    checkpoint(
+    logger.info(
       `updating ${this.packageName} dependency in ${this.path} from ${
         parsed.dependencies[this.packageName]
-      } to ^${this.version}`,
-      CheckpointType.Success
+      } to ^${this.version}`
     );
     parsed.dependencies[this.packageName] = `^${this.version}`;
     return JSON.stringify(parsed, null, 2) + '\n';

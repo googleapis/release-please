@@ -590,6 +590,7 @@ primary: 1.x
 force: true
 fork: false
 message: chore(1.x): release 0.20.3-sp.1
+logger: [object Object]
 `
 
 exports['JavaLTS creates a release PR: changes'] = `
@@ -1184,6 +1185,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.3-sp.1
+logger: [object Object]
 `
 
 exports['JavaLTS creates a snapshot PR if an explicit release is requested, but a snapshot is needed: changes'] = `
@@ -1566,6 +1568,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.3-sp.1-SNAPSHOT
+logger: [object Object]
 `
 
 exports['JavaLTS creates a snapshot PR, when latest release sha is head: changes'] = `
@@ -1948,6 +1951,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.3-sp.1-SNAPSHOT
+logger: [object Object]
 `
 
 exports['JavaLTS creates a snapshot PR: changes'] = `
@@ -2330,4 +2334,5 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.3-sp.1-SNAPSHOT
+logger: [object Object]
 `

@@ -86,6 +86,7 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.5.1
+logger: [object Object]
 `
 
 exports['OCaml run creates a release PR for non-monorepo (esy.json): changes'] = `
@@ -157,6 +158,7 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.5.1
+logger: [object Object]
 `
 
 exports['OCaml run creates a release PR for non-monorepo (package.json): changes'] = `
@@ -228,6 +230,7 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.5.1
+logger: [object Object]
 `
 
 exports['OCaml run creates a release PR for non-monorepo (sample.opam): changes'] = `
@@ -287,6 +290,7 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.5.1
+logger: [object Object]
 `
 
 exports['OCaml run skips JSON files that don\'t contain a "version" field: changes'] = `
@@ -327,4 +331,5 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.5.1
+logger: [object Object]
 `

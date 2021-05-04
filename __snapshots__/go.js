@@ -36,4 +36,5 @@ primary: main
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `

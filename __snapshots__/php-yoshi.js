@@ -163,4 +163,5 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.21.0
+logger: [object Object]
 `

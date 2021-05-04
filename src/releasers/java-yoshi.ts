@@ -16,7 +16,6 @@ import {BranchName} from '../util/branch-name';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {GitHubFileContents, GitHubTag} from '../github';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Commit} from '../graphql-to-commits';
 import {ConventionalCommits} from '../conventional-commits';
 import {ReleaseCandidate} from '..';
@@ -30,6 +29,7 @@ import {PomXML} from '../updaters/java/pom-xml';
 import {JavaUpdate} from '../updaters/java/java_update';
 import {isStableArtifact} from './java/stability';
 import {fromSemverReleaseType} from './java/bump_type';
+import {logger} from '../util/logger';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -72,10 +72,7 @@ export class JavaYoshi extends ReleasePR {
       // of release based on whether a snapshot is needed or not
       this.snapshot = snapshotNeeded;
     } else if (!snapshotNeeded) {
-      checkpoint(
-        'release asked for a snapshot, but no snapshot is needed',
-        CheckpointType.Failure
-      );
+      logger.error('release asked for a snapshot, but no snapshot is needed');
       return undefined;
     }
 
@@ -97,11 +94,10 @@ export class JavaYoshi extends ReleasePR {
           labels: true,
         });
     if (commits.length === 0) {
-      checkpoint(
+      logger.error(
         `no commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
+        }`
       );
       return undefined;
     }
@@ -143,11 +139,10 @@ export class JavaYoshi extends ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry) && !this.snapshot) {
-      checkpoint(
+      logger.error(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
-        }`,
-        CheckpointType.Failure
+        }`
       );
       return undefined;
     }

@@ -16,7 +16,7 @@ import chalk = require('chalk');
 import * as semver from 'semver';
 import {ReleaseType} from 'semver';
 
-import {checkpoint, CheckpointType} from './util/checkpoint';
+import {logger} from './util/logger';
 import {Commit} from './graphql-to-commits';
 import {
   ConventionalChangelogCommit,
@@ -176,11 +176,10 @@ export class ConventionalCommits {
       ? semver.lt(version, 'v1.0.0')
       : false;
     const bump: BumpSuggestion = await this.guessReleaseType(preMajor);
-    checkpoint(
+    logger.info(
       `release as ${chalk.green(bump.releaseType)}: ${chalk.yellow(
         bump.reason
-      )}`,
-      CheckpointType.Success
+      )}`
     );
     return bump;
   }

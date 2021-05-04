@@ -48,6 +48,7 @@ primary: main
 force: true
 fork: false
 message: chore: release 2.1.1
+logger: [object Object]
 `
 
 exports['terraform-module run creates a release PR for module-submodule: changes'] = `
@@ -190,6 +191,7 @@ primary: main
 force: true
 fork: false
 message: chore: release 2.1.1
+logger: [object Object]
 `
 
 exports['terraform-module run creates a release PR for simple-module: changes'] = `
@@ -309,4 +311,5 @@ primary: main
 force: true
 fork: false
 message: chore: release 12.1.1
+logger: [object Object]
 `

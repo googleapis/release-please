@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
+import {logger} from '../util/logger';
 
 export class RootComposer implements Update {
   path: string;
@@ -36,10 +36,7 @@ export class RootComposer implements Update {
 
   updateContent(content: string): string {
     if (!this.versions || this.versions.size === 0) {
-      checkpoint(
-        `no updates necessary for ${this.path}`,
-        CheckpointType.Failure
-      );
+      logger.error(`no updates necessary for ${this.path}`);
       return content;
     }
     const parsed = JSON.parse(content);
@@ -47,9 +44,8 @@ export class RootComposer implements Update {
       // eslint-disable-next-line prefer-const
       for (let [key, version] of this.versions.entries()) {
         version = version || '1.0.0';
-        checkpoint(
-          `updating ${key} from ${parsed.replace[key]} to ${version}`,
-          CheckpointType.Success
+        logger.info(
+          `updating ${key} from ${parsed.replace[key]} to ${version}`
         );
         parsed.replace[key] = version;
       }

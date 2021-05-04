@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import chalk = require('chalk');
-import * as figures from 'figures';
+import {logger} from './logger';
 
 export enum CheckpointType {
   Success = 'success',
@@ -25,11 +24,11 @@ export const checkpoint: Checkpoint = function (
   msg: string,
   type: CheckpointType
 ) {
-  const prefix =
-    type === CheckpointType.Success
-      ? chalk.green(figures.tick)
-      : chalk.red(figures.cross);
   if (process.env.ENVIRONMENT !== 'test') {
-    console.info(`${prefix} ${msg}`);
+    if (type === CheckpointType.Success) {
+      logger.info(msg);
+    } else {
+      logger.error(msg);
+    }
   }
 };

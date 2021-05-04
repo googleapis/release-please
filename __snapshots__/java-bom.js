@@ -838,6 +838,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.124.0
+logger: [object Object]
 `
 
 exports['JavaBom run creates a snapshot PR if an explicit release is requested, but a snapshot is needed: changes'] = `
@@ -1619,6 +1620,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5-SNAPSHOT
+logger: [object Object]
 `
 
 exports['JavaBom run creates a snapshot PR: changes'] = `
@@ -2400,6 +2402,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5-SNAPSHOT
+logger: [object Object]
 `
 
 exports['JavaBom run merges conventional commit messages: changes'] = `
@@ -3250,4 +3253,5 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.124.0
+logger: [object Object]
 `

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
 import {replaceTomlValue} from './toml-edit';
 import {DEP_KINDS, parseCargoManifest} from './common';
+import {logger} from '../../util/logger';
 
 /**
  * Updates `Cargo.toml` manifests, preserving formatting and comments.
@@ -49,15 +49,14 @@ export class CargoToml implements Update {
     const parsed = parseCargoManifest(payload);
     if (!parsed.package) {
       const msg = `${this.path} is not a package manifest (might be a cargo workspace)`;
-      checkpoint(msg, CheckpointType.Failure);
+      logger.error(msg);
       throw new Error(msg);
     }
 
     for (const [pkgName, pkgVersion] of this.versions) {
       if (parsed.package.name === pkgName) {
-        checkpoint(
-          `updating ${this.path}'s own version from ${parsed.package?.version} to ${pkgVersion}`,
-          CheckpointType.Success
+        logger.info(
+          `updating ${this.path}'s own version from ${parsed.package?.version} to ${pkgVersion}`
         );
         payload = replaceTomlValue(payload, ['package', 'version'], pkgVersion);
 
@@ -78,16 +77,12 @@ export class CargoToml implements Update {
         const dep = deps[pkgName];
 
         if (typeof dep === 'string' || typeof dep.path === 'undefined') {
-          checkpoint(
-            `skipping ${depKind}.${pkgName} in ${this.path}`,
-            CheckpointType.Success
-          );
+          logger.info(`skipping ${depKind}.${pkgName} in ${this.path}`);
           continue; // to next depKind
         }
 
-        checkpoint(
-          `updating ${this.path} ${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`,
-          CheckpointType.Success
+        logger.info(
+          `updating ${this.path} ${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`
         );
         payload = replaceTomlValue(
           payload,
@@ -113,16 +108,14 @@ export class CargoToml implements Update {
             const dep = deps[pkgName];
 
             if (typeof dep === 'string' || typeof dep.path === 'undefined') {
-              checkpoint(
-                `skipping target.${targetName}.${depKind}.${pkgName} in ${this.path}`,
-                CheckpointType.Success
+              logger.info(
+                `skipping target.${targetName}.${depKind}.${pkgName} in ${this.path}`
               );
               continue; // to next depKind
             }
 
-            checkpoint(
-              `updating ${this.path} target.${targetName}.${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`,
-              CheckpointType.Success
+            logger.info(
+              `updating ${this.path} target.${targetName}.${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`
             );
             payload = replaceTomlValue(
               payload,

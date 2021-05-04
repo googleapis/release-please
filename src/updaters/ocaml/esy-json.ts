@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {checkpoint, CheckpointType} from '../../util/checkpoint';
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
+import {logger} from '../../util/logger';
 
 export class EsyJson implements Update {
   path: string;
@@ -35,9 +35,8 @@ export class EsyJson implements Update {
 
   updateContent(content: string): string {
     const parsed = JSON.parse(content);
-    checkpoint(
-      `updating ${this.path} from ${parsed.version} to ${this.version}`,
-      CheckpointType.Success
+    logger.info(
+      `updating ${this.path} from ${parsed.version} to ${this.version}`
     );
     parsed.version = this.version;
     return JSON.stringify(parsed, null, 2) + '\n';
