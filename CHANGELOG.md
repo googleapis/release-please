@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.11.0](https://www.github.com/googleapis/release-please/compare/v11.10.0...v11.11.0) (2021-05-04)
+
+
+### Features
+
+* add custom logger interface ([#884](https://www.github.com/googleapis/release-please/issues/884)) ([74ac982](https://www.github.com/googleapis/release-please/commit/74ac982e5603ae007d608aa9860f56c212b0111a))
+* **python:** support pyproject.toml ([#894](https://www.github.com/googleapis/release-please/issues/894)) ([38eb4cb](https://www.github.com/googleapis/release-please/commit/38eb4cbb029824976162ae3f1abcbda0f0546b95))
+
 ## [11.10.0](https://www.github.com/googleapis/release-please/compare/v11.9.0...v11.10.0) (2021-05-03)
 
 
