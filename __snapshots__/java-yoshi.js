@@ -590,6 +590,7 @@ primary: 1.x
 force: true
 fork: false
 message: chore(1.x): release 0.20.4
+logger: [object Object]
 `
 
 exports['JavaYoshi creates a release PR: changes'] = `
@@ -1184,6 +1185,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.4
+logger: [object Object]
 `
 
 exports['JavaYoshi creates a snapshot PR if an explicit release is requested, but a snapshot is needed: changes'] = `
@@ -1566,6 +1568,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.4-SNAPSHOT
+logger: [object Object]
 `
 
 exports['JavaYoshi creates a snapshot PR, when latest release sha is head: changes'] = `
@@ -1948,6 +1951,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.4-SNAPSHOT
+logger: [object Object]
 `
 
 exports['JavaYoshi creates a snapshot PR: changes'] = `
@@ -2330,6 +2334,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.4-SNAPSHOT
+logger: [object Object]
 `
 
 exports['JavaYoshi handles extra custom files: changes'] = `
@@ -2954,6 +2959,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.20.4
+logger: [object Object]
 `
 
 exports['JavaYoshi handles promotion to 1.0.0: changes'] = `
@@ -3548,4 +3554,5 @@ primary: master
 force: true
 fork: false
 message: chore: release 1.0.0
+logger: [object Object]
 `

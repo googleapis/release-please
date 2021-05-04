@@ -50,6 +50,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.124.0
+logger: [object Object]
 `
 
 exports['YoshiGo run creates a release PR for google-cloud-go: changes'] = `
@@ -100,6 +101,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.124.0
+logger: [object Object]
 `
 
 exports['YoshiGo supports releasing submodule from google-cloud-go: changes'] = `
@@ -138,4 +140,5 @@ primary: master
 force: true
 fork: false
 message: chore: release pubsublite 0.123.5
+logger: [object Object]
 `

@@ -202,6 +202,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `
 
 exports['Python run creates a release PR with custom config: changes'] = `
@@ -402,6 +403,7 @@ primary: master
 force: true
 fork: false
 message: chore: release google-cloud-automl 0.124.0
+logger: [object Object]
 `
 
 exports['Python run creates a release PR with defaults: changes'] = `
@@ -584,4 +586,5 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `

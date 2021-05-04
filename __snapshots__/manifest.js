@@ -103,6 +103,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest allows root module to be published, via special "." path: changes'] = `
@@ -241,6 +242,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if first PR: changes'] = `
@@ -352,6 +354,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if manifest was deleted in last release PR: changes'] = `
@@ -463,6 +466,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest starting at bootstrap-sha if first PR: changes'] = `
@@ -574,6 +578,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest bootstraps a new package from curated manifest: changes'] = `
@@ -685,6 +690,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest bootstraps a new package using default version: changes'] = `
@@ -796,6 +802,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest creates a PR for python and node packages: changes'] = `
@@ -880,6 +887,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest only includes packages that have version bumps: changes'] = `
@@ -934,6 +942,7 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `
 
 exports['Manifest pullRequest respects python releaser specific config over defaults: changes'] = `
@@ -1071,4 +1080,5 @@ primary: main
 force: true
 fork: false
 message: chore: release main
+logger: [object Object]
 `

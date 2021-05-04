@@ -90,6 +90,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `
 
 exports['Node run creates a release PR with package-lock.json: changes'] = `
@@ -148,6 +149,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `
 
 exports['Node run creates a release PR without package-lock.json: changes'] = `
@@ -197,6 +199,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `
 
 exports['Node run creates release PR relative to a path: changes'] = `
@@ -246,6 +249,7 @@ primary: master
 force: true
 fork: false
 message: chore: release 0.123.5
+logger: [object Object]
 `
 
 exports['Node run uses detected package name in branch: changes'] = `
@@ -295,4 +299,5 @@ primary: master
 force: true
 fork: false
 message: chore: release node-test-repo 0.123.5
+logger: [object Object]
 `
