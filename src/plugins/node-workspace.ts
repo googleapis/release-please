@@ -114,19 +114,28 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
         version = node.version;
         source = RELEASE_PLEASE;
       } else {
-        // must be a dependent, assume a "patch" bump.
-        const patch = semver.inc(node.version, 'patch');
-        if (patch === null) {
-          this.log(
-            `Don't know how to patch ${node.name}'s version(${node.version})`,
-            CheckpointType.Failure
-          );
-          invalidVersions.add(node.name);
-          version = node.version;
-          source = 'failed to patch bump';
+        // must be a dependent, check for releaseAs config otherwise default
+        // to a patch bump.
+        const pkgConfig = this.config.parsedPackages.find(
+          p => `${p.path}/package.json` === node.location
+        );
+        if (pkgConfig?.releaseAs) {
+          version = pkgConfig.releaseAs;
+          source = 'release-as configuration';
         } else {
-          version = patch;
-          source = 'dependency bump';
+          const patch = semver.inc(node.version, 'patch');
+          if (patch === null) {
+            this.log(
+              `Don't know how to patch ${node.name}'s version(${node.version})`,
+              CheckpointType.Failure
+            );
+            invalidVersions.add(node.name);
+            version = node.version;
+            source = 'failed to patch bump';
+          } else {
+            version = patch;
+            source = 'dependency bump';
+          }
         }
       }
       this.log(

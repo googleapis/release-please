@@ -359,6 +359,96 @@ describe('NodeWorkspaceDependencyUpdates', () => {
       snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
+    it('prefers release-as configuration over default patch-bump', async function () {
+      const pkgBReleaseAs = '2.3.0';
+      const config: Config = {
+        packages: {}, // unused, required by interface
+        parsedPackages: [
+          {path: 'packages/pkgA', releaseType: 'node'},
+          {
+            path: 'packages/pkgB',
+            releaseType: 'node',
+            releaseAs: pkgBReleaseAs,
+          },
+          {path: 'packages/pkgC', releaseType: 'node'},
+        ],
+      };
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch: 'main',
+      });
+      const mock = mockGithub(github);
+
+      // packages B and C did not get release-please updates but B depends on A
+      // and C depends on B. C will get a patch bump by default but B has a
+      // release-as configuration set.
+      expectGetFiles(mock, [
+        ['packages/pkgA/package.json', false],
+        ['packages/pkgA/CHANGELOG.md', false],
+        [
+          'packages/pkgB/package.json',
+          JSON.stringify({
+            name: '@here/pkgB',
+            version: '2.2.2',
+            dependencies: {
+              '@here/pkgA': '^1.1.1',
+              someExternal: '^9.2.3',
+            },
+          }),
+        ],
+        [
+          'packages/pkgB/CHANGELOG.md',
+          '# Changelog' +
+            '\n\nAll notable changes to this project will be ' +
+            'documented in this file.' +
+            '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
+            '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
+            '\n\n\n### Bug Fixes' +
+            '\n\n* We fixed a bug',
+        ],
+        [
+          'packages/pkgC/package.json',
+          JSON.stringify({
+            name: '@here/pkgC',
+            version: '3.3.3',
+            dependencies: {
+              '@here/pkgB': '^2.2.2',
+              anotherExternal: '^4.3.1',
+            },
+          }),
+        ],
+        ['packages/pkgC/CHANGELOG.md', ''],
+      ]);
+
+      // pkgA had a patch bump from manifest.runReleasers()
+      const newManifestVersions = new Map([['packages/pkgA', '1.1.2']]);
+      const pkgsWithPRData: ManifestPackageWithPRData[] = [pkgAData];
+
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const nodeWS = new NodeWorkspaceDependencyUpdates(
+        github,
+        config,
+        'node-workspace',
+        checkpoint
+      );
+      const [actualManifest, actualChanges] = await nodeWS.run(
+        newManifestVersions,
+        pkgsWithPRData
+      );
+      mock.verify();
+      expect([...actualManifest]).to.eql([
+        ['packages/pkgA', '1.1.2'],
+        ['packages/pkgB', pkgBReleaseAs],
+        ['packages/pkgC', '3.3.4'],
+      ]);
+      const snapPrefix = this.test!.fullTitle();
+      snapshot(snapPrefix + ' logs', logs);
+      snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
+    });
+
     it('does not update dependencies on preMajor versions with minor bump', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
