@@ -20,6 +20,43 @@ import * as snapshot from 'snap-shot-it';
 
 describe('ConventionalCommits', () => {
   describe('suggestBump', () => {
+    it('uses default CC version bump strategy', async () => {
+      const cc = new ConventionalCommits({
+        commits: [
+          {
+            message: 'fix: addressed issues with foo',
+            sha: 'abc123',
+            files: [],
+          },
+          {message: 'feat: awesome feature', sha: 'abc678', files: []},
+        ],
+        owner: 'bcoe',
+        repository: 'release-please',
+      });
+      const bump = await cc.suggestBump('1.0.0');
+      expect(bump.releaseType).to.equal('minor');
+      expect(bump.reason).to.equal(
+        'There are 0 BREAKING CHANGES and 1 features'
+      );
+    });
+    it('uses configured CC version bump strategy', async () => {
+      const cc = new ConventionalCommits({
+        versionBumpStrategy: 'always-patch',
+        commits: [
+          {
+            message: 'fix: addressed issues with foo',
+            sha: 'abc123',
+            files: [],
+          },
+          {message: 'feat: awesome feature', sha: 'abc678', files: []},
+        ],
+        owner: 'bcoe',
+        repository: 'release-please',
+      });
+      const bump = await cc.suggestBump('1.0.0');
+      expect(bump.releaseType).to.equal('patch');
+      expect(bump.reason).to.equal('Always bump patch strategy: 0 features');
+    });
     it('suggests minor release for breaking change pre 1.0', async () => {
       const cc = new ConventionalCommits({
         commits: [

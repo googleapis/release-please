@@ -25,6 +25,7 @@ import {
   ManifestFactoryOptions,
 } from '..';
 import {GH_API_URL} from '../constants';
+import {getCCVersions, CCVersion} from '../cc_versions';
 
 interface ErrorObject {
   body?: object;
@@ -35,7 +36,7 @@ interface ErrorObject {
 
 interface YargsOptions {
   describe: string;
-  choices?: readonly ReleaseType[];
+  choices?: readonly (ReleaseType | CCVersion)[];
   demand?: boolean;
   type?: string;
   default?: string | boolean;
@@ -67,6 +68,12 @@ function releaserCommon(ya: YargsOptionsBuilder) {
       ' changes prior to the first major release',
     default: false,
     type: 'boolean',
+  });
+  ya.option('version-bump-strategy', {
+    describe:
+      'use an alternative version bumping strategy. Defaults to conventional' +
+      ' commits (https://git.io/Jsf2Y)',
+    choices: getCCVersions(),
   });
   ya.option('path', {
     describe: 'release from path other than root directory',

@@ -23,6 +23,7 @@ import {
   parser,
 } from '@conventional-commits/parser';
 import toConventionalChangelogFormat from './util/to-conventional-changelog-format';
+import {getCCVersion, CCVersion} from './cc_versions';
 interface CommitWithHash extends ConventionalChangelogCommit {
   hash: string | null;
 }
@@ -41,6 +42,7 @@ interface ConventionalCommitsOptions {
   host?: string;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  versionBumpStrategy?: CCVersion;
   // allow for customized commit template.
   commitPartial?: string;
   headerPartial?: string;
@@ -61,7 +63,7 @@ interface ChangelogEntryOptions {
   currentTag?: string;
 }
 
-interface BumpSuggestion {
+export interface BumpSuggestion {
   releaseType: ReleaseType;
   reason: string;
   level: number;
@@ -148,6 +150,7 @@ export class ConventionalCommits {
   repository: string;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  versionBumpStrategy?: CCVersion;
 
   // allow for customized commit template.
   commitPartial?: string;
@@ -160,6 +163,7 @@ export class ConventionalCommits {
     this.commits = options.commits;
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor || false;
+    this.versionBumpStrategy = options.versionBumpStrategy;
     this.host = options.host || 'https://www.github.com';
     this.owner = options.owner;
     this.repository = options.repository;
@@ -220,22 +224,24 @@ export class ConventionalCommits {
     return parsed;
   }
   private async guessReleaseType(preMajor: boolean): Promise<BumpSuggestion> {
-    const VERSIONS = ['major', 'minor', 'patch'];
-    const preset = await presetFactory({preMajor});
+    const VERSIONS: ('major' | 'minor' | 'patch')[] = [
+      'major',
+      'minor',
+      'patch',
+    ];
     const commits = conventionalCommitsFilter(
       getParsedCommits(this.commits, this.commitFilter)
-    ) as ConventionalChangelogCommit;
+    ) as ConventionalChangelogCommit[];
 
-    let result = preset.recommendedBumpOpts.whatBump(
-      commits,
-      preset.recommendedBumpOpts
-    );
-
-    if (result && result.level !== null) {
-      result.releaseType = VERSIONS[result.level];
-    } else if (result === null) {
-      result = {};
+    let result: BumpSuggestion;
+    if (this.versionBumpStrategy) {
+      const whatBump = getCCVersion(this.versionBumpStrategy);
+      result = whatBump(commits, preMajor);
+    } else {
+      const preset = await presetFactory({preMajor});
+      result = preset.recommendedBumpOpts.whatBump(commits);
     }
+    result.releaseType = VERSIONS[result.level];
 
     // we have slightly different logic than the default of conventional commits,
     // the minor should be bumped when features are introduced for pre 1.x.x libs:

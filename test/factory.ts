@@ -111,6 +111,8 @@ describe('factory', () => {
       expect(releasePR.constructor.name).to.equal('ReleasePR');
       expect(releasePR.labels).to.eql(['autorelease: pending']);
       expect(releasePR.bumpMinorPreMajor).to.be.false;
+      expect(releasePR.bumpPatchForMinorPreMajor).to.be.false;
+      expect(releasePR.versionBumpStrategy).to.be.undefined;
       expect(releasePR.path).to.be.undefined;
       expect(releasePR.monorepoTags).to.be.false;
       expect(releasePR.releaseAs).to.be.undefined;
@@ -133,6 +135,8 @@ describe('factory', () => {
         label: 'foo,bar',
         path: 'some/path',
         bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        versionBumpStrategy: 'always-patch',
         releaseAs: '1.2.3',
         snapshot: true,
         monorepoTags: true,
@@ -149,6 +153,8 @@ describe('factory', () => {
       expect(releasePR.constructor.name).to.equal('Ruby');
       expect(releasePR.labels).to.eql(['foo', 'bar']);
       expect(releasePR.bumpMinorPreMajor).to.be.true;
+      expect(releasePR.bumpPatchForMinorPreMajor).to.be.true;
+      expect(releasePR.versionBumpStrategy).to.equal('always-patch');
       expect(releasePR.path).to.equal('some/path');
       expect(releasePR.monorepoTags).to.be.true;
       expect(releasePR.releaseAs).to.equal('1.2.3');
@@ -207,6 +213,8 @@ describe('factory', () => {
       expect(ghr.releasePR.path).to.be.undefined;
       expect(ghr.releasePR.releaseAs).to.be.undefined;
       expect(ghr.releasePR.bumpMinorPreMajor).to.be.false;
+      expect(ghr.releasePR.bumpPatchForMinorPreMajor).to.be.false;
+      expect(ghr.releasePR.versionBumpStrategy).to.be.undefined;
       expect(ghr.releasePR.monorepoTags).to.be.false;
       expect(ghr.releasePR.changelogSections).to.be.undefined;
       expect(ghr.releasePR.changelogPath).to.equal('CHANGELOG.md');
@@ -227,6 +235,8 @@ describe('factory', () => {
         path: 'some/path',
         packageName: 'ruby-test-repo',
         bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        versionBumpStrategy: 'always-patch',
         releaseAs: '1.2.3',
         snapshot: true,
         monorepoTags: true,
@@ -250,6 +260,8 @@ describe('factory', () => {
       expect(ghr.releasePR.path).to.equal('some/path');
       expect(ghr.releasePR.releaseAs).to.equal('1.2.3');
       expect(ghr.releasePR.bumpMinorPreMajor).to.be.true;
+      expect(ghr.releasePR.bumpPatchForMinorPreMajor).to.be.true;
+      expect(ghr.releasePR.versionBumpStrategy).to.equal('always-patch');
       expect(ghr.releasePR.monorepoTags).to.be.true;
       expect(ghr.releasePR.changelogSections).to.eql([
         {type: 'feat', section: 'Features'},

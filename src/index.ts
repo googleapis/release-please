@@ -18,6 +18,7 @@ import {ReleasePR} from './release-pr';
 import {ChangelogSection} from './conventional-commits';
 import {Checkpoint} from './util/checkpoint';
 import {Changes} from 'code-suggester';
+import {CCVersion} from './cc_versions';
 
 export {ReleaseCandidate, ReleasePR} from './release-pr';
 
@@ -42,6 +43,7 @@ export interface ReleasePROptions {
   packageName?: string;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  versionBumpStrategy?: CCVersion;
   releaseAs?: string;
   snapshot?: boolean;
   monorepoTags?: boolean;
@@ -97,6 +99,7 @@ export type ManifestPackage = Pick<
   | 'packageName'
   | 'bumpMinorPreMajor'
   | 'bumpPatchForMinorPreMajor'
+  | 'versionBumpStrategy'
   | 'releaseAs'
   | 'changelogSections'
   | 'changelogPath'

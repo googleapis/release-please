@@ -42,11 +42,13 @@ import {ReleasePR} from './release-pr';
 import {Changes} from 'code-suggester';
 import {PluginType, getPlugin} from './plugins';
 import {ManifestPlugin} from './plugins/plugin';
+import {CCVersion} from './cc_versions';
 
 interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
   'bump-minor-pre-major'?: boolean;
   'bump-patch-for-minor-pre-major'?: boolean;
+  'version-bump-strategy'?: CCVersion;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   draft?: boolean;
@@ -221,7 +223,7 @@ export class Manifest {
       const packages = [];
       for (const pkgPath in config.packages) {
         const pkgCfg = config.packages[pkgPath];
-        const pkg = {
+        const pkg: ManifestPackage = {
           path: pkgPath,
           releaseType:
             pkgCfg['release-type'] ?? config['release-type'] ?? 'node',
@@ -231,6 +233,7 @@ export class Manifest {
           bumpPatchForMinorPreMajor:
             pkgCfg['bump-patch-for-minor-pre-major'] ??
             config['bump-patch-for-minor-pre-major'],
+          versionBumpStrategy: pkgCfg['version-bump-strategy'],
           changelogSections:
             pkgCfg['changelog-sections'] ?? config['changelog-sections'],
           changelogPath: pkgCfg['changelog-path'],
