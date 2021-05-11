@@ -47,8 +47,10 @@ type CreateIssueCommentResponse = PromiseValue<
 // see: PromiseValue<
 //  ReturnType<InstanceType<typeof Octokit>['repos']['createRelease']>
 // >['data'];
-type CommitsListResponse = Endpoints['GET /repos/{owner}/{repo}/commits']['response'];
-type CommitGetResponse = Endpoints['GET /repos/{owner}/{repo}/commits/{ref}']['response'];
+type CommitsListResponse =
+  Endpoints['GET /repos/{owner}/{repo}/commits']['response'];
+type CommitGetResponse =
+  Endpoints['GET /repos/{owner}/{repo}/commits/{ref}']['response'];
 export type ReleaseCreateResponse = {
   name: string;
   tag_name: string;
@@ -1309,9 +1311,11 @@ export class GitHub {
         Authorization: `token ${this.token}`,
       },
     });
-    this.repositoryDefaultBranch = (data as {
-      default_branch: string;
-    }).default_branch;
+    this.repositoryDefaultBranch = (
+      data as {
+        default_branch: string;
+      }
+    ).default_branch;
     return this.repositoryDefaultBranch as string;
   }
 

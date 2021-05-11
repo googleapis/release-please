@@ -76,9 +76,9 @@ describe('CLI', () => {
         stack,
       };
       const logs: string[] = [];
-      handleError.logger = ({
+      handleError.logger = {
         error: (msg: string) => logs.push(msg),
-      } as unknown) as Console;
+      } as unknown as Console;
       handleError.yargsArgs = {debug: true, _: ['foobar'], $0: 'mocha?'};
       handleError(err);
       expect(logs).to.eql([

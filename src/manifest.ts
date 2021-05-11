@@ -337,12 +337,11 @@ export class Manifest {
     getFileMethod: 'getConfigJson' | 'getManifestJson',
     fileName: string
   ): Promise<{valid: true; obj: object} | {valid: false; obj: undefined}> {
-    let response:
-      | {valid: true; obj: object}
-      | {valid: false; obj: undefined} = {
-      valid: false,
-      obj: undefined,
-    };
+    let response: {valid: true; obj: object} | {valid: false; obj: undefined} =
+      {
+        valid: false,
+        obj: undefined,
+      };
     try {
       const obj = await this[getFileMethod]();
       if (obj.constructor.name === 'Object') {

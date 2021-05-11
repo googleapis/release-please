@@ -24,7 +24,8 @@ import {BumpType, maxBumpType, fromSemverReleaseType} from './java/bump_type';
 import {Version} from './java/version';
 import {JavaYoshi} from './java-yoshi';
 
-const DEPENDENCY_UPDATE_REGEX = /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
+const DEPENDENCY_UPDATE_REGEX =
+  /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
 const DEPENDENCY_PATCH_VERSION_REGEX = /^v\d+\.\d+\.[1-9]\d*(-.*)?/;
 
 export class JavaBom extends JavaYoshi {

@@ -229,8 +229,7 @@ export class JavaYoshi extends ReleasePR {
       updates.push(
         new GoogleUtils({
           // TODO(@chingor): should this use search like pom.xml?
-          path:
-            'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
+          path: 'google-api-client/src/main/java/com/google/api/client/googleapis/GoogleUtils.java',
           changelogEntry,
           versions: candidateVersions,
           version: candidate.version,

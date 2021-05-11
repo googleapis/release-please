@@ -73,7 +73,8 @@ export class BranchName {
   }
 }
 
-const AUTORELEASE_PATTERN = /^release-?(?<component>[\w-.]*)?-v(?<version>[0-9].*)$/;
+const AUTORELEASE_PATTERN =
+  /^release-?(?<component>[\w-.]*)?-v(?<version>[0-9].*)$/;
 class AutoreleaseBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(AUTORELEASE_PATTERN);

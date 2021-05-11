@@ -214,17 +214,15 @@ function getGitHubFactoryOpts(
 }
 
 function manifest(options: ManifestFactoryOptions): Manifest {
-  const [GHFactoryOptions, ManifestFactoryOptions] = getGitHubFactoryOpts(
-    options
-  );
+  const [GHFactoryOptions, ManifestFactoryOptions] =
+    getGitHubFactoryOpts(options);
   const github = gitHubInstance(GHFactoryOptions);
   return new Manifest({github, ...ManifestFactoryOptions});
 }
 
 function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
-  const [GHFactoryOptions, GHRAndRPFactoryOptions] = getGitHubFactoryOpts(
-    options
-  );
+  const [GHFactoryOptions, GHRAndRPFactoryOptions] =
+    getGitHubFactoryOpts(options);
   const github = gitHubInstance(GHFactoryOptions);
   const {
     releaseType,

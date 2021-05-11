@@ -89,7 +89,7 @@ describe('factory', () => {
         .withArgs({
           repo,
           owner,
-          headers: (sinon.match.any as unknown) as RequestHeaders,
+          headers: sinon.match.any as unknown as RequestHeaders,
         })
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .resolves({data: {default_branch: 'main'}} as any);
@@ -305,7 +305,7 @@ describe('factory', () => {
       expect(() =>
         factory.runCommand(
           'foobar' as ReleasePRCommand,
-          ({bar: 'baz'} as unknown) as ReleasePRFactoryOptions
+          {bar: 'baz'} as unknown as ReleasePRFactoryOptions
         )
       ).to.throw('Invalid command(foobar) with options({"bar":"baz"})');
     });
@@ -378,7 +378,7 @@ describe('factory', () => {
     it('errors with bad method on unknown', async () => {
       expect(() =>
         factory.call(
-          ({foo: () => 'in foo'} as unknown) as ReleasePR,
+          {foo: () => 'in foo'} as unknown as ReleasePR,
           'foo' as ReleasePRMethod
         )
       ).to.throw('Unknown instance.');
