@@ -32,6 +32,7 @@ interface GitHubOptions {
 
 // Used by GitHubRelease: Factory and Constructor
 export interface GitHubReleaseOptions {
+  releaseLabel?: string;
   draft?: boolean;
 }
 
