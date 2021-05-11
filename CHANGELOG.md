@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.12.0](https://www.github.com/googleapis/release-please/compare/v11.11.0...v11.12.0) (2021-05-11)
+
+
+### Features
+
+* allow overriding release label ([#900](https://www.github.com/googleapis/release-please/issues/900)) ([1af2623](https://www.github.com/googleapis/release-please/commit/1af26231857509244935034d68e3d031f2dbbebd))
+
+
+### Bug Fixes
+
+* **manifest:** node-workspace plugin respects release-as ([#901](https://www.github.com/googleapis/release-please/issues/901)) ([2d4ee9e](https://www.github.com/googleapis/release-please/commit/2d4ee9eaed8efb96a0a42ce989d37325d1722eed))
+
 ## [11.11.0](https://www.github.com/googleapis/release-please/compare/v11.10.0...v11.11.0) (2021-05-04)
 
 
