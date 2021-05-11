@@ -1,0 +1,305 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "nodes": [
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1098,
+                    "title": "chore(master): release 1.127.1-sp.1-SNAPSHOT",
+                    "baseRefName": "master",
+                    "headRefName": "release-please/branches/master",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        },
+                        {
+                          "name": "type: process"
+                        }
+                      ]
+                    },
+                    "body": ":robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+                    "mergeCommit": {
+                      "oid": "7b3dd6bd71b13b2b56de9ec3d11cc07677719823"
+                    }
+                  }
+                ]
+              },
+              "sha": "7b3dd6bd71b13b2b56de9ec3d11cc07677719823",
+              "message": "chore(master): release 1.127.1-sp.1-SNAPSHOT (#1098)\n\n:robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please)."
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1100,
+                    "title": "chore: regenerate README",
+                    "baseRefName": "master",
+                    "headRefName": "autosynth-readme",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": "This PR was generated using Autosynth. :rainbow:\n\n\n<details><summary>Log from Synthtool</summary>\n\n```\n2021-02-09 23:43:01,019 synthtool [DEBUG] > Executing /root/.cache/synthtool/java-bigquery/.github/readme/synth.py.\nOn branch autosynth-readme\nnothing to commit, working tree clean\n2021-02-09 23:43:02,240 synthtool [DEBUG] > Wrote metadata to .github/readme/synth.metadata/synth.metadata.\n\n```\n</details>\n\nFull log will be available here:\nhttps://source.cloud.google.com/results/invocations/018ca47c-890f-44fa-be83-c39023919e5d/targets\n\n- [ ] To automatically regenerate this PR, check this box.",
+                    "mergeCommit": {
+                      "oid": "5573e5a01443af412224e1baf0dc281d4e4242d9"
+                    }
+                  }
+                ]
+              },
+              "sha": "5573e5a01443af412224e1baf0dc281d4e4242d9",
+              "message": "chore: regenerate README (#1100)\n\nThis PR was generated using Autosynth. :rainbow:\n\n\n<details><summary>Log from Synthtool</summary>\n\n```\n2021-02-09 23:43:01,019 synthtool [DEBUG] > Executing /root/.cache/synthtool/java-bigquery/.github/readme/synth.py.\nOn branch autosynth-readme\nnothing to commit, working tree clean\n2021-02-09 23:43:02,240 synthtool [DEBUG] > Wrote metadata to .github/readme/synth.metadata/synth.metadata.\n\n```\n</details>\n\nFull log will be available here:\nhttps://source.cloud.google.com/results/invocations/018ca47c-890f-44fa-be83-c39023919e5d/targets\n\n- [ ] To automatically regenerate this PR, check this box."
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1095,
+                    "title": "deps: update dependency com.google.cloud:google-cloud-bigtable to v1.20.0",
+                    "baseRefName": "master",
+                    "headRefName": "renovate/com.google.cloud-google-cloud-bigtable-1.x",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": "[![WhiteSource Renovate](https://app.renovatebot.com/images/banner.svg)](https://renovatebot.com)\n\nThis PR contains the following updates:\n\n| Package | Change | Age | Adoption | Passing | Confidence |\n|---|---|---|---|---|---|\n| [com.google.cloud:google-cloud-bigtable](https://togithub.com/googleapis/java-bigtable) | `1.19.2` -> `1.20.0` | [![age](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigtable/1.20.0/age-slim)](https://docs.renovatebot.com/merge-confidence/) | [![adoption](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigtable/1.20.0/adoption-slim)](https://docs.renovatebot.com/merge-confidence/) | [![passing](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigtable/1.20.0/compatibility-slim/1.19.2)](https://docs.renovatebot.com/merge-confidence/) | [![confidence](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigtable/1.20.0/confidence-slim/1.19.2)](https://docs.renovatebot.com/merge-confidence/) |\n\n---\n\n### Release Notes\n\n<details>\n<summary>googleapis/java-bigtable</summary>\n\n### [`v1.20.0`](https://togithub.com/googleapis/java-bigtable/blob/master/CHANGELOG.md#&#8203;1200-httpswwwgithubcomgoogleapisjava-bigtablecomparev1192v1200-2021-02-05)\n\n[Compare Source](https://togithub.com/googleapis/java-bigtable/compare/v1.19.2...v1.20.0)\n\n##### Features\n\n-   Surface the server-timing metric ([#&#8203;535](https://www.github.com/googleapis/java-bigtable/issues/535)) ([8240779](https://www.github.com/googleapis/java-bigtable/commit/8240779434a602dc8b2bf90dbe539c5d7470d850))\n\n##### Bug Fixes\n\n-   fix MetricTracerTest to rebase on head ([#&#8203;581](https://www.github.com/googleapis/java-bigtable/issues/581)) ([23e97cb](https://www.github.com/googleapis/java-bigtable/commit/23e97cb308403b35fbe972b08048d0e59423e694))\n-   fix MutateRowsAttemptCallable to avoid NPE in MetricTracer ([#&#8203;557](https://www.github.com/googleapis/java-bigtable/issues/557)) ([8d71020](https://www.github.com/googleapis/java-bigtable/commit/8d7102003b54757b64fd598290301d3b24fd9c29))\n-   Retry \"received rst stream\" ([#&#8203;586](https://www.github.com/googleapis/java-bigtable/issues/586)) ([b09a21c](https://www.github.com/googleapis/java-bigtable/commit/b09a21c1dd1a05b68bfd3a0134089ba32dca1774))\n-   update repo name ([#&#8203;615](https://www.github.com/googleapis/java-bigtable/issues/615)) ([bb3ed6d](https://www.github.com/googleapis/java-bigtable/commit/bb3ed6dcbadbd70dbd9c68152c8d93c4cefd4dcb))\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.17.1 ([#&#8203;590](https://www.github.com/googleapis/java-bigtable/issues/590)) ([5035ad0](https://www.github.com/googleapis/java-bigtable/commit/5035ad0db01a9247634137050698c30da29722a6))\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.18.0 ([#&#8203;592](https://www.github.com/googleapis/java-bigtable/issues/592)) ([c58b73a](https://www.github.com/googleapis/java-bigtable/commit/c58b73a7d70c8da1581ac06d77b5e362648a0868))\n-   update dependency com.google.errorprone:error_prone_annotations to v2.5.0 ([#&#8203;591](https://www.github.com/googleapis/java-bigtable/issues/591)) ([dfa4da7](https://www.github.com/googleapis/java-bigtable/commit/dfa4da75e5ac81cc941177462326f7c38f18bacd))\n-   update dependency com.google.errorprone:error_prone_annotations to v2.5.1 ([#&#8203;594](https://www.github.com/googleapis/java-bigtable/issues/594)) ([ea599a1](https://www.github.com/googleapis/java-bigtable/commit/ea599a10e2e4fdbaf56c45b74fbb1ea5a708a7f2))\n\n##### Documentation\n\n-   Expand hello world snippet to show how to access specific cells ([#&#8203;516](https://www.github.com/googleapis/java-bigtable/issues/516)) ([a9001a8](https://www.github.com/googleapis/java-bigtable/commit/a9001a88f338fc2acf6bc48927765f29819124ee))\n-   Update stackdriver examples for tracing and stats ([#&#8203;613](https://www.github.com/googleapis/java-bigtable/issues/613)) ([3e8af74](https://www.github.com/googleapis/java-bigtable/commit/3e8af747b329f6656a410160e8da14fd8227c8fc))\n-   use autogenerated readme functionality and regenerate ([#&#8203;568](https://www.github.com/googleapis/java-bigtable/issues/568)) ([844e5be](https://www.github.com/googleapis/java-bigtable/commit/844e5beb6230df6ca220935056aae7f6e73d2bc0))\n\n##### [1.19.2](https://www.github.com/googleapis/java-bigtable/compare/v1.19.1...v1.19.2) (2020-12-15)\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.17.0 ([#&#8203;566](https://www.github.com/googleapis/java-bigtable/issues/566)) ([7c8e32b](https://www.github.com/googleapis/java-bigtable/commit/7c8e32b33c701cdf701384ad60986bc96ec4684a))\n\n##### [1.19.1](https://www.github.com/googleapis/java-bigtable/compare/v1.19.0...v1.19.1) (2020-12-14)\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.16.1 ([1c4ceda](https://www.github.com/googleapis/java-bigtable/commit/1c4ceda740157569fb95f7eeb9ddc0cf780cd038))\n\n</details>\n\n---\n\n### Renovate configuration\n\n:date: **Schedule**: At any time (no schedule defined).\n\n:vertical_traffic_light: **Automerge**: Disabled by config. Please merge this manually once you are satisfied.\n\n:recycle: **Rebasing**: Whenever PR becomes conflicted, or you tick the rebase/retry checkbox.\n\n:no_bell: **Ignore**: Close this PR and you won't be reminded about this update again.\n\n---\n\n - [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check this box\n\n---\n\nThis PR has been generated by [WhiteSource Renovate](https://renovate.whitesourcesoftware.com). View repository job log [here](https://app.renovatebot.com/dashboard#github/googleapis/java-bigquery).",
+                    "mergeCommit": {
+                      "oid": "82ff3695c8f5811e3b1f52dd52ab6d743475e40c"
+                    }
+                  }
+                ]
+              },
+              "sha": "82ff3695c8f5811e3b1f52dd52ab6d743475e40c",
+              "message": "deps: update dependency com.google.cloud:google-cloud-bigtable to v1.20.0 (#1095)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1099,
+                    "title": "chore(deps): update dependency com.google.cloud:google-cloud-bigquery to v1.127.0",
+                    "baseRefName": "master",
+                    "headRefName": "renovate/com.google.cloud-google-cloud-bigquery-1.x",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": "[![WhiteSource Renovate](https://app.renovatebot.com/images/banner.svg)](https://renovatebot.com)\n\nThis PR contains the following updates:\n\n| Package | Change | Age | Adoption | Passing | Confidence |\n|---|---|---|---|---|---|\n| [com.google.cloud:google-cloud-bigquery](https://togithub.com/googleapis/java-bigquery) | `1.126.6` -> `1.127.0` | [![age](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigquery/1.127.0/age-slim)](https://docs.renovatebot.com/merge-confidence/) | [![adoption](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigquery/1.127.0/adoption-slim)](https://docs.renovatebot.com/merge-confidence/) | [![passing](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigquery/1.127.0/compatibility-slim/1.126.6)](https://docs.renovatebot.com/merge-confidence/) | [![confidence](https://badges.renovateapi.com/packages/maven/com.google.cloud:google-cloud-bigquery/1.127.0/confidence-slim/1.126.6)](https://docs.renovatebot.com/merge-confidence/) |\n\n---\n\n### Release Notes\n\n<details>\n<summary>googleapis/java-bigquery</summary>\n\n### [`v1.127.0`](https://togithub.com/googleapis/java-bigquery/blob/master/CHANGELOG.md#&#8203;11270-httpswwwgithubcomgoogleapisjava-bigquerycomparev11266v11270-2021-02-09)\n\n[Compare Source](https://togithub.com/googleapis/java-bigquery/compare/v1.126.6...v1.127.0)\n\n##### Features\n\n-   add reservation usage in job statistics ([#&#8203;1018](https://www.github.com/googleapis/java-bigquery/issues/1018)) ([49cbb0f](https://www.github.com/googleapis/java-bigquery/commit/49cbb0f16ac3236e2f87b44570994d7235485902))\n-   add support for javascript UDFs determinism level ([#&#8203;1094](https://www.github.com/googleapis/java-bigquery/issues/1094)) ([cf68d8d](https://www.github.com/googleapis/java-bigquery/commit/cf68d8dc6bf421ea9c82c27760af03dd64b24a29)), closes [#&#8203;1083](https://www.github.com/googleapis/java-bigquery/issues/1083)\n\n##### Documentation\n\n-   **samples:** fix sample issue ([#&#8203;1086](https://www.github.com/googleapis/java-bigquery/issues/1086)) ([ef669df](https://www.github.com/googleapis/java-bigquery/commit/ef669df3c97981664615f0d752f8d988d08c00c9))\n-   **samples:** Update region tag for create table external hive partitioning ([#&#8203;1079](https://www.github.com/googleapis/java-bigquery/issues/1079)) ([50bf783](https://www.github.com/googleapis/java-bigquery/commit/50bf7831d9a7fe40ae08894d50fd2c8ae974f05a))\n\n##### [1.126.6](https://www.github.com/googleapis/java-bigquery/compare/v1.126.5...v1.126.6) (2021-01-13)\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.18.0 ([#&#8203;1064](https://www.github.com/googleapis/java-bigquery/issues/1064)) ([0b7925e](https://www.github.com/googleapis/java-bigquery/commit/0b7925ef311808293f2ed9969a71414520fdd8d3))\n\n##### [1.126.5](https://www.github.com/googleapis/java-bigquery/compare/v1.126.4...v1.126.5) (2021-01-13)\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-storage to v1.113.9 ([#&#8203;1061](https://www.github.com/googleapis/java-bigquery/issues/1061)) ([0644f40](https://www.github.com/googleapis/java-bigquery/commit/0644f408d4d0a80c54e78aeef8169b0e18aa8256))\n\n##### [1.126.4](https://www.github.com/googleapis/java-bigquery/compare/v1.126.3...v1.126.4) (2021-01-12)\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-bigtable to v1.19.2 ([#&#8203;1035](https://www.github.com/googleapis/java-bigquery/issues/1035)) ([239975b](https://www.github.com/googleapis/java-bigquery/commit/239975b318e513c93fdf42a2699bb019089459ed))\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.17.1 ([#&#8203;1056](https://www.github.com/googleapis/java-bigquery/issues/1056)) ([be89a1b](https://www.github.com/googleapis/java-bigquery/commit/be89a1bffcd59d0b171dde86f118714a4ba31d08))\n-   update dependency com.google.cloud:google-cloud-storage to v1.113.8 ([#&#8203;1046](https://www.github.com/googleapis/java-bigquery/issues/1046)) ([c3e9348](https://www.github.com/googleapis/java-bigquery/commit/c3e934809eddfdf6e191f50acf97e8670a80865b))\n-   update dependency com.google.oauth-client:google-oauth-client-jetty to v1.31.4 ([#&#8203;1055](https://www.github.com/googleapis/java-bigquery/issues/1055)) ([8dd66e6](https://www.github.com/googleapis/java-bigquery/commit/8dd66e69c78febb00aa2f8f9028817f6d4735e79))\n\n##### [1.126.3](https://www.github.com/googleapis/java-bigquery/compare/v1.126.2...v1.126.3) (2020-12-15)\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-bigtable to v1.19.1 ([#&#8203;1025](https://www.github.com/googleapis/java-bigquery/issues/1025)) ([1c6e90d](https://www.github.com/googleapis/java-bigquery/commit/1c6e90d9e2fe13d99ab7fe1c9999c6050371a5d9))\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.17.0 ([#&#8203;1026](https://www.github.com/googleapis/java-bigquery/issues/1026)) ([12e2c38](https://www.github.com/googleapis/java-bigquery/commit/12e2c382f6749c3baa54119e404725eea58da907))\n\n##### [1.126.2](https://www.github.com/googleapis/java-bigquery/compare/v1.126.1...v1.126.2) (2020-12-14)\n\n##### Documentation\n\n-   **samples:** add missing region tag ([#&#8203;1014](https://www.github.com/googleapis/java-bigquery/issues/1014)) ([1999950](https://www.github.com/googleapis/java-bigquery/commit/1999950da0e784b72c4dbe749ceb56d750cea1b3))\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-shared-dependencies to v0.16.1 ([#&#8203;1020](https://www.github.com/googleapis/java-bigquery/issues/1020)) ([aa52928](https://www.github.com/googleapis/java-bigquery/commit/aa5292844fc64642b32a4a823338acf8e61549b0))\n-   update dependency com.google.cloud:google-cloud-storage to v1.113.6 ([#&#8203;1017](https://www.github.com/googleapis/java-bigquery/issues/1017)) ([b62e8f2](https://www.github.com/googleapis/java-bigquery/commit/b62e8f208ae4741e7ba6df41c6c90a8192f84aee))\n\n##### [1.126.1](https://www.github.com/googleapis/java-bigquery/compare/v1.126.0...v1.126.1) (2020-12-09)\n\n##### Dependencies\n\n-   update dependency com.google.cloud:google-cloud-storage to v1.113.5 ([#&#8203;1007](https://www.github.com/googleapis/java-bigquery/issues/1007)) ([479ae98](https://www.github.com/googleapis/java-bigquery/commit/479ae98a22df32d257d13ef7d9aad4888ddacfdf))\n\n</details>\n\n---\n\n### Renovate configuration\n\n:date: **Schedule**: At any time (no schedule defined).\n\n:vertical_traffic_light: **Automerge**: Disabled by config. Please merge this manually once you are satisfied.\n\n:recycle: **Rebasing**: Whenever PR becomes conflicted, or you tick the rebase/retry checkbox.\n\n:no_bell: **Ignore**: Close this PR and you won't be reminded about this update again.\n\n---\n\n - [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check this box\n\n---\n\nThis PR has been generated by [WhiteSource Renovate](https://renovate.whitesourcesoftware.com). View repository job log [here](https://app.renovatebot.com/dashboard#github/googleapis/java-bigquery).",
+                    "mergeCommit": {
+                      "oid": "b98c978c0f8a484f9c4cff823dc8361b2678dc0d"
+                    }
+                  }
+                ]
+              },
+              "sha": "b98c978c0f8a484f9c4cff823dc8361b2678dc0d",
+              "message": "chore(deps): update dependency com.google.cloud:google-cloud-bigquery to v1.127.0 (#1099)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1090,
+                    "title": "chore(master): release 1.127.0-sp.1",
+                    "baseRefName": "master",
+                    "headRefName": "release-please/branches/master",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "autorelease: published"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": ":robot: I have created a release \\*beep\\* \\*boop\\* \n---\n## [1.127.0](https://www.github.com/googleapis/java-bigquery/compare/v1.126.6...v1.127.0) (2021-02-09)\n\n\n### Features\n\n* add reservation usage in job statistics ([#1018](https://www.github.com/googleapis/java-bigquery/issues/1018)) ([49cbb0f](https://www.github.com/googleapis/java-bigquery/commit/49cbb0f16ac3236e2f87b44570994d7235485902))\n* add support for javascript UDFs determinism level ([#1094](https://www.github.com/googleapis/java-bigquery/issues/1094)) ([cf68d8d](https://www.github.com/googleapis/java-bigquery/commit/cf68d8dc6bf421ea9c82c27760af03dd64b24a29)), closes [#1083](https://www.github.com/googleapis/java-bigquery/issues/1083)\n\n\n### Documentation\n\n* **samples:** fix sample issue ([#1086](https://www.github.com/googleapis/java-bigquery/issues/1086)) ([ef669df](https://www.github.com/googleapis/java-bigquery/commit/ef669df3c97981664615f0d752f8d988d08c00c9))\n* **samples:** Update region tag for create table external hive partitioning ([#1079](https://www.github.com/googleapis/java-bigquery/issues/1079)) ([50bf783](https://www.github.com/googleapis/java-bigquery/commit/50bf7831d9a7fe40ae08894d50fd2c8ae974f05a))\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+                    "mergeCommit": {
+                      "oid": "9d8f923eedb2c02456d3f73fccca6d2e87137979"
+                    }
+                  }
+                ]
+              },
+              "sha": "9d8f923eedb2c02456d3f73fccca6d2e87137979",
+              "message": "chore(master): release 1.127.0-sp.1 (#1090)\n\nCo-authored-by: release-please[bot] <55107282+release-please[bot]@users.noreply.github.com>"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1094,
+                    "title": "feat: add support for javascript UDFs determinism level",
+                    "baseRefName": "master",
+                    "headRefName": "determinism",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": "Fixes #1083",
+                    "mergeCommit": {
+                      "oid": "cf68d8dc6bf421ea9c82c27760af03dd64b24a29"
+                    }
+                  }
+                ]
+              },
+              "sha": "cf68d8dc6bf421ea9c82c27760af03dd64b24a29",
+              "message": "feat: add support for javascript UDFs determinism level (#1094)\n\nFixes #1083"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1097,
+                    "title": "chore: regenerate README",
+                    "baseRefName": "master",
+                    "headRefName": "autosynth-readme",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": "This PR was generated using Autosynth. :rainbow:\n\n\n<details><summary>Log from Synthtool</summary>\n\n```\n2021-02-09 20:18:35,801 synthtool [DEBUG] > Executing /root/.cache/synthtool/java-bigquery/.github/readme/synth.py.\nOn branch autosynth-readme\nnothing to commit, working tree clean\n2021-02-09 20:18:36,888 synthtool [DEBUG] > Wrote metadata to .github/readme/synth.metadata/synth.metadata.\n\n```\n</details>\n\nFull log will be available here:\nhttps://source.cloud.google.com/results/invocations/0a897e4a-b595-47b0-bd09-7deeaf714ce7/targets\n\n- [ ] To automatically regenerate this PR, check this box.",
+                    "mergeCommit": {
+                      "oid": "86cba8b3252cc9f2bb470bd73bb83245cff733fb"
+                    }
+                  }
+                ]
+              },
+              "sha": "86cba8b3252cc9f2bb470bd73bb83245cff733fb",
+              "message": "chore: regenerate README (#1097)\n\nThis PR was generated using Autosynth. :rainbow:\n\n\n<details><summary>Log from Synthtool</summary>\n\n```\n2021-02-09 20:18:35,801 synthtool [DEBUG] > Executing /root/.cache/synthtool/java-bigquery/.github/readme/synth.py.\nOn branch autosynth-readme\nnothing to commit, working tree clean\n2021-02-09 20:18:36,888 synthtool [DEBUG] > Wrote metadata to .github/readme/synth.metadata/synth.metadata.\n\n```\n</details>\n\nFull log will be available here:\nhttps://source.cloud.google.com/results/invocations/0a897e4a-b595-47b0-bd09-7deeaf714ce7/targets\n\n- [ ] To automatically regenerate this PR, check this box."
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1096,
+                    "title": "chore(deps): update dependency com.google.cloud:libraries-bom to v16.4.0",
+                    "baseRefName": "master",
+                    "headRefName": "renovate/com.google.cloud-libraries-bom-16.x",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": "[![WhiteSource Renovate](https://app.renovatebot.com/images/banner.svg)](https://renovatebot.com)\n\nThis PR contains the following updates:\n\n| Package | Change | Age | Adoption | Passing | Confidence |\n|---|---|---|---|---|---|\n| [com.google.cloud:libraries-bom](https://togithub.com/GoogleCloudPlatform/cloud-opensource-java) | `16.3.0` -> `16.4.0` | [![age](https://badges.renovateapi.com/packages/maven/com.google.cloud:libraries-bom/16.4.0/age-slim)](https://docs.renovatebot.com/merge-confidence/) | [![adoption](https://badges.renovateapi.com/packages/maven/com.google.cloud:libraries-bom/16.4.0/adoption-slim)](https://docs.renovatebot.com/merge-confidence/) | [![passing](https://badges.renovateapi.com/packages/maven/com.google.cloud:libraries-bom/16.4.0/compatibility-slim/16.3.0)](https://docs.renovatebot.com/merge-confidence/) | [![confidence](https://badges.renovateapi.com/packages/maven/com.google.cloud:libraries-bom/16.4.0/confidence-slim/16.3.0)](https://docs.renovatebot.com/merge-confidence/) |\n\n---\n\n### Renovate configuration\n\n:date: **Schedule**: At any time (no schedule defined).\n\n:vertical_traffic_light: **Automerge**: Disabled by config. Please merge this manually once you are satisfied.\n\n:recycle: **Rebasing**: Whenever PR becomes conflicted, or you tick the rebase/retry checkbox.\n\n:no_bell: **Ignore**: Close this PR and you won't be reminded about this update again.\n\n---\n\n - [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check this box\n\n---\n\nThis PR has been generated by [WhiteSource Renovate](https://renovate.whitesourcesoftware.com). View repository job log [here](https://app.renovatebot.com/dashboard#github/googleapis/java-bigquery).",
+                    "mergeCommit": {
+                      "oid": "2e7bd9df075bc850d818dafd4439245f11eb34ee"
+                    }
+                  }
+                ]
+              },
+              "sha": "2e7bd9df075bc850d818dafd4439245f11eb34ee",
+              "message": "chore(deps): update dependency com.google.cloud:libraries-bom to v16.4.0 (#1096)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1018,
+                    "title": "feat: add reservation usage in job statistics",
+                    "baseRefName": "master",
+                    "headRefName": "reservationusage",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        }
+                      ]
+                    },
+                    "body": "Fixes #1087",
+                    "mergeCommit": {
+                      "oid": "49cbb0f16ac3236e2f87b44570994d7235485902"
+                    }
+                  }
+                ]
+              },
+              "sha": "49cbb0f16ac3236e2f87b44570994d7235485902",
+              "message": "feat: add reservation usage in job statistics (#1018)"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1092,
+                    "title": "chore: Re-generated to pick up changes from synthtool.",
+                    "baseRefName": "master",
+                    "headRefName": "autosynth-synthtool",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "api: bigquery"
+                        },
+                        {
+                          "name": "cla: yes"
+                        },
+                        {
+                          "name": "context: full"
+                        }
+                      ]
+                    },
+                    "body": "This PR was generated using Autosynth. :rainbow:\n\nSynth log will be available here:\nhttps://source.cloud.google.com/results/invocations/fb5ed929-07a6-4b9c-9c01-20c1d4125a75/targets\n\n- [ ] To automatically regenerate this PR, check this box.\n\nSource-Link: https://github.com/googleapis/synthtool/commit/692715c0f23a7bb3bfbbaa300f7620ddfa8c47e5\nSource-Link: https://github.com/googleapis/synthtool/commit/27b2d4f4674840628d0b75c5941e89c12af4764f",
+                    "mergeCommit": {
+                      "oid": "24a6a3bf46fa528ca233413e47a858bb14d38f8d"
+                    }
+                  }
+                ]
+              },
+              "sha": "24a6a3bf46fa528ca233413e47a858bb14d38f8d",
+              "message": "chore: Re-generated to pick up changes from synthtool. (#1092)\n\nThis PR was generated using Autosynth. :rainbow:\n\nSynth log will be available here:\nhttps://source.cloud.google.com/results/invocations/fb5ed929-07a6-4b9c-9c01-20c1d4125a75/targets\n\n- [ ] To automatically regenerate this PR, check this box.\n\nSource-Link: https://github.com/googleapis/synthtool/commit/692715c0f23a7bb3bfbbaa300f7620ddfa8c47e5\nSource-Link: https://github.com/googleapis/synthtool/commit/27b2d4f4674840628d0b75c5941e89c12af4764f"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "7b3dd6bd71b13b2b56de9ec3d11cc07677719823 19"
+          }
+        }
+      }
+    }
+  }
+}

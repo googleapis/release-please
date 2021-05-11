@@ -570,7 +570,7 @@ describe('JavaLTS', () => {
     it('returns a stable branch pull request', async () => {
       const graphql = JSON.parse(
         readFileSync(
-          resolve('./test/fixtures', 'latest-tag-stable-branch.json'),
+          resolve('./test/fixtures', 'latest-tag-sp-version.json'),
           'utf8'
         )
       );
@@ -578,14 +578,14 @@ describe('JavaLTS', () => {
         data: graphql,
       });
       const latestTag = await releasePR.latestTag();
-      expect(latestTag!.version).to.equal('1.127.0');
+      expect(latestTag!.version).to.equal('1.127.0-sp.1');
       req.done();
     });
 
     it('returns a prerelease tag stable branch', async () => {
       const graphql = JSON.parse(
         readFileSync(
-          resolve('./test/fixtures', 'latest-tag-stable-branch.json'),
+          resolve('./test/fixtures', 'latest-tag-sp-version.json'),
           'utf8'
         )
       );
@@ -593,7 +593,22 @@ describe('JavaLTS', () => {
         data: graphql,
       });
       const latestTag = await releasePR.latestTag(undefined, true);
-      expect(latestTag!.version).to.equal('1.127.1-SNAPSHOT');
+      expect(latestTag!.version).to.equal('1.127.1-sp.1-SNAPSHOT');
+      req.done();
+    });
+
+    it('returns a SP tag stable branch', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve('./test/fixtures', 'latest-tag-sp-version.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag(undefined, false);
+      expect(latestTag!.version).to.equal('1.127.0-sp.1');
       req.done();
     });
 
