@@ -286,7 +286,8 @@ export class ReleasePR {
     latestTag: GitHubTag | undefined,
     preRelease = false
   ): Promise<ReleaseCandidate> {
-    const releaseAsRe = /release-as:\s*v?([0-9]+\.[0-9]+\.[0-9a-z]+(-[0-9a-z.]+)?)\s*/i;
+    const releaseAsRe =
+      /release-as:\s*v?([0-9]+\.[0-9]+\.[0-9a-z]+(-[0-9a-z.]+)?)\s*/i;
     const previousTag = latestTag ? latestTag.name : undefined;
     let version = latestTag ? latestTag.version : this.defaultInitialVersion();
 

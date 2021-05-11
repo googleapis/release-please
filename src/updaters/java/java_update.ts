@@ -16,7 +16,8 @@ import {Update, VersionsMap, UpdateOptions} from '../update';
 import {GitHubFileContents} from '../../github';
 
 const INLINE_UPDATE_REGEX = /{x-version-update:([\w\-_]+):(current|released)}/;
-const BLOCK_START_REGEX = /{x-version-update-start:([\w\-_]+):(current|released)}/;
+const BLOCK_START_REGEX =
+  /{x-version-update-start:([\w\-_]+):(current|released)}/;
 const BLOCK_END_REGEX = /{x-version-update-end}/;
 const VERSION_REGEX = /\d+\.\d+\.\d+(-\w+(\.\d+)?)?(-SNAPSHOT)?/;
 

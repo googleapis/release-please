@@ -179,11 +179,8 @@ describe('CommitSplit', () => {
     it(`partitions commits by ${
       usePackagePaths ? 'specified' : 'top level'
     } paths: includeEmpty(${includeEmpty})`, () => {
-      const [
-        expectedSplitCommitSplit,
-        packagePaths,
-        commits,
-      ] = setupPackagePathCommits(includeEmpty, usePackagePaths);
+      const [expectedSplitCommitSplit, packagePaths, commits] =
+        setupPackagePathCommits(includeEmpty, usePackagePaths);
       const commitSplitOpts: CommitSplitOptions = {};
       if (usePackagePaths) {
         commitSplitOpts.packagePaths = packagePaths;
