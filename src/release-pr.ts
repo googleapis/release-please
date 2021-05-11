@@ -548,6 +548,25 @@ export class ReleasePR {
   }
 
   /**
+   * Normalize version parsing when searching for a latest release.
+   *
+   * @param version The raw version string
+   * @param preRelease Whether to allow pre-release versions or not
+   * @returns {string|null} The normalized version string or null if
+   *   we want to disallow this version.
+   */
+  protected normalizeVersion(
+    version: string,
+    preRelease = false
+  ): string | null {
+    // Consider any version with a '-' as a pre-release version
+    if (!preRelease && version.indexOf('-') >= 0) {
+      return null;
+    }
+    return semver.valid(version);
+  }
+
+  /**
    * Find the most recent matching release tag on the branch we're
    * configured for.
    *
@@ -591,14 +610,8 @@ export class ReleasePR {
         continue;
       }
 
-      // What's left by now should just be the version string.
-      // Check for pre-releases if needed.
-      if (!preRelease && version.indexOf('-') >= 0) {
-        continue;
-      }
-
       // Make sure we did get a valid semver.
-      const normalizedVersion = semver.valid(version);
+      const normalizedVersion = this.normalizeVersion(version, preRelease);
       if (!normalizedVersion) {
         continue;
       }
