@@ -607,8 +607,8 @@ describe('JavaLTS', () => {
       req.post('/graphql').reply(200, {
         data: graphql,
       });
-      const latestTag = await releasePR.latestTag(undefined, true);
-      expect(latestTag!.version).to.equal('1.127.1-sp.1-SNAPSHOT');
+      const latestTag = await releasePR.latestTag(undefined, false);
+      expect(latestTag!.version).to.equal('1.127.1-sp.1');
       req.done();
     });
 
