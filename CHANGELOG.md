@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.12.1](https://www.github.com/googleapis/release-please/compare/v11.12.0...v11.12.1) (2021-05-11)
+
+
+### Bug Fixes
+
+* correctly find Java LTS latestTag version strings ([#905](https://www.github.com/googleapis/release-please/issues/905)) ([3aa23f8](https://www.github.com/googleapis/release-please/commit/3aa23f8d4bf081da7e9631142ed9c780b8be0a42))
+
 ## [11.12.0](https://www.github.com/googleapis/release-please/compare/v11.11.0...v11.12.0) (2021-05-11)
 
 
