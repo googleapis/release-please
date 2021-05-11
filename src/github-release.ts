@@ -39,11 +39,13 @@ export class GitHubRelease {
   releasePR: ReleasePR;
   gh: GitHub;
   draft: boolean;
+  releaseLabel: string;
 
   constructor(options: GitHubReleaseConstructorOptions) {
     this.draft = !!options.draft;
     this.gh = options.github;
     this.releasePR = options.releasePR;
+    this.releaseLabel = options.releaseLabel ?? GITHUB_RELEASE_LABEL;
   }
 
   async createRelease(): Promise<
@@ -107,7 +109,7 @@ export class GitHubRelease {
 
     // Add a label indicating that a release has been created on GitHub,
     // but a publication has not yet occurred.
-    await this.gh.addLabels([GITHUB_RELEASE_LABEL], candidate.pullNumber);
+    await this.gh.addLabels([this.releaseLabel], candidate.pullNumber);
     // Remove 'autorelease: pending' which indicates a GitHub release
     // has not yet been created.
     await this.gh.removeLabels(this.releasePR.labels, candidate.pullNumber);

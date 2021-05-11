@@ -17,7 +17,7 @@ import {describe, it, afterEach} from 'mocha';
 import {expect} from 'chai';
 import * as nock from 'nock';
 import * as crypto from 'crypto';
-import {strictEqual} from 'assert';
+import {strictEqual, ok} from 'assert';
 nock.disableNetConnect();
 
 import {GitHubRelease} from '../src/github-release';
@@ -79,7 +79,8 @@ describe('GitHubRelease', () => {
 
   function mockGithubLabelsAndComment(
     mock: sinon.SinonMock,
-    mockLabelsAndComment: boolean
+    mockLabelsAndComment: boolean,
+    releaseLabel = 'autorelease: tagged'
   ) {
     if (mockLabelsAndComment) {
       mock
@@ -92,7 +93,7 @@ describe('GitHubRelease', () => {
         .resolves();
       mock
         .expects('addLabels')
-        .withExactArgs(['autorelease: tagged'], 1)
+        .withExactArgs([releaseLabel], 1)
         .once()
         .resolves();
       mock
@@ -592,6 +593,37 @@ describe('GitHubRelease', () => {
 
       mock.verify();
       expect(created).to.be.undefined;
+    });
+
+    it('supports overriding the release tag', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const mock = mockGithubCommon({
+        github,
+        prHead: 'release-v1.0.3',
+        prTitle: 'Release v1.0.3',
+      });
+      mockGithubLabelsAndComment(mock, true, 'custom-label');
+      mock
+        .expects('createRelease')
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .once()
+        .resolves({
+          name: 'foo v1.0.3',
+          tag_name: 'v1.0.3',
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+          body: '\n* entry',
+        });
+
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+      const releaser = new GitHubRelease({
+        github,
+        releasePR,
+        releaseLabel: 'custom-label',
+      });
+      const created = await releaser.run();
+
+      ok(created);
     });
   });
   describe('createRelease', () => {
