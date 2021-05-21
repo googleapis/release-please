@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.13.0](https://www.github.com/googleapis/release-please/compare/v11.12.1...v11.13.0) (2021-05-21)
+
+
+### Features
+
+* add `gcf-owl-bot[bot]` to `ignoreAuthors` ([#910](https://www.github.com/googleapis/release-please/issues/910)) ([e5cd486](https://www.github.com/googleapis/release-please/commit/e5cd48618532fb5b627da53537c15a122832622b))
+
 ### [11.12.1](https://www.github.com/googleapis/release-please/compare/v11.12.0...v11.12.1) (2021-05-11)
 
 
