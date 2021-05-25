@@ -30,7 +30,7 @@ export class Simple extends ReleasePR {
 
     updates.push(
       new Changelog({
-        path: this.changelogPath,
+        path: this.addPath(this.changelogPath),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,
@@ -39,7 +39,7 @@ export class Simple extends ReleasePR {
 
     updates.push(
       new VersionTxt({
-        path: 'version.txt',
+        path: this.addPath('version.txt'),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,
