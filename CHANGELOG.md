@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.13.0](https://www.github.com/googleapis/release-please/compare/v11.12.1...v11.13.0) (2021-05-26)
+
+
+### Features
+
+* add `gcf-owl-bot[bot]` to `ignoreAuthors` ([#910](https://www.github.com/googleapis/release-please/issues/910)) ([e5cd486](https://www.github.com/googleapis/release-please/commit/e5cd48618532fb5b627da53537c15a122832622b))
+
+
+### Bug Fixes
+
+* update simple releaser for monorepo pkg path ([#917](https://www.github.com/googleapis/release-please/issues/917)) ([9170e53](https://www.github.com/googleapis/release-please/commit/9170e530781d8705d27cea51053c2825f111f12b))
+
 ### [11.12.1](https://www.github.com/googleapis/release-please/compare/v11.12.0...v11.12.1) (2021-05-11)
 
 
