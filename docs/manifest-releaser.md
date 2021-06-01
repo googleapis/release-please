@@ -5,7 +5,7 @@ specific configuration (the `release-please-config.json`) as well package
 version tracking (the `.release-please-manifest.json`).
 
 
-The motivation of the manifest-based releaser is support support for monorepos:
+The motivation of the manifest-based releaser is support for monorepos:
 
 * a combined [Release PR](https://github.com/googleapis/release-please#whats-a-release-pr) will be created for all configured packages.
 * release configuration for potentially hundreds of libraries is combined in two configuration files.
