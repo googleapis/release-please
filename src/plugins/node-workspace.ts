@@ -20,14 +20,14 @@ import {runTopologically} from '@lerna/run-topologically';
 import {ManifestPlugin} from './plugin';
 import {ManifestPackageWithPRData, ManifestPackage} from '..';
 import {VersionsMap} from '../updaters/update';
-import {packageJsonStringify} from '../util/package-json-stringify';
+import {jsonStringify} from '../util/json-stringify';
 import {CheckpointType} from '../util/checkpoint';
 import {RELEASE_PLEASE} from '../constants';
 import {Changes} from 'code-suggester';
 import {ConventionalCommits} from '../conventional-commits';
 import {Changelog} from '../updaters/changelog';
 
-type PathPkgJson = Map<string, PackageJson>;
+type PathPkgJson = Map<string, [PackageJson, string]>;
 
 export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
   // package.json contents already updated by the node releasers.
@@ -40,7 +40,10 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
         for (const [path, fileData] of pkg.prData.changes) {
           if (path === `${pkg.config.path}/package.json`) {
             this.log(`found ${path} in changes`, CheckpointType.Success);
-            pathPkgs.set(path, JSON.parse(fileData.content!) as PackageJson);
+            pathPkgs.set(path, [
+              JSON.parse(fileData.content!) as PackageJson,
+              fileData.content,
+            ]);
           }
         }
       }
@@ -52,39 +55,39 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
   // those that did not update (no user facing commits).
   private async getAllWorkspacePackages(
     rpUpdatedPkgs: PathPkgJson
-  ): Promise<Map<string, Package>> {
+  ): Promise<Map<string, [Package, string]>> {
     const nodePkgs = new Map();
     for (const pkg of this.config.parsedPackages) {
       if (pkg.releaseType !== 'node' || pkg.path === '.') {
         continue;
       }
       const path = `${pkg.path}/package.json`;
-      let contents: PackageJson;
+      let contents: [PackageJson, string];
       const alreadyUpdated = rpUpdatedPkgs.get(path);
       if (alreadyUpdated) {
         contents = alreadyUpdated;
       } else {
-        const fileContents = await this.gh.getFileContents(path);
-        contents = JSON.parse(fileContents.parsedContent);
+        const {parsedContent} = await this.gh.getFileContents(path);
+        contents = [JSON.parse(parsedContent), parsedContent];
       }
       this.log(
         `loaded ${path} from ${alreadyUpdated ? 'existing changes' : 'github'}`,
         CheckpointType.Success
       );
-      nodePkgs.set(path, new Package(contents, path));
+      nodePkgs.set(path, [new Package(contents[0], path), contents[1]]);
     }
     return nodePkgs;
   }
 
   private async runLernaVersion(
     rpUpdatedPkgs: PathPkgJson,
-    allPkgs: Map<string, Package>
-  ): Promise<Map<string, Package>> {
+    allPkgs: Map<string, [Package, string]>
+  ): Promise<Map<string, [Package, string]>> {
     // Build the graph of all the packages: similar to https://git.io/Jqf1v
     const packageGraph = new PackageGraph(
       // use pkg.toJSON() which does a shallow copy of the internal data storage
       // so we can preserve the original allPkgs for version diffing later.
-      [...allPkgs].map(([path, pkg]) => new Package(pkg.toJSON(), path)),
+      [...allPkgs].map(([path, pkg]) => new Package(pkg[0].toJSON(), path)),
       'allDependencies'
     );
 
@@ -173,14 +176,16 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
         rejectCycles: false,
       }
     );
-    return new Map(allUpdated.map(p => [p.location, p]));
+    return new Map(
+      allUpdated.map(p => [p.location, [p, allPkgs.get(p.location)![1][1]]])
+    );
   }
 
   private async updatePkgsWithPRData(
     pkgsWithPRData: ManifestPackageWithPRData[],
     newManifestVersions: VersionsMap,
-    allUpdated: Map<string, Package>,
-    allOrigPkgs: Map<string, Package>
+    allUpdated: Map<string, [Package, string]>,
+    allOrigPkgs: Map<string, [Package, string]>
   ) {
     // already had version bumped by release-please, may have also had
     // dependency version bumps as well
@@ -191,14 +196,14 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
       const filePath = `${data.config.path}/package.json`;
       const updated = allUpdated.get(filePath)!; // bug if not defined
       data.prData.changes.set(filePath, {
-        content: packageJsonStringify(updated.toJSON()),
+        content: jsonStringify(updated[0].toJSON(), updated[1]),
         mode: '100644',
       });
       await this.setChangelogEntry(
         data.config,
         data.prData.changes,
-        updated,
-        allOrigPkgs.get(filePath)! // bug if undefined.
+        updated[0],
+        allOrigPkgs.get(filePath)![0] // bug if undefined.
       );
       allUpdated.delete(filePath);
     }
@@ -209,25 +214,25 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
       const pkg = this.config.parsedPackages.find(
         p => `${p.path}/package.json` === filePath
       )!; // bug if undefined.
-      pkg.packageName = updated.name;
-      const content = packageJsonStringify(updated.toJSON());
+      pkg.packageName = updated[0].name;
+      const content = jsonStringify(updated[0].toJSON(), updated[1]);
       const changes: Changes = new Map([[filePath, {content, mode: '100644'}]]);
       await this.setChangelogEntry(
         pkg,
         changes,
-        updated,
-        allOrigPkgs.get(filePath)! // bug if undefined.
+        updated[0],
+        allOrigPkgs.get(filePath)![0] // bug if undefined.
       );
       pkgsWithPRData.push({
         config: pkg,
         prData: {
-          version: updated.version,
+          version: updated[0].version,
           changes,
         },
       });
       newManifestVersions.set(
         filePath.replace(/\/package.json$/, ''),
-        updated.version
+        updated[0].version
       );
     }
   }

@@ -14,7 +14,7 @@
 
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
-import {packageJsonStringify} from '../util/package-json-stringify';
+import {jsonStringify} from '../util/json-stringify';
 import {logger} from '../util/logger';
 
 export class PackageJson implements Update {
@@ -45,6 +45,6 @@ export class PackageJson implements Update {
       `updating ${this.path} from ${parsed.version} to ${this.version}`
     );
     this.updateVersion(parsed);
-    return packageJsonStringify(parsed);
+    return jsonStringify(parsed, content);
   }
 }

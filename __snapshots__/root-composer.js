@@ -254,5 +254,4 @@ exports['composer.json updateContent updates all versions in root composer file 
         }
     }
 }
-
 `

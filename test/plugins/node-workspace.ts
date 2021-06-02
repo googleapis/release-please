@@ -20,7 +20,6 @@ import {GitHub} from '../../src/github';
 import {Config} from '../../src/manifest';
 import {buildGitHubFileRaw} from '../releasers/utils';
 import {ManifestPackageWithPRData} from '../../src';
-import {packageJsonStringify} from '../../src/util/package-json-stringify';
 import {CheckpointType} from '../../src/util/checkpoint';
 import {stringifyExpectedChanges} from '../helpers';
 import snapshot = require('snap-shot-it');
@@ -57,7 +56,7 @@ const pkgAData: ManifestPackageWithPRData = {
       [
         'packages/pkgA/package.json',
         {
-          content: packageJsonStringify({
+          content: JSON.stringify({
             name: '@here/pkgA',
             version: '1.1.2',
             dependencies: {'@there/foo': '^4.1.7'},
@@ -300,7 +299,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgB/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: JSON.stringify({
                     name: '@here/pkgB',
                     version: '2.3.0',
                     dependencies: {
@@ -516,7 +515,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgB/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: JSON.stringify({
                     name: '@here/pkgB',
                     version: '0.3.0',
                     dependencies: {
@@ -617,7 +616,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgB/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: JSON.stringify({
                     name: '@here/pkgB',
                     version: '2.3.0',
                     dependencies: {
@@ -834,7 +833,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
             [
               'packages/pkgAA/package.json',
               {
-                content: packageJsonStringify({
+                content: JSON.stringify({
                   name: '@here/pkgAA',
                   version: '11.2.0',
                   dependencies: {'@there/foo': '^4.1.7'},
@@ -1000,7 +999,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgA/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: JSON.stringify({
                     name: '@here/pkgA',
                     version: '1.1.2-alpha.0',
                     dependencies: {'@there/foo': '^4.1.7'},
