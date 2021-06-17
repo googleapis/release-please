@@ -75,12 +75,14 @@ export class RubyYoshi extends ReleasePR {
         ),
         changelogSections: CHANGELOG_SECTIONS,
       });
+      const githubTag: GitHubTag | undefined = this.lastPackageVersion
+        ? {
+            version: this.lastPackageVersion,
+            name: this.lastPackageVersion,
+          } as GitHubTag
+        : undefined;
       const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-        cc,
-        {
-          version: this.lastPackageVersion,
-          name: this.lastPackageVersion,
-        } as GitHubTag
+        cc, githubTag
       );
       const changelogEntry: string = await cc.generateChangelogEntry({
         version: candidate.version,
