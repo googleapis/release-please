@@ -48,6 +48,7 @@ function stubGithub(releasePR: RubyYoshi) {
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
   sandbox.stub(releasePR.gh, 'findOpenReleasePRs').returns(Promise.resolve([]));
+  sandbox.stub(releasePR.gh, 'openPR').resolves(22);
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
 }
