@@ -43,12 +43,18 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
-function stubGithub(releasePR: RubyYoshi) {
+function stubGithub(releasePR: RubyYoshi, expectedVersion: string) {
   sandbox
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
   sandbox.stub(releasePR.gh, 'findOpenReleasePRs').returns(Promise.resolve([]));
-  sandbox.stub(releasePR.gh, 'openPR').resolves(22);
+  sandbox.stub(releasePR.gh, 'openPR').callsFake(arg => {
+    if (arg.updates[0].version === expectedVersion) {
+      return Promise.resolve(22);
+    } else {
+      return Promise.resolve(21);
+    }
+  });
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('master');
 }
@@ -71,7 +77,7 @@ describe('RubyYoshi', () => {
       });
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      stubGithub(releasePR);
+      stubGithub(releasePR, '0.5.1');
       sandbox.stub(releasePR.gh, 'getTagSha').resolves(TAG_SHA);
       sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(COMMITS);
       stubFilesToUpdate(releasePR.gh, ['version.rb']);
@@ -90,7 +96,7 @@ describe('RubyYoshi', () => {
       });
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      stubGithub(releasePR);
+      stubGithub(releasePR, '0.1.0');
       sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(COMMITS);
       stubFilesToUpdate(releasePR.gh, ['version.rb']);
 
