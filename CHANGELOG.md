@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.13.1](https://www.github.com/googleapis/release-please/compare/v11.13.0...v11.13.1) (2021-06-18)
+
+
+### Bug Fixes
+
+* **ruby-yoshi:** Fix the initial release of new Ruby-Yoshi libraries ([#933](https://www.github.com/googleapis/release-please/issues/933)) ([86f96c9](https://www.github.com/googleapis/release-please/commit/86f96c92befcf5ca062c27052a69b76b3ea488dc))
+
 ## [11.13.0](https://www.github.com/googleapis/release-please/compare/v11.12.1...v11.13.0) (2021-05-26)
 
 
