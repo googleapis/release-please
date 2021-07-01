@@ -18,13 +18,13 @@ import {logger} from './util/logger';
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
-import {Endpoints} from '@octokit/types';
+import {Endpoints, EndpointOptions, OctokitResponse} from '@octokit/types';
+import {RequestError} from '@octokit/request-error';
 // The return types for responses have not yet been exposed in the
 // @octokit/* libraries, we explicitly define the types below to work
 // around this,. See: https://github.com/octokit/rest.js/issues/1624
 // https://github.com/octokit/types.ts/issues/25.
 import {PromiseValue} from 'type-fest';
-import {EndpointOptions, OctokitResponse} from '@octokit/types';
 type OctokitType = InstanceType<typeof Octokit>;
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
@@ -98,6 +98,7 @@ import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {RELEASE_PLEASE, GH_API_URL} from './constants';
 import {GitHubConstructorOptions} from '.';
+import {DuplicateReleaseError} from './errors';
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -200,6 +201,16 @@ interface PullRequestNode {
 
 export interface PullRequests {
   pullRequests: Nodes<PullRequestNode>;
+}
+
+interface ValidationError {
+  message: string;
+  errors?: {
+    resource: string;
+    code: string;
+    field: string;
+  }[];
+  documentation_url: string;
 }
 
 let probotMode = false;
@@ -1429,17 +1440,32 @@ export class GitHub {
   ): Promise<ReleaseCreateResponse> {
     logger.info(`creating release ${tagName}`);
     const name = packageName ? `${packageName} ${tagName}` : tagName;
-    return (
-      await this.request('POST /repos/:owner/:repo/releases', {
-        owner: this.owner,
-        repo: this.repo,
-        tag_name: tagName,
-        target_commitish: sha,
-        body: releaseNotes,
-        name,
-        draft: draft,
-      })
-    ).data;
+    try {
+      return (
+        await this.request('POST /repos/:owner/:repo/releases', {
+          owner: this.owner,
+          repo: this.repo,
+          tag_name: tagName,
+          target_commitish: sha,
+          body: releaseNotes,
+          name,
+          draft: draft,
+        })
+      ).data;
+    } catch (e) {
+      if (e instanceof RequestError) {
+        const errors = (e.response?.data as ValidationError).errors || [];
+        if (
+          e.status === 422 &&
+          errors.some(error => {
+            return error.code === 'already_exists';
+          })
+        ) {
+          throw new DuplicateReleaseError(tagName);
+        }
+      }
+      throw e;
+    }
   }
 
   async removeLabels(labels: string[], prNumber: number): Promise<boolean> {

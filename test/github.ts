@@ -24,6 +24,9 @@ import * as snapshot from 'snap-shot-it';
 import {GitHub, Repository, PullRequests} from '../src/github';
 import {fail} from 'assert';
 import {PREdge} from '../src/graphql-to-commits';
+import assert = require('assert');
+import {DuplicateReleaseError} from '../src/errors';
+import {RequestError} from '@octokit/request-error';
 
 const fixturesPath = './test/fixtures';
 
@@ -808,6 +811,61 @@ describe('GitHub', () => {
       expect(release).to.not.be.undefined;
       expect(release!.tag_name).to.eql('v1.2.3');
       expect(release!.draft).to.be.false;
+    });
+
+    it('should raise a DuplicateReleaseError if already_exists', async () => {
+      req
+        .post('/repos/fake/fake/releases', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(422, {
+          message: 'Validation Failed',
+          errors: [
+            {
+              resource: 'Release',
+              code: 'already_exists',
+              field: 'tag_name',
+            },
+          ],
+          documentation_url:
+            'https://docs.github.com/rest/reference/repos#create-a-release',
+        });
+
+      const promise = github.createRelease(
+        '',
+        'v1.2.3',
+        'abc123',
+        'Some release notes',
+        false
+      );
+      await assert.rejects(promise, error => {
+        return error instanceof DuplicateReleaseError;
+      });
+    });
+
+    it('should raise a RequestError for other validation errors', async () => {
+      req
+        .post('/repos/fake/fake/releases', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(422, {
+          message: 'Invalid request.\n\n"tag_name" wasn\'t supplied.',
+          documentation_url:
+            'https://docs.github.com/rest/reference/repos#create-a-release',
+        });
+
+      const promise = github.createRelease(
+        '',
+        'v1.2.3',
+        'abc123',
+        'Some release notes',
+        false
+      );
+      await assert.rejects(promise, error => {
+        return error instanceof RequestError;
+      });
     });
   });
 
