@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.13.2](https://www.github.com/googleapis/release-please/compare/v11.13.1...v11.13.2) (2021-07-01)
+
+
+### Bug Fixes
+
+* convert unnecessary error logs to warnings ([#942](https://www.github.com/googleapis/release-please/issues/942)) ([5741164](https://www.github.com/googleapis/release-please/commit/574116406f16fe625ab8cee08e26f43c6d942424))
+
 ### [11.13.1](https://www.github.com/googleapis/release-please/compare/v11.13.0...v11.13.1) (2021-06-18)
 
 
