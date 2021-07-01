@@ -1119,7 +1119,7 @@ export class GitHub {
     // If the PR is being created from a fork, it will not have permission
     // to add and remove labels from the PR:
     if (this.fork) {
-      logger.error(
+      logger.warn(
         'release labels were not added, due to PR being created from fork'
       );
       return false;
@@ -1189,7 +1189,7 @@ export class GitHub {
 
     // Short-circuit if there have been no changes to the pull-request body.
     if (openReleasePR && openReleasePR.body === options.body) {
-      logger.error(
+      logger.info(
         `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`
       );
       return undefined;
@@ -1257,7 +1257,7 @@ export class GitHub {
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
         if (!update.create) {
-          logger.error(`file ${chalk.green(update.path)} did not exist`);
+          logger.warn(`file ${chalk.green(update.path)} did not exist`);
           continue;
         }
       }

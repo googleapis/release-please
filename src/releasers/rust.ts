@@ -61,7 +61,7 @@ export class Rust extends ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry)) {
-      logger.error(
+      logger.warn(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
         }`
@@ -188,7 +188,7 @@ export class Rust extends ReleasePR {
         }`
       );
     } else {
-      logger.error(`no commits found since ${sha}`);
+      logger.warn(`no commits found since ${sha}`);
     }
 
     return commits;

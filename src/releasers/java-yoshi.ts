@@ -72,7 +72,7 @@ export class JavaYoshi extends ReleasePR {
       // of release based on whether a snapshot is needed or not
       this.snapshot = snapshotNeeded;
     } else if (!snapshotNeeded) {
-      logger.error('release asked for a snapshot, but no snapshot is needed');
+      logger.warn('release asked for a snapshot, but no snapshot is needed');
       return undefined;
     }
 
@@ -94,7 +94,7 @@ export class JavaYoshi extends ReleasePR {
           labels: true,
         });
     if (commits.length === 0) {
-      logger.error(
+      logger.warn(
         `no commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
         }`
@@ -139,7 +139,7 @@ export class JavaYoshi extends ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry) && !this.snapshot) {
-      logger.error(
+      logger.warn(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
         }`
