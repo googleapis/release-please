@@ -38,7 +38,7 @@ export class Changelog implements Update {
     // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
     const lastEntryIndex = content.search(/\n###? v?[0-9[]/s);
     if (lastEntryIndex === -1) {
-      logger.error(`${this.path} not found`);
+      logger.warn(`${this.path} not found`);
       logger.info(`creating ${this.path}`);
       return `${this.header()}\n${this.changelogEntry}\n`;
     } else {

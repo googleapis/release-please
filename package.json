@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "11.13.0",
+  "version": "11.13.1",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -13,9 +13,7 @@
     "lint": "gts check",
     "compile": "tsc -p .",
     "fix": "gts fix",
-    "pretest": "npm run compile",
-    "api-extractor": "api-extractor run --local",
-    "api-documenter": "api-documenter yaml --input-folder=temp"
+    "pretest": "npm run compile"
   },
   "files": [
     "build/src",

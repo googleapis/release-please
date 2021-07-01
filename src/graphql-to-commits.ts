@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {PageInfo, GitHub} from './github';
+import {logger} from './util/logger';
 
 const CONVENTIONAL_COMMIT_REGEX = /^[\w]+(\(\w+\))?!?: /;
 
@@ -142,7 +143,7 @@ async function graphqlToCommit(
         // TODO: figure out why prEdge.node.number sometimes links to
         // data in GitHub that no longer exists, this would only cause
         // issues for mono-repos that use commit-split.
-        console.warn(err);
+        logger.warn(err);
         break;
       }
       continue;

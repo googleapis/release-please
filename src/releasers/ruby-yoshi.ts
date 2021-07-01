@@ -53,7 +53,7 @@ export class RubyYoshi extends ReleasePR {
       path: packageName.name,
     });
     if (commits.length === 0) {
-      logger.error(`no commits found since ${lastReleaseSha}`);
+      logger.warn(`no commits found since ${lastReleaseSha}`);
       return undefined;
     } else {
       const cc = new ConventionalCommits({
@@ -75,12 +75,15 @@ export class RubyYoshi extends ReleasePR {
         ),
         changelogSections: CHANGELOG_SECTIONS,
       });
+      const githubTag: GitHubTag | undefined = this.lastPackageVersion
+        ? ({
+            version: this.lastPackageVersion,
+            name: this.lastPackageVersion,
+          } as GitHubTag)
+        : undefined;
       const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
         cc,
-        {
-          version: this.lastPackageVersion,
-          name: this.lastPackageVersion,
-        } as GitHubTag
+        githubTag
       );
       const changelogEntry: string = await cc.generateChangelogEntry({
         version: candidate.version,
@@ -92,7 +95,7 @@ export class RubyYoshi extends ReleasePR {
       // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
       // one line is a good indicator that there were no interesting commits.
       if (this.changelogEmpty(changelogEntry)) {
-        logger.error(
+        logger.warn(
           `no user facing commits found since ${
             lastReleaseSha ? lastReleaseSha : 'beginning of time'
           }`
