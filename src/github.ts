@@ -98,7 +98,7 @@ import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {RELEASE_PLEASE, GH_API_URL} from './constants';
 import {GitHubConstructorOptions} from '.';
-import {DuplicateReleaseError} from './errors';
+import {DuplicateReleaseError, GitHubAPIError} from './errors';
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -1454,15 +1454,16 @@ export class GitHub {
       ).data;
     } catch (e) {
       if (e instanceof RequestError) {
-        const errors = (e.response?.data as ValidationError).errors || [];
+        const errors = GitHubAPIError.parseErrors(e);
         if (
           e.status === 422 &&
           errors.some(error => {
             return error.code === 'already_exists';
           })
         ) {
-          throw new DuplicateReleaseError(tagName);
+          throw new DuplicateReleaseError(e, tagName);
         }
+        throw new GitHubAPIError(e);
       }
       throw e;
     }

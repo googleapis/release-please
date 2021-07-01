@@ -12,9 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export class DuplicateReleaseError extends Error {
-  constructor(tag: string) {
-    super(`${tag} already exists`);
+import {RequestError} from '@octokit/request-error';
+import {RequestError as RequestErrorBody} from '@octokit/types';
+
+interface SingleError {
+  resource: string;
+  code: string;
+  field: string;
+  message?: string;
+}
+
+export class GitHubAPIError extends Error {
+  body: RequestErrorBody | undefined;
+  constructor(requestError: RequestError, message?: string) {
+    super(message ?? requestError.message);
+    this.body = GitHubAPIError.parseErrorBody(requestError);
+    this.name = GitHubAPIError.name;
+  }
+
+  static parseErrorBody(requestError: RequestError): RequestErrorBody {
+    return (requestError.response as {data: RequestErrorBody}).data;
+  }
+
+  static parseErrors(requestError: RequestError): SingleError[] {
+    return GitHubAPIError.parseErrorBody(requestError).errors || [];
+  }
+}
+
+export class DuplicateReleaseError extends GitHubAPIError {
+  constructor(requestError: RequestError, tag: string) {
+    super(requestError, tag);
     this.name = DuplicateReleaseError.name;
   }
 }

@@ -25,8 +25,7 @@ import {GitHub, Repository, PullRequests} from '../src/github';
 import {fail} from 'assert';
 import {PREdge} from '../src/graphql-to-commits';
 import assert = require('assert');
-import {DuplicateReleaseError} from '../src/errors';
-import {RequestError} from '@octokit/request-error';
+import {DuplicateReleaseError, GitHubAPIError} from '../src/errors';
 
 const fixturesPath = './test/fixtures';
 
@@ -864,7 +863,7 @@ describe('GitHub', () => {
         false
       );
       await assert.rejects(promise, error => {
-        return error instanceof RequestError;
+        return error instanceof GitHubAPIError;
       });
     });
   });
