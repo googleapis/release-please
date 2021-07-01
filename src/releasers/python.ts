@@ -108,7 +108,7 @@ export class Python extends ReleasePR {
         );
       }
     } else {
-      logger.error(
+      logger.warn(
         parsedPyProject
           ? 'invalid pyproject.toml'
           : `file ${chalk.green('pyproject.toml')} did not exist`

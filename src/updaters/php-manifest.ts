@@ -41,7 +41,7 @@ export class PHPManifest implements Update {
 
   updateContent(content: string): string {
     if (!this.versions || this.versions.size === 0) {
-      logger.error(`no updates necessary for ${this.path}`);
+      logger.info(`no updates necessary for ${this.path}`);
       return content;
     }
     const parsed = JSON.parse(content);
