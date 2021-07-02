@@ -1825,6 +1825,12 @@ export class GitHub {
   );
 }
 
+/**
+ * Wrap an async method with error handling
+ *
+ * @param fn Async function that can throw Errors
+ * @param errorHandler An optional error handler for rethrowing custom exceptions
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const wrapAsync = <T extends Array<any>, V>(
   fn: (...args: T) => Promise<V>,
