@@ -40,9 +40,19 @@ export class GitHubAPIError extends Error {
   }
 }
 
+export class AuthError extends GitHubAPIError {
+  constructor(requestError: RequestError) {
+    super(requestError, 'unauthorized');
+    this.status = 401;
+    this.name = AuthError.name;
+  }
+}
+
 export class DuplicateReleaseError extends GitHubAPIError {
+  tag: string;
   constructor(requestError: RequestError, tag: string) {
-    super(requestError, tag);
+    super(requestError);
+    this.tag = tag;
     this.name = DuplicateReleaseError.name;
   }
 }
