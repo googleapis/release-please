@@ -203,16 +203,6 @@ export interface PullRequests {
   pullRequests: Nodes<PullRequestNode>;
 }
 
-interface ValidationError {
-  message: string;
-  errors?: {
-    resource: string;
-    code: string;
-    field: string;
-  }[];
-  documentation_url: string;
-}
-
 let probotMode = false;
 
 export class GitHub {
@@ -1417,30 +1407,30 @@ export class GitHub {
     );
   }
 
-  async getFileContentsOnBranch(
-    path: string,
-    branch: string
-  ): Promise<GitHubFileContents> {
-    try {
-      return await this.getFileContentsWithSimpleAPI(path, branch);
-    } catch (err) {
-      if (err.status === 403) {
-        return await this.getFileContentsWithDataAPI(path, branch);
+  getFileContentsOnBranch = wrap(
+    async (path: string, branch: string): Promise<GitHubFileContents> => {
+      try {
+        return await this.getFileContentsWithSimpleAPI(path, branch);
+      } catch (err) {
+        if (err.status === 403) {
+          return await this.getFileContentsWithDataAPI(path, branch);
+        }
+        throw err;
       }
-      throw err;
-    }
-  }
+    },
+    defaultErrorHandler
+  );
 
-  async createRelease(
-    packageName: string,
-    tagName: string,
-    sha: string,
-    releaseNotes: string,
-    draft: boolean
-  ): Promise<ReleaseCreateResponse> {
-    logger.info(`creating release ${tagName}`);
-    const name = packageName ? `${packageName} ${tagName}` : tagName;
-    try {
+  createRelease = wrap(
+    async (
+      packageName: string,
+      tagName: string,
+      sha: string,
+      releaseNotes: string,
+      draft: boolean
+    ): Promise<ReleaseCreateResponse> => {
+      logger.info(`creating release ${tagName}`);
+      const name = packageName ? `${packageName} ${tagName}` : tagName;
       return (
         await this.request('POST /repos/:owner/:repo/releases', {
           owner: this.owner,
@@ -1452,7 +1442,8 @@ export class GitHub {
           draft: draft,
         })
       ).data;
-    } catch (e) {
+    },
+    e => {
       if (e instanceof RequestError) {
         const errors = GitHubAPIError.parseErrors(e);
         if (
@@ -1461,13 +1452,12 @@ export class GitHub {
             return error.code === 'already_exists';
           })
         ) {
-          throw new DuplicateReleaseError(e, tagName);
+          throw new DuplicateReleaseError(e, 'tagName');
         }
         throw new GitHubAPIError(e);
       }
-      throw e;
     }
-  }
+  );
 
   async removeLabels(labels: string[], prNumber: number): Promise<boolean> {
     if (this.fork) return false;
@@ -1670,3 +1660,24 @@ class AuthError extends Error {
     this.status = 401;
   }
 }
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const wrap = <T extends Array<any>, V>(
+  fn: (...args: T) => Promise<V>,
+  errorHandler: (e: Error) => void
+) => {
+  return async (...args: T): Promise<V> => {
+    try {
+      return await fn(...args);
+    } catch (e) {
+      errorHandler(e);
+      throw e;
+    }
+  };
+};
+
+const defaultErrorHandler = (e: Error) => {
+  if (e instanceof RequestError) {
+    throw new GitHubAPIError(e);
+  }
+};

@@ -19,13 +19,14 @@ interface SingleError {
   resource: string;
   code: string;
   field: string;
-  message?: string;
 }
 
 export class GitHubAPIError extends Error {
   body: RequestErrorBody | undefined;
+  status: number;
   constructor(requestError: RequestError, message?: string) {
     super(message ?? requestError.message);
+    this.status = requestError.status;
     this.body = GitHubAPIError.parseErrorBody(requestError);
     this.name = GitHubAPIError.name;
   }
