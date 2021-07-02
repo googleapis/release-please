@@ -749,49 +749,53 @@ export class GitHub {
     };
   }
 
-  private allTags = wrapAsync(async (prefix?: string): Promise<{
-    [version: string]: GitHubTag;
-  }> => {
-    // If we've fallen back to using allTags, support "-", "@", and "/" as a
-    // suffix separating the library name from the version #. This allows
-    // a repository to be seamlessly be migrated from a tool like lerna:
-    const prefixes: string[] = [];
-    if (prefix) {
-      prefix = prefix.substring(0, prefix.length - 1);
-      for (const suffix of ['-', '@', '/']) {
-        prefixes.push(`${prefix}${suffix}`);
+  private allTags = wrapAsync(
+    async (
+      prefix?: string
+    ): Promise<{
+      [version: string]: GitHubTag;
+    }> => {
+      // If we've fallen back to using allTags, support "-", "@", and "/" as a
+      // suffix separating the library name from the version #. This allows
+      // a repository to be seamlessly be migrated from a tool like lerna:
+      const prefixes: string[] = [];
+      if (prefix) {
+        prefix = prefix.substring(0, prefix.length - 1);
+        for (const suffix of ['-', '@', '/']) {
+          prefixes.push(`${prefix}${suffix}`);
+        }
       }
-    }
-    const tags: {[version: string]: GitHubTag} = {};
-    for await (const response of this.octokit.paginate.iterator(
-      this.decoratePaginateOpts({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100`,
-      })
-    )) {
-      response.data.forEach(data => {
-        // For monorepos, a prefix can be provided, indicating that only tags
-        // matching the prefix should be returned:
-        if (!isReposListResponse(data)) return;
-        let version = data.name;
-        if (prefix) {
-          let match = false;
-          for (prefix of prefixes) {
-            if (data.name.startsWith(prefix)) {
-              version = data.name.replace(prefix, '');
-              match = true;
+      const tags: {[version: string]: GitHubTag} = {};
+      for await (const response of this.octokit.paginate.iterator(
+        this.decoratePaginateOpts({
+          method: 'GET',
+          url: `/repos/${this.owner}/${this.repo}/tags?per_page=100`,
+        })
+      )) {
+        response.data.forEach(data => {
+          // For monorepos, a prefix can be provided, indicating that only tags
+          // matching the prefix should be returned:
+          if (!isReposListResponse(data)) return;
+          let version = data.name;
+          if (prefix) {
+            let match = false;
+            for (prefix of prefixes) {
+              if (data.name.startsWith(prefix)) {
+                version = data.name.replace(prefix, '');
+                match = true;
+              }
             }
+            if (!match) return;
           }
-          if (!match) return;
-        }
-        if (semver.valid(version)) {
-          version = semver.valid(version) as string;
-          tags[version] = {sha: data.commit.sha, name: data.name, version};
-        }
-      });
+          if (semver.valid(version)) {
+            version = semver.valid(version) as string;
+            tags[version] = {sha: data.commit.sha, name: data.name, version};
+          }
+        });
+      }
+      return tags;
     }
-    return tags;
-  });
+  );
 
   private async mergeCommitsGraphQL(
     cursor?: string
