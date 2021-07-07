@@ -85,7 +85,6 @@ export class Manifest {
   headManifest?: ManifestJson;
 
   constructor(options: ManifestConstructorOptions) {
-    console.log(`building Manifest with options`, options);
     this.gh = options.github;
     this.configFileName = options.configFile || RELEASE_PLEASE_CONFIG;
     this.manifestFileName = options.manifestFile || RELEASE_PLEASE_MANIFEST;
@@ -134,7 +133,6 @@ export class Manifest {
       }
       return;
     }
-    console.log(`getFileJSON(${fileName}, ${sha}) result`, content);
     return JSON.parse(content.parsedContent);
   }
 
@@ -278,19 +276,15 @@ export class Manifest {
     sha?: string
   ): Promise<PackageForReleaser[]> {
     const packages = (await this.getConfigJson()).parsedPackages;
-    console.log({packages});
     const [manifestVersions, atSha] = await this.getManifestVersions(sha);
-    console.log({manifestVersions, atSha});
     const cs = new CommitSplit({
       includeEmpty: true,
       packagePaths: packages.map(p => p.path),
     });
     const commitsPerPath = cs.split(allCommits);
-    console.log({commitsPerPath});
     const packagesToRelease: Record<string, PackageForReleaser> = {};
     const missingVersionPaths = [];
     const defaultBranch = await this.gh.getDefaultBranch();
-    console.log({defaultBranch});
     for (const pkg of packages) {
       // The special path of '.' indicates the root module is being released
       // in this case, use the entire list of commits:
@@ -381,7 +375,6 @@ export class Manifest {
         );
       }
     }
-    console.log(`passed config validation`);
 
     const manifestValidation = await this.validateJsonFile(
       'getManifestJson',
@@ -404,7 +397,6 @@ export class Manifest {
         }
       }
     }
-    console.log(`passed manifest validation`);
 
     return validConfig && validManifest;
   }
@@ -595,7 +587,6 @@ export class Manifest {
     const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
     console.log({lastMergedPR});
     const commits = await this.commitsSinceSha(lastMergedPR?.sha);
-    console.log({commits});
     const packagesForReleasers = await this.getPackagesToRelease(
       commits,
       lastMergedPR?.sha
