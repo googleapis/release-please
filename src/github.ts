@@ -848,6 +848,9 @@ export class GitHub {
 
     // if the branch does exist, return null
     if (!response.repository.ref) {
+      logger.warn(
+        `Could not find commits for branch ${targetBranch} - it likely does not exist.`
+      );
       return null;
     }
     const history = response.repository.ref.target.history;
