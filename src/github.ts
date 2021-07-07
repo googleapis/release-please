@@ -799,7 +799,7 @@ export class GitHub {
 
   private async mergeCommitsGraphQL(
     cursor?: string
-  ): Promise<PullRequestHistory|null> {
+  ): Promise<PullRequestHistory | null> {
     const targetBranch = await this.getDefaultBranch();
     const response = await this.graphqlRequest({
       query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $targetBranch: String!, $cursor: String) {
@@ -924,9 +924,8 @@ export class GitHub {
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
-      const response: PullRequestHistory|null = await this.mergeCommitsGraphQL(
-        cursor
-      );
+      const response: PullRequestHistory | null =
+        await this.mergeCommitsGraphQL(cursor);
       // no response usually means that the branch can't be found
       if (!response) {
         break;
