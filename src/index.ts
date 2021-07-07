@@ -116,6 +116,7 @@ export interface ReleasePRConstructorOptions
   extends ReleasePROptions,
     ReleaserConstructorOptions {
   labels?: string[];
+  forManifestReleaser?: boolean;
 }
 
 // GitHubRelease Constructor options

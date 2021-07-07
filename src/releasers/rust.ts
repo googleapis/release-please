@@ -51,10 +51,17 @@ export class Rust extends ReleasePR {
     const manifestPaths: string[] = [];
     let lockPath: string;
 
+    if (this.forManifestReleaser) {
+      logger.info(
+        `working for manifest releaser, only touching package, not dependencies`
+      );
+    }
+
     if (
       workspaceManifest &&
       workspaceManifest.workspace &&
-      workspaceManifest.workspace.members
+      workspaceManifest.workspace.members &&
+      !this.forManifestReleaser
     ) {
       const members = workspaceManifest.workspace.members;
       logger.info(
@@ -86,7 +93,7 @@ export class Rust extends ReleasePR {
       );
     }
 
-    if (await this.exists(lockPath)) {
+    if ((await this.exists(lockPath)) && !this.forManifestReleaser) {
       updates.push(
         new CargoLock({
           path: lockPath,

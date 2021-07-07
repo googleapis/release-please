@@ -1192,7 +1192,8 @@ export class GitHub {
       logger.info(
         `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`
       );
-      return undefined;
+      logger.info(`(FOR PR) Updating PR anyway.`);
+      // return undefined;
     }
 
     //  Update the files for the release if not already supplied
@@ -1239,14 +1240,21 @@ export class GitHub {
   ): Promise<Changes> {
     const changes = new Map();
     for (const update of updates) {
-      console.log('Applying update', {update});
       let content;
       try {
-        if (update.contents) {
+        let previousChange = changes.get(update.path);
+        if (previousChange) {
+          // several changes can touch the same path: just chain them.
+          console.log(
+            `a ${update.constructor.name} update is touching ${update.path} again`
+          );
+          content = previousChange.content;
+        } else if (update.contents) {
           // we already loaded the file contents earlier, let's not
           // hit GitHub again.
           content = {data: update.contents};
         } else {
+          // slow path: fetch the contents from GitHub
           const fileContent = await this.getFileContentsOnBranch(
             update.path,
             defaultBranch
@@ -1267,14 +1275,10 @@ export class GitHub {
         : undefined;
       const updatedContent = update.updateContent(contentText);
       if (updatedContent) {
-        console.log('Old content:', contentText);
-        console.log('New content:', updatedContent);
         changes.set(update.path, {
           content: updatedContent,
           mode: '100644',
         });
-      } else {
-        console.log('No content update');
       }
     }
     return changes;

@@ -420,6 +420,7 @@ export class Manifest {
     const releaserClass = factory.releasePRClass(releaseType);
     const releasePR = new releaserClass({
       github: this.gh,
+      forManifestReleaser: true,
       ...releaserOptions,
     });
     return [releasePR, draft];
@@ -466,7 +467,6 @@ export class Manifest {
           openPROptions.updates,
           await this.gh.getDefaultBranch()
         );
-        console.log(`full changes for ${pkgName.name}:`, changes);
         pkgsWithChanges.push({
           config: pkg.config,
           prData: {version: openPROptions.version, changes},
@@ -558,10 +558,8 @@ export class Manifest {
       body += this.buildPRBody(pkg);
       changes = new Map([...changes, ...pkg.prData.changes]);
     }
-    console.log('all pkg changes:', changes);
     const manifestChanges = await this.getManifestChanges(newManifestVersions);
     changes = new Map([...changes, ...manifestChanges]);
-    console.log('all changes incl. manifest;', changes);
     body +=
       '\n\nThis PR was generated with [Release Please]' +
       `(https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation]` +
