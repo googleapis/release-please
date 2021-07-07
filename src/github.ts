@@ -1242,19 +1242,11 @@ export class GitHub {
     for (const update of updates) {
       let content;
       try {
-        let previousChange = changes.get(update.path);
-        if (previousChange) {
-          // several changes can touch the same path: just chain them.
-          console.log(
-            `a ${update.constructor.name} update is touching ${update.path} again`
-          );
-          content = previousChange.content;
-        } else if (update.contents) {
+        if (update.contents) {
           // we already loaded the file contents earlier, let's not
           // hit GitHub again.
           content = {data: update.contents};
         } else {
-          // slow path: fetch the contents from GitHub
           const fileContent = await this.getFileContentsOnBranch(
             update.path,
             defaultBranch
