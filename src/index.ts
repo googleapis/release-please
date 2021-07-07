@@ -20,6 +20,7 @@ import {Checkpoint} from './util/checkpoint';
 import {Changes} from 'code-suggester';
 
 export {ReleaseCandidate, ReleasePR} from './release-pr';
+export * as Errors from './errors';
 
 // Used by GitHub: Factory and Constructor
 interface GitHubOptions {
