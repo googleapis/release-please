@@ -1239,6 +1239,7 @@ export class GitHub {
   ): Promise<Changes> {
     const changes = new Map();
     for (const update of updates) {
+      console.log('Applying update', {update});
       let content;
       try {
         if (update.contents) {
@@ -1266,10 +1267,14 @@ export class GitHub {
         : undefined;
       const updatedContent = update.updateContent(contentText);
       if (updatedContent) {
+        console.log('Old content:', contentText);
+        console.log('New content:', updatedContent);
         changes.set(update.path, {
           content: updatedContent,
           mode: '100644',
         });
+      } else {
+        console.log('No content update');
       }
     }
     return changes;

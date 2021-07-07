@@ -85,6 +85,7 @@ export class Manifest {
   headManifest?: ManifestJson;
 
   constructor(options: ManifestConstructorOptions) {
+    console.log(`building Manifest with options`, options);
     this.gh = options.github;
     this.configFileName = options.configFile || RELEASE_PLEASE_CONFIG;
     this.manifestFileName = options.manifestFile || RELEASE_PLEASE_MANIFEST;
@@ -133,6 +134,7 @@ export class Manifest {
       }
       return;
     }
+    console.log(`getFileJSON(${fileName}, ${sha}) result`, content);
     return JSON.parse(content.parsedContent);
   }
 
@@ -276,15 +278,19 @@ export class Manifest {
     sha?: string
   ): Promise<PackageForReleaser[]> {
     const packages = (await this.getConfigJson()).parsedPackages;
+    console.log({packages});
     const [manifestVersions, atSha] = await this.getManifestVersions(sha);
+    console.log({manifestVersions, atSha});
     const cs = new CommitSplit({
       includeEmpty: true,
       packagePaths: packages.map(p => p.path),
     });
     const commitsPerPath = cs.split(allCommits);
+    console.log({commitsPerPath});
     const packagesToRelease: Record<string, PackageForReleaser> = {};
     const missingVersionPaths = [];
     const defaultBranch = await this.gh.getDefaultBranch();
+    console.log({defaultBranch});
     for (const pkg of packages) {
       // The special path of '.' indicates the root module is being released
       // in this case, use the entire list of commits:
@@ -375,6 +381,7 @@ export class Manifest {
         );
       }
     }
+    console.log(`passed config validation`);
 
     const manifestValidation = await this.validateJsonFile(
       'getManifestJson',
@@ -397,6 +404,8 @@ export class Manifest {
         }
       }
     }
+    console.log(`passed manifest validation`);
+
     return validConfig && validManifest;
   }
 
@@ -457,6 +466,7 @@ export class Manifest {
           openPROptions.updates,
           await this.gh.getDefaultBranch()
         );
+        console.log(`full changes for ${pkgName.name}:`, changes);
         pkgsWithChanges.push({
           config: pkg.config,
           prData: {version: openPROptions.version, changes},
@@ -548,8 +558,10 @@ export class Manifest {
       body += this.buildPRBody(pkg);
       changes = new Map([...changes, ...pkg.prData.changes]);
     }
+    console.log('all pkg changes:', changes);
     const manifestChanges = await this.getManifestChanges(newManifestVersions);
     changes = new Map([...changes, ...manifestChanges]);
+    console.log('all changes incl. manifest;', changes);
     body +=
       '\n\nThis PR was generated with [Release Please]' +
       `(https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation]` +
@@ -581,16 +593,21 @@ export class Manifest {
     }
 
     const branchName = (await this.getBranchName()).toString();
+    console.log({branchName});
     const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
+    console.log({lastMergedPR});
     const commits = await this.commitsSinceSha(lastMergedPR?.sha);
+    console.log({commits});
     const packagesForReleasers = await this.getPackagesToRelease(
       commits,
       lastMergedPR?.sha
     );
+    console.log({packagesForReleasers});
     let [newManifestVersions, pkgsWithChanges] = await this.runReleasers(
       packagesForReleasers,
       lastMergedPR?.sha
     );
+    console.log({newManifestVersions, pkgsWithChanges});
     if (pkgsWithChanges.length === 0) {
       this.checkpoint(
         'No user facing changes to release',

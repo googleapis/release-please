@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePR, ReleaseCandidate} from '../release-pr';
+import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 
-import {ConventionalCommits} from '../conventional-commits';
 import {GitHubFileContents, GitHubTag} from '../github';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
@@ -28,49 +27,15 @@ import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
 import {logger} from '../util/logger';
 
 export class Rust extends ReleasePR {
-  protected async _run(): Promise<number | undefined> {
-    const prefix = this.monorepoTags ? `${this.packageName}-` : undefined;
+  private packageManifest?: CargoManifest | null;
+  private workspaceManifest?: CargoManifest | null;
+  private _packageName?: string;
 
-    const latestTag: GitHubTag | undefined = await this.latestTag(prefix);
-    const commits: Commit[] = await this.commits({
-      sha: latestTag ? latestTag.sha : undefined,
-      path: this.path,
-    });
-
-    const cc = new ConventionalCommits({
-      commits,
-      owner: this.gh.owner,
-      repository: this.gh.repo,
-      bumpMinorPreMajor: this.bumpMinorPreMajor,
-      changelogSections: this.changelogSections,
-    });
-    const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(
-      cc,
-      latestTag
-    );
-
-    const changelogEntry: string = await cc.generateChangelogEntry({
-      version: candidate.version,
-      currentTag: await this.normalizeTagName(candidate.version),
-      previousTag: candidate.previousTag
-        ? await this.normalizeTagName(candidate.previousTag)
-        : undefined,
-    });
-
-    // don't create a release candidate until user facing changes
-    // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
-    // one line is a good indicator that there were no interesting commits.
-    if (this.changelogEmpty(changelogEntry)) {
-      logger.warn(
-        `no user facing commits found since ${
-          latestTag ? latestTag.sha : 'beginning of time'
-        }`
-      );
-      return undefined;
-    }
-
-    const workspaceManifest = await this.getWorkspaceManifest();
-
+  protected async buildUpdates(
+    changelogEntry: string,
+    candidate: ReleaseCandidate,
+    packageName: PackageName
+  ): Promise<Update[]> {
     const updates: Update[] = [];
 
     updates.push(
@@ -78,10 +43,11 @@ export class Rust extends ReleasePR {
         path: this.addPath(this.changelogPath),
         changelogEntry,
         version: candidate.version,
-        packageName: this.packageName,
+        packageName: packageName.name,
       })
     );
 
+    const workspaceManifest = await this.getWorkspaceManifest();
     const manifestPaths: string[] = [];
     let lockPath: string;
 
@@ -106,7 +72,7 @@ export class Rust extends ReleasePR {
     }
 
     const versions = new Map();
-    versions.set(this.packageName, candidate.version);
+    versions.set(packageName.name, candidate.version);
 
     for (const path of manifestPaths) {
       updates.push(
@@ -115,7 +81,7 @@ export class Rust extends ReleasePR {
           changelogEntry,
           version: 'unused',
           versions,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     }
@@ -127,18 +93,12 @@ export class Rust extends ReleasePR {
           changelogEntry,
           version: 'unused',
           versions,
-          packageName: this.packageName,
+          packageName: packageName.name,
         })
       );
     }
 
-    return await this.openPR({
-      sha: commits[0].sha!,
-      changelogEntry: `${changelogEntry}\n---\n`,
-      updates,
-      version: candidate.version,
-      includePackageName: this.monorepoTags,
-    });
+    return updates;
   }
 
   protected async commits(opts: GetCommitsOptions): Promise<Commit[]> {
@@ -198,10 +158,43 @@ export class Rust extends ReleasePR {
     return '0.1.0';
   }
 
+  // Always prefer the Cargo.toml name
+  async getPackageName(): Promise<PackageName> {
+    if (this._packageName === undefined) {
+      const packageManifest = await this.getPackageManifest();
+      this.packageName = this._packageName =
+        packageManifest?.package?.name ?? this.packageName;
+    }
+    return {
+      name: this.packageName,
+      getComponent: () => this.packageName,
+    };
+  }
+
+  /**
+   * @returns the package's manifest, ie. `crates/foobar/Cargo.toml`
+   */
+  protected async getPackageManifest(): Promise<CargoManifest | null> {
+    if (this.packageManifest === undefined) {
+      this.packageManifest = await this.getManifest(this.addPath('Cargo.toml'));
+    }
+    return this.packageManifest;
+  }
+
+  /**
+   * @returns the workspace's manifest, ie. `Cargo.toml` (top-level)
+   */
   protected async getWorkspaceManifest(): Promise<CargoManifest | null> {
+    if (this.workspaceManifest === undefined) {
+      this.workspaceManifest = await this.getManifest('Cargo.toml');
+    }
+    return this.workspaceManifest;
+  }
+
+  protected async getManifest(path: string): Promise<CargoManifest | null> {
     let content: GitHubFileContents;
     try {
-      content = await this.gh.getFileContents('Cargo.toml');
+      content = await this.gh.getFileContents(path);
     } catch (e) {
       return null;
     }
