@@ -545,6 +545,22 @@ exports['GitHub createRelease should create a release without a package prefix 1
   "draft": false
 }
 
+exports['GitHub createRelease should raise a DuplicateReleaseError if already_exists 1'] = {
+  "tag_name": "v1.2.3",
+  "target_commitish": "abc123",
+  "body": "Some release notes",
+  "name": "v1.2.3",
+  "draft": false
+}
+
+exports['GitHub createRelease should raise a RequestError for other validation errors 1'] = {
+  "tag_name": "v1.2.3",
+  "target_commitish": "abc123",
+  "body": "Some release notes",
+  "name": "v1.2.3",
+  "draft": false
+}
+
 exports['GitHub findFilesByExtension returns files matching the requested pattern 1'] = [
   "appengine/pom.xml",
   "bom/pom.xml",

@@ -114,7 +114,7 @@ export class GoYoshi extends ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry)) {
-      logger.error(
+      logger.warn(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
         }`

@@ -145,9 +145,7 @@ export class GitHubRelease {
         body: params.release.body,
       };
     } else {
-      console.warn(
-        `failed to parse version information from ${params.version}`
-      );
+      logger.warn(`failed to parse version information from ${params.version}`);
       return undefined;
     }
   }

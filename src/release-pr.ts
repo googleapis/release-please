@@ -157,7 +157,7 @@ export class ReleasePR {
     // (fix, feat, BREAKING CHANGE) have been made; a CHANGELOG that's
     // one line is a good indicator that there were no interesting commits.
     if (this.changelogEmpty(changelogEntry)) {
-      logger.error(
+      logger.warn(
         `no user facing commits found since ${
           latestTag ? latestTag.sha : 'beginning of time'
         }`
@@ -184,7 +184,7 @@ export class ReleasePR {
   async run(): Promise<number | undefined> {
     await this.validateConfiguration();
     if (this.snapshot && !this.supportsSnapshots()) {
-      logger.error('snapshot releases not supported for this releaser');
+      logger.warn('snapshot releases not supported for this releaser');
       return;
     }
     const mergedPR = await this.gh.findMergedReleasePR(
@@ -195,7 +195,7 @@ export class ReleasePR {
     );
     if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
-      logger.error(
+      logger.warn(
         `pull #${mergedPR.number} ${mergedPR.sha} has not yet been released`
       );
       return undefined;
@@ -257,7 +257,7 @@ export class ReleasePR {
         if (includePackageName && !pr.title.includes(` ${packageName.name} `)) {
           continue;
         }
-        logger.error(`closing pull #${pr.number}`);
+        logger.info(`closing pull #${pr.number}`);
         await this.gh.closePR(pr.number);
       }
     }
@@ -484,13 +484,13 @@ export class ReleasePR {
     await this.validateConfiguration();
     const mergedPR = await this.findMergedRelease();
     if (!mergedPR) {
-      logger.error('No merged release PR found');
+      logger.warn('No merged release PR found');
       return undefined;
     }
     const branchName = BranchName.parse(mergedPR.headRefName);
     const version = await this.detectReleaseVersion(mergedPR, branchName);
     if (!version) {
-      logger.error('Unable to detect release version');
+      logger.warn('Unable to detect release version');
       return undefined;
     }
     return this.buildReleaseForVersion(version, mergedPR);
