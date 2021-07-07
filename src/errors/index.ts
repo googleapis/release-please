@@ -24,11 +24,13 @@ interface SingleError {
 export class GitHubAPIError extends Error {
   body: RequestErrorBody | undefined;
   status: number;
+  cause?: Error;
   constructor(requestError: RequestError, message?: string) {
     super(message ?? requestError.message);
     this.status = requestError.status;
     this.body = GitHubAPIError.parseErrorBody(requestError);
     this.name = GitHubAPIError.name;
+    this.cause = requestError;
   }
 
   static parseErrorBody(requestError: RequestError): RequestErrorBody {

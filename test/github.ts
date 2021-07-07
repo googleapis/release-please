@@ -839,7 +839,12 @@ describe('GitHub', () => {
         false
       );
       await assert.rejects(promise, error => {
-        return error instanceof DuplicateReleaseError;
+        return (
+          error instanceof DuplicateReleaseError &&
+          // ensure stack contains calling method
+          error.stack?.includes('GitHub.createRelease') &&
+          !!error.cause
+        );
       });
     });
 
@@ -863,7 +868,12 @@ describe('GitHub', () => {
         false
       );
       await assert.rejects(promise, error => {
-        return error instanceof GitHubAPIError;
+        return (
+          error instanceof GitHubAPIError &&
+          // ensure stack contains calling method
+          error.stack?.includes('GitHub.createRelease') &&
+          !!error.cause
+        );
       });
     });
   });

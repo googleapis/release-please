@@ -1606,7 +1606,6 @@ export class GitHub {
         ) {
           throw new DuplicateReleaseError(e, 'tagName');
         }
-        throw new GitHubAPIError(e);
       }
     }
   );
