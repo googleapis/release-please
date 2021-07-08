@@ -644,6 +644,23 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('returns empty commits if branch does not exist', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-since-missing-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitsSinceSha = await github.commitsSince(_commit => {
+        return true;
+      });
+      expect(commitsSinceSha.length).to.eql(0);
+      req.done();
+    });
   });
 
   describe('findMergeCommit', () => {
