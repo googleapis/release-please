@@ -10,7 +10,7 @@ The motivation of the manifest-based releaser is support for monorepos:
 * a combined [Release PR](https://github.com/googleapis/release-please#whats-a-release-pr) will be created for all configured packages.
 * release configuration for potentially hundreds of libraries is combined in two configuration files.
 
-Note: currently only `node` and `python` release types are supported.
+Note: currently only `node`, `python`, and `rust` release types are supported.
 
 ## Quick Start
 
@@ -102,7 +102,7 @@ documented in comments)
 
   // see Plugins section below
   // absence defaults to [] (i.e. no plugins)
-  "plugins": ["node-workspace"],
+  "plugins": ["node-workspace", "cargo-workspace"],
 
   // optional top-level defaults that can be overriden per package:
 
@@ -158,11 +158,16 @@ documented in comments)
 
     "path/to/myJSPkgB": {
       // overrides release-type for node
-      "release-type": "node"
+      "release-type": "node",
       // overrides default release-as.
       // see top level note about deleting/modifying after release PR merge
       "release-as": "3.2.1"
     },
+
+    "path/to/my-rust-crate", {
+      // override release-type for rust
+      "release-type": "rust"
+    }
 
     "path/to/myPyPkgA": {
       // when a default release-as is set, this is how you revert to using
@@ -321,3 +326,19 @@ be patch bump the package, create a changelog entry, and add it to the list of
 PR changes. Under the hood this plugin adapts specific dependency graph building
 and updating functionality from the popular
 [lerna](https://github.com/lerna/lerna) tool.
+
+### cargo-workspace
+
+The `cargo-workspace` plugin operates similarly to the `node-workspace` plugin,
+but on a Cargo workspace. It also builds a dependency graph of all packages in a
+workspace, and updates any packages that were directly bumped by release-please,
+or that should be patch-bumped because one of their transitive dependencies was
+bumped. The cargo lockfile is also updated.
+
+Note: when the Rust updater is used standalone (with the `release-pr` /
+`github-release` commands), it also tries to update monorepo dependencies, but
+it doesn't build a crate graph. When the Rust updater is used in conjunction
+with the manifest releaser (`manifest-pr` / `manifest-release` commands), it
+does _not_ update the dependencies, and the `cargo-workspace` plug-in must be
+used to update dependencies and bump all dependents — this is the recommended
+way of managing a Rust monorepo with release-please.
