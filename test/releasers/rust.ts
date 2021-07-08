@@ -66,7 +66,7 @@ describe('Rust', () => {
           .stub(releasePR.gh, 'findOpenReleasePRs')
           .returns(Promise.resolve([]));
 
-        // Lookup the default branch name:
+        // Look up the default branch name:
         sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
 
         // Fetch files from GitHub, in prep to update with code-suggester:
@@ -146,7 +146,7 @@ describe('Rust', () => {
           .stub(releasePR.gh, 'findOpenReleasePRs')
           .returns(Promise.resolve([]));
 
-        // Lookup the default branch name:
+        // Look up the default branch name:
         sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
 
         // Fetch files from GitHub, in prep to update with code-suggester:
@@ -197,6 +197,107 @@ describe('Rust', () => {
             ),
             parsedContent: crate2ManifestContent,
           });
+
+        if (opts.hasCargoLock) {
+          // a top-level `Cargo.lock` exists and is for both packages
+          const lockfileContent = readFileSync(
+            resolve(fixturesPath, 'Cargo.lock'),
+            'utf8'
+          );
+          getFileContentsStub.withArgs('Cargo.lock', 'main').resolves({
+            sha: 'abc123',
+            content: Buffer.from(lockfileContent, 'utf8').toString('base64'),
+            parsedContent: lockfileContent,
+          });
+        }
+
+        // Nothing else exists:
+        getFileContentsStub.rejects(
+          Object.assign(Error('not found'), {status: 404})
+        );
+
+        // Call to add autorelease: pending label:
+        sandbox.stub(releasePR.gh, 'addLabels');
+
+        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+        await releasePR.run();
+      });
+
+      it(`creates a release PR for manifest releaser for monorepo ${suffix}`, async function () {
+        const releasePR = new Rust({
+          github: new GitHub({owner: 'fasterthanlime', repo: 'rust-test-repo'}),
+          packageName: 'crate1',
+          path: 'crates/crate1',
+          monorepoTags: true,
+          forManifestReleaser: true,
+        });
+
+        // Indicates that there are no PRs currently waiting to be released:
+        sandbox
+          .stub(releasePR.gh, 'findMergedReleasePR')
+          .returns(Promise.resolve(undefined));
+
+        // Return latest tag used to determine next version #:
+        sandbox.stub(releasePR, 'latestTag').returns(
+          Promise.resolve({
+            sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            name: 'crate1-v0.123.4',
+            version: '0.123.4',
+          })
+        );
+
+        // Commits, used to build CHANGELOG, and propose next version bump:
+        sandbox
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .stub(releasePR.gh as any, 'commitsSinceSha')
+          .returns(Promise.resolve(readPOJO('commits-fix')));
+
+        // See if there are any release PRs already open, we do this as
+        // we consider opening a new release-pr:
+        sandbox
+          .stub(releasePR.gh, 'findOpenReleasePRs')
+          .returns(Promise.resolve([]));
+
+        // Look up the default branch name:
+        sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
+
+        // Fetch files from GitHub, in prep to update with code-suggester:
+        const getFileContentsStub = sandbox.stub(
+          releasePR.gh,
+          'getFileContentsOnBranch'
+        );
+
+        // 'Cargo.toml' exists and is for the workspace
+        const workspaceManifestContent = readFileSync(
+          resolve(fixturesPath, 'Cargo-workspace.toml'),
+          'utf8'
+        );
+        getFileContentsStub.withArgs('Cargo.toml', 'main').resolves({
+          sha: 'abc123',
+          content: Buffer.from(workspaceManifestContent, 'utf8').toString(
+            'base64'
+          ),
+          parsedContent: workspaceManifestContent,
+        });
+
+        // 'crates/crate1/Cargo.toml' exists and is for the `crate1` package
+        const crate1ManifestContent = readFileSync(
+          resolve(fixturesPath, 'Cargo-crate1.toml'),
+          'utf8'
+        );
+        getFileContentsStub
+          .withArgs('crates/crate1/Cargo.toml', 'main')
+          .resolves({
+            sha: 'abc123',
+            content: Buffer.from(crate1ManifestContent, 'utf8').toString(
+              'base64'
+            ),
+            parsedContent: crate1ManifestContent,
+          });
+
+        // 'crates/crate2/Cargo.toml' should never even be accessed, because
+        // we're working for the manifest releaser and so we're not bumping
+        // dependencies.
 
         if (opts.hasCargoLock) {
           // a top-level `Cargo.lock` exists and is for both packages
