@@ -39,10 +39,7 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
     newManifestVersions: VersionsMap,
     pkgsWithPRData: ManifestPackageWithPRData[]
   ): Promise<[VersionsMap, ManifestPackageWithPRData[]]> {
-    console.log('hello from the cargo-workspace plugin!');
-
     let workspaceManifest = await this.getWorkspaceManifest();
-    console.log({workspaceManifest});
 
     if (!workspaceManifest.workspace) {
       throw new Error(
@@ -63,7 +60,6 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
       }
       versions.set(data.config.packageName!, data.prData.version);
     }
-    console.log({versions});
 
     // Try to upgrade /all/ packages, even those release-please did not bump
     for (const pkgPath of workspaceManifest.workspace.members) {
@@ -92,7 +88,7 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
       });
       let newContent = dependencyUpdates.updateContent(content);
       if (newContent === content) {
-        // guess that package didn't contain anything
+        // guess that package didn't depend on any of the bumped packages
         continue;
       }
 
@@ -103,12 +99,11 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
 
       if (targetPkg) {
         // package was already bumped by release-please, just update the change
-        // to also include dependency updates
+        // to also include dependency updates.
         targetPkg?.prData.changes.set(manifestPath, updatedManifest);
       } else {
         // package was not bumped by release-please, but let's bump it ourselves,
-        // because one of its dependencies was upgraded
-
+        // because one of its dependencies was upgraded.
         let pkgVersion = manifest.package?.version;
         if (!pkgVersion) {
           throw new Error(

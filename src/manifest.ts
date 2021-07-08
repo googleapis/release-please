@@ -583,20 +583,16 @@ export class Manifest {
     }
 
     const branchName = (await this.getBranchName()).toString();
-    console.log({branchName});
     const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
-    console.log({lastMergedPR});
     const commits = await this.commitsSinceSha(lastMergedPR?.sha);
     const packagesForReleasers = await this.getPackagesToRelease(
       commits,
       lastMergedPR?.sha
     );
-    console.log({packagesForReleasers});
     let [newManifestVersions, pkgsWithChanges] = await this.runReleasers(
       packagesForReleasers,
       lastMergedPR?.sha
     );
-    console.log({newManifestVersions, pkgsWithChanges});
     if (pkgsWithChanges.length === 0) {
       this.checkpoint(
         'No user facing changes to release',
