@@ -233,6 +233,96 @@ describe('CargoWorkspaceDependencyUpdates', () => {
       expect(() => postOrder(g)).to.throw();
     });
 
+    it('refuses to work on a directory that is not a cargo workspace', async () => {
+      const config: Config = {
+        packages: {}, // unused, required by interface
+        parsedPackages: [{path: 'packages/pkgA', releaseType: 'rust'}],
+      };
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch: 'main',
+      });
+      const mock = mockGithub(github);
+
+      expectGetFiles(mock, [
+        [
+          'Cargo.toml',
+          `
+          # woops, not a workspace
+          [package]
+          name = "foobar"
+          version = "7.7.7"
+        `,
+        ],
+      ]);
+
+      // pkgA had a patch bump from manifest.runReleasers()
+      const newManifestVersions = new Map([['packages/pkgA', '1.1.2']]);
+      const pkgsWithPRData: ManifestPackageWithPRData[] = [pkgAData];
+
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const cargoWS = new CargoWorkspaceDependencyUpdates(
+        github,
+        config,
+        'cargo-workspace',
+        checkpoint
+      );
+      let caught;
+      try {
+        await cargoWS.run(newManifestVersions, pkgsWithPRData);
+      } catch (err) {
+        caught = err;
+      }
+      expect(caught).to.be.ok;
+    });
+
+    it('refuses to work on a cargo workspace without members', async () => {
+      const config: Config = {
+        packages: {}, // unused, required by interface
+        parsedPackages: [{path: 'packages/pkgA', releaseType: 'rust'}],
+      };
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch: 'main',
+      });
+      const mock = mockGithub(github);
+
+      expectGetFiles(mock, [
+        [
+          'Cargo.toml',
+          `
+          [workspace]
+          foo = "bar"
+        `,
+        ],
+      ]);
+
+      // pkgA had a patch bump from manifest.runReleasers()
+      const newManifestVersions = new Map([['packages/pkgA', '1.1.2']]);
+      const pkgsWithPRData: ManifestPackageWithPRData[] = [pkgAData];
+
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const cargoWS = new CargoWorkspaceDependencyUpdates(
+        github,
+        config,
+        'cargo-workspace',
+        checkpoint
+      );
+      let caught;
+      try {
+        await cargoWS.run(newManifestVersions, pkgsWithPRData);
+      } catch (err) {
+        caught = err;
+      }
+      expect(caught).to.be.ok;
+    });
+
     it('handles a simple chain where root pkg update cascades to dependents', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
