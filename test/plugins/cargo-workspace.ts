@@ -216,6 +216,15 @@ describe('CargoWorkspaceDependencyUpdates', () => {
       expect(postOrder(g)).to.eql(['d', 'c', 'b', 'a']);
     });
 
+    it('refuses to visit cyclic graph', () => {
+      const g = makeGraph([
+        {name: 'a', deps: ['b']},
+        {name: 'b', deps: ['c']},
+        {name: 'c', deps: ['a']},
+      ]);
+      expect(() => postOrder(g)).to.throw();
+    });
+
     it('handles a simple chain where root pkg update cascades to dependents', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
