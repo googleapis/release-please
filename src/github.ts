@@ -799,7 +799,7 @@ export class GitHub {
 
   private async mergeCommitsGraphQL(
     cursor?: string
-  ): Promise<PullRequestHistory> {
+  ): Promise<PullRequestHistory | null> {
     const targetBranch = await this.getDefaultBranch();
     const response = await this.graphqlRequest({
       query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $targetBranch: String!, $cursor: String) {
@@ -845,6 +845,14 @@ export class GitHub {
       num: 25,
       targetBranch,
     });
+
+    // if the branch does exist, return null
+    if (!response.repository.ref) {
+      logger.warn(
+        `Could not find commits for branch ${targetBranch} - it likely does not exist.`
+      );
+      return null;
+    }
     const history = response.repository.ref.target.history;
     const commits = (history.nodes || []) as GraphQLCommit[];
     return {
@@ -919,9 +927,12 @@ export class GitHub {
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
-      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
-        cursor
-      );
+      const response: PullRequestHistory | null =
+        await this.mergeCommitsGraphQL(cursor);
+      // no response usually means that the branch can't be found
+      if (!response) {
+        break;
+      }
       for (let i = 0; i < response.data.length; i++) {
         results += 1;
         yield response.data[i];
