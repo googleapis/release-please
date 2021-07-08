@@ -1284,8 +1284,7 @@ export class GitHub {
       logger.info(
         `PR https://github.com/${this.owner}/${this.repo}/pull/${openReleasePR.number} remained the same`
       );
-      logger.info(`(FOR PR) Updating PR anyway.`);
-      // return undefined;
+      return undefined;
     }
 
     //  Update the files for the release if not already supplied

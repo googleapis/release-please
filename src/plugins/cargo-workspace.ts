@@ -12,24 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {FileData, FileMode} from 'code-suggester/build/src/types';
+import {FileData} from 'code-suggester/build/src/types';
 import * as semver from 'semver';
 import {ManifestPackageWithPRData} from '..';
 import {GitHubFileContents} from '../github';
 import {CargoLock} from '../updaters/rust/cargo-lock';
 import {CargoToml} from '../updaters/rust/cargo-toml';
-import {
-  CargoManifest,
-  parseCargoLockfile,
-  parseCargoManifest,
-} from '../updaters/rust/common';
-import {Update, VersionsMap} from '../updaters/update';
+import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
+import {VersionsMap} from '../updaters/update';
 import {CheckpointType} from '../util/checkpoint';
 import {ManifestPlugin} from './plugin';
 
 export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
   private async getWorkspaceManifest(): Promise<CargoManifest> {
-    let content: GitHubFileContents = await this.gh.getFileContents(
+    const content: GitHubFileContents = await this.gh.getFileContents(
       'Cargo.toml'
     );
     return parseCargoManifest(content.parsedContent);
@@ -39,7 +35,7 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
     newManifestVersions: VersionsMap,
     pkgsWithPRData: ManifestPackageWithPRData[]
   ): Promise<[VersionsMap, ManifestPackageWithPRData[]]> {
-    let workspaceManifest = await this.getWorkspaceManifest();
+    const workspaceManifest = await this.getWorkspaceManifest();
 
     if (!workspaceManifest.workspace) {
       throw new Error(
@@ -63,15 +59,15 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
 
     // Try to upgrade /all/ packages, even those release-please did not bump
     for (const pkgPath of workspaceManifest.workspace.members) {
-      let manifestPath = `${pkgPath}/Cargo.toml`;
-      let targetPkg = pkgsWithPRData.find(pkg => pkg.config.path === pkgPath);
+      const manifestPath = `${pkgPath}/Cargo.toml`;
+      const targetPkg = pkgsWithPRData.find(pkg => pkg.config.path === pkgPath);
 
       // original contents of the manifest for the target package
-      let content =
+      const content =
         targetPkg?.prData.changes.get(manifestPath)?.content ??
         (await this.gh.getFileContents(manifestPath)).parsedContent;
-      let manifest = await parseCargoManifest(content);
-      let pkgName = manifest.package?.name;
+      const manifest = await parseCargoManifest(content);
+      const pkgName = manifest.package?.name;
       if (!pkgName) {
         throw new Error(
           `package at ${pkgPath} does not have a name in its Cargo manifest`
@@ -79,20 +75,20 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
       }
 
       // This should update all the dependencies that have been bumped by release-please
-      let dependencyUpdates = new CargoToml({
+      const dependencyUpdates = new CargoToml({
         path: manifestPath,
         changelogEntry: 'updating dependencies',
         version: 'unused',
         versions,
         packageName: 'unused',
       });
-      let newContent = dependencyUpdates.updateContent(content);
+      const newContent = dependencyUpdates.updateContent(content);
       if (newContent === content) {
         // guess that package didn't depend on any of the bumped packages
         continue;
       }
 
-      let updatedManifest: FileData = {
+      const updatedManifest: FileData = {
         content: newContent,
         mode: '100644',
       };
@@ -104,7 +100,7 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
       } else {
         // package was not bumped by release-please, but let's bump it ourselves,
         // because one of its dependencies was upgraded.
-        let pkgVersion = manifest.package?.version;
+        const pkgVersion = manifest.package?.version;
         if (!pkgVersion) {
           throw new Error(
             `cannot bump ${pkgPath}, it has no version in its Cargo manifest`
@@ -123,7 +119,7 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
           version = patch;
         }
 
-        let changes = new Map();
+        const changes = new Map();
         changes.set(manifestPath, updatedManifest);
 
         pkgsWithPRData.push({
@@ -141,8 +137,8 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
 
     // Upgrade package.lock
     {
-      let lockfilePath = 'Cargo.lock';
-      let dependencyUpdates = new CargoLock({
+      const lockfilePath = 'Cargo.lock';
+      const dependencyUpdates = new CargoLock({
         path: lockfilePath,
         changelogEntry: 'updating cargo lockfile',
         version: 'unused',
@@ -150,12 +146,12 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
         packageName: 'unused',
       });
 
-      let oldContent = (await this.gh.getFileContents(lockfilePath))
+      const oldContent = (await this.gh.getFileContents(lockfilePath))
         .parsedContent;
-      let newContent = dependencyUpdates.updateContent(oldContent);
+      const newContent = dependencyUpdates.updateContent(oldContent);
       if (newContent !== oldContent) {
-        let changes = new Map();
-        let updatedLockfile: FileData = {
+        const changes = new Map();
+        const updatedLockfile: FileData = {
           content: newContent,
           mode: '100644',
         };

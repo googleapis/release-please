@@ -14,7 +14,7 @@
 
 import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 
-import {GitHubFileContents, GitHubTag} from '../github';
+import {GitHubFileContents} from '../github';
 import {Update} from '../updaters/update';
 import {Commit} from '../graphql-to-commits';
 
@@ -53,7 +53,7 @@ export class Rust extends ReleasePR {
 
     if (this.forManifestReleaser) {
       logger.info(
-        `working for manifest releaser, only touching package, not dependencies`
+        'working for manifest releaser, only touching package, not dependencies'
       );
     }
 
