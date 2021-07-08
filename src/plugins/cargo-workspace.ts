@@ -91,13 +91,8 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
       pkgsWithPRData
     );
     const crateInfoMap = new Map(crateInfos.map(crate => [crate.name, crate]));
-    console.log({crateInfoMap});
-
     const crateGraph = buildCrateGraph(crateInfoMap);
-    console.log({crateGraph});
-
     const order = postOrder(crateGraph);
-    console.log({order});
 
     const orderedCrates = order.map(name => crateInfoMap.get(name)!);
 
