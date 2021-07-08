@@ -122,6 +122,7 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
         const changes = new Map();
         changes.set(manifestPath, updatedManifest);
 
+        newManifestVersions.set(pkgPath, version);
         pkgsWithPRData.push({
           config: {
             path: pkgPath,
