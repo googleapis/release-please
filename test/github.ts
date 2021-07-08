@@ -24,6 +24,8 @@ import * as snapshot from 'snap-shot-it';
 import {GitHub, Repository, PullRequests} from '../src/github';
 import {fail} from 'assert';
 import {PREdge} from '../src/graphql-to-commits';
+import assert = require('assert');
+import {DuplicateReleaseError, GitHubAPIError} from '../src/errors';
 
 const fixturesPath = './test/fixtures';
 
@@ -642,6 +644,23 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('returns empty commits if branch does not exist', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-since-missing-branch.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const commitsSinceSha = await github.commitsSince(_commit => {
+        return true;
+      });
+      expect(commitsSinceSha.length).to.eql(0);
+      req.done();
+    });
   });
 
   describe('findMergeCommit', () => {
@@ -808,6 +827,71 @@ describe('GitHub', () => {
       expect(release).to.not.be.undefined;
       expect(release!.tag_name).to.eql('v1.2.3');
       expect(release!.draft).to.be.false;
+    });
+
+    it('should raise a DuplicateReleaseError if already_exists', async () => {
+      req
+        .post('/repos/fake/fake/releases', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(422, {
+          message: 'Validation Failed',
+          errors: [
+            {
+              resource: 'Release',
+              code: 'already_exists',
+              field: 'tag_name',
+            },
+          ],
+          documentation_url:
+            'https://docs.github.com/rest/reference/repos#create-a-release',
+        });
+
+      const promise = github.createRelease(
+        '',
+        'v1.2.3',
+        'abc123',
+        'Some release notes',
+        false
+      );
+      await assert.rejects(promise, error => {
+        return (
+          error instanceof DuplicateReleaseError &&
+          // ensure stack contains calling method
+          error.stack?.includes('GitHub.createRelease') &&
+          !!error.cause
+        );
+      });
+    });
+
+    it('should raise a RequestError for other validation errors', async () => {
+      req
+        .post('/repos/fake/fake/releases', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(422, {
+          message: 'Invalid request.\n\n"tag_name" wasn\'t supplied.',
+          documentation_url:
+            'https://docs.github.com/rest/reference/repos#create-a-release',
+        });
+
+      const promise = github.createRelease(
+        '',
+        'v1.2.3',
+        'abc123',
+        'Some release notes',
+        false
+      );
+      await assert.rejects(promise, error => {
+        return (
+          error instanceof GitHubAPIError &&
+          // ensure stack contains calling method
+          error.stack?.includes('GitHub.createRelease') &&
+          !!error.cause
+        );
+      });
     });
   });
 

@@ -21,6 +21,7 @@ import {Changes} from 'code-suggester';
 import {CCVersion} from './cc_versions';
 
 export {ReleaseCandidate, ReleasePR} from './release-pr';
+export * as Errors from './errors';
 
 // Used by GitHub: Factory and Constructor
 interface GitHubOptions {

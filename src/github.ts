@@ -18,13 +18,13 @@ import {logger} from './util/logger';
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
-import {Endpoints} from '@octokit/types';
+import {Endpoints, EndpointOptions, OctokitResponse} from '@octokit/types';
+import {RequestError} from '@octokit/request-error';
 // The return types for responses have not yet been exposed in the
 // @octokit/* libraries, we explicitly define the types below to work
 // around this,. See: https://github.com/octokit/rest.js/issues/1624
 // https://github.com/octokit/types.ts/issues/25.
 import {PromiseValue} from 'type-fest';
-import {EndpointOptions, OctokitResponse} from '@octokit/types';
 type OctokitType = InstanceType<typeof Octokit>;
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
@@ -98,6 +98,7 @@ import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {RELEASE_PLEASE, GH_API_URL} from './constants';
 import {GitHubConstructorOptions} from '.';
+import {DuplicateReleaseError, GitHubAPIError, AuthError} from './errors';
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -266,23 +267,25 @@ export class GitHub {
     return this.graphql(opts);
   }
 
-  private async graphqlRequest(
-    opts: {
-      [key: string]: string | number | null | undefined;
-    },
-    maxRetries = 1
-  ) {
-    while (maxRetries >= 0) {
-      try {
-        return await this.makeGraphqlRequest(opts);
-      } catch (err) {
-        if (err.status !== 502) {
-          throw err;
+  private graphqlRequest = wrapAsync(
+    async (
+      opts: {
+        [key: string]: string | number | null | undefined;
+      },
+      maxRetries = 1
+    ) => {
+      while (maxRetries >= 0) {
+        try {
+          return await this.makeGraphqlRequest(opts);
+        } catch (err) {
+          if (err.status !== 502) {
+            throw err;
+          }
         }
+        maxRetries -= 1;
       }
-      maxRetries -= 1;
     }
-  }
+  );
 
   private decoratePaginateOpts(opts: EndpointOptions): EndpointOptions {
     if (probotMode) {
@@ -296,85 +299,103 @@ export class GitHub {
     }
   }
 
-  async commitsSinceShaRest(
-    sha?: string,
-    path?: string,
-    per_page = 100
-  ): Promise<Commit[]> {
-    let page = 1;
-    let found = false;
-    const baseBranch = await this.getDefaultBranch();
-    const commits: [string | null, string][] = [];
-    while (!found) {
-      const response = await this.request(
-        'GET /repos/{owner}/{repo}/commits{?sha,page,per_page,path}',
-        {
-          owner: this.owner,
-          repo: this.repo,
-          sha: baseBranch,
-          page,
-          per_page,
-          path,
-        }
-      );
-      for (const commit of (response as CommitsListResponse).data) {
-        if (commit.sha === sha) {
-          found = true;
-          break;
-        }
-        // skip merge commits
-        if (commit.parents.length === 2) {
-          continue;
-        }
-        commits.push([commit.sha, commit.commit.message]);
-      }
-      page++;
-    }
-    const ret = [];
-    for (const [ref, message] of commits) {
-      const files = [];
+  /**
+   * Returns the list of commits since a given SHA on the target branch
+   *
+   * @param {string} sha SHA of the base commit or undefined for all commits
+   * @param {string} path If provided, limit to commits that affect the provided path
+   * @param {number} per_page Pagination option. Defaults to 100
+   * @returns {Commit[]} List of commits
+   * @throws {GitHubAPIError} on an API error
+   */
+  commitsSinceShaRest = wrapAsync(
+    async (sha?: string, path?: string, per_page = 100): Promise<Commit[]> => {
       let page = 1;
-      let moreFiles = true;
-      while (moreFiles) {
-        // the "Get Commit" resource is a bit of an outlier in terms of GitHub's
-        // normal pagination: https://git.io/JmVZq
-        // The behavior is to return an object representing the commit, a
-        // property of which is an array of files. GitHub will return as many
-        // associated files as there are, up to a limit of 300, on the initial
-        // request. If there are more associated files, it will send "Links"
-        // headers to get the next set. There is a total limit of 3000
-        // files returned per commit.
-        // In practice, the links headers are just the same resourceID plus a
-        // "page=N" query parameter with "page=1" being the initial set.
-        //
-        // TODO: it is more robust to follow the link.next headers (in case
-        // GitHub ever changes the pattern) OR use ocktokit pagination for this
-        // endpoint when https://git.io/JmVll is addressed.
-        const response = (await this.request(
-          'GET /repos/{owner}/{repo}/commits/{ref}{?page}',
-          {owner: this.owner, repo: this.repo, ref, page}
-        )) as CommitGetResponse;
-        const commitFiles = response.data.files;
-        if (!commitFiles) {
-          moreFiles = false;
-          break;
-        }
-        files.push(...commitFiles.map(f => f.filename ?? ''));
-        // < 300 files means we hit the end
-        // page === 10 means we're at 3000 and that's the limit GH is gonna
-        // cough up anyway.
-        if (commitFiles.length < 300 || page === 10) {
-          moreFiles = false;
-          break;
+      let found = false;
+      const baseBranch = await this.getDefaultBranch();
+      const commits: [string | null, string][] = [];
+      while (!found) {
+        const response = await this.request(
+          'GET /repos/{owner}/{repo}/commits{?sha,page,per_page,path}',
+          {
+            owner: this.owner,
+            repo: this.repo,
+            sha: baseBranch,
+            page,
+            per_page,
+            path,
+          }
+        );
+        for (const commit of (response as CommitsListResponse).data) {
+          if (commit.sha === sha) {
+            found = true;
+            break;
+          }
+          // skip merge commits
+          if (commit.parents.length === 2) {
+            continue;
+          }
+          commits.push([commit.sha, commit.commit.message]);
         }
         page++;
       }
-      ret.push({sha: ref, message, files});
+      const ret = [];
+      for (const [ref, message] of commits) {
+        const files = [];
+        let page = 1;
+        let moreFiles = true;
+        while (moreFiles) {
+          // the "Get Commit" resource is a bit of an outlier in terms of GitHub's
+          // normal pagination: https://git.io/JmVZq
+          // The behavior is to return an object representing the commit, a
+          // property of which is an array of files. GitHub will return as many
+          // associated files as there are, up to a limit of 300, on the initial
+          // request. If there are more associated files, it will send "Links"
+          // headers to get the next set. There is a total limit of 3000
+          // files returned per commit.
+          // In practice, the links headers are just the same resourceID plus a
+          // "page=N" query parameter with "page=1" being the initial set.
+          //
+          // TODO: it is more robust to follow the link.next headers (in case
+          // GitHub ever changes the pattern) OR use ocktokit pagination for this
+          // endpoint when https://git.io/JmVll is addressed.
+          const response = (await this.request(
+            'GET /repos/{owner}/{repo}/commits/{ref}{?page}',
+            {owner: this.owner, repo: this.repo, ref, page}
+          )) as CommitGetResponse;
+          const commitFiles = response.data.files;
+          if (!commitFiles) {
+            moreFiles = false;
+            break;
+          }
+          files.push(...commitFiles.map(f => f.filename ?? ''));
+          // < 300 files means we hit the end
+          // page === 10 means we're at 3000 and that's the limit GH is gonna
+          // cough up anyway.
+          if (commitFiles.length < 300 || page === 10) {
+            moreFiles = false;
+            break;
+          }
+          page++;
+        }
+        ret.push({sha: ref, message, files});
+      }
+      return ret;
     }
-    return ret;
-  }
+  );
 
-  // Commit.files only for commits from PRs.
+  /**
+   * Returns the list of commits since a given SHA on the target branch
+   *
+   * Note: Commit.files only for commits from PRs.
+   *
+   * @param {string|undefined} sha SHA of the base commit or undefined for all commits
+   * @param {number} perPage Pagination option. Defaults to 100
+   * @param {boolean} labels Whether or not to return labels. Defaults to false
+   * @param {string|null} path If provided, limit to commits that affect the provided path
+   * @returns {Commit[]} List of commits
+   * @throws {GitHubAPIError} on an API error
+   */
   async commitsSinceSha(
     sha: string | undefined,
     perPage = 100,
@@ -546,6 +567,15 @@ export class GitHub {
     return graphqlToCommits(this, response);
   }
 
+  /**
+   * Return the pull request files
+   *
+   * @param {number} num Pull request number
+   * @param {string} cursor Pagination cursor
+   * @param {number} maxFilesChanged Number of files to return per page
+   * @return {PREdge}
+   * @throws {GitHubAPIError} on an API error
+   */
   async pullRequestFiles(
     num: number,
     cursor: string,
@@ -581,7 +611,14 @@ export class GitHub {
     return {node: response.repository.pullRequest} as PREdge;
   }
 
-  async getTagSha(name: string): Promise<string> {
+  /**
+   * Find the SHA of the commit at the provided tag.
+   *
+   * @param {string} name Tag name
+   * @returns {string} The SHA of the commit
+   * @throws {GitHubAPIError} on an API error
+   */
+  getTagSha = wrapAsync(async (name: string): Promise<string> => {
     const refResponse = (await this.request(
       'GET /repos/:owner/:repo/git/refs/tags/:name',
       {
@@ -591,7 +628,7 @@ export class GitHub {
       }
     )) as {data: GitRefResponse};
     return refResponse.data.object.sha;
-  }
+  });
 
   /**
    * Find the "last" merged PR given a headBranch. "last" here means
@@ -599,6 +636,7 @@ export class GitHub {
    *
    * @param {string} headBranch - e.g. "release-please/branches/main"
    * @returns {MergedGitHubPRWithFiles} - if found, otherwise undefined.
+   * @throws {GitHubAPIError} on an API error
    */
   async lastMergedPRByHeadBranch(
     headBranch: string
@@ -665,12 +703,23 @@ export class GitHub {
     return result;
   }
 
-  // If we can't find a release branch (a common cause of this, as an example
-  // is that we might be dealing with the first relese), use the last semver
-  // tag that's available on the repository:
-  // TODO: it would be good to not need to maintain this logic, and the
-  // logic that introspects version based on the prior release PR.
-  async latestTagFallback(prefix?: string, preRelease = false) {
+  /**
+   * If we can't find a release branch (a common cause of this, as an example
+   * is that we might be dealing with the first relese), use the last semver
+   * tag that's available on the repository:
+   *
+   * TODO: it would be good to not need to maintain this logic, and the
+   * logic that introspects version based on the prior release PR.
+   *
+   * @param {string} prefix If provided, filter the tags with this prefix
+   * @param {boolean} preRelease Whether or not to include pre-releases
+   * @return {GitHubTag|undefined}
+   * @throws {GitHubAPIError} on an API error   *
+   */
+  async latestTagFallback(
+    prefix?: string,
+    preRelease = false
+  ): Promise<GitHubTag | undefined> {
     const tags: {[version: string]: GitHubTag} = await this.allTags(prefix);
     const versions = Object.keys(tags).filter(t => {
       // remove any pre-releases from the list:
@@ -700,53 +749,57 @@ export class GitHub {
     };
   }
 
-  private async allTags(
-    prefix?: string
-  ): Promise<{[version: string]: GitHubTag}> {
-    // If we've fallen back to using allTags, support "-", "@", and "/" as a
-    // suffix separating the library name from the version #. This allows
-    // a repository to be seamlessly be migrated from a tool like lerna:
-    const prefixes: string[] = [];
-    if (prefix) {
-      prefix = prefix.substring(0, prefix.length - 1);
-      for (const suffix of ['-', '@', '/']) {
-        prefixes.push(`${prefix}${suffix}`);
+  private allTags = wrapAsync(
+    async (
+      prefix?: string
+    ): Promise<{
+      [version: string]: GitHubTag;
+    }> => {
+      // If we've fallen back to using allTags, support "-", "@", and "/" as a
+      // suffix separating the library name from the version #. This allows
+      // a repository to be seamlessly be migrated from a tool like lerna:
+      const prefixes: string[] = [];
+      if (prefix) {
+        prefix = prefix.substring(0, prefix.length - 1);
+        for (const suffix of ['-', '@', '/']) {
+          prefixes.push(`${prefix}${suffix}`);
+        }
       }
-    }
-    const tags: {[version: string]: GitHubTag} = {};
-    for await (const response of this.octokit.paginate.iterator(
-      this.decoratePaginateOpts({
-        method: 'GET',
-        url: `/repos/${this.owner}/${this.repo}/tags?per_page=100`,
-      })
-    )) {
-      response.data.forEach(data => {
-        // For monorepos, a prefix can be provided, indicating that only tags
-        // matching the prefix should be returned:
-        if (!isReposListResponse(data)) return;
-        let version = data.name;
-        if (prefix) {
-          let match = false;
-          for (prefix of prefixes) {
-            if (data.name.startsWith(prefix)) {
-              version = data.name.replace(prefix, '');
-              match = true;
+      const tags: {[version: string]: GitHubTag} = {};
+      for await (const response of this.octokit.paginate.iterator(
+        this.decoratePaginateOpts({
+          method: 'GET',
+          url: `/repos/${this.owner}/${this.repo}/tags?per_page=100`,
+        })
+      )) {
+        response.data.forEach(data => {
+          // For monorepos, a prefix can be provided, indicating that only tags
+          // matching the prefix should be returned:
+          if (!isReposListResponse(data)) return;
+          let version = data.name;
+          if (prefix) {
+            let match = false;
+            for (prefix of prefixes) {
+              if (data.name.startsWith(prefix)) {
+                version = data.name.replace(prefix, '');
+                match = true;
+              }
             }
+            if (!match) return;
           }
-          if (!match) return;
-        }
-        if (semver.valid(version)) {
-          version = semver.valid(version) as string;
-          tags[version] = {sha: data.commit.sha, name: data.name, version};
-        }
-      });
+          if (semver.valid(version)) {
+            version = semver.valid(version) as string;
+            tags[version] = {sha: data.commit.sha, name: data.name, version};
+          }
+        });
+      }
+      return tags;
     }
-    return tags;
-  }
+  );
 
   private async mergeCommitsGraphQL(
     cursor?: string
-  ): Promise<PullRequestHistory> {
+  ): Promise<PullRequestHistory | null> {
     const targetBranch = await this.getDefaultBranch();
     const response = await this.graphqlRequest({
       query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $targetBranch: String!, $cursor: String) {
@@ -792,6 +845,14 @@ export class GitHub {
       num: 25,
       targetBranch,
     });
+
+    // if the branch does exist, return null
+    if (!response.repository.ref) {
+      logger.warn(
+        `Could not find commits for branch ${targetBranch} - it likely does not exist.`
+      );
+      return null;
+    }
     const history = response.repository.ref.target.history;
     const commits = (history.nodes || []) as GraphQLCommit[];
     return {
@@ -837,6 +898,7 @@ export class GitHub {
    * @param {number} maxResults - Limit the number of results searched.
    *   Defaults to unlimited.
    * @returns {CommitWithPullRequest}
+   * @throws {GitHubAPIError} on an API error
    */
   async findMergeCommit(
     filter: CommitFilter,
@@ -859,14 +921,18 @@ export class GitHub {
    * @param maxResults {number} maxResults - Limit the number of results searched.
    *   Defaults to unlimited.
    * @yields {CommitWithPullRequest}
+   * @throws {GitHubAPIError} on an API error
    */
   async *mergeCommitIterator(maxResults: number = Number.MAX_SAFE_INTEGER) {
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
-      const response: PullRequestHistory = await this.mergeCommitsGraphQL(
-        cursor
-      );
+      const response: PullRequestHistory | null =
+        await this.mergeCommitsGraphQL(cursor);
+      // no response usually means that the branch can't be found
+      if (!response) {
+        break;
+      }
       for (let i = 0; i < response.data.length; i++) {
         results += 1;
         yield response.data[i];
@@ -887,6 +953,7 @@ export class GitHub {
    * @param {number} maxResults - Limit the number of results searched.
    *   Defaults to unlimited.
    * @returns {Commit[]} - List of commits to current branch
+   * @throws {GitHubAPIError} on an API error
    */
   async commitsSince(
     filter: CommitFilter,
@@ -914,56 +981,59 @@ export class GitHub {
    * @param {number} page - Page of results. Defaults to 1.
    * @param {number} perPage - Number of results per page. Defaults to 100.
    * @returns {MergedGitHubPR[]} - List of merged pull requests
+   * @throws {GitHubAPIError} on an API error
    */
-  async findMergedPullRequests(
-    targetBranch?: string,
-    page = 1,
-    perPage = 100
-  ): Promise<MergedGitHubPR[]> {
-    if (!targetBranch) {
-      targetBranch = await this.getDefaultBranch();
-    }
-    // TODO: is sorting by updated better?
-    const pullsResponse = (await this.request(
-      `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}&page=${page}&base=${targetBranch}&sort=created&direction=desc`,
-      {
-        owner: this.owner,
-        repo: this.repo,
+  findMergedPullRequests = wrapAsync(
+    async (
+      targetBranch?: string,
+      page = 1,
+      perPage = 100
+    ): Promise<MergedGitHubPR[]> => {
+      if (!targetBranch) {
+        targetBranch = await this.getDefaultBranch();
       }
-    )) as {data: PullsListResponseItems};
+      // TODO: is sorting by updated better?
+      const pullsResponse = (await this.request(
+        `GET /repos/:owner/:repo/pulls?state=closed&per_page=${perPage}&page=${page}&base=${targetBranch}&sort=created&direction=desc`,
+        {
+          owner: this.owner,
+          repo: this.repo,
+        }
+      )) as {data: PullsListResponseItems};
 
-    // TODO: distinguish between no more pages and a full page of
-    // closed, non-merged pull requests. At page size of 100, this unlikely
-    // to matter
+      // TODO: distinguish between no more pages and a full page of
+      // closed, non-merged pull requests. At page size of 100, this unlikely
+      // to matter
 
-    if (!pullsResponse.data) {
-      return [];
+      if (!pullsResponse.data) {
+        return [];
+      }
+
+      return (
+        pullsResponse.data
+          // only return merged pull requests
+          .filter(pull => {
+            return !!pull.merged_at;
+          })
+          .map(pull => {
+            const labels = pull.labels
+              ? pull.labels.map(l => {
+                  return l.name + '';
+                })
+              : [];
+            return {
+              sha: pull.merge_commit_sha!, // already filtered non-merged
+              number: pull.number,
+              baseRefName: pull.base.ref,
+              headRefName: pull.head.ref,
+              labels,
+              title: pull.title,
+              body: pull.body + '',
+            };
+          })
+      );
     }
-
-    return (
-      pullsResponse.data
-        // only return merged pull requests
-        .filter(pull => {
-          return !!pull.merged_at;
-        })
-        .map(pull => {
-          const labels = pull.labels
-            ? pull.labels.map(l => {
-                return l.name + '';
-              })
-            : [];
-          return {
-            sha: pull.merge_commit_sha!, // already filtered non-merged
-            number: pull.number,
-            baseRefName: pull.base.ref,
-            headRefName: pull.head.ref,
-            labels,
-            title: pull.title,
-            body: pull.body + '',
-          };
-        })
-    );
-  }
+  );
 
   /**
    * Helper to find the first merged pull request that matches the
@@ -975,6 +1045,7 @@ export class GitHub {
    *   returns whether a pull request matches certain criteria
    * @returns {MergedGitHubPR | undefined} - Returns the first matching
    *   pull request, or `undefined` if no matching pull request found.
+   * @throws {GitHubAPIError} on an API error
    */
   async findMergedPullRequest(
     targetBranch: string,
@@ -999,10 +1070,11 @@ export class GitHub {
     return undefined;
   }
 
-  // The default matcher will rule out pre-releases.
   /**
    * Find the last merged pull request that targeted the default
    * branch and looks like a release PR.
+   *
+   * Note: The default matcher will rule out pre-releases.
    *
    * @param {string[]} labels - If provided, ensure that the pull
    *   request has all of the specified labels
@@ -1013,6 +1085,7 @@ export class GitHub {
    * @param {number} maxResults - Limit the number of results searched.
    *   Defaults to unlimited.
    * @returns {MergedGitHubPR|undefined}
+   * @throws {GitHubAPIError} on an API error
    */
   async findMergedReleasePR(
     labels: string[],
@@ -1082,6 +1155,14 @@ export class GitHub {
     return hasAll;
   }
 
+  /**
+   * Find open pull requests with matching labels.
+   *
+   * @param {string[]} labels List of labels to match
+   * @param {number} perPage Optional. Defaults to 100
+   * @return {PullsListResponseItems} Pull requests
+   * @throws {GitHubAPIError} on an API error
+   */
   async findOpenReleasePRs(
     labels: string[],
     perPage = 100
@@ -1115,6 +1196,14 @@ export class GitHub {
     return openReleasePRs;
   }
 
+  /**
+   * Add labels to an issue or pull request
+   *
+   * @param {string[]} labels List of labels to add
+   * @param {number} pr Issue or pull request number
+   * @return {boolean} Whether or not the labels were added
+   * @throws {GitHubAPIError} on an API error
+   */
   async addLabels(labels: string[], pr: number): Promise<boolean> {
     // If the PR is being created from a fork, it will not have permission
     // to add and remove labels from the PR:
@@ -1139,11 +1228,20 @@ export class GitHub {
     return true;
   }
 
-  async findExistingReleaseIssue(
-    title: string,
-    labels: string[]
-  ): Promise<IssuesListResponseItem | undefined> {
-    try {
+  /**
+   * Find an existing release pull request with a matching title and labels
+   *
+   * @param {string} title Substring to match against the issue title
+   * @param {string[]} labels List of labels to match the issues
+   * @return {IssuesListResponseItem|undefined}
+   * @throws {AuthError} if the user is not authenticated to make this request
+   * @throws {GitHubAPIError} on other API errors
+   */
+  findExistingReleaseIssue = wrapAsync(
+    async (
+      title: string,
+      labels: string[]
+    ): Promise<IssuesListResponseItem | undefined> => {
       for await (const response of this.octokit.paginate.iterator(
         this.decoratePaginateOpts({
           method: 'GET',
@@ -1160,19 +1258,24 @@ export class GitHub {
           }
         }
       }
-    } catch (err) {
-      if (err.status === 404) {
+      return undefined;
+    },
+    e => {
+      if (e instanceof RequestError && e.status === 404) {
         // the most likely cause of a 404 during this step is actually
         // that the user does not have access to the repo:
-        throw new AuthError();
-      } else {
-        throw err;
+        throw new AuthError(e);
       }
     }
-    return undefined;
-  }
+  );
 
-  async openPR(options: GitHubPR): Promise<number | undefined> {
+  /**
+   * Open a pull request
+   *
+   * @param {GitHubPR} options The pull request options
+   * @throws {GitHubAPIError} on an API error
+   */
+  openPR = wrapAsync(async (options: GitHubPR): Promise<number | undefined> => {
     const defaultBranch = await this.getDefaultBranch();
 
     // check if there's an existing PR, so that we can opt to update it
@@ -1231,8 +1334,16 @@ export class GitHub {
     } else {
       return prNumber;
     }
-  }
+  });
 
+  /**
+   * Given a set of proposed updates, build a changeset to suggest.
+   *
+   * @param {Update[]} updates The proposed updates
+   * @param {string} defaultBranch The target branch
+   * @return {Changes} The changeset to suggest.
+   * @throws {GitHubAPIError} on an API error
+   */
   async getChangeSet(
     updates: Update[],
     defaultBranch: string
@@ -1286,6 +1397,7 @@ export class GitHub {
    * to the repository's default/primary branch.
    *
    * @returns {string}
+   * @throws {GitHubAPIError} on an API error
    */
   async getDefaultBranch(): Promise<string> {
     if (!this.defaultBranch) {
@@ -1298,8 +1410,9 @@ export class GitHub {
    * Returns the repository's default/primary branch.
    *
    * @returns {string}
+   * @throws {GitHubAPIError} on an API error
    */
-  async getRepositoryDefaultBranch(): Promise<string> {
+  getRepositoryDefaultBranch = wrapAsync(async (): Promise<string> => {
     if (this.repositoryDefaultBranch) {
       return this.repositoryDefaultBranch;
     }
@@ -1317,9 +1430,16 @@ export class GitHub {
       }
     ).default_branch;
     return this.repositoryDefaultBranch as string;
-  }
+  });
 
-  async closePR(prNumber: number): Promise<boolean> {
+  /**
+   * Close a pull request
+   *
+   * @param {number} prNumber The pull request number
+   * @returns {boolean} Whether the request was attempts
+   * @throws {GitHubAPIError} on an API error
+   */
+  closePR = wrapAsync(async (prNumber: number): Promise<boolean> => {
     if (this.fork) return false;
 
     await this.request('PATCH /repos/:owner/:repo/pulls/:pull_number', {
@@ -1329,7 +1449,7 @@ export class GitHub {
       state: 'closed',
     });
     return true;
-  }
+  });
 
   // Takes a potentially unqualified branch name, and turns it
   // into a fully qualified ref.
@@ -1344,29 +1464,49 @@ export class GitHub {
     return final;
   }
 
-  async getFileContentsWithSimpleAPI(
-    path: string,
-    ref: string,
-    isBranch = true
-  ): Promise<GitHubFileContents> {
-    ref = isBranch ? GitHub.fullyQualifyBranchRef(ref) : ref;
-    const options: RequestOptionsType = {
-      owner: this.owner,
-      repo: this.repo,
-      path,
-      ref,
-    };
-    const resp = await this.request(
-      'GET /repos/:owner/:repo/contents/:path',
-      options
-    );
-    return {
-      parsedContent: Buffer.from(resp.data.content, 'base64').toString('utf8'),
-      content: resp.data.content,
-      sha: resp.data.sha,
-    };
-  }
+  /**
+   * Fetch the contents of a file with the Contents API
+   *
+   * @param {string} path The path to the file in the repository
+   * @param {string} branch The branch to fetch from
+   * @returns {GitHubFileContents}
+   * @throws {GitHubAPIError} on other API errors
+   */
+  getFileContentsWithSimpleAPI = wrapAsync(
+    async (
+      path: string,
+      ref: string,
+      isBranch = true
+    ): Promise<GitHubFileContents> => {
+      ref = isBranch ? GitHub.fullyQualifyBranchRef(ref) : ref;
+      const options: RequestOptionsType = {
+        owner: this.owner,
+        repo: this.repo,
+        path,
+        ref,
+      };
+      const resp = await this.request(
+        'GET /repos/:owner/:repo/contents/:path',
+        options
+      );
+      return {
+        parsedContent: Buffer.from(resp.data.content, 'base64').toString(
+          'utf8'
+        ),
+        content: resp.data.content,
+        sha: resp.data.sha,
+      };
+    }
+  );
 
+  /**
+   * Fetch the contents of a file using the Git data API
+   *
+   * @param {string} path The path to the file in the repository
+   * @param {string} branch The branch to fetch from
+   * @returns {GitHubFileContents}
+   * @throws {GitHubAPIError} on other API errors
+   */
   async getFileContentsWithDataAPI(
     path: string,
     branch: string
@@ -1399,6 +1539,13 @@ export class GitHub {
     };
   }
 
+  /**
+   * Fetch the contents of a file from the configured branch
+   *
+   * @param {string} path The path to the file in the repository
+   * @returns {GitHubFileContents}
+   * @throws {GitHubAPIError} on other API errors
+   */
   async getFileContents(path: string): Promise<GitHubFileContents> {
     return await this.getFileContentsOnBranch(
       path,
@@ -1406,64 +1553,106 @@ export class GitHub {
     );
   }
 
-  async getFileContentsOnBranch(
-    path: string,
-    branch: string
-  ): Promise<GitHubFileContents> {
-    try {
-      return await this.getFileContentsWithSimpleAPI(path, branch);
-    } catch (err) {
-      if (err.status === 403) {
-        return await this.getFileContentsWithDataAPI(path, branch);
+  /**
+   * Fetch the contents of a file
+   *
+   * @param {string} path The path to the file in the repository
+   * @param {string} branch The branch to fetch from
+   * @returns {GitHubFileContents}
+   * @throws {GitHubAPIError} on other API errors
+   */
+  getFileContentsOnBranch = wrapAsync(
+    async (path: string, branch: string): Promise<GitHubFileContents> => {
+      try {
+        return await this.getFileContentsWithSimpleAPI(path, branch);
+      } catch (err) {
+        if (err.status === 403) {
+          return await this.getFileContentsWithDataAPI(path, branch);
+        }
+        throw err;
       }
-      throw err;
     }
-  }
+  );
 
-  async createRelease(
-    packageName: string,
-    tagName: string,
-    sha: string,
-    releaseNotes: string,
-    draft: boolean
-  ): Promise<ReleaseCreateResponse> {
-    logger.info(`creating release ${tagName}`);
-    const name = packageName ? `${packageName} ${tagName}` : tagName;
-    return (
-      await this.request('POST /repos/:owner/:repo/releases', {
-        owner: this.owner,
-        repo: this.repo,
-        tag_name: tagName,
-        target_commitish: sha,
-        body: releaseNotes,
-        name,
-        draft: draft,
-      })
-    ).data;
-  }
-
-  async removeLabels(labels: string[], prNumber: number): Promise<boolean> {
-    if (this.fork) return false;
-
-    for (let i = 0, label; i < labels.length; i++) {
-      label = labels[i];
-      logger.info(
-        `removing label ${chalk.green(label)} from ${chalk.green(
-          '' + prNumber
-        )}`
-      );
-      await this.request(
-        'DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name',
-        {
+  /**
+   * Create a GitHub release
+   *
+   * @param {string} packageName name of the package
+   * @param {string} tagName tag to create
+   * @param {string} sha SHA of commit to tag at
+   * @param {string} releaseNotes Notes to add to release
+   * @param {boolean} draft Whether or not to create the release as a draft
+   * @throws {DuplicateReleaseError} if the release tag already exists
+   * @throws {GitHubAPIError} on other API errors
+   */
+  createRelease = wrapAsync(
+    async (
+      packageName: string,
+      tagName: string,
+      sha: string,
+      releaseNotes: string,
+      draft: boolean
+    ): Promise<ReleaseCreateResponse> => {
+      logger.info(`creating release ${tagName}`);
+      const name = packageName ? `${packageName} ${tagName}` : tagName;
+      return (
+        await this.request('POST /repos/:owner/:repo/releases', {
           owner: this.owner,
           repo: this.repo,
-          issue_number: prNumber,
-          name: label,
+          tag_name: tagName,
+          target_commitish: sha,
+          body: releaseNotes,
+          name,
+          draft: draft,
+        })
+      ).data;
+    },
+    e => {
+      if (e instanceof RequestError) {
+        if (
+          e.status === 422 &&
+          GitHubAPIError.parseErrors(e).some(error => {
+            return error.code === 'already_exists';
+          })
+        ) {
+          throw new DuplicateReleaseError(e, 'tagName');
         }
-      );
+      }
     }
-    return true;
-  }
+  );
+
+  /**
+   * Remove labels from an issue or pull request
+   *
+   * @param {string[]} labels The names of the labels to remove
+   * @param {number} prNumber The issue or pull request number
+   * @return {boolean} Whether or not the request was attempted
+   * @throws {GitHubAPIError} on an API error
+   */
+  removeLabels = wrapAsync(
+    async (labels: string[], prNumber: number): Promise<boolean> => {
+      if (this.fork) return false;
+
+      for (let i = 0, label; i < labels.length; i++) {
+        label = labels[i];
+        logger.info(
+          `removing label ${chalk.green(label)} from ${chalk.green(
+            '' + prNumber
+          )}`
+        );
+        await this.request(
+          'DELETE /repos/:owner/:repo/issues/:issue_number/labels/:name',
+          {
+            owner: this.owner,
+            repo: this.repo,
+            issue_number: prNumber,
+            name: label,
+          }
+        );
+      }
+      return true;
+    }
+  );
 
   normalizePrefix(prefix: string) {
     return prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '');
@@ -1478,44 +1667,48 @@ export class GitHub {
    * @param filename The name of the file to find
    * @param ref Git reference to search files in
    * @param prefix Optional path prefix used to filter results
+   * @throws {GitHubAPIError} on an API error
    */
-  async findFilesByFilenameAndRef(
-    filename: string,
-    ref: string,
-    prefix?: string
-  ): Promise<string[]> {
-    if (prefix) {
-      prefix = this.normalizePrefix(prefix);
-    }
-    const response: {
-      data: GitGetTreeResponse;
-    } = await this.octokit.git.getTree({
-      owner: this.owner,
-      repo: this.repo,
-      tree_sha: ref,
-      recursive: 'true',
-    });
-    return response.data.tree
-      .filter(file => {
-        const path = file.path;
-        return (
-          path &&
-          // match the filename
-          path.endsWith(filename) &&
-          // match the prefix if provided
-          (!prefix || path.startsWith(prefix))
-        );
-      })
-      .map(file => {
-        let path = file.path!;
-        // strip the prefix if provided
-        if (prefix) {
-          const pfix = new RegExp(`^${prefix}[/\\\\]`);
-          path = path.replace(pfix, '');
-        }
-        return path;
+  findFilesByFilenameAndRef = wrapAsync(
+    async (
+      filename: string,
+      ref: string,
+      prefix?: string
+    ): Promise<string[]> => {
+      if (prefix) {
+        prefix = this.normalizePrefix(prefix);
+      }
+      const response: {
+        data: GitGetTreeResponse;
+      } = await this.octokit.git.getTree({
+        owner: this.owner,
+        repo: this.repo,
+        tree_sha: ref,
+        recursive: 'true',
       });
-  }
+      return response.data.tree
+        .filter(file => {
+          const path = file.path;
+          return (
+            path &&
+            // match the filename
+            path.endsWith(filename) &&
+            // match the prefix if provided
+            (!prefix || path.startsWith(prefix))
+          );
+        })
+        .map(file => {
+          let path = file.path!;
+          // strip the prefix if provided
+          if (prefix) {
+            const pfix = new RegExp(`^${prefix}[/\\\\]`);
+            path = path.replace(pfix, '');
+          }
+          return path;
+        });
+    }
+  );
+
   /**
    * Returns a list of paths to all files with a given name.
    *
@@ -1524,6 +1717,8 @@ export class GitHub {
    *
    * @param filename The name of the file to find
    * @param prefix Optional path prefix used to filter results
+   * @returns {string[]} List of file paths
+   * @throws {GitHubAPIError} on an API error
    */
   async findFilesByFilename(
     filename: string,
@@ -1547,44 +1742,48 @@ export class GitHub {
    *   Example: `js`, `java`
    * @param ref Git reference to search files in
    * @param prefix Optional path prefix used to filter results
+   * @returns {string[]} List of file paths
+   * @throws {GitHubAPIError} on an API error
    */
-  async findFilesByExtensionAndRef(
-    extension: string,
-    ref: string,
-    prefix?: string
-  ): Promise<string[]> {
-    if (prefix) {
-      prefix = this.normalizePrefix(prefix);
-    }
-    const response: {
-      data: GitGetTreeResponse;
-    } = await this.octokit.git.getTree({
-      owner: this.owner,
-      repo: this.repo,
-      tree_sha: ref,
-      recursive: 'true',
-    });
-    return response.data.tree
-      .filter(file => {
-        const path = file.path;
-        return (
-          path &&
-          // match the file extension
-          path.endsWith(`.${extension}`) &&
-          // match the prefix if provided
-          (!prefix || path.startsWith(prefix))
-        );
-      })
-      .map(file => {
-        let path = file.path!;
-        // strip the prefix if provided
-        if (prefix) {
-          const pfix = new RegExp(`^${prefix}[/\\\\]`);
-          path = path.replace(pfix, '');
-        }
-        return path;
+  findFilesByExtensionAndRef = wrapAsync(
+    async (
+      extension: string,
+      ref: string,
+      prefix?: string
+    ): Promise<string[]> => {
+      if (prefix) {
+        prefix = this.normalizePrefix(prefix);
+      }
+      const response: {
+        data: GitGetTreeResponse;
+      } = await this.octokit.git.getTree({
+        owner: this.owner,
+        repo: this.repo,
+        tree_sha: ref,
+        recursive: 'true',
       });
-  }
+      return response.data.tree
+        .filter(file => {
+          const path = file.path;
+          return (
+            path &&
+            // match the file extension
+            path.endsWith(`.${extension}`) &&
+            // match the prefix if provided
+            (!prefix || path.startsWith(prefix))
+          );
+        })
+        .map(file => {
+          let path = file.path!;
+          // strip the prefix if provided
+          if (prefix) {
+            const pfix = new RegExp(`^${prefix}[/\\\\]`);
+            path = path.replace(pfix, '');
+          }
+          return path;
+        });
+    }
+  );
 
   /**
    * Returns a list of paths to all files with a given file
@@ -1596,6 +1795,8 @@ export class GitHub {
    * @param extension The file extension used to filter results.
    *   Example: `js`, `java`
    * @param prefix Optional path prefix used to filter results
+   * @returns {string[]} List of file paths
+   * @throws {GitHubAPIError} on an API error
    */
   async findFilesByExtension(
     extension: string,
@@ -1613,33 +1814,53 @@ export class GitHub {
    *
    * @param {string} comment - The body of the comment to post.
    * @param {number} number - The issue or pull request number.
+   * @throws {GitHubAPIError} on an API error
    */
-  async commentOnIssue(
-    comment: string,
-    number: number
-  ): Promise<CreateIssueCommentResponse> {
-    logger.info(
-      `adding comment to https://github.com/${this.owner}/${this.repo}/issue/${number}`
-    );
-    return (
-      await this.request(
-        'POST /repos/:owner/:repo/issues/:issue_number/comments',
-        {
-          owner: this.owner,
-          repo: this.repo,
-          issue_number: number,
-          body: comment,
-        }
-      )
-    ).data;
-  }
+  commentOnIssue = wrapAsync(
+    async (
+      comment: string,
+      number: number
+    ): Promise<CreateIssueCommentResponse> => {
+      logger.info(
+        `adding comment to https://github.com/${this.owner}/${this.repo}/issue/${number}`
+      );
+      return (
+        await this.request(
+          'POST /repos/:owner/:repo/issues/:issue_number/comments',
+          {
+            owner: this.owner,
+            repo: this.repo,
+            issue_number: number,
+            body: comment,
+          }
+        )
+      ).data;
+    }
+  );
 }
 
-class AuthError extends Error {
-  status: number;
-
-  constructor() {
-    super('unauthorized');
-    this.status = 401;
-  }
-}
+/**
+ * Wrap an async method with error handling
+ *
+ * @param fn Async function that can throw Errors
+ * @param errorHandler An optional error handler for rethrowing custom exceptions
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const wrapAsync = <T extends Array<any>, V>(
+  fn: (...args: T) => Promise<V>,
+  errorHandler?: (e: Error) => void
+) => {
+  return async (...args: T): Promise<V> => {
+    try {
+      return await fn(...args);
+    } catch (e) {
+      if (errorHandler) {
+        errorHandler(e);
+      }
+      if (e instanceof RequestError) {
+        throw new GitHubAPIError(e);
+      }
+      throw e;
+    }
+  };
+};
