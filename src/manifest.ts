@@ -397,7 +397,6 @@ export class Manifest {
         }
       }
     }
-
     return validConfig && validManifest;
   }
 
