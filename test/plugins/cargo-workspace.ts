@@ -225,6 +225,14 @@ describe('CargoWorkspaceDependencyUpdates', () => {
       expect(() => postOrder(g)).to.throw();
     });
 
+    it('refuses to graph with missing nodes', () => {
+      const g = makeGraph([
+        {name: 'a', deps: ['b']},
+        {name: 'b', deps: ['c']},
+      ]);
+      expect(() => postOrder(g)).to.throw();
+    });
+
     it('handles a simple chain where root pkg update cascades to dependents', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
