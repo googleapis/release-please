@@ -232,7 +232,8 @@ export const parser = yargs
     demand: true,
   })
   .demandCommand(1)
-  .strict(true);
+  .strict(true)
+  .scriptName('release-please');
 
 interface HandleError {
   (err: ErrorObject): void;

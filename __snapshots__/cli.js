@@ -1,5 +1,5 @@
 exports['CLI flags github-release flags 1'] = `
-cli.js github-release
+release-please github-release
 
 create a GitHub release from a release PR
 
@@ -53,7 +53,7 @@ Options:
 `
 
 exports['CLI flags latest-tag flags 1'] = `
-cli.js latest-tag
+release-please latest-tag
 
 find the sha of the latest release
 
@@ -102,7 +102,7 @@ Options:
 `
 
 exports['CLI flags manifest-pr flags 1'] = `
-cli.js manifest-pr
+release-please manifest-pr
 
 create a release-PR using a manifest file
 
@@ -126,7 +126,7 @@ Options:
 `
 
 exports['CLI flags manifest-release flags 1'] = `
-cli.js manifest-release
+release-please manifest-release
 
 create releases/tags from last release-PR using a manifest file
 
@@ -150,7 +150,7 @@ Options:
 `
 
 exports['CLI flags release-pr flags 1'] = `
-cli.js release-pr
+release-please release-pr
 
 create or update a PR representing the next release
 
