@@ -23,6 +23,14 @@ import {VersionsMap} from '../updaters/update';
 import {CheckpointType} from '../util/checkpoint';
 import {ManifestPlugin} from './plugin';
 
+interface PkgWithManifest {
+  pkgPath: string;
+  manifestPkg?: ManifestPackageWithPRData;
+  manifestPath: string;
+  manifestContent: string;
+  manifest: CargoManifest;
+}
+
 export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
   private async getWorkspaceManifest(): Promise<CargoManifest> {
     const content: GitHubFileContents = await this.gh.getFileContents(
@@ -48,6 +56,15 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
         'cargo-workspace plugin used, but top-level Cargo.toml has no members'
       );
     }
+
+    const allPkgs = await this.getAllPkgsWithManifest(
+      workspaceManifest.workspace.members,
+      pkgsWithPRData
+    );
+    const pkgMap = new Map(
+      allPkgs.map(pkg => [pkg.manifest.package!.name!, pkg])
+    );
+    console.log({pkgMap});
 
     const versions = new Map();
     for (const data of pkgsWithPRData) {
@@ -173,5 +190,93 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
     }
 
     return [newManifestVersions, pkgsWithPRData];
+  }
+
+  private async getAllPkgsWithManifest(
+    members: string[],
+    pkgsWithPRData: ManifestPackageWithPRData[]
+  ): Promise<PkgWithManifest[]> {
+    const manifests: PkgWithManifest[] = [];
+
+    for (const pkgPath of members) {
+      const manifestPath = `${pkgPath}/Cargo.toml`;
+      const manifestPkg = pkgsWithPRData.find(
+        pkg => pkg.config.path === pkgPath
+      );
+
+      // original contents of the manifest for the target package
+      const manifestContent =
+        manifestPkg?.prData.changes.get(manifestPath)?.content ??
+        (await this.gh.getFileContents(manifestPath)).parsedContent;
+      const manifest = await parseCargoManifest(manifestContent);
+      manifests.push({
+        pkgPath,
+        manifest,
+        manifestContent,
+        manifestPath,
+        manifestPkg,
+      });
+    }
+    return manifests;
+  }
+}
+
+export interface GraphNode {
+  name: string;
+  deps: string[];
+}
+
+/**
+ * Given a list of graph nodes that form a DAG, returns the node names in
+ * post-order (reverse depth-first), suitable for dependency updates and bumping.
+ */
+export function postOrder(graph: Map<string, GraphNode>): string[] {
+  const result: string[] = [];
+  const resultSet: Set<string> = new Set();
+
+  // we're iterating the `Map` in insertion order (as per ECMA262), but
+  // that does not reflect any particular traversal of the graph, so we
+  // visit all nodes, opportunistically short-circuiting leafs when we've
+  // already visited them.
+  for (const node of graph.values()) {
+    visitPostOrder(graph, node, result, resultSet, []);
+  }
+
+  return result;
+}
+
+function visitPostOrder(
+  graph: Map<string, GraphNode>,
+  node: GraphNode,
+  result: string[],
+  resultSet: Set<string>,
+  path: string[]
+) {
+  if (resultSet.has(node.name)) {
+    return;
+  }
+
+  if (path.indexOf(node.name) !== -1) {
+    throw new Error(
+      `found cycle in dependency graph: ${path.join(' -> ')} -> ${node.name}`
+    );
+  }
+
+  {
+    const nextPath = [...path, node.name];
+
+    for (const depName of node.deps) {
+      const dep = graph.get(depName);
+      if (!dep) {
+        throw new Error(`dependency not found in graph: ${depName}`);
+      }
+
+      visitPostOrder(graph, dep, result, resultSet, nextPath);
+    }
+  }
+
+  if (!resultSet.has(node.name)) {
+    resultSet.add(node.name);
+    result.push(node.name);
   }
 }
