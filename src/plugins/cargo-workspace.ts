@@ -23,12 +23,41 @@ import {VersionsMap} from '../updaters/update';
 import {CheckpointType} from '../util/checkpoint';
 import {ManifestPlugin} from './plugin';
 
-interface PkgWithManifest {
-  pkgPath: string;
-  manifestPkg?: ManifestPackageWithPRData;
+interface CrateInfo {
+  /**
+   * e.g. `crates/crate-a`
+   */
+  path: string;
+
+  /**
+   * e.g. `crate-a`
+   */
+  name: string;
+
+  /**
+   * e.g. `1.0.0`
+   */
+  version: string;
+
+  /**
+   * e.g. `crates/crate-a/Cargo.toml`
+   */
   manifestPath: string;
+
+  /**
+   * text content of the manifest, used for updates
+   */
   manifestContent: string;
+
+  /**
+   * Parsed cargo manifest
+   */
   manifest: CargoManifest;
+
+  /**
+   * Plug-in input, set if package was already bumped by release-please
+   */
+  manifestPkg?: ManifestPackageWithPRData;
 }
 
 export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
@@ -57,14 +86,20 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
       );
     }
 
-    const allPkgs = await this.getAllPkgsWithManifest(
+    const crateInfos = await this.getAllCrateInfos(
       workspaceManifest.workspace.members,
       pkgsWithPRData
     );
-    const pkgMap = new Map(
-      allPkgs.map(pkg => [pkg.manifest.package!.name!, pkg])
-    );
-    console.log({pkgMap});
+    const crateInfoMap = new Map(crateInfos.map(crate => [crate.name, crate]));
+    console.log({crateInfoMap});
+
+    const crateGraph = buildCrateGraph(crateInfoMap);
+    console.log({crateGraph});
+
+    const order = postOrder(crateGraph);
+    console.log({order});
+
+    const orderedCrates = order.map(name => crateInfoMap.get(name)!);
 
     const versions = new Map();
     for (const data of pkgsWithPRData) {
@@ -75,75 +110,64 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
     }
 
     // Try to upgrade /all/ packages, even those release-please did not bump
-    for (const pkgPath of workspaceManifest.workspace.members) {
-      const manifestPath = `${pkgPath}/Cargo.toml`;
-      const targetPkg = pkgsWithPRData.find(pkg => pkg.config.path === pkgPath);
-
-      // original contents of the manifest for the target package
-      const content =
-        targetPkg?.prData.changes.get(manifestPath)?.content ??
-        (await this.gh.getFileContents(manifestPath)).parsedContent;
-      const manifest = await parseCargoManifest(content);
-      const pkgName = manifest.package?.name;
-      if (!pkgName) {
-        throw new Error(
-          `package at ${pkgPath} does not have a name in its Cargo manifest`
-        );
-      }
-
+    for (const crate of orderedCrates) {
       // This should update all the dependencies that have been bumped by release-please
       const dependencyUpdates = new CargoToml({
-        path: manifestPath,
+        path: crate.manifestPath,
         changelogEntry: 'updating dependencies',
         version: 'unused',
         versions,
         packageName: 'unused',
       });
-      const newContent = dependencyUpdates.updateContent(content);
-      if (newContent === content) {
+      let newContent = dependencyUpdates.updateContent(crate.manifestContent);
+      if (newContent === crate.manifestContent) {
         // guess that package didn't depend on any of the bumped packages
         continue;
       }
 
-      const updatedManifest: FileData = {
+      let updatedManifest: FileData = {
         content: newContent,
         mode: '100644',
       };
 
-      if (targetPkg) {
+      if (crate.manifestPkg) {
         // package was already bumped by release-please, just update the change
         // to also include dependency updates.
-        targetPkg?.prData.changes.set(manifestPath, updatedManifest);
+        crate.manifestPkg.prData.changes.set(
+          crate.manifestPath,
+          updatedManifest
+        );
       } else {
         // package was not bumped by release-please, but let's bump it ourselves,
         // because one of its dependencies was upgraded.
-        const pkgVersion = manifest.package?.version;
-        if (!pkgVersion) {
-          throw new Error(
-            `cannot bump ${pkgPath}, it has no version in its Cargo manifest`
-          );
-        }
-
         let version: string;
-        const patch = semver.inc(pkgVersion, 'patch');
+        const patch = semver.inc(crate.version, 'patch');
         if (patch === null) {
           this.log(
-            `Don't know how to patch ${pkgPath}'s version(${pkgVersion})`,
+            `Don't know how to patch ${crate.path}'s version(${crate.version})`,
             CheckpointType.Failure
           );
-          version = pkgVersion;
+          version = crate.version;
         } else {
           version = patch;
         }
 
-        const changes = new Map();
-        changes.set(manifestPath, updatedManifest);
+        // we need to reprocess its Cargo manifest to bump its own version
+        versions.set(crate.name, version);
+        newContent = dependencyUpdates.updateContent(crate.manifestContent);
+        updatedManifest = {
+          content: newContent,
+          mode: '100644',
+        };
 
-        newManifestVersions.set(pkgPath, version);
+        const changes = new Map([[crate.manifestPath, updatedManifest]]);
+
+        newManifestVersions.set(crate.path, version);
         pkgsWithPRData.push({
           config: {
-            path: pkgPath,
             releaseType: 'rust',
+            packageName: crate.name,
+            path: crate.path,
           },
           prData: {
             changes,
@@ -168,12 +192,15 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
         .parsedContent;
       const newContent = dependencyUpdates.updateContent(oldContent);
       if (newContent !== oldContent) {
-        const changes = new Map();
-        const updatedLockfile: FileData = {
-          content: newContent,
-          mode: '100644',
-        };
-        changes.set(lockfilePath, updatedLockfile);
+        const changes: Map<string, FileData> = new Map([
+          [
+            lockfilePath,
+            {
+              content: newContent,
+              mode: '100644',
+            },
+          ],
+        ]);
 
         pkgsWithPRData.push({
           config: {
@@ -192,11 +219,11 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
     return [newManifestVersions, pkgsWithPRData];
   }
 
-  private async getAllPkgsWithManifest(
+  private async getAllCrateInfos(
     members: string[],
     pkgsWithPRData: ManifestPackageWithPRData[]
-  ): Promise<PkgWithManifest[]> {
-    const manifests: PkgWithManifest[] = [];
+  ): Promise<CrateInfo[]> {
+    const manifests: CrateInfo[] = [];
 
     for (const pkgPath of members) {
       const manifestPath = `${pkgPath}/Cargo.toml`;
@@ -209,8 +236,25 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
         manifestPkg?.prData.changes.get(manifestPath)?.content ??
         (await this.gh.getFileContents(manifestPath)).parsedContent;
       const manifest = await parseCargoManifest(manifestContent);
+
+      const pkgName = manifest.package?.name;
+      if (!pkgName) {
+        throw new Error(
+          `package manifest at ${manifestPath} is missing [package.name]`
+        );
+      }
+
+      const version = manifest.package?.version;
+      if (!version) {
+        throw new Error(
+          `package manifest at ${manifestPath} is missing [package.version]`
+        );
+      }
+
       manifests.push({
-        pkgPath,
+        path: pkgPath,
+        name: pkgName,
+        version,
         manifest,
         manifestContent,
         manifestPath,
@@ -221,16 +265,38 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
   }
 }
 
+function buildCrateGraph(crateInfoMap: Map<string, CrateInfo>): Graph {
+  const graph: Graph = new Map();
+
+  for (const crate of crateInfoMap.values()) {
+    const allDeps = Object.keys({
+      ...(crate.manifest.dependencies ?? {}),
+      ...(crate.manifest['dependencies'] ?? {}),
+      ...(crate.manifest['build-dependencies'] ?? {}),
+    });
+    console.log({allDeps});
+    const workspaceDeps = allDeps.filter(dep => crateInfoMap.has(dep));
+    graph.set(crate.name, {
+      name: crate.name,
+      deps: workspaceDeps,
+    });
+  }
+
+  return graph;
+}
+
 export interface GraphNode {
   name: string;
   deps: string[];
 }
 
+export type Graph = Map<string, GraphNode>;
+
 /**
  * Given a list of graph nodes that form a DAG, returns the node names in
  * post-order (reverse depth-first), suitable for dependency updates and bumping.
  */
-export function postOrder(graph: Map<string, GraphNode>): string[] {
+export function postOrder(graph: Graph): string[] {
   const result: string[] = [];
   const resultSet: Set<string> = new Set();
 
@@ -246,7 +312,7 @@ export function postOrder(graph: Map<string, GraphNode>): string[] {
 }
 
 function visitPostOrder(
-  graph: Map<string, GraphNode>,
+  graph: Graph,
   node: GraphNode,
   result: string[],
   resultSet: Set<string>,
