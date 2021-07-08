@@ -335,9 +335,9 @@ workspace, and updates any packages that were directly bumped by release-please,
 or that should be patch-bumped because one of their transitive dependencies was
 bumped. The cargo lockfile is also updated.
 
-Note: when the Rust updater is used standalone (with the `release-pr` /
+Note: when the Rust releaser is used standalone (with the `release-pr` /
 `github-release` commands), it also tries to update monorepo dependencies, but
-it doesn't build a crate graph. When the Rust updater is used in conjunction
+it doesn't build a crate graph. When the Rust releaser is used in conjunction
 with the manifest releaser (`manifest-pr` / `manifest-release` commands), it
 does _not_ update the dependencies, and the `cargo-workspace` plug-in must be
 used to update dependencies and bump all dependents — this is the recommended
