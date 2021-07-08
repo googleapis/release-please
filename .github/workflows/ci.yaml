@@ -24,8 +24,6 @@ jobs:
       - run: rm -rf node_modules
       - run: npm install
       - run: npm test
-        env:
-          MOCHA_THROW_DEPRECATION: false
   windows:
     runs-on: windows-latest
     steps:
@@ -35,8 +33,6 @@ jobs:
           node-version: 14
       - run: npm install
       - run: npm test
-        env:
-          MOCHA_THROW_DEPRECATION: false
   lint:
     runs-on: ubuntu-latest
     steps:
