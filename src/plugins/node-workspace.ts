@@ -15,7 +15,7 @@
 import * as semver from 'semver';
 import cu = require('@lerna/collect-updates');
 import {Package, PackageJson} from '@lerna/package';
-import {PackageGraph} from '@lerna/package-graph';
+import {PackageGraph, PackageGraphNode} from '@lerna/package-graph';
 import {runTopologically} from '@lerna/run-topologically';
 import {ManifestPlugin} from './plugin';
 import {ManifestPackageWithPRData, ManifestPackage} from '..';
@@ -94,8 +94,18 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
     // similar to https://git.io/JqUOB
     // `collectPackages` includes "localDependents" of our release-please updated
     // packages as they need to be patch bumped.
+    const isCandidate = (node: PackageGraphNode) =>
+      rpUpdatedPkgs.has(node.location);
     const updatesWithDependents = cu.collectPackages(packageGraph, {
-      isCandidate: node => rpUpdatedPkgs.has(node.location),
+      isCandidate,
+      onInclude: name =>
+        this.log(
+          `${name} collected for update (dependency-only = ${!isCandidate(
+            packageGraph.get(name)
+          )})`,
+          CheckpointType.Success
+        ),
+      excludeDependents: false,
     });
 
     // our implementation of producing a Map<pkgName, newVersion> similar to
@@ -116,9 +126,26 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
       } else {
         // must be a dependent, check for releaseAs config otherwise default
         // to a patch bump.
-        const pkgConfig = this.config.parsedPackages.find(
-          p => `${p.path}/package.json` === node.location
-        );
+        const pkgConfig = this.config.parsedPackages.find(p => {
+          const pkgPath = `${p.path}/package.json`;
+          const match = pkgPath === node.location;
+          this.log(
+            `Checking node "${node.location}" against parsed package "${pkgPath}"`,
+            match ? CheckpointType.Success : CheckpointType.Failure
+          );
+          return match;
+        });
+        if (!pkgConfig) {
+          this.log(
+            `No pkgConfig found for ${node.location}`,
+            CheckpointType.Failure
+          );
+        } else if (!pkgConfig.releaseAs) {
+          this.log(
+            `No pkgConfig.releaseAs for ${node.location}`,
+            CheckpointType.Failure
+          );
+        }
         if (pkgConfig?.releaseAs) {
           version = pkgConfig.releaseAs;
           source = 'release-as configuration';
