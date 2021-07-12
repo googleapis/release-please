@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.14.2](https://www.github.com/googleapis/release-please/compare/v11.14.1...v11.14.2) (2021-07-12)
+
+
+### Bug Fixes
+
+* debug logging for node-workspaces plugin ([#958](https://www.github.com/googleapis/release-please/issues/958)) ([d8854a8](https://www.github.com/googleapis/release-please/commit/d8854a8141a15d1d1025362dc3595c7702d2eb43))
+
 ### [11.14.1](https://www.github.com/googleapis/release-please/compare/v11.14.0...v11.14.1) (2021-07-07)
 
 
