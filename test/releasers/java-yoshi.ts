@@ -26,6 +26,8 @@ import {buildMockCommit, stubSuggesterWithSnapshot} from '../helpers';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {ReleasePR} from '../../src/release-pr';
+import {MissingRequiredFileError, ConfigurationError} from '../../src/errors';
+import assert = require('assert');
 
 const sandbox = sinon.createSandbox();
 
@@ -630,6 +632,54 @@ describe('JavaYoshi', () => {
     stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
     await releasePR.run();
     expect(addLabelStub.callCount).to.eql(1);
+  });
+
+  it('rejects with ConfigurationError if missing versions.txt', async () => {
+    const releasePR = new JavaYoshi({
+      github: new GitHub({owner: 'googleapis', repo: 'java-trace'}),
+      packageName: 'java-trace',
+    });
+
+    sandbox
+      .stub(releasePR.gh, 'getRepositoryDefaultBranch')
+      .returns(Promise.resolve('master'));
+
+    sandbox.stub(releasePR, 'latestTag').returns(
+      Promise.resolve({
+        name: 'v0.20.3',
+        sha: 'abc123',
+        version: '0.20.3',
+      })
+    );
+    sandbox
+      .stub(releasePR.gh, 'commitsSinceSha')
+      .resolves([
+        buildMockCommit(
+          'fix: Fix declared dependencies from merge issue (#291)'
+        ),
+      ]);
+
+    // No open release PRs, so create a new release PR
+    sandbox
+      .stub(releasePR.gh, 'findOpenReleasePRs')
+      .returns(Promise.resolve([]));
+
+    // Indicates that there are no PRs currently waiting to be released:
+    sandbox
+      .stub(releasePR.gh, 'findMergedReleasePR')
+      .returns(Promise.resolve(undefined));
+
+    nock('https://api.github.com/')
+      .get(
+        '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Fmaster'
+      )
+      .reply(404);
+    assert.rejects(releasePR.run, err => {
+      return (
+        err instanceof ConfigurationError &&
+        err instanceof MissingRequiredFileError
+      );
+    });
   });
 
   describe('latestTag', () => {
