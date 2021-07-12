@@ -21,6 +21,26 @@ interface SingleError {
   field: string;
 }
 
+export class ConfigurationError extends Error {
+  releaserName: string;
+  repository: string;
+  constructor(message: string, releaserName: string, repository: string) {
+    super(`${releaserName} (${repository}): ${message}`);
+    this.releaserName = releaserName;
+    this.repository = repository;
+    this.name = ConfigurationError.name;
+  }
+}
+
+export class MissingRequiredFileError extends ConfigurationError {
+  file: string;
+  constructor(file: string, releaserName: string, repository: string) {
+    super(`Missing required file: ${file}`, releaserName, repository);
+    this.file = file;
+    this.name = MissingRequiredFileError.name;
+  }
+}
+
 export class GitHubAPIError extends Error {
   body: RequestErrorBody | undefined;
   status: number;
@@ -33,12 +53,15 @@ export class GitHubAPIError extends Error {
     this.cause = requestError;
   }
 
-  static parseErrorBody(requestError: RequestError): RequestErrorBody {
-    return (requestError.response as {data: RequestErrorBody}).data;
+  static parseErrorBody(
+    requestError: RequestError
+  ): RequestErrorBody | undefined {
+    const body = requestError.response as {data: RequestErrorBody};
+    return body?.data || undefined;
   }
 
   static parseErrors(requestError: RequestError): SingleError[] {
-    return GitHubAPIError.parseErrorBody(requestError).errors || [];
+    return GitHubAPIError.parseErrorBody(requestError)?.errors || [];
   }
 }
 
