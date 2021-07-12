@@ -17,6 +17,7 @@ import {describe, it} from 'mocha';
 import {resolve} from 'path';
 import {extractReleaseNotes} from '../../src/util/release-notes';
 import snapshot = require('snap-shot-it');
+import assert = require('assert');
 
 const fixturesPath = './test/fixtures';
 
@@ -56,6 +57,21 @@ describe('extractReleaseNotes', () => {
     ).replace(/\r\n/g, '\n');
     const latestReleaseNotes = extractReleaseNotes(changelogContent, 'v5.0.0');
     snapshot(latestReleaseNotes);
+  });
+
+  it('throws on missing release notes', () => {
+    const changelogContent = readFileSync(
+      resolve(fixturesPath, './CHANGELOG-bug-140.md'),
+      'utf8'
+    ).replace(/\r\n/g, '\n');
+    assert.throws(
+      () => {
+        extractReleaseNotes(changelogContent, 'v6.0.0');
+      },
+      {
+        name: 'MissingReleaseNotesError',
+      }
+    );
   });
 
   describe('php-yoshi', () => {
