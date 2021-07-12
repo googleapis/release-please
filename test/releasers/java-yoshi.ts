@@ -674,7 +674,9 @@ describe('JavaYoshi', () => {
         '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Fmaster'
       )
       .reply(404);
-    assert.rejects(releasePR.run, err => {
+    await assert.rejects(async () => {
+      return releasePR.run();
+    }, err => {      
       return (
         err instanceof ConfigurationError &&
         err instanceof MissingRequiredFileError
