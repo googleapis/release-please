@@ -12,6 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {MissingReleaseNotesError} from '../errors';
+
+/**
+ * Parse release notes for a specific release from the CHANGELOG contents
+ *
+ * @param {string} changelogContents The entire CHANGELOG contents
+ * @param {string} version The release version to extract notes from
+ */
 export function extractReleaseNotes(
   changelogContents: string,
   version: string
@@ -23,7 +31,7 @@ export function extractReleaseNotes(
   );
   const match = changelogContents.match(latestRe);
   if (!match) {
-    throw Error('could not find changelog entry corresponding to release PR');
+    throw new MissingReleaseNotesError(changelogContents, version);
   }
   return match[1];
 }
