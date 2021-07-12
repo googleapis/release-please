@@ -67,6 +67,20 @@ const pkgAData: ManifestPackageWithPRData = {
           mode: '100644',
         },
       ],
+      [
+        'packages/pkgA/CHANGELOG.md',
+        {
+          content:
+            '# Changelog' +
+            '\n\nAll notable changes to this project will be ' +
+            'documented in this file.' +
+            '\n\n### [1.1.2](https://www.github.com/fake/repo/compare' +
+            '/pkgA-v1.1.1...pkgA-v1.1.2) (1983-10-10)' +
+            '\n\n\n### Bug Fixes' +
+            '\n\n* We fixed a bug!',
+          mode: '100644',
+        },
+      ],
     ]),
   },
 };
@@ -352,6 +366,7 @@ describe('CargoWorkspaceDependencyUpdates', () => {
         `,
         ],
         ['packages/pkgA/Cargo.toml', false],
+        ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/Cargo.toml',
           `
@@ -363,6 +378,16 @@ describe('CargoWorkspaceDependencyUpdates', () => {
         pkgA = { version = "1.1.1", path = "../pkgA" }
         tracing = "1.0.0"
         `,
+        ],
+        [
+          'packages/pkgB/CHANGELOG.md',
+          '# Changelog' +
+            '\n\nAll notable changes to this project will be ' +
+            'documented in this file.' +
+            '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
+            '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
+            '\n\n\n### Bug Fixes' +
+            '\n\n* We fixed a bug',
         ],
         [
           'packages/pkgC/Cargo.toml',
@@ -397,6 +422,7 @@ describe('CargoWorkspaceDependencyUpdates', () => {
           dependencies = ["pkgB"]
           `,
         ],
+        ['packages/pkgC/CHANGELOG.md', ''],
       ]);
 
       // pkgA had a patch bump from manifest.runReleasers()
@@ -481,7 +507,9 @@ describe('CargoWorkspaceDependencyUpdates', () => {
         `,
         ],
         ['packages/pkgA/Cargo.toml', false],
+        ['packages/pkgA/CHANGELOG.md', false],
         ['packages/pkgB/Cargo.toml', false],
+        ['packages/pkgB/CHANGELOG.md', false],
         [
           'packages/pkgC/Cargo.toml',
           `
@@ -491,11 +519,21 @@ describe('CargoWorkspaceDependencyUpdates', () => {
 
         [dependencies]
         pkgA = { version = "1.1.1", path = "../pkgA" }
-        pkgB = { version = "0.2.1", path = "../pkgB" }
+        pkgB = { version = "2.2.2", path = "../pkgB" }
 
         [dependencies.anotherExternal]
         version = "4.3.1"
         `,
+        ],
+        [
+          'packages/pkgC/CHANGELOG.md',
+          '# Changelog' +
+            '\n\nAll notable changes to this project will be ' +
+            'documented in this file.' +
+            '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
+            '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
+            '\n\n\n### Bug Fixes' +
+            '\n\n* We fixed a bug',
         ],
         [
           'Cargo.lock',
@@ -509,7 +547,7 @@ describe('CargoWorkspaceDependencyUpdates', () => {
 
           [[package]]
           name = "pkgB"
-          version = "0.2.1"
+          version = "2.2.2"
           dependencies = []
 
           [[package]]
@@ -524,7 +562,7 @@ describe('CargoWorkspaceDependencyUpdates', () => {
       // manifest.runReleasers()
       const newManifestVersions = new Map([
         ['packages/pkgA', '1.1.2'],
-        ['packages/pkgB', '0.3.0'],
+        ['packages/pkgB', '2.3.0'],
       ]);
       const pkgsWithPRData: ManifestPackageWithPRData[] = [
         pkgAData,
@@ -535,7 +573,7 @@ describe('CargoWorkspaceDependencyUpdates', () => {
             path: 'packages/pkgB',
           },
           prData: {
-            version: '0.3.0',
+            version: '2.3.0',
             changes: new Map([
               [
                 'packages/pkgB/Cargo.toml',
@@ -543,13 +581,31 @@ describe('CargoWorkspaceDependencyUpdates', () => {
                   content: `
                 [package]
                 name = "pkgB"
-                version = "0.3.0"
+                version = "2.3.0"
 
                 [dependencies]
                 # release-please does not update dependency versions
                 pkgA = { version = "1.1.1", path = "../pkgA" }
                 someExternal = "9.2.3"
                 `,
+                  mode: '100644',
+                },
+              ],
+              [
+                'packages/pkgB/CHANGELOG.md',
+                {
+                  content:
+                    '# Changelog' +
+                    '\n\nAll notable changes to this project will be ' +
+                    'documented in this file.' +
+                    '\n\n### [2.3.0](https://www.github.com/fake/repo/compare' +
+                    '/pkgB-v2.2.2...pkgB-v2.3.0) (1983-10-10)' +
+                    '\n\n\n### Features' +
+                    '\n\n* We added a feature' +
+                    '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
+                    '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
+                    '\n\n\n### Bug Fixes' +
+                    '\n\n* We fixed a bug',
                   mode: '100644',
                 },
               ],
@@ -574,7 +630,7 @@ describe('CargoWorkspaceDependencyUpdates', () => {
       mock.verify();
       expect([...actualManifest]).to.eql([
         ['packages/pkgA', '1.1.2'],
-        ['packages/pkgB', '0.3.0'],
+        ['packages/pkgB', '2.3.0'],
         ['packages/pkgC', '3.3.4'],
       ]);
       const snapPrefix = this.test!.fullTitle();
@@ -616,6 +672,8 @@ describe('CargoWorkspaceDependencyUpdates', () => {
         ]
         `,
         ],
+        ['packages/pkgA/Cargo.toml', false],
+        ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/Cargo.toml',
           `
@@ -629,6 +687,16 @@ describe('CargoWorkspaceDependencyUpdates', () => {
         `,
         ],
         [
+          'packages/pkgB/CHANGELOG.md',
+          '# Changelog' +
+            '\n\nAll notable changes to this project will be ' +
+            'documented in this file.' +
+            '\n\n### [2.2.2](https://www.github.com/fake/repo/compare' +
+            '/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)' +
+            '\n\n\n### Bug Fixes' +
+            '\n\n* We fixed a bug\n',
+        ],
+        [
           'packages/pkgBB/Cargo.toml',
           `
         [package]
@@ -639,6 +707,16 @@ describe('CargoWorkspaceDependencyUpdates', () => {
         pkgAA = { version = "11.1.1", path = "../pkgA" }
         someExternal = "9.2.3"
         `,
+        ],
+        [
+          'packages/pkgBB/CHANGELOG.md',
+          '# Changelog' +
+            '\n\nAll notable changes to this project will be ' +
+            'documented in this file.' +
+            '\n\n### [22.2.2](https://www.github.com/fake/repo/compare' +
+            '/pkgBB-v22.2.1...pkgBB-v22.2.2) (1983-10-10)' +
+            '\n\n\n### Bug Fixes' +
+            '\n\n* We fixed a bug\n',
         ],
         [
           'Cargo.lock',
@@ -698,6 +776,17 @@ describe('CargoWorkspaceDependencyUpdates', () => {
                 [dependencies]
                 foo = "4.1.7"
                 `,
+                mode: '100644',
+              },
+            ],
+            [
+              'packages/pkgAA/CHANGELOG.md',
+              {
+                content:
+                  '### [11.2.0](https://www.github.com/fake/repo/compare' +
+                  '/pkgAA-v11.1.1...pkgAA-v11.2.0) (1983-10-10)' +
+                  '\n\n\n### Features' +
+                  '\n\n* We added a feature',
                 mode: '100644',
               },
             ],

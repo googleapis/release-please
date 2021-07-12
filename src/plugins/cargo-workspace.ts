@@ -271,9 +271,9 @@ export default class CargoWorkspaceDependencyUpdates extends ManifestPlugin {
     const originalVersion = originalManifest.package?.version ?? '?';
     const updatedVersion = updatedManifest.package?.version ?? '?';
     let changelogEntry = await cc.generateChangelogEntry({
-      version: originalVersion,
-      currentTag: tagPrefix + originalVersion,
-      previousTag: tagPrefix + updatedVersion,
+      version: updatedVersion,
+      currentTag: tagPrefix + updatedVersion,
+      previousTag: tagPrefix + originalVersion,
     });
     changelogEntry += depUpdateNotes;
 

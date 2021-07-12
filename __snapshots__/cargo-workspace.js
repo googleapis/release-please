@@ -18,6 +18,17 @@ filename: packages/pkgA/Cargo.toml
         name = "pkgA"
         version = "1.1.2"
         
+filename: packages/pkgA/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [1.1.2](https://www.github.com/fake/repo/compare/pkgA-v1.1.1...pkgA-v1.1.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug!
 ====================
 {
   "config": {
@@ -55,6 +66,27 @@ filename: packages/pkgB/Cargo.toml
         pkgA = { version = "1.1.2", path = "../pkgA" }
         tracing = "1.0.0"
         
+filename: packages/pkgB/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [2.2.3](https://www.github.com/fake/repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgA bumped from 1.1.1 to 1.1.2
+
+### [2.2.2](https://www.github.com/fake/repo/compare/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug
+
 ====================
 {
   "config": {
@@ -78,6 +110,18 @@ filename: packages/pkgC/Cargo.toml
         pkgB = { version = "2.2.3", path = "../pkgB" }
         rustls = "1.0.0"
         
+filename: packages/pkgC/CHANGELOG.md
+# Changelog
+
+### [3.3.4](https://www.github.com/fake/repo/compare/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgB bumped from 2.2.2 to 2.2.3
+
 ====================
 {
   "config": {
@@ -135,6 +179,17 @@ filename: packages/pkgA/Cargo.toml
         name = "pkgA"
         version = "1.1.2"
         
+filename: packages/pkgA/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [1.1.2](https://www.github.com/fake/repo/compare/pkgA-v1.1.1...pkgA-v1.1.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug!
 ====================
 {
   "config": {
@@ -143,7 +198,7 @@ filename: packages/pkgA/Cargo.toml
     "path": "packages/pkgB"
   },
   "prData": {
-    "version": "0.3.0",
+    "version": "2.3.0",
     "changes": {}
   }
 }
@@ -152,13 +207,38 @@ filename: packages/pkgB/Cargo.toml
 
                 [package]
                 name = "pkgB"
-                version = "0.3.0"
+                version = "2.3.0"
 
                 [dependencies]
                 # release-please does not update dependency versions
                 pkgA = { version = "1.1.2", path = "../pkgA" }
                 someExternal = "9.2.3"
                 
+filename: packages/pkgB/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [2.3.0](https://www.github.com/fake/repo/compare/pkgB-v2.2.2...pkgB-v2.3.0) (1983-10-10)
+
+
+### Features
+
+* We added a feature
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgA bumped from 1.1.1 to 1.1.2
+
+### [2.2.2](https://www.github.com/fake/repo/compare/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug
 ====================
 {
   "config": {
@@ -180,11 +260,33 @@ filename: packages/pkgC/Cargo.toml
 
         [dependencies]
         pkgA = { version = "1.1.2", path = "../pkgA" }
-        pkgB = { version = "0.3.0", path = "../pkgB" }
+        pkgB = { version = "2.3.0", path = "../pkgB" }
 
         [dependencies.anotherExternal]
         version = "4.3.1"
         
+filename: packages/pkgC/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [3.3.4](https://www.github.com/fake/repo/compare/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgA bumped from 1.1.1 to 1.1.2
+    * pkgB bumped from 2.2.2 to 2.3.0
+
+### [3.3.3](https://www.github.com/fake/repo/compare/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug
+
 ====================
 {
   "config": {
@@ -209,7 +311,7 @@ filename: Cargo.lock
 
           [[package]]
           name = "pkgB"
-          version = "0.3.0"
+          version = "2.3.0"
           dependencies = []
 
           [[package]]
@@ -242,6 +344,17 @@ filename: packages/pkgA/Cargo.toml
         name = "pkgA"
         version = "1.1.2"
         
+filename: packages/pkgA/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [1.1.2](https://www.github.com/fake/repo/compare/pkgA-v1.1.1...pkgA-v1.1.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug!
 ====================
 {
   "config": {
@@ -264,6 +377,13 @@ filename: packages/pkgAA/Cargo.toml
                 [dependencies]
                 foo = "4.1.7"
                 
+filename: packages/pkgAA/CHANGELOG.md
+### [11.2.0](https://www.github.com/fake/repo/compare/pkgAA-v11.1.1...pkgAA-v11.2.0) (1983-10-10)
+
+
+### Features
+
+* We added a feature
 ====================
 {
   "config": {
@@ -287,6 +407,27 @@ filename: packages/pkgB/Cargo.toml
         pkgA = { version = "1.1.2", path = "../pkgA" }
         someExternal = "9.2.3"
         
+filename: packages/pkgB/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [2.2.3](https://www.github.com/fake/repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgA bumped from 1.1.1 to 1.1.2
+
+### [2.2.2](https://www.github.com/fake/repo/compare/pkgB-v2.2.1...pkgB-v2.2.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug
+
 ====================
 {
   "config": {
@@ -310,6 +451,27 @@ filename: packages/pkgBB/Cargo.toml
         pkgAA = { version = "11.2.0", path = "../pkgA" }
         someExternal = "9.2.3"
         
+filename: packages/pkgBB/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [22.2.3](https://www.github.com/fake/repo/compare/pkgBB-v22.2.2...pkgBB-v22.2.3) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgAA bumped from 11.1.1 to 11.2.0
+
+### [22.2.2](https://www.github.com/fake/repo/compare/pkgBB-v22.2.1...pkgBB-v22.2.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug
+
 ====================
 {
   "config": {
