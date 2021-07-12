@@ -484,7 +484,7 @@ function buildCrateGraph(crateInfoMap: Map<string, CrateInfo>): Graph {
   for (const crate of crateInfoMap.values()) {
     const allDeps = Object.keys({
       ...(crate.manifest.dependencies ?? {}),
-      ...(crate.manifest['dependencies'] ?? {}),
+      ...(crate.manifest['dev-dependencies'] ?? {}),
       ...(crate.manifest['build-dependencies'] ?? {}),
     });
     console.log({allDeps});
