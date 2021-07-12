@@ -174,6 +174,9 @@ documented in comments)
       "package-name": "coolio-pkg",
       // our change log is located at path/to/myPyPkgA/docs/CHANGES.rst
       "changelog-path": "docs/CHANGES.rst"
+      // every change always and only bumps the "patch" number
+      // absence defaults to conventional commit version bumping
+      "version-bump-strategy": "always-patch",
     },
   }
 

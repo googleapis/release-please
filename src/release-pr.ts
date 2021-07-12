@@ -33,6 +33,7 @@ import {extractReleaseNotes} from './util/release-notes';
 import {PullRequestTitle} from './util/pull-request-title';
 import {Changelog} from './updaters/changelog';
 import {logger} from './util/logger';
+import {CCVersion} from './cc_versions';
 
 export interface ReleaseCandidate {
   version: string;
@@ -76,6 +77,7 @@ export class ReleasePR {
   gh: GitHub;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  versionBumpStrategy?: CCVersion;
   path?: string;
   packageName: string;
   monorepoTags: boolean;
@@ -90,6 +92,7 @@ export class ReleasePR {
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor || false;
+    this.versionBumpStrategy = options.versionBumpStrategy;
     this.labels = options.labels ?? DEFAULT_LABELS;
     // undefined represents the root path of the library, if the special
     // '.' path is provided, simply ignore it:
@@ -138,6 +141,7 @@ export class ReleasePR {
       repository: this.gh.repo,
       bumpMinorPreMajor: this.bumpMinorPreMajor,
       bumpPatchForMinorPreMajor: this.bumpPatchForMinorPreMajor,
+      versionBumpStrategy: this.versionBumpStrategy,
       changelogSections: this.changelogSections,
     });
     const candidate: ReleaseCandidate = await this.coerceReleaseCandidate(

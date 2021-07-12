@@ -32,6 +32,10 @@ Options:
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
+  --version-bump-strategy           use an alternative version bumping strategy.
+                                    Defaults to conventional commits
+                                    (https://git.io/Jsf2Y)
+                                                       [choices: "always-patch"]
   --path                            release from path other than root directory
                                                                         [string]
   --package-name                    name of package release is being minted for
@@ -86,6 +90,10 @@ Options:
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
+  --version-bump-strategy           use an alternative version bumping strategy.
+                                    Defaults to conventional commits
+                                    (https://git.io/Jsf2Y)
+                                                       [choices: "always-patch"]
   --path                            release from path other than root directory
                                                                         [string]
   --package-name                    name of package release is being minted for
@@ -183,6 +191,10 @@ Options:
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
+  --version-bump-strategy           use an alternative version bumping strategy.
+                                    Defaults to conventional commits
+                                    (https://git.io/Jsf2Y)
+                                                       [choices: "always-patch"]
   --path                            release from path other than root directory
                                                                         [string]
   --package-name                    name of package release is being minted for
