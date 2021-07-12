@@ -14,13 +14,15 @@
 
 import {ManifestPlugin} from './plugin';
 import NodeWorkspaceDependencyUpdates from './node-workspace';
+import CargoWorkspaceDependencyUpdates from './cargo-workspace';
 import {GitHub} from '../github';
 import {Config} from '../manifest';
 
-export type PluginType = 'node-workspace';
+export type PluginType = 'node-workspace' | 'cargo-workspace';
 
 const plugins = {
   'node-workspace': NodeWorkspaceDependencyUpdates,
+  'cargo-workspace': CargoWorkspaceDependencyUpdates,
 };
 
 export function getPlugin(
