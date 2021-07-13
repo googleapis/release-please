@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.15.0](https://www.github.com/googleapis/release-please/compare/v11.14.2...v11.15.0) (2021-07-13)
+
+
+### Features
+
+* **rust:** Support manifest releaser ([#954](https://www.github.com/googleapis/release-please/issues/954)) ([fed5c35](https://www.github.com/googleapis/release-please/commit/fed5c35d2cfd709b455afffcec88aa188e3753e4))
+
+
+### Bug Fixes
+
+* throw custom error class for missing release notes error ([#963](https://www.github.com/googleapis/release-please/issues/963)) ([100dc14](https://www.github.com/googleapis/release-please/commit/100dc14898167ea35b8be8a0069a3fb91fac8237)), closes [#947](https://www.github.com/googleapis/release-please/issues/947)
+
 ### [11.14.2](https://www.github.com/googleapis/release-please/compare/v11.14.1...v11.14.2) (2021-07-12)
 
 
