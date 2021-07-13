@@ -1,3 +1,95 @@
+exports['Rust run creates a release PR for manifest releaser for monorepo with Cargo.lock: changes'] = `
+
+filename: crates/crate1/CHANGELOG.md
+# Changelog
+
+### [0.123.5](https://www.github.com/fasterthanlime/rust-test-repo/compare/crate1-v0.123.4...crate1-v0.123.5) (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/fasterthanlime/rust-test-repo/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/fasterthanlime/rust-test-repo/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
+
+filename: crates/crate1/Cargo.toml
+[package]
+name = "crate1"
+version = "0.123.5"
+
+`
+
+exports['Rust run creates a release PR for manifest releaser for monorepo with Cargo.lock: options'] = `
+
+upstreamOwner: fasterthanlime
+upstreamRepo: rust-test-repo
+title: chore: release crate1 0.123.5
+branch: release-crate1-v0.123.5
+description: :robot: I have created a release \\*beep\\* \\*boop\\*
+---
+### [0.123.5](https://www.github.com/fasterthanlime/rust-test-repo/compare/crate1-v0.123.4...crate1-v0.123.5) (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/fasterthanlime/rust-test-repo/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/fasterthanlime/rust-test-repo/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
+---
+
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+primary: main
+force: true
+fork: false
+message: chore: release crate1 0.123.5
+logger: [object Object]
+`
+
+exports['Rust run creates a release PR for manifest releaser for monorepo without Cargo.lock: changes'] = `
+
+filename: crates/crate1/CHANGELOG.md
+# Changelog
+
+### [0.123.5](https://www.github.com/fasterthanlime/rust-test-repo/compare/crate1-v0.123.4...crate1-v0.123.5) (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/fasterthanlime/rust-test-repo/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/fasterthanlime/rust-test-repo/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
+
+filename: crates/crate1/Cargo.toml
+[package]
+name = "crate1"
+version = "0.123.5"
+
+`
+
+exports['Rust run creates a release PR for manifest releaser for monorepo without Cargo.lock: options'] = `
+
+upstreamOwner: fasterthanlime
+upstreamRepo: rust-test-repo
+title: chore: release crate1 0.123.5
+branch: release-crate1-v0.123.5
+description: :robot: I have created a release \\*beep\\* \\*boop\\*
+---
+### [0.123.5](https://www.github.com/fasterthanlime/rust-test-repo/compare/crate1-v0.123.4...crate1-v0.123.5) (1983-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([1f9663c](https://www.github.com/fasterthanlime/rust-test-repo/commit/1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373))
+* **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([fcd1c89](https://www.github.com/fasterthanlime/rust-test-repo/commit/fcd1c890dc1526f4d62ceedad561f498195c8939))
+---
+
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+primary: main
+force: true
+fork: false
+message: chore: release crate1 0.123.5
+logger: [object Object]
+`
+
 exports['Rust run creates a release PR for monorepo with Cargo.lock: changes'] = `
 
 filename: crates/crate1/CHANGELOG.md
