@@ -229,7 +229,7 @@ describe('Rust', () => {
           packageName: 'crate1',
           path: 'crates/crate1',
           monorepoTags: true,
-          forManifestReleaser: true,
+          skipDependencyUpdates: true,
         });
 
         // Indicates that there are no PRs currently waiting to be released:

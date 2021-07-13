@@ -110,7 +110,7 @@ export class ReleasePR {
     this.changelogPath = options.changelogPath ?? this.changelogPath;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.extraFiles = options.extraFiles ?? [];
-    this.forManifestReleaser = options.forManifestReleaser ?? false;
+    this.forManifestReleaser = options.skipDependencyUpdates ?? false;
   }
 
   // A releaser can override this method to automatically detect the

@@ -411,7 +411,7 @@ export class Manifest {
     const releaserClass = factory.releasePRClass(releaseType);
     const releasePR = new releaserClass({
       github: this.gh,
-      forManifestReleaser: true,
+      skipDependencyUpdates: true,
       ...releaserOptions,
     });
     return [releasePR, draft];
