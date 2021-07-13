@@ -126,7 +126,7 @@ describe('CargoWorkspaceDependencyUpdates', () => {
     return new Map(nodes.map(n => [n.name, n]));
   }
 
-  describe('run', () => {
+  describe('post-order graph traversal', () => {
     it('visits nodes in post-order (a<-b<-c)', () => {
       const graphs = [
         makeGraph([
@@ -246,7 +246,9 @@ describe('CargoWorkspaceDependencyUpdates', () => {
       ]);
       expect(() => postOrder(g)).to.throw();
     });
+  });
 
+  describe('run', () => {
     it('refuses to work on a directory that is not a cargo workspace', async () => {
       const config: Config = {
         packages: {}, // unused, required by interface
