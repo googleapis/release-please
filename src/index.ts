@@ -117,6 +117,7 @@ export interface ReleasePRConstructorOptions
   extends ReleasePROptions,
     ReleaserConstructorOptions {
   labels?: string[];
+  skipDependencyUpdates?: boolean;
 }
 
 // GitHubRelease Constructor options

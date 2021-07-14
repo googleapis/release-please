@@ -86,6 +86,7 @@ export class ReleasePR {
   changelogPath = 'CHANGELOG.md';
   pullRequestTitlePattern?: string;
   extraFiles: string[];
+  forManifestReleaser: boolean;
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -109,6 +110,7 @@ export class ReleasePR {
     this.changelogPath = options.changelogPath ?? this.changelogPath;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.extraFiles = options.extraFiles ?? [];
+    this.forManifestReleaser = options.skipDependencyUpdates ?? false;
   }
 
   // A releaser can override this method to automatically detect the
