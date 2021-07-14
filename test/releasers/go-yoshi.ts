@@ -132,6 +132,58 @@ describe('GoYoshi', () => {
         const prNumber = await releasePR.run();
         assert.ok(prNumber);
       });
+
+      it('should ignore Release-As for scoped commits', async function () {
+        const releasePR = new GoYoshi({
+          github: new GitHub({owner: 'googleapis', repo: 'google-cloud-go'}),
+        });
+
+        // Indicates that there are no PRs currently waiting to be released:
+        sandbox
+          .stub(releasePR.gh, 'findMergedReleasePR')
+          .returns(Promise.resolve(undefined));
+
+        // Return latest tag used to determine next version #:
+        sandbox.stub(releasePR, 'latestTag').returns(
+          Promise.resolve({
+            sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
+            name: 'v0.123.4',
+            version: '0.123.4',
+          })
+        );
+
+        // Commits, used to build CHANGELOG, and propose next version bump:
+        sandbox
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .stub(releasePR as any, 'commits')
+          .returns(Promise.resolve(readPOJO('commits-release-as-scoped')));
+
+        // See if there are any release PRs already open, we do this as
+        // we consider opening a new release-pr:
+        sandbox
+          .stub(releasePR.gh, 'findOpenReleasePRs')
+          .returns(Promise.resolve([]));
+
+        // Lookup the default branch name:
+        sandbox.stub(releasePR.gh, 'getDefaultBranch').resolves('main');
+
+        // Fetch files from GitHub, in prep to update with code-suggester:
+        const getFileContentsStub = sandbox.stub(
+          releasePR.gh,
+          'getFileContentsOnBranch'
+        );
+        // CHANGELOG is not found, and will be created:
+        getFileContentsStub
+          .onCall(0)
+          .rejects(Object.assign(Error('not found'), {status: 404}));
+
+        // Call to add autorelease: pending label:
+        sandbox.stub(releasePR.gh, 'addLabels');
+
+        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+        const prNumber = await releasePR.run();
+        assert.ok(prNumber);
+      });
     });
 
     describe('subpackage', () => {
