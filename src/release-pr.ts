@@ -189,12 +189,21 @@ export class ReleasePR {
       logger.warn('snapshot releases not supported for this releaser');
       return;
     }
-    const mergedPR = await this.gh.findMergedReleasePR(
+    let mergedPR = await this.gh.findMergedReleasePR(
       this.labels,
       undefined,
       true,
       100
     );
+    // try twice in case a release PR was just merged
+    if (!mergedPR) {
+      mergedPR = await this.gh.findMergedReleasePR(
+        this.labels,
+        undefined,
+        true,
+        100
+      );
+    }
     if (mergedPR) {
       // a PR already exists in the autorelease: pending state.
       logger.warn(
@@ -202,7 +211,7 @@ export class ReleasePR {
       );
       return undefined;
     } else {
-      return this._run();
+      return await this._run();
     }
   }
 

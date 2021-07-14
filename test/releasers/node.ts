@@ -62,7 +62,7 @@ function mockGithub(options: {
     // once in openPR and once again in closeStaleReleasePRs
     .atMost(2)
     .resolves([]);
-  mock.expects('findMergedReleasePR').atMost(1).resolves(undefined);
+  mock.expects('findMergedReleasePR').atMost(2).resolves(undefined);
   let headRefName = 'release-';
   if (branchComponent) {
     headRefName += branchComponent;
