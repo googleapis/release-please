@@ -295,17 +295,23 @@ export class ReleasePR {
 
     // If a commit contains the footer release-as: 1.x.x, we use this version
     // from the commit footer rather than the version returned by suggestBump().
-    const releaseAsCommit = cc.commits.find((element: Commit) => {
-      if (element.message.match(releaseAsRe)) {
+    let forcedVersion: string | undefined;
+    const releaseAsCommit = cc.parsedCommits.find(element => {
+      const bodyMatch = element.body?.match(releaseAsRe);
+      if (bodyMatch) {
+        forcedVersion = bodyMatch[1];
         return true;
-      } else {
-        return false;
       }
+      const footerMatch = element.footer?.match(releaseAsRe);
+      if (footerMatch) {
+        forcedVersion = footerMatch[1];
+        return true;
+      }
+      return false;
     });
 
     if (releaseAsCommit) {
-      const match = releaseAsCommit.message.match(releaseAsRe);
-      version = match![1];
+      version = forcedVersion!;
     } else if (preRelease) {
       // Handle pre-release format v1.0.0-alpha1, alpha2, etc.
       const [prefix, suffix] = version.split('-');
