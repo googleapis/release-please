@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.16.0](https://www.github.com/googleapis/release-please/compare/v11.15.0...v11.16.0) (2021-07-14)
+
+
+### Features
+
+* add new ConfigurationError types so consumers can handle errors ([#964](https://www.github.com/googleapis/release-please/issues/964)) ([5f7ca9d](https://www.github.com/googleapis/release-please/commit/5f7ca9daa9608a3bf4f7945491a04d560e590e95)), closes [#960](https://www.github.com/googleapis/release-please/issues/960)
+
+
+### Bug Fixes
+
+* JavaYoshi releasers now throw `MissingRequiredFileError` if missing required `versions.txt` file. ([5f7ca9d](https://www.github.com/googleapis/release-please/commit/5f7ca9daa9608a3bf4f7945491a04d560e590e95))
+
 ## [11.15.0](https://www.github.com/googleapis/release-please/compare/v11.14.2...v11.15.0) (2021-07-13)
 
 
