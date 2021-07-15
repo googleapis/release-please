@@ -148,12 +148,40 @@ exports['NodeWorkspaceDependencyUpdates run does not update dependencies on preM
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
     "success"
   ],
   [
     "node-workspace: setting packages/pkgB/package.json to 0.3.0 from release-please",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgC/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgC/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump",
@@ -217,6 +245,10 @@ exports['NodeWorkspaceDependencyUpdates run does not update dependency to pre-re
   ],
   [
     "node-workspace: loaded packages/pkgB/package.json from github",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
     "success"
   ],
   [
@@ -318,8 +350,28 @@ exports['NodeWorkspaceDependencyUpdates run does not update dependent with inval
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgB/package.json",
+    "failure"
   ],
   [
     "node-workspace: Don't know how to patch @here/pkgB's version(some-invalid-version)",
@@ -481,12 +533,52 @@ exports['NodeWorkspaceDependencyUpdates run handles a simple chain where root pk
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
     "success"
   ],
   [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgB/package.json",
+    "failure"
+  ],
+  [
     "node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgC/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgC/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump",
@@ -653,12 +745,40 @@ exports['NodeWorkspaceDependencyUpdates run handles a triangle: root and one leg
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
     "success"
   ],
   [
     "node-workspace: setting packages/pkgB/package.json to 2.3.0 from release-please",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgC/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgC/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump",
@@ -856,8 +976,36 @@ exports['NodeWorkspaceDependencyUpdates run handles discontiguous graph logs'] =
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgAA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgBB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgB/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump",
@@ -866,6 +1014,26 @@ exports['NodeWorkspaceDependencyUpdates run handles discontiguous graph logs'] =
   [
     "node-workspace: setting packages/pkgAA/package.json to 11.2.0 from release-please",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgBB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgBB/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgBB/package.json\" against parsed package \"packages/pkgAA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgBB/package.json\" against parsed package \"packages/pkgBB/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgBB/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgBB/package.json to 22.2.3 from dependency bump",
@@ -993,12 +1161,52 @@ exports['NodeWorkspaceDependencyUpdates run handles errors retrieving changelogs
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
     "success"
   ],
   [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgB/package.json",
+    "failure"
+  ],
+  [
     "node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgC/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgC/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump",
@@ -1117,6 +1325,14 @@ exports['NodeWorkspaceDependencyUpdates run handles unusual changelog formats lo
   ],
   [
     "node-workspace: loaded packages/pkgB/package.json from existing changes",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = false)",
     "success"
   ],
   [
@@ -1270,12 +1486,48 @@ exports['NodeWorkspaceDependencyUpdates run prefers release-as configuration ove
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
+    "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgB/package.json\"",
     "success"
   ],
   [
     "node-workspace: setting packages/pkgB/package.json to 2.3.0 from release-as configuration",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgC/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgC/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump",
@@ -1384,8 +1636,28 @@ exports['NodeWorkspaceDependencyUpdates run updates dependent from pre-release v
     "success"
   ],
   [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
     "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
     "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgB/package.json",
+    "failure"
   ],
   [
     "node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump",

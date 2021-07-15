@@ -155,9 +155,14 @@ export class ConventionalCommits {
   mainTemplate?: string;
   changelogSections?: ChangelogSection[];
   private commitFilter?: (c: ConventionalChangelogCommit) => boolean;
+  parsedCommits: CommitWithHash[];
 
   constructor(options: ConventionalCommitsOptions) {
     this.commits = options.commits;
+    this.parsedCommits = getParsedCommits(
+      options.commits,
+      options.commitFilter
+    );
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
     this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor || false;
     this.host = options.host || 'https://www.github.com';
@@ -211,11 +216,7 @@ export class ConventionalCommits {
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
     const parsed: string = conventionalChangelogWriter
-      .parseArray(
-        getParsedCommits(this.commits, this.commitFilter),
-        context,
-        preset.writerOpts
-      )
+      .parseArray(this.parsedCommits, context, preset.writerOpts)
       .trim();
     return parsed;
   }
@@ -223,7 +224,7 @@ export class ConventionalCommits {
     const VERSIONS = ['major', 'minor', 'patch'];
     const preset = await presetFactory({preMajor});
     const commits = conventionalCommitsFilter(
-      getParsedCommits(this.commits, this.commitFilter)
+      this.parsedCommits
     ) as ConventionalChangelogCommit;
 
     let result = preset.recommendedBumpOpts.whatBump(

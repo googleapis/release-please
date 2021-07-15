@@ -4,6 +4,51 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.16.1](https://www.github.com/googleapis/release-please/compare/v11.16.0...v11.16.1) (2021-07-15)
+
+
+### Bug Fixes
+
+* **go-yoshi:** Release-As should only apply to the correct file scope ([#969](https://www.github.com/googleapis/release-please/issues/969)) ([fa317b2](https://www.github.com/googleapis/release-please/commit/fa317b2ef88bd153001b85984b8f457a4d9eec1e)), closes [#878](https://www.github.com/googleapis/release-please/issues/878)
+
+## [11.16.0](https://www.github.com/googleapis/release-please/compare/v11.15.0...v11.16.0) (2021-07-14)
+
+
+### Features
+
+* add new ConfigurationError types so consumers can handle errors ([#964](https://www.github.com/googleapis/release-please/issues/964)) ([5f7ca9d](https://www.github.com/googleapis/release-please/commit/5f7ca9daa9608a3bf4f7945491a04d560e590e95)), closes [#960](https://www.github.com/googleapis/release-please/issues/960)
+
+
+### Bug Fixes
+
+* JavaYoshi releasers now throw `MissingRequiredFileError` if missing required `versions.txt` file. ([5f7ca9d](https://www.github.com/googleapis/release-please/commit/5f7ca9daa9608a3bf4f7945491a04d560e590e95))
+
+## [11.15.0](https://www.github.com/googleapis/release-please/compare/v11.14.2...v11.15.0) (2021-07-13)
+
+
+### Features
+
+* **rust:** Support manifest releaser ([#954](https://www.github.com/googleapis/release-please/issues/954)) ([fed5c35](https://www.github.com/googleapis/release-please/commit/fed5c35d2cfd709b455afffcec88aa188e3753e4))
+
+
+### Bug Fixes
+
+* throw custom error class for missing release notes error ([#963](https://www.github.com/googleapis/release-please/issues/963)) ([100dc14](https://www.github.com/googleapis/release-please/commit/100dc14898167ea35b8be8a0069a3fb91fac8237)), closes [#947](https://www.github.com/googleapis/release-please/issues/947)
+
+### [11.14.2](https://www.github.com/googleapis/release-please/compare/v11.14.1...v11.14.2) (2021-07-12)
+
+
+### Bug Fixes
+
+* debug logging for node-workspaces plugin ([#958](https://www.github.com/googleapis/release-please/issues/958)) ([d8854a8](https://www.github.com/googleapis/release-please/commit/d8854a8141a15d1d1025362dc3595c7702d2eb43))
+
+### [11.14.1](https://www.github.com/googleapis/release-please/compare/v11.14.0...v11.14.1) (2021-07-07)
+
+
+### Bug Fixes
+
+* finding commits to non-existent branch should return empty array ([#956](https://www.github.com/googleapis/release-please/issues/956)) ([6dc3b48](https://www.github.com/googleapis/release-please/commit/6dc3b48549c5beb9f1cc4d5a359fee5dfca591eb)), closes [#944](https://www.github.com/googleapis/release-please/issues/944)
+
 ## [11.14.0](https://www.github.com/googleapis/release-please/compare/v11.13.2...v11.14.0) (2021-07-07)
 
 
