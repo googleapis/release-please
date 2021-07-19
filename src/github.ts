@@ -944,6 +944,14 @@ export class GitHub {
     }
   }
 
+  /**
+   * Iterate through merged pull requests with a max number of results scanned.
+   *
+   * @param maxResults {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @yields {MergedGitHubPR}
+   * @throws {GitHubAPIError} on an API error
+   */
   async *mergedPullRequestIterator(
     branch: string,
     maxResults: number = Number.MAX_SAFE_INTEGER
