@@ -1,0 +1,17 @@
+[
+  {
+    "sha": "fcd1c890dc1526f4d62ceedad561f498195c8939",
+    "message": "fix(storage): some storage fix\n\nRelease-As: 1.0.0",
+    "files": ["storage/foo.go"]
+  },
+  {
+    "sha": "1f9663cf08ab1cf3b68d95dee4dc99b7c4aac373",
+    "message": "fix(core): some core fix",
+    "files": []
+  },
+  {
+    "sha": "3006009a2b1b2cb4bd5108c0f469c410759f3a6a",
+    "message": "chore: update common templates",
+    "files": []
+  }
+]
