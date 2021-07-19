@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import {GitHubFileContents, GitHub} from '../../src/github';
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
+import {readFileSync, readdirSync, statSync} from 'fs';
+import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import {SinonSandbox} from 'sinon';
 
@@ -99,4 +99,27 @@ export function stubFilesFromFixtures(options: StubFiles) {
     stub.withArgs(file, defaultBranch).resolves(buildGitHubFileRaw(content));
   }
   stub.rejects(Object.assign(Error('not found'), {status: 404}));
+}
+
+// get list of files in a directory
+export function getFilesInDir(
+  directory: string,
+  fileList: string[] = [],
+): string[] {
+  const items = readdirSync(directory);
+  for (const item of items) {
+    const stat =  statSync(posix.join(directory, item));
+    if (stat.isDirectory())
+      fileList = getFilesInDir(posix.join(directory, item), fileList);
+    else fileList.push(posix.join(directory, item));
+  }
+  return fileList;
+}
+
+// get list of files with a particular prefix in a directory
+export function getFilesInDirWithPrefix(directory: string, prefix: string){
+  const allFiles = getFilesInDir(directory)
+  return allFiles.filter((p)=>{
+    return posix.extname(p) == `.${prefix}`
+  }).map((p)=>posix.relative(directory,p))
 }

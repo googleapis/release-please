@@ -1,0 +1,27 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: storage.cnrm.cloud.google.com/v1beta1
+kind: StorageBucket
+metadata:
+  name: blueprints-project-bucket # {"$ref":"#/definitions/io.k8s.cli.substitutions.bucket-name"}
+  namespace: config-control # {"$kpt-set":"namespace"}
+  annotations:
+    cnrm.cloud.google.com/force-destroy: "false"
+    cnrm.cloud.google.com/project-id: blueprints-project # {"$kpt-set":"project-id"}
+spec:
+  storageClass: standard # {"$kpt-set":"storage-class"}
+  uniformBucketLevelAccess: true
+  versioning:
+    enabled: false
