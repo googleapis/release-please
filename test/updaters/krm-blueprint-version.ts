@@ -29,25 +29,25 @@ describe('KRM Blueprint', () => {
     {
       name: 'multiKRMwithFn.yaml',
       expectedVersion: '18.0.0',
-    }
-  ]
+    },
+  ];
   describe('updateContent', () => {
     tests.forEach(test => {
-    it(`updates version in ${test.name}`, async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, test.name),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
+      it(`updates version in ${test.name}`, async () => {
+        const oldContent = readFileSync(
+          resolve(fixturesPath, test.name),
+          'utf8'
+        ).replace(/\r\n/g, '\n');
 
-      const version = new KRMBlueprintVersion({
-        path: test.name,
-        changelogEntry: '',
-        version: test.expectedVersion,
-        packageName: '',
+        const version = new KRMBlueprintVersion({
+          path: test.name,
+          changelogEntry: '',
+          version: test.expectedVersion,
+          packageName: '',
+        });
+        const newContent = version.updateContent(oldContent);
+        snapshot(newContent);
       });
-      const newContent = version.updateContent(oldContent);
-      snapshot(newContent);
     });
   });
-  })
 });

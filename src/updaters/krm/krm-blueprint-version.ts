@@ -35,17 +35,19 @@ export class KRMBlueprintVersion implements Update {
   updateContent(content: string): string {
     // js-yaml(and kpt TS SDK) does not preserve comments hence regex match
     // match starting cnrm/ ending with semver to prevent wrong updates like pinned config.kubernetes.io/function
-    const oldVersion = content.match(/(cnrm\/.*\/)(v[0-9]+\.[0-9]+\.[0-9])+(-\w+)?/)
+    const oldVersion = content.match(
+      /(cnrm\/.*\/)(v[0-9]+\.[0-9]+\.[0-9])+(-\w+)?/
+    );
 
     if (oldVersion) {
-        logger.info(
-          `updating ${this.path} from ${oldVersion[2]} to v${this.version}`
-        );
-      }
-      const newVersion = content.replace(
-        /(cnrm\/.*\/)(v[0-9]+\.[0-9]+\.[0-9])+(-\w+)?/g,
-        `$1v${this.version}`
+      logger.info(
+        `updating ${this.path} from ${oldVersion[2]} to v${this.version}`
       );
-      return newVersion
+    }
+    const newVersion = content.replace(
+      /(cnrm\/.*\/)(v[0-9]+\.[0-9]+\.[0-9])+(-\w+)?/g,
+      `$1v${this.version}`
+    );
+    return newVersion;
   }
 }

@@ -15,12 +15,12 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {KRMBlueprint} from '../../src/releasers/krm-blueprint';
 import {readFileSync} from 'fs';
-import {resolve,join} from 'path';
+import {resolve, join} from 'path';
 import {readPOJO, stubSuggesterWithSnapshot} from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
-import { getFilesInDirWithPrefix } from './utils';
+import {getFilesInDirWithPrefix} from './utils';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
@@ -37,9 +37,9 @@ describe('krm-blueprints', () => {
       expectedVersion: '12.1.0',
     },
     {
-        // nested-pkg with multiple yamls
-        name: 'nested-pkg',
-        expectedVersion: '3.0.0',
+      // nested-pkg with multiple yamls
+      name: 'nested-pkg',
+      expectedVersion: '3.0.0',
     },
   ];
   beforeEach(() => {
@@ -69,11 +69,14 @@ describe('krm-blueprints', () => {
     tests.forEach(test => {
       it(`creates a release PR for ${test.name}`, async function () {
         // get yaml files in test fixture dir
-        const fixtureFiles = getFilesInDirWithPrefix(resolve(fixturesPath,test.name),"yaml")
+        const fixtureFiles = getFilesInDirWithPrefix(
+          resolve(fixturesPath, test.name),
+          'yaml'
+        );
         sandbox
           .stub(releasePR.gh, 'findFilesByExtension')
           .onFirstCall()
-          .returns(Promise.resolve(fixtureFiles))
+          .returns(Promise.resolve(fixtureFiles));
 
         // Return latest tag used to determine next version #:
         sandbox.stub(releasePR, 'latestTag').returns(
@@ -90,21 +93,22 @@ describe('krm-blueprints', () => {
           'getFileContentsOnBranch'
         );
         // CHANGELOG is not found, and will be created:
-        getFileContentsStub
-          .rejects(Object.assign(Error('not found'), {status: 404}));
-            
-          fixtureFiles.forEach((p, count) => {
-            const readFilePath = join(test.name,p)
-            const fileContent = readFileSync(
-              resolve(fixturesPath, readFilePath),
-              'utf8'
-            ).replace(/\r\n/g, '\n');
-            getFileContentsStub.withArgs(p,"main").resolves({
-              sha: 'abc123',
-              content: Buffer.from(fileContent, 'utf8').toString('base64'),
-              parsedContent: fileContent,
-            });
+        getFileContentsStub.rejects(
+          Object.assign(Error('not found'), {status: 404})
+        );
+
+        fixtureFiles.forEach(p => {
+          const readFilePath = join(test.name, p);
+          const fileContent = readFileSync(
+            resolve(fixturesPath, readFilePath),
+            'utf8'
+          ).replace(/\r\n/g, '\n');
+          getFileContentsStub.withArgs(p, 'main').resolves({
+            sha: 'abc123',
+            content: Buffer.from(fileContent, 'utf8').toString('base64'),
+            parsedContent: fileContent,
           });
+        });
 
         // Call to add autorelease: pending label:
         sandbox.stub(releasePR.gh, 'addLabels');

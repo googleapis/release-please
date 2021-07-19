@@ -14,15 +14,16 @@
 
 import {ReleaseCandidate, PackageName, ReleasePR} from '../release-pr';
 import {Update} from '../updaters/update';
-import { GitHubFileContents } from '../github';
+import {GitHubFileContents} from '../github';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
 // KRM specific.
 import {KRMBlueprintVersion} from '../updaters/krm/krm-blueprint-version';
 
-const KRMBlueprintAttribAnnotation = "cnrm.cloud.google.com/blueprint"
-const hasKRMBlueprintAttrib = (content: string) => content.includes(KRMBlueprintAttribAnnotation);
+const KRMBlueprintAttribAnnotation = 'cnrm.cloud.google.com/blueprint';
+const hasKRMBlueprintAttrib = (content: string) =>
+  content.includes(KRMBlueprintAttribAnnotation);
 
 export class KRMBlueprint extends ReleasePR {
   protected async buildUpdates(
@@ -42,9 +43,11 @@ export class KRMBlueprint extends ReleasePR {
 
     // Update version in all yaml files with attribution annotation
     const yamlPaths = await this.gh.findFilesByExtension('yaml');
-    for (const yamlPath of yamlPaths){
-      const contents: GitHubFileContents = await this.gh.getFileContents(this.addPath(yamlPath))
-      if (hasKRMBlueprintAttrib(contents.parsedContent)){
+    for (const yamlPath of yamlPaths) {
+      const contents: GitHubFileContents = await this.gh.getFileContents(
+        this.addPath(yamlPath)
+      );
+      if (hasKRMBlueprintAttrib(contents.parsedContent)) {
         updates.push(
           new KRMBlueprintVersion({
             path: this.addPath(yamlPath),
@@ -54,7 +57,7 @@ export class KRMBlueprint extends ReleasePR {
           })
         );
       }
-    };
+    }
     return updates;
   }
 
