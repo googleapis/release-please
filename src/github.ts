@@ -945,6 +945,33 @@ export class GitHub {
   }
 
   /**
+   * Iterate through merged pull requests with a max number of results scanned.
+   *
+   * @param maxResults {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @yields {MergedGitHubPR}
+   * @throws {GitHubAPIError} on an API error
+   */
+  async *mergedPullRequestIterator(
+    branch: string,
+    maxResults: number = Number.MAX_SAFE_INTEGER
+  ) {
+    let page = 1;
+    const results = 0;
+    while (results < maxResults) {
+      const pullRequests = await this.findMergedPullRequests(branch, page);
+      // no response usually means we ran out of results
+      if (pullRequests.length === 0) {
+        break;
+      }
+      for (let i = 0; i < pullRequests.length; i++) {
+        yield pullRequests[i];
+      }
+      page += 1;
+    }
+  }
+
+  /**
    * Returns the list of commits to the default branch after the provided filter
    * query has been satified.
    *
@@ -1043,29 +1070,22 @@ export class GitHub {
    * @param {string} targetBranch - Base branch of the pull request
    * @param {MergedPullRequestFilter} filter - Callback function that
    *   returns whether a pull request matches certain criteria
+   * @param {number} maxResults - Limit the number of results searched.
+   *   Defaults to unlimited.
    * @returns {MergedGitHubPR | undefined} - Returns the first matching
    *   pull request, or `undefined` if no matching pull request found.
    * @throws {GitHubAPIError} on an API error
    */
   async findMergedPullRequest(
     targetBranch: string,
-    filter: MergedPullRequestFilter
+    filter: MergedPullRequestFilter,
+    maxResults: number = Number.MAX_SAFE_INTEGER
   ): Promise<MergedGitHubPR | undefined> {
-    let page = 1;
-    let mergedPullRequests = await this.findMergedPullRequests(
-      targetBranch,
-      page
-    );
-    while (mergedPullRequests.length > 0) {
-      const found = mergedPullRequests.find(filter);
-      if (found) {
-        return found;
+    const generator = this.mergedPullRequestIterator(targetBranch, maxResults);
+    for await (const mergedPullRequest of generator) {
+      if (filter(mergedPullRequest)) {
+        return mergedPullRequest;
       }
-      page += 1;
-      mergedPullRequests = await this.findMergedPullRequests(
-        targetBranch,
-        page
-      );
     }
     return undefined;
   }
@@ -1097,12 +1117,10 @@ export class GitHub {
       ? branchPrefix.replace(/-$/, '')
       : branchPrefix;
 
-    const mergedCommit = await this.findMergeCommit(
-      (_commit, mergedPullRequest) => {
-        if (!mergedPullRequest) {
-          return false;
-        }
-
+    const targetBranch = await this.getDefaultBranch();
+    const mergedReleasePullRequest = await this.findMergedPullRequest(
+      targetBranch,
+      mergedPullRequest => {
         // If labels specified, ensure the pull request has all the specified labels
         if (
           labels.length > 0 &&
@@ -1144,7 +1162,8 @@ export class GitHub {
       },
       maxResults
     );
-    return mergedCommit?.pullRequest;
+
+    return mergedReleasePullRequest;
   }
 
   private hasAllLabels(labelsA: string[], labelsB: string[]) {
