@@ -189,6 +189,7 @@ export class ReleasePR {
       logger.warn('snapshot releases not supported for this releaser');
       return;
     }
+    // TODO: consider switching to this.findMergedRelease()
     const mergedPR = await this.gh.findMergedReleasePR(
       this.labels,
       undefined,
