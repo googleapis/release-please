@@ -19,6 +19,7 @@ import {GoYoshi} from './go-yoshi';
 import {JavaBom} from './java-bom';
 import {JavaLTS} from './java-lts';
 import {JavaYoshi} from './java-yoshi';
+import {KRMBlueprint} from './krm-blueprint';
 import {Node} from './node';
 import {PHPYoshi} from './php-yoshi';
 import {Python} from './python';
@@ -38,6 +39,7 @@ export type ReleaseType =
   | 'java-bom'
   | 'java-lts'
   | 'java-yoshi'
+  | 'krm-blueprint'
   | 'node'
   | 'ocaml'
   | 'php-yoshi'
@@ -57,6 +59,7 @@ const releasers: Releasers = {
   'java-bom': JavaBom,
   'java-lts': JavaLTS,
   'java-yoshi': JavaYoshi,
+  'krm-blueprint': KRMBlueprint,
   node: Node,
   ocaml: OCaml,
   'php-yoshi': PHPYoshi,
