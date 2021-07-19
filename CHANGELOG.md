@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.16.2](https://www.github.com/googleapis/release-please/compare/v11.16.1...v11.16.2) (2021-07-19)
+
+
+### Bug Fixes
+
+* switch searching for pending release PR to use pull request API ([#977](https://www.github.com/googleapis/release-please/issues/977)) ([31786db](https://www.github.com/googleapis/release-please/commit/31786db3e0086b3770ebcaf7247c4b65e42c0cb4)), closes [#826](https://www.github.com/googleapis/release-please/issues/826)
+
 ### [11.16.1](https://www.github.com/googleapis/release-please/compare/v11.16.0...v11.16.1) (2021-07-15)
 
 
