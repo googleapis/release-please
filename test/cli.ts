@@ -164,6 +164,7 @@ describe('CLI', () => {
         'java-bom',
         'java-lts',
         'java-yoshi',
+        'krm-blueprint',
         'node',
         'ocaml',
         'php-yoshi',

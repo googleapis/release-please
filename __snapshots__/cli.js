@@ -18,9 +18,9 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --release-type                    what type of repo is a release being created
                                     for?
-       [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi", "node",
-         "ocaml", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "simple",
-                                                     "terraform-module", "helm"]
+               [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
+  "krm-blueprint", "node", "ocaml", "php-yoshi", "python", "ruby", "ruby-yoshi",
+                                   "rust", "simple", "terraform-module", "helm"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
   --release-as                      override the semantically determined release
@@ -72,9 +72,9 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --release-type                    what type of repo is a release being created
                                     for?
-       [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi", "node",
-         "ocaml", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "simple",
-                                   "terraform-module", "helm"] [default: "node"]
+               [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
+  "krm-blueprint", "node", "ocaml", "php-yoshi", "python", "ruby", "ruby-yoshi",
+                 "rust", "simple", "terraform-module", "helm"] [default: "node"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
   --release-as                      override the semantically determined release
@@ -169,9 +169,9 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --release-type                    what type of repo is a release being created
                                     for?
-       [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi", "node",
-         "ocaml", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "simple",
-                                   "terraform-module", "helm"] [default: "node"]
+               [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
+  "krm-blueprint", "node", "ocaml", "php-yoshi", "python", "ruby", "ruby-yoshi",
+                 "rust", "simple", "terraform-module", "helm"] [default: "node"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
   --release-as                      override the semantically determined release
