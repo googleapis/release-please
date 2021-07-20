@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.17.0](https://www.github.com/googleapis/release-please/compare/v11.16.2...v11.17.0) (2021-07-20)
+
+
+### Features
+
+* add krm-blueprint releaser ([#976](https://www.github.com/googleapis/release-please/issues/976)) ([deb0d7e](https://www.github.com/googleapis/release-please/commit/deb0d7e6322529d5a14db6ac3e1a17b42e137283))
+
 ### [11.16.2](https://www.github.com/googleapis/release-please/compare/v11.16.1...v11.16.2) (2021-07-19)
 
 
