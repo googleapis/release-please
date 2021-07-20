@@ -40,6 +40,10 @@ export class KRMBlueprint extends ReleasePR {
         packageName: packageName.name,
       })
     );
+    const versionsMap: Map<string, string> = new Map();
+    if (candidate.previousTag) {
+      versionsMap.set('previous', candidate.previousTag);
+    }
 
     // Update version in all yaml files with attribution annotation
     const yamlPaths = await this.gh.findFilesByExtension('yaml');
@@ -54,6 +58,7 @@ export class KRMBlueprint extends ReleasePR {
             changelogEntry,
             version: candidate.version,
             packageName: packageName.name,
+            versions: versionsMap,
           })
         );
       }

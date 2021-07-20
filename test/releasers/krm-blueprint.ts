@@ -34,12 +34,12 @@ describe('krm-blueprints', () => {
     {
       // simple-pkg with single yaml
       name: 'simple-pkg',
-      expectedVersion: '12.1.0',
+      currentVersion: '12.1.0',
     },
     {
       // nested-pkg with multiple yamls
       name: 'nested-pkg',
-      expectedVersion: '3.0.0',
+      currentVersion: '3.0.0',
     },
   ];
   beforeEach(() => {
@@ -82,8 +82,8 @@ describe('krm-blueprints', () => {
         sandbox.stub(releasePR, 'latestTag').returns(
           Promise.resolve({
             sha: 'da6e52d956c1e35d19e75e0f2fdba439739ba364',
-            name: `v${test.expectedVersion}`,
-            version: test.expectedVersion,
+            name: `v${test.currentVersion}`,
+            version: test.currentVersion,
           })
         );
 
