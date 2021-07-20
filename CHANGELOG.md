@@ -4,6 +4,32 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.16.2](https://www.github.com/googleapis/release-please/compare/v11.16.1...v11.16.2) (2021-07-19)
+
+
+### Bug Fixes
+
+* switch searching for pending release PR to use pull request API ([#977](https://www.github.com/googleapis/release-please/issues/977)) ([31786db](https://www.github.com/googleapis/release-please/commit/31786db3e0086b3770ebcaf7247c4b65e42c0cb4)), closes [#826](https://www.github.com/googleapis/release-please/issues/826)
+
+### [11.16.1](https://www.github.com/googleapis/release-please/compare/v11.16.0...v11.16.1) (2021-07-15)
+
+
+### Bug Fixes
+
+* **go-yoshi:** Release-As should only apply to the correct file scope ([#969](https://www.github.com/googleapis/release-please/issues/969)) ([fa317b2](https://www.github.com/googleapis/release-please/commit/fa317b2ef88bd153001b85984b8f457a4d9eec1e)), closes [#878](https://www.github.com/googleapis/release-please/issues/878)
+
+## [11.16.0](https://www.github.com/googleapis/release-please/compare/v11.15.0...v11.16.0) (2021-07-14)
+
+
+### Features
+
+* add new ConfigurationError types so consumers can handle errors ([#964](https://www.github.com/googleapis/release-please/issues/964)) ([5f7ca9d](https://www.github.com/googleapis/release-please/commit/5f7ca9daa9608a3bf4f7945491a04d560e590e95)), closes [#960](https://www.github.com/googleapis/release-please/issues/960)
+
+
+### Bug Fixes
+
+* JavaYoshi releasers now throw `MissingRequiredFileError` if missing required `versions.txt` file. ([5f7ca9d](https://www.github.com/googleapis/release-please/commit/5f7ca9daa9608a3bf4f7945491a04d560e590e95))
+
 ## [11.15.0](https://www.github.com/googleapis/release-please/compare/v11.14.2...v11.15.0) (2021-07-13)
 
 
