@@ -17,16 +17,8 @@ import {Update} from '../updaters/update';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
-import {ReleasePRConstructorOptions} from '..';
-
-const DEFAULT_CHANGELOG_PATH = 'CHANGES.md';
 
 export class Go extends ReleasePR {
-  constructor(options: ReleasePRConstructorOptions) {
-    super(options);
-    this.changelogPath = options.changelogPath ?? DEFAULT_CHANGELOG_PATH;
-  }
-
   protected async buildUpdates(
     changelogEntry: string,
     candidate: ReleaseCandidate,
