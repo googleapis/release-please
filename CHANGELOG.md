@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.18.0](https://www.github.com/googleapis/release-please/compare/v11.17.0...v11.18.0) (2021-07-28)
+
+
+### Features
+
+* **go:** default to CHANGELOG.md ([#986](https://www.github.com/googleapis/release-please/issues/986)) ([5ab2069](https://www.github.com/googleapis/release-please/commit/5ab2069c22f3b5d5aba9dbd34f061a4de871e07c)), closes [#924](https://www.github.com/googleapis/release-please/issues/924)
+
 ## [11.17.0](https://www.github.com/googleapis/release-please/compare/v11.16.2...v11.17.0) (2021-07-20)
 
 
