@@ -1,6 +1,6 @@
 exports['Go run creates a release PR: changes'] = `
 
-filename: CHANGES.md
+filename: CHANGELOG.md
 # Changelog
 
 ### [0.123.5](https://www.github.com/googleapis/simple-test-repo/compare/v0.123.4...v0.123.5) (1983-10-10)
