@@ -61,6 +61,7 @@ export interface Config extends ReleaserConfigJson {
   packages: Record<string, ReleaserPackageConfig>;
   parsedPackages: ManifestPackage[];
   'bootstrap-sha'?: string;
+  'last-release-sha'?: string;
   plugins?: PluginType[];
 }
 
@@ -558,14 +559,6 @@ export class Manifest {
     return [body, changes];
   }
 
-  private async commitsSinceSha(sha?: string): Promise<Commit[]> {
-    let fromSha = sha;
-    if (fromSha === undefined) {
-      fromSha = (await this.getConfigJson())['bootstrap-sha'];
-    }
-    return this.gh.commitsSinceShaRest(fromSha);
-  }
-
   private async getPlugins(): Promise<ManifestPlugin[]> {
     const plugins = [];
     const config = await this.getConfigJson();
@@ -575,6 +568,32 @@ export class Manifest {
     return plugins;
   }
 
+  private async resolveLastReleaseSha(
+    branchName: string
+  ): Promise<string | undefined> {
+    const config = await this.getConfigJson();
+    let lastReleaseSha;
+    let source = 'no last release sha found';
+    if (config['last-release-sha']) {
+      lastReleaseSha = config['last-release-sha'];
+      source = 'last-release-sha';
+    } else {
+      const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
+      if (lastMergedPR) {
+        lastReleaseSha = lastMergedPR.sha;
+        source = 'last-release-pr';
+      } else if (config['bootstrap-sha']) {
+        lastReleaseSha = config['bootstrap-sha'];
+        source = 'bootstrap-sha';
+      }
+    }
+    this.checkpoint(
+      `Found last release sha "${lastReleaseSha}" using "${source}"`,
+      CheckpointType.Success
+    );
+    return lastReleaseSha;
+  }
+
   async pullRequest(): Promise<number | undefined> {
     const valid = await this.validate();
     if (!valid) {
@@ -582,15 +601,15 @@ export class Manifest {
     }
 
     const branchName = (await this.getBranchName()).toString();
-    const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
-    const commits = await this.commitsSinceSha(lastMergedPR?.sha);
+    const lastReleaseSha = await this.resolveLastReleaseSha(branchName);
+    const commits = await this.gh.commitsSinceShaRest(lastReleaseSha);
     const packagesForReleasers = await this.getPackagesToRelease(
       commits,
-      lastMergedPR?.sha
+      lastReleaseSha
     );
     let [newManifestVersions, pkgsWithChanges] = await this.runReleasers(
       packagesForReleasers,
-      lastMergedPR?.sha
+      lastReleaseSha
     );
     if (pkgsWithChanges.length === 0) {
       this.checkpoint(

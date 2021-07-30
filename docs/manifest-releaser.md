@@ -94,11 +94,29 @@ documented in comments)
 {
   // if this is the first time running `manifest-pr` on a repo
   // this key will limit how far back (exclusive) to pull commits
-  // for conventional commit parsing.
+  // for conventional commit parsing. Once release-please has generated
+  // at least one release PR, this setting will subsequently be ignored.
+  // release-please will check for a manifest file at the bootstrap-sha
+  // and if it doesn't find one it will fallback to checking at HEAD.
   // Notes:
   //   - full sha required.
   //   - only applicable at top-level config.
   "bootstrap-sha": "6fc119838885b0cb831e78ddd23ac01cb819e585",
+
+  // release-please's normal behavior is to find the last merged release PR
+  // and use the associated commit sha as the previous marker from which to
+  // gather commits for the new release. With this setting you can manually
+  // set the commit sha release-please will use from which to gather commits
+  // for the current release.
+  // This can be useful when you've accidentally merged a bad release PR.
+  // While you can revert the changes from that PR and delete tags/releases
+  // GitHub does not allow you to delete PRs so release-please will find
+  // that last PR.
+  // Notes:
+  //   - full sha required.
+  //   - only applicable at top-level config.
+  //   - never ignored: remove/change it once a good release PR is merged
+  "last-release-sha": "7td2b9838885b3adf52e78ddd23ac01cb819e631",
 
   // see Plugins section below
   // absence defaults to [] (i.e. no plugins)

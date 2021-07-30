@@ -282,6 +282,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -350,6 +354,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Found version 2.0.0 for . in .release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -460,6 +468,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 0.1.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -548,6 +560,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -632,6 +648,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
@@ -718,6 +738,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 0.1.2 for node/pkg2 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -784,6 +808,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.be.undefined;
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
@@ -872,6 +900,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "undefined" using "no last release sha found"',
+          CheckpointType.Success,
+        ],
+        [
           'Bootstrapping from .release-please-manifest.json at tip of main',
           CheckpointType.Failure,
         ],
@@ -888,6 +920,96 @@ describe('Manifest', () => {
         [
           'Found version 1.2.3 for python in ' +
             '.release-please-manifest.json at tip of main',
+          CheckpointType.Success,
+        ],
+        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
+        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
+        ['Processing package: Python(foolib)', CheckpointType.Success],
+      ]);
+    });
+
+    it('uses last-release-sha', async function () {
+      const manifest = JSON.stringify({
+        'node/pkg1': '3.2.1',
+        'node/pkg2': '0.1.2',
+        python: '1.2.3',
+      });
+      const config = JSON.stringify({
+        'release-type': 'node',
+        'bump-minor-pre-major': true,
+        'last-release-sha': lastReleaseSha,
+        packages: {
+          'node/pkg1': {},
+          'node/pkg2': {},
+          python: {
+            'release-type': 'python',
+            'package-name': 'foolib',
+          },
+        },
+      });
+      const commits = [
+        buildMockCommit('fix(foolib): bufix python foolib', [
+          'python/src/foolib/foo.py',
+        ]),
+        buildMockCommit('feat(@node/pkg1)!: major new feature', [
+          'node/pkg1/src/foo.ts',
+        ]),
+        buildMockCommit('feat(@node/pkg2): new feature', [
+          'node/pkg2/src/bar.ts',
+        ]),
+      ];
+
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha: 'skip-this-bad-release-PR'});
+      expectCommitsSinceSha(mock, {
+        lastReleaseSha,
+        commits,
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: [
+          'node/pkg1/package.json',
+          'node/pkg2/package.json',
+          'python/setup.py',
+          'python/setup.cfg',
+          'python/src/foolib/version.py',
+        ],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+        ],
+      });
+      expectLabelAndComment(mock, {addLabel});
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
+      expect(pr).to.equal(22);
+      expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-sha"',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 0.1.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
         ],
         ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
@@ -934,7 +1056,10 @@ describe('Manifest', () => {
         defaultBranch,
       });
       const mock = mockGithub(github);
-      expectManifest(mock);
+      expectManifest(mock, {
+        manifest: false,
+        lastReleaseSha: 'some-sha-in-mains-history',
+      });
       expectPR(mock);
       // not actually testing gh.CommitsSinceSha, sufficient to know that
       // Manifest called it with the 'bootstrap-sha' config value.
@@ -964,6 +1089,14 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "some-sha-in-mains-history" using "bootstrap-sha"',
+          CheckpointType.Success,
+        ],
+        [
+          'Failed to get .release-please-manifest.json at some-sha-in-mains-history: 404',
+          CheckpointType.Failure,
+        ],
         [
           'Bootstrapping from .release-please-manifest.json at tip of main',
           CheckpointType.Failure,
@@ -1052,6 +1185,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Failed to get .release-please-manifest.json at abc123: 404',
           CheckpointType.Failure,
@@ -2120,6 +2257,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Found version 0.123.4 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
