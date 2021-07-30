@@ -748,10 +748,7 @@ describe('JavaYoshi', () => {
 
     it('finds a non-ga version', async () => {
       const graphql = JSON.parse(
-        readFileSync(
-          resolve('./test/fixtures', 'latest-tag.json'),
-          'utf8'
-        )
+        readFileSync(resolve('./test/fixtures', 'latest-tag.json'), 'utf8')
       );
       req.post('/graphql').reply(200, {
         data: graphql,
@@ -759,6 +756,6 @@ describe('JavaYoshi', () => {
       const latestTag = await releasePR.latestTag();
       expect(latestTag!.version).to.equal('2.0.0-rc1');
       req.done();
-    })
+    });
   });
 });
