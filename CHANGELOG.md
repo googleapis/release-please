@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.19.0](https://www.github.com/googleapis/release-please/compare/v11.18.0...v11.19.0) (2021-07-30)
+
+
+### Features
+
+* **manifest:** support hard-coded last-release-sha ([#989](https://www.github.com/googleapis/release-please/issues/989)) ([f72acd5](https://www.github.com/googleapis/release-please/commit/f72acd5094ef15d52add466c16e29e58013f4f1a))
+
+
+### Bug Fixes
+
+* **java:** find pre-release versions when looking for latestTag ([#993](https://www.github.com/googleapis/release-please/issues/993)) ([2393f67](https://www.github.com/googleapis/release-please/commit/2393f6783965e53df388d84db8c78afb75ef8f29))
+
 ## [11.18.0](https://www.github.com/googleapis/release-please/compare/v11.17.0...v11.18.0) (2021-07-28)
 
 
