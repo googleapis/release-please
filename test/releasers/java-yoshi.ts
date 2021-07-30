@@ -745,5 +745,17 @@ describe('JavaYoshi', () => {
       expect(latestTag!.version).to.equal('1.2.1');
       req.done();
     });
+
+    it('finds a non-ga version', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve('./test/fixtures', 'latest-tag.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag();
+      expect(latestTag!.version).to.equal('2.0.0-rc1');
+      req.done();
+    });
   });
 });
