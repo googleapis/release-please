@@ -1,0 +1,130 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "nodes": [
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 4,
+                    "title": "chore: release v2.0.0b2",
+                    "baseRefName": "main",
+                    "headRefName": "release-v2.0.0b2",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "autorelease: tagged"
+                        }
+                      ]
+                    },
+                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure",
+                    "mergeCommit": {
+                      "oid": "bc329592af60713fe28586dc6d9dfb03aa2dbe1a"
+                    }
+                  }
+                ]
+              },
+              "sha": "bc329592af60713fe28586dc6d9dfb03aa2dbe1a",
+              "message": "chore: release v2.0.0-rc1"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 2,
+                    "title": "chore: release v1.3.0",
+                    "baseRefName": "main",
+                    "headRefName": "release-v1.3.0",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "autorelease: tagged"
+                        }
+                      ]
+                    },
+                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure",
+                    "mergeCommit": {
+                      "oid": "92af60713fe28586dc6d9dfb03aa2dbe1abc3295"
+                    }
+                  }
+                ]
+              },
+              "sha": "92af60713fe28586dc6d9dfb03aa2dbe1abc3295",
+              "message": "chore: release v1.3.0"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 1,
+                    "title": "chore: release v1.2.0",
+                    "baseRefName": "main",
+                    "headRefName": "release-v1.2.0",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "autorelease: tagged"
+                        }
+                      ]
+                    },
+                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure",
+                    "mergeCommit": {
+                      "oid": "959ee48c95f254300eb040c46ebdc8248317efe4"
+                    }
+                  }
+                ]
+              },
+              "sha": "959ee48c95f254300eb040c46ebdc8248317efe4",
+              "message": "chore: release v1.2.0"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 3,
+                    "title": "chore: release v1.1.0",
+                    "baseRefName": "main",
+                    "headRefName": "release-v1.1.0",
+                    "labels": {
+                      "nodes": [
+                        {
+                          "name": "autorelease: tagged"
+                        }
+                      ]
+                    },
+                    "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure",
+                    "mergeCommit": {
+                      "oid": "959ee48c95f254300eb040c46ebdc8248317efe4"
+                    }
+                  }
+                ]
+              },
+              "sha": "959ee48c95f254300eb040c46ebdc8248317efe4",
+              "message": "chore: release v1.1.0"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": []
+              },
+              "sha": "c6d9dfb03aa2dbe1abc329592af60713fe28586d",
+              "message": "build: add java structure"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": []
+              },
+              "sha": "c8f1498c92c323bfa8f5ffe84e0ade1c37e4ea6e",
+              "message": "feat: initial commit"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "e6daec403626c9987c7af0d97b34f324cd84320a 12"
+          }
+        }
+      }
+    }
+  }
+}

@@ -53,6 +53,7 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
+let latestTagStub = sinon.spy();
 function stubGithub(
   releasePR: Python,
   versionFiles: string[] = [],
@@ -70,7 +71,7 @@ function stubGithub(
   sandbox
     .stub(releasePR.gh, 'findMergedReleasePR')
     .returns(Promise.resolve(undefined));
-  sandbox.stub(releasePR, 'latestTag').resolves(latestTag);
+  latestTagStub = sandbox.stub(releasePR, 'latestTag').resolves(latestTag);
   sandbox.stub(releasePR.gh, 'commitsSinceSha').resolves(commits);
   sandbox.stub(releasePR.gh, 'addLabels');
   sandbox.stub(releasePR.gh, 'findFilesByFilename').resolves(versionFiles);
@@ -273,6 +274,31 @@ describe('Python', () => {
       ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
+    });
+
+    it('calls latestTag with preRelease set to true', async function () {
+      const releasePR = new Python({
+        github: new GitHub({owner: 'googleapis', repo: 'py-test-repo'}),
+        packageName: pkgName,
+      });
+
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      stubGithub(releasePR, ['src/version.py'], undefined, undefined, false);
+      sandbox.stub(releasePR.gh, 'getFileContents').resolves({
+        parsedContent: "[project]\nname = 'project'\nversion = '0.0.1'\n",
+        sha: '',
+        content: '',
+      });
+      stubFilesToUpdate(releasePR.gh, [
+        'pyproject.toml',
+        'project/__init__.py',
+        'setup.py',
+        'src/version.py',
+        'setup.cfg',
+      ]);
+      //  sinon.match.any, true
+      await releasePR.run();
+      sandbox.assert.calledWith(latestTagStub, sinon.match.any, true);
     });
   });
 });
