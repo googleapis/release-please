@@ -41,6 +41,15 @@ export class MissingRequiredFileError extends ConfigurationError {
   }
 }
 
+export class PathNotFoundError extends Error {
+  path: string;
+  constructor(path: string) {
+    super(`Could not find requested path: ${path}`);
+    this.path = path;
+    this.name = PathNotFoundError.name;
+  }
+}
+
 export class GitHubAPIError extends Error {
   body: RequestErrorBody | undefined;
   status: number;

@@ -98,7 +98,12 @@ import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
 import {RELEASE_PLEASE, GH_API_URL} from './constants';
 import {GitHubConstructorOptions} from '.';
-import {DuplicateReleaseError, GitHubAPIError, AuthError} from './errors';
+import {
+  DuplicateReleaseError,
+  GitHubAPIError,
+  AuthError,
+  PathNotFoundError,
+} from './errors';
 
 export interface OctokitAPIs {
   graphql: Function;
@@ -1542,7 +1547,7 @@ export class GitHub {
 
     const blobDescriptor = repoTree.data.tree.find(tree => tree.path === path);
     if (!blobDescriptor) {
-      throw new Error(`Could not find requested path: ${path}`);
+      throw new PathNotFoundError(path);
     }
 
     const resp = await this.request('GET /repos/:owner/:repo/git/blobs/:sha', {
@@ -1585,7 +1590,7 @@ export class GitHub {
       try {
         return await this.getFileContentsWithSimpleAPI(path, branch);
       } catch (err) {
-        if (err.status === 403) {
+        if (err.status === 403 || err.status === 404) {
           return await this.getFileContentsWithDataAPI(path, branch);
         }
         throw err;

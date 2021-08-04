@@ -30,7 +30,11 @@ import {JavaUpdate} from '../updaters/java/java_update';
 import {isStableArtifact} from './java/stability';
 import {fromSemverReleaseType} from './java/bump_type';
 import {logger} from '../util/logger';
-import {GitHubAPIError, MissingRequiredFileError} from '../errors';
+import {
+  GitHubAPIError,
+  MissingRequiredFileError,
+  PathNotFoundError,
+} from '../errors';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -57,15 +61,16 @@ export class JavaYoshi extends ReleasePR {
           'versions.txt'
         );
       } catch (e) {
-        if (e instanceof GitHubAPIError) {
-          if (e.status === 404) {
-            // on missing file, throw a configuration error
-            throw new MissingRequiredFileError(
-              'versions.txt',
-              JavaYoshi.name,
-              this.gh.repo
-            );
-          }
+        if (
+          (e instanceof GitHubAPIError && e.status === 404) ||
+          e instanceof PathNotFoundError
+        ) {
+          // on missing file, throw a configuration error
+          throw new MissingRequiredFileError(
+            'versions.txt',
+            JavaYoshi.name,
+            this.gh.repo
+          );
         }
         throw e;
       }
