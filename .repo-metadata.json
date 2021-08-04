@@ -5,5 +5,6 @@
   "language": "nodejs",
   "repo": "googleapis/release-please",
   "distribution_name": "release-please",
-  "codeowner_team": "@googleapis/github-automation"
+  "codeowner_team": "@googleapis/github-automation",
+  "client_documentation": "https://cloud.google.com/nodejs/docs/reference/release-please/latest"
 }
