@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.20.1](https://www.github.com/googleapis/release-please/compare/v11.20.0...v11.20.1) (2021-08-04)
+
+
+### Bug Fixes
+
+* **github-release:** private repo not found error ([#982](https://www.github.com/googleapis/release-please/issues/982)) ([90da806](https://www.github.com/googleapis/release-please/commit/90da806516c8cf2deedb7aaac956026282b8de68))
+
 ## [11.20.0](https://www.github.com/googleapis/release-please/compare/v11.19.0...v11.20.0) (2021-08-04)
 
 
