@@ -48,7 +48,7 @@ const CHANGELOG_SECTIONS = [
 ];
 
 export class Python extends ReleasePR {
-  preRelease = true;
+  enableSimplePrereleaseParsing = true;
 
   constructor(options: ReleasePRConstructorOptions) {
     super(options);
