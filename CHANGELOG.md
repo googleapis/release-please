@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.20.0](https://www.github.com/googleapis/release-please/compare/v11.19.0...v11.20.0) (2021-08-04)
+
+
+### Features
+
+* **prerelease:** support "normal" form for python pre-releases ([#1000](https://www.github.com/googleapis/release-please/issues/1000)) ([3be1ba8](https://www.github.com/googleapis/release-please/commit/3be1ba89e098682ec9008d03dc55437c7dacbf91))
+
 ## [11.19.0](https://www.github.com/googleapis/release-please/compare/v11.18.0...v11.19.0) (2021-07-30)
 
 
