@@ -87,6 +87,7 @@ export class ReleasePR {
   pullRequestTitlePattern?: string;
   extraFiles: string[];
   forManifestReleaser: boolean;
+  preRelease = false;
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -210,7 +211,8 @@ export class ReleasePR {
   protected async _run(): Promise<number | undefined> {
     const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined,
+      this.preRelease
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -571,6 +573,10 @@ export class ReleasePR {
     // Consider any version with a '-' as a pre-release version
     if (!preRelease && version.indexOf('-') >= 0) {
       return null;
+    }
+    // Allow the '-' separator to be omitted.
+    if (preRelease && !version.includes('-') && version.match(/[a-zB-Z]/)) {
+      version = version.replace(/([a-zA-Z])/, '-$1');
     }
     return semver.valid(version);
   }
