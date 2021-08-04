@@ -19,6 +19,8 @@ import {Update} from '../updaters/update';
 import {Changelog} from '../updaters/changelog';
 
 export class Go extends ReleasePR {
+  enableSimplePrereleaseParsing = true;
+
   protected async buildUpdates(
     changelogEntry: string,
     candidate: ReleaseCandidate,

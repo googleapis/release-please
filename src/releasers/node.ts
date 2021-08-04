@@ -27,6 +27,7 @@ import {SamplesPackageJson} from '../updaters/samples-package-json';
 export class Node extends ReleasePR {
   private pkgJsonContents?: GitHubFileContents;
   private _packageName?: string;
+  enableSimplePrereleaseParsing = true;
 
   protected async buildUpdates(
     changelogEntry: string,

@@ -361,6 +361,18 @@ describe('Release-PR', () => {
       expect(latestTag!.version).to.equal('1.3.0');
       req.done();
     });
+
+    it('- prefix is optional for pre-release suffixes', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'latest-tag-python.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const latestTag = await releasePR.latestTag(undefined, true);
+      expect(latestTag!.version).to.equal('2.0.0-b2');
+      req.done();
+    });
   });
 
   it('returns early if outstanding release is found', async () => {
