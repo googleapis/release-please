@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.20.2](https://www.github.com/googleapis/release-please/compare/v11.20.1...v11.20.2) (2021-08-05)
+
+
+### Bug Fixes
+
+* PathNotFoundError throwing for optional files ([#1004](https://www.github.com/googleapis/release-please/issues/1004)) ([947ed84](https://www.github.com/googleapis/release-please/commit/947ed844f39d2b8c760ce3ab83491a914895b190))
+
 ### [11.20.1](https://www.github.com/googleapis/release-please/compare/v11.20.0...v11.20.1) (2021-08-04)
 
 
