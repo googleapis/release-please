@@ -674,10 +674,6 @@ describe('JavaYoshi', () => {
         '/repos/googleapis/java-trace/contents/versions.txt?ref=refs%2Fheads%2Fmaster'
       )
       .reply(404);
-
-    nock('https://api.github.com/')
-      .get('/repos/googleapis/java-trace/git/trees/master')
-      .reply(200, {tree: []});
     await assert.rejects(
       async () => {
         return releasePR.run();
