@@ -16,7 +16,7 @@ import {describe, it, afterEach} from 'mocha';
 import * as nock from 'nock';
 nock.disableNetConnect();
 
-import {PHPYoshi} from '../../src/releasers/php-yoshi';
+import {PHP} from '../../src/releasers/php';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {buildGitHubFileRaw} from './utils';
@@ -29,15 +29,15 @@ const sandbox = sinon.createSandbox();
 
 const fixturesPath = './test/fixtures';
 
-describe('PHPYoshi', () => {
+describe('PHP', () => {
   afterEach(() => {
     sandbox.restore();
   });
 
-  it('generates php-yoshi CHANGELOG and aborts if duplicate', async function () {
-    const releasePR = new PHPYoshi({
+  it('generates php CHANGELOG and aborts if duplicate', async function () {
+    const releasePR = new PHP({
       github: new GitHub({owner: 'googleapis', repo: 'release-please'}),
-      packageName: 'yoshi-php',
+      packageName: 'php',
     });
 
     sandbox
@@ -63,11 +63,9 @@ describe('PHPYoshi', () => {
     );
 
     const graphql = JSON.parse(
-      readFileSync(
-        resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
-        'utf8'
-      )
+      readFileSync(resolve(fixturesPath, 'commits-php.json'), 'utf8')
     );
+    console.log(graphql);
     const req = nock('https://api.github.com')
       // now we fetch the commits via the graphql API;
       // note they will be truncated to just before the tag's sha.
@@ -77,51 +75,15 @@ describe('PHPYoshi', () => {
       .reply(200, {
         data: graphql,
       });
-
+    console.log(nock.activeMocks());
     const getFileContentsStub = sandbox.stub(
       releasePR.gh,
       'getFileContentsOnBranch'
     );
     getFileContentsStub
-      .withArgs('AutoMl/composer.json', 'master')
-      .resolves(buildGitHubFileRaw('{"name": "automl"}'));
-    getFileContentsStub
-      .withArgs('AutoMl/VERSION', 'master')
-      .resolves(buildGitHubFileRaw('1.8.3'));
-    getFileContentsStub
-      .withArgs('Datastore/composer.json', 'master')
-      .resolves(buildGitHubFileRaw('{"name": "datastore"}'));
-    getFileContentsStub
-      .withArgs('Datastore/VERSION', 'master')
-      .resolves(buildGitHubFileRaw('2.0.0'));
-    getFileContentsStub
-      .withArgs('PubSub/composer.json', 'master')
-      .resolves(buildGitHubFileRaw('{"name": "pubsub"}'));
-    getFileContentsStub
-      .withArgs('PubSub/VERSION', 'master')
-      .resolves(buildGitHubFileRaw('1.0.1'));
-    getFileContentsStub
-      .withArgs('Speech/composer.json', 'master')
-      .resolves(buildGitHubFileRaw('{"name": "speech"}'));
-    getFileContentsStub
-      .withArgs('Speech/VERSION', 'master')
-      .resolves(buildGitHubFileRaw('1.0.0'));
-    getFileContentsStub
-      .withArgs('WebSecurityScanner/composer.json', 'master')
-      .resolves(buildGitHubFileRaw('{"name": "websecurityscanner"}'));
-    getFileContentsStub
-      .withArgs('WebSecurityScanner/VERSION', 'master')
-      .resolves(buildGitHubFileRaw('0.8.0'));
-    getFileContentsStub
       .withArgs('composer.json', 'master')
       .resolves(buildGitHubFileRaw('{"replace": {}}'));
-    getFileContentsStub
-      .withArgs('docs/manifest.json', 'master')
-      .resolves(
-        buildGitHubFileRaw(
-          '{"modules": [{"name": "google/cloud", "versions": []}, {"name": "datastore", "versions": []}]}'
-        )
-      );
+
     getFileContentsStub.rejects(
       Object.assign(Error('not found'), {status: 404})
     );

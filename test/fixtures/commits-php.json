@@ -1,0 +1,982 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "edges": [
+            {
+              "node": {
+                "message": "fix: Update PubSub timeouts. (#1967)",
+                "oid": "0a8477108a26aeb21d7af06e62be4ae5cb00ad42",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "0a8477108a26aeb21d7af06e62be4ae5cb00ad42"},
+                        "number": 1967,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "PubSub/src/V1/resources/subscriber_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "PubSub/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: Assorted minor fixes for Cloud Datastore client (#1964)",
+                "oid": "269cf923ea6fd0375abaf0bb19790475693c6f90",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "269cf923ea6fd0375abaf0bb19790475693c6f90"},
+                        "number": 1964,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Datastore/src/Connection/Grpc.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/DatastoreClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/Entity.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/EntityIterator.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/EntityMapper.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/Key.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/Operation.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Datastore/src/TransactionTrait.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "OA",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "Prepare v0.102.0 (#1965)",
+                "oid": "da356f004ff891e11a369fd634f55d6abade708f",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "da356f004ff891e11a369fd634f55d6abade708f"},
+                        "number": 1965,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "AutoMl/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Debugger/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Debugger/src/DebuggerClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Dialogflow/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/FirestoreClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Language/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Language/src/LanguageClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/SpeechClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Tasks/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Vision/src/VisionClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/VERSION"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "composer.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/manifest.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "src/ServiceBuilder.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "src/Version.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add Web Security Center Client (#1961)\n\n* add synth script\r\n\r\n* generate web security scanner\r\n\r\n* add to docs site\r\n\r\n* update README\r\n\r\n* update composer\r\n\r\n* remove whitespace in sample\r\n\r\n* add phpunit config\r\n\r\n* add hyperlink\r\n\r\n* autoload tests\r\n\r\n* more autoload fixes",
+                "oid": "fa5761e9e52f36506a72a9292843259d198468b0",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "number": 1961,
+                        "mergeCommit": {"oid": "fa5761e9e52f36506a72a9292843259d198468b0"},
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/.gitattributes"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/.github/pull_request_template.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/CONTRIBUTING.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/LICENSE"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/composer.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/CrawledUrl.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/Finding.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/FindingAddon.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/FindingTypeStats.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanConfigError.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanRun.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanRunErrorTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/ScanRunWarningTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/metadata/V1Beta/WebSecurityScanner.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/phpunit.xml.dist"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/CrawledUrl.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/CreateScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/DeleteScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Finding.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/FindingTypeStats.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Form.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Gapic/WebSecurityScannerGapicClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/GetFindingRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/GetScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/GetScanRunRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListCrawledUrlsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListCrawledUrlsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingTypeStatsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingTypeStatsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListFindingsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanConfigsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanConfigsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanRunsRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ListScanRunsResponse.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/OutdatedLibrary.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Authentication.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Authentication/CustomAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Authentication/GoogleAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/ExportToSecurityCommandCenter.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/RiskLevel.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/Schedule.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/TargetPlatform.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig/UserAgent.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfigError.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfigError/Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfigError_Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Authentication.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Authentication_CustomAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Authentication_GoogleAccount.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_ExportToSecurityCommandCenter.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_RiskLevel.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_Schedule.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_TargetPlatform.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanConfig_UserAgent.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun/ExecutionState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun/ResultState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunErrorTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunErrorTrace/Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunErrorTrace_Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunWarningTrace.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunWarningTrace/Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRunWarningTrace_Code.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun_ExecutionState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ScanRun_ResultState.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/StartScanRunRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/StopScanRunRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/UpdateScanConfigRequest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/ViolatingResource.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableHeaders.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableHeaders/Header.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableHeaders_Header.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/VulnerableParameters.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/WebSecurityScannerClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/WebSecurityScannerGrpcClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/Xss.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/resources/web_security_scanner_client_config.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/resources/web_security_scanner_descriptor_config.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/src/V1beta/resources/web_security_scanner_rest_client_config.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/synth.metadata"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/synth.py"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "WebSecurityScanner/tests/Unit/V1beta/WebSecurityScannerClientTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "composer.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/contents/cloud-web-security-scanner.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/contents/google-cloud.json"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "docs/manifest.json"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "OTI",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: move speech from alpha -> beta (#1962)",
+                "oid": "8db7f3b19c46c873897d79c89ce35b8492e5fe60",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "8db7f3b19c46c873897d79c89ce35b8492e5fe60"},
+                        "number": 1962,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "README.md"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/README.md"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "Mg",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: correctly label as beta (#1963)",
+                "oid": "52f4fbfa1fc3fde585c84e64ef40571d2b85d72e",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "52f4fbfa1fc3fde585c84e64ef40571d2b85d72e"},
+                        "number": 1963,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "AutoMl/README.md"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MQ",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add mp3 encoding and context hint boost support. (#1959)",
+                "oid": "da6e52d956c1e35d19e75e0f2fdba439739ba364",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "da6e52d956c1e35d19e75e0f2fdba439739ba364"},
+                        "number": 1959,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Speech/metadata/V1P1Beta1/CloudSpeech.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1p1beta1/RecognitionConfig/AudioEncoding.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/src/V1p1beta1/SpeechContext.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Speech/synth.metadata"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "NA",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: language system test (#1958)",
+                "oid": "bf69d0f204474b88b3f8b5a72a392129d16a3929",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "bf69d0f204474b88b3f8b5a72a392129d16a3929"},
+                        "number": 1958,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Language/tests/System/AnalyzeTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MQ",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "fix: continue switch targeting warning in PHP 7.3 (#1957)",
+                "oid": "a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "a8b5b0bc9e9ed7998e30983834f7d841b6a37d6f"},
+                        "number": 1957,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Debugger/src/Agent.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MQ",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "node": {
+                "message": "feat: Add Collection Group Query support (#1944)\n\n* Add Collection Group Query support\r\n\r\n* Fix documentation\r\n\r\n* Address code review\r\n\r\n* Throw from createDocumentReference",
+                "oid": "cf52ec0bcdc777dc9c5e76153d7d253bea95d44b",
+                "associatedPullRequests": {
+                  "edges": [
+                    {
+                      "node": {
+                        "mergeCommit": {"oid": "cf52ec0bcdc777dc9c5e76153d7d253bea95d44b"},
+                        "number": 1944,
+                        "files": {
+                          "edges": [
+                            {
+                              "node": {
+                                "path": "Firestore/src/Connection/Grpc.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/FieldPath.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/FirestoreClient.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/Query.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/src/SnapshotTrait.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/CollectionReferenceTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/FieldPathTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/FirestoreClientTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Snippet/QueryTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/System/CollectionGroupTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/System/FirestoreTestCase.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/CollectionReferenceTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/FieldPathTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/FirestoreClientTest.php"
+                              }
+                            },
+                            {
+                              "node": {
+                                "path": "Firestore/tests/Unit/QueryTest.php"
+                              }
+                            }
+                          ],
+                          "pageInfo": {
+                            "endCursor": "MTU",
+                            "hasNextPage": false
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "pageInfo": {
+            "endCursor": "0a8477108a26aeb21d7af06e62be4ae5cb00ad42 31",
+            "hasNextPage": true
+          }
+        }
+      }
+    }
+  },
+  "rateLimit": {
+    "limit": 5000,
+    "cost": 1,
+    "remaining": 4996,
+    "resetAt": "2019-05-28T02:19:15Z"
+  }
+}

@@ -26,9 +26,9 @@ import {Changelog} from '../updaters/changelog';
 // Yoshi PHP Monorepo
 import {PHPClientVersion} from '../updaters/php-client-version';
 import {PHPManifest} from '../updaters/php-manifest';
-import {RootComposer} from '../updaters/root-composer';
 import {Version} from '../updaters/version';
 import {logger} from '../util/logger';
+import {RootComposerUpdatePackages} from '../updaters/root-composer-update-packages';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -87,7 +87,7 @@ export class PHPYoshi extends ReleasePR {
     // update the aggregate package information in the root
     // composer.json and manifest.json.
     updates.push(
-      new RootComposer({
+      new RootComposerUpdatePackages({
         path: 'composer.json',
         changelogEntry,
         version: candidate.version,

@@ -1,4 +1,4 @@
-exports['PHPYoshi generates CHANGELOG and aborts if duplicate: changes'] = `
+exports['PHPYoshi generates php-yoshi CHANGELOG and aborts if duplicate: changes'] = `
 
 filename: AutoMl/VERSION
 1.8.4
@@ -72,7 +72,7 @@ filename: CHANGELOG.md
 
 `
 
-exports['PHPYoshi generates CHANGELOG and aborts if duplicate: options'] = `
+exports['PHPYoshi generates php-yoshi CHANGELOG and aborts if duplicate: options'] = `
 
 upstreamOwner: googleapis
 upstreamRepo: release-please
