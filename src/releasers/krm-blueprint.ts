@@ -42,11 +42,16 @@ export class KRMBlueprint extends ReleasePR {
     );
     const versionsMap: Map<string, string> = new Map();
     if (candidate.previousTag) {
-      versionsMap.set('previous', candidate.previousTag);
+      // if previousTag of form pkgName-vX.x.x, we only require vX.x.x for attrib update
+      const previousVersion = candidate.previousTag.replace(
+        `${packageName.name}-`,
+        ''
+      );
+      versionsMap.set('previousVersion', previousVersion);
     }
 
     // Update version in all yaml files with attribution annotation
-    const yamlPaths = await this.gh.findFilesByExtension('yaml');
+    const yamlPaths = await this.gh.findFilesByExtension('yaml', this.path);
     for (const yamlPath of yamlPaths) {
       const contents: GitHubFileContents = await this.gh.getFileContents(
         this.addPath(yamlPath)
