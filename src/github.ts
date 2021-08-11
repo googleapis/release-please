@@ -337,6 +337,7 @@ export class GitHub {
           }
           commits.push([commit.sha, commit.commit.message]);
         }
+        found = response.data.length === 0 || found;
         page++;
       }
       const ret = [];
