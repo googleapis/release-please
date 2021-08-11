@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.20.3](https://www.github.com/googleapis/release-please/compare/v11.20.2...v11.20.3) (2021-08-11)
+
+
+### Bug Fixes
+
+* krm releaser manifest mode ([#1011](https://www.github.com/googleapis/release-please/issues/1011)) ([be00905](https://www.github.com/googleapis/release-please/commit/be0090591b8711c3fde673e747df41a7d7b096ab))
+
 ### [11.20.2](https://www.github.com/googleapis/release-please/compare/v11.20.1...v11.20.2) (2021-08-05)
 
 
