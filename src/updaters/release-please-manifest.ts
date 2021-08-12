@@ -14,6 +14,7 @@
 
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
+import {jsonStringify} from '../util/json-stringify';
 
 export class ReleasePleaseManifest implements Update {
   path: string;
@@ -35,6 +36,6 @@ export class ReleasePleaseManifest implements Update {
     for (const [path, version] of this.versions!) {
       parsed[path] = version;
     }
-    return JSON.stringify(parsed, Object.keys(parsed).sort(), 2) + '\n';
+    return jsonStringify(parsed, content, Object.keys(parsed).sort());
   }
 }

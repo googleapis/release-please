@@ -11,34 +11,9 @@ filename: Speech/VERSION
 filename: WebSecurityScanner/VERSION
 0.9.0
 filename: composer.json
-{
-    "replace": {
-        "automl": "1.8.4",
-        "datastore": "2.0.1",
-        "pubsub": "1.0.2",
-        "speech": "1.1.0",
-        "websecurityscanner": "0.9.0"
-    }
-}
-
+{"replace":{"automl":"1.8.4","datastore":"2.0.1","pubsub":"1.0.2","speech":"1.1.0","websecurityscanner":"0.9.0"}}
 filename: docs/manifest.json
-{
-    "modules": [
-        {
-            "name": "google/cloud",
-            "versions": [
-                "v0.21.0"
-            ]
-        },
-        {
-            "name": "datastore",
-            "versions": [
-                "v2.0.1"
-            ]
-        }
-    ]
-}
-
+{"modules":[{"name":"google/cloud","versions":["v0.21.0"]},{"name":"datastore","versions":["v2.0.1"]}]}
 filename: CHANGELOG.md
 # Changelog
 

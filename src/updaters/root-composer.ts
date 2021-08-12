@@ -15,6 +15,7 @@
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
 import {logger} from '../util/logger';
+import {jsonStringify} from '../util/json-stringify';
 
 export class RootComposer implements Update {
   path: string;
@@ -50,6 +51,6 @@ export class RootComposer implements Update {
         parsed.replace[key] = version;
       }
     }
-    return JSON.stringify(parsed, null, 4) + '\n';
+    return jsonStringify(parsed, content);
   }
 }
