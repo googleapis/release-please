@@ -15,6 +15,7 @@
 import {Update, UpdateOptions, VersionsMap} from '../update';
 import {GitHubFileContents} from '../../github';
 import {logger} from '../../util/logger';
+import {jsonStringify} from '../../util/json-stringify';
 
 export class EsyJson implements Update {
   path: string;
@@ -39,6 +40,6 @@ export class EsyJson implements Update {
       `updating ${this.path} from ${parsed.version} to ${this.version}`
     );
     parsed.version = this.version;
-    return JSON.stringify(parsed, null, 2) + '\n';
+    return jsonStringify(parsed, content);
   }
 }

@@ -20,10 +20,14 @@ import {GitHub} from '../../src/github';
 import {Config} from '../../src/manifest';
 import {buildGitHubFileRaw} from '../releasers/utils';
 import {ManifestPackageWithPRData} from '../../src';
-import {packageJsonStringify} from '../../src/util/package-json-stringify';
 import {CheckpointType} from '../../src/util/checkpoint';
 import {stringifyExpectedChanges} from '../helpers';
 import snapshot = require('snap-shot-it');
+
+const prettyJsonStringify = (
+  value: object,
+  replacer?: (key: string, value: unknown) => unknown
+) => JSON.stringify(value, replacer, 2) + '\n';
 
 const sandbox = sinon.createSandbox();
 
@@ -34,12 +38,9 @@ function stringifyActual(actual: ManifestPackageWithPRData[]) {
     stringified +=
       '='.repeat(20) +
       '\n' +
-      JSON.stringify(
-        pkgsWithPRData,
-        (k, v) => (k === ' changes' ? undefined : v),
-        2
-      ) +
-      '\n';
+      prettyJsonStringify(pkgsWithPRData, (k, v) =>
+        k === ' changes' ? undefined : v
+      );
     stringified += stringifyExpectedChanges([...changes]) + '\n';
   }
   return stringified;
@@ -57,7 +58,7 @@ const pkgAData: ManifestPackageWithPRData = {
       [
         'packages/pkgA/package.json',
         {
-          content: packageJsonStringify({
+          content: prettyJsonStringify({
             name: '@here/pkgA',
             version: '1.1.2',
             dependencies: {'@there/foo': '^4.1.7'},
@@ -146,7 +147,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgB',
             version: '2.2.2',
             dependencies: {
@@ -167,7 +168,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ],
         [
           'packages/pkgC/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgC',
             version: '3.3.3',
             dependencies: {
@@ -258,7 +259,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgB/CHANGELOG.md', false],
         [
           'packages/pkgC/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgC',
             version: '3.3.3',
             dependencies: {
@@ -300,7 +301,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgB/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: prettyJsonStringify({
                     name: '@here/pkgB',
                     version: '2.3.0',
                     dependencies: {
@@ -388,7 +389,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgB',
             version: '2.2.2',
             dependencies: {
@@ -409,7 +410,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ],
         [
           'packages/pkgC/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgC',
             version: '3.3.3',
             dependencies: {
@@ -474,7 +475,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgB/CHANGELOG.md', false],
         [
           'packages/pkgC/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgC',
             version: '3.3.3',
             dependencies: {
@@ -516,7 +517,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgB/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: prettyJsonStringify({
                     name: '@here/pkgB',
                     version: '0.3.0',
                     dependencies: {
@@ -617,7 +618,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgB/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: prettyJsonStringify({
                     name: '@here/pkgB',
                     version: '2.3.0',
                     dependencies: {
@@ -697,7 +698,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgB',
             version: '2.2.2',
             dependencies: {
@@ -709,7 +710,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgB/CHANGES.md', 501],
         [
           'packages/pkgC/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgC',
             version: '3.3.3',
             dependencies: {
@@ -774,7 +775,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgB',
             version: '2.2.2',
             dependencies: {
@@ -795,7 +796,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ],
         [
           'packages/pkgBB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgBB',
             version: '22.2.2',
             dependencies: {
@@ -834,7 +835,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
             [
               'packages/pkgAA/package.json',
               {
-                content: packageJsonStringify({
+                content: prettyJsonStringify({
                   name: '@here/pkgAA',
                   version: '11.2.0',
                   dependencies: {'@there/foo': '^4.1.7'},
@@ -904,7 +905,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgB',
             version: '2.2.2',
             dependencies: {
@@ -973,7 +974,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgB',
             version: '2.2.2',
             dependencies: {
@@ -1000,7 +1001,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
               [
                 'packages/pkgA/package.json',
                 {
-                  content: packageJsonStringify({
+                  content: prettyJsonStringify({
                     name: '@here/pkgA',
                     version: '1.1.2-alpha.0',
                     dependencies: {'@there/foo': '^4.1.7'},
@@ -1059,7 +1060,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         ['packages/pkgA/CHANGELOG.md', false],
         [
           'packages/pkgB/package.json',
-          JSON.stringify({
+          prettyJsonStringify({
             name: '@here/pkgB',
             version: 'some-invalid-version',
             dependencies: {

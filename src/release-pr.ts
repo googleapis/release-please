@@ -87,6 +87,7 @@ export class ReleasePR {
   pullRequestTitlePattern?: string;
   extraFiles: string[];
   forManifestReleaser: boolean;
+  enableSimplePrereleaseParsing = false;
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -210,7 +211,8 @@ export class ReleasePR {
   protected async _run(): Promise<number | undefined> {
     const packageName = await this.getPackageName();
     const latestTag: GitHubTag | undefined = await this.latestTag(
-      this.monorepoTags ? `${packageName.getComponent()}-` : undefined
+      this.monorepoTags ? `${packageName.getComponent()}-` : undefined,
+      this.enableSimplePrereleaseParsing
     );
     const commits: Commit[] = await this.commits({
       sha: latestTag ? latestTag.sha : undefined,
@@ -287,7 +289,7 @@ export class ReleasePR {
   protected async coerceReleaseCandidate(
     cc: ConventionalCommits,
     latestTag: GitHubTag | undefined,
-    preRelease = false
+    enableSimplePrereleaseParsing = false
   ): Promise<ReleaseCandidate> {
     const releaseAsRe =
       /release-as:\s*v?([0-9]+\.[0-9]+\.[0-9a-z]+(-[0-9a-z.]+)?)\s*/i;
@@ -313,7 +315,7 @@ export class ReleasePR {
 
     if (releaseAsCommit) {
       version = forcedVersion!;
-    } else if (preRelease) {
+    } else if (enableSimplePrereleaseParsing) {
       // Handle pre-release format v1.0.0-alpha1, alpha2, etc.
       const [prefix, suffix] = version.split('-');
       const match = suffix?.match(/(?<type>[^0-9]+)(?<number>[0-9]+)/);
@@ -571,6 +573,10 @@ export class ReleasePR {
     // Consider any version with a '-' as a pre-release version
     if (!preRelease && version.indexOf('-') >= 0) {
       return null;
+    }
+    // Allow the '-' separator to be omitted.
+    if (preRelease && !version.includes('-') && version.match(/[a-zB-Z]/)) {
+      version = version.replace(/([a-zA-Z])/, '-$1');
     }
     return semver.valid(version);
   }

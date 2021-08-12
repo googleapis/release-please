@@ -4,6 +4,53 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.21.0](https://www.github.com/googleapis/release-please/compare/v11.20.3...v11.21.0) (2021-08-12)
+
+
+### Features
+
+* use original json's indentation and style ([#923](https://www.github.com/googleapis/release-please/issues/923)) ([820702c](https://www.github.com/googleapis/release-please/commit/820702c63615f3904c2987bacb37f3502f6397cc))
+
+### [11.20.3](https://www.github.com/googleapis/release-please/compare/v11.20.2...v11.20.3) (2021-08-11)
+
+
+### Bug Fixes
+
+* krm releaser manifest mode ([#1011](https://www.github.com/googleapis/release-please/issues/1011)) ([be00905](https://www.github.com/googleapis/release-please/commit/be0090591b8711c3fde673e747df41a7d7b096ab))
+
+### [11.20.2](https://www.github.com/googleapis/release-please/compare/v11.20.1...v11.20.2) (2021-08-05)
+
+
+### Bug Fixes
+
+* PathNotFoundError throwing for optional files ([#1004](https://www.github.com/googleapis/release-please/issues/1004)) ([947ed84](https://www.github.com/googleapis/release-please/commit/947ed844f39d2b8c760ce3ab83491a914895b190))
+
+### [11.20.1](https://www.github.com/googleapis/release-please/compare/v11.20.0...v11.20.1) (2021-08-04)
+
+
+### Bug Fixes
+
+* **github-release:** private repo not found error ([#982](https://www.github.com/googleapis/release-please/issues/982)) ([90da806](https://www.github.com/googleapis/release-please/commit/90da806516c8cf2deedb7aaac956026282b8de68))
+
+## [11.20.0](https://www.github.com/googleapis/release-please/compare/v11.19.0...v11.20.0) (2021-08-04)
+
+
+### Features
+
+* **prerelease:** support "normal" form for python pre-releases ([#1000](https://www.github.com/googleapis/release-please/issues/1000)) ([3be1ba8](https://www.github.com/googleapis/release-please/commit/3be1ba89e098682ec9008d03dc55437c7dacbf91))
+
+## [11.19.0](https://www.github.com/googleapis/release-please/compare/v11.18.0...v11.19.0) (2021-07-30)
+
+
+### Features
+
+* **manifest:** support hard-coded last-release-sha ([#989](https://www.github.com/googleapis/release-please/issues/989)) ([f72acd5](https://www.github.com/googleapis/release-please/commit/f72acd5094ef15d52add466c16e29e58013f4f1a))
+
+
+### Bug Fixes
+
+* **java:** find pre-release versions when looking for latestTag ([#993](https://www.github.com/googleapis/release-please/issues/993)) ([2393f67](https://www.github.com/googleapis/release-please/commit/2393f6783965e53df388d84db8c78afb75ef8f29))
+
 ## [11.18.0](https://www.github.com/googleapis/release-please/compare/v11.17.0...v11.18.0) (2021-07-28)
 
 

@@ -57,12 +57,7 @@ filename: node/pkg2/CHANGELOG.md
     * @node/pkg1 bumped from ^0.123.4 to ^0.123.5
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "0.123.5",
-  "node/pkg2": "0.1.3",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"0.123.5","node/pkg2":"0.1.3","python":"1.2.4"}
 `
 
 exports['Manifest plugins runs the node-workspace plugin: options'] = `
@@ -179,12 +174,7 @@ filename: node/pkg2/package.json
 }
 
 filename: .release-please-manifest.json
-{
-  ".": "3.0.0",
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "2.0.0"
-}
-
+{".":"3.0.0","node/pkg1":"4.0.0","node/pkg2":"2.0.0"}
 `
 
 exports['Manifest pullRequest allows root module to be published, via special "." path: options'] = `
@@ -306,12 +296,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if first PR: options'] = `
@@ -418,12 +403,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if manifest was deleted in last release PR: options'] = `
@@ -530,12 +510,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest starting at bootstrap-sha if first PR: options'] = `
@@ -642,12 +617,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest bootstraps a new package from curated manifest: options'] = `
@@ -754,12 +724,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "1.0.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"1.0.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest bootstraps a new package using default version: options'] = `
@@ -847,11 +812,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest creates a PR for python and node packages: options'] = `
@@ -912,12 +873,7 @@ filename: node/pkg2/package.json
 }
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "3.2.1",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.3"
-}
-
+{"node/pkg1":"3.2.1","node/pkg2":"0.2.0","python":"1.2.3"}
 `
 
 exports['Manifest pullRequest only includes packages that have version bumps: options'] = `
@@ -1019,12 +975,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.0.0"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "5.5.5",
-  "node/pkg2": "0.3.0",
-  "python": "1.0.0"
-}
-
+{"node/pkg1":"5.5.5","node/pkg2":"0.3.0","python":"1.0.0"}
 `
 
 exports['Manifest pullRequest respects python releaser specific config over defaults: options'] = `
@@ -1072,6 +1023,113 @@ description: :robot: I have created a release \\*beep\\* \\*boop\\*
 ### Python Features Section
 
 * **foolib:** python feature ([33fcc00](https://www.github.com/fake/repo/commit/33fcc0047b2eb3a66854f25c480b5b7e))
+</details>
+
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+primary: main
+force: true
+fork: false
+message: chore: release main
+logger: [object Object]
+`
+
+exports['Manifest pullRequest uses last-release-sha: changes'] = `
+
+filename: node/pkg1/CHANGELOG.md
+# Changelog
+
+## [4.0.0](https://www.github.com/fake/repo/compare/pkg1-v3.2.1...pkg1-v4.0.0) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **@node/pkg1:** major new feature
+
+### Features
+
+* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
+
+filename: node/pkg1/package.json
+{
+  "name": "@node/pkg1",
+  "version": "4.0.0"
+}
+
+filename: node/pkg2/CHANGELOG.md
+# Changelog
+
+## [0.2.0](https://www.github.com/fake/repo/compare/pkg2-v0.1.2...pkg2-v0.2.0) (1983-10-10)
+
+
+### Features
+
+* **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
+
+filename: node/pkg2/package.json
+{
+  "name": "@node/pkg2",
+  "version": "0.2.0",
+  "dependencies": {
+    "@node/pkg1": "^0.123.4"
+  }
+}
+
+filename: python/CHANGELOG.md
+# Changelog
+
+### [1.2.4](https://www.github.com/fake/repo/compare/foolib-v1.2.3...foolib-v1.2.4) (1983-10-10)
+
+
+### Bug Fixes
+
+* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
+
+filename: python/setup.cfg
+version=1.2.4
+
+filename: python/setup.py
+version = "1.2.4"
+
+filename: python/src/foolib/version.py
+__version__ = "1.2.4"
+
+filename: .release-please-manifest.json
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
+`
+
+exports['Manifest pullRequest uses last-release-sha: options'] = `
+
+upstreamOwner: fake
+upstreamRepo: repo
+title: chore: release main
+branch: release-please/branches/main
+description: :robot: I have created a release \\*beep\\* \\*boop\\*
+---
+<details><summary>@node/pkg1: 4.0.0</summary>
+
+
+### ⚠ BREAKING CHANGES
+
+* **@node/pkg1:** major new feature
+
+### Features
+
+* **@node/pkg1:** major new feature ([e3ab0ab](https://www.github.com/fake/repo/commit/e3ab0abfd66e66324f685ceeececf35c))
+</details>
+<details><summary>@node/pkg2: 0.2.0</summary>
+
+
+### Features
+
+* **@node/pkg2:** new feature ([6cefc4f](https://www.github.com/fake/repo/commit/6cefc4f5b1f432a24f7c066c5dd95e68))
+</details>
+<details><summary>foolib: 1.2.4</summary>
+
+
+### Bug Fixes
+
+* **foolib:** bufix python foolib ([8df9117](https://www.github.com/fake/repo/commit/8df9117959264dc5b7b6c72ff36b8846))
 </details>
 
 

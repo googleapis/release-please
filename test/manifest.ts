@@ -23,6 +23,9 @@ import {Commit} from '../src/graphql-to-commits';
 import {CheckpointType} from '../src/util/checkpoint';
 import {stubSuggesterWithSnapshot, buildMockCommit} from './helpers';
 
+const prettyJsonStringify = (value: object) =>
+  JSON.stringify(value, undefined, 2) + '\n';
+
 const fixturePath = './test/fixtures/manifest/repo';
 const defaultBranch = 'main';
 const lastReleaseSha = 'abc123';
@@ -225,13 +228,13 @@ describe('Manifest', () => {
         'node/pkg1': '3.2.1',
         python: '1.2.3',
       });
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         // test that we overwrite any existing path versions that someone tried
         // to change.
         python: '9.9.9',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         packages: {
           'node/pkg1': {},
           python: {
@@ -282,6 +285,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -297,12 +304,12 @@ describe('Manifest', () => {
     });
 
     it('allows root module to be published, via special "." path', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         '.': '2.0.0',
         'node/pkg1': '3.2.1',
         'node/pkg2': '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         packages: {
           '.': {},
           'node/pkg1': {},
@@ -351,6 +358,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 2.0.0 for . in .release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
         ],
@@ -373,12 +384,12 @@ describe('Manifest', () => {
       if (process.versions.node.split('.')[0] === '10') {
         this.skip();
       }
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '0.1.1',
         'node/pkg2': '0.2.2',
         python: '0.1.1',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'bump-minor-pre-major': true,
         'release-as': '5.5.5',
         'changelog-sections': [
@@ -460,6 +471,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 0.1.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -481,18 +496,18 @@ describe('Manifest', () => {
     });
 
     it('bootstraps a new package from curated manifest', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         python: '1.2.3',
       });
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         // New package's "previous" version manually added since last release.
         // Candidate release will increment this version.
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -548,6 +563,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -574,11 +593,11 @@ describe('Manifest', () => {
     });
 
     it('bootstraps a new package using default version', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         packages: {
           'node/pkg1': {},
           'node/pkg2': {}, // should default to Node.defaultInitialVersion
@@ -632,6 +651,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
@@ -718,6 +741,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 0.1.2 for node/pkg2 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -727,12 +754,12 @@ describe('Manifest', () => {
     });
 
     it('does not create a PR if no changes', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -785,6 +812,10 @@ describe('Manifest', () => {
       expect(pr).to.be.undefined;
       expect(logs).to.eql([
         [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
+        [
           'Found version 3.2.1 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',
           CheckpointType.Success,
@@ -808,12 +839,12 @@ describe('Manifest', () => {
 
     it('boostraps from HEAD manifest if first PR', async function () {
       // no previously merged PR found, will use this as bootstrap
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -872,6 +903,10 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "undefined" using "no last release sha found"',
+          CheckpointType.Success,
+        ],
+        [
           'Bootstrapping from .release-please-manifest.json at tip of main',
           CheckpointType.Failure,
         ],
@@ -896,14 +931,104 @@ describe('Manifest', () => {
       ]);
     });
 
-    it('boostraps from HEAD manifest starting at bootstrap-sha if first PR', async function () {
-      // no previously merged PR found, will use this as bootstrap
-      const manifestFileAtHEAD = JSON.stringify({
+    it('uses last-release-sha', async function () {
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
+        'release-type': 'node',
+        'bump-minor-pre-major': true,
+        'last-release-sha': lastReleaseSha,
+        packages: {
+          'node/pkg1': {},
+          'node/pkg2': {},
+          python: {
+            'release-type': 'python',
+            'package-name': 'foolib',
+          },
+        },
+      });
+      const commits = [
+        buildMockCommit('fix(foolib): bufix python foolib', [
+          'python/src/foolib/foo.py',
+        ]),
+        buildMockCommit('feat(@node/pkg1)!: major new feature', [
+          'node/pkg1/src/foo.ts',
+        ]),
+        buildMockCommit('feat(@node/pkg2): new feature', [
+          'node/pkg2/src/bar.ts',
+        ]),
+      ];
+
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {lastReleaseSha: 'skip-this-bad-release-PR'});
+      expectCommitsSinceSha(mock, {
+        lastReleaseSha,
+        commits,
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: [
+          'node/pkg1/package.json',
+          'node/pkg2/package.json',
+          'python/setup.py',
+          'python/setup.cfg',
+          'python/src/foolib/version.py',
+        ],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+        ],
+      });
+      expectLabelAndComment(mock, {addLabel});
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      const logs: [string, CheckpointType][] = [];
+      const checkpoint = (msg: string, type: CheckpointType) =>
+        logs.push([msg, type]);
+      const pr = await new Manifest({github, checkpoint}).pullRequest();
+      mock.verify();
+      expect(pr).to.equal(22);
+      expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-sha"',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 3.2.1 for node/pkg1 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 0.1.2 for node/pkg2 in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        [
+          'Found version 1.2.3 for python in ' +
+            '.release-please-manifest.json at abc123 of main',
+          CheckpointType.Success,
+        ],
+        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
+        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
+        ['Processing package: Python(foolib)', CheckpointType.Success],
+      ]);
+    });
+
+    it('boostraps from HEAD manifest starting at bootstrap-sha if first PR', async function () {
+      // no previously merged PR found, will use this as bootstrap
+      const manifestFileAtHEAD = prettyJsonStringify({
+        'node/pkg1': '3.2.1',
+        'node/pkg2': '0.1.2',
+        python: '1.2.3',
+      });
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         'bootstrap-sha': 'some-sha-in-mains-history',
@@ -934,7 +1059,10 @@ describe('Manifest', () => {
         defaultBranch,
       });
       const mock = mockGithub(github);
-      expectManifest(mock);
+      expectManifest(mock, {
+        manifest: false,
+        lastReleaseSha: 'some-sha-in-mains-history',
+      });
       expectPR(mock);
       // not actually testing gh.CommitsSinceSha, sufficient to know that
       // Manifest called it with the 'bootstrap-sha' config value.
@@ -965,6 +1093,14 @@ describe('Manifest', () => {
       expect(pr).to.equal(22);
       expect(logs).to.eql([
         [
+          'Found last release sha "some-sha-in-mains-history" using "bootstrap-sha"',
+          CheckpointType.Success,
+        ],
+        [
+          'Failed to get .release-please-manifest.json at some-sha-in-mains-history: 404',
+          CheckpointType.Failure,
+        ],
+        [
           'Bootstrapping from .release-please-manifest.json at tip of main',
           CheckpointType.Failure,
         ],
@@ -992,12 +1128,12 @@ describe('Manifest', () => {
     it('boostraps from HEAD manifest if manifest was deleted in last release PR', async function () {
       // no previously merged PR found, will use this as bootstrap
       const manifest = false;
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -1052,6 +1188,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Failed to get .release-please-manifest.json at abc123: 404',
           CheckpointType.Failure,
@@ -2062,12 +2202,12 @@ describe('Manifest', () => {
 
   describe('plugins', () => {
     it('runs the node-workspace plugin', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '0.123.4',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         plugins: ['node-workspace'],
         packages: {
           'node/pkg1': {},
@@ -2120,6 +2260,10 @@ describe('Manifest', () => {
       mock.verify();
       expect(pr).to.equal(22);
       expect(logs).to.eql([
+        [
+          'Found last release sha "abc123" using "last-release-pr"',
+          CheckpointType.Success,
+        ],
         [
           'Found version 0.123.4 for node/pkg1 in ' +
             '.release-please-manifest.json at abc123 of main',

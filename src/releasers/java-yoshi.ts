@@ -396,4 +396,24 @@ export class JavaYoshi extends ReleasePR {
       : PullRequestTitle.ofTargetBranchVersion(defaultBranch, version);
     return pullRequestTitle.toString();
   }
+
+  /**
+   * Normalize version parsing when searching for a latest release.
+   *
+   * @param version The raw version string
+   * @param preRelease Whether to allow pre-release versions or not
+   * @returns {string|null} The normalized version string or null if
+   *   we want to disallow this version.
+   */
+  protected normalizeVersion(
+    version: string,
+    preRelease = false
+  ): string | null {
+    // Consider any version with a '-SNAPSHOT' as a pre-release version
+    if (!preRelease && version.endsWith('-SNAPSHOT')) {
+      logger.info('preRelease not requested and found snapshot - ignoring...');
+      return null;
+    }
+    return version;
+  }
 }
