@@ -38,8 +38,8 @@ export class KRMBlueprintVersion implements Update {
     // match starting cnrm/ ending with semver to prevent wrong updates like pinned config.kubernetes.io/function
     let matchRegex = '(cnrm/.*/)(v[0-9]+.[0-9]+.[0-9]+)+(-w+)?';
     // if explicit previous version, match only that version
-    if (this.versions?.has('previous')) {
-      matchRegex = `(cnrm/.*/)(${this.versions.get('previous')})+(-w+)?`;
+    if (this.versions?.has('previousVersion')) {
+      matchRegex = `(cnrm/.*/)(${this.versions.get('previousVersion')})+(-w+)?`;
     }
     const oldVersion = content.match(new RegExp(matchRegex));
 

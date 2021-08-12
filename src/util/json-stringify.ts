@@ -12,6 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export function packageJsonStringify(parsed: object): string {
-  return JSON.stringify(parsed, null, 2) + '\n';
+import detectIndent = require('detect-indent');
+
+export function jsonStringify(
+  parsed: object,
+  content: string,
+  replacer?: (string | number)[]
+): string {
+  return `${content.slice(0, content.indexOf('{'))}${JSON.stringify(
+    parsed,
+    replacer,
+    detectIndent(content.trim()).indent
+  )}${content.slice(content.lastIndexOf('}') + 1)}`;
 }

@@ -14,33 +14,45 @@
 
 import * as semver from 'semver';
 import cu = require('@lerna/collect-updates');
-import {Package, PackageJson} from '@lerna/package';
+import {Package as LernaPackage, PackageJson} from '@lerna/package';
 import {PackageGraph, PackageGraphNode} from '@lerna/package-graph';
 import {runTopologically} from '@lerna/run-topologically';
 import {ManifestPlugin} from './plugin';
 import {ManifestPackageWithPRData, ManifestPackage} from '..';
 import {VersionsMap} from '../updaters/update';
-import {packageJsonStringify} from '../util/package-json-stringify';
+import {jsonStringify} from '../util/json-stringify';
 import {CheckpointType} from '../util/checkpoint';
 import {RELEASE_PLEASE} from '../constants';
 import {Changes} from 'code-suggester';
 import {ConventionalCommits} from '../conventional-commits';
 import {Changelog} from '../updaters/changelog';
 
-type PathPkgJson = Map<string, PackageJson>;
+class Package extends LernaPackage {
+  constructor(
+    public readonly rawContent: string,
+    location: string,
+    pkg?: PackageJson
+  ) {
+    super(pkg ?? JSON.parse(rawContent), location);
+  }
+
+  clone() {
+    return new Package(this.rawContent, this.location, this.toJSON());
+  }
+}
 
 export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
   // package.json contents already updated by the node releasers.
   private filterPackages(
     pkgsWithPRData: ManifestPackageWithPRData[]
-  ): PathPkgJson {
-    const pathPkgs = new Map();
+  ): Map<string, string> {
+    const pathPkgs = new Map<string, string>();
     for (const pkg of pkgsWithPRData) {
       if (pkg.config.releaseType === 'node' && pkg.config.path !== '.') {
         for (const [path, fileData] of pkg.prData.changes) {
           if (path === `${pkg.config.path}/package.json`) {
             this.log(`found ${path} in changes`, CheckpointType.Success);
-            pathPkgs.set(path, JSON.parse(fileData.content!) as PackageJson);
+            pathPkgs.set(path, fileData.content!);
           }
         }
       }
@@ -51,21 +63,21 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
   // all packages' package.json content - both updated by this run as well as
   // those that did not update (no user facing commits).
   private async getAllWorkspacePackages(
-    rpUpdatedPkgs: PathPkgJson
+    rpUpdatedPkgs: Map<string, string>
   ): Promise<Map<string, Package>> {
-    const nodePkgs = new Map();
+    const nodePkgs = new Map<string, Package>();
     for (const pkg of this.config.parsedPackages) {
       if (pkg.releaseType !== 'node' || pkg.path === '.') {
         continue;
       }
       const path = `${pkg.path}/package.json`;
-      let contents: PackageJson;
+      let contents: string;
       const alreadyUpdated = rpUpdatedPkgs.get(path);
       if (alreadyUpdated) {
         contents = alreadyUpdated;
       } else {
-        const fileContents = await this.gh.getFileContents(path);
-        contents = JSON.parse(fileContents.parsedContent);
+        const {parsedContent} = await this.gh.getFileContents(path);
+        contents = parsedContent;
       }
       this.log(
         `loaded ${path} from ${alreadyUpdated ? 'existing changes' : 'github'}`,
@@ -77,14 +89,14 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
   }
 
   private async runLernaVersion(
-    rpUpdatedPkgs: PathPkgJson,
+    rpUpdatedPkgs: Map<string, string>,
     allPkgs: Map<string, Package>
   ): Promise<Map<string, Package>> {
     // Build the graph of all the packages: similar to https://git.io/Jqf1v
     const packageGraph = new PackageGraph(
-      // use pkg.toJSON() which does a shallow copy of the internal data storage
+      // use pkg.clone() which does a shallow copy of the internal data storage
       // so we can preserve the original allPkgs for version diffing later.
-      [...allPkgs].map(([path, pkg]) => new Package(pkg.toJSON(), path)),
+      [...allPkgs.values()].map(pkg => pkg.clone()),
       'allDependencies'
     );
 
@@ -174,7 +186,7 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
 
     // our implementation of a subset of `updatePackageVersions` to produce a
     // callback for updating versions and dependencies (https://git.io/Jqfyu)
-    const runner = async (pkg: Package): Promise<Package> => {
+    const runner = async (pkg: LernaPackage): Promise<LernaPackage> => {
       pkg.set('version', updatesVersions.get(pkg.name));
       const graphPkg = packageGraph.get(pkg.name);
       for (const [depName, resolved] of graphPkg.localDependencies) {
@@ -191,7 +203,7 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
     };
 
     // https://git.io/Jqfyp
-    const allUpdated = await runTopologically(
+    const allUpdated = (await runTopologically(
       updatesWithDependents.map(node => node.pkg),
       runner,
       {
@@ -199,7 +211,8 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
         concurrency: 1,
         rejectCycles: false,
       }
-    );
+    )) as Package[];
+
     return new Map(allUpdated.map(p => [p.location, p]));
   }
 
@@ -218,14 +231,14 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
       const filePath = `${data.config.path}/package.json`;
       const updated = allUpdated.get(filePath)!; // bug if not defined
       data.prData.changes.set(filePath, {
-        content: packageJsonStringify(updated.toJSON()),
+        content: jsonStringify(updated.toJSON(), updated.rawContent),
         mode: '100644',
       });
       await this.setChangelogEntry(
         data.config,
         data.prData.changes,
         updated,
-        allOrigPkgs.get(filePath)! // bug if undefined.
+        allOrigPkgs.get(filePath)!.toJSON() // bug if undefined.
       );
       allUpdated.delete(filePath);
     }
@@ -237,7 +250,7 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
         p => `${p.path}/package.json` === filePath
       )!; // bug if undefined.
       pkg.packageName = updated.name;
-      const content = packageJsonStringify(updated.toJSON());
+      const content = jsonStringify(updated.toJSON(), updated.rawContent);
       const changes: Changes = new Map([[filePath, {content, mode: '100644'}]]);
       await this.setChangelogEntry(
         pkg,

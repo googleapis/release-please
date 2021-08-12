@@ -57,12 +57,7 @@ filename: node/pkg2/CHANGELOG.md
     * @node/pkg1 bumped from ^0.123.4 to ^0.123.5
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "0.123.5",
-  "node/pkg2": "0.1.3",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"0.123.5","node/pkg2":"0.1.3","python":"1.2.4"}
 `
 
 exports['Manifest plugins runs the node-workspace plugin: options'] = `
@@ -179,12 +174,7 @@ filename: node/pkg2/package.json
 }
 
 filename: .release-please-manifest.json
-{
-  ".": "3.0.0",
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "2.0.0"
-}
-
+{".":"3.0.0","node/pkg1":"4.0.0","node/pkg2":"2.0.0"}
 `
 
 exports['Manifest pullRequest allows root module to be published, via special "." path: options'] = `
@@ -306,12 +296,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if first PR: options'] = `
@@ -418,12 +403,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest if manifest was deleted in last release PR: options'] = `
@@ -530,12 +510,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest boostraps from HEAD manifest starting at bootstrap-sha if first PR: options'] = `
@@ -642,12 +617,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest bootstraps a new package from curated manifest: options'] = `
@@ -754,12 +724,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "1.0.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"1.0.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest bootstraps a new package using default version: options'] = `
@@ -847,11 +812,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest creates a PR for python and node packages: options'] = `
@@ -912,12 +873,7 @@ filename: node/pkg2/package.json
 }
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "3.2.1",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.3"
-}
-
+{"node/pkg1":"3.2.1","node/pkg2":"0.2.0","python":"1.2.3"}
 `
 
 exports['Manifest pullRequest only includes packages that have version bumps: options'] = `
@@ -1019,12 +975,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.0.0"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "5.5.5",
-  "node/pkg2": "0.3.0",
-  "python": "1.0.0"
-}
-
+{"node/pkg1":"5.5.5","node/pkg2":"0.3.0","python":"1.0.0"}
 `
 
 exports['Manifest pullRequest respects python releaser specific config over defaults: options'] = `
@@ -1144,12 +1095,7 @@ filename: python/src/foolib/version.py
 __version__ = "1.2.4"
 
 filename: .release-please-manifest.json
-{
-  "node/pkg1": "4.0.0",
-  "node/pkg2": "0.2.0",
-  "python": "1.2.4"
-}
-
+{"node/pkg1":"4.0.0","node/pkg2":"0.2.0","python":"1.2.4"}
 `
 
 exports['Manifest pullRequest uses last-release-sha: options'] = `

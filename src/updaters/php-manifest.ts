@@ -15,6 +15,7 @@
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
 import {logger} from '../util/logger';
+import {jsonStringify} from '../util/json-stringify';
 
 interface ManifestModule {
   name: string;
@@ -61,6 +62,6 @@ export class PHPManifest implements Update {
       }
     });
 
-    return JSON.stringify(parsed, null, 4) + '\n';
+    return jsonStringify(parsed, content);
   }
 }

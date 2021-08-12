@@ -34,7 +34,7 @@ describe('PackageJson', () => {
         packageName: '@google-cloud/foo',
       });
       const newContent = packageJson.updateContent(oldContent);
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
     });
   });
 });
