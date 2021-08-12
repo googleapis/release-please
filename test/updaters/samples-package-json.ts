@@ -34,7 +34,7 @@ describe('SamplesPackageJson', () => {
         packageName: '@google-cloud/firestore',
       });
       const newContent = samplesPackageJson.updateContent(oldContent);
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
     });
 
     it('does not fail when top level package does not exist in dependencies', async () => {
@@ -49,7 +49,7 @@ describe('SamplesPackageJson', () => {
         packageName: '@google-cloud/firestore',
       });
       const newContent = samplesPackageJson.updateContent(oldContent);
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
     });
   });
 });

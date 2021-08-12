@@ -23,6 +23,9 @@ import {Commit} from '../src/graphql-to-commits';
 import {CheckpointType} from '../src/util/checkpoint';
 import {stubSuggesterWithSnapshot, buildMockCommit} from './helpers';
 
+const prettyJsonStringify = (value: object) =>
+  JSON.stringify(value, undefined, 2) + '\n';
+
 const fixturePath = './test/fixtures/manifest/repo';
 const defaultBranch = 'main';
 const lastReleaseSha = 'abc123';
@@ -225,13 +228,13 @@ describe('Manifest', () => {
         'node/pkg1': '3.2.1',
         python: '1.2.3',
       });
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         // test that we overwrite any existing path versions that someone tried
         // to change.
         python: '9.9.9',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         packages: {
           'node/pkg1': {},
           python: {
@@ -301,12 +304,12 @@ describe('Manifest', () => {
     });
 
     it('allows root module to be published, via special "." path', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         '.': '2.0.0',
         'node/pkg1': '3.2.1',
         'node/pkg2': '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         packages: {
           '.': {},
           'node/pkg1': {},
@@ -381,12 +384,12 @@ describe('Manifest', () => {
       if (process.versions.node.split('.')[0] === '10') {
         this.skip();
       }
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '0.1.1',
         'node/pkg2': '0.2.2',
         python: '0.1.1',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'bump-minor-pre-major': true,
         'release-as': '5.5.5',
         'changelog-sections': [
@@ -493,18 +496,18 @@ describe('Manifest', () => {
     });
 
     it('bootstraps a new package from curated manifest', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         python: '1.2.3',
       });
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         // New package's "previous" version manually added since last release.
         // Candidate release will increment this version.
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -590,11 +593,11 @@ describe('Manifest', () => {
     });
 
     it('bootstraps a new package using default version', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         packages: {
           'node/pkg1': {},
           'node/pkg2': {}, // should default to Node.defaultInitialVersion
@@ -751,12 +754,12 @@ describe('Manifest', () => {
     });
 
     it('does not create a PR if no changes', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -836,12 +839,12 @@ describe('Manifest', () => {
 
     it('boostraps from HEAD manifest if first PR', async function () {
       // no previously merged PR found, will use this as bootstrap
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -929,12 +932,12 @@ describe('Manifest', () => {
     });
 
     it('uses last-release-sha', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         'last-release-sha': lastReleaseSha,
@@ -1020,12 +1023,12 @@ describe('Manifest', () => {
 
     it('boostraps from HEAD manifest starting at bootstrap-sha if first PR', async function () {
       // no previously merged PR found, will use this as bootstrap
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         'bootstrap-sha': 'some-sha-in-mains-history',
@@ -1125,12 +1128,12 @@ describe('Manifest', () => {
     it('boostraps from HEAD manifest if manifest was deleted in last release PR', async function () {
       // no previously merged PR found, will use this as bootstrap
       const manifest = false;
-      const manifestFileAtHEAD = JSON.stringify({
+      const manifestFileAtHEAD = prettyJsonStringify({
         'node/pkg1': '3.2.1',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         'release-type': 'node',
         'bump-minor-pre-major': true,
         packages: {
@@ -2199,12 +2202,12 @@ describe('Manifest', () => {
 
   describe('plugins', () => {
     it('runs the node-workspace plugin', async function () {
-      const manifest = JSON.stringify({
+      const manifest = prettyJsonStringify({
         'node/pkg1': '0.123.4',
         'node/pkg2': '0.1.2',
         python: '1.2.3',
       });
-      const config = JSON.stringify({
+      const config = prettyJsonStringify({
         plugins: ['node-workspace'],
         packages: {
           'node/pkg1': {},
