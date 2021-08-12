@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.21.0](https://www.github.com/googleapis/release-please/compare/v11.20.3...v11.21.0) (2021-08-12)
+
+
+### Features
+
+* use original json's indentation and style ([#923](https://www.github.com/googleapis/release-please/issues/923)) ([820702c](https://www.github.com/googleapis/release-please/commit/820702c63615f3904c2987bacb37f3502f6397cc))
+
 ### [11.20.3](https://www.github.com/googleapis/release-please/compare/v11.20.2...v11.20.3) (2021-08-11)
 
 
