@@ -65,7 +65,6 @@ describe('PHP', () => {
     const graphql = JSON.parse(
       readFileSync(resolve(fixturesPath, 'commits-php.json'), 'utf8')
     );
-    console.log(graphql);
     const req = nock('https://api.github.com')
       // now we fetch the commits via the graphql API;
       // note they will be truncated to just before the tag's sha.
@@ -79,10 +78,11 @@ describe('PHP', () => {
       releasePR.gh,
       'getFileContentsOnBranch'
     );
+    // Return composer.json if ./composer.json requested.
     getFileContentsStub
       .withArgs('composer.json', 'master')
       .resolves(buildGitHubFileRaw('{"replace": {}}'));
-
+    // Return 404 if ./CHANGELOG.md requested.
     getFileContentsStub.rejects(
       Object.assign(Error('not found'), {status: 404})
     );
