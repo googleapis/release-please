@@ -17,7 +17,7 @@ import {GitHubFileContents} from '../github';
 import {logger} from '../util/logger';
 import {jsonStringify} from '../util/json-stringify';
 
-export class RootComposer implements Update {
+export class RootComposerUpdatePackages implements Update {
   path: string;
   changelogEntry: string;
   version: string;

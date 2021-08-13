@@ -16,21 +16,21 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {RootComposer} from '../../src/updaters/root-composer';
+import {RootComposerUpdatePackages} from '../../src/updaters/root-composer-update-packages';
 
 const fixturesPath = './test/updaters/fixtures';
 
-describe('composer.json', () => {
+describe('composer-update-package.json', () => {
   describe('updateContent', () => {
     it('updates all versions in root composer file', async () => {
       const versions = new Map<string, string>();
       versions.set('google/cloud-automl', '0.8.0');
       versions.set('google/cloud-talent', '1.0.0');
       const oldContent = readFileSync(
-        resolve(fixturesPath, './composer.json'),
+        resolve(fixturesPath, './composer-update-packages.json'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const composer = new RootComposer({
+      const composer = new RootComposerUpdatePackages({
         path: 'version.rb',
         version: '1.0.0',
         changelogEntry: '',

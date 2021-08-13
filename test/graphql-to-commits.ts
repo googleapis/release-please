@@ -24,12 +24,20 @@ const fixturesPath = './test/fixtures';
 const github = new GitHub({owner: 'fake', repo: 'fake'});
 
 describe('graphqlToCommits', () => {
-  it('converts raw graphql response into Commits object', async () => {
+  it('converts raw graphql response into Commits object for php-yoshi', async () => {
     const graphql = JSON.parse(
       readFileSync(
         resolve(fixturesPath, 'commits-yoshi-php-monorepo.json'),
         'utf8'
       )
+    );
+    const commits = await graphqlToCommits(github, graphql);
+    snapshot(commits);
+  });
+
+  it('converts raw graphql response into Commits object for php', async () => {
+    const graphql = JSON.parse(
+      readFileSync(resolve(fixturesPath, 'commits-php.json'), 'utf8')
     );
     const commits = await graphqlToCommits(github, graphql);
     snapshot(commits);

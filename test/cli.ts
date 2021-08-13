@@ -167,6 +167,7 @@ describe('CLI', () => {
         'krm-blueprint',
         'node',
         'ocaml',
+        'php',
         'php-yoshi',
         'python',
         'ruby',

@@ -21,6 +21,7 @@ import {JavaLTS} from './java-lts';
 import {JavaYoshi} from './java-yoshi';
 import {KRMBlueprint} from './krm-blueprint';
 import {Node} from './node';
+import {PHP} from './php';
 import {PHPYoshi} from './php-yoshi';
 import {Python} from './python';
 import {RubyYoshi} from './ruby-yoshi';
@@ -42,6 +43,7 @@ export type ReleaseType =
   | 'krm-blueprint'
   | 'node'
   | 'ocaml'
+  | 'php'
   | 'php-yoshi'
   | 'python'
   | 'ruby'
@@ -62,6 +64,7 @@ const releasers: Releasers = {
   'krm-blueprint': KRMBlueprint,
   node: Node,
   ocaml: OCaml,
+  php: PHP,
   'php-yoshi': PHPYoshi,
   python: Python,
   ruby: Ruby,
