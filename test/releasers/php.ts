@@ -75,7 +75,6 @@ describe('PHP', () => {
       .reply(200, {
         data: graphql,
       });
-    console.log(nock.activeMocks());
     const getFileContentsStub = sandbox.stub(
       releasePR.gh,
       'getFileContentsOnBranch'
