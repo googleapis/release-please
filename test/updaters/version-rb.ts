@@ -36,5 +36,22 @@ describe('version.rb', () => {
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('updates content with single quotes in version.rb', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './version.rb'),
+        'utf8'
+      )
+        .replace(/\r\n/g, '\n')
+        .replace(/"/g, "'");
+      const version = new VersionRB({
+        path: 'version.rb',
+        changelogEntry: '',
+        version: '0.6.0',
+        packageName: '',
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
