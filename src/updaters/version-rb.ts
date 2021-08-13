@@ -34,8 +34,8 @@ export class VersionRB implements Update {
 
   updateContent(content: string): string {
     return content.replace(
-      /"[0-9]+\.[0-9]+\.[0-9](-\w+)?"/,
-      `"${this.version}"`
+      /(["'])[0-9]+\.[0-9]+\.[0-9](-\w+)?["']/,
+      `$1${this.version}$1`
     );
   }
 }
