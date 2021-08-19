@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.22.0](https://www.github.com/googleapis/release-please/compare/v11.21.0...v11.22.0) (2021-08-13)
+
+
+### Features
+
+* added support for php package ([#1008](https://www.github.com/googleapis/release-please/issues/1008)) ([2c2360a](https://www.github.com/googleapis/release-please/commit/2c2360af1a51ea6e44f74cea353352d266e7b58a))
+* handle single quotes in version-rb ([#1019](https://www.github.com/googleapis/release-please/issues/1019)) ([c699cc6](https://www.github.com/googleapis/release-please/commit/c699cc60da3bb3de090accc22c2ef9ecc59f12bb))
+
 ## [11.21.0](https://www.github.com/googleapis/release-please/compare/v11.20.3...v11.21.0) (2021-08-12)
 
 
