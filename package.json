@@ -82,7 +82,7 @@
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
     "yargs": "^16.0.0",
-    "detect-indent": "^6.1.0"
+    "detect-indent": "^7.0.0"
   },
   "engines": {
     "node": ">=10.12.0"
