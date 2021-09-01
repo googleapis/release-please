@@ -95,6 +95,16 @@ function releaserCommon(ya: YargsOptionsBuilder) {
     describe: 'Title pattern to make release PR',
     type: 'string',
   });
+  ya.option('signoff', {
+    describe:
+      'Add Signed-off-by line by the GitHub actions bot at the end of the commit log message.',
+    type: 'boolean',
+  });
+  ya.option('signoff-user', {
+    describe:
+      'User to use for the signoff message (format "Name <email@example.com>")',
+    type: 'string',
+  });
   ya.option('changelog-path', {
     default: 'CHANGELOG.md',
     describe: 'where can the CHANGELOG be found in the project?',

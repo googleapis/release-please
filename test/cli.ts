@@ -137,7 +137,9 @@ describe('CLI', () => {
         'release-pr ' +
           '--repo-url=googleapis/release-please-cli ' +
           '--package-name=cli-package ' +
-          "--pull-request-title-pattern='chore${scope}: release${component} ${version}'"
+          "--pull-request-title-pattern='chore${scope}: release${component} ${version}' " +
+          '--signoff ' +
+          "--signoff-user='Alice <alice@example.com>'"
       );
       assert.strictEqual(methodCalled, 'run');
       assert.ok(instanceToRun! instanceof ReleasePR);
@@ -149,6 +151,11 @@ describe('CLI', () => {
       assert.strictEqual(
         instanceToRun.pullRequestTitlePattern,
         'chore${scope}: release${component} ${version}'
+      );
+      assert.strictEqual(instanceToRun.signoff, true);
+      assert.strictEqual(
+        instanceToRun.signoffUser,
+        'Alice <alice@example.com>'
       );
     });
     it('validates releaseType choices', done => {

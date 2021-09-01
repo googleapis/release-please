@@ -215,6 +215,8 @@ release-please release-pr --package-name=@google-cloud/firestore" \
 | `--path`          | create a release from a path other than the repository's root |
 | `--monorepo-tags` | add prefix to tags and branches, allowing multiple libraries to be released from the same repository. |
 | `--pull-request-title-pattern` | add title pattern to make release PR, defaults to using `chore${scope}: release${component} ${version}`. |
+| `--signoff` | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message. |
+| `--signoff-user` | User for the signoff message (format "Name \<email@example.com\>"), defaults to github actions bot user `"github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"` |
 
 ### Creating a release on GitHub
 

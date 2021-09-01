@@ -15,7 +15,11 @@
 // See: https://github.com/octokit/rest.js/issues/1624
 //  https://github.com/octokit/types.ts/issues/25.
 import {ReleasePRConstructorOptions} from './';
-import {RELEASE_PLEASE, DEFAULT_LABELS} from './constants';
+import {
+  RELEASE_PLEASE,
+  DEFAULT_LABELS,
+  GH_ACTIONS_SIGNOFF_USER,
+} from './constants';
 import {Octokit} from '@octokit/rest';
 import {PromiseValue} from 'type-fest';
 type PullsListResponseItems = PromiseValue<
@@ -33,6 +37,7 @@ import {extractReleaseNotes} from './util/release-notes';
 import {PullRequestTitle} from './util/pull-request-title';
 import {Changelog} from './updaters/changelog';
 import {logger} from './util/logger';
+import {signoffCommitMessage} from './util/signoff-commit-message';
 
 export interface ReleaseCandidate {
   version: string;
@@ -88,6 +93,8 @@ export class ReleasePR {
   extraFiles: string[];
   forManifestReleaser: boolean;
   enableSimplePrereleaseParsing = false;
+  signoff = false;
+  signoffUser = GH_ACTIONS_SIGNOFF_USER;
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -110,6 +117,8 @@ export class ReleasePR {
     this.changelogSections = options.changelogSections;
     this.changelogPath = options.changelogPath ?? this.changelogPath;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
+    this.signoff = options.signoff ?? this.signoff;
+    this.signoffUser = options.signoffUser ?? this.signoffUser;
     this.extraFiles = options.extraFiles ?? [];
     this.forManifestReleaser = options.skipDependencyUpdates ?? false;
   }
@@ -412,11 +421,18 @@ export class ReleasePR {
     const includePackageName = options.includePackageName;
     const title = await this.buildPullRequestTitle(version, includePackageName);
     const body = await this.buildPullRequestBody(version, changelogEntry);
+
+    // Sign-off message if signoff option is enabled
+    const message = this.signoff
+      ? signoffCommitMessage(title, this.signoffUser)
+      : title;
+
     const branchName = await this.buildBranchName(version, includePackageName);
     const pr: number | undefined = await this.gh.openPR({
       branch: branchName.toString(),
       updates,
       title,
+      message,
       body,
       labels: this.labels,
     });
