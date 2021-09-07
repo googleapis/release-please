@@ -97,7 +97,8 @@ export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
       // use pkg.clone() which does a shallow copy of the internal data storage
       // so we can preserve the original allPkgs for version diffing later.
       [...allPkgs.values()].map(pkg => pkg.clone()),
-      'allDependencies'
+      'allDependencies',
+      this.config['always-link-local'] ?? true
     );
 
     // release-please already did the work of @lerna/collectUpdates (identifying

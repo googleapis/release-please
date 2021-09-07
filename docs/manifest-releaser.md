@@ -153,6 +153,13 @@ documented in comments)
   // absence defaults to false and Releases are created as already Published.
   "draft": true
 
+  // when using the `node-workspace` plugin, package discovery forces all
+  // local dependencies to be linked, even if the SemVer ranges don't match.
+  // this allows breaking version bumps to update during a release.
+  // setting to false will only bump your local dependencies within the SemVer range.
+  // see Breaking Changes section below
+  // absence defaults to true
+  "always-link-local": false
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
@@ -344,6 +351,13 @@ be patch bump the package, create a changelog entry, and add it to the list of
 PR changes. Under the hood this plugin adapts specific dependency graph building
 and updating functionality from the popular
 [lerna](https://github.com/lerna/lerna) tool.
+
+#### Breaking versions
+
+When using the `node-workspace` tool, breaking versions bumps will be included in
+your update pull request. If you don't agree this behavior and would only like
+your local dependencies bumped if they are within the SemVer range, you can set the
+`"always-link-local"` option to `false` in your manifest config.
 
 ### cargo-workspace
 
