@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.23.0](https://www.github.com/googleapis/release-please/compare/v11.22.0...v11.23.0) (2021-09-07)
+
+
+### Features
+
+* add elixir updater and releaser ([#1030](https://www.github.com/googleapis/release-please/issues/1030)) ([67db408](https://www.github.com/googleapis/release-please/commit/67db40896a09ac93f5e6fc4b5a436b6c12ca20c8))
+
 ## [11.22.0](https://www.github.com/googleapis/release-please/compare/v11.21.0...v11.22.0) (2021-08-13)
 
 
