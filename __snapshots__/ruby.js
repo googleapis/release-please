@@ -11,6 +11,30 @@ filename: projects/ruby/CHANGELOG.md
 * **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/ruby-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
 * **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/ruby-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
 
+filename: projects/ruby/lib/google/cloud/automl/version.rb
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+module Google
+  module Cloud
+    module Bigtable
+      VERSION = "0.5.1".freeze
+    end
+  end
+end
+
 `
 
 exports['Ruby run creates a release PR relative to a path: options'] = `
@@ -60,6 +84,30 @@ filename: projects/ruby/HISTORY.md
 
 * **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/ruby-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
 * **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/ruby-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
+
+filename: projects/ruby/lib/blah/version.rb
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+module Google
+  module Cloud
+    module Bigtable
+      VERSION = "0.6.0".freeze
+    end
+  end
+end
 
 `
 
@@ -111,7 +159,7 @@ filename: CHANGELOG.md
 * **deps:** update dependency com.google.cloud:google-cloud-spanner to v1.50.0 ([08ca011](https://www.github.com/googleapis/ruby-test-repo/commit/08ca01180a91c0a1ba8992b491db9212))
 * **deps:** update dependency com.google.cloud:google-cloud-storage to v1.120.0 ([845db13](https://www.github.com/googleapis/ruby-test-repo/commit/845db1381b3d5d20151cad2588f85feb))
 
-filename: version.rb
+filename: lib/google/cloud/automl/version.rb
 # Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
