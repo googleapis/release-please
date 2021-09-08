@@ -72,14 +72,13 @@ describe('Ruby', () => {
   describe('run', () => {
     it('creates a release PR with defaults', async function () {
       const releasePR = new Ruby({
-        versionFile: 'version.rb',
         github: new GitHub({owner: 'googleapis', repo: 'ruby-test-repo'}),
         packageName: pkgName,
       });
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR);
-      stubFilesToUpdate(releasePR.gh, ['version.rb']);
+      stubFilesToUpdate(releasePR.gh, ['lib/google/cloud/automl/version.rb']);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
     });
@@ -93,7 +92,8 @@ describe('Ruby', () => {
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR);
-      stubFilesToUpdate(releasePR.gh, ['version.rb']);
+      stubFilesToUpdate(releasePR.gh,
+        ['projects/ruby/lib/google/cloud/automl/version.rb']);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
     });
@@ -106,6 +106,7 @@ describe('Ruby', () => {
         bumpMinorPreMajor: true,
         monorepoTags: true,
         changelogPath: 'HISTORY.md',
+        versionFile: 'lib/blah/version.rb'
       });
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
@@ -114,7 +115,7 @@ describe('Ruby', () => {
       const latestTag = {...LATEST_TAG};
       latestTag.name = pkgName + '/v' + latestTag.version;
       stubGithub(releasePR, commits, latestTag);
-      stubFilesToUpdate(releasePR.gh, ['projects/ruby/version.rb']);
+      stubFilesToUpdate(releasePR.gh, ['projects/ruby/lib/blah/version.rb']);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
     });
