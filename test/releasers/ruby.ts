@@ -92,8 +92,9 @@ describe('Ruby', () => {
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       stubGithub(releasePR);
-      stubFilesToUpdate(releasePR.gh,
-        ['projects/ruby/lib/google/cloud/automl/version.rb']);
+      stubFilesToUpdate(releasePR.gh, [
+        'projects/ruby/lib/google/cloud/automl/version.rb',
+      ]);
       const pr = await releasePR.run();
       assert.strictEqual(pr, 22);
     });
@@ -106,7 +107,7 @@ describe('Ruby', () => {
         bumpMinorPreMajor: true,
         monorepoTags: true,
         changelogPath: 'HISTORY.md',
-        versionFile: 'lib/blah/version.rb'
+        versionFile: 'lib/blah/version.rb',
       });
 
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());

@@ -42,8 +42,9 @@ export class Ruby extends ReleasePR {
     packageName: PackageName
   ): Promise<Update[]> {
     const updates: Update[] = [];
-    const versionFile: string = this.versionFile ? this.versionFile :
-      `lib/${packageName.name.replace(/-/g, '/')}/version.rb`;
+    const versionFile: string = this.versionFile
+      ? this.versionFile
+      : `lib/${packageName.name.replace(/-/g, '/')}/version.rb`;
 
     updates.push(
       new Changelog({
