@@ -3,7 +3,7 @@
 # [Release Please](https://github.com/googleapis/release-please)
 
 [![npm version](https://img.shields.io/npm/v/release-please.svg)](https://www.npmjs.org/package/release-please)
-[![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/master.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
+[![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/main.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
 
 Release Please automates CHANGELOG generation, the creation of GitHub releases,
 and version bumps for your projects.
@@ -107,7 +107,7 @@ Release Please automates releases for the following flavors of repositories:
 
 ## Adding additional release types
 
-To add a new release type, simply use the existing [releasers](https://github.com/googleapis/release-please/tree/master/src/releasers) and [updaters](https://github.com/googleapis/release-please/tree/master/src/updaters)
+To add a new release type, simply use the existing [releasers](https://github.com/googleapis/release-please/tree/main/src/releasers) and [updaters](https://github.com/googleapis/release-please/tree/main/src/updaters)
 as a starting point.
 
 **releasers** describe the files that should be updated for a release.
@@ -130,7 +130,7 @@ The easiest way to run release please is as a GitHub action:
     on:
       push:
         branches:
-          - master
+          - main
     name: release-please
     jobs:
       release-please:
@@ -157,7 +157,7 @@ npm when a Release PR is merged:
 on:
   push:
     branches:
-      - master
+      - main
 name: release-please
 jobs:
   release-please:
@@ -236,7 +236,7 @@ release-please github-release --repo-url=googleapis/nodejs-firestore \
 There is a probot application available, which allows you to deploy Release
 Please as a GitHub App:
 
-* [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/master/packages/release-please).
+* [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please).
 
 ## Supported Node.js Versions
 
@@ -265,16 +265,16 @@ This library follows [Semantic Versioning](http://semver.org/).
 
 ## Contributing
 
-Contributions welcome! See the [Contributing Guide](https://github.com/googleapis/release-please/blob/master/CONTRIBUTING.md).
+Contributions welcome! See the [Contributing Guide](https://github.com/googleapis/release-please/blob/main/CONTRIBUTING.md).
 
 Please note that this `README.md`, the `samples/README.md`,
 and a variety of configuration files in this repository (including `.nycrc` and `tsconfig.json`)
 are generated from a central template. To edit one of these files, make an edit
 to its template in this
-[directory](https://github.com/googleapis/synthtool/tree/master/synthtool/gcp/templates/node_library).
+[directory](https://github.com/googleapis/synthtool/tree/main/synthtool/gcp/templates/node_library).
 
 ## License
 
 Apache Version 2.0
 
-See [LICENSE](https://github.com/googleapis/release-please/blob/master/LICENSE)
+See [LICENSE](https://github.com/googleapis/release-please/blob/main/LICENSE)
