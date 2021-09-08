@@ -103,6 +103,7 @@ Release Please automates releases for the following flavors of repositories:
 | ocaml             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | simple            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | helm              | A repository with a Chart.yaml and a CHANGELOG.md |
+| elixir            | A repository with a mix.exs and a CHANGELOG.md |
 
 ## Adding additional release types
 
