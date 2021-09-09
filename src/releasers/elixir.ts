@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,39 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ReleasePRConstructorOptions} from '..';
-import {
-  ReleasePR,
-  ReleaseCandidate,
-  GetCommitsOptions,
-  PackageName,
-} from '../release-pr';
-import {indentCommit} from '../util/indent-commit';
+import {ReleasePR, ReleaseCandidate, PackageName} from '../release-pr';
 import {Update} from '../updaters/update';
-import {Commit} from '../graphql-to-commits';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
+// mix.exs support
+import {ElixirMixExs} from '../updaters/elixir-mix-exs';
 
-// Ruby
-import {VersionRB} from '../updaters/version-rb';
-
-export class Ruby extends ReleasePR {
-  versionFile: string;
-  constructor(options: ReleasePRConstructorOptions) {
-    super(options);
-    this.versionFile = options.versionFile ?? '';
-  }
-
+export class Elixir extends ReleasePR {
   protected async buildUpdates(
     changelogEntry: string,
     candidate: ReleaseCandidate,
     packageName: PackageName
   ): Promise<Update[]> {
     const updates: Update[] = [];
-    const versionFile: string = this.versionFile
-      ? this.versionFile
-      : `lib/${packageName.name.replace(/-/g, '/')}/version.rb`;
 
     updates.push(
       new Changelog({
@@ -56,28 +38,14 @@ export class Ruby extends ReleasePR {
     );
 
     updates.push(
-      new VersionRB({
-        path: this.addPath(versionFile),
+      new ElixirMixExs({
+        path: this.addPath('mix.exs'),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,
       })
     );
+
     return updates;
   }
-
-  tagSeparator(): string {
-    return '/';
-  }
-
-  protected async commits(opts: GetCommitsOptions): Promise<Commit[]> {
-    return postProcessCommits(await super.commits(opts));
-  }
-}
-
-function postProcessCommits(commits: Commit[]): Commit[] {
-  commits.forEach(commit => {
-    commit.message = indentCommit(commit);
-  });
-  return commits;
 }
