@@ -129,6 +129,12 @@ describe('Python', () => {
             packageName: pkgName,
           }),
           new PythonFileWithVersion({
+            path: `${pkgName}/__init__.py`,
+            changelogEntry: perUpdateChangelog,
+            version: expectedVersion,
+            packageName: pkgName,
+          }),
+          new PythonFileWithVersion({
             path: 'src/version.py',
             changelogEntry: perUpdateChangelog,
             version: expectedVersion,
@@ -179,6 +185,12 @@ describe('Python', () => {
           }),
           new SetupPy({
             path: 'setup.py',
+            changelogEntry: perUpdateChangelog,
+            version: expectedVersion,
+            packageName: pkgName,
+          }),
+          new PythonFileWithVersion({
+            path: `${pkgName}/__init__.py`,
             changelogEntry: perUpdateChangelog,
             version: expectedVersion,
             packageName: pkgName,

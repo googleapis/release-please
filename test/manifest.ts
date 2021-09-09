@@ -151,6 +151,7 @@ describe('Manifest', () => {
         'python/CHANGELOG.md',
         'python/HISTORY.md',
         'package-lock.json',
+        'python/foolib/__init__.py',
         'npm-shrinkwrap.json',
         'samples/package.json',
         'CHANGELOG.md',
