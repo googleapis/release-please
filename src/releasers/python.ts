@@ -89,6 +89,7 @@ export class Python extends ReleasePR {
 
     const parsedPyProject = await this.getPyProject();
     const pyProject = parsedPyProject?.project || parsedPyProject?.tool?.poetry;
+    let projectName = packageName.name;
     if (pyProject) {
       updates.push(
         new PyProjectToml({
@@ -98,6 +99,7 @@ export class Python extends ReleasePR {
           packageName: packageName.name,
         })
       );
+      projectName = pyProject.name;
     } else {
       logger.warn(
         parsedPyProject
@@ -105,16 +107,14 @@ export class Python extends ReleasePR {
           : `file ${chalk.green('pyproject.toml')} did not exist`
       );
     }
-
     updates.push(
       new PythonFileWithVersion({
-        path: this.addPath(`${packageName.name}/__init__.py`),
+        path: this.addPath(`${projectName}/__init__.py`),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,
       })
     );
-
     // There should be only one version.py, but foreach in case that is incorrect
     const versionPyFilesSearch = this.gh.findFilesByFilename(
       'version.py',
