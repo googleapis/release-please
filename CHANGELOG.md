@@ -4,6 +4,20 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [11.24.0](https://www.github.com/googleapis/release-please/compare/v11.23.1...v11.24.0) (2021-09-09)
+
+
+### Features
+
+* **python:** support packagename/__init__.py without pyproject.toml ([#1026](https://www.github.com/googleapis/release-please/issues/1026)) ([f461ff7](https://www.github.com/googleapis/release-please/commit/f461ff7284f8fdc2c1c6f4959341fe40cfb50501))
+
+### [11.23.1](https://www.github.com/googleapis/release-please/compare/v11.23.0...v11.23.1) (2021-09-08)
+
+
+### Bug Fixes
+
+* **ruby:** The Ruby releaser defaults to the correct version.rb path ([#1041](https://www.github.com/googleapis/release-please/issues/1041)) ([fd904c0](https://www.github.com/googleapis/release-please/commit/fd904c0a8a23dd12db55106f9e60a0cf5e3f796c))
+
 ## [11.23.0](https://www.github.com/googleapis/release-please/compare/v11.22.0...v11.23.0) (2021-09-07)
 
 
