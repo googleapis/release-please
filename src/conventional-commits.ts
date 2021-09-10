@@ -177,9 +177,7 @@ export class ConventionalCommits {
     this.commitFilter = options.commitFilter;
   }
   async suggestBump(version: string): Promise<BumpSuggestion> {
-    const preMajor = this.bumpMinorPreMajor
-      ? semver.lt(version, 'v1.0.0')
-      : false;
+    const preMajor = this.bumpMinorPreMajor;
     const bump: BumpSuggestion = await this.guessReleaseType(preMajor);
     logger.info(
       `release as ${chalk.green(bump.releaseType)}: ${chalk.yellow(
