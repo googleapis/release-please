@@ -49,6 +49,7 @@ interface ReleaserConfigJson {
   'bump-patch-for-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
+  'skip-github-release'?: boolean;
   draft?: boolean;
 }
 
@@ -240,6 +241,10 @@ export class Manifest {
             config['release-as']
           ),
           draft: pkgCfg['draft'] ?? config['draft'],
+          skipGithubRelease:
+            pkgCfg['skip-github-release'] ??
+            config['skip-github-release'] ??
+            false,
         };
         packages.push(pkg);
       }
@@ -697,6 +702,14 @@ export class Manifest {
         this.checkpoint(
           `Unable to find last version for ${pkgLogDisp}.`,
           CheckpointType.Failure
+        );
+        releases[pkg.config.path] = undefined;
+        continue;
+      }
+      if (pkg.config.skipGithubRelease) {
+        this.gh.commentOnIssue(
+          `:robot: ${pkgName} not configured for release :no_entry_sign:`,
+          lastMergedPR.number
         );
         releases[pkg.config.path] = undefined;
         continue;

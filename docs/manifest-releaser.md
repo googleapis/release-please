@@ -122,7 +122,7 @@ documented in comments)
   // absence defaults to [] (i.e. no plugins)
   "plugins": ["node-workspace", "cargo-workspace"],
 
-  // optional top-level defaults that can be overriden per package:
+  // optional top-level defaults that can be overridden per package:
 
   // set default package release-type to "python"
   // absence defaults to "node"
@@ -153,6 +153,9 @@ documented in comments)
   // absence defaults to false and Releases are created as already Published.
   "draft": true
 
+  // Skip creating GitHub Releases
+  // absence defaults to false and Releases will be created
+  "skip-github-release": true,
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
