@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.24.1](https://www.github.com/googleapis/release-please/compare/v11.24.0...v11.24.1) (2021-09-13)
+
+
+### Bug Fixes
+
+* typo in `--bump-patch-for-minor-pre-major` option ([#1050](https://www.github.com/googleapis/release-please/issues/1050)) ([cf569a5](https://www.github.com/googleapis/release-please/commit/cf569a58c24e1c547e30efa58a08da5e9431e565))
+
 ## [11.24.0](https://www.github.com/googleapis/release-please/compare/v11.23.1...v11.24.0) (2021-09-09)
 
 
