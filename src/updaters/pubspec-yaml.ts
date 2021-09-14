@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 import {Update, UpdateOptions, VersionsMap} from './update';
 import {GitHubFileContents} from '../github';
 import {logger} from '../util/logger';
-import * as yaml from 'js-yaml';
 
 export class PubspecYaml implements Update {
   path: string;
