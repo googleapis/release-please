@@ -82,10 +82,11 @@ describe('Dart', () => {
         content: Buffer.from(pubspecContents, 'utf8').toString('base64'),
         parsedContent: pubspecContents,
       });
-      
+
       // CHANGELOG is not found, and will be created:
-      getFileContentsStub
-        .rejects(Object.assign(Error('not found'), {status: 404}));
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
 
       // Call to add autorelease: pending label:
       sandbox.stub(releasePR.gh, 'addLabels');
