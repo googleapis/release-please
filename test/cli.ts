@@ -177,6 +177,7 @@ describe('CLI', () => {
         'terraform-module',
         'helm',
         'elixir',
+        'dart',
       ];
       const parseCallback: ParseCallback = (err, _argv, _output) => {
         expect(err).to.be.an('Error');

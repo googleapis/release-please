@@ -20,7 +20,7 @@ Options:
                                     for?
                [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
          "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python", "ruby",
-           "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
+   "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir", "dart"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
   --release-as                      override the semantically determined release
@@ -74,7 +74,7 @@ Options:
                                     for?
                [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
          "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python", "ruby",
-           "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
+   "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir", "dart"]
                                                                [default: "node"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
@@ -172,7 +172,7 @@ Options:
                                     for?
                [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
          "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python", "ruby",
-           "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
+   "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir", "dart"]
                                                                [default: "node"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
