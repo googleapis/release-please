@@ -104,6 +104,7 @@ Release Please automates releases for the following flavors of repositories:
 | simple            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | helm              | A repository with a Chart.yaml and a CHANGELOG.md |
 | elixir            | A repository with a mix.exs and a CHANGELOG.md |
+| dart              | A repository with a pubspec.yaml and a CHANGELOG.md |
 
 ## Adding additional release types
 
