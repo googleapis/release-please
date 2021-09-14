@@ -1326,7 +1326,7 @@ export class GitHub {
       upstreamRepo: this.repo,
       title: options.title,
       branch: options.branch,
-      description: options.body.slice(0, MAX_ISSUE_SIZE),
+      description: options.body.slice(0, MAX_ISSUE_BODY_SIZE),
       primary: defaultBranch,
       force: true,
       fork: this.fork,
