@@ -96,7 +96,7 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
-import {RELEASE_PLEASE, GH_API_URL, MAX_ISSUE_SIZE} from './constants';
+import {RELEASE_PLEASE, GH_API_URL, MAX_ISSUE_BODY_SIZE} from './constants';
 import {GitHubConstructorOptions} from '.';
 import {DuplicateReleaseError, GitHubAPIError, AuthError} from './errors';
 
