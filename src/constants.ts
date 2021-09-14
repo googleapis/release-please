@@ -17,3 +17,4 @@ export const GH_API_URL = 'https://api.github.com';
 export const RELEASE_PLEASE = 'release-please';
 export const RELEASE_PLEASE_CONFIG = `${RELEASE_PLEASE}-config.json`;
 export const RELEASE_PLEASE_MANIFEST = `.${RELEASE_PLEASE}-manifest.json`;
+export const MAX_ISSUE_SIZE = 65536;
