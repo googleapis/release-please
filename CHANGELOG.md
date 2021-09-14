@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [11.24.2](https://www.github.com/googleapis/release-please/compare/v11.24.1...v11.24.2) (2021-09-14)
+
+
+### Bug Fixes
+
+* limit PR description to 65536 characters ([#1054](https://www.github.com/googleapis/release-please/issues/1054)) ([25df811](https://www.github.com/googleapis/release-please/commit/25df811b8e7c756c22cae76328497c831cdbac82))
+
 ### [11.24.1](https://www.github.com/googleapis/release-please/compare/v11.24.0...v11.24.1) (2021-09-13)
 
 
