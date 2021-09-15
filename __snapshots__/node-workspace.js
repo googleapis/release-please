@@ -1,4 +1,208 @@
-exports['NodeWorkspaceDependencyUpdates run does not update dependencies on preMajor versions with minor bump changes'] = `
+exports['NodeWorkspaceDependencyUpdates forces local package linking with config changes'] = `
+====================
+{
+  "config": {
+    "releaseType": "node",
+    "packageName": "@here/pkgA",
+    "path": "packages/pkgA"
+  },
+  "prData": {
+    "version": "1.1.2",
+    "changes": {}
+  }
+}
+
+filename: packages/pkgA/package.json
+{
+  "name": "@here/pkgA",
+  "version": "1.1.2",
+  "dependencies": {
+    "@there/foo": "^4.1.7"
+  }
+}
+
+filename: packages/pkgA/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.### [1.1.2](https://www.github.com/fake/repo/compare/pkgA-v1.1.1...pkgA-v1.1.2) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug!
+====================
+{
+  "config": {
+    "releaseType": "node",
+    "packageName": "@here/pkgB",
+    "path": "packages/pkgB"
+  },
+  "prData": {
+    "version": "0.3.0",
+    "changes": {}
+  }
+}
+
+filename: packages/pkgB/package.json
+{
+  "name": "@here/pkgB",
+  "version": "0.3.0",
+  "dependencies": {
+    "@here/pkgA": "^1.1.2",
+    "someExternal": "^9.2.3"
+  }
+}
+
+filename: packages/pkgB/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [0.3.0](https://www.github.com/fake/repo/compare/pkgB-v0.2.1...pkgB-v0.3.0) (1983-10-10)
+
+
+### Features
+
+* We added a feature
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped from ^1.1.1 to ^1.1.2
+
+### [0.2.1](https://www.github.com/fake/repo/compare/pkgB-v0.2.0...pkgB-v0.2.1) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug
+====================
+{
+  "config": {
+    "path": "packages/pkgC",
+    "releaseType": "node",
+    "packageName": "@here/pkgC"
+  },
+  "prData": {
+    "version": "3.3.4",
+    "changes": {}
+  }
+}
+
+filename: packages/pkgC/package.json
+{
+  "name": "@here/pkgC",
+  "version": "3.3.4",
+  "dependencies": {
+    "@here/pkgA": "^1.1.2",
+    "@here/pkgB": "^0.3.0",
+    "anotherExternal": "^4.3.1"
+  }
+}
+
+filename: packages/pkgC/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [3.3.4](https://www.github.com/fake/repo/compare/pkgC-v3.3.3...pkgC-v3.3.4) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped from ^1.1.1 to ^1.1.2
+    * @here/pkgB bumped from ^0.2.1 to ^0.3.0
+
+### [3.3.3](https://www.github.com/fake/repo/compare/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug
+
+
+`
+
+exports['NodeWorkspaceDependencyUpdates forces local package linking with config logs'] = [
+  [
+    "node-workspace: found packages/pkgA/package.json in changes",
+    "success"
+  ],
+  [
+    "node-workspace: found packages/pkgB/package.json in changes",
+    "success"
+  ],
+  [
+    "node-workspace: loaded packages/pkgA/package.json from existing changes",
+    "success"
+  ],
+  [
+    "node-workspace: loaded packages/pkgB/package.json from existing changes",
+    "success"
+  ],
+  [
+    "node-workspace: loaded packages/pkgC/package.json from github",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
+    "node-workspace: setting packages/pkgA/package.json to 1.1.2 from release-please",
+    "success"
+  ],
+  [
+    "node-workspace: setting packages/pkgB/package.json to 0.3.0 from release-please",
+    "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgC/package.json\" against parsed package \"packages/pkgC/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgC/package.json",
+    "failure"
+  ],
+  [
+    "node-workspace: setting packages/pkgC/package.json to 3.3.4 from dependency bump",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC.@here/pkgA updated to ^1.1.2",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgC.@here/pkgB updated to ^0.3.0",
+    "success"
+  ]
+]
+
+exports['NodeWorkspaceDependencyUpdates run does not update dependencies on preMajor versions with minor bump (with always-link-local = false) changes'] = `
 ====================
 {
   "config": {
@@ -126,7 +330,7 @@ All notable changes to this project will be documented in this file.
 
 `
 
-exports['NodeWorkspaceDependencyUpdates run does not update dependencies on preMajor versions with minor bump logs'] = [
+exports['NodeWorkspaceDependencyUpdates run does not update dependencies on preMajor versions with minor bump (with always-link-local = false) logs'] = [
   [
     "node-workspace: found packages/pkgA/package.json in changes",
     "success"
@@ -193,66 +397,6 @@ exports['NodeWorkspaceDependencyUpdates run does not update dependencies on preM
   ],
   [
     "node-workspace: @here/pkgC.@here/pkgA updated to ^1.1.2",
-    "success"
-  ]
-]
-
-exports['NodeWorkspaceDependencyUpdates run does not update dependency to pre-release version changes'] = `
-====================
-{
-  "config": {
-    "releaseType": "node",
-    "packageName": "@here/pkgA",
-    "path": "packages/pkgA"
-  },
-  "prData": {
-    "version": "1.1.2-alpha.0",
-    "changes": {}
-  }
-}
-
-filename: packages/pkgA/package.json
-{
-  "name": "@here/pkgA",
-  "version": "1.1.2-alpha.0",
-  "dependencies": {
-    "@there/foo": "^4.1.7"
-  }
-}
-
-filename: packages/pkgA/CHANGELOG.md
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-### [1.1.2-alpha.0](https://www.github.com/fake/repo/compare/pkgA-v1.1.1...pkgA-v1.1.2-alpha.0) (1983-10-10)
-
-
-### Bug Fixes
-
-* We fixed a bug!
-
-`
-
-exports['NodeWorkspaceDependencyUpdates run does not update dependency to pre-release version logs'] = [
-  [
-    "node-workspace: found packages/pkgA/package.json in changes",
-    "success"
-  ],
-  [
-    "node-workspace: loaded packages/pkgA/package.json from existing changes",
-    "success"
-  ],
-  [
-    "node-workspace: loaded packages/pkgB/package.json from github",
-    "success"
-  ],
-  [
-    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
-    "success"
-  ],
-  [
-    "node-workspace: setting packages/pkgA/package.json to 1.1.2-alpha.0 from release-please",
     "success"
   ]
 ]
@@ -1539,6 +1683,125 @@ exports['NodeWorkspaceDependencyUpdates run prefers release-as configuration ove
   ],
   [
     "node-workspace: @here/pkgC.@here/pkgB updated to ^2.3.0",
+    "success"
+  ]
+]
+
+exports['NodeWorkspaceDependencyUpdates run updates dependency to pre-release version changes'] = `
+====================
+{
+  "config": {
+    "releaseType": "node",
+    "packageName": "@here/pkgA",
+    "path": "packages/pkgA"
+  },
+  "prData": {
+    "version": "1.1.2-alpha.0",
+    "changes": {}
+  }
+}
+
+filename: packages/pkgA/package.json
+{
+  "name": "@here/pkgA",
+  "version": "1.1.2-alpha.0",
+  "dependencies": {
+    "@there/foo": "^4.1.7"
+  }
+}
+
+filename: packages/pkgA/CHANGELOG.md
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+### [1.1.2-alpha.0](https://www.github.com/fake/repo/compare/pkgA-v1.1.1...pkgA-v1.1.2-alpha.0) (1983-10-10)
+
+
+### Bug Fixes
+
+* We fixed a bug!
+====================
+{
+  "config": {
+    "path": "packages/pkgB",
+    "releaseType": "node",
+    "packageName": "@here/pkgB"
+  },
+  "prData": {
+    "version": "2.2.3",
+    "changes": {}
+  }
+}
+
+filename: packages/pkgB/package.json
+{
+  "name": "@here/pkgB",
+  "version": "2.2.3",
+  "dependencies": {
+    "@here/pkgA": "^1.1.2-alpha.0",
+    "someExternal": "^9.2.3"
+  }
+}
+
+filename: packages/pkgB/CHANGELOG.md
+# Changelog
+
+### [2.2.3](https://www.github.com/fake/repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped from ^1.1.1 to ^1.1.2-alpha.0
+
+
+`
+
+exports['NodeWorkspaceDependencyUpdates run updates dependency to pre-release version logs'] = [
+  [
+    "node-workspace: found packages/pkgA/package.json in changes",
+    "success"
+  ],
+  [
+    "node-workspace: loaded packages/pkgA/package.json from existing changes",
+    "success"
+  ],
+  [
+    "node-workspace: loaded packages/pkgB/package.json from github",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgA collected for update (dependency-only = false)",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB collected for update (dependency-only = true)",
+    "success"
+  ],
+  [
+    "node-workspace: setting packages/pkgA/package.json to 1.1.2-alpha.0 from release-please",
+    "success"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgA/package.json\"",
+    "failure"
+  ],
+  [
+    "node-workspace: Checking node \"packages/pkgB/package.json\" against parsed package \"packages/pkgB/package.json\"",
+    "success"
+  ],
+  [
+    "node-workspace: No pkgConfig.releaseAs for packages/pkgB/package.json",
+    "failure"
+  ],
+  [
+    "node-workspace: setting packages/pkgB/package.json to 2.2.3 from dependency bump",
+    "success"
+  ],
+  [
+    "node-workspace: @here/pkgB.@here/pkgA updated to ^1.1.2-alpha.0",
     "success"
   ]
 ]

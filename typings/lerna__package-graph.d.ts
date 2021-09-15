@@ -38,7 +38,8 @@ declare module '@lerna/package-graph' {
       rawPackageList: Package[];
       constructor(
         packages: Package[],
-        graphType: 'allDependencies' | 'dependencies'
+        graphType: 'allDependencies' | 'dependencies',
+        forceLocal: boolean
       );
 
       get(name: string): PackageGraph.PackageGraphNode;
