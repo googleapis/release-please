@@ -62,6 +62,7 @@ export interface Config extends ReleaserConfigJson {
   parsedPackages: ManifestPackage[];
   'bootstrap-sha'?: string;
   'last-release-sha'?: string;
+  'always-link-local'?: boolean;
   plugins?: PluginType[];
 }
 
