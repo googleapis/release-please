@@ -36,7 +36,7 @@ export class PubspecYaml implements Update {
 
   updateContent(content: string): string {
     const oldVersion = content.match(/version: ([0-9\.]+)\+([0-9]+)/);
-    var buildNumber = '1';
+    let buildNumber = '1';
 
     if (oldVersion) {
       buildNumber = `${oldVersion[2]}`;
