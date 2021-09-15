@@ -4,6 +4,17 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.0.0](https://www.github.com/googleapis/release-please/compare/v11.24.2...v12.0.0) (2021-09-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **manifest:** force local linking in node-workspaces w/ config to disable (#1036)
+
+### Features
+
+* **manifest:** force local linking in node-workspaces w/ config to disable ([#1036](https://www.github.com/googleapis/release-please/issues/1036)) ([a47d7f7](https://www.github.com/googleapis/release-please/commit/a47d7f7cbbb065d994fa972101f2f36d6f86a235))
+
 ### [11.24.2](https://www.github.com/googleapis/release-please/compare/v11.24.1...v11.24.2) (2021-09-14)
 
 
