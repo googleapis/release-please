@@ -138,8 +138,7 @@ describe('CLI', () => {
           '--repo-url=googleapis/release-please-cli ' +
           '--package-name=cli-package ' +
           "--pull-request-title-pattern='chore${scope}: release${component} ${version}' " +
-          '--signoff ' +
-          "--signoff-user='Alice <alice@example.com>'"
+          "--signoff 'Alice <alice@example.com>'"
       );
       assert.strictEqual(methodCalled, 'run');
       assert.ok(instanceToRun! instanceof ReleasePR);
@@ -152,11 +151,7 @@ describe('CLI', () => {
         instanceToRun.pullRequestTitlePattern,
         'chore${scope}: release${component} ${version}'
       );
-      assert.strictEqual(instanceToRun.signoff, true);
-      assert.strictEqual(
-        instanceToRun.signoffUser,
-        'Alice <alice@example.com>'
-      );
+      assert.strictEqual(instanceToRun.signoff, 'Alice <alice@example.com>');
     });
     it('validates releaseType choices', done => {
       sandbox.stub(factory, 'call').resolves(undefined);

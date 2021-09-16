@@ -14,8 +14,6 @@
 
 export const DEFAULT_LABELS = ['autorelease: pending'];
 export const GH_API_URL = 'https://api.github.com';
-export const GH_ACTIONS_SIGNOFF_USER =
-  'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>';
 export const RELEASE_PLEASE = 'release-please';
 export const RELEASE_PLEASE_CONFIG = `${RELEASE_PLEASE}-config.json`;
 export const RELEASE_PLEASE_MANIFEST = `.${RELEASE_PLEASE}-manifest.json`;

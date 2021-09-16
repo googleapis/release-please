@@ -22,7 +22,6 @@ import {
   DEFAULT_LABELS,
   RELEASE_PLEASE_CONFIG,
   RELEASE_PLEASE_MANIFEST,
-  GH_ACTIONS_SIGNOFF_USER,
 } from './constants';
 import {BranchName} from './util/branch-name';
 import {
@@ -87,16 +86,14 @@ export class Manifest {
   checkpoint: Checkpoint;
   configFile?: Config;
   headManifest?: ManifestJson;
-  signoffUser = GH_ACTIONS_SIGNOFF_USER;
-  signoff = false;
+  signoff?: string;
 
   constructor(options: ManifestConstructorOptions) {
     this.gh = options.github;
     this.configFileName = options.configFile || RELEASE_PLEASE_CONFIG;
     this.manifestFileName = options.manifestFile || RELEASE_PLEASE_MANIFEST;
     this.checkpoint = options.checkpoint || checkpoint;
-    this.signoff = options.signoff ?? this.signoff;
-    this.signoffUser = options.signoffUser ?? this.signoffUser;
+    this.signoff = options.signoff;
   }
 
   protected async getBranchName() {
@@ -642,7 +639,7 @@ export class Manifest {
 
     // Sign-off message if signoff option is enabled
     const message = this.signoff
-      ? signoffCommitMessage(title, this.signoffUser)
+      ? signoffCommitMessage(title, this.signoff)
       : title;
 
     const pr = await this.gh.openPR({

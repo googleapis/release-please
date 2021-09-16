@@ -97,12 +97,7 @@ function releaserCommon(ya: YargsOptionsBuilder) {
   });
   ya.option('signoff', {
     describe:
-      'Add Signed-off-by line by the GitHub actions bot at the end of the commit log message.',
-    type: 'boolean',
-  });
-  ya.option('signoff-user', {
-    describe:
-      'User to use for the signoff message (format "Name <email@example.com>")',
+      'Add Signed-off-by line at the end of the commit log message using the user and email provided. (format "Name <email@example.com>").',
     type: 'string',
   });
   ya.option('changelog-path', {
