@@ -4,6 +4,38 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.0.0](https://www.github.com/googleapis/release-please/compare/v11.24.2...v12.0.0) (2021-09-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **manifest:** force local linking in node-workspaces w/ config to disable (#1036)
+
+### Features
+
+* **manifest:** force local linking in node-workspaces w/ config to disable ([#1036](https://www.github.com/googleapis/release-please/issues/1036)) ([a47d7f7](https://www.github.com/googleapis/release-please/commit/a47d7f7cbbb065d994fa972101f2f36d6f86a235))
+
+### [11.24.2](https://www.github.com/googleapis/release-please/compare/v11.24.1...v11.24.2) (2021-09-14)
+
+
+### Bug Fixes
+
+* limit PR description to 65536 characters ([#1054](https://www.github.com/googleapis/release-please/issues/1054)) ([25df811](https://www.github.com/googleapis/release-please/commit/25df811b8e7c756c22cae76328497c831cdbac82))
+
+### [11.24.1](https://www.github.com/googleapis/release-please/compare/v11.24.0...v11.24.1) (2021-09-13)
+
+
+### Bug Fixes
+
+* typo in `--bump-patch-for-minor-pre-major` option ([#1050](https://www.github.com/googleapis/release-please/issues/1050)) ([cf569a5](https://www.github.com/googleapis/release-please/commit/cf569a58c24e1c547e30efa58a08da5e9431e565))
+
+## [11.24.0](https://www.github.com/googleapis/release-please/compare/v11.23.1...v11.24.0) (2021-09-09)
+
+
+### Features
+
+* **python:** support packagename/__init__.py without pyproject.toml ([#1026](https://www.github.com/googleapis/release-please/issues/1026)) ([f461ff7](https://www.github.com/googleapis/release-please/commit/f461ff7284f8fdc2c1c6f4959341fe40cfb50501))
+
 ### [11.23.1](https://www.github.com/googleapis/release-please/compare/v11.23.0...v11.23.1) (2021-09-08)
 
 

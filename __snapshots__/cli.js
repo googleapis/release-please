@@ -28,7 +28,7 @@ Options:
   --bump-minor-pre-major            should we bump the semver minor prior to the
                                     first major release
                                                       [boolean] [default: false]
-  --bump-minor-for-patch-pre-major  should we bump the semver patch instead of
+  --bump-patch-for-minor-pre-major  should we bump the semver patch instead of
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
@@ -88,7 +88,7 @@ Options:
   --bump-minor-pre-major            should we bump the semver minor prior to the
                                     first major release
                                                       [boolean] [default: false]
-  --bump-minor-for-patch-pre-major  should we bump the semver patch instead of
+  --bump-patch-for-minor-pre-major  should we bump the semver patch instead of
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
@@ -191,7 +191,7 @@ Options:
   --bump-minor-pre-major            should we bump the semver minor prior to the
                                     first major release
                                                       [boolean] [default: false]
-  --bump-minor-for-patch-pre-major  should we bump the semver patch instead of
+  --bump-patch-for-minor-pre-major  should we bump the semver patch instead of
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
