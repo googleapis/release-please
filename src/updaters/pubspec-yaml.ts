@@ -35,18 +35,25 @@ export class PubspecYaml implements Update {
   }
 
   updateContent(content: string): string {
-    const oldVersion = content.match(/version: ([0-9\.]+)\+([0-9]+)/);
-    let buildNumber = '1';
+    const oldVersion = content.match(/version: ([0-9.]+)\+?([0-9]*$)/);
+    let buildNumber = '';
 
     if (oldVersion) {
       buildNumber = `${oldVersion[2]}`;
-      logger.info(
-        `updating ${this.path} from ${oldVersion[1]}+${buildNumber} to ${this.version}+${buildNumber}`
-      );
+      if (buildNumber.length > 0) {
+        buildNumber = `+${buildNumber}`;
+        logger.info(
+          `updating ${this.path} from ${oldVersion[1]}${buildNumber} to ${this.version}${buildNumber}`
+        );
+      } else {
+        logger.info(
+          `updating ${this.path} from ${oldVersion[1]} to ${this.version}`
+        );
+      }
     }
     return content.replace(
-      /version: ([0-9\.]+)\+([0-9]+)/,
-      `version: ${this.version}+${buildNumber}`
+      /version: ([0-9.]+)\+?([0-9]*$)/,
+      `version: ${this.version}${buildNumber}`
     );
   }
 }

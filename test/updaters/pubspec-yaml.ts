@@ -36,5 +36,20 @@ describe('PubspecYaml', () => {
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('updates version with build number in pubspec.yaml file', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './pubspec_with_build_no.yaml'),
+        'utf8'
+      );
+      const version = new PubspecYaml({
+        path: 'pubspec.yaml',
+        changelogEntry: '',
+        version: '0.6.0',
+        packageName: '',
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
