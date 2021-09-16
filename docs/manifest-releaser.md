@@ -147,6 +147,18 @@ documented in comments)
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...]
+  
+  // Optionally add block of text before github release notes. Text can be templated
+  // with handlebars.js syntax. The template will have these partials exposed:
+  // {{> version|tag|githubRepo|githubOwner|changelogPath|PRNumber|PRSha|PRTitle }}.
+  // Literal \n's will be replaced with newlines.
+  "release-notes-extra-header": "header template",
+  
+  // Optionally add block of text after github release notes. Text can be templated
+  // with handlebars.js syntax. The template will have these partials exposed:
+  // {{> version|tag|githubRepo|githubOwner|changelogPath|PRNumber|PRSha|PRTitle }}.
+  // Literal \n's will be replaced with newlines.
+  "release-notes-extra-footer": "footer template",
 
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
@@ -207,7 +219,8 @@ documented in comments)
       "release-as": "",
       "package-name": "coolio-pkg",
       // our change log is located at path/to/myPyPkgA/docs/CHANGES.rst
-      "changelog-path": "docs/CHANGES.rst"
+      "changelog-path": "docs/CHANGES.rst",
+      "release-notes-extra-header": "header template"
     },
   }
 

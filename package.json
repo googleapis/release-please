@@ -73,7 +73,9 @@
     "conventional-changelog-conventionalcommits": "^4.6.0",
     "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
+    "detect-indent": "^6.1.0",
     "figures": "^3.0.0",
+    "handlebars": "^4.7.7",
     "js-yaml": "^4.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
@@ -81,8 +83,7 @@
     "typescript": "^3.8.3",
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
-    "yargs": "^16.0.0",
-    "detect-indent": "^6.1.0"
+    "yargs": "^16.0.0"
   },
   "engines": {
     "node": ">=10.12.0"

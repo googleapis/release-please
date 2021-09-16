@@ -62,6 +62,20 @@ Options:
                                                       [boolean] [default: false]
   --release-label                   set a pull request label other than
                                     "autorelease: tagged"               [string]
+  --notes-header                    optionally add block of text before github
+                                    release notes. Text can be templated with
+                                    handlebars.js syntax. The template will have
+                                    these partials exposed: {{> version | tag |
+                                    githubRepo | githubOwner | changelogPath |
+                                    PRNumber | PRSha | PRTitle }}. Literal line
+                                    feeds replaced with newlines.       [string]
+  --notes-footer                    optionally add block of text after github
+                                    release notes. Text can be templated with
+                                    handlebars.js syntax. The template will have
+                                    these partials exposed: {{> version | tag |
+                                    githubRepo | githubOwner | changelogPath |
+                                    PRNumber | PRSha | PRTitle }}. Literal line
+                                    feeds replaced with newlines.       [string]
 `
 
 exports['CLI flags latest-tag flags 1'] = `

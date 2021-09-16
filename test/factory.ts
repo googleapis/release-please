@@ -197,6 +197,8 @@ describe('factory', () => {
       });
       expect(ghr.constructor.name).to.equal('GitHubRelease');
       expect(ghr.draft).to.be.false;
+      expect(ghr.notesHeader).to.be.undefined;
+      expect(ghr.notesFooter).to.be.undefined;
       expect(ghr.gh.owner).to.equal('googleapis');
       expect(ghr.gh.repo).to.equal('simple-test-repo');
       expect(ghr.gh.token).to.be.undefined;
@@ -235,9 +237,13 @@ describe('factory', () => {
         lastPackageVersion: '0.0.1',
         versionFile: 'some/ruby/version.rb',
         draft: true,
+        notesHeader: 'HEADER',
+        notesFooter: 'FOOTER',
       });
       expect(ghr.constructor.name).to.equal('GitHubRelease');
       expect(ghr.draft).to.be.true;
+      expect(ghr.notesHeader).to.equal('HEADER');
+      expect(ghr.notesFooter).to.equal('FOOTER');
       expect(ghr.gh.owner).to.equal('googleapis');
       expect(ghr.gh.repo).to.equal('ruby-test-repo');
       expect(ghr.gh.token).to.equal('some-token');

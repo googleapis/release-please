@@ -232,6 +232,8 @@ release-please github-release --repo-url=googleapis/nodejs-firestore \
 | `--repo-url`      | is the URL of the repository on GitHub.                 |
 | `--token`         | a token with write access to `--repo-url`.              |
 | `--path`          | create a release from a path other than the repository's root |
+| `--notes-header`  | prepend release notes with templated block of text. |
+| `--notes-footer`  | prepend release notes with templated block of text. |
 
 ### Running as a GitHub App
 

@@ -214,6 +214,22 @@ export const parser = yargs
         describe: 'set a pull request label other than "autorelease: tagged"',
         type: 'string',
       });
+      yargs.option('notes-header', {
+        describe:
+          'optionally add block of text before github release notes. Text can be templated ' +
+          'with handlebars.js syntax. The template will have these partials exposed: ' +
+          '{{> version | tag | githubRepo | githubOwner | changelogPath | PRNumber | PRSha | PRTitle }}. ' +
+          'Literal line feeds replaced with newlines.',
+        type: 'string',
+      });
+      yargs.option('notes-footer', {
+        describe:
+          'optionally add block of text after github release notes. Text can be templated ' +
+          'with handlebars.js syntax. The template will have these partials exposed: ' +
+          '{{> version | tag | githubRepo | githubOwner | changelogPath | PRNumber | PRSha | PRTitle }}. ' +
+          'Literal line feeds replaced with newlines.',
+        type: 'string',
+      });
     },
     (argv: GitHubReleaseFactoryOptions) => {
       factory.runCommand('github-release', argv).catch(handleError);

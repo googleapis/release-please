@@ -15,11 +15,53 @@
 import {readFileSync} from 'fs';
 import {describe, it} from 'mocha';
 import {resolve} from 'path';
-import {extractReleaseNotes} from '../../src/util/release-notes';
+import {
+  extractReleaseNotes,
+  generateReleaseNotes,
+  PartialsMap,
+} from '../../src/util/release-notes';
 import snapshot = require('snap-shot-it');
 import assert = require('assert');
+import {Template} from 'handlebars';
 
 const fixturesPath = './test/fixtures';
+
+describe('generateReleaseNotes', () => {
+  it('renders notes with header and footer', () => {
+    const changelogContent = readFileSync(
+      resolve(fixturesPath, './CHANGELOG-new.md'),
+      'utf8'
+    ).replace(/\r\n/g, '\n');
+
+    const partialsMap: PartialsMap = new Map<string, Template>([
+      ['PRNumber', '1'],
+      ['PRSha', '999999'],
+      ['PRTitle', 'pr_title'],
+      ['changelogPath', 'CHANGELOG.md'],
+      ['githubOwner', 'googleapis'],
+      ['githubRepo', 'foo'],
+      ['tag', 'v1.2.0'],
+      ['version', '1.2.0'],
+    ]);
+
+    const dumpPartialsTpl =
+      '{{> PRNumber }}|{{> PRSha }}|{{> PRTitle }}|{{> changelogPath }}|{{> githubOwner }}|{{> githubRepo }}|{{> tag }}|{{> version }}';
+    const notesHeader = `HEADER\n${dumpPartialsTpl}`;
+    const notesFooter = `FOOTER\n${dumpPartialsTpl}`;
+
+    const latestReleaseNotes = generateReleaseNotes(
+      changelogContent,
+      'v1.2.0',
+      {
+        notesHeader: notesHeader,
+        notesFooter: notesFooter,
+        partials: partialsMap,
+      }
+    );
+
+    snapshot(latestReleaseNotes);
+  });
+});
 
 describe('extractReleaseNotes', () => {
   it('handles CHANGELOG with old and new format entries', () => {

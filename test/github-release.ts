@@ -173,6 +173,51 @@ describe('GitHubRelease', () => {
       expect(created).to.be.undefined;
     });
 
+    it('creates release where release message has header and footer', async () => {
+      const github = new GitHub({owner: 'googleapis', repo: 'foo'});
+      const mock = mockGithubCommon({
+        github,
+        prHead: 'release-v1.0.3',
+        prTitle: 'Release v1.0.3',
+      });
+      mockGithubLabelsAndComment(mock, true);
+      mock
+        .expects('createRelease')
+        .withExactArgs(
+          'foo',
+          'v1.0.3',
+          'abc123',
+          '\nHEADER\ntag: v1.0.3\n\n* entry\nFOOTER\ntag: v1.0.3\n',
+          false
+        )
+        .once()
+        .resolves({
+          name: 'foo v1.0.3',
+          tag_name: 'v1.0.3',
+          draft: false,
+          html_url: 'https://release.url',
+          upload_url: 'https://upload.url/',
+          body: '\nHEADER\ntag: v1.0.3\n\n* entry\nFOOTER\ntag: v1.0.3\n',
+        });
+
+      const releasePR = new ReleasePR({github, packageName: 'foo'});
+
+      const notesHeader = 'HEADER\ntag: {{> tag }}';
+      const notesFooter = 'FOOTER\ntag: {{> tag }}';
+      const releaser = new GitHubRelease({
+        github,
+        releasePR,
+        notesHeader,
+        notesFooter,
+      });
+      const created = await releaser.run();
+
+      strictEqual(
+        created!.body,
+        '\nHEADER\ntag: v1.0.3\n\n* entry\nFOOTER\ntag: v1.0.3\n'
+      );
+    });
+
     it('creates a draft release', async () => {
       const github = new GitHub({owner: 'googleapis', repo: 'foo'});
       const mock = mockGithubCommon({

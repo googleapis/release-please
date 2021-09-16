@@ -17,6 +17,7 @@ import {GitHub, MergedGitHubPR, ReleaseCreateResponse} from './github';
 import {parse} from 'semver';
 import {ReleasePR, CandidateRelease} from './release-pr';
 import {logger} from './util/logger';
+import {TemplatingError} from './util/release-notes';
 
 export const GITHUB_RELEASE_LABEL = 'autorelease: tagged';
 
@@ -40,12 +41,16 @@ export class GitHubRelease {
   gh: GitHub;
   draft: boolean;
   releaseLabel: string;
+  notesHeader?: string;
+  notesFooter?: string;
 
   constructor(options: GitHubReleaseConstructorOptions) {
     this.draft = !!options.draft;
     this.gh = options.github;
     this.releasePR = options.releasePR;
     this.releaseLabel = options.releaseLabel ?? GITHUB_RELEASE_LABEL;
+    this.notesHeader = options.notesHeader;
+    this.notesFooter = options.notesFooter;
   }
 
   async createRelease(): Promise<
@@ -65,11 +70,25 @@ export class GitHubRelease {
     | undefined
   > {
     let candidate: CandidateRelease | undefined;
+
     if (version && mergedPR) {
-      candidate = await this.releasePR.buildReleaseForVersion(
-        version,
-        mergedPR
-      );
+      try {
+        candidate = await this.releasePR.buildReleaseForVersion(
+          version,
+          mergedPR,
+          this.notesHeader,
+          this.notesFooter
+        );
+      } catch (e) {
+        if (e instanceof TemplatingError) {
+          logger.error(
+            `Templating error while building candidate: ${e.message}`
+          );
+          return [undefined, undefined];
+        }
+        throw e;
+      }
+
       return await this.gh.createRelease(
         candidate.name,
         candidate.tag,
@@ -78,8 +97,22 @@ export class GitHubRelease {
         this.draft
       );
     } else {
-      candidate = await this.releasePR.buildRelease();
+      try {
+        candidate = await this.releasePR.buildRelease(
+          this.notesHeader,
+          this.notesFooter
+        );
+      } catch (e) {
+        if (e instanceof TemplatingError) {
+          logger.error(
+            `Templating error while building candidate: ${e.message}`
+          );
+          return [undefined, undefined];
+        }
+        throw e;
+      }
     }
+
     if (candidate !== undefined) {
       const release = await this.gh.createRelease(
         candidate.name,

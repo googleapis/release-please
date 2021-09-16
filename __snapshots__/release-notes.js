@@ -98,3 +98,24 @@ exports['extractReleaseNotes php-yoshi extracts appropriate release notes, when 
 </details>
 
 `
+
+exports['generateReleaseNotes renders notes with header and footer 1'] = `
+
+HEADER
+1|999999|pr_title|CHANGELOG.md|googleapis|foo|v1.2.0|1.2.0
+
+
+### Bug Fixes
+
+* candidate issue should only be updated every 15 minutes. ([#70](https://www.github.com/googleapis/release-please/issues/70)) ([edcd1f7](https://www.github.com/googleapis/release-please/commit/edcd1f7))
+
+
+### Features
+
+* add GitHub action for generating candidate issue ([#69](https://www.github.com/googleapis/release-please/issues/69)) ([6373aed](https://www.github.com/googleapis/release-please/commit/6373aed))
+* checkbox based releases ([#77](https://www.github.com/googleapis/release-please/issues/77)) ([1e4193c](https://www.github.com/googleapis/release-please/commit/1e4193c))
+
+FOOTER
+1|999999|pr_title|CHANGELOG.md|googleapis|foo|v1.2.0|1.2.0
+
+`

@@ -18,6 +18,7 @@ import {ReleasePRConstructorOptions} from './';
 import {RELEASE_PLEASE, DEFAULT_LABELS} from './constants';
 import {Octokit} from '@octokit/rest';
 import {PromiseValue} from 'type-fest';
+import {Template} from 'handlebars';
 type PullsListResponseItems = PromiseValue<
   ReturnType<InstanceType<typeof Octokit>['pulls']['list']>
 >['data'];
@@ -29,7 +30,7 @@ import {GitHub, GitHubTag, MergedGitHubPR} from './github';
 import {Commit} from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
-import {extractReleaseNotes} from './util/release-notes';
+import {PartialsMap, generateReleaseNotes} from './util/release-notes';
 import {PullRequestTitle} from './util/pull-request-title';
 import {Changelog} from './updaters/changelog';
 import {logger} from './util/logger';
@@ -503,7 +504,10 @@ export class ReleasePR {
   }
 
   // Logic for determining what to include in a GitHub release.
-  async buildRelease(): Promise<CandidateRelease | undefined> {
+  async buildRelease(
+    notesHeader?: string,
+    notesFooter?: string
+  ): Promise<CandidateRelease | undefined> {
     await this.validateConfiguration();
     const mergedPR = await this.findMergedRelease();
     if (!mergedPR) {
@@ -516,19 +520,41 @@ export class ReleasePR {
       logger.warn('Unable to detect release version');
       return undefined;
     }
-    return this.buildReleaseForVersion(version, mergedPR);
+    return this.buildReleaseForVersion(
+      version,
+      mergedPR,
+      notesHeader,
+      notesFooter
+    );
   }
 
   async buildReleaseForVersion(
     version: string,
-    mergedPR: MergedGitHubPR
+    mergedPR: MergedGitHubPR,
+    notesHeader?: string,
+    notesFooter?: string
   ): Promise<CandidateRelease> {
     const packageName = await this.getPackageName();
     const tag = this.formatReleaseTagName(version, packageName);
     const changelogContents = (
       await this.gh.getFileContents(this.addPath(this.changelogPath))
     ).parsedContent;
-    const notes = extractReleaseNotes(changelogContents, version);
+
+    const partialsMap: PartialsMap = new Map<string, Template>([
+      ['PRNumber', String(mergedPR.number)],
+      ['PRSha', mergedPR.sha],
+      ['PRTitle', mergedPR.title],
+      ['changelogPath', this.changelogPath],
+      ['githubOwner', this.gh.owner],
+      ['githubRepo', this.gh.repo],
+      ['tag', tag],
+      ['version', version],
+    ]);
+    const notes = generateReleaseNotes(changelogContents, version, {
+      notesHeader: notesHeader,
+      notesFooter: notesFooter,
+      partials: partialsMap,
+    });
 
     return {
       sha: mergedPR.sha,

@@ -13,6 +13,98 @@
 // limitations under the License.
 
 import {MissingReleaseNotesError} from '../errors';
+import Handlebars = require('handlebars');
+
+export class TemplatingError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export type PartialsMap = Map<string, Handlebars.Template>;
+
+export interface ReleaseNotesOptions {
+  notesHeader?: string;
+  notesFooter?: string;
+  partials?: PartialsMap;
+}
+
+/**
+ * Parse release notes for a specific release from the CHANGELOG contents,
+ * extending the result with the optional header and footer. Header and
+ * footer templated with handlebars.js. Extra partials can be exposed to
+ * the templating engine.
+ *
+ * @param {string} changelogContents The entire CHANGELOG contents
+ * @param {string} version The release version to extract notes from
+ * @param {ReleaseNotesOptions} releaseNotesOptions Optionally provide header,
+ * footer and handlebars partials.
+ */
+export function generateReleaseNotes(
+  changelogContents: string,
+  version: string,
+  releaseNotesOptions?: ReleaseNotesOptions
+): string {
+  let notes = extractReleaseNotes(changelogContents, version);
+
+  if (
+    releaseNotesOptions === undefined ||
+    (releaseNotesOptions.notesHeader === undefined &&
+      releaseNotesOptions.notesFooter === undefined)
+  ) {
+    return notes;
+  }
+
+  if (releaseNotesOptions.partials !== undefined) {
+    for (const [partialName, partialValue] of releaseNotesOptions.partials) {
+      Handlebars.registerPartial(partialName, partialValue);
+    }
+  }
+
+  if (releaseNotesOptions.notesHeader !== undefined) {
+    const notesHeader = '\n'.concat(
+      releaseNotesOptions.notesHeader.replace(/\\n/g, '\n'),
+      '\n'
+    );
+
+    let compiledNotesHeader;
+    try {
+      compiledNotesHeader = Handlebars.compile(notesHeader, {
+        noEscape: true,
+        strict: true,
+      })({});
+    } catch (e) {
+      throw new TemplatingError(
+        `Unable to generate release notes header: ${e.message}`
+      );
+    }
+
+    notes = compiledNotesHeader.concat(notes);
+  }
+
+  if (releaseNotesOptions.notesFooter !== undefined) {
+    const notesFooter = '\n'.concat(
+      releaseNotesOptions.notesFooter.replace(/\\n/g, '\n'),
+      '\n'
+    );
+
+    let compiledNotesFooter;
+    try {
+      compiledNotesFooter = Handlebars.compile(notesFooter, {
+        noEscape: true,
+        strict: true,
+      })({});
+    } catch (e) {
+      throw new TemplatingError(
+        `Unable to generate release notes footer: ${e.message}`
+      );
+    }
+
+    notes = notes.concat(compiledNotesFooter);
+  }
+
+  return notes;
+}
 
 /**
  * Parse release notes for a specific release from the CHANGELOG contents
