@@ -193,6 +193,10 @@ export const parser = yargs
         type: 'boolean',
         default: false,
       });
+      yargs.option('release-label', {
+        describe: 'set a pull request label other than "autorelease: tagged"',
+        type: 'string',
+      });
     },
     (argv: GitHubReleaseFactoryOptions) => {
       factory.runCommand('github-release', argv).catch(handleError);
