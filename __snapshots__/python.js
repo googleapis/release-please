@@ -168,6 +168,9 @@ version = "0.123.5"
 filename: project/__init__.py
 __version__ = '0.123.5'
 
+filename: src/project/__init__.py
+__version__ = '0.123.5'
+
 filename: src/version.py
 # Copyright 2020 Google LLC
 #
@@ -741,6 +744,9 @@ name = 'project'
 version = "0.123.5"
 
 filename: project/__init__.py
+__version__ = '0.123.5'
+
+filename: src/project/__init__.py
 __version__ = '0.123.5'
 
 filename: src/version.py
