@@ -135,6 +135,12 @@ describe('Python', () => {
             packageName: pkgName,
           }),
           new PythonFileWithVersion({
+            path: `src/${pkgName}/__init__.py`,
+            changelogEntry: perUpdateChangelog,
+            version: expectedVersion,
+            packageName: pkgName,
+          }),
+          new PythonFileWithVersion({
             path: 'src/version.py',
             changelogEntry: perUpdateChangelog,
             version: expectedVersion,
@@ -196,6 +202,12 @@ describe('Python', () => {
             packageName: pkgName,
           }),
           new PythonFileWithVersion({
+            path: `src/${pkgName}/__init__.py`,
+            changelogEntry: perUpdateChangelog,
+            version: expectedVersion,
+            packageName: pkgName,
+          }),
+          new PythonFileWithVersion({
             path: 'src/version.py',
             changelogEntry: perUpdateChangelog,
             version: expectedVersion,
@@ -237,6 +249,7 @@ describe('Python', () => {
       stubFilesToUpdate(releasePR.gh, [
         'pyproject.toml',
         'project/__init__.py',
+        'src/project/__init__.py',
         'setup.py',
         'src/version.py',
         'setup.cfg',
@@ -304,6 +317,7 @@ describe('Python', () => {
       stubFilesToUpdate(releasePR.gh, [
         'pyproject.toml',
         'project/__init__.py',
+        'src/project/__init__.py',
         'setup.py',
         'src/version.py',
         'setup.cfg',

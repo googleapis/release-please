@@ -115,6 +115,14 @@ export class Python extends ReleasePR {
         packageName: packageName.name,
       })
     );
+    updates.push(
+      new PythonFileWithVersion({
+        path: this.addPath(`src/${projectName}/__init__.py`),
+        changelogEntry,
+        version: candidate.version,
+        packageName: packageName.name,
+      })
+    );
     // There should be only one version.py, but foreach in case that is incorrect
     const versionPyFilesSearch = this.gh.findFilesByFilename(
       'version.py',
