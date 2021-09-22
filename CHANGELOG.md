@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [12.0.1](https://www.github.com/googleapis/release-please/compare/v12.0.0...v12.0.1) (2021-09-22)
+
+
+### Bug Fixes
+
+* add missing comma at EOL for mix exs version ([#1061](https://www.github.com/googleapis/release-please/issues/1061)) ([61b616a](https://www.github.com/googleapis/release-please/commit/61b616a9a937cebbe3b2fa59540deced6d938fb9))
+
 ## [12.0.0](https://www.github.com/googleapis/release-please/compare/v11.24.2...v12.0.0) (2021-09-15)
 
 
