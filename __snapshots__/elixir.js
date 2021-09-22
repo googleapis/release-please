@@ -18,7 +18,7 @@ defmodule MixTestRepo.MixProject do
   def project do
     [
       app: :mix_test_repo,
-      version: "0.123.5"
+      version: "0.123.5",
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       deps: deps()
