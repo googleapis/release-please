@@ -41,7 +41,7 @@ export class ElixirMixExs implements Update {
     }
     return content.replace(
       /version: "[A-Za-z0-9_\-+.~]+",/,
-      `version: "${this.version}"`
+      `version: "${this.version}",`
     );
   }
 }
