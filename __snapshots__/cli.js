@@ -54,6 +54,8 @@ Options:
                                     associated with the release for future tag
                                     creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
+  --release-label                   set a pull request label other than
+                                    "autorelease: tagged"               [string]
 `
 
 exports['CLI flags latest-tag flags 1'] = `
