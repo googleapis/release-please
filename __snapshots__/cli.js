@@ -49,6 +49,11 @@ Options:
                                     <email@example.com>").              [string]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?           [default: "CHANGELOG.md"]
+  --latest-tag-version              Override the detected latest tag version
+                                                                        [string]
+  --latest-tag-sha                  Override the detected latest tag SHA[string]
+  --latest-tag-name                 Override the detected latest tag name
+                                                                        [string]
   --draft                           mark release as a draft. no tag is created
                                     but tag_name and target_commitish are
                                     associated with the release for future tag
@@ -110,6 +115,11 @@ Options:
                                     <email@example.com>").              [string]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?           [default: "CHANGELOG.md"]
+  --latest-tag-version              Override the detected latest tag version
+                                                                        [string]
+  --latest-tag-sha                  Override the detected latest tag SHA[string]
+  --latest-tag-name                 Override the detected latest tag name
+                                                                        [string]
 `
 
 exports['CLI flags manifest-pr flags 1'] = `
@@ -212,4 +222,9 @@ Options:
                                     <email@example.com>").              [string]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?           [default: "CHANGELOG.md"]
+  --latest-tag-version              Override the detected latest tag version
+                                                                        [string]
+  --latest-tag-sha                  Override the detected latest tag SHA[string]
+  --latest-tag-name                 Override the detected latest tag name
+                                                                        [string]
 `

@@ -89,6 +89,7 @@ export class ReleasePR {
   extraFiles: string[];
   forManifestReleaser: boolean;
   enableSimplePrereleaseParsing = false;
+  latestTagOverride?: GitHubTag;
   signoff?: string;
 
   constructor(options: ReleasePRConstructorOptions) {
@@ -115,6 +116,7 @@ export class ReleasePR {
     this.signoff = options.signoff;
     this.extraFiles = options.extraFiles ?? [];
     this.forManifestReleaser = options.skipDependencyUpdates ?? false;
+    this.latestTagOverride = options.latestTag;
   }
 
   // A releaser can override this method to automatically detect the
@@ -603,6 +605,10 @@ export class ReleasePR {
     prefix?: string,
     preRelease = false
   ): Promise<GitHubTag | undefined> {
+    if (this.latestTagOverride) {
+      return this.latestTagOverride;
+    }
+
     const branchPrefix = prefix?.endsWith('-')
       ? prefix.replace(/-$/, '')
       : prefix;
