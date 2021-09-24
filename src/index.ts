@@ -54,6 +54,7 @@ export interface ReleasePROptions {
   // and then remove this property
   versionFile?: string;
   pullRequestTitlePattern?: string;
+  signoff?: string;
   extraFiles?: string[];
 }
 
@@ -71,6 +72,7 @@ interface ReleaserConstructorOptions {
 interface ManifestOptions {
   configFile?: string;
   manifestFile?: string;
+  signoff?: string;
 }
 
 export interface ManifestConstructorOptions

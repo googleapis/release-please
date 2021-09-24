@@ -33,6 +33,7 @@ import {extractReleaseNotes} from './util/release-notes';
 import {PullRequestTitle} from './util/pull-request-title';
 import {Changelog} from './updaters/changelog';
 import {logger} from './util/logger';
+import {signoffCommitMessage} from './util/signoff-commit-message';
 
 export interface ReleaseCandidate {
   version: string;
@@ -89,6 +90,7 @@ export class ReleasePR {
   forManifestReleaser: boolean;
   enableSimplePrereleaseParsing = false;
   latestTagOverride?: GitHubTag;
+  signoff?: string;
 
   constructor(options: ReleasePRConstructorOptions) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor || false;
@@ -111,6 +113,7 @@ export class ReleasePR {
     this.changelogSections = options.changelogSections;
     this.changelogPath = options.changelogPath ?? this.changelogPath;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
+    this.signoff = options.signoff;
     this.extraFiles = options.extraFiles ?? [];
     this.forManifestReleaser = options.skipDependencyUpdates ?? false;
     this.latestTagOverride = options.latestTag;
@@ -414,11 +417,18 @@ export class ReleasePR {
     const includePackageName = options.includePackageName;
     const title = await this.buildPullRequestTitle(version, includePackageName);
     const body = await this.buildPullRequestBody(version, changelogEntry);
+
+    // Sign-off message if signoff option is enabled
+    const message = this.signoff
+      ? signoffCommitMessage(title, this.signoff)
+      : title;
+
     const branchName = await this.buildBranchName(version, includePackageName);
     const pr: number | undefined = await this.gh.openPR({
       branch: branchName.toString(),
       updates,
       title,
+      message,
       body,
       labels: this.labels,
     });

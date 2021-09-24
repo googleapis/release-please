@@ -96,7 +96,7 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
-import {RELEASE_PLEASE, GH_API_URL} from './constants';
+import {RELEASE_PLEASE, GH_API_URL, MAX_ISSUE_BODY_SIZE} from './constants';
 import {GitHubConstructorOptions} from '.';
 import {DuplicateReleaseError, GitHubAPIError, AuthError} from './errors';
 
@@ -122,6 +122,7 @@ export interface GitHubPR {
   branch: string;
   title: string;
   body: string;
+  message: string;
   updates: Update[];
   labels: string[];
   changes?: Changes;
@@ -1326,11 +1327,11 @@ export class GitHub {
       upstreamRepo: this.repo,
       title: options.title,
       branch: options.branch,
-      description: options.body,
+      description: options.body.slice(0, MAX_ISSUE_BODY_SIZE),
       primary: defaultBranch,
       force: true,
       fork: this.fork,
-      message: options.title,
+      message: options.message,
       logger: logger,
     });
 
