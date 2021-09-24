@@ -122,7 +122,7 @@ documented in comments)
   // absence defaults to [] (i.e. no plugins)
   "plugins": ["node-workspace", "cargo-workspace"],
 
-  // optional top-level defaults that can be overriden per package:
+  // optional top-level defaults that can be overridden per package:
 
   // set default package release-type to "python"
   // absence defaults to "node"
@@ -152,6 +152,10 @@ documented in comments)
   // those as "Draft" releases (which can later be manually published).
   // absence defaults to false and Releases are created as already Published.
   "draft": true
+
+  // Skip creating GitHub Releases
+  // absence defaults to false and Releases will be created
+  "skip-github-release": true,
 
   // when using the `node-workspace` plugin, package discovery forces all
   // local dependencies to be linked, even if the SemVer ranges don't match.
