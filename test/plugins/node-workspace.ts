@@ -450,8 +450,9 @@ describe('NodeWorkspaceDependencyUpdates', () => {
       snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('does not update dependencies on preMajor versions with minor bump', async function () {
+    it('does not update dependencies on preMajor versions with minor bump (with always-link-local = false)', async function () {
       const config: Config = {
+        'always-link-local': false,
         packages: {}, // unused, required by interface
         parsedPackages: [
           {path: 'packages/pkgA', releaseType: 'node'},
@@ -955,7 +956,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
       snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
 
-    it('does not update dependency to pre-release version', async function () {
+    it('updates dependency to pre-release version', async function () {
       const config: Config = {
         packages: {}, // unused, required by interface
         parsedPackages: [
@@ -983,6 +984,7 @@ describe('NodeWorkspaceDependencyUpdates', () => {
             },
           }),
         ],
+        ['packages/pkgB/CHANGELOG.md', ''],
       ]);
 
       // pkgA got set to 1.1.2-alpha.0 pre-release
@@ -1042,7 +1044,10 @@ describe('NodeWorkspaceDependencyUpdates', () => {
         pkgsWithPRData
       );
       mock.verify();
-      expect([...actualManifest]).to.eql([['packages/pkgA', '1.1.2-alpha.0']]);
+      expect([...actualManifest]).to.eql([
+        ['packages/pkgA', '1.1.2-alpha.0'],
+        ['packages/pkgB', '2.2.3'],
+      ]);
       const snapPrefix = this.test!.fullTitle();
       snapshot(snapPrefix + ' logs', logs);
       snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
@@ -1114,5 +1119,131 @@ describe('NodeWorkspaceDependencyUpdates', () => {
       snapshot(snapPrefix + ' logs', logs);
       snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
     });
+  });
+
+  it('forces local package linking with config', async function () {
+    const config: Config = {
+      packages: {}, // unused, required by interface
+      parsedPackages: [
+        {path: 'packages/pkgA', releaseType: 'node'},
+        {path: 'packages/pkgB', releaseType: 'node'},
+        {path: 'packages/pkgC', releaseType: 'node'},
+      ],
+    };
+    const github = new GitHub({
+      owner: 'fake',
+      repo: 'repo',
+      defaultBranch: 'main',
+    });
+    const mock = mockGithub(github);
+    // package C did not get a release-please updated but it depends on both
+    // A and B which did get release-please bumps so it should receive a
+    // patch bump
+    expectGetFiles(mock, [
+      ['packages/pkgA/package.json', false],
+      ['packages/pkgA/CHANGELOG.md', false],
+      ['packages/pkgB/package.json', false],
+      ['packages/pkgB/CHANGELOG.md', false],
+      [
+        'packages/pkgC/package.json',
+        prettyJsonStringify({
+          name: '@here/pkgC',
+          version: '3.3.3',
+          dependencies: {
+            '@here/pkgA': '^1.1.1',
+            '@here/pkgB': '^0.2.1',
+            anotherExternal: '^4.3.1',
+          },
+        }),
+      ],
+      [
+        'packages/pkgC/CHANGELOG.md',
+        '# Changelog' +
+          '\n\nAll notable changes to this project will be ' +
+          'documented in this file.' +
+          '\n\n### [3.3.3](https://www.github.com/fake/repo/compare' +
+          '/pkgC-v3.3.2...pkgC-v3.3.3) (1983-10-10)' +
+          '\n\n\n### Bug Fixes' +
+          '\n\n* We fixed a bug',
+      ],
+    ]);
+
+    // pkgA had a patch bump and pkgB had a "breaking change" minor bump from
+    // manifest.runReleasers()
+    const newManifestVersions = new Map([
+      ['packages/pkgA', '2.0.0'],
+      ['packages/pkgB', '0.3.0'],
+    ]);
+    const pkgsWithPRData: ManifestPackageWithPRData[] = [
+      pkgAData,
+      {
+        config: {
+          releaseType: 'node',
+          packageName: '@here/pkgB',
+          path: 'packages/pkgB',
+        },
+        prData: {
+          version: '0.3.0',
+          changes: new Map([
+            [
+              'packages/pkgB/package.json',
+              {
+                content: prettyJsonStringify({
+                  name: '@here/pkgB',
+                  version: '0.3.0',
+                  dependencies: {
+                    // release-please does not update dependency versions
+                    '@here/pkgA': '^1.1.1',
+                    someExternal: '^9.2.3',
+                  },
+                }),
+                mode: '100644',
+              },
+            ],
+            [
+              'packages/pkgB/CHANGELOG.md',
+              {
+                content:
+                  '# Changelog' +
+                  '\n\nAll notable changes to this project will be ' +
+                  'documented in this file.' +
+                  '\n\n### [0.3.0](https://www.github.com/fake/repo/compare' +
+                  '/pkgB-v0.2.1...pkgB-v0.3.0) (1983-10-10)' +
+                  '\n\n\n### Features' +
+                  '\n\n* We added a feature' +
+                  '\n\n### [0.2.1](https://www.github.com/fake/repo/compare' +
+                  '/pkgB-v0.2.0...pkgB-v0.2.1) (1983-10-10)' +
+                  '\n\n\n### Bug Fixes' +
+                  '\n\n* We fixed a bug',
+                mode: '100644',
+              },
+            ],
+          ]),
+        },
+      },
+    ];
+
+    const logs: [string, CheckpointType][] = [];
+    const checkpoint = (msg: string, type: CheckpointType) =>
+      logs.push([msg, type]);
+    const nodeWS = new NodeWorkspaceDependencyUpdates(
+      github,
+      config,
+      'node-workspace',
+      checkpoint
+    );
+    const [actualManifest, actualChanges] = await nodeWS.run(
+      newManifestVersions,
+      pkgsWithPRData
+    );
+    mock.verify();
+    expect([...actualManifest]).to.eql([
+      ['packages/pkgA', '2.0.0'],
+      ['packages/pkgB', '0.3.0'],
+      ['packages/pkgC', '3.3.4'],
+    ]);
+    const snapPrefix = this.test!.fullTitle();
+    snapshot(snapPrefix + ' logs', logs);
+    snapshot(snapPrefix + ' changes', stringifyActual(actualChanges));
   });
 });

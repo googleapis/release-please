@@ -28,7 +28,7 @@ Options:
   --bump-minor-pre-major            should we bump the semver minor prior to the
                                     first major release
                                                       [boolean] [default: false]
-  --bump-minor-for-patch-pre-major  should we bump the semver patch instead of
+  --bump-patch-for-minor-pre-major  should we bump the semver patch instead of
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
@@ -43,6 +43,10 @@ Options:
   --snapshot                        is it a snapshot (or pre-release) being
                                     generated?        [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]
+  --signoff                         Add Signed-off-by line at the end of the
+                                    commit log message using the user and email
+                                    provided. (format "Name
+                                    <email@example.com>").              [string]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?           [default: "CHANGELOG.md"]
   --draft                           mark release as a draft. no tag is created
@@ -50,6 +54,8 @@ Options:
                                     associated with the release for future tag
                                     creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
+  --release-label                   set a pull request label other than
+                                    "autorelease: tagged"               [string]
 `
 
 exports['CLI flags latest-tag flags 1'] = `
@@ -83,7 +89,7 @@ Options:
   --bump-minor-pre-major            should we bump the semver minor prior to the
                                     first major release
                                                       [boolean] [default: false]
-  --bump-minor-for-patch-pre-major  should we bump the semver patch instead of
+  --bump-patch-for-minor-pre-major  should we bump the semver patch instead of
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
@@ -98,6 +104,10 @@ Options:
   --snapshot                        is it a snapshot (or pre-release) being
                                     generated?        [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]
+  --signoff                         Add Signed-off-by line at the end of the
+                                    commit log message using the user and email
+                                    provided. (format "Name
+                                    <email@example.com>").              [string]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?           [default: "CHANGELOG.md"]
 `
@@ -181,7 +191,7 @@ Options:
   --bump-minor-pre-major            should we bump the semver minor prior to the
                                     first major release
                                                       [boolean] [default: false]
-  --bump-minor-for-patch-pre-major  should we bump the semver patch instead of
+  --bump-patch-for-minor-pre-major  should we bump the semver patch instead of
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
@@ -196,6 +206,10 @@ Options:
   --snapshot                        is it a snapshot (or pre-release) being
                                     generated?        [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]
+  --signoff                         Add Signed-off-by line at the end of the
+                                    commit log message using the user and email
+                                    provided. (format "Name
+                                    <email@example.com>").              [string]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?           [default: "CHANGELOG.md"]
 `

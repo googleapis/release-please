@@ -4,6 +4,52 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.2.0](https://www.github.com/googleapis/release-please/compare/v12.1.0...v12.2.0) (2021-09-23)
+
+
+### Features
+
+* add signoff options to sign off commits ([#1033](https://www.github.com/googleapis/release-please/issues/1033)) ([7d5f1b8](https://www.github.com/googleapis/release-please/commit/7d5f1b835fa3e822eb26dfefb1c8c2ed877bfe1f))
+
+## [12.1.0](https://www.github.com/googleapis/release-please/compare/v12.0.1...v12.1.0) (2021-09-22)
+
+
+### Features
+
+* github-release can customize the label applied to the pull request ([#1060](https://www.github.com/googleapis/release-please/issues/1060)) ([6c7bb95](https://www.github.com/googleapis/release-please/commit/6c7bb95660a8078bb1d6a5fc51105d72e4d82fb4))
+
+### [12.0.1](https://www.github.com/googleapis/release-please/compare/v12.0.0...v12.0.1) (2021-09-22)
+
+
+### Bug Fixes
+
+* add missing comma at EOL for mix exs version ([#1061](https://www.github.com/googleapis/release-please/issues/1061)) ([61b616a](https://www.github.com/googleapis/release-please/commit/61b616a9a937cebbe3b2fa59540deced6d938fb9))
+
+## [12.0.0](https://www.github.com/googleapis/release-please/compare/v11.24.2...v12.0.0) (2021-09-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **manifest:** force local linking in node-workspaces w/ config to disable (#1036)
+
+### Features
+
+* **manifest:** force local linking in node-workspaces w/ config to disable ([#1036](https://www.github.com/googleapis/release-please/issues/1036)) ([a47d7f7](https://www.github.com/googleapis/release-please/commit/a47d7f7cbbb065d994fa972101f2f36d6f86a235))
+
+### [11.24.2](https://www.github.com/googleapis/release-please/compare/v11.24.1...v11.24.2) (2021-09-14)
+
+
+### Bug Fixes
+
+* limit PR description to 65536 characters ([#1054](https://www.github.com/googleapis/release-please/issues/1054)) ([25df811](https://www.github.com/googleapis/release-please/commit/25df811b8e7c756c22cae76328497c831cdbac82))
+
+### [11.24.1](https://www.github.com/googleapis/release-please/compare/v11.24.0...v11.24.1) (2021-09-13)
+
+
+### Bug Fixes
+
+* typo in `--bump-patch-for-minor-pre-major` option ([#1050](https://www.github.com/googleapis/release-please/issues/1050)) ([cf569a5](https://www.github.com/googleapis/release-please/commit/cf569a58c24e1c547e30efa58a08da5e9431e565))
+
 ## [11.24.0](https://www.github.com/googleapis/release-please/compare/v11.23.1...v11.24.0) (2021-09-09)
 
 

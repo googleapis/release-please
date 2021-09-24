@@ -61,7 +61,7 @@ function releaserCommon(ya: YargsOptionsBuilder) {
     default: false,
     type: 'boolean',
   });
-  ya.option('bump-minor-for-patch-pre-major', {
+  ya.option('bump-patch-for-minor-pre-major', {
     describe:
       'should we bump the semver patch instead of the minor for non-breaking' +
       ' changes prior to the first major release',
@@ -93,6 +93,11 @@ function releaserCommon(ya: YargsOptionsBuilder) {
   });
   ya.option('pull-request-title-pattern', {
     describe: 'Title pattern to make release PR',
+    type: 'string',
+  });
+  ya.option('signoff', {
+    describe:
+      'Add Signed-off-by line at the end of the commit log message using the user and email provided. (format "Name <email@example.com>").',
     type: 'string',
   });
   ya.option('changelog-path', {
@@ -192,6 +197,10 @@ export const parser = yargs
           'tag creation upon "un-drafting" the release.',
         type: 'boolean',
         default: false,
+      });
+      yargs.option('release-label', {
+        describe: 'set a pull request label other than "autorelease: tagged"',
+        type: 'string',
       });
     },
     (argv: GitHubReleaseFactoryOptions) => {

@@ -42,6 +42,7 @@ import {ReleasePR} from './release-pr';
 import {Changes} from 'code-suggester';
 import {PluginType, getPlugin} from './plugins';
 import {ManifestPlugin} from './plugins/plugin';
+import {signoffCommitMessage} from './util/signoff-commit-message';
 
 interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
@@ -63,6 +64,7 @@ export interface Config extends ReleaserConfigJson {
   parsedPackages: ManifestPackage[];
   'bootstrap-sha'?: string;
   'last-release-sha'?: string;
+  'always-link-local'?: boolean;
   plugins?: PluginType[];
 }
 
@@ -85,12 +87,14 @@ export class Manifest {
   checkpoint: Checkpoint;
   configFile?: Config;
   headManifest?: ManifestJson;
+  signoff?: string;
 
   constructor(options: ManifestConstructorOptions) {
     this.gh = options.github;
     this.configFileName = options.configFile || RELEASE_PLEASE_CONFIG;
     this.manifestFileName = options.manifestFile || RELEASE_PLEASE_MANIFEST;
     this.checkpoint = options.checkpoint || checkpoint;
+    this.signoff = options.signoff;
   }
 
   protected async getBranchName() {
@@ -635,9 +639,18 @@ export class Manifest {
       newManifestVersions,
       pkgsWithChanges
     );
+
+    const title = `chore: release ${await this.gh.getDefaultBranch()}`;
+
+    // Sign-off message if signoff option is enabled
+    const message = this.signoff
+      ? signoffCommitMessage(title, this.signoff)
+      : title;
+
     const pr = await this.gh.openPR({
       branch: branchName,
-      title: `chore: release ${await this.gh.getDefaultBranch()}`,
+      title,
+      message,
       body: body,
       updates: [],
       labels: DEFAULT_LABELS,
