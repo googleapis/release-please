@@ -35,6 +35,7 @@ interface GitHubOptions {
 export interface GitHubReleaseOptions {
   releaseLabel?: string;
   draft?: boolean;
+  skipGithubRelease?: boolean;
 }
 
 // Used by ReleasePR: Factory and Constructor
@@ -103,6 +104,7 @@ export type ManifestPackage = Pick<
   | 'releaseAs'
   | 'changelogSections'
   | 'changelogPath'
+  | 'skipGithubRelease'
 > & {
   // these items are not optional in the manifest context.
   path: string;
