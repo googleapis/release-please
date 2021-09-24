@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {OctokitAPIs, GitHub} from './github';
+import {OctokitAPIs, GitHub, GitHubTag} from './github';
 import {ReleaseType} from './releasers';
 import {ReleasePR} from './release-pr';
 import {ChangelogSection} from './conventional-commits';
@@ -118,6 +118,7 @@ export interface ReleasePRConstructorOptions
     ReleaserConstructorOptions {
   labels?: string[];
   skipDependencyUpdates?: boolean;
+  latestTag?: GitHubTag;
 }
 
 // GitHubRelease Constructor options
@@ -148,6 +149,9 @@ export interface ReleasePRFactoryOptions
     GitHubFactoryOptions,
     ReleaserFactory {
   label?: string;
+  latestTagName?: string;
+  latestTagSha?: string;
+  latestTagVersion?: string;
 }
 
 // GitHubRelease factory/builder options

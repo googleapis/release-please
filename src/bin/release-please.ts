@@ -99,6 +99,18 @@ function releaserCommon(ya: YargsOptionsBuilder) {
     default: 'CHANGELOG.md',
     describe: 'where can the CHANGELOG be found in the project?',
   });
+  ya.option('latest-tag-version', {
+    describe: 'Override the detected latest tag version',
+    type: 'string',
+  });
+  ya.option('latest-tag-sha', {
+    describe: 'Override the detected latest tag SHA',
+    type: 'string',
+  });
+  ya.option('latest-tag-name', {
+    describe: 'Override the detected latest tag name',
+    type: 'string',
+  });
 }
 
 function releaseType(ya: YargsOptionsBuilder, defaultType?: string) {
