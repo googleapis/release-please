@@ -2056,6 +2056,56 @@ describe('Manifest', () => {
         },
       });
     });
+
+    it('"skip-github-release" option works', async () => {
+      const manifest = JSON.stringify({
+        'node/pkg1': '3.2.1',
+      });
+      const config = JSON.stringify({
+        packages: {
+          'node/pkg1': {
+            'skip-github-release': true,
+          },
+        },
+      });
+      const github = new GitHub({
+        owner: 'fake',
+        repo: 'repo',
+        defaultBranch,
+      });
+      const mock = mockGithub(github);
+      expectManifest(mock, {manifest, lastReleaseSha});
+      expectPR(mock, {
+        lastReleaseSha,
+        mergedPRFiles: [
+          // lack of any "node/pkg2/ files indicates that package did not
+          // change in the last merged PR.
+          'node/pkg1/package.json',
+          'node/pkg1/CHANGELOG.md',
+          '.release-please-manifest.json',
+        ],
+      });
+      expectGetFiles(mock, {
+        fixtureFiles: ['node/pkg1/package.json'],
+        inlineFiles: [
+          ['release-please-config.json', config],
+          ['.release-please-manifest.json', manifest],
+        ],
+      });
+      expectLabelAndComment(mock, {
+        addLabel: 'autorelease: tagged',
+        removeLabel: 'autorelease: pending',
+        prComments: [
+          ':robot: @node/pkg1 not configured for release :no_entry_sign:',
+        ],
+      });
+
+      const releases = await new Manifest({github}).githubRelease();
+      mock.verify();
+      expect(releases).to.eql({
+        'node/pkg1': undefined,
+      });
+    });
   });
 
   describe('validate', () => {

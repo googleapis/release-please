@@ -4,6 +4,27 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.2.0](https://www.github.com/googleapis/release-please/compare/v12.1.0...v12.2.0) (2021-09-23)
+
+
+### Features
+
+* add signoff options to sign off commits ([#1033](https://www.github.com/googleapis/release-please/issues/1033)) ([7d5f1b8](https://www.github.com/googleapis/release-please/commit/7d5f1b835fa3e822eb26dfefb1c8c2ed877bfe1f))
+
+## [12.1.0](https://www.github.com/googleapis/release-please/compare/v12.0.1...v12.1.0) (2021-09-22)
+
+
+### Features
+
+* github-release can customize the label applied to the pull request ([#1060](https://www.github.com/googleapis/release-please/issues/1060)) ([6c7bb95](https://www.github.com/googleapis/release-please/commit/6c7bb95660a8078bb1d6a5fc51105d72e4d82fb4))
+
+### [12.0.1](https://www.github.com/googleapis/release-please/compare/v12.0.0...v12.0.1) (2021-09-22)
+
+
+### Bug Fixes
+
+* add missing comma at EOL for mix exs version ([#1061](https://www.github.com/googleapis/release-please/issues/1061)) ([61b616a](https://www.github.com/googleapis/release-please/commit/61b616a9a937cebbe3b2fa59540deced6d938fb9))
+
 ## [12.0.0](https://www.github.com/googleapis/release-please/compare/v11.24.2...v12.0.0) (2021-09-15)
 
 
