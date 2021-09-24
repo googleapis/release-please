@@ -261,11 +261,27 @@ function releasePR(options: ReleasePRFactoryOptions): ReleasePR {
   const [GHFactoryOptions, RPFactoryOptions] = getGitHubFactoryOpts(options);
   const github = gitHubInstance(GHFactoryOptions);
 
-  const {releaseType, label, ...RPConstructorOptions} = RPFactoryOptions;
+  const {
+    releaseType,
+    label,
+    latestTagName,
+    latestTagSha,
+    latestTagVersion,
+    ...RPConstructorOptions
+  } = RPFactoryOptions;
+  let latestTag: GitHubTag | undefined = undefined;
+  if (latestTagName && latestTagSha && latestTagVersion) {
+    latestTag = {
+      name: latestTagName,
+      sha: latestTagSha,
+      version: latestTagVersion,
+    };
+  }
   const labels = getLabels(label);
   return new (factory.releasePRClass(releaseType))({
     github,
     labels,
+    latestTag,
     ...RPConstructorOptions,
   });
 }
