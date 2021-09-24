@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.2.0](https://www.github.com/googleapis/release-please/compare/v12.1.0...v12.2.0) (2021-09-23)
+
+
+### Features
+
+* add signoff options to sign off commits ([#1033](https://www.github.com/googleapis/release-please/issues/1033)) ([7d5f1b8](https://www.github.com/googleapis/release-please/commit/7d5f1b835fa3e822eb26dfefb1c8c2ed877bfe1f))
+
 ## [12.1.0](https://www.github.com/googleapis/release-please/compare/v12.0.1...v12.1.0) (2021-09-22)
 
 

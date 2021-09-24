@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {OctokitAPIs, GitHub} from './github';
+import {OctokitAPIs, GitHub, GitHubTag} from './github';
 import {ReleaseType} from './releasers';
 import {ReleasePR} from './release-pr';
 import {ChangelogSection} from './conventional-commits';
@@ -35,6 +35,7 @@ interface GitHubOptions {
 export interface GitHubReleaseOptions {
   releaseLabel?: string;
   draft?: boolean;
+  skipGithubRelease?: boolean;
 }
 
 // Used by ReleasePR: Factory and Constructor
@@ -54,6 +55,7 @@ export interface ReleasePROptions {
   // and then remove this property
   versionFile?: string;
   pullRequestTitlePattern?: string;
+  signoff?: string;
   extraFiles?: string[];
 }
 
@@ -71,6 +73,7 @@ interface ReleaserConstructorOptions {
 interface ManifestOptions {
   configFile?: string;
   manifestFile?: string;
+  signoff?: string;
 }
 
 export interface ManifestConstructorOptions
@@ -101,6 +104,7 @@ export type ManifestPackage = Pick<
   | 'releaseAs'
   | 'changelogSections'
   | 'changelogPath'
+  | 'skipGithubRelease'
 > & {
   // these items are not optional in the manifest context.
   path: string;
@@ -118,6 +122,7 @@ export interface ReleasePRConstructorOptions
     ReleaserConstructorOptions {
   labels?: string[];
   skipDependencyUpdates?: boolean;
+  latestTag?: GitHubTag;
 }
 
 // GitHubRelease Constructor options
@@ -148,6 +153,9 @@ export interface ReleasePRFactoryOptions
     GitHubFactoryOptions,
     ReleaserFactory {
   label?: string;
+  latestTagName?: string;
+  latestTagSha?: string;
+  latestTagVersion?: string;
 }
 
 // GitHubRelease factory/builder options
