@@ -122,6 +122,7 @@ export interface GitHubPR {
   branch: string;
   title: string;
   body: string;
+  message: string;
   updates: Update[];
   labels: string[];
   changes?: Changes;
@@ -1330,7 +1331,7 @@ export class GitHub {
       primary: defaultBranch,
       force: true,
       fork: this.fork,
-      message: options.title,
+      message: options.message,
       logger: logger,
     });
 
