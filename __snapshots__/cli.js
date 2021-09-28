@@ -18,9 +18,9 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --release-type                    what type of repo is a release being created
                                     for?
-               [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
-         "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python", "ruby",
-           "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
+            [choices: "go", "go-yoshi", "java-backport", "java-bom", "java-lts",
+   "java-yoshi", "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python",
+   "ruby", "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
   --release-as                      override the semantically determined release
@@ -83,9 +83,9 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --release-type                    what type of repo is a release being created
                                     for?
-               [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
-         "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python", "ruby",
-           "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
+            [choices: "go", "go-yoshi", "java-backport", "java-bom", "java-lts",
+   "java-yoshi", "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python",
+   "ruby", "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
                                                                [default: "node"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
@@ -190,9 +190,9 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --release-type                    what type of repo is a release being created
                                     for?
-               [choices: "go", "go-yoshi", "java-bom", "java-lts", "java-yoshi",
-         "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python", "ruby",
-           "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
+            [choices: "go", "go-yoshi", "java-backport", "java-bom", "java-lts",
+   "java-yoshi", "krm-blueprint", "node", "ocaml", "php", "php-yoshi", "python",
+   "ruby", "ruby-yoshi", "rust", "simple", "terraform-module", "helm", "elixir"]
                                                                [default: "node"]
   --label                           label to remove from release PR
                                                [default: "autorelease: pending"]
