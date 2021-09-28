@@ -32,7 +32,7 @@ import {Rust} from './rust';
 import {OCaml} from './ocaml';
 import {Helm} from './helm';
 import {Elixir} from './elixir';
-import { JavaBackport } from './java-backport';
+import {JavaBackport} from './java-backport';
 
 // add any new releasers you create to this type as well as the `releasers`
 // object below.
