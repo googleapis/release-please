@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.3.0](https://www.github.com/googleapis/release-please/compare/v12.2.0...v12.3.0) (2021-09-24)
+
+
+### Features
+
+* allow forcing latest tag ([#1070](https://www.github.com/googleapis/release-please/issues/1070)) ([0549a30](https://www.github.com/googleapis/release-please/commit/0549a3035c8348c62958d2f1f037226bf2a0ce21))
+* **manifest:** add option to skip creating github release ([#1048](https://www.github.com/googleapis/release-please/issues/1048)) ([59f3094](https://www.github.com/googleapis/release-please/commit/59f309429586200f835fdffe07ed9860a1901e31))
+* **python:** support src/packagename/__init__.py ([#1062](https://www.github.com/googleapis/release-please/issues/1062)) ([598667d](https://www.github.com/googleapis/release-please/commit/598667da5a623c3fb057874840b3c308d225c627))
+
 ## [12.2.0](https://www.github.com/googleapis/release-please/compare/v12.1.0...v12.2.0) (2021-09-23)
 
 

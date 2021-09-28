@@ -57,3 +57,22 @@ describe('project/__init__.py', () => {
     });
   });
 });
+
+describe('src/project/__init__.py', () => {
+  describe('updateContent', () => {
+    it('updates version in src/project/__init__.py', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './src/project/__init__.py'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new PythonFileWithVersion({
+        path: 'src/project/__init__.py',
+        changelogEntry: '',
+        version: '0.6.0',
+        packageName: '',
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+  });
+});
