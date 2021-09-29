@@ -163,6 +163,7 @@ describe('CLI', () => {
       const choices = [
         'go',
         'go-yoshi',
+        'java-backport',
         'java-bom',
         'java-lts',
         'java-yoshi',
