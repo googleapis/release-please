@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it, afterEach, beforeEach} from 'mocha';
+import {describe, it, afterEach} from 'mocha';
 import * as nock from 'nock';
 nock.disableNetConnect();
 
@@ -23,9 +23,6 @@ import {GitHubFileContents, GitHub} from '../../src/github';
 import {expect} from 'chai';
 import {buildGitHubFileContent} from './utils';
 import {buildMockCommit, stubSuggesterWithSnapshot} from '../helpers';
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
-import {ReleasePR} from '../../src/release-pr';
 
 const sandbox = sinon.createSandbox();
 
