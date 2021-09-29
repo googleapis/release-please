@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.4.0](https://www.github.com/googleapis/release-please/compare/v12.3.0...v12.4.0) (2021-09-29)
+
+
+### Features
+
+* add dart updater and releaser ([#1053](https://www.github.com/googleapis/release-please/issues/1053)) ([f0d0fb8](https://www.github.com/googleapis/release-please/commit/f0d0fb84d47b6df77bb6b5563482bfac4aec2c94))
+
 ## [12.3.0](https://www.github.com/googleapis/release-please/compare/v12.2.0...v12.3.0) (2021-09-24)
 
 
