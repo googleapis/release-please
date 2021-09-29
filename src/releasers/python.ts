@@ -107,9 +107,18 @@ export class Python extends ReleasePR {
           : `file ${chalk.green('pyproject.toml')} did not exist`
       );
     }
+    // TODO: figure out refactor that makes logic for updating __init__.py, version.py, __version__.py etc., configurable
     updates.push(
       new PythonFileWithVersion({
         path: this.addPath(`${projectName}/__init__.py`),
+        changelogEntry,
+        version: candidate.version,
+        packageName: packageName.name,
+      })
+    );
+    updates.push(
+      new PythonFileWithVersion({
+        path: this.addPath(`src/${projectName}/__init__.py`),
         changelogEntry,
         version: candidate.version,
         packageName: packageName.name,
