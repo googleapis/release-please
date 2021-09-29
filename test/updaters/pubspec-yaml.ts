@@ -26,7 +26,7 @@ describe('PubspecYaml', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './pubspec.yaml'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const version = new PubspecYaml({
         path: 'pubspec.yaml',
         changelogEntry: '',
@@ -34,14 +34,14 @@ describe('PubspecYaml', () => {
         packageName: '',
       });
       const newContent = version.updateContent(oldContent);
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
     });
 
     it('updates version with build number in pubspec.yaml file', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './pubspec_with_build_no.yaml'),
         'utf8'
-      );
+      ).replace(/\r\n/g, '\n');
       const version = new PubspecYaml({
         path: 'pubspec.yaml',
         changelogEntry: '',
@@ -49,7 +49,7 @@ describe('PubspecYaml', () => {
         packageName: '',
       });
       const newContent = version.updateContent(oldContent);
-      snapshot(newContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
     });
   });
 });
