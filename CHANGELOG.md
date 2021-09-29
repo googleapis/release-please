@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.5.0](https://www.github.com/googleapis/release-please/compare/v12.4.0...v12.5.0) (2021-09-29)
+
+
+### Features
+
+* add java-backport releaser ([#1074](https://www.github.com/googleapis/release-please/issues/1074)) ([e98b165](https://www.github.com/googleapis/release-please/commit/e98b16549be4ee688660eb2337be6b0ed2f0a4cd))
+
 ## [12.4.0](https://www.github.com/googleapis/release-please/compare/v12.3.0...v12.4.0) (2021-09-29)
 
 
