@@ -28,6 +28,7 @@ interface GitHubOptions {
   fork?: boolean;
   token?: string;
   apiUrl?: string;
+  graphqlUrl?: string;
   octokitAPIs?: OctokitAPIs;
 }
 

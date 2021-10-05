@@ -11,6 +11,8 @@ Options:
   --token                           GitHub token with repo write permissions
   --api-url                         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
+  --graphql-url                     URL to use when making GraphQL requests
+                                    [string] [default: "https://api.github.com"]
   --default-branch                  The branch to open release PRs against and
                                     tag releases on                     [string]
   --fork                            should the PR be created from a fork
@@ -77,6 +79,8 @@ Options:
   --token                           GitHub token with repo write permissions
   --api-url                         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
+  --graphql-url                     URL to use when making GraphQL requests
+                                    [string] [default: "https://api.github.com"]
   --default-branch                  The branch to open release PRs against and
                                     tag releases on                     [string]
   --fork                            should the PR be created from a fork
@@ -136,6 +140,8 @@ Options:
   --token           GitHub token with repo write permissions
   --api-url         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
+  --graphql-url     URL to use when making GraphQL requests
+                                    [string] [default: "https://api.github.com"]
   --default-branch  The branch to open release PRs against and tag releases on
                                                                         [string]
   --fork            should the PR be created from a fork
@@ -160,6 +166,8 @@ Options:
   --token           GitHub token with repo write permissions
   --api-url         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
+  --graphql-url     URL to use when making GraphQL requests
+                                    [string] [default: "https://api.github.com"]
   --default-branch  The branch to open release PRs against and tag releases on
                                                                         [string]
   --fork            should the PR be created from a fork
@@ -183,6 +191,8 @@ Options:
                                     debugging).       [boolean] [default: false]
   --token                           GitHub token with repo write permissions
   --api-url                         URL to use when making API requests
+                                    [string] [default: "https://api.github.com"]
+  --graphql-url                     URL to use when making GraphQL requests
                                     [string] [default: "https://api.github.com"]
   --default-branch                  The branch to open release PRs against and
                                     tag releases on                     [string]

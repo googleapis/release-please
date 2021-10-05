@@ -24,7 +24,7 @@ import {
   ReleasePRFactoryOptions,
   ManifestFactoryOptions,
 } from '..';
-import {GH_API_URL} from '../constants';
+import {GH_API_URL, GH_GRAPHQL_URL} from '../constants';
 
 interface ErrorObject {
   body?: object;
@@ -225,6 +225,7 @@ export const parser = yargs
     // rather than being passed directly to the bin.
     if (argv.token) argv.token = coerceOption(argv.token);
     if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
+    if (argv.graphqlUrl) argv.graphqlUrl = coerceOption(argv.graphqlUrl);
   })
   .option('debug', {
     describe: 'print verbose errors (use only for local debugging).',
@@ -237,6 +238,11 @@ export const parser = yargs
   .option('api-url', {
     describe: 'URL to use when making API requests',
     default: GH_API_URL,
+    type: 'string',
+  })
+  .option('graphql-url', {
+    describe: 'URL to use when making GraphQL requests',
+    default: GH_GRAPHQL_URL,
     type: 'string',
   })
   .option('default-branch', {

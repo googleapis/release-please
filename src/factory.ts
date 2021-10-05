@@ -197,6 +197,7 @@ function getGitHubFactoryOpts(
     fork,
     token,
     apiUrl,
+    graphqlUrl,
     octokitAPIs,
     ...remaining
   } = options;
@@ -207,6 +208,7 @@ function getGitHubFactoryOpts(
       fork,
       token,
       apiUrl,
+      graphqlUrl,
       octokitAPIs,
     },
     remaining,

@@ -96,7 +96,12 @@ import {
 } from './graphql-to-commits';
 import {Update} from './updaters/update';
 import {BranchName} from './util/branch-name';
-import {RELEASE_PLEASE, GH_API_URL, MAX_ISSUE_BODY_SIZE} from './constants';
+import {
+  RELEASE_PLEASE,
+  GH_API_URL,
+  GH_GRAPHQL_URL,
+  MAX_ISSUE_BODY_SIZE,
+} from './constants';
 import {GitHubConstructorOptions} from '.';
 import {DuplicateReleaseError, GitHubAPIError, AuthError} from './errors';
 
@@ -215,6 +220,7 @@ export class GitHub {
   owner: string;
   repo: string;
   apiUrl: string;
+  graphqlUrl: string;
   fork: boolean;
   repositoryDefaultBranch?: string;
 
@@ -225,6 +231,7 @@ export class GitHub {
     this.repo = options.repo;
     this.fork = !!options.fork;
     this.apiUrl = options.apiUrl || GH_API_URL;
+    this.graphqlUrl = options.graphqlUrl || GH_GRAPHQL_URL;
 
     if (options.octokitAPIs === undefined) {
       this.octokit = new Octokit({
@@ -258,7 +265,7 @@ export class GitHub {
     let opts = Object.assign({}, _opts);
     if (!probotMode) {
       opts = Object.assign(opts, {
-        url: `${this.apiUrl}/graphql`,
+        url: `${this.graphqlUrl}/graphql`,
         headers: {
           authorization: `token ${this.token}`,
           'content-type': 'application/vnd.github.v3+json',
