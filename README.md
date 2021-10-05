@@ -218,6 +218,7 @@ release-please release-pr --package-name=@google-cloud/firestore" \
 | `--monorepo-tags` | add prefix to tags and branches, allowing multiple libraries to be released from the same repository. |
 | `--pull-request-title-pattern` | add title pattern to make release PR, defaults to using `chore${scope}: release${component} ${version}`. |
 | `--signoff` | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
+| `--api-url` | URL to use when making API requests [default: "https://api.github.com"] |
 
 ### Creating a release on GitHub
 
@@ -232,6 +233,7 @@ release-please github-release --repo-url=googleapis/nodejs-firestore \
 | `--repo-url`      | is the URL of the repository on GitHub.                 |
 | `--token`         | a token with write access to `--repo-url`.              |
 | `--path`          | create a release from a path other than the repository's root |
+| `--api-url`       | URL to use when making API requests [default: "https://api.github.com"] |
 
 ### Running as a GitHub App
 
