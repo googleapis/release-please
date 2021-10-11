@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [12.6.0](https://www.github.com/googleapis/release-please/compare/v12.5.0...v12.6.0) (2021-10-11)
+
+
+### Features
+
+* add GraphQL URL option for Github ([#1083](https://www.github.com/googleapis/release-please/issues/1083)) ([ec661e2](https://www.github.com/googleapis/release-please/commit/ec661e22c7f5fa80e26d32d4cf0d93a4a90af4be)), closes [#1082](https://www.github.com/googleapis/release-please/issues/1082)
+
 ## [12.5.0](https://www.github.com/googleapis/release-please/compare/v12.4.0...v12.5.0) (2021-09-29)
 
 
