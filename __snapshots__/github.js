@@ -529,6 +529,14 @@ exports['GitHub commitsSinceSha returns commits immediately before sha 1'] = [
   }
 ]
 
+exports['GitHub createRelease should create a release that uses GitHub generated release notes 1'] = {
+  "tag_name": "v1.2.3",
+  "target_commitish": "abc123",
+  "name": "my package v1.2.3",
+  "draft": false,
+  "generate_release_notes": true
+}
+
 exports['GitHub createRelease should create a release with a package prefix 1'] = {
   "tag_name": "v1.2.3",
   "target_commitish": "abc123",

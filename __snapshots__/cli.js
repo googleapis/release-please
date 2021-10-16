@@ -62,6 +62,8 @@ Options:
                                     associated with the release for future tag
                                     creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
+  --github-release-notes            use GitHub's auto-generated release notes
+                                                                       [boolean]
   --release-label                   set a pull request label other than
                                     "autorelease: tagged"               [string]
 `

@@ -37,6 +37,9 @@ export interface GitHubReleaseOptions {
   releaseLabel?: string;
   draft?: boolean;
   skipGithubRelease?: boolean;
+  // Generate release notes using .github/release.yml:
+  // https://github.blog/2021-10-04-beta-github-releases-improving-release-experience/
+  githubReleaseNotes?: boolean;
 }
 
 // Used by ReleasePR: Factory and Constructor
@@ -106,6 +109,7 @@ export type ManifestPackage = Pick<
   | 'changelogSections'
   | 'changelogPath'
   | 'skipGithubRelease'
+  | 'githubReleaseNotes'
 > & {
   // these items are not optional in the manifest context.
   path: string;

@@ -1618,21 +1618,26 @@ export class GitHub {
       tagName: string,
       sha: string,
       releaseNotes: string,
-      draft: boolean
+      draft: boolean,
+      githubReleaseNotes?: boolean
     ): Promise<ReleaseCreateResponse> => {
       logger.info(`creating release ${tagName}`);
       const name = packageName ? `${packageName} ${tagName}` : tagName;
-      return (
-        await this.request('POST /repos/:owner/:repo/releases', {
-          owner: this.owner,
-          repo: this.repo,
-          tag_name: tagName,
-          target_commitish: sha,
-          body: releaseNotes,
-          name,
-          draft: draft,
-        })
-      ).data;
+      const body: {[key: string]: string | boolean} = {
+        owner: this.owner,
+        repo: this.repo,
+        tag_name: tagName,
+        target_commitish: sha,
+        name,
+        draft,
+      };
+      if (githubReleaseNotes) {
+        body.generate_release_notes = githubReleaseNotes;
+      } else {
+        body.body = releaseNotes;
+      }
+      return (await this.request('POST /repos/:owner/:repo/releases', body))
+        .data;
     },
     e => {
       if (e instanceof RequestError) {

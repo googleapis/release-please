@@ -259,7 +259,7 @@ describe('CLI', () => {
     });
   });
   describe('github-release', () => {
-    it('instantiates a GitHub released based on command line arguments', async () => {
+    it('instantiates a GitHub release based on command line arguments', async () => {
       sandbox.replace(factory, 'call', callStub);
       const pkgName = 'cli-package';
       const cmd =
@@ -272,6 +272,7 @@ describe('CLI', () => {
       assert.ok(instanceToRun! instanceof GitHubRelease);
       assert.strictEqual(instanceToRun.gh.owner, 'googleapis');
       assert.strictEqual(instanceToRun.gh.repo, 'release-please-cli');
+      assert.strictEqual(instanceToRun.githubReleaseNotes, undefined);
 
       const jsonPkg = `{"name": "${pkgName}"}`;
       sandbox.stub(instanceToRun.releasePR.gh, 'getFileContents').resolves({
@@ -287,7 +288,7 @@ describe('CLI', () => {
       // Defaults to Node.js release type:
       assert.strictEqual(instanceToRun.releasePR.constructor.name, 'Node');
     });
-    it('instantiates a GitHub released without releaseType', async () => {
+    it('instantiates a GitHub release without releaseType', async () => {
       sandbox.replace(factory, 'call', callStub);
       const cmd = 'github-release --repo-url=googleapis/release-please-cli ';
       parser.parse(cmd);
@@ -298,6 +299,14 @@ describe('CLI', () => {
         (await instanceToRun.releasePR.getPackageName()).name,
         ''
       );
+    });
+    it('instantiates a GitHub release passing github-release-notes', async () => {
+      sandbox.replace(factory, 'call', callStub);
+      const cmd =
+        'github-release --repo-url=googleapis/release-please-cli --github-release-notes';
+      parser.parse(cmd);
+      assert.ok(instanceToRun! instanceof GitHubRelease);
+      assert.strictEqual(instanceToRun.githubReleaseNotes, true);
     });
   });
 });

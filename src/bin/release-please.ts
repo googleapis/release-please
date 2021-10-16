@@ -210,6 +210,11 @@ export const parser = yargs
         type: 'boolean',
         default: false,
       });
+      yargs.option('github-release-notes', {
+        describe: "use GitHub's auto-generated release notes",
+        type: 'boolean',
+        default: undefined,
+      });
       yargs.option('release-label', {
         describe: 'set a pull request label other than "autorelease: tagged"',
         type: 'string',

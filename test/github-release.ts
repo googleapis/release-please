@@ -120,7 +120,7 @@ describe('GitHubRelease', () => {
       mock
         .expects('createRelease')
         .once()
-        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false, undefined)
         .once()
         .resolves({
           name: 'foo v1.0.3',
@@ -155,7 +155,14 @@ describe('GitHubRelease', () => {
       mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
-        .withExactArgs('foo', 'v1A.B.C', 'abc123', '\n* entry', false)
+        .withExactArgs(
+          'foo',
+          'v1A.B.C',
+          'abc123',
+          '\n* entry',
+          false,
+          undefined
+        )
         .once()
         .resolves({
           name: 'foo v1A.B.C',
@@ -183,7 +190,7 @@ describe('GitHubRelease', () => {
       mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
-        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', true)
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', true, undefined)
         .once()
         .resolves({
           name: 'foo v1.0.3',
@@ -217,7 +224,8 @@ describe('GitHubRelease', () => {
           'bigquery/v1.0.3',
           'abc123',
           '\n* entry',
-          false
+          false,
+          undefined
         )
         .once()
         .resolves({
@@ -262,7 +270,14 @@ describe('GitHubRelease', () => {
       mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
-        .withExactArgs('foo', 'foo/v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs(
+          'foo',
+          'foo/v1.0.3',
+          'abc123',
+          '\n* entry',
+          false,
+          undefined
+        )
         .once()
         .resolves({
           name: 'foo foo/v1.0.3',
@@ -312,7 +327,8 @@ describe('GitHubRelease', () => {
           'foo-v1.0.3',
           'abc123',
           '\n* entry',
-          false
+          false,
+          undefined
         )
         .once()
         .resolves({
@@ -358,7 +374,8 @@ describe('GitHubRelease', () => {
           'v1.0.3',
           'abc123',
           '\n* entry',
-          false
+          false,
+          undefined
         )
         .once()
         .resolves({
@@ -390,7 +407,7 @@ describe('GitHubRelease', () => {
       mock
         .expects('createRelease')
         .once()
-        .withExactArgs('', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs('', 'v1.0.3', 'abc123', '\n* entry', false, undefined)
         .once()
         .resolves({
           name: 'v1.0.3',
@@ -436,7 +453,7 @@ describe('GitHubRelease', () => {
       mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
-        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false, undefined)
         .once()
         .resolves({
           name: 'foo v1.0.3',
@@ -470,7 +487,7 @@ describe('GitHubRelease', () => {
       mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
-        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false, undefined)
         .once()
         .resolves({
           name: 'foo v1.0.3',
@@ -505,7 +522,14 @@ describe('GitHubRelease', () => {
       mockGithubLabelsAndComment(mock, true);
       mock
         .expects('createRelease')
-        .withExactArgs('foo', 'v1.0.3-lts.1', 'abc123', '\n* entry', false)
+        .withExactArgs(
+          'foo',
+          'v1.0.3-lts.1',
+          'abc123',
+          '\n* entry',
+          false,
+          undefined
+        )
         .once()
         .resolves({
           name: 'foo v1.0.3-lts.1',
@@ -605,7 +629,7 @@ describe('GitHubRelease', () => {
       mockGithubLabelsAndComment(mock, true, 'custom-label');
       mock
         .expects('createRelease')
-        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false, undefined)
         .once()
         .resolves({
           name: 'foo v1.0.3',
@@ -647,7 +671,7 @@ describe('GitHubRelease', () => {
       mock
         .expects('createRelease')
         .once()
-        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false, undefined)
         .once()
         .resolves(expectedCreateReleaseResponse);
 
@@ -686,7 +710,7 @@ describe('GitHubRelease', () => {
       mock
         .expects('createRelease')
         .once()
-        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false)
+        .withExactArgs('foo', 'v1.0.3', 'abc123', '\n* entry', false, undefined)
         .once()
         .resolves(expectedCreateReleaseResponse);
 

@@ -40,12 +40,14 @@ export class GitHubRelease {
   gh: GitHub;
   draft: boolean;
   releaseLabel: string;
+  githubReleaseNotes?: boolean;
 
   constructor(options: GitHubReleaseConstructorOptions) {
     this.draft = !!options.draft;
     this.gh = options.github;
     this.releasePR = options.releasePR;
     this.releaseLabel = options.releaseLabel ?? GITHUB_RELEASE_LABEL;
+    this.githubReleaseNotes = options.githubReleaseNotes;
   }
 
   async createRelease(): Promise<
@@ -75,7 +77,8 @@ export class GitHubRelease {
         candidate.tag,
         candidate.sha,
         candidate.notes,
-        this.draft
+        this.draft,
+        this.githubReleaseNotes
       );
     } else {
       candidate = await this.releasePR.buildRelease();
@@ -86,7 +89,8 @@ export class GitHubRelease {
         candidate.tag,
         candidate.sha,
         candidate.notes,
-        this.draft
+        this.draft,
+        this.githubReleaseNotes
       );
       return [candidate, release];
     } else {
