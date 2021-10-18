@@ -22,6 +22,7 @@ import {Commit} from '../graphql-to-commits';
 // Generic
 import {Changelog} from '../updaters/changelog';
 import {logger} from '../util/logger';
+import {VersionGo} from '../updaters/version-go';
 
 // Commits containing a scope prefixed with an item in this array will be
 // ignored when generating a release PR for the parent module.
@@ -128,6 +129,14 @@ export class GoYoshi extends ReleasePR {
       new Changelog({
         path: this.addPath(this.changelogPath),
         changelogEntry,
+        version: candidate.version,
+        packageName: packageName.name,
+      })
+    );
+    updates.push(
+      new VersionGo({
+        path: this.addPath('version.go'),
+        changelogEntry: changelogEntry,
         version: candidate.version,
         packageName: packageName.name,
       })
