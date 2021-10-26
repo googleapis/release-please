@@ -84,6 +84,7 @@ describe('CargoToml', () => {
       const versions = new Map();
       versions.set('normal-dep', '2.0.0');
       versions.set('dev-dep', '2.0.0');
+      versions.set('dev-dep-2', '2.0.0');
       versions.set('build-dep', '2.0.0');
       versions.set('windows-dep', '2.0.0');
       versions.set('unix-dep', '2.0.0');

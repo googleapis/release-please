@@ -114,7 +114,7 @@ name = "crate2"
 version = "0.4.321"
 
 [dependencies]
-crate1 = { version = "0.123.5", path = "../crate2" }
+crate1 = { version = "0.123.5", path = "../crate1" }
 
 
 filename: Cargo.lock
@@ -183,7 +183,7 @@ name = "crate2"
 version = "0.4.321"
 
 [dependencies]
-crate1 = { version = "0.123.5", path = "../crate2" }
+crate1 = { version = "0.123.5", path = "../crate1" }
 
 
 `
