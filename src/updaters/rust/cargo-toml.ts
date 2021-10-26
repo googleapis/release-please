@@ -77,7 +77,16 @@ export class CargoToml implements Update {
         const dep = deps[pkgName];
 
         if (typeof dep === 'string' || typeof dep.path === 'undefined') {
-          logger.info(`skipping ${depKind}.${pkgName} in ${this.path}`);
+          logger.info(
+            `skipping ${depKind}.${pkgName} in ${this.path} (no path set)`
+          );
+          continue; // to next depKind
+        }
+
+        if (typeof dep.version === 'undefined') {
+          logger.info(
+            `skipping ${depKind}.${pkgName} in ${this.path} (no version set)`
+          );
           continue; // to next depKind
         }
 
