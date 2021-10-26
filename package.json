@@ -42,7 +42,7 @@
     "@types/iarna__toml": "^2.0.1",
     "@types/js-yaml": "^4.0.0",
     "@types/mocha": "^8.0.0",
-    "@types/node": "^14.0.0",
+    "@types/node": "^16.0.0",
     "@types/pino": "^6.3.0",
     "@types/semver": "^7.0.0",
     "@types/sinon": "^10.0.0",
