@@ -1849,7 +1849,7 @@ export class GitHub {
       number: number
     ): Promise<CreateIssueCommentResponse> => {
       logger.info(
-        `adding comment to https://github.com/${this.owner}/${this.repo}/issue/${number}`
+        `adding comment to https://github.com/${this.owner}/${this.repo}/issues/${number}`
       );
       return (
         await this.request(
