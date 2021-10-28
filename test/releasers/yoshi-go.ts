@@ -20,9 +20,14 @@ import {stubSuggesterWithSnapshot} from '../helpers';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {buildMockCommit} from '../helpers';
-import {GitHub} from '../../src/github';
+import {buildGitHubFileContent} from './utils';
+import {GitHubFileContents, GitHub} from '../../src/github';
 
 const sandbox = sinon.createSandbox();
+
+function buildFileContent(fixture: string): GitHubFileContents {
+  return buildGitHubFileContent('./test/releasers/fixtures/go-yoshi', fixture);
+}
 
 describe('YoshiGo', () => {
   afterEach(() => {
@@ -62,6 +67,9 @@ describe('YoshiGo', () => {
         releasePR.gh,
         'getFileContentsOnBranch'
       );
+      getFileContentsStub
+        .withArgs('version.go', 'master')
+        .resolves(buildFileContent('version.go'));
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404})
       );
@@ -186,6 +194,9 @@ describe('YoshiGo', () => {
       releasePR.gh,
       'getFileContentsOnBranch'
     );
+    getFileContentsStub
+      .withArgs('version.go', 'master')
+      .resolves(buildFileContent('version.go'));
     getFileContentsStub.rejects(
       Object.assign(Error('not found'), {status: 404})
     );

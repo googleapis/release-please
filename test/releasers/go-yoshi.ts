@@ -17,11 +17,16 @@ import {GoYoshi} from '../../src/releasers/go-yoshi';
 import {readPOJO, stubSuggesterWithSnapshot} from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
 import assert = require('assert');
+import {buildGitHubFileContent} from './utils';
+import {GitHubFileContents, GitHub} from '../../src/github';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
+
+function buildFileContent(fixture: string): GitHubFileContents {
+  return buildGitHubFileContent('./test/releasers/fixtures/go-yoshi', fixture);
+}
 
 describe('GoYoshi', () => {
   afterEach(() => {
@@ -67,10 +72,13 @@ describe('GoYoshi', () => {
         releasePR.gh,
         'getFileContentsOnBranch'
       );
-      // CHANGELOG is not found, and will be created:
       getFileContentsStub
-        .onCall(0)
-        .rejects(Object.assign(Error('not found'), {status: 404}));
+        .withArgs('version.go', 'master')
+        .resolves(buildFileContent('version.go'));
+      // CHANGELOG is not found, and will be created:
+      getFileContentsStub.rejects(
+        Object.assign(Error('not found'), {status: 404})
+      );
 
       // Call to add autorelease: pending label:
       sandbox.stub(releasePR.gh, 'addLabels');
@@ -120,10 +128,13 @@ describe('GoYoshi', () => {
           releasePR.gh,
           'getFileContentsOnBranch'
         );
-        // CHANGELOG is not found, and will be created:
         getFileContentsStub
-          .onCall(0)
-          .rejects(Object.assign(Error('not found'), {status: 404}));
+          .withArgs('version.go', 'master')
+          .resolves(buildFileContent('version.go'));
+        // CHANGELOG is not found, and will be created:
+        getFileContentsStub.rejects(
+          Object.assign(Error('not found'), {status: 404})
+        );
 
         // Call to add autorelease: pending label:
         sandbox.stub(releasePR.gh, 'addLabels');
@@ -173,9 +184,9 @@ describe('GoYoshi', () => {
           'getFileContentsOnBranch'
         );
         // CHANGELOG is not found, and will be created:
-        getFileContentsStub
-          .onCall(0)
-          .rejects(Object.assign(Error('not found'), {status: 404}));
+        getFileContentsStub.rejects(
+          Object.assign(Error('not found'), {status: 404})
+        );
 
         // Call to add autorelease: pending label:
         sandbox.stub(releasePR.gh, 'addLabels');
@@ -228,10 +239,13 @@ describe('GoYoshi', () => {
           releasePR.gh,
           'getFileContentsOnBranch'
         );
-        // CHANGELOG is not found, and will be created:
         getFileContentsStub
-          .onCall(0)
-          .rejects(Object.assign(Error('not found'), {status: 404}));
+          .withArgs('storage/version.go', 'master')
+          .resolves(buildFileContent('version.go'));
+        // CHANGELOG is not found, and will be created:
+        getFileContentsStub.rejects(
+          Object.assign(Error('not found'), {status: 404})
+        );
 
         // Call to add autorelease: pending label:
         sandbox.stub(releasePR.gh, 'addLabels');
