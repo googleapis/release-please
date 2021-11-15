@@ -194,9 +194,6 @@ describe('YoshiGo', () => {
       releasePR.gh,
       'getFileContentsOnBranch'
     );
-    getFileContentsStub
-      .withArgs('pubsublite/internal/version.go', 'master')
-      .resolves(buildFileContent('version.go'));
     getFileContentsStub.rejects(
       Object.assign(Error('not found'), {status: 404})
     );

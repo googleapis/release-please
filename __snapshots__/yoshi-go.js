@@ -136,25 +136,6 @@ filename: pubsublite/CHANGES.md
 * **pubsublite:** a minor issue ([0fa149c](https://www.github.com/googleapis/google-cloud-go/commit/0fa149c303104b62e410cd708ab23350))
 * **pubsublite:** start generating v1 ([93a4aa5](https://www.github.com/googleapis/google-cloud-go/commit/93a4aa5e59098a70d3fefd2c2ff99a03))
 
-filename: pubsublite/internal/version.go
-// Copyright 2021 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package api
-
-const Version = "0.123.5"
-
 `
 
 exports['YoshiGo supports releasing submodule from google-cloud-go: options'] = `
