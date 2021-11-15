@@ -28,7 +28,7 @@ describe('version.go', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new VersionGo({
-        path: 'version.go',
+        path: 'internal/version.go',
         changelogEntry: '',
         version: '0.59.0',
         packageName: '',

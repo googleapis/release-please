@@ -73,7 +73,7 @@ describe('GoYoshi', () => {
         'getFileContentsOnBranch'
       );
       getFileContentsStub
-        .withArgs('version.go', 'master')
+        .withArgs('internal/version.go', 'master')
         .resolves(buildFileContent('version.go'));
       // CHANGELOG is not found, and will be created:
       getFileContentsStub.rejects(
@@ -129,7 +129,7 @@ describe('GoYoshi', () => {
           'getFileContentsOnBranch'
         );
         getFileContentsStub
-          .withArgs('version.go', 'master')
+          .withArgs('internal/version.go', 'master')
           .resolves(buildFileContent('version.go'));
         // CHANGELOG is not found, and will be created:
         getFileContentsStub.rejects(
@@ -240,7 +240,7 @@ describe('GoYoshi', () => {
           'getFileContentsOnBranch'
         );
         getFileContentsStub
-          .withArgs('storage/version.go', 'master')
+          .withArgs('storage/internal/version.go', 'master')
           .resolves(buildFileContent('version.go'));
         // CHANGELOG is not found, and will be created:
         getFileContentsStub.rejects(

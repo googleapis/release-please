@@ -72,7 +72,7 @@ filename: CHANGES.md
 * **automl:** fixed a minor thing ([b12e5a1](https://www.github.com/googleapis/google-cloud-go/commit/b12e5a1554a0a6ac8bb3b2213ad33090))
 * **automl:** fixed a really bad bug ([2910926](https://www.github.com/googleapis/google-cloud-go/commit/29109261188e5c680a9508238b5c873b))
 
-filename: version.go
+filename: internal/version.go
 // Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

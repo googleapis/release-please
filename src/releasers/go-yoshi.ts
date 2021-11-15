@@ -135,7 +135,7 @@ export class GoYoshi extends ReleasePR {
     );
     updates.push(
       new VersionGo({
-        path: this.addPath('version.go'),
+        path: this.addPath('internal/version.go'),
         changelogEntry: changelogEntry,
         version: candidate.version,
         packageName: packageName.name,

@@ -68,7 +68,7 @@ describe('YoshiGo', () => {
         'getFileContentsOnBranch'
       );
       getFileContentsStub
-        .withArgs('version.go', 'master')
+        .withArgs('internal/version.go', 'master')
         .resolves(buildFileContent('version.go'));
       getFileContentsStub.rejects(
         Object.assign(Error('not found'), {status: 404})
@@ -195,7 +195,7 @@ describe('YoshiGo', () => {
       'getFileContentsOnBranch'
     );
     getFileContentsStub
-      .withArgs('version.go', 'master')
+      .withArgs('internal/version.go', 'master')
       .resolves(buildFileContent('version.go'));
     getFileContentsStub.rejects(
       Object.assign(Error('not found'), {status: 404})
