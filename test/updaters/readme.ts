@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {ReadMe} from '../../src/updaters/terraform/readme';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,7 @@ describe('README.md', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new ReadMe({
-        path: 'README.md',
-        changelogEntry: '',
-        version: '2.1.0',
-        packageName: '',
+        version: Version.parse('2.1.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);

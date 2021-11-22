@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {KRMBlueprintVersion} from '../../src/updaters/krm/krm-blueprint-version';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures/krm';
 
@@ -40,10 +41,7 @@ describe('KRM Blueprint', () => {
         ).replace(/\r\n/g, '\n');
 
         const version = new KRMBlueprintVersion({
-          path: test.name,
-          changelogEntry: '',
-          version: test.expectedVersion,
-          packageName: '',
+          version: Version.parse(test.expectedVersion),
         });
         const newContent = version.updateContent(oldContent);
         snapshot(newContent);

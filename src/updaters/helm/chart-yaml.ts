@@ -12,38 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
 import * as yaml from 'js-yaml';
 import {logger} from '../../util/logger';
+import {DefaultUpdater} from '../default';
 
-export class ChartYaml implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
-
+/**
+ * Updates a Helm chart.yaml file.
+ */
+export class ChartYaml extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     const data = yaml.load(content, {json: true});
     if (data === null || data === undefined) {
       return '';
     }
     const parsed = JSON.parse(JSON.stringify(data));
-    logger.info(
-      `updating ${this.path} from ${parsed.version} to ${this.version}`
-    );
-    parsed.version = this.version;
+    logger.info(`updating from ${parsed.version} to ${this.version}`);
+    parsed.version = this.version.toString();
     return yaml.dump(parsed);
   }
 }

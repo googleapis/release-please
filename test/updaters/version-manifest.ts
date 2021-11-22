@@ -18,6 +18,7 @@ import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
 import {expect} from 'chai';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -29,11 +30,21 @@ describe('VersionManifest', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const versionsMap = VersionsManifest.parseVersions(content);
-      expect(versionsMap.get('google-cloud-trace')).to.equal('0.108.0-beta');
-      expect(versionsMap.get('grpc-google-cloud-trace-v1')).to.equal('0.73.0');
-      expect(versionsMap.get('grpc-google-cloud-trace-v2')).to.equal('0.73.0');
-      expect(versionsMap.get('proto-google-cloud-trace-v1')).to.equal('0.73.0');
-      expect(versionsMap.get('grpc-google-cloud-trace-v2')).to.equal('0.73.0');
+      expect(versionsMap.get('google-cloud-trace')?.toString()).to.equal(
+        '0.108.0-beta'
+      );
+      expect(
+        versionsMap.get('grpc-google-cloud-trace-v1')?.toString()
+      ).to.equal('0.73.0');
+      expect(
+        versionsMap.get('grpc-google-cloud-trace-v2')?.toString()
+      ).to.equal('0.73.0');
+      expect(
+        versionsMap.get('proto-google-cloud-trace-v1')?.toString()
+      ).to.equal('0.73.0');
+      expect(
+        versionsMap.get('grpc-google-cloud-trace-v2')?.toString()
+      ).to.equal('0.73.0');
     });
   });
 
@@ -61,15 +72,12 @@ describe('VersionManifest', () => {
         resolve(fixturesPath, './versions-double-snapshot.txt'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const versions = new Map<string, string>();
-      versions.set('google-cloud-trace', '0.109.0');
-      versions.set('grpc-google-cloud-trace-v1', '0.74.0');
+      const versions = new Map<string, Version>();
+      versions.set('google-cloud-trace', Version.parse('0.109.0'));
+      versions.set('grpc-google-cloud-trace-v1', Version.parse('0.74.0'));
       const javaAuthVersions = new VersionsManifest({
-        path: 'versions.txt',
-        changelogEntry: '',
-        versions,
-        version: 'unused',
-        packageName: 'used',
+        versionsMap: versions,
+        version: Version.parse('1.2.3'),
       });
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);

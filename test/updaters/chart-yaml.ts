@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {ChartYaml} from '../../src/updaters/helm/chart-yaml';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,7 @@ describe('ChartYaml', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new ChartYaml({
-        path: './helm/Chart.yaml',
-        changelogEntry: '',
-        version: '1.1.0',
-        packageName: '',
+        version: Version.parse('1.1.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);

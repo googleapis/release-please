@@ -1,0 +1,29 @@
+{
+  "bootstrap-sha": "12426076b2f8b66a0ea0af2fa77e566d99bfb649",
+  "packages": {
+    "packages/bot-config-utils": {
+      "release-type": "node"
+    },
+    "packages/cron-utils": {
+      "release-type": "node"
+    },
+    "packages/gcf-utils": {
+      "release-type": "node"
+    },
+    "packages/label-utils": {
+      "release-type": "node"
+    },
+    "packages/object-selector": {
+      "release-type": "node"
+    },
+    "packages/release-brancher": {
+      "release-type": "node"
+    },
+    "packages/mono-repo-publish": {
+      "release-type": "node"
+    },
+    "packages/datastore-lock": {
+      "release-type": "node"
+    }
+  }
+}

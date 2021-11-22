@@ -12,44 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
-import {replaceTomlValue} from '../toml-edit';
+import {replaceTomlValue} from '../../util/toml-edit';
 import {parseCargoLockfile} from './common';
 import {logger} from '../../util/logger';
+import {DefaultUpdater} from '../default';
 
 /**
  * Updates `Cargo.lock` lockfiles, preserving formatting and comments.
  */
-export class CargoLock implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.versions = options.versions;
-    this.packageName = options.packageName;
-  }
-
+export class CargoLock extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     let payload = content;
 
-    if (!this.versions) {
+    if (!this.versionsMap) {
       throw new Error('updateContent called with no versions');
     }
 
     const parsed = parseCargoLockfile(payload);
     if (!parsed.package) {
-      logger.error(`${this.path} is not a Cargo lockfile`);
-      throw new Error(`${this.path} is not a Cargo lockfile`);
+      logger.error('is not a Cargo lockfile');
+      throw new Error('is not a Cargo lockfile');
     }
 
     // n.b for `replaceTomlString`, we need to keep track of the index
@@ -62,7 +49,7 @@ export class CargoLock implements Update {
         continue; // to next package
       }
 
-      const nextVersion = this.versions.get(pkg.name);
+      const nextVersion = this.versionsMap.get(pkg.name);
       if (!nextVersion) {
         // this package is not upgraded.
         continue; // to next package
@@ -73,11 +60,11 @@ export class CargoLock implements Update {
       // `path` argument.
       const packageIndex = i.toString();
 
-      logger.info(`updating ${pkg.name} in ${this.path}`);
+      logger.info(`updating ${pkg.name} in`);
       payload = replaceTomlValue(
         payload,
         ['package', packageIndex, 'version'],
-        nextVersion
+        nextVersion.toString()
       );
     }
 

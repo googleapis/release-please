@@ -13,10 +13,9 @@
 // limitations under the License.
 
 import * as TOML from '@iarna/toml';
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
-import {replaceTomlValue} from '../toml-edit';
+import {replaceTomlValue} from '../../util/toml-edit';
 import {logger} from '../../util/logger';
+import {DefaultUpdater} from '../default';
 
 // TODO: remove support for `poetry.tool` when Poetry will use `project`.
 
@@ -39,28 +38,21 @@ export function parsePyProject(content: string): PyProject {
   return TOML.parse(content) as PyProject;
 }
 
-export class PyProjectToml implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
+/**
+ * Updates a pyproject.toml file
+ */
+export class PyProjectToml extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     const parsed = parsePyProject(content);
     const project = parsed.project || parsed.tool?.poetry;
 
     if (!project?.version) {
-      const msg = `invalid ${this.path}`;
+      const msg = 'invalid file';
       logger.error(msg);
       throw new Error(msg);
     }
@@ -68,7 +60,7 @@ export class PyProjectToml implements Update {
     return replaceTomlValue(
       content,
       (parsed.project ? ['project'] : ['tool', 'poetry']).concat('version'),
-      this.version
+      this.version.toString()
     );
   }
 }

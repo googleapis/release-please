@@ -12,53 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
-import {replaceTomlValue} from '../toml-edit';
+import {replaceTomlValue} from '../../util/toml-edit';
 import {DEP_KINDS, parseCargoManifest} from './common';
 import {logger} from '../../util/logger';
+import {DefaultUpdater} from '../default';
 
 /**
  * Updates `Cargo.toml` manifests, preserving formatting and comments.
  */
-export class CargoToml implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.versions = options.versions;
-    this.packageName = options.packageName;
-  }
-
+export class CargoToml extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     let payload = content;
 
-    if (!this.versions) {
+    if (!this.versionsMap) {
       throw new Error('updateContent called with no versions');
     }
 
     const parsed = parseCargoManifest(payload);
     if (!parsed.package) {
-      const msg = `${this.path} is not a package manifest (might be a cargo workspace)`;
+      const msg = 'is not a package manifest (might be a cargo workspace)';
       logger.error(msg);
       throw new Error(msg);
     }
 
-    for (const [pkgName, pkgVersion] of this.versions) {
+    for (const [pkgName, pkgVersion] of this.versionsMap) {
       if (parsed.package.name === pkgName) {
         logger.info(
-          `updating ${this.path}'s own version from ${parsed.package?.version} to ${pkgVersion}`
+          `updating own version from ${parsed.package?.version} to ${pkgVersion}`
         );
-        payload = replaceTomlValue(payload, ['package', 'version'], pkgVersion);
+        payload = replaceTomlValue(
+          payload,
+          ['package', 'version'],
+          pkgVersion.toString()
+        );
 
         continue; // to next [pkgName, pkgVersion] pair
       }
@@ -77,17 +68,17 @@ export class CargoToml implements Update {
         const dep = deps[pkgName];
 
         if (typeof dep === 'string' || typeof dep.path === 'undefined') {
-          logger.info(`skipping ${depKind}.${pkgName} in ${this.path}`);
+          logger.info(`skipping ${depKind}.${pkgName} in`);
           continue; // to next depKind
         }
 
         logger.info(
-          `updating ${this.path} ${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`
+          `updating ${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`
         );
         payload = replaceTomlValue(
           payload,
           [depKind, pkgName, 'version'],
-          pkgVersion
+          pkgVersion.toString()
         );
       }
 
@@ -109,18 +100,18 @@ export class CargoToml implements Update {
 
             if (typeof dep === 'string' || typeof dep.path === 'undefined') {
               logger.info(
-                `skipping target.${targetName}.${depKind}.${pkgName} in ${this.path}`
+                `skipping target.${targetName}.${depKind}.${pkgName} in`
               );
               continue; // to next depKind
             }
 
             logger.info(
-              `updating ${this.path} target.${targetName}.${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`
+              `updating  target.${targetName}.${depKind}.${pkgName} from ${dep.version} to ${pkgVersion}`
             );
             payload = replaceTomlValue(
               payload,
               ['target', targetName, depKind, pkgName, 'version'],
-              pkgVersion
+              pkgVersion.toString()
             );
           }
         }

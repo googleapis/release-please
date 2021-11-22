@@ -6,13 +6,13 @@ exports['JavaUpdate updateContent updates an LTS snapshot version 1'] = `
   <parent>
     <groupId>com.google.auth</groupId>
     <artifactId>google-auth-library-parent</artifactId>
-    <version>v0.16.2-sp.1</version><!-- {x-version-update:google-auth-library-parent:current} -->
+    <version>0.16.2-sp.1</version><!-- {x-version-update:google-auth-library-parent:current} -->
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>com.google.auth</groupId>
   <artifactId>google-auth-library-appengine</artifactId>
-  <version>v0.16.2-sp.1</version><!-- {x-version-update:google-auth-library-parent:current} -->
+  <version>0.16.2-sp.1</version><!-- {x-version-update:google-auth-library-parent:current} -->
   <name>Google Auth Library for Java - Google App Engine</name>
 
   <distributionManagement>

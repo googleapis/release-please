@@ -18,6 +18,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "e6daec403626c9987c7af0d97b34f324cd84320a"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -39,6 +42,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "b29149f890e6f76ee31ed128585744d4c598924c"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -60,6 +66,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "27d7d7232e2e312d1380e906984f0823f5decf61"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -81,6 +90,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -102,6 +114,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "a257514a541d483425118d973674b1ce006a5489"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -123,6 +138,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -144,6 +162,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "520b6f42551c86002197d033564a76a3f99b0019"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -169,6 +190,9 @@
                     "body": ":robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
                     "mergeCommit": {
                       "oid": "9dda1a331d311d0a7643015cc9e6802548c8d943"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]
@@ -190,6 +214,9 @@
                     "body": "",
                     "mergeCommit": {
                       "oid": "e86984fb22ccc5eafb6c3d815851ade3463193da"
+                    },
+                    "files": {
+                      "nodes": []
                     }
                   }
                 ]

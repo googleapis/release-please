@@ -1,100 +1,201 @@
-exports['extractReleaseNotes extracts appropriate release notes when prior release is patch 1'] = `
+exports['ReleaseNotes buildNotes should build default release notes 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
 
-* temp directory now defaults to setting for report directory
+* some bugfix
 
 ### Features
 
-* default temp directory to report directory ([#102](https://www.github.com/bcoe/c8/issues/102)) ([8602f4a](https://www.github.com/bcoe/c8/commit/8602f4a))
-* load .nycrc/.nycrc.json to simplify migration ([#100](https://www.github.com/bcoe/c8/issues/100)) ([bd7484f](https://www.github.com/bcoe/c8/commit/bd7484f))
-
-`
-
-exports['extractReleaseNotes handles CHANGELOG with new format entries 1'] = `
+* some feature ([sha1](https://github.com/googleapis/java-asset/commit/sha1))
 
 
 ### Bug Fixes
 
-* candidate issue should only be updated every 15 minutes. ([#70](https://www.github.com/googleapis/release-please/issues/70)) ([edcd1f7](https://www.github.com/googleapis/release-please/commit/edcd1f7))
+* some bugfix ([sha2](https://github.com/googleapis/java-asset/commit/sha2))
+`
 
+exports['ReleaseNotes buildNotes should build with custom changelog sections 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* some bugfix
 
 ### Features
 
-* add GitHub action for generating candidate issue ([#69](https://www.github.com/googleapis/release-please/issues/69)) ([6373aed](https://www.github.com/googleapis/release-please/commit/6373aed))
-* checkbox based releases ([#77](https://www.github.com/googleapis/release-please/issues/77)) ([1e4193c](https://www.github.com/googleapis/release-please/commit/1e4193c))
-
-`
-
-exports['extractReleaseNotes handles CHANGELOG with old and new format entries 1'] = `
+* some feature ([sha1](https://github.com/googleapis/java-asset/commit/sha1))
 
 
 ### Bug Fixes
 
-* **deps:** update dependency google-auth-library to v4 ([#79](https://www.github.com/googleapis/nodejs-rcloadenv/issues/79)) ([1386b78](https://www.github.com/googleapis/nodejs-rcloadenv/commit/1386b78))
+* some bugfix ([sha2](https://github.com/googleapis/java-asset/commit/sha2))
 
 
-### Build System
+### Documentation
 
-* upgrade engines field to >=8.10.0 ([#71](https://www.github.com/googleapis/nodejs-rcloadenv/issues/71)) ([542f935](https://www.github.com/googleapis/nodejs-rcloadenv/commit/542f935))
+* some documentation ([sha3](https://github.com/googleapis/java-asset/commit/sha3))
+`
 
+exports['ReleaseNotes buildNotes should handle BREAKING CHANGE notes 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* some bugfix
+
+### Bug Fixes
+
+* some bugfix ([sha2](https://github.com/googleapis/java-asset/commit/sha2))
+`
+
+exports['ReleaseNotes buildNotes should ignore RELEASE AS notes 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* some bugfix
+
+### Bug Fixes
+
+* some bugfix ([sha2](https://github.com/googleapis/java-asset/commit/sha2))
+`
+
+exports['ReleaseNotes buildNotes with commit parsing handles Release-As footers 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* v3.0.0
+
+### meta
+
+* correct release ([1f64add](https://github.com/googleapis/java-asset/commit/1f64add37f426e87ce1b777616a137ec))
+`
+
+exports['ReleaseNotes buildNotes with commit parsing should handle BREAKING CHANGE body 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* this is actually a breaking change
+
+### Features
+
+* some feature ([78abf20](https://github.com/googleapis/java-asset/commit/78abf20625d3ff86d627b5c6e0cacd06))
+`
+
+exports['ReleaseNotes buildNotes with commit parsing should handle a breaking change 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* some bugfix
+
+### Bug Fixes
+
+* some bugfix ([05670cf](https://github.com/googleapis/java-asset/commit/05670cf2e850beffe53bb2691f8701c7))
+`
+
+exports['ReleaseNotes buildNotes with commit parsing should handle bug links 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Bug Fixes
+
+* some fix ([71489e6](https://github.com/googleapis/java-asset/commit/71489e63ad212c54598f5bdcbedec5f6)), closes [#123](https://github.com/googleapis/java-asset/issues/123)
+`
+
+exports['ReleaseNotes buildNotes with commit parsing should handle git trailers 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* this is actually a breaking change
+
+### Bug Fixes
+
+* some fix ([c538c97](https://github.com/googleapis/java-asset/commit/c538c973dc84b83ee6b699cf6433f0b3))
+`
+
+exports['ReleaseNotes buildNotes with commit parsing should handle meta commits 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **recaptchaenterprise:** for some reason this migration is breaking.
+
+### Features
+
+* **recaptchaenterprise:** migrate microgenerator ([3cf10aa](https://github.com/googleapis/java-asset/commit/3cf10aa5f94cd40a1d0d08e573eb737f))
+
+
+### Bug Fixes
+
+* fixes bug [#733](https://github.com/googleapis/java-asset/issues/733) ([3cf10aa](https://github.com/googleapis/java-asset/commit/3cf10aa5f94cd40a1d0d08e573eb737f))
+* **securitycenter:** fixes security center. ([3cf10aa](https://github.com/googleapis/java-asset/commit/3cf10aa5f94cd40a1d0d08e573eb737f))
+`
+
+exports['ReleaseNotes buildNotes with commit parsing should handle multi-line breaking change, if prefixed with list 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* we were on Node 6
+    - deleted API foo
+    - deleted API bar
 
 ### Miscellaneous Chores
 
-* **deps:** update dependency gts to v1 ([#68](https://www.github.com/googleapis/nodejs-rcloadenv/issues/68)) ([972b473](https://www.github.com/googleapis/nodejs-rcloadenv/commit/972b473))
-
-
-### BREAKING CHANGES
-
-* **deps:** this will ship async/await with the generated code.
-* upgrade engines field to >=8.10.0 (#71)
-
+* upgrade to Node 7 ([a931c2d](https://github.com/googleapis/java-asset/commit/a931c2d29e9849c6989dfd4712226699))
 `
 
-exports['extractReleaseNotes handles CHANGELOG with old format entries 1'] = `
+exports['ReleaseNotes buildNotes with commit parsing should handle multi-line breaking changes 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
-03-22-2019 10:34 PDT
 
-### New Features
-- feat: add additional entity types ([#220](https://github.com/googleapis/nodejs-language/pull/220))
+### ⚠ BREAKING CHANGES
 
-### Internal / Testing Changes
-- chore: publish to npm using wombat ([#218](https://github.com/googleapis/nodejs-language/pull/218))
-- build: use per-repo npm publish token ([#216](https://github.com/googleapis/nodejs-language/pull/216))
+* we were on Node 6 second line third line
 
+### Miscellaneous Chores
+
+* upgrade to Node 7 ([8916be7](https://github.com/googleapis/java-asset/commit/8916be74596394c27516696b957fd0d7))
 `
 
-exports['extractReleaseNotes php-yoshi extracts appropriate release notes, when multiple packages updated 1'] = `
+exports['ReleaseNotes buildNotes with commit parsing should not include content two newlines after BREAKING CHANGE 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
-<details><summary>google/cloud-bigquerydatatransfer 0.11.1</summary>
 
+### ⚠ BREAKING CHANGES
+
+* we were on Node 6
+
+### Miscellaneous Chores
+
+* upgrade to Node 7 ([66925b0](https://github.com/googleapis/java-asset/commit/66925b06f59fc4fdd3031c498e1b0098))
+`
+
+exports['ReleaseNotes buildNotes with commit parsing should parse multiple commit messages from a single commit 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Features
+
+* some feature ([2ec0e9b](https://github.com/googleapis/java-asset/commit/2ec0e9bc0ba7deaf762dae213667bf42))
 
 
 ### Bug Fixes
 
-* Fix BigQueryDataTransfer smoke test ([#2046](https://www.github.com/googleapis/google-cloud-php/issues/2046)) ([98c7c9e](https://www.github.com/googleapis/google-cloud-php/commit/98c7c9e))
-
-</details>
-
-<details><summary>google/cloud-dlp 0.20.0</summary>
-
-
-
-### Features
-
-* Add support for avro ([#2050](https://www.github.com/googleapis/google-cloud-php/issues/2050)) ([4137f3d](https://www.github.com/googleapis/google-cloud-php/commit/4137f3d))
-
-</details>
-
-<details><summary>google/cloud-kms 1.4.0</summary>
-
-
-
-### Features
-
-* Update KMS client. ([#2045](https://www.github.com/googleapis/google-cloud-php/issues/2045)) ([c96da32](https://www.github.com/googleapis/google-cloud-php/commit/c96da32))
-
-</details>
-
+* some bugfix ([2ec0e9b](https://github.com/googleapis/java-asset/commit/2ec0e9bc0ba7deaf762dae213667bf42))
 `

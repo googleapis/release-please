@@ -35,7 +35,13 @@ export interface Logger {
   trace: LogFn;
 }
 
-class CheckpointLogger implements Logger {
+export class CheckpointLogger implements Logger {
+  private includeDebug: boolean;
+  private includeTrace: boolean;
+  constructor(includeDebug = false, includeTrace = false) {
+    this.includeDebug = includeDebug;
+    this.includeTrace = includeTrace;
+  }
   error: LogFn = (...args: any[]) => {
     console.error(`${errorPrefix}`, ...args);
   };
@@ -46,15 +52,15 @@ class CheckpointLogger implements Logger {
     console.info(`${infoPrefix}`, ...args);
   };
   debug: LogFn = (...args: any[]) => {
-    console.debug(`${debugPrefix}`, ...args);
+    if (this.includeDebug) console.debug(`${debugPrefix}`, ...args);
   };
   trace: LogFn = (...args: any[]) => {
-    console.trace(`${tracePrefix}`, ...args);
+    if (this.includeTrace) console.debug(`${tracePrefix}`, ...args);
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export let logger = new CheckpointLogger();
+export let logger: Logger = new CheckpointLogger();
 
 export function setLogger(userLogger: Logger) {
   logger = userLogger;

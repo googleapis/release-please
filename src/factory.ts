@@ -12,304 +12,226 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {Strategy, StrategyOptions} from './strategy';
+import {Go} from './strategies/go';
+import {GoYoshi} from './strategies/go-yoshi';
+import {JavaYoshi} from './strategies/java-yoshi';
+import {KRMBlueprint} from './strategies/krm-blueprint';
+import {OCaml} from './strategies/ocaml';
+import {PHP} from './strategies/php';
+import {PHPYoshi} from './strategies/php-yoshi';
+import {Python} from './strategies/python';
+import {Ruby} from './strategies/ruby';
+import {RubyYoshi} from './strategies/ruby-yoshi';
+import {Rust} from './strategies/rust';
+import {Simple} from './strategies/simple';
+import {TerraformModule} from './strategies/terraform-module';
+import {Helm} from './strategies/helm';
+import {Elixir} from './strategies/elixir';
+import {Dart} from './strategies/dart';
+import {Node} from './strategies/node';
+import {GitHub} from './github';
+import {ReleaserConfig, PluginType, RepositoryConfig} from './manifest';
+import {DefaultVersioningStrategy} from './versioning-strategies/default';
+import {VersioningStrategy} from './versioning-strategy';
+import {AlwaysBumpPatch} from './versioning-strategies/always-bump-patch';
+import {ServicePackVersioningStrategy} from './versioning-strategies/service-pack';
+import {DependencyManifest} from './versioning-strategies/dependency-manifest';
+import {ManifestPlugin} from './plugin';
+import {NodeWorkspace} from './plugins/node-workspace';
+import {CargoWorkspace} from './plugins/cargo-workspace';
+
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
-
-import {ReleasePR} from './release-pr';
-import {GitHubRelease, GitHubReleaseResponse} from './github-release';
-import {ReleaseType, getReleasers} from './releasers';
-import {GitHub, GitHubTag} from './github';
-import {
-  ManifestFactoryOptions,
-  ReleasePRFactoryOptions,
-  GitHubReleaseFactoryOptions,
-  GitHubFactoryOptions,
-} from '.';
-import {DEFAULT_LABELS} from './constants';
-import {ManifestGitHubReleaseResult, Manifest} from './manifest';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const parseGithubRepoUrl = require('parse-github-repo-url');
-
-// types defining methods available to call on instances
-export type ManifestMethod = 'pullRequest' | 'githubRelease';
-export type ReleasePRMethod = 'run' | 'latestTag';
-export type GitHubReleaseMethod = 'run';
-export type Method = ManifestMethod | ReleasePRMethod | GitHubReleaseMethod;
-
-// types defining cli commands and their options
-export type ManifestCommand = 'manifest-pr' | 'manifest-release';
-export type ReleasePRCommand = 'release-pr' | 'latest-tag';
-export type GitHubReleaseCommand = 'github-release';
-type Command = ManifestCommand | ReleasePRCommand | GitHubReleaseCommand;
-type IsManifestCmd = {
-  command: ManifestCommand;
-  options: ManifestFactoryOptions;
+// add any new releasers you create to this type as well as the `releasers`
+// object below.
+const allReleaseTypes = [
+  'dart',
+  'elixir',
+  'go',
+  'go-yoshi',
+  'helm',
+  'java-backport',
+  'java-bom',
+  'java-lts',
+  'java-yoshi',
+  'krm-blueprint',
+  'node',
+  'ocaml',
+  'php',
+  'php-yoshi',
+  'python',
+  'ruby',
+  'ruby-yoshi',
+  'rust',
+  'simple',
+  'terraform-module',
+] as const;
+export type ReleaseType = typeof allReleaseTypes[number];
+type ReleaseBuilder = (options: StrategyOptions) => Strategy;
+type Releasers = Record<string, ReleaseBuilder>;
+const releasers: Releasers = {
+  go: options => new Go(options),
+  'go-yoshi': options => new GoYoshi(options),
+  'krm-blueprint': options => new KRMBlueprint(options),
+  node: options => new Node(options),
+  ocaml: options => new OCaml(options),
+  php: options => new PHP(options),
+  'php-yoshi': options => new PHPYoshi(options),
+  python: options => new Python(options),
+  rust: options => new Rust(options),
+  simple: options => new Simple(options),
+  'terraform-module': options => new TerraformModule(options),
+  helm: options => new Helm(options),
+  elixir: options => new Elixir(options),
+  dart: options => new Dart(options),
 };
-type IsReleasePRCmd = {
-  command: ReleasePRCommand;
-  options: ReleasePRFactoryOptions;
-};
-type IsGitHubReleaseCmd = {
-  command: GitHubReleaseCommand;
-  options: GitHubReleaseFactoryOptions;
-};
 
-// shorthand aliases for instance/method call return types
-export type ManifestCallResult = Promise<
-  number | undefined | ManifestGitHubReleaseResult
->;
-export type ReleasePRCallResult = Promise<number | GitHubTag | undefined>;
-export type GitHubReleaseCallResult = Promise<
-  GitHubReleaseResponse | undefined
->;
-export type CallResult =
-  | ManifestCallResult
-  | ReleasePRCallResult
-  | GitHubReleaseCallResult;
-
-function isManifestCmd(
-  cmdOpts: IsManifestCmd | IsReleasePRCmd | IsGitHubReleaseCmd
-): cmdOpts is IsManifestCmd {
-  const {command, options} = cmdOpts;
-  return (
-    (command === 'manifest-pr' || command === 'manifest-release') &&
-    typeof options === 'object'
-  );
+export function getReleaserTypes(): readonly ReleaseType[] {
+  return allReleaseTypes;
 }
 
-function isGitHubReleaseCmd(
-  cmdOpts: IsManifestCmd | IsReleasePRCmd | IsGitHubReleaseCmd
-): cmdOpts is IsGitHubReleaseCmd {
-  const {command, options} = cmdOpts;
-  return command === 'github-release' && typeof options === 'object';
+export function getVersioningStrategyTypes(): readonly VersioningStrategyType[] {
+  return allVersioningTypes;
 }
 
-function isReleasePRCmd(
-  cmdOpts: IsManifestCmd | IsReleasePRCmd | IsGitHubReleaseCmd
-): cmdOpts is IsReleasePRCmd {
-  const {command, options} = cmdOpts;
-  return (
-    (command === 'release-pr' || command === 'latest-tag') &&
-    typeof options === 'object'
-  );
+export interface StrategyFactoryOptions extends ReleaserConfig {
+  github: GitHub;
+  path?: string;
+  targetBranch?: string;
 }
 
-function runCommand(
-  command: ManifestCommand,
-  options: ManifestFactoryOptions
-): ManifestCallResult;
-function runCommand(
-  command: ReleasePRCommand,
-  options: ReleasePRFactoryOptions
-): ReleasePRCallResult;
-function runCommand(
-  command: GitHubReleaseCommand,
-  options: GitHubReleaseFactoryOptions
-): GitHubReleaseCallResult;
-function runCommand(
-  command: Command,
-  options:
-    | ManifestFactoryOptions
-    | GitHubReleaseFactoryOptions
-    | ReleasePRFactoryOptions
-): CallResult {
-  const errMsg = `Invalid command(${command}) with options(${JSON.stringify(
-    options
-  )})`;
-  let result: CallResult;
-  const cmdOpts = {command, options};
-  if (isManifestCmd(cmdOpts)) {
-    const m = manifest(cmdOpts.options);
-    if (cmdOpts.command === 'manifest-pr') {
-      result = factory.call(m, 'pullRequest');
-    } else if (cmdOpts.command === 'manifest-release') {
-      result = factory.call(m, 'githubRelease');
-    } else {
-      throw new Error(errMsg);
+export async function buildStrategy(
+  options: StrategyFactoryOptions
+): Promise<Strategy> {
+  const targetBranch =
+    options.targetBranch ?? options.github.repository.defaultBranch;
+  const versioningStrategy = buildVersioningStrategy({
+    type: options.versioning,
+    bumpMinorPreMajor: options.bumpMinorPreMajor,
+    bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
+  });
+  const strategyOptions = {
+    github: options.github,
+    targetBranch,
+    path: options.path,
+    bumpMinorPreMajor: options.bumpMinorPreMajor,
+    bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
+    component: options.component,
+    packageName: options.packageName,
+    changelogPath: options.changelogPath,
+    changelogSections: options.changelogSections,
+    versioningStrategy,
+    skipGitHubRelease: options.skipGithubRelease,
+    releaseAs: options.releaseAs,
+  };
+  switch (options.releaseType) {
+    case 'ruby': {
+      return new Ruby({
+        ...strategyOptions,
+        versionFile: options.versionFile,
+      });
     }
-  } else if (isGitHubReleaseCmd(cmdOpts)) {
-    result = factory.call(githubRelease(cmdOpts.options), 'run');
-  } else if (isReleasePRCmd(cmdOpts)) {
-    const releasePr = releasePR(cmdOpts.options);
-    if (cmdOpts.command === 'release-pr') {
-      result = factory.call(releasePr, 'run');
-    } else if (cmdOpts.command === 'latest-tag') {
-      result = factory.call(releasePr, 'latestTag');
-    } else {
-      throw new Error(errMsg);
+    case 'ruby-yoshi': {
+      return new RubyYoshi({
+        ...strategyOptions,
+        versionFile: options.versionFile,
+      });
     }
-  } else {
-    throw new Error(errMsg);
+    case 'java-yoshi': {
+      return new JavaYoshi({
+        ...strategyOptions,
+        extraFiles: options.extraFiles,
+      });
+    }
+    case 'java-backport': {
+      return new JavaYoshi({
+        ...strategyOptions,
+        extraFiles: options.extraFiles,
+        versioningStrategy: new AlwaysBumpPatch(),
+      });
+    }
+    case 'java-bom': {
+      return new JavaYoshi({
+        ...strategyOptions,
+        extraFiles: options.extraFiles,
+        versioningStrategy: new DependencyManifest({
+          bumpMinorPreMajor: options.bumpMinorPreMajor,
+          bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
+        }),
+      });
+    }
+    case 'java-lts': {
+      return new JavaYoshi({
+        ...strategyOptions,
+        extraFiles: options.extraFiles,
+        versioningStrategy: new ServicePackVersioningStrategy(),
+      });
+    }
+    default: {
+      const builder = releasers[options.releaseType];
+      if (builder) {
+        return builder(strategyOptions);
+      }
+      throw new Error(`Unknown release type: ${options.releaseType}`);
+    }
   }
-  return result;
 }
 
-function call(instance: Manifest, method: ManifestMethod): ManifestCallResult;
-function call(
-  instance: ReleasePR,
-  method: ReleasePRMethod
-): ReleasePRCallResult;
-function call(
-  instance: GitHubRelease,
-  method: GitHubReleaseMethod
-): GitHubReleaseCallResult;
-function call(
-  instance: Manifest | ReleasePR | GitHubRelease,
-  method: Method
-): CallResult {
-  if (!(method in instance)) {
-    throw new Error(
-      `No such method(${method}) on ${instance.constructor.name}`
-    );
+const allVersioningTypes = [
+  'default',
+  'always-bump-patch',
+  'service-pack',
+] as const;
+export type VersioningStrategyType = typeof allVersioningTypes[number];
+interface VersioningStrategyFactoryOptions {
+  type?: VersioningStrategyType;
+  bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
+}
+function buildVersioningStrategy(
+  options: VersioningStrategyFactoryOptions
+): VersioningStrategy {
+  switch (options.type) {
+    case 'always-bump-patch':
+      return new AlwaysBumpPatch(options);
+    case 'service-pack':
+      return new ServicePackVersioningStrategy(options);
+    default:
+      return new DefaultVersioningStrategy(options);
   }
-  let result: CallResult;
-  if (instance instanceof Manifest) {
-    result = instance[method as ManifestMethod]();
-  } else if (instance instanceof ReleasePR) {
-    result = instance[method as ReleasePRMethod]();
-  } else if (instance instanceof GitHubRelease) {
-    result = instance[method as GitHubReleaseMethod]();
-  } else {
-    throw new Error('Unknown instance.');
+}
+
+interface PluginFactoryOptions {
+  type: PluginType;
+  github: GitHub;
+  targetBranch: string;
+  repositoryConfig: RepositoryConfig;
+
+  // node options
+  alwaysLinkLocal?: boolean;
+
+  // workspace options
+  updateAllPackages?: boolean;
+}
+
+export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
+  switch (options.type) {
+    case 'cargo-workspace':
+      return new CargoWorkspace(
+        options.github,
+        options.targetBranch,
+        options.repositoryConfig,
+        options
+      );
+    case 'node-workspace':
+      return new NodeWorkspace(
+        options.github,
+        options.targetBranch,
+        options.repositoryConfig,
+        options
+      );
+    default:
+      throw new Error(`Unknown plugin type: ${options.type}`);
   }
-  return result;
 }
-
-function getLabels(label?: string): string[] {
-  return label ? label.split(',') : DEFAULT_LABELS;
-}
-
-function getGitHubFactoryOpts(
-  options: GitHubReleaseFactoryOptions
-): [GitHubFactoryOptions, Partial<GitHubReleaseFactoryOptions>];
-function getGitHubFactoryOpts(
-  options: ReleasePRFactoryOptions
-): [GitHubFactoryOptions, Partial<ReleasePRFactoryOptions>];
-function getGitHubFactoryOpts(
-  options: GitHubReleaseFactoryOptions | ReleasePRFactoryOptions
-): [
-  GitHubFactoryOptions,
-  Partial<ReleasePRFactoryOptions | GitHubReleaseFactoryOptions>
-] {
-  const {
-    repoUrl,
-    defaultBranch,
-    fork,
-    token,
-    apiUrl,
-    graphqlUrl,
-    octokitAPIs,
-    ...remaining
-  } = options;
-  return [
-    {
-      repoUrl,
-      defaultBranch,
-      fork,
-      token,
-      apiUrl,
-      graphqlUrl,
-      octokitAPIs,
-    },
-    remaining,
-  ];
-}
-
-function manifest(options: ManifestFactoryOptions): Manifest {
-  const [GHFactoryOptions, ManifestFactoryOptions] =
-    getGitHubFactoryOpts(options);
-  const github = gitHubInstance(GHFactoryOptions);
-  return new Manifest({github, ...ManifestFactoryOptions});
-}
-
-function githubRelease(options: GitHubReleaseFactoryOptions): GitHubRelease {
-  const [GHFactoryOptions, GHRAndRPFactoryOptions] =
-    getGitHubFactoryOpts(options);
-  const github = gitHubInstance(GHFactoryOptions);
-  const {
-    releaseType,
-    label,
-    path,
-    packageName,
-    bumpMinorPreMajor,
-    releaseAs,
-    snapshot,
-    monorepoTags,
-    changelogSections,
-    changelogPath,
-    lastPackageVersion,
-    versionFile,
-    ...GHRFactoryOptions
-  } = GHRAndRPFactoryOptions;
-  const labels = getLabels(label);
-  const releasePR = new (releasePRClass(releaseType))({
-    github,
-    labels,
-    path,
-    packageName,
-    bumpMinorPreMajor,
-    releaseAs,
-    snapshot,
-    monorepoTags,
-    changelogSections,
-    changelogPath,
-    lastPackageVersion,
-    versionFile,
-  });
-  return new GitHubRelease({github, releasePR, ...GHRFactoryOptions});
-}
-
-function releasePR(options: ReleasePRFactoryOptions): ReleasePR {
-  const [GHFactoryOptions, RPFactoryOptions] = getGitHubFactoryOpts(options);
-  const github = gitHubInstance(GHFactoryOptions);
-
-  const {
-    releaseType,
-    label,
-    latestTagName,
-    latestTagSha,
-    latestTagVersion,
-    ...RPConstructorOptions
-  } = RPFactoryOptions;
-  let latestTag: GitHubTag | undefined = undefined;
-  if (latestTagName && latestTagSha && latestTagVersion) {
-    latestTag = {
-      name: latestTagName,
-      sha: latestTagSha,
-      version: latestTagVersion,
-    };
-  }
-  const labels = getLabels(label);
-  return new (factory.releasePRClass(releaseType))({
-    github,
-    labels,
-    latestTag,
-    ...RPConstructorOptions,
-  });
-}
-
-function gitHubInstance(options: GitHubFactoryOptions) {
-  const {repoUrl, ...remaining} = options;
-  const [owner, repo] = parseGithubRepoUrl(repoUrl);
-  return new GitHub({
-    owner,
-    repo,
-    ...remaining,
-  });
-}
-
-function releasePRClass(releaseType?: ReleaseType): typeof ReleasePR {
-  const releasers = getReleasers();
-  const releaser = releaseType ? releasers[releaseType] : ReleasePR;
-  return releaser;
-}
-
-export const factory = {
-  gitHubInstance,
-  githubRelease,
-  manifest,
-  releasePR,
-  releasePRClass,
-  call,
-  runCommand,
-};
