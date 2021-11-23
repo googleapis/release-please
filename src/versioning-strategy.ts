@@ -34,7 +34,7 @@ export class MajorVersionUpdate implements VersionUpdater {
 }
 
 export class MinorVersionUpdate implements VersionUpdater {
-  name = 'major';
+  name = 'minor';
   bump(version: Version): Version {
     return new Version(
       version.major,
@@ -47,7 +47,7 @@ export class MinorVersionUpdate implements VersionUpdater {
 }
 
 export class PatchVersionUpdate implements VersionUpdater {
-  name = 'major';
+  name = 'patch';
   bump(version: Version): Version {
     return new Version(
       version.major,
