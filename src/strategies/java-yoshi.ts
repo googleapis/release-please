@@ -154,13 +154,13 @@ export class JavaYoshi extends Strategy {
     if (!this.versionsContent) {
       try {
         this.versionsContent = await this.github.getFileContentsOnBranch(
-          'versions.txt',
+          this.addPath('versions.txt'),
           this.targetBranch
         );
       } catch (err) {
         if (err instanceof GitHubAPIError) {
           throw new MissingRequiredFileError(
-            'versions.txt',
+            this.addPath('versions.txt'),
             JavaYoshi.name,
             `${this.repository.owner}/${this.repository.repo}`
           );
