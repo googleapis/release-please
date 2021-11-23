@@ -365,43 +365,63 @@ export class GitHub {
     }
     const history = response.repository.ref.target.history;
     const commits = (history.nodes || []) as GraphQLCommit[];
+    const commitData: Commit[] = [];
+    for (const graphCommit of commits) {
+      const commit: Commit = {
+        sha: graphCommit.sha,
+        message: graphCommit.message,
+        files: [],
+      };
+      const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
+        return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
+      });
+      if (pullRequest) {
+        const files = pullRequest.files.nodes.map(node => node.path);
+        commit.pullRequest = {
+          sha: commit.sha,
+          number: pullRequest.number,
+          baseBranchName: pullRequest.baseRefName,
+          headBranchName: pullRequest.headRefName,
+          title: pullRequest.title,
+          body: pullRequest.body,
+          labels: pullRequest.labels.nodes.map(node => node.name),
+          files,
+        };
+        // We cannot directly fetch files on commits via graphql, only provide file
+        // information for commits with associated pull requests
+        commit.files = files;
+      } else {
+        // In this case, there is no squashed merge commit. This could be a simple
+        // merge commit, a rebase merge commit, or a direct commit to the branch.
+        // Fallback to fetching the list of commits from the REST API. In the future
+        // we can perhaps lazy load these.
+        commit.files = await this.getCommitFiles(graphCommit.sha);
+      }
+      commitData.push(commit);
+    }
     return {
       pageInfo: history.pageInfo,
-      data: commits.map(graphCommit => {
-        const commit: Commit = {
-          sha: graphCommit.sha,
-          message: graphCommit.message,
-          files: [],
-        };
-        const pullRequest = graphCommit.associatedPullRequests.nodes.find(
-          pr => {
-            return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
-          }
-        );
-        if (pullRequest) {
-          const files = pullRequest.files.nodes.map(node => node.path);
-          commit.pullRequest = {
-            sha: commit.sha,
-            number: pullRequest.number,
-            baseBranchName: pullRequest.baseRefName,
-            headBranchName: pullRequest.headRefName,
-            title: pullRequest.title,
-            body: pullRequest.body,
-            labels: pullRequest.labels.nodes.map(node => node.name),
-            files,
-          };
-          // We cannot directly fetch files on commits via graphql, only provide file
-          // information for commits with associated pull requests
-          commit.files = files;
-        } else {
-          logger.warn(
-            `No merged pull request for commit: ${graphCommit.sha} - files unavailable`
-          );
-        }
-        return commit;
-      }),
+      data: commitData,
     };
   }
+
+  /**
+   * Get the list of file paths modified in a given commit.
+   *
+   * @param {string} sha The commit SHA
+   * @returns {string[]} File paths
+   * @throws {GitHubAPIError} on an API error
+   */
+  getCommitFiles = wrapAsync(async (sha: string): Promise<string[]> => {
+    logger.debug(`Backfilling file list for commit: ${sha}`);
+    const resp = await this.octokit.repos.getCommit({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: sha,
+    });
+    const files = resp.data.files || [];
+    return files.map(file => file.filename!).filter(filename => !!filename);
+  });
 
   private graphqlRequest = wrapAsync(
     async (
