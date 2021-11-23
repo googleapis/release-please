@@ -768,7 +768,6 @@ export class Manifest {
           );
         }
         this._pathsByComponent[component] = path;
-        logger.info(this._pathsByComponent);
       }
     }
     return this._pathsByComponent;

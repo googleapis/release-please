@@ -14,12 +14,13 @@
 
 import * as nock from 'nock';
 import {expect} from 'chai';
-import {beforeEach, describe, it} from 'mocha';
+import {afterEach, beforeEach, describe, it} from 'mocha';
 nock.disableNetConnect();
 
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
+import * as sinon from 'sinon';
 
 import {GitHub, GitHubRelease} from '../src/github';
 import {PullRequest} from '../src/pull-request';
@@ -30,6 +31,7 @@ import {DuplicateReleaseError, GitHubAPIError} from '../src/errors';
 import {fail} from 'assert';
 
 const fixturesPath = './test/fixtures';
+const sandbox = sinon.createSandbox();
 
 describe('GitHub', () => {
   let github: GitHub;
@@ -55,6 +57,9 @@ describe('GitHub', () => {
 
     // This shared nock will take care of some common requests.
     req = getNock();
+  });
+  afterEach(() => {
+    sandbox.restore();
   });
 
   describe('create', () => {
@@ -287,6 +292,7 @@ describe('GitHub', () => {
 
   describe('commitsSince', () => {
     it('finds commits up until a condition', async () => {
+      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
       );
@@ -307,6 +313,7 @@ describe('GitHub', () => {
     });
 
     it('paginates through commits', async () => {
+      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql1 = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
       );
@@ -336,6 +343,7 @@ describe('GitHub', () => {
     });
 
     it('finds first commit of a multi-commit merge pull request', async () => {
+      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
       );
@@ -356,6 +364,7 @@ describe('GitHub', () => {
     });
 
     it('limits pagination', async () => {
+      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql1 = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
       );
@@ -377,6 +386,7 @@ describe('GitHub', () => {
     });
 
     it('returns empty commits if branch does not exist', async () => {
+      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql = JSON.parse(
         readFileSync(
           resolve(fixturesPath, 'commits-since-missing-branch.json'),
@@ -394,6 +404,51 @@ describe('GitHub', () => {
         }
       );
       expect(commitsSinceSha.length).to.eql(0);
+      req.done();
+    });
+
+    it('backfills commit files without pull requests', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
+        .get(
+          '/repos/fake/fake/commits/0cda26c2e7776748072ba5a24302474947b3ebbd'
+        )
+        .reply(200, {files: [{filename: 'abc'}]})
+        .get(
+          '/repos/fake/fake/commits/c6d9dfb03aa2dbe1abc329592af60713fe28586d'
+        )
+        .reply(200, {files: [{filename: 'def'}]})
+        .get(
+          '/repos/fake/fake/commits/c8f1498c92c323bfa8f5ffe84e0ade1c37e4ea6e'
+        )
+        .reply(200, {files: [{filename: 'ghi'}]});
+      const targetBranch = 'main';
+      const commitsSinceSha = await github.commitsSince(
+        targetBranch,
+        commit => {
+          // this commit is the 2nd most recent
+          return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+        }
+      );
+      expect(commitsSinceSha.length).to.eql(1);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
+  });
+
+  describe('getCommitFiles', () => {
+    it('fetches the list of files', async () => {
+      req
+        .get('/repos/fake/fake/commits/abc123')
+        .reply(200, {files: [{filename: 'abc'}]});
+      const files = await github.getCommitFiles('abc123');
+      expect(files).to.eql(['abc']);
       req.done();
     });
   });
