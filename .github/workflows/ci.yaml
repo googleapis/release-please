@@ -1,26 +1,27 @@
-on:
+'on':
   push:
     branches:
-      - main
-  pull_request:
+      - 12.x
+  pull_request: null
 name: ci
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [10, 12, 14, 15]
+        node:
+          - 12
+          - 14
+          - 15
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
       - run: node --version
-      # The first installation step ensures that all of our production
-      # dependencies work on the given Node.js version, this helps us find
-      # dependencies that don't match our engines field:
-      - run: npm install --production --engine-strict --ignore-scripts --no-package-lock
-      # Clean up the production install, before installing dev/production:
+      - run: >-
+          npm install --production --engine-strict --ignore-scripts
+          --no-package-lock
       - run: rm -rf node_modules
       - run: npm install
       - run: npm test
