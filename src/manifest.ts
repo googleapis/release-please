@@ -70,6 +70,7 @@ export interface CandidateReleasePullRequest {
 
 export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
+  draft?: boolean;
 }
 
 interface ReleaserConfigJson {
@@ -663,6 +664,7 @@ export class Manifest {
           releases.push({
             ...release,
             pullRequest,
+            draft: config.draft,
           });
         }
       }
@@ -726,7 +728,9 @@ export class Manifest {
   private async createRelease(
     release: CandidateRelease
   ): Promise<GitHubRelease> {
-    const githubRelease = await this.github.createRelease(release);
+    const githubRelease = await this.github.createRelease(release, {
+      draft: release.draft,
+    });
 
     // comment on pull request
     const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;

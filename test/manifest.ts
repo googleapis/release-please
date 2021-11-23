@@ -84,10 +84,10 @@ function mockPullRequests(
 
 function mockCreateRelease(
   github: GitHub,
-  releases: {sha: string; tagName: string}[]
+  releases: {sha: string; tagName: string; draft?: boolean}[]
 ) {
   const releaseStub = sandbox.stub(github, 'createRelease');
-  for (const {sha, tagName} of releases) {
+  for (const {sha, tagName, draft} of releases) {
     releaseStub
       .withArgs(
         sinon.match.has(
@@ -100,6 +100,7 @@ function mockCreateRelease(
         sha,
         url: 'https://path/to/release',
         notes: 'some release notes',
+        draft,
       });
   }
 }
@@ -1509,6 +1510,7 @@ describe('Manifest', () => {
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Bug Fixes'));
     });
+
     it('should handle a multiple manifest release', async () => {
       mockPullRequests(
         github,
@@ -1607,6 +1609,7 @@ describe('Manifest', () => {
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
     });
+
     it('should handle a single standalone release', async () => {
       mockPullRequests(
         github,
@@ -1738,6 +1741,52 @@ describe('Manifest', () => {
       expect(releases[2].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+    });
+
+    it('should build draft releases', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            draft: true,
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].draft).to.be.true;
     });
   });
 
@@ -2038,6 +2087,73 @@ describe('Manifest', () => {
       sinon.assert.calledOnceWithExactly(
         removeLabelsStub,
         ['some-pull-request-label'],
+        1234
+      );
+    });
+    it('should create a draft release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {sha: 'abc123', tagName: 'release-brancher-v1.3.1', draft: true},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            draft: true,
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.draft).to.be.true;
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
         1234
       );
     });

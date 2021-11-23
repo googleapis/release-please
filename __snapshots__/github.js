@@ -393,22 +393,32 @@ exports['GitHub commitsSince paginates through commits 1'] = [
   }
 ]
 
+exports['GitHub createRelease should create a draft release 1'] = {
+  "tag_name": "v1.2.3",
+  "body": "Some release notes",
+  "sha": "abc123",
+  "draft": true
+}
+
 exports['GitHub createRelease should create a release with a package prefix 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
-  "sha": "abc123"
+  "sha": "abc123",
+  "draft": false
 }
 
 exports['GitHub createRelease should raise a DuplicateReleaseError if already_exists 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
-  "sha": "abc123"
+  "sha": "abc123",
+  "draft": false
 }
 
 exports['GitHub createRelease should raise a RequestError for other validation errors 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
-  "sha": "abc123"
+  "sha": "abc123",
+  "draft": false
 }
 
 exports['GitHub findFilesByExtension returns files matching the requested pattern 1'] = [
