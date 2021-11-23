@@ -12,14 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {VersionsMap} from '../update';
-import {JavaUpdate} from './java_update';
+import {JavaUpdate} from './java-update';
+import {VersionsMap, Version} from '../../version';
+import {logger} from '../../util/logger';
 
+/**
+ * Updates a versions.txt file which contains current versions of
+ * components within a Java repo.
+ * @see https://github.com/googleapis/java-asset/blob/main/versions.txt
+ */
 export class VersionsManifest extends JavaUpdate {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
+    if (!this.versionsMap) {
+      logger.warn('missing versions map');
+      return content;
+    }
     let newContent = content;
-    this.versions!.forEach((version, packageName) => {
-      newContent = this.updateSingleVersion(newContent, packageName, version);
+    this.versionsMap.forEach((version, packageName) => {
+      newContent = this.updateSingleVersion(
+        newContent,
+        packageName,
+        version.toString()
+      );
     });
     return newContent;
   }
@@ -50,11 +69,11 @@ export class VersionsManifest extends JavaUpdate {
   }
 
   static parseVersions(content: string): VersionsMap {
-    const versions = new Map<string, string>();
+    const versions = new Map<string, Version>();
     content.split(/\r?\n/).forEach(line => {
       const match = line.match(/^([\w\-_]+):([^:]+):([^:]+)/);
       if (match) {
-        versions.set(match[1], match[2]);
+        versions.set(match[1], Version.parse(match[2]));
       }
     });
     return versions;

@@ -1,0 +1,7 @@
+{
+  "name": "@here/pkgA",
+  "version": "3.3.3",
+  "dependencies": {
+    "anotherExternal": "^4.3.1"
+  }
+}

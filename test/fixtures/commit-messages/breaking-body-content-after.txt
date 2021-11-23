@@ -1,0 +1,5 @@
+chore: upgrade to Node 7
+
+BREAKING CHANGE: we were on Node 6
+
+I should be removed

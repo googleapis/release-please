@@ -1,0 +1,7 @@
+[package]
+name = "pkgC"
+version = "3.3.3"
+
+[dependencies]
+pkgB = { version = "2.2.2", path = "../pkgB" }
+rustls = "1.0.0"

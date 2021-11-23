@@ -18,8 +18,10 @@ import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import {expect} from 'chai';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
+const FAKE_VERSION = Version.parse('1.2.3');
 
 describe('CargoToml', () => {
   describe('updateContent', () => {
@@ -29,11 +31,7 @@ describe('CargoToml', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
-        changelogEntry: '',
-        version: 'unused',
-        versions: undefined,
-        packageName: 'rust-test-repo',
+        version: FAKE_VERSION,
       });
       expect(() => {
         cargoToml.updateContent(oldContent);
@@ -47,11 +45,8 @@ describe('CargoToml', () => {
       ).replace(/\r\n/g, '\n');
       const versions = new Map();
       const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
-        changelogEntry: '',
-        version: 'unused',
-        versions,
-        packageName: 'rust-test-repo',
+        version: FAKE_VERSION,
+        versionsMap: versions,
       });
       expect(() => {
         cargoToml.updateContent(oldContent);
@@ -66,11 +61,8 @@ describe('CargoToml', () => {
       const versions = new Map();
       versions.set('rust-test-repo', '14.0.0');
       const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
-        changelogEntry: '',
-        version: 'unused',
-        versions,
-        packageName: 'rust-test-repo',
+        version: FAKE_VERSION,
+        versionsMap: versions,
       });
       const newContent = cargoToml.updateContent(oldContent);
       snapshot(newContent);
@@ -91,11 +83,8 @@ describe('CargoToml', () => {
       versions.set('x86-64-dep', '2.0.0');
       versions.set('foobar-dep', '2.0.0');
       const cargoToml = new CargoToml({
-        path: 'Cargo.toml',
-        changelogEntry: '',
-        version: 'unused',
-        versions,
-        packageName: 'rust-test-repo',
+        version: FAKE_VERSION,
+        versionsMap: versions,
       });
       const newContent = cargoToml.updateContent(oldContent);
       snapshot(newContent);

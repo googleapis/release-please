@@ -16,7 +16,8 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {ElixirMixExs} from '../../src/updaters/elixir-mix-exs';
+import {ElixirMixExs} from '../../src/updaters/elixir/elixir-mix-exs';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,7 @@ describe('Elixir', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new ElixirMixExs({
-        path: 'mix.exs',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);

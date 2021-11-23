@@ -1,0 +1,7 @@
+{
+  "name": "@here/pkgD",
+  "version": "4.4.4",
+  "dependencies": {
+    "anotherExternal": "^4.3.1"
+  }
+}

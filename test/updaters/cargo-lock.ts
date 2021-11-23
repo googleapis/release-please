@@ -19,8 +19,10 @@ import {describe, it} from 'mocha';
 import {expect} from 'chai';
 import {CargoLock} from '../../src/updaters/rust/cargo-lock';
 import {parseCargoLockfile} from '../../src/updaters/rust/common';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
+const FAKE_VERSION = Version.parse('1.2.3');
 
 describe('CargoLock', () => {
   describe('updateContent', () => {
@@ -30,11 +32,7 @@ describe('CargoLock', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const cargoLock = new CargoLock({
-        path: 'Cargo.lock',
-        changelogEntry: '',
-        version: 'unused',
-        versions: undefined,
-        packageName: 'rust-test-repo',
+        version: FAKE_VERSION,
       });
       expect(() => {
         cargoLock.updateContent(oldContent);
@@ -44,11 +42,7 @@ describe('CargoLock', () => {
     it('refuses to update something that is not a lockfile', async () => {
       const oldContent = '[woops]\nindeed = true';
       const cargoLock = new CargoLock({
-        path: 'Cargo.lock',
-        changelogEntry: '',
-        version: 'unused',
-        versions: new Map(),
-        packageName: 'rust-test-repo',
+        version: FAKE_VERSION,
       });
       expect(() => {
         cargoLock.updateContent(oldContent);
@@ -63,11 +57,8 @@ describe('CargoLock', () => {
       const versions = new Map();
       versions.set('delf', '0.2.0');
       const cargoLock = new CargoLock({
-        path: 'Cargo.lock',
-        changelogEntry: '',
-        version: 'unused',
-        versions,
-        packageName: 'delf',
+        version: FAKE_VERSION,
+        versionsMap: versions,
       });
       const newContent = cargoLock.updateContent(oldContent);
       const pkg = parseCargoLockfile(newContent).package![4];
@@ -86,11 +77,8 @@ describe('CargoLock', () => {
       const versions = new Map();
       versions.set('delf', '0.2.0');
       const cargoLock = new CargoLock({
-        path: 'Cargo.lock',
-        changelogEntry: '',
-        version: 'unused',
-        versions,
-        packageName: 'delf',
+        version: FAKE_VERSION,
+        versionsMap: versions,
       });
       const newContent = cargoLock.updateContent(oldContent);
       const pkg = parseCargoLockfile(newContent).package![0];

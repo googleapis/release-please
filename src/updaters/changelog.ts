@@ -12,25 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from './update';
-import {GitHubFileContents} from '../github';
-import {logger} from '../util/logger';
+import {DefaultUpdater, UpdateOptions} from './default';
 
-export class Changelog implements Update {
-  path: string;
+interface ChangelogOptions extends UpdateOptions {
   changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
+}
 
-  constructor(options: UpdateOptions) {
-    this.create = true;
-    this.path = options.path;
+export class Changelog extends DefaultUpdater {
+  changelogEntry: string;
+
+  constructor(options: ChangelogOptions) {
+    super(options);
     this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
   }
 
   updateContent(content: string | undefined): string {
@@ -38,11 +31,8 @@ export class Changelog implements Update {
     // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
     const lastEntryIndex = content.search(/\n###? v?[0-9[]/s);
     if (lastEntryIndex === -1) {
-      logger.warn(`${this.path} not found`);
-      logger.info(`creating ${this.path}`);
       return `${this.header()}\n${this.changelogEntry}\n`;
     } else {
-      logger.info(`updating ${this.path}`);
       const before = content.slice(0, lastEntryIndex);
       const after = content.slice(lastEntryIndex);
       return `${before}\n${this.changelogEntry}\n${after}`.trim() + '\n';

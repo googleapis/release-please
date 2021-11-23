@@ -1,0 +1,6 @@
+[package]
+name = "pkgD"
+version = "1.2.3"
+
+[dependencies]
+tracing = "1.0.0"

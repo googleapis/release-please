@@ -16,7 +16,8 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {JavaUpdate} from '../../src/updaters/java/java_update';
+import {JavaUpdate} from '../../src/updaters/java/java-update';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -27,14 +28,11 @@ describe('JavaUpdate', () => {
         resolve(fixturesPath, './pom-java-lts-snapshot.xml'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const versions = new Map<string, string>();
-      versions.set('google-auth-library-parent', 'v0.16.2-sp.1');
+      const versions = new Map<string, Version>();
+      versions.set('google-auth-library-parent', Version.parse('v0.16.2-sp.1'));
       const pom = new JavaUpdate({
-        path: 'pom.xml',
-        changelogEntry: '',
-        versions,
-        version: 'unused',
-        packageName: 'unused',
+        versionsMap: versions,
+        version: Version.parse('v0.16.2-sp.1'),
       });
       const newContent = pom.updateContent(oldContent);
       snapshot(newContent);

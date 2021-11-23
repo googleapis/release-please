@@ -1,0 +1,17 @@
+meta: multiple commits.
+
+Details.
+
+Some clarifying facts.
+
+fix: fixes bug #733
+feat(recaptchaenterprise): migrate microgenerator
+  Committer: @miraleung
+  PiperOrigin-RevId: 345559154
+  BREAKING-CHANGE: for some reason this migration is breaking.
+  Source-Link: googleapis/googleapis@5e0dcb2
+
+fix(securitycenter): fixes security center.
+  Committer: @miraleung
+  PiperOrigin-RevId: 345559182
+  Source-Link: googleapis/googleapis@e5eef86

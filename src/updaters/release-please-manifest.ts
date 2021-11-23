@@ -12,30 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from './update';
-import {GitHubFileContents} from '../github';
 import {jsonStringify} from '../util/json-stringify';
+import {DefaultUpdater} from './default';
 
-export class ReleasePleaseManifest implements Update {
-  path: string;
-  changelogEntry = '';
-  version = '';
-  versions?: VersionsMap;
-  packageName = '';
-  create = false;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.path = options.path;
-    this.versions = options.versions;
-    this.contents = options.contents;
-  }
-
+export class ReleasePleaseManifest extends DefaultUpdater {
   updateContent(content: string): string {
-    const parsed: Record<string, string> = JSON.parse(content);
-    for (const [path, version] of this.versions!) {
-      parsed[path] = version;
+    const parsed: Record<string, string> = content ? JSON.parse(content) : {};
+    for (const [path, version] of this.versionsMap!) {
+      parsed[path] = version.toString();
     }
-    return jsonStringify(parsed, content, Object.keys(parsed).sort());
+    if (content) {
+      return jsonStringify(parsed, content);
+    } else {
+      return JSON.stringify(parsed, null, 2);
+    }
   }
 }
