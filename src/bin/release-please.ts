@@ -17,7 +17,7 @@
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
 import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
-import {Manifest, ManifestOptions} from '../manifest';
+import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection} from '../release-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
 import {
@@ -26,6 +26,7 @@ import {
   VersioningStrategyType,
   getVersioningStrategyTypes,
 } from '../factory';
+import {Bootstrapper} from '../bootstrapper';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -122,6 +123,15 @@ interface CreateManifestReleaseArgs
   extends GitHubArgs,
     ManifestArgs,
     ReleaseArgs {}
+interface BootstrapArgs
+  extends GitHubArgs,
+    ManifestArgs,
+    ManifestConfigArgs,
+    VersioningArgs,
+    PullRequestArgs,
+    PullRequestStrategyArgs {
+  initialVersion?: string;
+}
 
 function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
   return yargs
@@ -551,6 +561,49 @@ const createManifestReleaseCommand: yargs.CommandModule<
   },
 };
 
+const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
+  command: 'bootstrap',
+  describe: 'configure release manifest',
+  builder(yargs) {
+    return manifestOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+      .option('initial-version', {
+        description: 'current version',
+      })
+      .coerce('path', arg => {
+        return arg || ROOT_PROJECT_PATH;
+      });
+  },
+  async handler(argv) {
+    const github = await buildGitHub(argv);
+    const targetBranch =
+      argv.targetBranch ||
+      argv.defaultBranch ||
+      github.repository.defaultBranch;
+    const bootstrapper = new Bootstrapper(
+      github,
+      targetBranch,
+      argv.manifestFile,
+      argv.configFile,
+      argv.initialVersion
+    );
+    const pullRequest = await bootstrapper.bootstrap(argv.path!, {
+      releaseType: argv.releaseType!,
+      component: argv.component,
+      packageName: argv.packageName,
+      draft: argv.draft,
+      bumpMinorPreMajor: argv.bumpMinorPreMajor,
+      bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
+      changelogPath: argv.changelogPath,
+      changelogSections: argv.changelogSections,
+      releaseAs: argv.releaseAs,
+      versioning: argv.versioningStrategy,
+      extraFiles: argv.extraFiles,
+      versionFile: argv.versionFile,
+    });
+    console.log(pullRequest);
+  },
+};
+
 async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
   const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
   const github = await GitHub.create({
@@ -566,6 +619,7 @@ export const parser = yargs
   .command(createReleaseCommand)
   .command(createManifestPullRequestCommand)
   .command(createManifestReleaseCommand)
+  .command(bootstrapCommand)
   .option('debug', {
     describe: 'print verbose errors (use only for local debugging).',
     default: false,

@@ -115,7 +115,7 @@ export type PluginType = 'node-workspace' | 'cargo-workspace';
 /**
  * This is the schema of the manifest config json
  */
-interface ManifestConfig extends ReleaserConfigJson {
+export interface ManifestConfig extends ReleaserConfigJson {
   packages: Record<string, ReleaserPackageConfig>;
   'bootstrap-sha'?: string;
   'last-release-sha'?: string;
@@ -584,7 +584,7 @@ export class Manifest {
       );
       return updatedPullRequest.number;
     } else {
-      const newPullRequest = await this.github.createPullRequest(
+      const newPullRequest = await this.github.createReleasePullRequest(
         pullRequest,
         this.targetBranch,
         {

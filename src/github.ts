@@ -854,39 +854,64 @@ export class GitHub {
    * @param {GitHubPR} options The pull request options
    * @throws {GitHubAPIError} on an API error
    */
+  async createReleasePullRequest(
+    releasePullRequest: ReleasePullRequest,
+    targetBranch: string,
+    options?: {
+      signoffUser?: string;
+      fork?: boolean;
+    }
+  ): Promise<PullRequest> {
+    let message = releasePullRequest.title.toString();
+    if (options?.signoffUser) {
+      message = signoffCommitMessage(message, options.signoffUser);
+    }
+    return await this.createPullRequest(
+      {
+        headBranchName: releasePullRequest.headRefName,
+        baseBranchName: targetBranch,
+        number: -1,
+        title: releasePullRequest.title.toString(),
+        body: releasePullRequest.body.toString().slice(0, MAX_ISSUE_BODY_SIZE),
+        labels: releasePullRequest.labels,
+        files: [],
+      },
+      targetBranch,
+      message,
+      releasePullRequest.updates,
+      {
+        fork: options?.fork,
+        draft: releasePullRequest.draft,
+      }
+    );
+  }
+
   createPullRequest = wrapAsync(
     async (
-      releasePullRequest: ReleasePullRequest,
+      pullRequest: PullRequest,
       targetBranch: string,
+      message: string,
+      updates: Update[],
       options?: {
-        signoffUser?: string;
         fork?: boolean;
+        draft?: boolean;
       }
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
-      const changes = await this.getChangeSet(
-        releasePullRequest.updates,
-        targetBranch
-      );
-      let message = releasePullRequest.title.toString();
-      if (options?.signoffUser) {
-        message = signoffCommitMessage(message, options.signoffUser);
-      }
+      const changes = await this.getChangeSet(updates, targetBranch);
       const prNumber = await createPullRequest(this.octokit, changes, {
         upstreamOwner: this.repository.owner,
         upstreamRepo: this.repository.repo,
-        title: releasePullRequest.title.toString(),
-        branch: releasePullRequest.headRefName,
-        description: releasePullRequest.body
-          .toString()
-          .slice(0, MAX_ISSUE_BODY_SIZE),
+        title: pullRequest.title,
+        branch: pullRequest.headBranchName,
+        description: pullRequest.body,
         primary: targetBranch,
         force: true,
-        fork: options?.fork === false ? false : true,
+        fork: !!options?.fork,
         message,
         logger: logger,
-        draft: releasePullRequest.draft,
-        labels: releasePullRequest.labels,
+        draft: !!options?.draft,
+        labels: pullRequest.labels,
       });
       return await this.getPullRequest(prNumber);
     }

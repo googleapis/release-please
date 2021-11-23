@@ -1097,7 +1097,7 @@ describe('Manifest', () => {
           files: [],
         });
       sandbox
-        .stub(github, 'createPullRequest')
+        .stub(github, 'createReleasePullRequest')
         .withArgs(
           sinon.match.has('headRefName', 'release-please/branches/main'),
           'main'

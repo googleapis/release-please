@@ -13,14 +13,24 @@
 // limitations under the License.
 
 import {jsonStringify} from '../util/json-stringify';
-import {DefaultUpdater} from './default';
+import {Updater} from '../update';
+import {ReleaserConfig, ManifestConfig} from '../manifest';
 
-export class ReleasePleaseManifest extends DefaultUpdater {
+export class ReleasePleaseConfig implements Updater {
+  path: string;
+  config: ReleaserConfig;
+  constructor(path: string, config: ReleaserConfig) {
+    this.path = path;
+    this.config = config;
+  }
   updateContent(content: string): string {
-    const parsed: Record<string, string> = content ? JSON.parse(content) : {};
-    for (const [path, version] of this.versionsMap!) {
-      parsed[path] = version.toString();
+    let parsed: ManifestConfig;
+    if (content) {
+      parsed = JSON.parse(content);
+    } else {
+      parsed = {packages: {}};
     }
+    parsed.packages[this.path] = this.config;
     if (content) {
       return jsonStringify(parsed, content);
     } else {
