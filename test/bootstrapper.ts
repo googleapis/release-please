@@ -17,9 +17,9 @@ import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {Bootstrapper} from '../src/bootstrapper';
 import {GitHub} from '../src/github';
-import { assertHasUpdate } from './helpers';
-import { ReleasePleaseManifest } from '../src/updaters/release-please-manifest';
-import { ReleasePleaseConfig } from '../src/updaters/release-please-config';
+import {assertHasUpdate} from './helpers';
+import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
+import {ReleasePleaseConfig} from '../src/updaters/release-please-config';
 
 const sandbox = sinon.createSandbox();
 
@@ -68,7 +68,11 @@ describe('Bootstrapper', () => {
       sinon.match.any
     );
     const updates = createPullRequestStub.firstCall.args[3];
-    assertHasUpdate(updates, '.release-please-manifest.json', ReleasePleaseManifest);
+    assertHasUpdate(
+      updates,
+      '.release-please-manifest.json',
+      ReleasePleaseManifest
+    );
     assertHasUpdate(updates, 'release-please-config.json', ReleasePleaseConfig);
   });
 });

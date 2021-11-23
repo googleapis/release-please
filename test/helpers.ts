@@ -104,7 +104,11 @@ export function readPOJO(name: string): object {
 
 export function buildMockCommit(message: string, files: string[] = []): Commit {
   return {
-    sha: crypto.createHash('md5').update(message).digest('hex'),
+    // Ensure SHA is same on Windows with replace:
+    sha: crypto
+      .createHash('md5')
+      .update(message.replace(/\r\n/g, '\n'))
+      .digest('hex'),
     message,
     files: files,
   };
