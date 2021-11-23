@@ -31,7 +31,6 @@ branchProtectionRules:
     - "cla/google"
     - "docs"
     - "lint"
-    - "test (10)"
     - "test (12)"
     - "test (14)"
     - "test (15)"
