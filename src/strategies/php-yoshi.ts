@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {Strategy, BuildUpdatesOptions, StrategyOptions} from '../strategy';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
@@ -30,7 +30,6 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
 import {GitHubFileContents} from '../github';
-import {ReleaseNotes} from '../release-notes';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -59,6 +58,12 @@ interface ComponentInfo {
 }
 
 export class PHPYoshi extends Strategy {
+  constructor(options: StrategyOptions) {
+    super({
+      ...options,
+      changelogSections: CHANGELOG_SECTIONS,
+    });
+  }
   async buildReleasePullRequest(
     commits: Commit[],
     latestRelease?: Release,
@@ -80,12 +85,6 @@ export class PHPYoshi extends Strategy {
     const topLevelDirectories = Object.keys(splitCommits).sort();
     const versionsMap: VersionsMap = new Map();
     const directoryVersionContents: Record<string, ComponentInfo> = {};
-    const releaseNotes = new ReleaseNotes({
-      changelogSections: CHANGELOG_SECTIONS,
-      commitPartial: this.commitPartial,
-      headerPartial: this.headerPartial,
-      mainTemplate: this.mainTemplate,
-    });
     const component = await this.getComponent();
     const newVersionTag = new TagName(newVersion, component);
     let releaseNotesBody = `## ${newVersion.toString()}`;
@@ -109,7 +108,7 @@ export class PHPYoshi extends Strategy {
           splitCommits[directory]
         );
         versionsMap.set(composer.name, newVersion);
-        const partialReleaseNotes = await releaseNotes.buildNotes(
+        const partialReleaseNotes = await this.changelogNotes.buildNotes(
           splitCommits[directory],
           {
             owner: this.repository.owner,

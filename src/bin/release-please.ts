@@ -18,7 +18,7 @@ import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
 import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
-import {ChangelogSection} from '../release-notes';
+import {ChangelogSection} from '../changelog-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
 import {
   getReleaserTypes,

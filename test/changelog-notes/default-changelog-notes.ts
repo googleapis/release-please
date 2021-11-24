@@ -14,11 +14,15 @@
 
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
-import {ReleaseNotes} from '../src/release-notes';
-import {buildCommitFromFixture, buildMockCommit, safeSnapshot} from './helpers';
-import {parseConventionalCommits} from '../src/commit';
+import {
+  buildCommitFromFixture,
+  buildMockCommit,
+  safeSnapshot,
+} from '../helpers';
+import {DefaultChangelogNotes} from '../../src/changelog-notes/default';
+import {parseConventionalCommits} from '../../src/commit';
 
-describe('ReleaseNotes', () => {
+describe('DefaultChangelogNotes', () => {
   const commits = [
     {
       sha: 'sha1',
@@ -63,20 +67,20 @@ describe('ReleaseNotes', () => {
       currentTag: 'v1.2.3',
     };
     it('should build default release notes', async () => {
-      const releaseNotes = new ReleaseNotes();
-      const notes = await releaseNotes.buildNotes(commits, notesOptions);
+      const changelogNotes = new DefaultChangelogNotes();
+      const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });
     it('should build with custom changelog sections', async () => {
-      const releaseNotes = new ReleaseNotes({
+      const changelogNotes = new DefaultChangelogNotes({
         changelogSections: [
           {type: 'feat', section: 'Features'},
           {type: 'fix', section: 'Bug Fixes'},
           {type: 'docs', section: 'Documentation'},
         ],
       });
-      const notes = await releaseNotes.buildNotes(commits, notesOptions);
+      const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });
@@ -94,8 +98,8 @@ describe('ReleaseNotes', () => {
           breaking: true,
         },
       ];
-      const releaseNotes = new ReleaseNotes();
-      const notes = await releaseNotes.buildNotes(commits, notesOptions);
+      const changelogNotes = new DefaultChangelogNotes();
+      const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });
@@ -113,16 +117,16 @@ describe('ReleaseNotes', () => {
           breaking: true,
         },
       ];
-      const releaseNotes = new ReleaseNotes();
-      const notes = await releaseNotes.buildNotes(commits, notesOptions);
+      const changelogNotes = new DefaultChangelogNotes();
+      const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });
     describe('with commit parsing', () => {
       it('should handle a breaking change', async () => {
         const commits = [buildMockCommit('fix!: some bugfix')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -131,8 +135,8 @@ describe('ReleaseNotes', () => {
       });
       it('should parse multiple commit messages from a single commit', async () => {
         const commits = [buildCommitFromFixture('multiple-messages')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -141,8 +145,8 @@ describe('ReleaseNotes', () => {
       });
       it('should handle BREAKING CHANGE body', async () => {
         const commits = [buildCommitFromFixture('breaking-body')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -151,8 +155,8 @@ describe('ReleaseNotes', () => {
       });
       it('should handle bug links', async () => {
         const commits = [buildCommitFromFixture('bug-link')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -161,8 +165,8 @@ describe('ReleaseNotes', () => {
       });
       it('should handle git trailers', async () => {
         const commits = [buildCommitFromFixture('git-trailers-with-breaking')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -171,8 +175,8 @@ describe('ReleaseNotes', () => {
       });
       it('should handle meta commits', async () => {
         const commits = [buildCommitFromFixture('meta')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -181,8 +185,8 @@ describe('ReleaseNotes', () => {
       });
       it('should handle multi-line breaking changes', async () => {
         const commits = [buildCommitFromFixture('multi-line-breaking-body')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -193,8 +197,8 @@ describe('ReleaseNotes', () => {
         const commits = [
           buildCommitFromFixture('multi-line-breaking-body-list'),
         ];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -203,8 +207,8 @@ describe('ReleaseNotes', () => {
       });
       it('should not include content two newlines after BREAKING CHANGE', async () => {
         const commits = [buildCommitFromFixture('breaking-body-content-after')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -213,8 +217,8 @@ describe('ReleaseNotes', () => {
       });
       it('handles Release-As footers', async () => {
         const commits = [buildCommitFromFixture('release-as')];
-        const releaseNotes = new ReleaseNotes();
-        const notes = await releaseNotes.buildNotes(
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
           notesOptions
         );
@@ -223,8 +227,8 @@ describe('ReleaseNotes', () => {
       });
       // it('ignores reverted commits', async () => {
       //   const commits = [buildCommitFromFixture('multiple-messages')];
-      //   const releaseNotes = new ReleaseNotes();
-      //   const notes = await releaseNotes.buildNotes(parseConventionalCommits(commits), notesOptions);
+      //   const changelogNotes = new DefaultChangelogNotes();
+      //   const notes = await changelogNotes.buildNotes(parseConventionalCommits(commits), notesOptions);
       //   expect(notes).to.is.string;
       //   safeSnapshot(notes);
       // });

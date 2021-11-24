@@ -12,43 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ConventionalCommit} from './commit';
+import {
+  ChangelogSection,
+  ChangelogNotes,
+  BuildNotesOptions,
+} from '../changelog-notes';
+import {ConventionalCommit} from '../commit';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalChangelogWriter = require('conventional-changelog-writer');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const presetFactory = require('conventional-changelog-conventionalcommits');
+const DEFAULT_HOST = 'https://github.com';
 
-export interface ChangelogSection {
-  type: string;
-  section: string;
-  hidden?: boolean;
-}
-
-interface ReleaseNotesOptions {
+interface DefaultChangelogNotesOptions {
   changelogSections?: ChangelogSection[];
   commitPartial?: string;
   headerPartial?: string;
   mainTemplate?: string;
 }
 
-interface BuildNotesOptions {
-  host?: string;
-  owner: string;
-  repository: string;
-  version: string;
-  previousTag?: string;
-  currentTag: string;
-}
-
-export class ReleaseNotes {
+export class DefaultChangelogNotes implements ChangelogNotes {
   // allow for customized commit template.
   private changelogSections?: ChangelogSection[];
   private commitPartial?: string;
   private headerPartial?: string;
   private mainTemplate?: string;
 
-  constructor(options: ReleaseNotesOptions = {}) {
+  constructor(options: DefaultChangelogNotesOptions = {}) {
     this.changelogSections = options.changelogSections;
     this.commitPartial = options.commitPartial;
     this.headerPartial = options.headerPartial;
@@ -60,7 +51,7 @@ export class ReleaseNotes {
     options: BuildNotesOptions
   ): Promise<string> {
     const context = {
-      host: options.host || 'https://github.com',
+      host: options.host || DEFAULT_HOST,
       owner: options.owner,
       repository: options.repository,
       version: options.version,
