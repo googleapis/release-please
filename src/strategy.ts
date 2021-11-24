@@ -156,6 +156,7 @@ export abstract class Strategy {
       version: newVersion.toString(),
       previousTag: latestRelease?.tag?.toString(),
       currentTag: newVersionTag.toString(),
+      targetBranch: this.targetBranch,
     });
   }
 

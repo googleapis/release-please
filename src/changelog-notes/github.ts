@@ -12,27 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ConventionalCommit} from './commit';
+import {ChangelogNotes, BuildNotesOptions} from '../changelog-notes';
+import {ConventionalCommit} from '../commit';
+import {GitHub} from '../github';
 
-export interface BuildNotesOptions {
-  host?: string;
-  owner: string;
-  repository: string;
-  version: string;
-  previousTag?: string;
-  currentTag: string;
-  targetBranch: string;
-}
-
-export interface ChangelogNotes {
-  buildNotes(
-    commits: ConventionalCommit[],
+export class GitHubChangelogNotes implements ChangelogNotes {
+  private github: GitHub;
+  constructor(github: GitHub) {
+    this.github = github;
+  }
+  async buildNotes(
+    _commits: ConventionalCommit[],
     options: BuildNotesOptions
-  ): Promise<string>;
-}
-
-export interface ChangelogSection {
-  type: string;
-  section: string;
-  hidden?: boolean;
+  ): Promise<string> {
+    return await this.github.generateReleaseNotes(
+      options.currentTag,
+      options.targetBranch,
+      options.previousTag
+    );
+  }
 }

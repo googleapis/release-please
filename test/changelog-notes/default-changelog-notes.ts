@@ -65,6 +65,7 @@ describe('DefaultChangelogNotes', () => {
       version: '1.2.3',
       previousTag: 'v1.2.2',
       currentTag: 'v1.2.3',
+      targetBranch: 'main',
     };
     it('should build default release notes', async () => {
       const changelogNotes = new DefaultChangelogNotes();
