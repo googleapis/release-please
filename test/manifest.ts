@@ -1023,8 +1023,8 @@ describe('Manifest', () => {
         }
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([]);
-      const pullRequestNumbers = await manifest.createPullRequests();
-      expect(pullRequestNumbers).to.be.empty;
+      const pullRequests = await manifest.createPullRequests();
+      expect(pullRequests).to.be.empty;
     });
 
     it('handles a single pull request', async function () {
@@ -1085,8 +1085,8 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
-      const pullRequestNumbers = await manifest.createPullRequests();
-      expect(pullRequestNumbers).lengthOf(1);
+      const pullRequests = await manifest.createPullRequests();
+      expect(pullRequests).lengthOf(1);
     });
 
     it('handles a multiple pull requests', async () => {
@@ -1207,8 +1207,10 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
-      const pullRequestNumbers = await manifest.createPullRequests();
-      expect(pullRequestNumbers).to.eql([123, 124]);
+      const pullRequests = await manifest.createPullRequests();
+      expect(pullRequests.map(pullRequest => pullRequest!.number)).to.eql([
+        123, 124,
+      ]);
     });
 
     it('handles signoff users', async function () {

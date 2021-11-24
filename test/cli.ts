@@ -98,7 +98,17 @@ describe('CLI', () => {
         .resolves(fakeManifest);
       createPullRequestsStub = sandbox
         .stub(fakeManifest, 'createPullRequests')
-        .resolves([123]);
+        .resolves([
+          {
+            title: 'fake title',
+            body: 'fake body',
+            headBranchName: 'head-branch-name',
+            baseBranchName: 'base-branch-name',
+            number: 123,
+            files: [],
+            labels: [],
+          },
+        ]);
     });
     it('instantiates a basic Manifest', async () => {
       await await parser.parseAsync(
@@ -435,16 +445,26 @@ describe('CLI', () => {
   describe('release-pr', () => {
     describe('with manifest options', () => {
       let fromManifestStub: sinon.SinonStub;
+      let createPullRequestsStub: sinon.SinonStub;
       beforeEach(() => {
         fromManifestStub = sandbox
           .stub(Manifest, 'fromManifest')
           .resolves(fakeManifest);
+        createPullRequestsStub = sandbox
+          .stub(fakeManifest, 'createPullRequests')
+          .resolves([
+            {
+              title: 'fake title',
+              body: 'fake body',
+              headBranchName: 'head-branch-name',
+              baseBranchName: 'base-branch-name',
+              number: 123,
+              files: [],
+              labels: [],
+            },
+          ]);
       });
       it('instantiates a basic Manifest', async () => {
-        const createPullRequestsStub = sandbox
-          .stub(fakeManifest, 'createPullRequests')
-          .resolves([123]);
-
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli'
         );
@@ -465,10 +485,6 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createPullRequestsStub);
       });
       it('instantiates Manifest with custom config/manifest', async () => {
-        const createPullRequestsStub = sandbox
-          .stub(fakeManifest, 'createPullRequests')
-          .resolves([123]);
-
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
         );
@@ -490,10 +506,6 @@ describe('CLI', () => {
       });
       for (const flag of ['--target-branch', '--default-branch']) {
         it(`handles ${flag}`, async () => {
-          const createPullRequestsStub = sandbox
-            .stub(fakeManifest, 'createPullRequests')
-            .resolves([123]);
-
           await parser.parseAsync(
             `release-pr --repo-url=googleapis/release-please-cli ${flag}=1.x`
           );
@@ -548,7 +560,17 @@ describe('CLI', () => {
           .resolves(fakeManifest);
         createPullRequestsStub = sandbox
           .stub(fakeManifest, 'createPullRequests')
-          .resolves([123]);
+          .resolves([
+            {
+              title: 'fake title',
+              body: 'fake body',
+              headBranchName: 'head-branch-name',
+              baseBranchName: 'base-branch-name',
+              number: 123,
+              files: [],
+              labels: [],
+            },
+          ]);
       });
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
