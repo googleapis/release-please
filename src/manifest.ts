@@ -56,6 +56,7 @@ export interface ReleaserConfig {
   draftPullRequest?: boolean;
   component?: string;
   packageName?: string;
+  includeComponentInTag?: boolean;
 
   // Ruby-only
   versionFile?: string;
@@ -86,6 +87,7 @@ interface ReleaserConfigJson {
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
+  'include-component-in-tag'?: boolean;
 
   // Ruby-only
   'version-file'?: string;
@@ -823,6 +825,7 @@ function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
     packageName: config['package-name'],
     versionFile: config['version-file'],
     extraFiles: config['extra-files'],
+    includeComponentInTag: config['include-component-in-tag'],
   };
 }
 
