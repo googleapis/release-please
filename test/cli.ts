@@ -293,6 +293,10 @@ describe('CLI', () => {
             notes: 'some release notes',
             url: 'url-of-release',
             path: '.',
+            version: 'v1.2.3',
+            major: 1,
+            minor: 2,
+            patch: 3,
           },
         ]);
     });
@@ -928,6 +932,10 @@ describe('CLI', () => {
               notes: 'some release notes',
               url: 'url-of-release',
               path: '.',
+              version: 'v1.2.3',
+              major: 1,
+              minor: 2,
+              patch: 3,
             },
           ]);
       });
@@ -1079,6 +1087,10 @@ describe('CLI', () => {
               notes: 'some release notes',
               url: 'url-of-release',
               path: '.',
+              version: 'v1.2.3',
+              major: 1,
+              minor: 2,
+              patch: 3,
             },
           ]);
       });
