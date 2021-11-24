@@ -143,6 +143,10 @@ export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
 interface CreatedRelease extends GitHubRelease {
   path: string;
+  version: string;
+  major: number;
+  minor: number;
+  patch: number;
 }
 
 export class Manifest {
@@ -751,6 +755,10 @@ export class Manifest {
     return {
       ...githubRelease,
       path: release.path,
+      version: release.tag.version.toString(),
+      major: release.tag.version.major,
+      minor: release.tag.version.minor,
+      patch: release.tag.version.patch,
     };
   }
 
