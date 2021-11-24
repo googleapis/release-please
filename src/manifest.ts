@@ -692,7 +692,7 @@ export class Manifest {
    *
    * @returns {GitHubRelease[]} List of created GitHub releases
    */
-  async createReleases(): Promise<(GitHubRelease | undefined)[]> {
+  async createReleases(): Promise<(CreatedRelease | undefined)[]> {
     const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
     const pullRequestsByNumber: Record<number, PullRequest> = {};
     for (const release of await this.buildReleases()) {
@@ -704,7 +704,7 @@ export class Manifest {
       }
     }
 
-    const promises: Promise<GitHubRelease[]>[] = [];
+    const promises: Promise<CreatedRelease[]>[] = [];
     for (const pullNumber in releasesByPullRequest) {
       promises.push(
         this.createReleasesForPullRequest(

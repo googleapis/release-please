@@ -292,6 +292,7 @@ describe('CLI', () => {
             sha: 'abc123',
             notes: 'some release notes',
             url: 'url-of-release',
+            path: '.',
           },
         ]);
     });
@@ -926,6 +927,7 @@ describe('CLI', () => {
               sha: 'abc123',
               notes: 'some release notes',
               url: 'url-of-release',
+              path: '.',
             },
           ]);
       });
@@ -1076,6 +1078,7 @@ describe('CLI', () => {
               sha: 'abc123',
               notes: 'some release notes',
               url: 'url-of-release',
+              path: '.',
             },
           ]);
       });

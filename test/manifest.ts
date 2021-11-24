@@ -1533,6 +1533,7 @@ describe('Manifest', () => {
       expect(releases[0].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Bug Fixes'));
+      expect(releases[0].path).to.eql('.');
     });
 
     it('should handle a multiple manifest release', async () => {
@@ -1617,21 +1618,25 @@ describe('Manifest', () => {
       expect(releases[0].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[0].path).to.eql('packages/bot-config-utils');
       expect(releases[1].tag.toString()).to.eql('label-utils-v1.1.0');
       expect(releases[1].sha).to.eql('abc123');
       expect(releases[1].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].path).to.eql('packages/label-utils');
       expect(releases[2].tag.toString()).to.eql('object-selector-v1.1.0');
       expect(releases[2].sha).to.eql('abc123');
       expect(releases[2].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[2].path).to.eql('packages/object-selector');
       expect(releases[3].tag.toString()).to.eql('datastore-lock-v2.1.0');
       expect(releases[3].sha).to.eql('abc123');
       expect(releases[3].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[3].path).to.eql('packages/datastore-lock');
     });
 
     it('should handle a single standalone release', async () => {
@@ -1670,6 +1675,7 @@ describe('Manifest', () => {
       expect(releases[0].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+      expect(releases[0].path).to.eql('.');
     });
 
     it('should allow skipping releases', async () => {
@@ -1916,6 +1922,7 @@ describe('Manifest', () => {
       expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.path).to.eql('.');
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -2020,15 +2027,19 @@ describe('Manifest', () => {
       expect(releases[0]!.tagName).to.eql('bot-config-utils-v3.2.0');
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
+      expect(releases[0]!.path).to.eql('packages/bot-config-utils');
       expect(releases[1]!.tagName).to.eql('label-utils-v1.1.0');
       expect(releases[1]!.sha).to.eql('abc123');
       expect(releases[1]!.notes).to.be.string;
+      expect(releases[1]!.path).to.eql('packages/label-utils');
       expect(releases[2]!.tagName).to.eql('object-selector-v1.1.0');
       expect(releases[2]!.sha).to.eql('abc123');
       expect(releases[2]!.notes).to.be.string;
+      expect(releases[2]!.path).to.eql('packages/object-selector');
       expect(releases[3]!.tagName).to.eql('datastore-lock-v2.1.0');
       expect(releases[3]!.sha).to.eql('abc123');
       expect(releases[3]!.notes).to.be.string;
+      expect(releases[3]!.path).to.eql('packages/datastore-lock');
       sinon.assert.callCount(commentStub, 4);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -2081,6 +2092,7 @@ describe('Manifest', () => {
       expect(releases[0]!.tagName).to.eql('v3.2.7');
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
+      expect(releases[0]!.path).to.eql('.');
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
