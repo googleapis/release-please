@@ -230,6 +230,57 @@ it fails to find a package's version in the last released manifest content. It
 will only consider version info it is missing for a configured package (thus
 handling the new package bootstrap case).
 
+### Using with GitHub Actions and Lerna
+
+If you're using Release Please on a Node.js monorepo project that is also
+using [Lerna](https://github.com/lerna/lerna) you can set up a GitHub Action
+to automate the creation of release PRs. An example `release-please.yml` 
+similar to the [example for single packages](https://github.com/googleapis/release-please#automating-publication-to-npm)
+is shown below.
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+name: Run Release Please
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v2
+        id: release
+        with:
+          command: manifest
+          token: ${{secrets.GITHUB_TOKEN}}
+          default-branch: main
+
+      # The logic below handles the npm publication:
+      - name: Checkout Repository
+        if: ${{ steps.release.outputs.releases_created }}
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        if: ${{ steps.release.outputs.releases_created }}
+        with:
+          node-version: 14
+          registry-url: 'https://registry.npmjs.org'
+      - name: Build Packages
+        if: ${{ steps.release.outputs.releases_created }}
+        run: |
+          npm install
+          npx lerna bootstrap
+
+      # Release Please has already incremented versions and published tags, so we just
+      # need to publish all unpublished versions to NPM here
+      # See: https://github.com/lerna/lerna/tree/main/commands/publish#bump-from-package
+      - name: Publish to NPM
+        if: ${{ steps.release.outputs.releases_created }}
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        run: npx lerna publish from-package --no-push --no-private --yes
+```
+
 ## CLI usage
 The commands available for this mode are `manifest-pr` and `manifest-release`
 

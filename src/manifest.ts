@@ -53,6 +53,7 @@ export interface ReleaserConfig {
   releaseAs?: string;
   skipGithubRelease?: boolean;
   draft?: boolean;
+  draftPullRequest?: boolean;
   component?: string;
   packageName?: string;
 
@@ -70,6 +71,7 @@ export interface CandidateReleasePullRequest {
 
 export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
+  draft?: boolean;
 }
 
 interface ReleaserConfigJson {
@@ -80,6 +82,7 @@ interface ReleaserConfigJson {
   'release-as'?: string;
   'skip-github-release'?: boolean;
   draft?: boolean;
+  'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
 
@@ -101,7 +104,7 @@ export interface ManifestOptions {
   labels?: string[];
   releaseLabels?: string[];
   draft?: boolean;
-  releaseDraft?: boolean;
+  draftPullRequest?: boolean;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -154,6 +157,8 @@ export class Manifest {
   private manifestPath: string;
   private bootstrapSha?: string;
   private lastReleaseSha?: string;
+  private draft?: boolean;
+  private draftPullRequest?: boolean;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -203,6 +208,8 @@ export class Manifest {
     this.labels = manifestOptions?.labels || DEFAULT_LABELS;
     this.bootstrapSha = manifestOptions?.bootstrapSha;
     this.lastReleaseSha = manifestOptions?.lastReleaseSha;
+    this.draft = manifestOptions?.draft;
+    this.draftPullRequest = manifestOptions?.draftPullRequest;
   }
 
   /**
@@ -457,7 +464,7 @@ export class Manifest {
       const releasePullRequest = await strategy.buildReleasePullRequest(
         pathCommits,
         latestRelease,
-        config.draft,
+        config.draftPullRequest ?? this.draftPullRequest,
         this.labels
       );
       if (releasePullRequest) {
@@ -663,6 +670,7 @@ export class Manifest {
           releases.push({
             ...release,
             pullRequest,
+            draft: config.draft ?? this.draft,
           });
         }
       }
@@ -726,7 +734,9 @@ export class Manifest {
   private async createRelease(
     release: CandidateRelease
   ): Promise<GitHubRelease> {
-    const githubRelease = await this.github.createRelease(release);
+    const githubRelease = await this.github.createRelease(release, {
+      draft: release.draft,
+    });
 
     // comment on pull request
     const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
@@ -791,6 +801,7 @@ function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
     draft: config.draft,
+    draftPullRequest: config['draft-pull-request'],
     component: config['component'],
     packageName: config['package-name'],
     versionFile: config['version-file'],

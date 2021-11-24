@@ -782,9 +782,9 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createPullRequestsStub);
       });
 
-      it('handles --draft', async () => {
+      it('handles --draft-pull-request', async () => {
         await parser.parseAsync(
-          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --draft'
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --draft-pull-request'
         );
 
         sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
@@ -796,8 +796,8 @@ describe('CLI', () => {
           fromConfigStub,
           fakeGitHub,
           'main',
-          sinon.match({releaseType: 'java-yoshi'}),
-          sinon.match({draft: true}),
+          sinon.match({releaseType: 'java-yoshi', draftPullRequest: true}),
+          sinon.match.any,
           undefined
         );
         sinon.assert.calledOnce(createPullRequestsStub);
@@ -1115,7 +1115,7 @@ describe('CLI', () => {
           fakeGitHub,
           'main',
           sinon.match({releaseType: 'java-yoshi', draft: true}),
-          sinon.match({draft: true}),
+          sinon.match.any,
           undefined
         );
         sinon.assert.calledOnce(createReleasesStub);

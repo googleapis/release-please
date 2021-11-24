@@ -494,7 +494,7 @@ describe('GitHub', () => {
       expect(release).to.not.be.undefined;
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
-      // expect(release!.draft).to.be.false; // FIXME
+      expect(release.draft).to.be.false;
     });
 
     it('should raise a DuplicateReleaseError if already_exists', async () => {
@@ -556,6 +556,35 @@ describe('GitHub', () => {
           !!error.cause
         );
       });
+    });
+
+    it('should create a draft release', async () => {
+      req
+        .post('/repos/fake/fake/releases', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(200, {
+          tag_name: 'v1.2.3',
+          draft: true,
+          html_url: 'https://github.com/fake/fake/releases/v1.2.3',
+          upload_url:
+            'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
+          target_commitish: 'abc123',
+        });
+      const release = await github.createRelease(
+        {
+          tag: new TagName(Version.parse('1.2.3')),
+          sha: 'abc123',
+          notes: 'Some release notes',
+        },
+        {draft: true}
+      );
+      req.done();
+      expect(release).to.not.be.undefined;
+      expect(release.tagName).to.eql('v1.2.3');
+      expect(release.sha).to.eql('abc123');
+      expect(release.draft).to.be.true;
     });
   });
 
