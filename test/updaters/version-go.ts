@@ -16,8 +16,8 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import { VersionGo } from '../../src/updaters/go/version-go';
-import { Version } from '../../src/version';
+import {VersionGo} from '../../src/updaters/go/version-go';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures/go';
 
