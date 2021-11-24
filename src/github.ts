@@ -108,6 +108,7 @@ interface GraphQLRelease {
   };
   url: string;
   description: string;
+  isDraft: boolean;
 }
 
 interface CommitHistory {
@@ -140,6 +141,7 @@ export interface GitHubRelease {
   sha: string;
   notes?: string;
   url: string;
+  draft?: boolean;
 }
 
 export class GitHub {
@@ -608,6 +610,7 @@ export class GitHub {
               }
               url
               description
+              isDraft
             }
             pageInfo {
               endCursor
@@ -641,40 +644,11 @@ export class GitHub {
             sha: release.tagCommit.oid,
             notes: release.description,
             url: release.url,
+            draft: release.isDraft,
           };
         }),
     };
   }
-
-  /**
-   * Return a list of tags. The list is not guaranteed to be sorted.
-   *
-   * @param {number} page - Page of results. Defaults to 1.
-   * @param {number} perPage - Number of results per page. Defaults to 100.
-   * @returns {GitHubRelease[]} - List of tags
-   * @throws {GitHubAPIError} on an API error
-   */
-  private listReleases = wrapAsync(
-    async (page = 1, perPage = 100): Promise<GitHubRelease[]> => {
-      logger.debug(`Fetching releases page ${page}`);
-      const releases = await this.octokit.repos.listReleases({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        page,
-        per_page: perPage,
-      });
-
-      return releases.data.map(release => {
-        return {
-          name: release.name || undefined,
-          tagName: release.tag_name,
-          sha: release.target_commitish,
-          notes: release.body_text,
-          url: release.html_url,
-        };
-      });
-    }
-  );
 
   /**
    * Fetch the contents of a file from the configured branch
@@ -1165,13 +1139,17 @@ export class GitHub {
    * @throws {GitHubAPIError} on other API errors
    */
   createRelease = wrapAsync(
-    async (release: Release): Promise<GitHubRelease> => {
+    async (
+      release: Release,
+      options: {draft?: boolean} = {}
+    ): Promise<GitHubRelease> => {
       const resp = await this.octokit.repos.createRelease({
         owner: this.repository.owner,
         repo: this.repository.repo,
         tag_name: release.tag.toString(),
         body: release.notes,
         sha: release.sha,
+        draft: !!options.draft,
       });
       return {
         name: resp.data.name || undefined,
@@ -1179,6 +1157,7 @@ export class GitHub {
         sha: resp.data.target_commitish,
         notes: resp.data.body_text,
         url: resp.data.html_url,
+        draft: resp.data.draft,
       };
     },
     e => {

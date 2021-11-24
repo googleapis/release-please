@@ -84,7 +84,7 @@ interface ReleaseArgs {
 }
 
 interface PullRequestArgs {
-  draft?: boolean;
+  draftPullRequest?: boolean;
   label?: string;
   signoff?: string;
 }
@@ -129,7 +129,8 @@ interface BootstrapArgs
     ManifestConfigArgs,
     VersioningArgs,
     PullRequestArgs,
-    PullRequestStrategyArgs {
+    PullRequestStrategyArgs,
+    ReleaseArgs {
   initialVersion?: string;
 }
 
@@ -207,7 +208,7 @@ function pullRequestOptions(yargs: yargs.Argv): yargs.Argv {
       type: 'boolean',
       default: false,
     })
-    .option('draft', {
+    .option('draft-pull-request', {
       describe: 'mark pull request as a draft',
       type: 'boolean',
       default: false,
@@ -374,7 +375,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           releaseType: argv.releaseType,
           component: argv.component,
           packageName: argv.packageName,
-          draft: argv.draft,
+          draftPullRequest: argv.draftPullRequest,
           bumpMinorPreMajor: argv.bumpMinorPreMajor,
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
           changelogPath: argv.changelogPath,
@@ -565,7 +566,9 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
   command: 'bootstrap',
   describe: 'configure release manifest',
   builder(yargs) {
-    return manifestOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+    return manifestOptions(
+      releaseOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+    )
       .option('initial-version', {
         description: 'current version',
       })
@@ -591,6 +594,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       component: argv.component,
       packageName: argv.packageName,
       draft: argv.draft,
+      draftPullRequest: argv.draftPullRequest,
       bumpMinorPreMajor: argv.bumpMinorPreMajor,
       bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
       changelogPath: argv.changelogPath,
@@ -648,7 +652,7 @@ interface HandleError {
 }
 
 function extractManifestOptions(
-  argv: (GitHubArgs & PullRequestArgs) | ReleaseArgs
+  argv: GitHubArgs & (PullRequestArgs | ReleaseArgs)
 ): ManifestOptions {
   const manifestOptions: ManifestOptions = {};
   if ('fork' in argv && argv.fork !== undefined) {
@@ -665,6 +669,9 @@ function extractManifestOptions(
   }
   if ('draft' in argv && argv.draft !== undefined) {
     manifestOptions.draft = argv.draft;
+  }
+  if ('draftPullRequest' in argv && argv.draftPullRequest !== undefined) {
+    manifestOptions.draftPullRequest = argv.draftPullRequest;
   }
   return manifestOptions;
 }
