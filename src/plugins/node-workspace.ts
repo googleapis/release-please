@@ -12,20 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as semver from 'semver';
-import cu = require('@lerna/collect-updates');
+import {PackageGraph} from '@lerna/package-graph';
 import {Package as LernaPackage, PackageJson} from '@lerna/package';
-import {PackageGraph, PackageGraphNode} from '@lerna/package-graph';
-import {runTopologically} from '@lerna/run-topologically';
-import {ManifestPlugin} from './plugin';
-import {ManifestPackageWithPRData, ManifestPackage} from '..';
-import {VersionsMap} from '../updaters/update';
+import {GitHub} from '../github';
+import {logger} from '../util/logger';
+import {
+  CandidateReleasePullRequest,
+  RepositoryConfig,
+  ROOT_PROJECT_PATH,
+} from '../manifest';
+import {Version, VersionsMap} from '../version';
+import {RawContent} from '../updaters/raw-content';
+import {PullRequestTitle} from '../util/pull-request-title';
+import {PullRequestBody} from '../util/pull-request-body';
+import {ReleasePullRequest} from '../release-pull-request';
+import {BranchName} from '../util/branch-name';
 import {jsonStringify} from '../util/json-stringify';
-import {CheckpointType} from '../util/checkpoint';
-import {RELEASE_PLEASE} from '../constants';
-import {Changes} from 'code-suggester';
-import {ConventionalCommits} from '../conventional-commits';
 import {Changelog} from '../updaters/changelog';
+import {
+  WorkspacePlugin,
+  DependencyGraph,
+  DependencyNode,
+  WorkspacePluginOptions,
+} from './workspace';
 
 class Package extends LernaPackage {
   constructor(
@@ -41,421 +50,351 @@ class Package extends LernaPackage {
   }
 }
 
-export default class NodeWorkspaceDependencyUpdates extends ManifestPlugin {
-  // package.json contents already updated by the node releasers.
-  private filterPackages(
-    pkgsWithPRData: ManifestPackageWithPRData[]
-  ): Map<string, string> {
-    const pathPkgs = new Map<string, string>();
-    for (const pkg of pkgsWithPRData) {
-      if (pkg.config.releaseType === 'node' && pkg.config.path !== '.') {
-        for (const [path, fileData] of pkg.prData.changes) {
-          if (path === `${pkg.config.path}/package.json`) {
-            this.log(`found ${path} in changes`, CheckpointType.Success);
-            pathPkgs.set(path, fileData.content!);
-          }
-        }
-      }
-    }
-    return pathPkgs;
-  }
+interface NodeWorkspaceOptions extends WorkspacePluginOptions {
+  alwaysLinkLocal?: boolean;
+}
 
-  // all packages' package.json content - both updated by this run as well as
-  // those that did not update (no user facing commits).
-  private async getAllWorkspacePackages(
-    rpUpdatedPkgs: Map<string, string>
-  ): Promise<Map<string, Package>> {
-    const nodePkgs = new Map<string, Package>();
-    for (const pkg of this.config.parsedPackages) {
-      if (pkg.releaseType !== 'node' || pkg.path === '.') {
+/**
+ * The plugin analyzed a cargo workspace and will bump dependencies
+ * of managed packages if those dependencies are being updated.
+ *
+ * If multiple node packages are being updated, it will merge them
+ * into a single node package.
+ */
+export class NodeWorkspace extends WorkspacePlugin<Package> {
+  private alwaysLinkLocal: boolean;
+  private packageGraph?: PackageGraph;
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    options: NodeWorkspaceOptions = {}
+  ) {
+    super(github, targetBranch, repositoryConfig, options);
+    this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
+  }
+  protected async buildAllPackages(
+    candidates: CandidateReleasePullRequest[]
+  ): Promise<{
+    allPackages: Package[];
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>;
+  }> {
+    const candidatesByPath = new Map<string, CandidateReleasePullRequest>();
+    for (const candidate of candidates) {
+      candidatesByPath.set(candidate.path, candidate);
+    }
+    const candidatesByPackage: Record<string, CandidateReleasePullRequest> = {};
+
+    const packagesByPath = new Map<string, Package>();
+    for (const path in this.repositoryConfig) {
+      const config = this.repositoryConfig[path];
+      if (config.releaseType !== 'node') {
         continue;
       }
-      const path = `${pkg.path}/package.json`;
-      let contents: string;
-      const alreadyUpdated = rpUpdatedPkgs.get(path);
-      if (alreadyUpdated) {
-        contents = alreadyUpdated;
-      } else {
-        const {parsedContent} = await this.gh.getFileContents(path);
-        contents = parsedContent;
-      }
-      this.log(
-        `loaded ${path} from ${alreadyUpdated ? 'existing changes' : 'github'}`,
-        CheckpointType.Success
-      );
-      nodePkgs.set(path, new Package(contents, path));
-    }
-    return nodePkgs;
-  }
-
-  private async runLernaVersion(
-    rpUpdatedPkgs: Map<string, string>,
-    allPkgs: Map<string, Package>
-  ): Promise<Map<string, Package>> {
-    // Build the graph of all the packages: similar to https://git.io/Jqf1v
-    const packageGraph = new PackageGraph(
-      // use pkg.clone() which does a shallow copy of the internal data storage
-      // so we can preserve the original allPkgs for version diffing later.
-      [...allPkgs.values()].map(pkg => pkg.clone()),
-      'allDependencies',
-      this.config['always-link-local'] ?? true
-    );
-
-    // release-please already did the work of @lerna/collectUpdates (identifying
-    // which packages need version bumps based on conventional commits). We use
-    // that as our `isCandidate` callback in @lerna/collectUpdates.collectPackages.
-    // similar to https://git.io/JqUOB
-    // `collectPackages` includes "localDependents" of our release-please updated
-    // packages as they need to be patch bumped.
-    const isCandidate = (node: PackageGraphNode) =>
-      rpUpdatedPkgs.has(node.location);
-    const updatesWithDependents = cu.collectPackages(packageGraph, {
-      isCandidate,
-      onInclude: name =>
-        this.log(
-          `${name} collected for update (dependency-only = ${!isCandidate(
-            packageGraph.get(name)
-          )})`,
-          CheckpointType.Success
-        ),
-      excludeDependents: false,
-    });
-
-    // our implementation of producing a Map<pkgName, newVersion> similar to
-    // `this.updatesVersions` which is used to set updated package
-    // (https://git.io/JqfD7) and dependency (https://git.io/JqU3q) versions
-    //
-    // `lerna version` accomplishes this with:
-    // `getVersionsForUpdates` (https://git.io/JqfyI)
-    //   -> `getVersion` + `reduceVersions` (https://git.io/JqfDI)
-    const updatesVersions = new Map();
-    const invalidVersions = new Set();
-    for (const node of updatesWithDependents) {
-      let version: string;
-      let source: string;
-      if (rpUpdatedPkgs.has(node.location)) {
-        version = node.version;
-        source = RELEASE_PLEASE;
-      } else {
-        // must be a dependent, check for releaseAs config otherwise default
-        // to a patch bump.
-        const pkgConfig = this.config.parsedPackages.find(p => {
-          const pkgPath = `${p.path}/package.json`;
-          const match = pkgPath === node.location;
-          this.log(
-            `Checking node "${node.location}" against parsed package "${pkgPath}"`,
-            match ? CheckpointType.Success : CheckpointType.Failure
+      const candidate = candidatesByPath.get(path);
+      if (candidate) {
+        logger.debug(
+          `Found candidate pull request for path: ${candidate.path}`
+        );
+        const packagePath = addPath(candidate.path, 'package.json');
+        const packageUpdate = candidate.pullRequest.updates.find(
+          update => update.path === packagePath
+        );
+        if (packageUpdate?.cachedFileContents) {
+          const pkg = new Package(
+            packageUpdate.cachedFileContents.parsedContent,
+            candidate.path
           );
-          return match;
-        });
-        if (!pkgConfig) {
-          this.log(
-            `No pkgConfig found for ${node.location}`,
-            CheckpointType.Failure
-          );
-        } else if (!pkgConfig.releaseAs) {
-          this.log(
-            `No pkgConfig.releaseAs for ${node.location}`,
-            CheckpointType.Failure
-          );
-        }
-        if (pkgConfig?.releaseAs) {
-          version = pkgConfig.releaseAs;
-          source = 'release-as configuration';
+          packagesByPath.set(candidate.path, pkg);
+          candidatesByPackage[pkg.name] = candidate;
         } else {
-          const patch = semver.inc(node.version, 'patch');
-          if (patch === null) {
-            this.log(
-              `Don't know how to patch ${node.name}'s version(${node.version})`,
-              CheckpointType.Failure
-            );
-            invalidVersions.add(node.name);
-            version = node.version;
-            source = 'failed to patch bump';
-          } else {
-            version = patch;
-            source = 'dependency bump';
-          }
-        }
-      }
-      this.log(
-        `setting ${node.location} to ${version} from ${source}`,
-        CheckpointType.Success
-      );
-      updatesVersions.set(node.name, version);
-    }
-
-    // our implementation of a subset of `updatePackageVersions` to produce a
-    // callback for updating versions and dependencies (https://git.io/Jqfyu)
-    const runner = async (pkg: LernaPackage): Promise<LernaPackage> => {
-      pkg.set('version', updatesVersions.get(pkg.name));
-      const graphPkg = packageGraph.get(pkg.name);
-      for (const [depName, resolved] of graphPkg.localDependencies) {
-        const depVersion = updatesVersions.get(depName);
-        if (depVersion && resolved.type !== 'directory') {
-          pkg.updateLocalDependency(resolved, depVersion, '^');
-          this.log(
-            `${pkg.name}.${depName} updated to ^${depVersion}`,
-            CheckpointType.Success
+          const contents = await this.github.getFileContentsOnBranch(
+            packagePath,
+            this.targetBranch
           );
+          const pkg = new Package(contents.parsedContent, candidate.path);
+          packagesByPath.set(candidate.path, pkg);
+          candidatesByPackage[pkg.name] = candidate;
         }
-      }
-      return pkg;
-    };
-
-    // https://git.io/Jqfyp
-    const allUpdated = (await runTopologically(
-      updatesWithDependents.map(node => node.pkg),
-      runner,
-      {
-        graphType: 'allDependencies',
-        concurrency: 1,
-        rejectCycles: false,
-      }
-    )) as Package[];
-
-    return new Map(allUpdated.map(p => [p.location, p]));
-  }
-
-  private async updatePkgsWithPRData(
-    pkgsWithPRData: ManifestPackageWithPRData[],
-    newManifestVersions: VersionsMap,
-    allUpdated: Map<string, Package>,
-    allOrigPkgs: Map<string, Package>
-  ) {
-    // already had version bumped by release-please, may have also had
-    // dependency version bumps as well
-    for (const data of pkgsWithPRData) {
-      if (data.config.releaseType !== 'node' || data.config.path === '.') {
-        continue;
-      }
-      const filePath = `${data.config.path}/package.json`;
-      const updated = allUpdated.get(filePath)!; // bug if not defined
-      data.prData.changes.set(filePath, {
-        content: jsonStringify(updated.toJSON(), updated.rawContent),
-        mode: '100644',
-      });
-      await this.setChangelogEntry(
-        data.config,
-        data.prData.changes,
-        updated,
-        allOrigPkgs.get(filePath)!.toJSON() // bug if undefined.
-      );
-      allUpdated.delete(filePath);
-    }
-
-    // non-release-please updated packages that have updates solely because
-    // dependency versions incremented.
-    for (const [filePath, updated] of allUpdated) {
-      const pkg = this.config.parsedPackages.find(
-        p => `${p.path}/package.json` === filePath
-      )!; // bug if undefined.
-      pkg.packageName = updated.name;
-      const content = jsonStringify(updated.toJSON(), updated.rawContent);
-      const changes: Changes = new Map([[filePath, {content, mode: '100644'}]]);
-      await this.setChangelogEntry(
-        pkg,
-        changes,
-        updated,
-        allOrigPkgs.get(filePath)! // bug if undefined.
-      );
-      pkgsWithPRData.push({
-        config: pkg,
-        prData: {
-          version: updated.version,
-          changes,
-        },
-      });
-      newManifestVersions.set(
-        filePath.replace(/\/package.json$/, ''),
-        updated.version
-      );
-    }
-  }
-
-  private getChangelogDepsNotes(
-    pkg: Package,
-    origPkgJson: PackageJson
-  ): string {
-    let depUpdateNotes = '';
-    type DT =
-      | 'dependencies'
-      | 'devDependencies'
-      | 'peerDependencies'
-      | 'optionalDependencies';
-    const depTypes: DT[] = [
-      'dependencies',
-      'devDependencies',
-      'peerDependencies',
-      'optionalDependencies',
-    ];
-    const updates: Map<DT, string[]> = new Map();
-    for (const depType of depTypes) {
-      const depUpdates = [];
-      const pkgDepTypes = pkg[depType];
-      if (pkgDepTypes === undefined) {
-        continue;
-      }
-      for (const [depName, currentDepVer] of Object.entries(pkgDepTypes)) {
-        const origDepVer = origPkgJson[depType]?.[depName];
-        if (currentDepVer !== origDepVer) {
-          depUpdates.push(
-            `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
-          );
-        }
-      }
-      if (depUpdates.length > 0) {
-        updates.set(depType, depUpdates);
-      }
-    }
-    for (const [dt, notes] of updates) {
-      depUpdateNotes += `\n  * ${dt}`;
-      for (const note of notes) {
-        depUpdateNotes += note;
-      }
-    }
-    return depUpdateNotes;
-  }
-
-  private updateChangelogEntry(
-    exChangelog: string,
-    changelogEntry: string,
-    pkg: Package
-  ): string {
-    changelogEntry = changelogEntry.replace(
-      new RegExp(`^###? \\[${pkg.version}\\].*### Dependencies`, 's'),
-      '### Dependencies'
-    );
-    const match = exChangelog.match(
-      new RegExp(
-        `(?<before>^.*?###? \\[${pkg.version}\\].*?\n)(?<after>###? [0-9[].*)`,
-        's'
-      )
-    );
-    if (!match) {
-      this.log(
-        `Appending update notes to end of changelog for ${pkg.name}`,
-        CheckpointType.Failure
-      );
-      changelogEntry = `${exChangelog}\n\n\n${changelogEntry}`;
-    } else {
-      const {before, after} = match.groups!;
-      changelogEntry = `${before.trim()}\n\n\n${changelogEntry}\n\n${after.trim()}`;
-    }
-    return changelogEntry;
-  }
-
-  private async newChangelogEntry(
-    changelogEntry: string,
-    changelogPath: string,
-    pkg: Package
-  ): Promise<string> {
-    let changelog;
-    try {
-      changelog = (await this.gh.getFileContents(changelogPath)).parsedContent;
-    } catch (e) {
-      if (e.status !== 404) {
-        this.log(
-          `Failed to retrieve ${changelogPath}: ${e}`,
-          CheckpointType.Failure
-        );
-        return '';
       } else {
-        this.log(
-          `Creating a new changelog at ${changelogPath}`,
-          CheckpointType.Success
+        const packagePath = addPath(path, 'package.json');
+        logger.debug(
+          `No candidate pull request for path: ${path} - inspect package from ${packagePath}`
+        );
+        const contents = await this.github.getFileContentsOnBranch(
+          packagePath,
+          this.targetBranch
+        );
+        packagesByPath.set(path, new Package(contents.parsedContent, path));
+      }
+    }
+    const allPackages = Array.from(packagesByPath.values());
+    this.packageGraph = new PackageGraph(
+      allPackages,
+      'allDependencies',
+      this.alwaysLinkLocal
+    );
+
+    return {
+      allPackages,
+      candidatesByPackage,
+    };
+  }
+
+  protected bumpVersion(pkg: Package): Version {
+    const version = Version.parse(pkg.version);
+    version.patch += 1;
+    return version;
+  }
+
+  protected updateCandidate(
+    existingCandidate: CandidateReleasePullRequest,
+    pkg: Package,
+    updatedVersions: VersionsMap
+  ): CandidateReleasePullRequest {
+    const graphPackage = this.packageGraph?.get(pkg.name);
+    if (!graphPackage) {
+      throw new Error(`Could not find graph package for ${pkg.name}`);
+    }
+    const updatedPackage = pkg.clone();
+    for (const [depName, resolved] of graphPackage.localDependencies) {
+      const depVersion = updatedVersions.get(depName);
+      if (depVersion && resolved.type !== 'directory') {
+        updatedPackage.updateLocalDependency(
+          resolved,
+          depVersion.toString(),
+          '^'
+        );
+        logger.info(
+          `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
         );
       }
     }
-    const changelogUpdater = new Changelog({
-      path: changelogPath,
-      changelogEntry,
-      version: pkg.version,
-      packageName: pkg.name,
-    });
-    return changelogUpdater.updateContent(changelog);
-  }
+    const dependencyNotes = getChangelogDepsNotes(pkg, updatedPackage);
+    existingCandidate.pullRequest.updates =
+      existingCandidate.pullRequest.updates.map(update => {
+        if (update.path === addPath(existingCandidate.path, 'package.json')) {
+          update.updater = new RawContent(
+            jsonStringify(updatedPackage.toJSON(), updatedPackage.rawContent)
+          );
+        } else if (update.updater instanceof Changelog) {
+          update.updater.changelogEntry = appendDependenciesSectionToChangelog(
+            update.updater.changelogEntry,
+            dependencyNotes
+          );
+        }
+        return update;
+      });
 
-  private async setChangelogEntry(
-    config: ManifestPackage,
-    changes: Changes,
-    pkg: Package,
-    origPkgJson: PackageJson
-  ) {
-    const depUpdateNotes = this.getChangelogDepsNotes(pkg, origPkgJson);
-    if (!depUpdateNotes) {
-      return;
+    // append dependency notes
+    if (dependencyNotes) {
+      if (existingCandidate.pullRequest.body.releaseData.length > 0) {
+        existingCandidate.pullRequest.body.releaseData[0].notes =
+          appendDependenciesSectionToChangelog(
+            existingCandidate.pullRequest.body.releaseData[0].notes,
+            dependencyNotes
+          );
+      } else {
+        existingCandidate.pullRequest.body.releaseData.push({
+          component: updatedPackage.name,
+          version: existingCandidate.pullRequest.version,
+          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+        });
+      }
     }
-
-    const cc = new ConventionalCommits({
-      changelogSections: [{type: 'deps', section: 'Dependencies'}],
-      commits: [
+    return existingCandidate;
+  }
+  protected newCandidate(
+    pkg: Package,
+    updatedVersions: VersionsMap
+  ): CandidateReleasePullRequest {
+    const graphPackage = this.packageGraph?.get(pkg.name);
+    if (!graphPackage) {
+      throw new Error(`Could not find graph package for ${pkg.name}`);
+    }
+    const updatedPackage = pkg.clone();
+    for (const [depName, resolved] of graphPackage.localDependencies) {
+      const depVersion = updatedVersions.get(depName);
+      if (depVersion && resolved.type !== 'directory') {
+        updatedPackage.updateLocalDependency(
+          resolved,
+          depVersion.toString(),
+          '^'
+        );
+        logger.info(
+          `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
+        );
+      }
+    }
+    const dependencyNotes = getChangelogDepsNotes(pkg, updatedPackage);
+    const packageJson = updatedPackage.toJSON() as PackageJson;
+    const version = Version.parse(packageJson.version);
+    const pullRequest: ReleasePullRequest = {
+      title: PullRequestTitle.ofTargetBranch(this.targetBranch),
+      body: new PullRequestBody([
         {
-          sha: '',
-          message: 'deps: The following workspace dependencies were updated',
-          files: [],
+          component: updatedPackage.name,
+          version,
+          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+        },
+      ]),
+      updates: [
+        {
+          path: addPath(updatedPackage.location, 'package.json'),
+          createIfMissing: false,
+          updater: new RawContent(
+            jsonStringify(packageJson, updatedPackage.rawContent)
+          ),
+        },
+        {
+          path: addPath(updatedPackage.location, 'CHANGELOG.md'),
+          createIfMissing: false,
+          updater: new Changelog({
+            version,
+            changelogEntry: dependencyNotes,
+          }),
         },
       ],
-      owner: this.gh.owner,
-      repository: this.gh.repo,
-      bumpMinorPreMajor: config.bumpMinorPreMajor,
-    });
-    let tagPrefix = config.packageName?.match(/^@[\w-]+\//)
-      ? config.packageName.split('/')[1]
-      : config.packageName;
-    tagPrefix += '-v';
-    let changelogEntry = await cc.generateChangelogEntry({
-      version: pkg.version,
-      currentTag: tagPrefix + pkg.version,
-      previousTag: tagPrefix + origPkgJson.version,
-    });
-    changelogEntry += depUpdateNotes;
+      labels: [],
+      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      version,
+      draft: false,
+    };
+    return {
+      path: updatedPackage.location,
+      pullRequest,
+      config: {
+        releaseType: 'node',
+      },
+    };
+  }
 
-    let updatedChangelog;
-    let changelogPath = config.changelogPath ?? 'CHANGELOG.md';
-    if (config.path !== '.') {
-      changelogPath = `${config.path}/${changelogPath}`;
-    }
-    const exChangelog = changes.get(changelogPath)?.content;
-    if (exChangelog) {
-      updatedChangelog = this.updateChangelogEntry(
-        exChangelog,
-        changelogEntry,
-        pkg
+  protected async buildGraph(
+    allPackages: Package[]
+  ): Promise<DependencyGraph<Package>> {
+    const graph = new Map<string, DependencyNode<Package>>();
+    const workspacePackageNames = new Set(
+      allPackages.map(packageJson => packageJson.name)
+    );
+    for (const packageJson of allPackages) {
+      const allDeps = Object.keys({
+        ...(packageJson.dependencies ?? {}),
+        ...(packageJson.devDependencies ?? {}),
+        ...(packageJson.optionalDependencies ?? {}),
+        ...(packageJson.peerDependencies ?? {}),
+      });
+      const workspaceDeps = allDeps.filter(dep =>
+        workspacePackageNames.has(dep)
       );
-    } else {
-      updatedChangelog = await this.newChangelogEntry(
-        changelogEntry,
-        changelogPath,
-        pkg
-      );
-    }
-    if (updatedChangelog) {
-      changes.set(changelogPath, {
-        content: updatedChangelog,
-        mode: '100644',
+      graph.set(packageJson.name, {
+        deps: workspaceDeps,
+        value: packageJson,
       });
     }
+
+    return graph;
   }
 
-  /**
-   * Update node monorepo workspace package dependencies.
-   * Inspired by and using a subset of the logic from `lerna version`
-   */
-  async run(
-    newManifestVersions: VersionsMap,
-    pkgsWithPRData: ManifestPackageWithPRData[]
-  ): Promise<[VersionsMap, ManifestPackageWithPRData[]]> {
-    const rpUpdatedPkgs = this.filterPackages(pkgsWithPRData);
-    const allPkgs = await this.getAllWorkspacePackages(rpUpdatedPkgs);
-    const allUpdated = await this.runLernaVersion(rpUpdatedPkgs, allPkgs);
-    await this.updatePkgsWithPRData(
-      pkgsWithPRData,
-      newManifestVersions,
-      allUpdated,
-      allPkgs
+  protected inScope(candidate: CandidateReleasePullRequest): boolean {
+    return (
+      candidate.config.releaseType === 'node' &&
+      candidate.path !== ROOT_PROJECT_PATH
     );
-
-    return [newManifestVersions, pkgsWithPRData];
   }
+
+  protected packageNameFromPackage(pkg: Package): string {
+    return pkg.name;
+  }
+}
+
+function getChangelogDepsNotes(original: Package, updated: Package): string {
+  let depUpdateNotes = '';
+  type DT =
+    | 'dependencies'
+    | 'devDependencies'
+    | 'peerDependencies'
+    | 'optionalDependencies';
+  const depTypes: DT[] = [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ];
+  const updates: Map<DT, string[]> = new Map();
+  for (const depType of depTypes) {
+    const depUpdates = [];
+    const pkgDepTypes = updated[depType];
+    if (pkgDepTypes === undefined) {
+      continue;
+    }
+    for (const [depName, currentDepVer] of Object.entries(pkgDepTypes)) {
+      const origDepVer = original[depType]?.[depName];
+      if (currentDepVer !== origDepVer) {
+        depUpdates.push(
+          `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
+        );
+      }
+    }
+    if (depUpdates.length > 0) {
+      updates.set(depType, depUpdates);
+    }
+  }
+  for (const [dt, notes] of updates) {
+    depUpdateNotes += `\n  * ${dt}`;
+    for (const note of notes) {
+      depUpdateNotes += note;
+    }
+  }
+  if (depUpdateNotes) {
+    return `* The following workspace dependencies were updated${depUpdateNotes}`;
+  }
+  return '';
+}
+
+const DEPENDENCY_HEADER = new RegExp('### Dependencies');
+function appendDependenciesSectionToChangelog(
+  changelog: string,
+  notes: string
+): string {
+  if (!changelog) {
+    return `### Dependencies\n\n${notes}`;
+  }
+
+  const newLines: string[] = [];
+  let seenDependenciesSection = false;
+  let seenDependencySectionSpacer = false;
+  let injected = false;
+  for (const line of changelog.split('\n')) {
+    if (seenDependenciesSection) {
+      const trimmedLine = line.trim();
+      if (
+        seenDependencySectionSpacer &&
+        !injected &&
+        !trimmedLine.startsWith('*')
+      ) {
+        newLines.push(changelog);
+        injected = true;
+      }
+      if (trimmedLine === '') {
+        seenDependencySectionSpacer = true;
+      }
+    }
+    if (line.match(DEPENDENCY_HEADER)) {
+      seenDependenciesSection = true;
+    }
+    newLines.push(line);
+  }
+
+  if (injected) {
+    return newLines.join('\n');
+  }
+  if (seenDependenciesSection) {
+    return `${changelog}\n${notes}`;
+  }
+
+  return `${changelog}\n\n\n### Dependencies\n\n${notes}`;
+}
+
+function addPath(path: string, file: string): string {
+  return path === ROOT_PROJECT_PATH ? file : `${path}/${file}`;
 }

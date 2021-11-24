@@ -12,15 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
-import {Commit} from '../src/graphql-to-commits';
+import {readFileSync, readdirSync, statSync} from 'fs';
+import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
+import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {Octokit} from '@octokit/rest';
-import * as snapshot from 'snap-shot-it';
+import {Commit} from '../src/commit';
+import {GitHubFileContents, GitHub} from '../src/github';
+import {Update} from '../src/update';
+import {expect} from 'chai';
+import {CandidateReleasePullRequest} from '../src/manifest';
+import {Version} from '../src/version';
+import {PullRequestTitle} from '../src/util/pull-request-title';
+import {PullRequestBody} from '../src/util/pull-request-body';
+import {BranchName} from '../src/util/branch-name';
+import {ReleaseType} from '../src/factory';
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -39,6 +48,10 @@ export function stubSuggesterWithSnapshot(
       return Promise.resolve(22);
     }
   );
+}
+
+export function safeSnapshot(content: string) {
+  snapshot(dateSafe(newLine(content)));
 }
 
 export function dateSafe(content: string): string {
@@ -63,7 +76,7 @@ function newLine(content: string): string {
   return content.replace(/\r\n/g, '\n');
 }
 /*
- * Given an object of chnages expected to be made by code-suggester API,
+ * Given an object of changes expected to be made by code-suggester API,
  * stringify content in such a way that it works well for snapshots:
  */
 export function stringifyExpectedChanges(expected: [string, object][]): string {
@@ -91,8 +104,196 @@ export function readPOJO(name: string): object {
 
 export function buildMockCommit(message: string, files: string[] = []): Commit {
   return {
-    sha: crypto.createHash('md5').update(message).digest('hex'),
+    // Ensure SHA is same on Windows with replace:
+    sha: crypto
+      .createHash('md5')
+      .update(message.replace(/\r\n/g, '\n'))
+      .digest('hex'),
     message,
     files: files,
+  };
+}
+export function buildGitHubFileContent(
+  fixturesPath: string,
+  fixture: string
+): GitHubFileContents {
+  return buildGitHubFileRaw(
+    readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(/\r\n/g, '\n')
+  );
+}
+
+export function buildGitHubFileRaw(content: string): GitHubFileContents {
+  return {
+    content: Buffer.from(content, 'utf8').toString('base64'),
+    parsedContent: content,
+    // fake a consistent sha
+    sha: crypto.createHash('md5').update(content).digest('hex'),
+  };
+}
+
+export interface StubFiles {
+  sandbox: sinon.SinonSandbox;
+  github: GitHub;
+
+  // "master" TODO update all test code to use "main"
+  targetBranch?: string;
+
+  // Example1: test/updaters/fixtures/python
+  // Example2: test/fixtures/releaser/repo
+  fixturePath: string;
+
+  // list of files in the mocked repo relative to the repo root. These should
+  // have corresponding fixture files to use as stubbed content.
+  // Example1: ["setup.py, "src/foolib/version.py"]
+  // Example2: ["python/setup.py", "python/src/foolib/version.py"]
+  files: string[];
+
+  // If true, the fixture files are assumed to exist directly beneath
+  // Example (following Example1 above)
+  // - test/updaters/fixtures/python/setup.py
+  // - test/updaters/fixtures/python/version.py
+  //
+  // if false, the fixture files are assumed to exist under fixturePath *with*
+  // their relative path prefix.
+  // Example (following Example2 above)
+  // - test/fixtures/releaser/repo/python/setup.py
+  // - test/fixtures/releaser/python/src/foolib/version.py
+  flatten?: boolean;
+
+  // Inline content for files to stub.
+  // Example: [
+  //  ['pkg1/package.json', '{"version":"1.2.3","name":"@foo/pkg1"}']
+  //  ['py/setup.py', 'version = "3.2.1"\nname = "pylib"']
+  // ]
+  inlineFiles?: [string, string][];
+}
+
+export function stubFilesFromFixtures(options: StubFiles) {
+  const {fixturePath, sandbox, github, files} = options;
+  const inlineFiles = options.inlineFiles ?? [];
+  const overlap = inlineFiles.filter(f => files.includes(f[0]));
+  if (overlap.length > 0) {
+    throw new Error(
+      'Overlap between files and inlineFiles: ' + JSON.stringify(overlap)
+    );
+  }
+  const targetBranch = options.targetBranch ?? 'master';
+  const flatten = options.flatten ?? true;
+  const stub = sandbox.stub(github, 'getFileContentsOnBranch');
+  for (const file of files) {
+    let fixtureFile = file;
+    if (flatten) {
+      const parts = file.split('/');
+      fixtureFile = parts[parts.length - 1];
+    }
+    stub
+      .withArgs(file, targetBranch)
+      .resolves(buildGitHubFileContent(fixturePath, fixtureFile));
+  }
+  for (const [file, content] of inlineFiles) {
+    stub.withArgs(file, targetBranch).resolves(buildGitHubFileRaw(content));
+  }
+  stub.rejects(Object.assign(Error('not found'), {status: 404}));
+}
+
+// get list of files in a directory
+export function getFilesInDir(
+  directory: string,
+  fileList: string[] = []
+): string[] {
+  const items = readdirSync(directory);
+  for (const item of items) {
+    const stat = statSync(posix.join(directory, item));
+    if (stat.isDirectory())
+      fileList = getFilesInDir(posix.join(directory, item), fileList);
+    else fileList.push(posix.join(directory, item));
+  }
+  return fileList;
+}
+
+// get list of files with a particular prefix in a directory
+export function getFilesInDirWithPrefix(directory: string, prefix: string) {
+  const allFiles = getFilesInDir(directory);
+  return allFiles
+    .filter(p => {
+      return posix.extname(p) === `.${prefix}`;
+    })
+    .map(p => posix.relative(directory, p));
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function assertHasUpdate(
+  updates: Update[],
+  path: string,
+  clazz?: any
+): Update {
+  const found = updates.find(update => {
+    return update.path === path;
+  });
+  expect(found, `update for ${path}`).to.not.be.undefined;
+  if (clazz) {
+    expect(found?.updater).instanceof(
+      clazz,
+      `expected update to be of class ${clazz}`
+    );
+  }
+  return found!;
+}
+
+export function assertNoHasUpdate(updates: Update[], path: string) {
+  const found = updates.find(update => {
+    return update.path === path;
+  });
+  expect(found, `update for ${path}`).to.be.undefined;
+}
+
+export function loadCommitFixtures(name: string): Commit[] {
+  const content = readFileSync(
+    resolve('./test/fixtures/commits', `${name}.json`),
+    'utf8'
+  );
+  return JSON.parse(content);
+}
+
+export function buildCommitFromFixture(name: string): Commit {
+  const message = readFileSync(
+    resolve('./test/fixtures/commit-messages', `${name}.txt`),
+    'utf8'
+  );
+  return buildMockCommit(message);
+}
+
+export function buildMockCandidatePullRequest(
+  path: string,
+  releaseType: ReleaseType,
+  versionString: string,
+  component?: string,
+  updates: Update[] = [],
+  notes?: string,
+  draft?: boolean
+): CandidateReleasePullRequest {
+  const version = Version.parse(versionString);
+  return {
+    path,
+    pullRequest: {
+      title: PullRequestTitle.ofTargetBranch('main'),
+      body: new PullRequestBody([
+        {
+          component,
+          version,
+          notes:
+            notes ??
+            `Release notes for path: ${path}, releaseType: ${releaseType}`,
+        },
+      ]),
+      updates,
+      labels: [],
+      headRefName: BranchName.ofTargetBranch('main').toString(),
+      version,
+      draft: draft ?? false,
+    },
+    config: {
+      releaseType,
+    },
   };
 }

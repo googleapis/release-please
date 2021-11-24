@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {PythonFileWithVersion} from '../../src/updaters/python/python-file-with-version';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,7 @@ describe('version.py', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new PythonFileWithVersion({
-        path: 'version.py',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
@@ -47,10 +45,7 @@ describe('project/__init__.py', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new PythonFileWithVersion({
-        path: 'project/__init__.py',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
@@ -66,10 +61,7 @@ describe('src/project/__init__.py', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new PythonFileWithVersion({
-        path: 'src/project/__init__.py',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);

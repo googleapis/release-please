@@ -12,37 +12,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {CommitSplit} from './commit-split';
-import {GitHub, GitHubFileContents, ReleaseCreateResponse} from './github';
-import {VersionsMap} from './updaters/update';
-import {ReleaseType} from './releasers';
-import {Commit} from './graphql-to-commits';
-import {
-  RELEASE_PLEASE,
-  DEFAULT_LABELS,
-  RELEASE_PLEASE_CONFIG,
-  RELEASE_PLEASE_MANIFEST,
-} from './constants';
+import {ChangelogSection} from './release-notes';
+import {GitHub, GitHubRelease} from './github';
+import {Version, VersionsMap} from './version';
+import {Commit} from './commit';
+import {PullRequest} from './pull-request';
+import {logger} from './util/logger';
+import {CommitSplit} from './util/commit-split';
+import {TagName} from './util/tag-name';
+import {Repository} from './repository';
 import {BranchName} from './util/branch-name';
+import {PullRequestTitle} from './util/pull-request-title';
+import {ReleasePullRequest} from './release-pull-request';
 import {
-  factory,
-  ManifestConstructorOptions,
-  ManifestPackage,
-  ManifestPackageWithPRData,
-} from '.';
-import {ChangelogSection} from './conventional-commits';
+  buildStrategy,
+  ReleaseType,
+  VersioningStrategyType,
+  buildPlugin,
+} from './factory';
+import {Release} from './release';
+import {Strategy} from './strategy';
+import {PullRequestBody} from './util/pull-request-body';
+import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
-import {CheckpointType, checkpoint, Checkpoint} from './util/checkpoint';
-import {
-  GitHubRelease,
-  GitHubReleaseResponse,
-  GITHUB_RELEASE_LABEL,
-} from './github-release';
-import {ReleasePR} from './release-pr';
-import {Changes} from 'code-suggester';
-import {PluginType, getPlugin} from './plugins';
-import {ManifestPlugin} from './plugins/plugin';
-import {signoffCommitMessage} from './util/signoff-commit-message';
+
+/**
+ * These are configurations provided to each strategy per-path.
+ */
+export interface ReleaserConfig {
+  releaseType: ReleaseType;
+
+  // Versioning config
+  versioning?: VersioningStrategyType;
+  bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
+
+  // Strategy options
+  changelogSections?: ChangelogSection[];
+  changelogPath?: string;
+  releaseAs?: string;
+  skipGithubRelease?: boolean;
+  draft?: boolean;
+  draftPullRequest?: boolean;
+  component?: string;
+  packageName?: string;
+
+  // Ruby-only
+  versionFile?: string;
+  // Java-only
+  extraFiles?: string[];
+}
+
+export interface CandidateReleasePullRequest {
+  path: string;
+  pullRequest: ReleasePullRequest;
+  config: ReleaserConfig;
+}
+
+export interface CandidateRelease extends Release {
+  pullRequest: PullRequest;
+  draft?: boolean;
+}
 
 interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
@@ -52,755 +82,895 @@ interface ReleaserConfigJson {
   'release-as'?: string;
   'skip-github-release'?: boolean;
   draft?: boolean;
+  'draft-pull-request'?: boolean;
+  label?: string;
+  'release-label'?: string;
+
+  // Ruby-only
+  'version-file'?: string;
+  // Java-only
+  'extra-files'?: string[];
+}
+
+export interface ManifestOptions {
+  bootstrapSha?: string;
+  lastReleaseSha?: string;
+  alwaysLinkLocal?: boolean;
+  separatePullRequests?: boolean;
+  plugins?: PluginType[];
+  fork?: boolean;
+  signoff?: string;
+  manifestPath?: string;
+  labels?: string[];
+  releaseLabels?: string[];
+  draft?: boolean;
+  draftPullRequest?: boolean;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfigJson {
   'package-name'?: string;
+  component?: string;
   'changelog-path'?: string;
 }
 
-export interface Config extends ReleaserConfigJson {
+export type PluginType = 'node-workspace' | 'cargo-workspace';
+
+/**
+ * This is the schema of the manifest config json
+ */
+export interface ManifestConfig extends ReleaserConfigJson {
   packages: Record<string, ReleaserPackageConfig>;
-  parsedPackages: ManifestPackage[];
   'bootstrap-sha'?: string;
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
   plugins?: PluginType[];
+  'separate-pull-requests'?: boolean;
 }
+// path => version
+export type ReleasedVersions = Record<string, Version>;
+// path => config
+export type RepositoryConfig = Record<string, ReleaserConfig>;
 
-interface PackageForReleaser {
-  config: ManifestPackage;
-  commits: Commit[];
-  lastVersion?: string;
-}
+export const DEFAULT_RELEASE_PLEASE_CONFIG = 'release-please-config.json';
+export const DEFAULT_RELEASE_PLEASE_MANIFEST = '.release-please-manifest.json';
+export const ROOT_PROJECT_PATH = '.';
+const DEFAULT_COMPONENT_NAME = '';
+const DEFAULT_LABELS = ['autorelease: pending'];
+const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
 
-type ManifestJson = Record<string, string>;
-
-export type ManifestGitHubReleaseResult =
-  | Record<string, GitHubReleaseResponse | undefined>
-  | undefined;
+export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
 export class Manifest {
-  gh: GitHub;
-  configFileName: string;
-  manifestFileName: string;
-  checkpoint: Checkpoint;
-  configFile?: Config;
-  headManifest?: ManifestJson;
-  signoff?: string;
+  private repository: Repository;
+  private github: GitHub;
+  readonly repositoryConfig: RepositoryConfig;
+  readonly releasedVersions: ReleasedVersions;
+  private targetBranch: string;
+  private separatePullRequests: boolean;
+  readonly fork: boolean;
+  private signoffUser?: string;
+  private labels: string[];
+  private releaseLabels: string[];
+  private plugins: PluginType[];
+  private _strategiesByPath?: Record<string, Strategy>;
+  private _pathsByComponent?: Record<string, string>;
+  private manifestPath: string;
+  private bootstrapSha?: string;
+  private lastReleaseSha?: string;
+  private draft?: boolean;
+  private draftPullRequest?: boolean;
 
-  constructor(options: ManifestConstructorOptions) {
-    this.gh = options.github;
-    this.configFileName = options.configFile || RELEASE_PLEASE_CONFIG;
-    this.manifestFileName = options.manifestFile || RELEASE_PLEASE_MANIFEST;
-    this.checkpoint = options.checkpoint || checkpoint;
-    this.signoff = options.signoff;
+  /**
+   * Create a Manifest from explicit config in code. This assumes that the
+   * repository has a single component at the root path.
+   *
+   * @param {GitHub} github GitHub client
+   * @param {string} targetBranch The releaseable base branch
+   * @param {RepositoryConfig} repositoryConfig Parsed configuration of path => release configuration
+   * @param {ReleasedVersions} releasedVersions Parsed versions of path => latest release version
+   * @param {ManifestOptions} manifestOptions Optional. Manifest options
+   * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
+   *   as the point to consider commits after
+   * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
+   *   requests instead of a single manifest release pull request
+   * @param {PluginType[]} manifestOptions.plugins Any plugins to use for this repository
+   * @param {boolean} manifestOptions.fork If true, create pull requests from a fork. Defaults
+   *   to `false`
+   * @param {string} manifestOptions.signoff Add a Signed-off-by annotation to the commit
+   * @param {string} manifestOptions.manifestPath Path to the versions manifest
+   * @param {string[]} manifestOptions.labels Labels that denote a pending, untagged release
+   *   pull request. Defaults to `[autorelease: pending]`
+   * @param {string[]} manifestOptions.releaseLabels Labels to apply to a tagged release
+   *   pull request. Defaults to `[autorelease: tagged]`
+   */
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    releasedVersions: ReleasedVersions,
+    manifestOptions?: ManifestOptions
+  ) {
+    this.repository = github.repository;
+    this.github = github;
+    this.targetBranch = targetBranch;
+    this.repositoryConfig = repositoryConfig;
+    this.releasedVersions = releasedVersions;
+    this.manifestPath =
+      manifestOptions?.manifestPath || DEFAULT_RELEASE_PLEASE_MANIFEST;
+    this.separatePullRequests = manifestOptions?.separatePullRequests || false;
+    this.plugins = manifestOptions?.plugins || [];
+    this.fork = manifestOptions?.fork || false;
+    this.signoffUser = manifestOptions?.signoff;
+    this.releaseLabels =
+      manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
+    this.labels = manifestOptions?.labels || DEFAULT_LABELS;
+    this.bootstrapSha = manifestOptions?.bootstrapSha;
+    this.lastReleaseSha = manifestOptions?.lastReleaseSha;
+    this.draft = manifestOptions?.draft;
+    this.draftPullRequest = manifestOptions?.draftPullRequest;
   }
 
-  protected async getBranchName() {
-    return BranchName.ofTargetBranch(await this.gh.getDefaultBranch());
+  /**
+   * Create a Manifest from config files in the repository.
+   *
+   * @param {GitHub} github GitHub client
+   * @param {string} targetBranch The releaseable base branch
+   * @param {string} configFile Optional. The path to the manifest config file
+   * @param {string} manifestFile Optional. The path to the manifest versions file
+   * @returns {Manifest}
+   */
+  static async fromManifest(
+    github: GitHub,
+    targetBranch: string,
+    configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,
+    manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
+    manifestOptionOverrides: ManifestOptions = {}
+  ): Promise<Manifest> {
+    const [
+      {config: repositoryConfig, options: manifestOptions},
+      releasedVersions,
+    ] = await Promise.all([
+      parseConfig(github, configFile, targetBranch),
+      parseReleasedVersions(github, manifestFile, targetBranch),
+    ]);
+    return new Manifest(
+      github,
+      targetBranch,
+      repositoryConfig,
+      releasedVersions,
+      {...manifestOptions, ...manifestOptionOverrides}
+    );
   }
 
-  protected async getFileJson<T>(fileName: string): Promise<T>;
-  protected async getFileJson<T>(
-    fileName: string,
-    sha: string
-  ): Promise<T | undefined>;
-  protected async getFileJson<T>(
-    fileName: string,
-    sha?: string
-  ): Promise<T | undefined> {
-    let content: GitHubFileContents;
-    try {
-      if (sha) {
-        content = await this.gh.getFileContentsWithSimpleAPI(
-          fileName,
-          sha,
-          false
+  /**
+   * Create a Manifest from explicit config in code. This assumes that the
+   * repository has a single component at the root path.
+   *
+   * @param {GitHub} github GitHub client
+   * @param {string} targetBranch The releaseable base branch
+   * @param {ReleaserConfig} config Release strategy options
+   * @param {ManifestOptions} manifestOptions Optional. Manifest options
+   * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
+   *   as the point to consider commits after
+   * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
+   *   requests instead of a single manifest release pull request
+   * @param {PluginType[]} manifestOptions.plugins Any plugins to use for this repository
+   * @param {boolean} manifestOptions.fork If true, create pull requests from a fork. Defaults
+   *   to `false`
+   * @param {string} manifestOptions.signoff Add a Signed-off-by annotation to the commit
+   * @param {string} manifestOptions.manifestPath Path to the versions manifest
+   * @param {string[]} manifestOptions.labels Labels that denote a pending, untagged release
+   *   pull request. Defaults to `[autorelease: pending]`
+   * @param {string[]} manifestOptions.releaseLabels Labels to apply to a tagged release
+   *   pull request. Defaults to `[autorelease: tagged]`
+   * @returns {Manifest}
+   */
+  static async fromConfig(
+    github: GitHub,
+    targetBranch: string,
+    config: ReleaserConfig,
+    manifestOptions?: ManifestOptions,
+    path: string = ROOT_PROJECT_PATH
+  ): Promise<Manifest> {
+    const repositoryConfig: RepositoryConfig = {};
+    repositoryConfig[path] = config;
+    const strategy = await buildStrategy({
+      github,
+      ...config,
+    });
+    const component = await strategy.getComponent();
+    const releasedVersions: ReleasedVersions = {};
+    const latestVersion = await latestReleaseVersion(
+      github,
+      targetBranch,
+      component
+    );
+    if (latestVersion) {
+      releasedVersions[path] = latestVersion;
+    }
+    return new Manifest(
+      github,
+      targetBranch,
+      repositoryConfig,
+      releasedVersions,
+      manifestOptions
+    );
+  }
+
+  /**
+   * Build all candidate pull requests for this repository.
+   *
+   * Iterates through each path and builds a candidate pull request for component.
+   * Applies any configured plugins.
+   *
+   * @returns {ReleasePullRequest[]} The candidate pull requests to open or update.
+   */
+  async buildPullRequests(): Promise<ReleasePullRequest[]> {
+    logger.info('Building pull requests');
+    const pathsByComponent = await this.getPathsByComponent();
+    const strategiesByPath = await this.getStrategiesByPath();
+
+    // Collect all the SHAs of the latest release packages
+    logger.info('Collecting release commit SHAs');
+    let releasesFound = 0;
+    const expectedReleases = Object.keys(strategiesByPath).length;
+
+    // SHAs by path
+    const releaseShasByPath: Record<string, string> = {};
+
+    // Releases by path
+    const releasesByPath: Record<string, Release> = {};
+    for await (const release of this.github.releaseIterator(400)) {
+      // logger.debug(release);
+      const tagName = TagName.parse(release.tagName);
+      if (!tagName) {
+        logger.warn(`Unable to parse release name: ${release.name}`);
+        continue;
+      }
+      const component = tagName.component || DEFAULT_COMPONENT_NAME;
+      const path = pathsByComponent[component];
+      if (!path) {
+        logger.warn(
+          `Found release tag with component '${component}', but not configured in manifest`
         );
-      } else {
-        content = await this.gh.getFileContents(fileName);
+        continue;
       }
-    } catch (e) {
-      this.checkpoint(
-        `Failed to get ${fileName} at ${sha ?? 'HEAD'}: ${e.status}`,
-        CheckpointType.Failure
-      );
-      // If a sha is provided this is a request for the manifest file at the
-      // last merged Release PR. The only reason it would not exist is if a user
-      // checkedout that branch and deleted the manifest file right before
-      // merging. There is no recovery from that so we'll fall back to using
-      // the manifest at the tip of the defaultBranch.
-      if (sha === undefined) {
-        // !sha means this is a request against the tip of the defaultBranch and
-        // we require that the manifest and config exist there. If they don't,
-        // they can be added and this exception will not be thrown.
-        throw e;
-      }
-      return;
-    }
-    return JSON.parse(content.parsedContent);
-  }
-
-  protected async getManifestJson(): Promise<ManifestJson>;
-  protected async getManifestJson(
-    sha: string
-  ): Promise<ManifestJson | undefined>;
-  protected async getManifestJson(
-    sha?: string
-  ): Promise<ManifestJson | undefined> {
-    // cache headManifest since it's loaded in validate() as well as later on
-    // and we never write to it.
-    let manifest: ManifestJson | undefined;
-    if (sha === undefined) {
-      if (!this.headManifest) {
-        this.headManifest = await this.getFileJson<ManifestJson>(
-          this.manifestFileName
+      const expectedVersion = this.releasedVersions[path];
+      if (!expectedVersion) {
+        logger.warn(
+          `Unable to find expected version for path '${path}' in manifest`
         );
+        continue;
       }
-      manifest = this.headManifest;
-    } else {
-      manifest = await this.getFileJson<ManifestJson>(
-        this.manifestFileName,
-        sha
-      );
-    }
-    return manifest;
-  }
-
-  protected async getManifestVersions(
-    sha?: string
-  ): Promise<[VersionsMap, string]>;
-  protected async getManifestVersions(
-    sha: false,
-    newPaths: string[]
-  ): Promise<VersionsMap>;
-  protected async getManifestVersions(
-    sha?: string | false,
-    newPaths?: string[]
-  ): Promise<[VersionsMap, string] | VersionsMap> {
-    let manifestJson: object;
-    const defaultBranch = await this.gh.getDefaultBranch();
-    const bootstrapMsg =
-      `Bootstrapping from ${this.manifestFileName} ` +
-      `at tip of ${defaultBranch}`;
-    if (sha === undefined) {
-      this.checkpoint(bootstrapMsg, CheckpointType.Failure);
-    }
-    if (sha === false) {
-      this.checkpoint(
-        `${bootstrapMsg} for missing paths [${newPaths!.join(', ')}]`,
-        CheckpointType.Failure
-      );
-    }
-    let atSha = 'tip';
-    if (!sha) {
-      manifestJson = await this.getManifestJson();
-    } else {
-      // try to retrieve manifest from last release sha.
-      const maybeManifestJson = await this.getManifestJson(sha);
-      atSha = sha;
-      if (maybeManifestJson === undefined) {
-        // user deleted manifest from last release PR before merging.
-        this.checkpoint(bootstrapMsg, CheckpointType.Failure);
-        manifestJson = await this.getManifestJson();
-        atSha = 'tip';
-      } else {
-        manifestJson = maybeManifestJson;
-      }
-    }
-    const parsed: VersionsMap = new Map(Object.entries(manifestJson));
-    if (sha === false) {
-      return parsed;
-    } else {
-      return [parsed, atSha];
-    }
-  }
-
-  protected async getConfigJson(): Promise<Config> {
-    // cache config since it's loaded in validate() as well as later on and we
-    // never write to it.
-    if (!this.configFile) {
-      const config = await this.getFileJson<Omit<Config, 'parsedPackages'>>(
-        this.configFileName
-      );
-      const packages = [];
-      for (const pkgPath in config.packages) {
-        const pkgCfg = config.packages[pkgPath];
-        const pkg = {
-          path: pkgPath,
-          releaseType:
-            pkgCfg['release-type'] ?? config['release-type'] ?? 'node',
-          packageName: pkgCfg['package-name'],
-          bumpMinorPreMajor:
-            pkgCfg['bump-minor-pre-major'] ?? config['bump-minor-pre-major'],
-          bumpPatchForMinorPreMajor:
-            pkgCfg['bump-patch-for-minor-pre-major'] ??
-            config['bump-patch-for-minor-pre-major'],
-          changelogSections:
-            pkgCfg['changelog-sections'] ?? config['changelog-sections'],
-          changelogPath: pkgCfg['changelog-path'],
-          releaseAs: this.resolveReleaseAs(
-            pkgCfg['release-as'],
-            config['release-as']
-          ),
-          draft: pkgCfg['draft'] ?? config['draft'],
-          skipGithubRelease:
-            pkgCfg['skip-github-release'] ??
-            config['skip-github-release'] ??
-            false,
+      if (expectedVersion.toString() === tagName.version.toString()) {
+        logger.debug(`Found release for path ${path}, ${release.tagName}`);
+        releaseShasByPath[path] = release.sha;
+        releasesByPath[path] = {
+          tag: tagName,
+          sha: release.sha,
+          notes: release.notes || '',
         };
-        packages.push(pkg);
+        releasesFound += 1;
       }
-      this.configFile = {parsedPackages: packages, ...config};
-    }
-    return this.configFile;
-  }
 
-  // Default release-as only considered if non-empty string.
-  // Per-pkg release-as may be:
-  //   1. undefined: use default release-as if present, otherwise normal version
-  //      resolution (auto-increment from CC, fallback to defaultInitialVersion)
-  //   1. non-empty string: use this version
-  //   2. empty string: override default release-as if present, otherwise normal
-  //      version resolution.
-  private resolveReleaseAs(
-    pkgRA?: string,
-    defaultRA?: string
-  ): string | undefined {
-    let releaseAs: string | undefined;
-    if (defaultRA) {
-      releaseAs = defaultRA;
+      if (releasesFound >= expectedReleases) {
+        break;
+      }
     }
-    if (pkgRA !== undefined) {
-      releaseAs = pkgRA;
-    }
-    if (!releaseAs) {
-      releaseAs = undefined;
-    }
-    return releaseAs;
-  }
 
-  protected async getPackagesToRelease(
-    allCommits: Commit[],
-    sha?: string
-  ): Promise<PackageForReleaser[]> {
-    const packages = (await this.getConfigJson()).parsedPackages;
-    const [manifestVersions, atSha] = await this.getManifestVersions(sha);
+    const needsBootstrap = releasesFound < expectedReleases;
+    if (releasesFound < expectedReleases) {
+      logger.warn(
+        `Expected ${expectedReleases} releases, only found ${releasesFound}`
+      );
+    }
+    for (const path in releasesByPath) {
+      const release = releasesByPath[path];
+      logger.debug(
+        `release for path: ${path}, version: ${release.tag.version.toString()}, sha: ${
+          release.sha
+        }`
+      );
+    }
+
+    // iterate through commits and collect commits until we have
+    // seen all release commits
+    logger.info('Collecting commits since all latest releases');
+    const commits: Commit[] = [];
+    const commitGenerator = this.github.mergeCommitIterator(
+      this.targetBranch,
+      500
+    );
+    const releaseShas = new Set(Object.values(releaseShasByPath));
+    logger.debug(releaseShas);
+    const expectedShas = releaseShas.size;
+
+    // sha => release pull request
+    const releasePullRequestsBySha: Record<string, PullRequest> = {};
+    let releaseCommitsFound = 0;
+    for await (const commit of commitGenerator) {
+      if (releaseShas.has(commit.sha)) {
+        if (commit.pullRequest) {
+          releasePullRequestsBySha[commit.sha] = commit.pullRequest;
+        } else {
+          logger.warn(
+            `Release SHA ${commit.sha} did not have an associated pull request`
+          );
+        }
+        releaseCommitsFound += 1;
+      }
+      if (this.lastReleaseSha && this.lastReleaseSha === commit.sha) {
+        logger.info(
+          `Using configured lastReleaseSha ${this.lastReleaseSha} as last commit.`
+        );
+        break;
+      } else if (needsBootstrap && commit.sha === this.bootstrapSha) {
+        logger.info(
+          `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
+        );
+        break;
+      } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
+        // found enough commits
+        break;
+      }
+      commits.push({
+        sha: commit.sha,
+        message: commit.message,
+        files: commit.files,
+      });
+    }
+
+    if (releaseCommitsFound < expectedShas) {
+      logger.warn(
+        `Expected ${expectedShas} commits, only found ${releaseCommitsFound}`
+      );
+    }
+
+    // split commits by path
+    logger.info(`Splitting ${commits.length} commits by path`);
     const cs = new CommitSplit({
       includeEmpty: true,
-      packagePaths: packages.map(p => p.path),
+      packagePaths: Object.keys(this.repositoryConfig),
     });
-    const commitsPerPath = cs.split(allCommits);
-    const packagesToRelease: Record<string, PackageForReleaser> = {};
-    const missingVersionPaths = [];
-    const defaultBranch = await this.gh.getDefaultBranch();
-    for (const pkg of packages) {
-      // The special path of '.' indicates the root module is being released
-      // in this case, use the entire list of commits:
-      const commits = pkg.path === '.' ? allCommits : commitsPerPath[pkg.path];
-      if (!commits || commits.length === 0) {
+    const commitsPerPath = cs.split(commits);
+
+    let newReleasePullRequests: CandidateReleasePullRequest[] = [];
+    for (const path in this.repositoryConfig) {
+      const config = this.repositoryConfig[path];
+      logger.info(`Building candidate release pull request for path: ${path}`);
+      logger.debug(`type: ${config.releaseType}`);
+      logger.debug(`targetBranch: ${this.targetBranch}`);
+      const pathCommits = commitsAfterSha(
+        path === ROOT_PROJECT_PATH ? commits : commitsPerPath[path],
+        releaseShasByPath[path]
+      );
+      if (!pathCommits || pathCommits.length === 0) {
+        logger.info(`No commits for path: ${path}, skipping`);
         continue;
       }
-      const lastVersion = manifestVersions.get(pkg.path);
-      if (!lastVersion) {
-        this.checkpoint(
-          `Failed to find version for ${pkg.path} in ` +
-            `${this.manifestFileName} at ${atSha} of ${defaultBranch}`,
-          CheckpointType.Failure
-        );
-        missingVersionPaths.push(pkg.path);
-      } else {
-        this.checkpoint(
-          `Found version ${lastVersion} for ${pkg.path} in ` +
-            `${this.manifestFileName} at ${atSha} of ${defaultBranch}`,
-          CheckpointType.Success
-        );
+      logger.debug(`commits: ${pathCommits.length}`);
+      const latestReleasePullRequest =
+        releasePullRequestsBySha[releaseShasByPath[path]];
+      if (!latestReleasePullRequest) {
+        logger.warn('No latest release pull request found.');
       }
-      packagesToRelease[pkg.path] = {
-        commits,
-        lastVersion,
-        config: pkg,
-      };
-    }
-    if (missingVersionPaths.length > 0) {
-      const headManifestVersions = await this.getManifestVersions(
-        false,
-        missingVersionPaths
+
+      const strategy = strategiesByPath[path];
+      const latestRelease = releasesByPath[path];
+      const releasePullRequest = await strategy.buildReleasePullRequest(
+        pathCommits,
+        latestRelease,
+        config.draftPullRequest ?? this.draftPullRequest,
+        this.labels
       );
-      for (const missingVersionPath of missingVersionPaths) {
-        const headVersion = headManifestVersions.get(missingVersionPath);
-        if (headVersion === undefined) {
-          this.checkpoint(
-            `Failed to find version for ${missingVersionPath} in ` +
-              `${this.manifestFileName} at tip of ${defaultBranch}`,
-            CheckpointType.Failure
-          );
+      if (releasePullRequest) {
+        if (releasePullRequest.version) {
+          const versionsMap: VersionsMap = new Map();
+          versionsMap.set(path, releasePullRequest.version);
+          releasePullRequest.updates.push({
+            path: this.manifestPath,
+            createIfMissing: false,
+            updater: new ReleasePleaseManifest({
+              version: releasePullRequest.version,
+              versionsMap,
+            }),
+          });
         }
-        packagesToRelease[missingVersionPath].lastVersion = headVersion;
-      }
-    }
-    return Object.values(packagesToRelease);
-  }
-
-  private async validateJsonFile(
-    getFileMethod: 'getConfigJson' | 'getManifestJson',
-    fileName: string
-  ): Promise<{valid: true; obj: object} | {valid: false; obj: undefined}> {
-    let response: {valid: true; obj: object} | {valid: false; obj: undefined} =
-      {
-        valid: false,
-        obj: undefined,
-      };
-    try {
-      const obj = await this[getFileMethod]();
-      if (obj.constructor.name === 'Object') {
-        response = {valid: true, obj: obj};
-      }
-    } catch (e) {
-      let errMsg;
-      if (e instanceof SyntaxError) {
-        errMsg = `Invalid JSON in ${fileName}`;
-      } else {
-        errMsg = `Unable to ${getFileMethod}(${fileName}): ${e.message}`;
-      }
-      this.checkpoint(errMsg, CheckpointType.Failure);
-    }
-    return response;
-  }
-
-  protected async validate(): Promise<boolean> {
-    const configValidation = await this.validateJsonFile(
-      'getConfigJson',
-      this.configFileName
-    );
-    let validConfig = false;
-    if (configValidation.valid) {
-      const obj = configValidation.obj as Config;
-      validConfig = !!Object.keys(obj.packages ?? {}).length;
-      if (!validConfig) {
-        this.checkpoint(
-          `No packages found: ${this.configFileName}`,
-          CheckpointType.Failure
-        );
-      }
-    }
-
-    const manifestValidation = await this.validateJsonFile(
-      'getManifestJson',
-      this.manifestFileName
-    );
-    let validManifest = false;
-    if (manifestValidation.valid) {
-      validManifest = true;
-      const versions: VersionsMap = new Map(
-        Object.entries(manifestValidation.obj)
-      );
-      for (const [_, version] of versions) {
-        if (typeof version !== 'string') {
-          validManifest = false;
-          this.checkpoint(
-            `${this.manifestFileName} must only contain string values`,
-            CheckpointType.Failure
-          );
-          break;
-        }
-      }
-    }
-    return validConfig && validManifest;
-  }
-
-  private async getReleasePR(
-    pkg: ManifestPackage
-  ): Promise<[ReleasePR, boolean | undefined]> {
-    const {releaseType, draft, ...options} = pkg;
-    const releaserOptions = {
-      monorepoTags: true,
-      ...options,
-    };
-    const releaserClass = factory.releasePRClass(releaseType);
-    const releasePR = new releaserClass({
-      github: this.gh,
-      skipDependencyUpdates: true,
-      ...releaserOptions,
-    });
-    return [releasePR, draft];
-  }
-
-  private async runReleasers(
-    packagesForReleasers: PackageForReleaser[],
-    sha?: string
-  ): Promise<[VersionsMap, ManifestPackageWithPRData[]]> {
-    const newManifestVersions = new Map();
-    const pkgsWithChanges = [];
-    for (const pkg of packagesForReleasers) {
-      const [releasePR] = await this.getReleasePR(pkg.config);
-      const pkgName = await releasePR.getPackageName();
-      const displayTag = `${releasePR.constructor.name}(${pkgName.name})`;
-      this.checkpoint(
-        `Processing package: ${displayTag}`,
-        CheckpointType.Success
-      );
-      if (pkg.lastVersion === undefined) {
-        this.checkpoint(
-          `Falling back to default version for ${displayTag}: ` +
-            releasePR.defaultInitialVersion(),
-          CheckpointType.Failure
-        );
-      }
-      const openPROptions = await releasePR.getOpenPROptions(
-        pkg.commits,
-        pkg.lastVersion
-          ? {
-              name:
-                pkgName.getComponent() +
-                releasePR.tagSeparator() +
-                'v' +
-                pkg.lastVersion,
-              sha: sha ?? 'beginning of time',
-              version: pkg.lastVersion,
-            }
-          : undefined
-      );
-      if (openPROptions) {
-        pkg.config.packageName = (await releasePR.getPackageName()).name;
-        const changes = await this.gh.getChangeSet(
-          openPROptions.updates,
-          await this.gh.getDefaultBranch()
-        );
-        pkgsWithChanges.push({
-          config: pkg.config,
-          prData: {version: openPROptions.version, changes},
+        newReleasePullRequests.push({
+          path,
+          config,
+          pullRequest: releasePullRequest,
         });
-        newManifestVersions.set(pkg.config.path, openPROptions.version);
       }
     }
-    return [newManifestVersions, pkgsWithChanges];
-  }
 
-  private async getManifestChanges(
-    newManifestVersions: VersionsMap
-  ): Promise<Changes> {
-    // TODO: simplify `Update.contents?` to just be a string - no need to
-    // roundtrip through a GitHubFileContents
-    const manifestContents: GitHubFileContents = {
-      sha: '',
-      parsedContent: '',
-      content: Buffer.from(
-        JSON.stringify(await this.getManifestJson())
-      ).toString('base64'),
-    };
-    const manifestUpdate = new ReleasePleaseManifest({
-      changelogEntry: '',
-      packageName: '',
-      path: this.manifestFileName,
-      version: '',
-      versions: newManifestVersions,
-      contents: manifestContents,
-    });
-    return await this.gh.getChangeSet(
-      [manifestUpdate],
-      await this.gh.getDefaultBranch()
+    // Build plugins
+    const plugins = this.plugins.map(pluginType =>
+      buildPlugin({
+        type: pluginType,
+        github: this.github,
+        targetBranch: this.targetBranch,
+        repositoryConfig: this.repositoryConfig,
+      })
+    );
+
+    // Combine pull requests into 1 unless configured for separate
+    // pull requests
+    if (!this.separatePullRequests) {
+      plugins.push(
+        new Merge(this.github, this.targetBranch, this.repositoryConfig)
+      );
+    }
+
+    for (const plugin of plugins) {
+      newReleasePullRequests = await plugin.run(newReleasePullRequests);
+    }
+
+    return newReleasePullRequests.map(
+      pullRequestWithConfig => pullRequestWithConfig.pullRequest
     );
   }
 
-  private buildPRBody(pkg: ManifestPackageWithPRData): string {
-    const version = pkg.prData.version;
-    let body =
-      '<details><summary>' +
-      `${pkg.config.packageName}: ${version}` +
-      '</summary>';
-    let changelogPath = pkg.config.changelogPath ?? 'CHANGELOG.md';
-    if (pkg.config.path !== '.') {
-      changelogPath = `${pkg.config.path}/${changelogPath}`;
+  /**
+   * Opens/updates all candidate release pull requests for this repository.
+   *
+   * @returns {number[]} Pull request numbers of release pull requests
+   */
+  async createPullRequests(): Promise<(number | undefined)[]> {
+    const candidatePullRequests = await this.buildPullRequests();
+    if (candidatePullRequests.length === 0) {
+      return [];
     }
-    const changelog = pkg.prData.changes.get(changelogPath)?.content;
-    if (!changelog) {
-      this.checkpoint(
-        `Failed to find ${changelogPath}`,
-        CheckpointType.Failure
+
+    // if there are any merged, pending release pull requests, don't open
+    // any new release PRs
+    const mergedPullRequestsGenerator = this.findMergedReleasePullRequests();
+    for await (const _ of mergedPullRequestsGenerator) {
+      logger.warn(
+        'There are untagged, merged release PRs outstanding - aborting'
       );
-    } else {
-      const match = changelog.match(
-        // changelog entries start like
-        // ## 1.0.0 (1983...
-        // ## [4.0.0](https...
-        // ### [1.2.4](https...
-        RegExp(
-          `.*###? \\[?${version}\\]?.*?\n(?<currentEntry>.*?)` +
-            // either the next changelog or new lines / spaces to the end if
-            // this is the first entry in the changelog
-            '(\n###? [0-9[].*|[\n ]*$)',
-          's'
-        )
+      return [];
+    }
+
+    // collect open release pull requests
+    logger.info('Looking for open release pull requests');
+    const openPullRequests: PullRequest[] = [];
+    const generator = this.github.pullRequestIterator(
+      this.targetBranch,
+      'OPEN'
+    );
+    for await (const openPullRequest of generator) {
+      if (
+        hasAllLabels(this.labels, openPullRequest.labels) &&
+        BranchName.parse(openPullRequest.headBranchName) &&
+        PullRequestBody.parse(openPullRequest.body)
+      ) {
+        openPullRequests.push(openPullRequest);
+      }
+    }
+    logger.info(`found ${openPullRequests.length} open release pull requests.`);
+
+    const promises: Promise<number | undefined>[] = [];
+    for (const pullRequest of candidatePullRequests) {
+      promises.push(
+        this.createOrUpdatePullRequest(pullRequest, openPullRequests)
       );
-      if (!match) {
-        this.checkpoint(
-          `Failed to find entry in changelog for ${version}`,
-          CheckpointType.Failure
+    }
+    return await Promise.all(promises);
+  }
+
+  private async createOrUpdatePullRequest(
+    pullRequest: ReleasePullRequest,
+    openPullRequests: PullRequest[]
+  ): Promise<number | undefined> {
+    // look for existing, open pull rquest
+    const existing = openPullRequests.find(
+      openPullRequest =>
+        openPullRequest.headBranchName === pullRequest.headRefName
+    );
+    if (existing) {
+      // If unchanged, no need to push updates
+      if (existing.body === pullRequest.body.toString()) {
+        logger.info(
+          `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
         );
-      } else {
-        const {currentEntry} = match.groups!;
-        body += '\n\n\n' + currentEntry.trim() + '\n';
+        return undefined;
       }
-    }
-    body += '</details>\n';
-    return body;
-  }
-
-  private async buildManifestPR(
-    newManifestVersions: VersionsMap,
-    // using version, changes
-    packages: ManifestPackageWithPRData[]
-  ): Promise<[string, Changes]> {
-    let body = ':robot: I have created a release \\*beep\\* \\*boop\\*\n---\n';
-    let changes = new Map();
-    for (const pkg of packages) {
-      body += this.buildPRBody(pkg);
-      changes = new Map([...changes, ...pkg.prData.changes]);
-    }
-    const manifestChanges = await this.getManifestChanges(newManifestVersions);
-    changes = new Map([...changes, ...manifestChanges]);
-    body +=
-      '\n\nThis PR was generated with [Release Please]' +
-      `(https://github.com/googleapis/${RELEASE_PLEASE}). See [documentation]` +
-      `(https://github.com/googleapis/${RELEASE_PLEASE}#${RELEASE_PLEASE}).`;
-    return [body, changes];
-  }
-
-  private async getPlugins(): Promise<ManifestPlugin[]> {
-    const plugins = [];
-    const config = await this.getConfigJson();
-    for (const p of config.plugins ?? []) {
-      plugins.push(getPlugin(p, this.gh, config));
-    }
-    return plugins;
-  }
-
-  private async resolveLastReleaseSha(
-    branchName: string
-  ): Promise<string | undefined> {
-    const config = await this.getConfigJson();
-    let lastReleaseSha;
-    let source = 'no last release sha found';
-    if (config['last-release-sha']) {
-      lastReleaseSha = config['last-release-sha'];
-      source = 'last-release-sha';
+      const updatedPullRequest = await this.github.updatePullRequest(
+        existing.number,
+        pullRequest,
+        this.targetBranch,
+        {
+          fork: this.fork,
+          signoffUser: this.signoffUser,
+        }
+      );
+      return updatedPullRequest.number;
     } else {
-      const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
-      if (lastMergedPR) {
-        lastReleaseSha = lastMergedPR.sha;
-        source = 'last-release-pr';
-      } else if (config['bootstrap-sha']) {
-        lastReleaseSha = config['bootstrap-sha'];
-        source = 'bootstrap-sha';
-      }
+      const newPullRequest = await this.github.createReleasePullRequest(
+        pullRequest,
+        this.targetBranch,
+        {
+          fork: this.fork,
+          signoffUser: this.signoffUser,
+        }
+      );
+      return newPullRequest.number;
     }
-    this.checkpoint(
-      `Found last release sha "${lastReleaseSha}" using "${source}"`,
-      CheckpointType.Success
-    );
-    return lastReleaseSha;
   }
 
-  async pullRequest(): Promise<number | undefined> {
-    const valid = await this.validate();
-    if (!valid) {
-      return;
-    }
-
-    const branchName = (await this.getBranchName()).toString();
-    const lastReleaseSha = await this.resolveLastReleaseSha(branchName);
-    const commits = await this.gh.commitsSinceShaRest(lastReleaseSha);
-    const packagesForReleasers = await this.getPackagesToRelease(
-      commits,
-      lastReleaseSha
+  private async *findMergedReleasePullRequests() {
+    // Find merged release pull requests
+    const pullRequestGenerator = this.github.pullRequestIterator(
+      this.targetBranch,
+      'MERGED',
+      200
     );
-    let [newManifestVersions, pkgsWithChanges] = await this.runReleasers(
-      packagesForReleasers,
-      lastReleaseSha
-    );
-    if (pkgsWithChanges.length === 0) {
-      this.checkpoint(
-        'No user facing changes to release',
-        CheckpointType.Success
-      );
-      return;
-    }
-
-    for (const plugin of await this.getPlugins()) {
-      [newManifestVersions, pkgsWithChanges] = await plugin.run(
-        newManifestVersions,
-        pkgsWithChanges
-      );
-    }
-
-    const [body, changes] = await this.buildManifestPR(
-      newManifestVersions,
-      pkgsWithChanges
-    );
-
-    const title = `chore: release ${await this.gh.getDefaultBranch()}`;
-
-    // Sign-off message if signoff option is enabled
-    const message = this.signoff
-      ? signoffCommitMessage(title, this.signoff)
-      : title;
-
-    const pr = await this.gh.openPR({
-      branch: branchName,
-      title,
-      message,
-      body: body,
-      updates: [],
-      labels: DEFAULT_LABELS,
-      changes,
-    });
-    if (pr) {
-      await this.gh.addLabels(DEFAULT_LABELS, pr);
-    }
-    return pr;
-  }
-
-  async githubRelease(): Promise<ManifestGitHubReleaseResult> {
-    const valid = await this.validate();
-    if (!valid) {
-      return;
-    }
-    const branchName = (await this.getBranchName()).toString();
-    const lastMergedPR = await this.gh.lastMergedPRByHeadBranch(branchName);
-    if (lastMergedPR === undefined) {
-      this.checkpoint(
-        'Unable to find last merged Manifest PR for tagging',
-        CheckpointType.Failure
-      );
-      return;
-    }
-    if (lastMergedPR.labels.includes(GITHUB_RELEASE_LABEL)) {
-      this.checkpoint(
-        'Releases already created for last merged release PR',
-        CheckpointType.Success
-      );
-      return;
-    }
-    if (!lastMergedPR.labels.includes(DEFAULT_LABELS[0])) {
-      this.checkpoint(
-        `Warning: last merged PR(#${lastMergedPR.number}) is missing ` +
-          `label "${DEFAULT_LABELS[0]}" but has not yet been ` +
-          `labeled "${GITHUB_RELEASE_LABEL}". If PR(#${lastMergedPR.number}) ` +
-          'is meant to be a release PR, please apply the ' +
-          `label "${DEFAULT_LABELS[0]}".`,
-        CheckpointType.Failure
-      );
-      return;
-    }
-    const packagesForReleasers = await this.getPackagesToRelease(
-      // use the lastMergedPR.sha as a Commit: lastMergedPR.files will inform
-      // getPackagesToRelease() what packages had changes (i.e. at least one
-      // file under their path changed in the lastMergedPR such as
-      // "packages/mypkg/package.json"). These are exactly the packages we want
-      // to create releases/tags for.
-      [{sha: lastMergedPR.sha, message: '', files: lastMergedPR.files}],
-      lastMergedPR.sha
-    );
-    const releases: Record<string, GitHubReleaseResponse | undefined> = {};
-    let allReleasesCreated = !!packagesForReleasers.length;
-    for (const pkg of packagesForReleasers) {
-      const [releasePR, draft] = await this.getReleasePR(pkg.config);
-      const pkgName = (await releasePR.getPackageName()).name;
-      const pkgLogDisp = `${releasePR.constructor.name}(${pkgName})`;
-      if (!pkg.lastVersion) {
-        // a user manually modified the manifest file on the release branch
-        // right before merging it and deleted the entry for this pkg.
-        this.checkpoint(
-          `Unable to find last version for ${pkgLogDisp}.`,
-          CheckpointType.Failure
-        );
-        releases[pkg.config.path] = undefined;
+    for await (const pullRequest of pullRequestGenerator) {
+      if (!hasAllLabels(this.labels, pullRequest.labels)) {
         continue;
       }
-      if (pkg.config.skipGithubRelease) {
-        this.gh.commentOnIssue(
-          `:robot: ${pkgName} not configured for release :no_entry_sign:`,
-          lastMergedPR.number
-        );
-        releases[pkg.config.path] = undefined;
+      logger.debug(
+        `Found pull request #${pullRequest.number}: '${pullRequest.title}'`
+      );
+
+      const pullRequestBody = PullRequestBody.parse(pullRequest.body);
+      if (!pullRequestBody) {
+        logger.debug('could not parse pull request body as a release PR');
         continue;
       }
-      this.checkpoint(
-        'Creating release for ' + `${pkgLogDisp}@${pkg.lastVersion}`,
-        CheckpointType.Success
-      );
-      const releaser = new GitHubRelease({
-        github: this.gh,
-        releasePR,
-        draft,
+      yield pullRequest;
+    }
+  }
+
+  /**
+   * Find merged, untagged releases and build candidate releases to tag.
+   *
+   * @returns {CandidateRelease[]} List of release candidates
+   */
+  async buildReleases(): Promise<CandidateRelease[]> {
+    logger.info('Building releases');
+    const strategiesByPath = await this.getStrategiesByPath();
+
+    // Find merged release pull requests
+    const generator = await this.findMergedReleasePullRequests();
+    const releases: CandidateRelease[] = [];
+    for await (const pullRequest of generator) {
+      logger.info('Looking at files touched by path');
+      const cs = new CommitSplit({
+        includeEmpty: true,
+        packagePaths: Object.keys(this.repositoryConfig),
       });
-      let release: ReleaseCreateResponse | undefined;
-      try {
-        release = await releaser.createRelease(pkg.lastVersion, lastMergedPR);
-      } catch (err) {
-        // There is no transactional bulk create releases API. Previous runs
-        // may have failed due to transient infrastructure problems part way
-        // through creating releases. Here we skip any releases that were
-        // already successfully created.
-        //
-        // Note about `draft` releases: The GitHub API Release unique key is
-        // `tag_name`. However, if `draft` is true, no git tag is created. Thus
-        // multiple `draft` releases can be created with the exact same inputs.
-        // (It's a tad confusing because `tag_name` still comes back populated
-        // in these calls but the tag doesn't actually exist).
-        // A draft release can even be created with a `tag_name` referring to an
-        // existing tag referenced by another release.
-        // However, GitHub will prevent "publishing" any draft release that
-        // would cause a duplicate tag to be created. release-please manifest
-        // users specifying the "release-draft" option could run into this
-        // duplicate releases scenario. It's easy enough to just delete the
-        // duplicate draft entries in the UI (or API).
-        if (err.status === 422 && err.errors?.length) {
-          if (
-            err.errors[0].code === 'already_exists' &&
-            err.errors[0].field === 'tag_name'
-          ) {
-            this.checkpoint(
-              `Release for ${pkgLogDisp}@${pkg.lastVersion} already exists`,
-              CheckpointType.Success
-            );
-          }
-        } else {
-          // PR will not be tagged with GITHUB_RELEASE_LABEL so another run
-          // can try again.
-          allReleasesCreated = false;
-          await this.gh.commentOnIssue(
-            `:robot: Failed to create release for ${pkgName} :cloud:`,
-            lastMergedPR.number
-          );
-          this.checkpoint(
-            'Failed to create release for ' +
-              `${pkgLogDisp}@${pkg.lastVersion}: ${err.message}`,
-            CheckpointType.Failure
-          );
+      const commits = [
+        {
+          sha: pullRequest.sha!,
+          message: pullRequest.title,
+          files: pullRequest.files,
+        },
+      ];
+      const commitsPerPath = cs.split(commits);
+      for (const path in this.repositoryConfig) {
+        const config = this.repositoryConfig[path];
+        logger.info(`Building release for path: ${path}`);
+        logger.debug(`type: ${config.releaseType}`);
+        logger.debug(`targetBranch: ${this.targetBranch}`);
+        const pathCommits =
+          path === ROOT_PROJECT_PATH ? commits : commitsPerPath[path];
+        if (!pathCommits || pathCommits.length === 0) {
+          logger.info(`No commits for path: ${path}, skipping`);
+          continue;
         }
-        releases[pkg.config.path] = undefined;
-        continue;
-      }
-      if (release) {
-        await this.gh.commentOnIssue(
-          `:robot: Release for ${pkgName} is at ${release.html_url} :sunflower:`,
-          lastMergedPR.number
-        );
-        releases[pkg.config.path] = releaser.releaseResponse({
-          release,
-          version: pkg.lastVersion,
-          sha: lastMergedPR.sha,
-          number: lastMergedPR.number,
-        });
+        const strategy = strategiesByPath[path];
+        const release = await strategy.buildRelease(pullRequest);
+        if (release) {
+          releases.push({
+            ...release,
+            pullRequest,
+            draft: config.draft ?? this.draft,
+          });
+        }
       }
     }
-    if (allReleasesCreated) {
-      await this.gh.addLabels([GITHUB_RELEASE_LABEL], lastMergedPR.number);
-      await this.gh.removeLabels(DEFAULT_LABELS, lastMergedPR.number);
-    }
+
     return releases;
   }
+
+  /**
+   * Find merged, untagged releases. For each release, create a GitHub release,
+   * comment on the pull request used to generated it and update the pull request
+   * labels.
+   *
+   * @returns {GitHubRelease[]} List of created GitHub releases
+   */
+  async createReleases(): Promise<(GitHubRelease | undefined)[]> {
+    const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
+    const pullRequestsByNumber: Record<number, PullRequest> = {};
+    for (const release of await this.buildReleases()) {
+      pullRequestsByNumber[release.pullRequest.number] = release.pullRequest;
+      if (releasesByPullRequest[release.pullRequest.number]) {
+        releasesByPullRequest[release.pullRequest.number].push(release);
+      } else {
+        releasesByPullRequest[release.pullRequest.number] = [release];
+      }
+    }
+
+    const promises: Promise<GitHubRelease[]>[] = [];
+    for (const pullNumber in releasesByPullRequest) {
+      promises.push(
+        this.createReleasesForPullRequest(
+          releasesByPullRequest[pullNumber],
+          pullRequestsByNumber[pullNumber]
+        )
+      );
+    }
+    const releases = await Promise.all(promises);
+    return releases.reduce((collection, r) => collection.concat(r), []);
+  }
+
+  private async createReleasesForPullRequest(
+    releases: CandidateRelease[],
+    pullRequest: PullRequest
+  ): Promise<GitHubRelease[]> {
+    // create the release
+    const promises: Promise<GitHubRelease>[] = [];
+    for (const release of releases) {
+      promises.push(this.createRelease(release));
+    }
+    const githubReleases = await Promise.all(promises);
+
+    // adjust tags on pullRequest
+    await Promise.all([
+      this.github.removeIssueLabels(this.labels, pullRequest.number),
+      this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
+    ]);
+
+    return githubReleases;
+  }
+
+  private async createRelease(
+    release: CandidateRelease
+  ): Promise<GitHubRelease> {
+    const githubRelease = await this.github.createRelease(release, {
+      draft: release.draft,
+    });
+
+    // comment on pull request
+    const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
+    await this.github.commentOnIssue(comment, release.pullRequest.number);
+
+    return githubRelease;
+  }
+
+  private async getStrategiesByPath(): Promise<Record<string, Strategy>> {
+    if (!this._strategiesByPath) {
+      logger.info('Building strategies by path');
+      this._strategiesByPath = {};
+      for (const path in this.repositoryConfig) {
+        const config = this.repositoryConfig[path];
+        logger.debug(`${path}: ${config.releaseType}`);
+        const strategy = await buildStrategy({
+          ...config,
+          github: this.github,
+          path,
+          targetBranch: this.targetBranch,
+        });
+        this._strategiesByPath[path] = strategy;
+      }
+    }
+    return this._strategiesByPath;
+  }
+
+  private async getPathsByComponent(): Promise<Record<string, string>> {
+    if (!this._pathsByComponent) {
+      this._pathsByComponent = {};
+      const strategiesByPath = await this.getStrategiesByPath();
+      for (const path in this.repositoryConfig) {
+        const strategy = strategiesByPath[path];
+        const component =
+          strategy.component || (await strategy.getDefaultComponent()) || '';
+        if (this._pathsByComponent[component]) {
+          logger.warn(
+            `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`
+          );
+        }
+        this._pathsByComponent[component] = path;
+      }
+    }
+    return this._pathsByComponent;
+  }
+}
+
+/**
+ * Helper to convert parsed JSON releaser config into ReleaserConfig for
+ * the Manifest.
+ *
+ * @param {ReleaserPackageConfig} config Parsed configuration from JSON file.
+ * @returns {ReleaserConfig}
+ */
+function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
+  return {
+    releaseType: config['release-type'] || 'node', // for backwards-compatibility
+    bumpMinorPreMajor: config['bump-minor-pre-major'],
+    bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
+    changelogSections: config['changelog-sections'],
+    changelogPath: config['changelog-path'],
+    releaseAs: config['release-as'],
+    skipGithubRelease: config['skip-github-release'],
+    draft: config.draft,
+    draftPullRequest: config['draft-pull-request'],
+    component: config['component'],
+    packageName: config['package-name'],
+    versionFile: config['version-file'],
+    extraFiles: config['extra-files'],
+  };
+}
+
+/**
+ * Helper to convert fetch the manifest config from the repository and
+ * parse into configuration for the Manifest.
+ *
+ * @param {GitHub} github GitHub client
+ * @param {string} configFile Path in the repository to the manifest config
+ * @param {string} branch Branch to fetch the config file from
+ */
+async function parseConfig(
+  github: GitHub,
+  configFile: string,
+  branch: string
+): Promise<{config: RepositoryConfig; options: ManifestOptions}> {
+  const config = await github.getFileJson<ManifestConfig>(configFile, branch);
+  const defaultConfig = extractReleaserConfig(config);
+  const repositoryConfig: RepositoryConfig = {};
+  for (const path in config.packages) {
+    repositoryConfig[path] = mergeReleaserConfig(
+      defaultConfig,
+      extractReleaserConfig(config.packages[path])
+    );
+  }
+  const manifestOptions = {
+    bootstrapSha: config['bootstrap-sha'],
+    lastReleaseSha: config['last-release-sha'],
+    alwaysLinkLocal: config['always-link-local'],
+    separatePullRequests: config['separate-pull-requests'],
+    plugins: config['plugins'],
+  };
+  return {config: repositoryConfig, options: manifestOptions};
+}
+
+/**
+ * Helper to parse the manifest versions file.
+ *
+ * @param {GitHub} github GitHub client
+ * @param {string} manifestFile Path in the repository to the versions file
+ * @param {string} branch Branch to fetch the versions file from
+ */
+async function parseReleasedVersions(
+  github: GitHub,
+  manifestFile: string,
+  branch: string
+): Promise<ReleasedVersions> {
+  const manifestJson = await github.getFileJson<Record<string, string>>(
+    manifestFile,
+    branch
+  );
+  const releasedVersions: ReleasedVersions = {};
+  for (const path in manifestJson) {
+    releasedVersions[path] = Version.parse(manifestJson[path]);
+  }
+  return releasedVersions;
+}
+
+/**
+ * Find the most recent matching release tag on the branch we're
+ * configured for.
+ *
+ * @param {string} prefix - Limit the release to a specific component.
+ * @param {boolean} preRelease - Whether or not to return pre-release
+ *   versions. Defaults to false.
+ */
+async function latestReleaseVersion(
+  github: GitHub,
+  targetBranch: string,
+  prefix?: string
+): Promise<Version | undefined> {
+  const branchPrefix = prefix
+    ? prefix.endsWith('-')
+      ? prefix.replace(/-$/, '')
+      : prefix
+    : undefined;
+
+  logger.info(
+    `Looking for latest release on branch: ${targetBranch} with prefix: ${prefix}`
+  );
+
+  // only look at the last 250 or so commits to find the latest tag - we
+  // don't want to scan the entire repository history if this repo has never
+  // been released
+  const generator = github.mergeCommitIterator(targetBranch, 250);
+  for await (const commitWithPullRequest of generator) {
+    const mergedPullRequest = commitWithPullRequest.pullRequest;
+    if (!mergedPullRequest) {
+      continue;
+    }
+
+    const branchName = BranchName.parse(mergedPullRequest.headBranchName);
+    if (!branchName) {
+      continue;
+    }
+
+    // If branchPrefix is specified, ensure it is found in the branch name.
+    // If branchPrefix is not specified, component should also be undefined.
+    if (branchName.getComponent() !== branchPrefix) {
+      continue;
+    }
+
+    const pullRequestTitle = PullRequestTitle.parse(mergedPullRequest.title);
+    if (!pullRequestTitle) {
+      continue;
+    }
+
+    const version = pullRequestTitle.getVersion();
+    if (version?.preRelease?.includes('SNAPSHOT')) {
+      // FIXME, don't hardcode this
+      continue;
+    }
+
+    return version;
+  }
+  return;
+}
+
+function mergeReleaserConfig(
+  defaultConfig: ReleaserConfig,
+  pathConfig: ReleaserConfig
+) {
+  return {
+    releaseType: pathConfig.releaseType ?? defaultConfig.releaseType,
+    bumpMinorPreMajor:
+      pathConfig.bumpMinorPreMajor ?? defaultConfig.bumpMinorPreMajor,
+    bumpPatchForMinorPreMajor:
+      pathConfig.bumpPatchForMinorPreMajor ??
+      defaultConfig.bumpPatchForMinorPreMajor,
+    changelogSections:
+      pathConfig.changelogSections ?? defaultConfig.changelogSections,
+    changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,
+    releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
+    skipGithubRelease:
+      pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
+    draft: pathConfig.draft ?? defaultConfig.draft,
+    component: pathConfig.component ?? defaultConfig.component,
+    packageName: pathConfig.packageName ?? defaultConfig.packageName,
+    versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
+    extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
+  };
+}
+
+/**
+ * Helper to compare if a list of labels fully contains another list of labels
+ * @param {string[]} expected List of labels expected to be contained
+ * @param {string[]} existing List of existing labels to consider
+ */
+function hasAllLabels(expected: string[], existing: string[]): boolean {
+  const existingSet = new Set(existing);
+  for (const label of expected) {
+    if (!existingSet.has(label)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function commitsAfterSha(commits: Commit[], lastReleaseSha: string) {
+  if (!commits) {
+    return [];
+  }
+  const index = commits.findIndex(commit => commit.sha === lastReleaseSha);
+  if (index === -1) {
+    return commits;
+  }
+  return commits.slice(0, index);
 }

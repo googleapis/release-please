@@ -12,2323 +12,2220 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it, afterEach} from 'mocha';
-
+import {describe, it, beforeEach, afterEach} from 'mocha';
 import {Manifest} from '../src/manifest';
+import {GitHub, GitHubRelease} from '../src/github';
 import * as sinon from 'sinon';
-import {GitHub, MergedGitHubPRWithFiles} from '../src/github';
-import {buildGitHubFileRaw, buildGitHubFileContent} from './releasers/utils';
+import {Commit} from '../src/commit';
+import {
+  buildGitHubFileContent,
+  buildGitHubFileRaw,
+  stubSuggesterWithSnapshot,
+  assertHasUpdate,
+  dateSafe,
+} from './helpers';
 import {expect} from 'chai';
-import {Commit} from '../src/graphql-to-commits';
-import {CheckpointType} from '../src/util/checkpoint';
-import {stubSuggesterWithSnapshot, buildMockCommit} from './helpers';
+import {Version} from '../src/version';
+import {PullRequest} from '../src/pull-request';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
+import * as factory from '../src/factory';
+import {NodeWorkspace} from '../src/plugins/node-workspace';
+import {CargoWorkspace} from '../src/plugins/cargo-workspace';
+import {PullRequestTitle} from '../src/util/pull-request-title';
+import {PullRequestBody} from '../src/util/pull-request-body';
+import {RawContent} from '../src/updaters/raw-content';
+import {TagName} from '../src/util/tag-name';
+import snapshot = require('snap-shot-it');
 
-const prettyJsonStringify = (value: object) =>
-  JSON.stringify(value, undefined, 2) + '\n';
-
-const fixturePath = './test/fixtures/manifest/repo';
-const defaultBranch = 'main';
-const lastReleaseSha = 'abc123';
-const addLabel = 'autorelease: pending';
 const sandbox = sinon.createSandbox();
+const fixturesPath = './test/fixtures';
+
+function mockCommits(github: GitHub, commits: Commit[]) {
+  async function* fakeGenerator() {
+    for (const commit of commits) {
+      yield commit;
+    }
+  }
+  sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
+}
+
+function mockReleases(github: GitHub, releases: GitHubRelease[]) {
+  async function* fakeGenerator() {
+    for (const release of releases) {
+      yield release;
+    }
+  }
+  sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
+}
+
+function mockPullRequests(
+  github: GitHub,
+  pullRequests: PullRequest[],
+  mergedPullRequests: PullRequest[] = []
+): sinon.SinonStub {
+  async function* fakeGenerator() {
+    for (const pullRequest of pullRequests) {
+      yield pullRequest;
+    }
+  }
+  async function* mergedGenerator() {
+    for (const pullRequest of mergedPullRequests) {
+      yield pullRequest;
+    }
+  }
+  return sandbox
+    .stub(github, 'pullRequestIterator')
+    .withArgs(sinon.match.string, 'OPEN')
+    .returns(fakeGenerator())
+    .withArgs(sinon.match.string, 'MERGED')
+    .returns(mergedGenerator());
+}
+
+function mockCreateRelease(
+  github: GitHub,
+  releases: {sha: string; tagName: string; draft?: boolean}[]
+) {
+  const releaseStub = sandbox.stub(github, 'createRelease');
+  for (const {sha, tagName, draft} of releases) {
+    releaseStub
+      .withArgs(
+        sinon.match.has(
+          'tag',
+          sinon.match((tag: TagName) => tag.toString() === tagName)
+        )
+      )
+      .resolves({
+        tagName,
+        sha,
+        url: 'https://path/to/release',
+        notes: 'some release notes',
+        draft,
+      });
+  }
+}
+
+function pullRequestBody(path: string): string {
+  return readFileSync(resolve(fixturesPath, path), 'utf8').replace(
+    /\r\n/g,
+    '\n'
+  );
+}
 
 describe('Manifest', () => {
+  let github: GitHub;
+  beforeEach(async () => {
+    github = await GitHub.create({
+      owner: 'fake-owner',
+      repo: 'fake-repo',
+      defaultBranch: 'main',
+      token: 'fake-token',
+    });
+  });
   afterEach(() => {
     sandbox.restore();
   });
 
-  function expectManifest(
-    mock: sinon.SinonMock,
-    params?: {
-      manifest?: string | false;
-      lastReleaseSha?: string;
-    }
-  ) {
-    const {manifest, lastReleaseSha} = params ?? {};
-    if (manifest) {
-      mock
-        .expects('getFileContentsWithSimpleAPI')
-        .once()
-        .withExactArgs('.release-please-manifest.json', lastReleaseSha, false)
-        .resolves(buildGitHubFileRaw(manifest));
-    } else if (manifest === false) {
-      mock
-        .expects('getFileContentsWithSimpleAPI')
-        .once()
-        .withExactArgs('.release-please-manifest.json', lastReleaseSha, false)
-        .rejects(Object.assign(Error('not found'), {status: 404}));
-    } else {
-      mock.expects('getFileContentsWithSimpleAPI').never();
-    }
-  }
-
-  function expectPR(
-    mock: sinon.SinonMock,
-    params?: {
-      mergedPRFiles?: string[];
-      mergedPRLabels?: string[];
-      lastReleaseSha?: string;
-    }
-  ) {
-    const {mergedPRFiles, mergedPRLabels, lastReleaseSha} = params ?? {};
-    let mergedPR: MergedGitHubPRWithFiles | undefined;
-    if (lastReleaseSha) {
-      mergedPR = {
-        sha: lastReleaseSha,
-        title: '',
-        body: '',
-        number: 22,
-        baseRefName: '',
-        headRefName: '',
-        files: mergedPRFiles ?? [],
-        labels: mergedPRLabels ?? ['autorelease: pending'],
-      };
-    }
-    mock
-      .expects('lastMergedPRByHeadBranch')
-      .atMost(1)
-      .withExactArgs('release-please/branches/main')
-      .resolves(mergedPR);
-
-    // creating a new PR
-    mock.expects('findOpenReleasePRs').atMost(1).resolves([]);
-  }
-
-  function expectCommitsSinceSha(
-    mock: sinon.SinonMock,
-    params?: {
-      commits?: Commit[];
-      lastReleaseSha?: string;
-    }
-  ) {
-    const {commits, lastReleaseSha} = params ?? {};
-    if (commits) {
-      mock
-        .expects('commitsSinceShaRest')
-        .once()
-        .withExactArgs(lastReleaseSha)
-        .resolves(commits);
-    } else {
-      mock.expects('commitsSinceShaRest').never();
-    }
-  }
-
-  function expectGetFiles(
-    mock: sinon.SinonMock,
-    params?: {
-      fixtureFiles?: string[];
-      inlineFiles?: [string, string][];
-    }
-  ) {
-    const {fixtureFiles, inlineFiles} = params ?? {};
-    if (fixtureFiles || inlineFiles) {
-      const fixtures = fixtureFiles ?? [];
-      const inlines = inlineFiles ?? [];
-      for (const fixture of fixtures) {
-        mock
-          .expects('getFileContentsOnBranch')
-          .withExactArgs(fixture, 'main')
-          .once()
-          .resolves(buildGitHubFileContent(fixturePath, fixture));
-      }
-      for (const [file, contents] of inlines) {
-        mock
-          .expects('getFileContentsOnBranch')
-          .withExactArgs(file, 'main')
-          .once()
-          .resolves(buildGitHubFileRaw(contents));
-      }
-      const expectedNotFound = [
-        'node/pkg1/package-lock.json',
-        'node/pkg1/npm-shrinkwrap.json',
-        'node/pkg1/samples/package.json',
-        'node/pkg1/CHANGELOG.md',
-        'node/pkg1/HISTORY.md',
-        'node/pkg2/package-lock.json',
-        'node/pkg2/npm-shrinkwrap.json',
-        'node/pkg2/samples/package.json',
-        'node/pkg2/CHANGELOG.md',
-        'python/CHANGELOG.md',
-        'python/HISTORY.md',
-        'package-lock.json',
-        'python/foolib/__init__.py',
-        'python/src/foolib/__init__.py',
-        'npm-shrinkwrap.json',
-        'samples/package.json',
-        'CHANGELOG.md',
-      ];
-      for (const notFound of expectedNotFound) {
-        mock
-          .expects('getFileContentsOnBranch')
-          .withExactArgs(notFound, 'main')
-          .atMost(1)
-          .rejects(Object.assign(Error('not found'), {status: 404}));
-      }
-    } else {
-      mock.expects('getFileContentsOnBranch').never();
-    }
-  }
-
-  function expectLabelAndComment(
-    mock: sinon.SinonMock,
-    params?: {
-      addLabel?: string;
-      removeLabel?: string;
-      prComments?: string[];
-    }
-  ) {
-    const {addLabel, removeLabel, prComments} = params ?? {};
-    const addLabelsExp = mock.expects('addLabels');
-    if (addLabel) {
-      addLabelsExp.once().withExactArgs([addLabel], 22).resolves(true);
-    } else {
-      addLabelsExp.never();
-    }
-
-    const removeLabelsExp = mock.expects('removeLabels');
-    if (removeLabel) {
-      removeLabelsExp.once().withExactArgs([removeLabel], 22).resolves(true);
-    } else {
-      removeLabelsExp.never();
-    }
-
-    if (prComments) {
-      for (const comment of prComments) {
-        mock
-          .expects('commentOnIssue')
-          .withExactArgs(comment, 22)
-          .once()
-          .resolves();
-      }
-    } else {
-      mock.expects('commentOnIssue').never();
-    }
-  }
-
-  function mockGithub(github: GitHub) {
-    const mock = sandbox.mock(github);
-
-    // implementation strips leading `path` from results
-    mock
-      .expects('findFilesByFilename')
-      .atMost(1)
-      .withExactArgs('version.py', 'python')
-      .resolves(['src/foolib/version.py']);
-
-    mock
-      .expects('getFileContentsOnBranch')
-      .atMost(1)
-      .withArgs('pyproject.toml', 'main')
-      .rejects();
-
-    return mock;
-  }
-
-  describe('pullRequest', () => {
-    it('creates a PR for python and node packages', async function () {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-        python: '1.2.3',
-      });
-      const manifestFileAtHEAD = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        // test that we overwrite any existing path versions that someone tried
-        // to change.
-        python: '9.9.9',
-      });
-      const config = prettyJsonStringify({
-        packages: {
-          'node/pkg1': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifestFileAtHEAD],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
-    });
-
-    it('allows root module to be published, via special "." path', async function () {
-      const manifest = prettyJsonStringify({
-        '.': '2.0.0',
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        packages: {
-          '.': {},
-          'node/pkg1': {},
-          'node/pkg2': {},
-        },
-      });
-      const commits = [
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg2)!: major new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-        buildMockCommit('fix(root): root only change', ['src/foo.ts']),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'package.json',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 2.0.0 for . in .release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in .release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for node/pkg2 in .release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(googleapis)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-      ]);
-    });
-
-    it('respects python releaser specific config over defaults', async function () {
-      // https://github.com/googleapis/release-please/pull/790#issuecomment-783792069
-      if (process.versions.node.split('.')[0] === '10') {
-        this.skip();
-      }
-      const manifest = prettyJsonStringify({
-        'node/pkg1': '0.1.1',
-        'node/pkg2': '0.2.2',
-        python: '0.1.1',
-      });
-      const config = prettyJsonStringify({
-        'bump-minor-pre-major': true,
-        'release-as': '5.5.5',
-        'changelog-sections': [
-          {type: 'feat', section: 'Default Features Section'},
-          {type: 'fix', section: 'Default Bug Fixes Section'},
-        ],
-        packages: {
-          // expect to see 5.5.5 from default release-as
-          'node/pkg1': {
-            'changelog-path': 'HISTORY.md',
-          },
-          // expect to see 0.3.0 because commit feat(@node/pkg2)! and default
-          // bump-minor-pre-major is true and release-as is locally turned off
-          'node/pkg2': {
-            'release-as': '',
-          },
-          // expect to see 1.0.1 because commit feat(foolib)! and local
-          // bump-minor-pre-major is false and release-as is locally turned off
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-            'bump-minor-pre-major': false,
-            'release-as': '',
-            'changelog-sections': [
-              {type: 'feat', section: 'Python Features Section'},
-              {type: 'fix', section: 'Python Bug Fixes Section'},
-            ],
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('feat(foolib)!: python feature', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('fix(foolib): python bufix', [
-          'python/src/foolib/bar.py',
-        ]),
-        buildMockCommit('feat(@node/pkg2)!: node2 feature', [
-          'node/pkg2/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: node feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('bugfix(@node/pkg1): node bugfix', [
-          'node/pkg1/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          // manifest has not been changed.
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.2.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.1 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
-    });
-
-    it('bootstraps a new package from curated manifest', async function () {
-      const manifest = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        python: '1.2.3',
-      });
-      const manifestFileAtHEAD = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        // New package's "previous" version manually added since last release.
-        // Candidate release will increment this version.
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        'release-type': 'node',
-        'bump-minor-pre-major': true,
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg2): new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifestFileAtHEAD],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Failed to find version for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Failure,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Bootstrapping from .release-please-manifest.json at tip of main ' +
-            'for missing paths [node/pkg2]',
-          CheckpointType.Failure,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
-    });
-
-    it('bootstraps a new package using default version', async function () {
-      const manifest = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {}, // should default to Node.defaultInitialVersion
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg2): new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          // manifest has not been changed.
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Failed to find version for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Failure,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Bootstrapping from .release-please-manifest.json at tip of main ' +
-            'for missing paths [node/pkg2]',
-          CheckpointType.Failure,
-        ],
-        [
-          'Failed to find version for node/pkg2 in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Failure,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        [
-          'Falling back to default version for Node(@node/pkg2): 1.0.0',
-          CheckpointType.Failure,
-        ],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
-    });
-
-    it('only includes packages that have version bumps', async function () {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = JSON.stringify({
-        'release-type': 'node',
-        'bump-minor-pre-major': true,
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('feat(@node/pkg2): new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg2/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          // manifest has not been changed.
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-      ]);
-    });
-
-    it('does not create a PR if no changes', async function () {
-      const manifest = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        'release-type': 'node',
-        'bump-minor-pre-major': true,
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      // nothing user facing
-      const commits = [
-        buildMockCommit('chore(foolib): python foolib docs', [
-          'python/src/foolib/README.md',
-        ]),
-        buildMockCommit('refactor(@node/pkg1): internal refactor', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('ci(@node/pkg2): build tweaks', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          // manifest has not been changed.
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectLabelAndComment(mock);
-      // there should be no snapshot created for this test
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.be.undefined;
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-        ['No user facing changes to release', CheckpointType.Success],
-      ]);
-    });
-
-    it('boostraps from HEAD manifest if first PR', async function () {
-      // no previously merged PR found, will use this as bootstrap
-      const manifestFileAtHEAD = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        'release-type': 'node',
-        'bump-minor-pre-major': true,
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg2): new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock);
-      expectPR(mock);
-      // lastReleaseSha is undefined and no bootstrap-sha so we expect
-      // gh.commitsSinceShaRest to be called with `undefined` meaning go all
-      // the way back to the first commit.
-      expectCommitsSinceSha(mock, {commits});
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifestFileAtHEAD],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "undefined" using "no last release sha found"',
-          CheckpointType.Success,
-        ],
-        [
-          'Bootstrapping from .release-please-manifest.json at tip of main',
-          CheckpointType.Failure,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
-    });
-
-    it('uses last-release-sha', async function () {
-      const manifest = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        'release-type': 'node',
-        'bump-minor-pre-major': true,
-        'last-release-sha': lastReleaseSha,
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg2): new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha: 'skip-this-bad-release-PR'});
-      expectCommitsSinceSha(mock, {
-        lastReleaseSha,
-        commits,
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-sha"',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
-    });
-
-    it('boostraps from HEAD manifest starting at bootstrap-sha if first PR', async function () {
-      // no previously merged PR found, will use this as bootstrap
-      const manifestFileAtHEAD = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        'release-type': 'node',
-        'bump-minor-pre-major': true,
-        'bootstrap-sha': 'some-sha-in-mains-history',
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg2): new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {
-        manifest: false,
-        lastReleaseSha: 'some-sha-in-mains-history',
-      });
-      expectPR(mock);
-      // not actually testing gh.CommitsSinceSha, sufficient to know that
-      // Manifest called it with the 'bootstrap-sha' config value.
-      expectCommitsSinceSha(mock, {
-        lastReleaseSha: 'some-sha-in-mains-history',
-        commits,
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifestFileAtHEAD],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "some-sha-in-mains-history" using "bootstrap-sha"',
-          CheckpointType.Success,
-        ],
-        [
-          'Failed to get .release-please-manifest.json at some-sha-in-mains-history: 404',
-          CheckpointType.Failure,
-        ],
-        [
-          'Bootstrapping from .release-please-manifest.json at tip of main',
-          CheckpointType.Failure,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
-    });
-
-    it('boostraps from HEAD manifest if manifest was deleted in last release PR', async function () {
-      // no previously merged PR found, will use this as bootstrap
-      const manifest = false;
-      const manifestFileAtHEAD = prettyJsonStringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        'release-type': 'node',
-        'bump-minor-pre-major': true,
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('feat(@node/pkg1)!: major new feature', [
-          'node/pkg1/src/foo.ts',
-        ]),
-        buildMockCommit('feat(@node/pkg2): new feature', [
-          'node/pkg2/src/bar.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifestFileAtHEAD],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
-        [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
-        [
-          'Failed to get .release-please-manifest.json at abc123: 404',
-          CheckpointType.Failure,
-        ],
-        [
-          'Bootstrapping from .release-please-manifest.json at tip of main',
-          CheckpointType.Failure,
-        ],
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Node(@node/pkg2)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
-      ]);
+  describe('fromManifest', () => {
+    it('it should parse config and manifest from repostiory', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(8);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
     });
   });
 
-  describe('githubRelease', () => {
-    it('releases python and node packages', async () => {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
+  describe('fromConfig', () => {
+    it('should pass strategy options to the strategy', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
       });
-      const config = JSON.stringify({
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+    });
+  });
+
+  describe('buildPullRequests', () => {
+    describe('with basic config', () => {
+      beforeEach(() => {
+        mockReleases(github, [
+          {
+            sha: 'abc123',
+            tagName: 'v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+          },
+        ]);
+        mockCommits(github, [
+          {
+            sha: 'def456',
+            message: 'fix: some bugfix',
+            files: [],
+          },
+          {
+            sha: 'abc123',
+            message: 'chore: release 1.0.0',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release 1.0.0',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
+          },
+        ]);
+      });
+
+      it('should handle single package repository', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.version?.toString()).to.eql('1.0.1');
+        // simple release type updates the changelog and version.txt
+        assertHasUpdate(pullRequest.updates, 'CHANGELOG.md');
+        assertHasUpdate(pullRequest.updates, 'version.txt');
+        assertHasUpdate(pullRequest.updates, '.release-please-manifest.json');
+      });
+
+      it('should create a draft pull request', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+              draftPullRequest: true,
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.draft).to.be.true;
+      });
+
+      it('should create a draft pull request manifest wide', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          },
+          {
+            draftPullRequest: true,
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.draft).to.be.true;
+      });
+
+      it('allows customizing pull request labels', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          },
+          {
+            labels: ['some-special-label'],
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.labels).to.eql(['some-special-label']);
+      });
+    });
+
+    it('should find the component from config', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'def456',
+          message: 'fix: some bugfix',
+          files: [],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+      ]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/repo/node/pkg1/package.json'
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.0.0'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.version?.toString()).to.eql('1.0.1');
+    });
+
+    it('should handle multiple package repository', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release main',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release main',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      snapshot(dateSafe(pullRequests[0].body.toString()));
+    });
+
+    it('should allow creating multiple pull requests', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release 0.2.3',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg2',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 0.2.3',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(2);
+      snapshot(dateSafe(pullRequests[0].body.toString()));
+      snapshot(dateSafe(pullRequests[1].body.toString()));
+    });
+
+    it('should allow forcing release-as on a single component', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release 0.2.3',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg2',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 0.2.3',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const config = {
+        'separate-pull-requests': true,
         packages: {
-          'node/pkg1': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
+          'path/a': {
+            'release-type': 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            'release-type': 'simple',
+            component: 'pkg2',
+            'release-as': '3.3.3',
+          },
+        },
+      };
+      const versions = {
+        'path/a': '1.0.0',
+        'path/b': '0.2.3',
+      };
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('release-please-config.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(config)))
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
+      const manifest = await Manifest.fromManifest(github, 'main');
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(2);
+      expect(pullRequests[0].version?.toString()).to.eql('1.0.1');
+      expect(pullRequests[1].version?.toString()).to.eql('3.3.3');
+    });
+
+    it('should allow forcing release-as on entire manifest', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release 0.2.3',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg2',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 0.2.3',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const config = {
+        'release-as': '3.3.3',
+        'separate-pull-requests': true,
+        packages: {
+          'path/a': {
+            'release-type': 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            'release-type': 'simple',
+            component: 'pkg2',
+          },
+        },
+      };
+      const versions = {
+        'path/a': '1.0.0',
+        'path/b': '0.2.3',
+      };
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('release-please-config.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(config)))
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
+      const manifest = await Manifest.fromManifest(github, 'main');
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(2);
+      expect(pullRequests[0].version?.toString()).to.eql('3.3.3');
+      expect(pullRequests[1].version?.toString()).to.eql('3.3.3');
+    });
+
+    it('should allow specifying a bootstrap sha', async () => {
+      mockReleases(github, []);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix 1',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix 2',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'dddddd',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+      ]);
+      const config = {
+        'bootstrap-sha': 'cccccc',
+        'separate-pull-requests': true,
+        packages: {
+          'path/a': {
+            'release-type': 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            'release-type': 'simple',
+            component: 'pkg2',
+          },
+        },
+      };
+      const versions = {
+        'path/a': '0.0.0',
+        'path/b': '0.0.0',
+      };
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('release-please-config.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(config)))
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
+      const manifest = await Manifest.fromManifest(github, 'main');
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
+    });
+
+    it('should allow specifying a last release sha', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release 0.2.3',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg2',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 0.2.3',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const config = {
+        'last-release-sha': 'bbbbbb',
+        'separate-pull-requests': true,
+        packages: {
+          'path/a': {
+            'release-type': 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            'release-type': 'simple',
+            component: 'pkg2',
+          },
+        },
+      };
+      const versions = {
+        'path/a': '0.0.0',
+        'path/b': '0.0.0',
+      };
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('release-please-config.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(config)))
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
+      const manifest = await Manifest.fromManifest(github, 'main');
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
+    });
+
+    describe('with plugins', () => {
+      beforeEach(() => {
+        mockReleases(github, [
+          {
+            sha: 'abc123',
+            tagName: 'pkg1-v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+          },
+          {
+            sha: 'def234',
+            tagName: 'pkg2-v0.2.3',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
+          },
+        ]);
+        mockCommits(github, [
+          {
+            sha: 'aaaaaa',
+            message: 'fix: some bugfix',
+            files: ['path/a/foo'],
+          },
+          {
+            sha: 'abc123',
+            message: 'chore: release 1.0.0',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main/components/pkg1',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release 1.0.0',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
+          },
+          {
+            sha: 'bbbbbb',
+            message: 'fix: some bugfix',
+            files: ['path/b/foo'],
+          },
+          {
+            sha: 'cccccc',
+            message: 'fix: some bugfix',
+            files: ['path/a/foo'],
+          },
+          {
+            sha: 'def234',
+            message: 'chore: release 0.2.3',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main/components/pkg2',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release 0.2.3',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'def234',
+            },
+          },
+        ]);
+      });
+
+      it('should load and run a single plugins', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'node',
+              component: 'pkg1',
+            },
+            'path/b': {
+              releaseType: 'node',
+              component: 'pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          },
+          {
+            separatePullRequests: true,
+            plugins: ['node-workspace'],
+          }
+        );
+        const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
+        mockPlugin.run.returnsArg(0);
+        sandbox
+          .stub(factory, 'buildPlugin')
+          .withArgs(sinon.match.has('type', 'node-workspace'))
+          .returns(mockPlugin);
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).not.empty;
+        sinon.assert.calledOnce(mockPlugin.run);
+      });
+
+      it('should load and run multiple plugins', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'node',
+              component: 'pkg1',
+            },
+            'path/b': {
+              releaseType: 'node',
+              component: 'pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          },
+          {
+            separatePullRequests: true,
+            plugins: ['node-workspace', 'cargo-workspace'],
+          }
+        );
+        const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
+        mockPlugin.run.returnsArg(0);
+        const mockPlugin2 = sandbox.createStubInstance(CargoWorkspace);
+        mockPlugin2.run.returnsArg(0);
+        sandbox
+          .stub(factory, 'buildPlugin')
+          .withArgs(sinon.match.has('type', 'node-workspace'))
+          .returns(mockPlugin)
+          .withArgs(sinon.match.has('type', 'cargo-workspace'))
+          .returns(mockPlugin2);
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).not.empty;
+        sinon.assert.calledOnce(mockPlugin.run);
+        sinon.assert.calledOnce(mockPlugin2.run);
+      });
+    });
+  });
+
+  describe('createPullRequests', () => {
+    it('handles no pull requests', async () => {
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).to.be.empty;
+    });
+
+    it('handles a single pull request', async function () {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      mockPullRequests(github, []);
+      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+        number: 22,
+        title: 'pr title1',
+        body: 'pr body1',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        labels: [],
+        files: [],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes',
+            },
+          ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(1);
+    });
+
+    it('handles a multiple pull requests', async () => {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'))
+        .withArgs('pkg2/README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content-2'));
+      mockPullRequests(github, []);
+      sandbox
+        .stub(github, 'getPullRequest')
+        .withArgs(123)
+        .resolves({
+          number: 123,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        })
+        .withArgs(124)
+        .resolves({
+          number: 124,
+          title: 'pr title2',
+          body: 'pr body2',
+          headBranchName: 'release-please/branches/main2',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      sandbox
+        .stub(github, 'createReleasePullRequest')
+        .withArgs(
+          sinon.match.has('headRefName', 'release-please/branches/main'),
+          'main'
+        )
+        .resolves({
+          number: 123,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        })
+        .withArgs(
+          sinon.match.has('headRefName', 'release-please/branches/main2'),
+          'main'
+        )
+        .resolves({
+          number: 124,
+          title: 'pr title2',
+          body: 'pr body2',
+          headBranchName: 'release-please/branches/main2',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes',
+            },
+          ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes 2',
+            },
+          ]),
+          updates: [
+            {
+              path: 'pkg2/README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content 2'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main2',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).to.eql([123, 124]);
+    });
+
+    it('handles signoff users', async function () {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      mockPullRequests(github, []);
+      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+        number: 22,
+        title: 'pr title1',
+        body: 'pr body1',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        labels: [],
+        files: [],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+          signoff: 'Alice <alice@example.com>',
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes',
+            },
+          ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(1);
+    });
+
+    it('handles fork = true', async function () {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      mockPullRequests(github, []);
+      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+        number: 22,
+        title: 'pr title1',
+        body: 'pr body1',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        labels: [],
+        files: [],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+          fork: true,
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes',
+            },
+          ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(1);
+    });
+
+    it('updates an existing pull request', async function () {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      mockPullRequests(
+        github,
+        [
+          {
+            number: 22,
+            title: 'pr title1',
+            body: new PullRequestBody([]).toString(),
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: ['autorelease: pending'],
+            files: [],
+          },
+        ],
+        []
+      );
+      sandbox
+        .stub(github, 'updatePullRequest')
+        .withArgs(22, sinon.match.any, sinon.match.any, sinon.match.any)
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes',
+            },
+          ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(1);
+    });
+
+    it('skips pull requests if there are pending, closed pull requests', async () => {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            number: 22,
+            title: 'pr title1',
+            body: new PullRequestBody([]).toString(),
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: ['autorelease: pending'],
+            files: [],
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes',
+            },
+          ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(0);
+    });
+  });
+
+  describe('buildReleases', () => {
+    it('should handle a single manifest release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('release-brancher-v1.3.1');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Bug Fixes'));
+    });
+
+    it('should handle a multiple manifest release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/multiple.txt'),
+            labels: ['autorelease: pending'],
+            files: [
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+              'packages/object-selector/package.json',
+              'packages/datastore-lock/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        )
+        .withArgs('packages/object-selector/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/object-selector'})
+          )
+        )
+        .withArgs('packages/datastore-lock/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/datastore-lock'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
+          },
+        },
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(4);
+      expect(releases[0].tag.toString()).to.eql('bot-config-utils-v3.2.0');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].tag.toString()).to.eql('label-utils-v1.1.0');
+      expect(releases[1].sha).to.eql('abc123');
+      expect(releases[1].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[2].tag.toString()).to.eql('object-selector-v1.1.0');
+      expect(releases[2].sha).to.eql('abc123');
+      expect(releases[2].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[3].tag.toString()).to.eql('datastore-lock-v2.1.0');
+      expect(releases[3].sha).to.eql('abc123');
+      expect(releases[3].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+    });
+
+    it('should handle a single standalone release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore(main): release 3.2.7',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+          },
+        },
+        {
+          '.': Version.parse('3.2.6'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('v3.2.7');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+    });
+
+    it('should allow skipping releases', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/multiple.txt'),
+            labels: ['autorelease: pending'],
+            files: [
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+              'packages/object-selector/package.json',
+              'packages/datastore-lock/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        )
+        .withArgs('packages/object-selector/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/object-selector'})
+          )
+        )
+        .withArgs('packages/datastore-lock/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/datastore-lock'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+            skipGithubRelease: true,
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
+          },
+        },
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(3);
+      expect(releases[0].tag.toString()).to.eql('bot-config-utils-v3.2.0');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].tag.toString()).to.eql('label-utils-v1.1.0');
+      expect(releases[1].sha).to.eql('abc123');
+      expect(releases[1].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[2].tag.toString()).to.eql('datastore-lock-v2.1.0');
+      expect(releases[2].sha).to.eql('abc123');
+      expect(releases[2].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+    });
+
+    it('should build draft releases', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
             draft: true,
           },
         },
-      });
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].draft).to.be.true;
+    });
 
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {
-        lastReleaseSha,
-        mergedPRFiles: [
-          // lack of any "node/pkg2/ files indicates that package did not
-          // change in the last merged PR.
-          'node/pkg1/package.json',
-          'node/pkg1/CHANGELOG.md',
-          'python/setup.py',
-          'python/CHANGELOG.md',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-          '.release-please-manifest.json',
-        ],
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg1/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
-        ],
-      });
-      expectLabelAndComment(mock, {
-        addLabel: 'autorelease: tagged',
-        removeLabel: 'autorelease: pending',
-        prComments: [
-          ':robot: Release for @node/pkg1 is at https://pkg1@3.2.1:html :sunflower:',
-          ':robot: Release for foolib is at https://foolib@1.2.3:html :sunflower:',
-        ],
-      });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          '@node/pkg1',
-          'pkg1-v3.2.1',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .resolves({
-          name: '@node/pkg1 pkg1-v3.2.1',
-          tag_name: 'pkg1-v3.2.1',
-          draft: false,
-          body: '',
-          html_url: 'https://pkg1@3.2.1:html',
-          upload_url: 'https://pkg1@3.2.1:upload',
-        });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          'foolib',
-          'foolib-v1.2.3',
-          lastReleaseSha,
-          sinon.match.string,
-          true
-        )
-        .once()
-        .resolves({
-          name: 'foolib foolib-v1.2.3',
-          tag_name: 'foolib-v1.2.3',
+    it('should build draft releases manifest wide', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        },
+        {
           draft: true,
-          body: '',
-          html_url: 'https://foolib@1.2.3:html',
-          upload_url: 'https://foolib@1.2.3:upload',
-        });
-
-      const releases = await new Manifest({github}).githubRelease();
-      mock.verify();
-      expect(releases).to.eql({
-        'node/pkg1': {
-          version: '3.2.1',
-          major: 3,
-          minor: 2,
-          patch: 1,
-          pr: 22,
-          draft: false,
-          body: '',
-          sha: 'abc123',
-          html_url: 'https://pkg1@3.2.1:html',
-          tag_name: 'pkg1-v3.2.1',
-          name: '@node/pkg1 pkg1-v3.2.1',
-          upload_url: 'https://pkg1@3.2.1:upload',
-        },
-        python: {
-          version: '1.2.3',
-          major: 1,
-          minor: 2,
-          patch: 3,
-          pr: 22,
-          draft: true,
-          body: '',
-          sha: 'abc123',
-          html_url: 'https://foolib@1.2.3:html',
-          tag_name: 'foolib-v1.2.3',
-          name: 'foolib foolib-v1.2.3',
-          upload_url: 'https://foolib@1.2.3:upload',
-        },
-      });
-    });
-
-    it('logs when no last mergedPR found', async () => {
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock);
-      expectPR(mock);
-      expectGetFiles(mock, {
-        inlineFiles: [
-          // minimal manifest/config to pass validation
-          ['.release-please-manifest.json', '{}'],
-          ['release-please-config.json', '{"packages": {"path":{}}}'],
-        ],
-      });
-      expectLabelAndComment(mock);
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const releases = await new Manifest({github, checkpoint}).githubRelease();
-      mock.verify();
-      expect(releases).to.be.undefined;
-      expect(logs).to.eql([
-        [
-          'Unable to find last merged Manifest PR for tagging',
-          CheckpointType.Failure,
-        ],
-      ]);
-    });
-
-    it('logs when last mergedPR found is already released', async () => {
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock);
-      expectPR(mock, {mergedPRLabels: ['autorelease: tagged'], lastReleaseSha});
-      expectGetFiles(mock, {
-        inlineFiles: [
-          // minimal manifest/config to pass validation
-          ['.release-please-manifest.json', '{}'],
-          ['release-please-config.json', '{"packages": {"path":{}}}'],
-        ],
-      });
-      expectLabelAndComment(mock);
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const releases = await new Manifest({github, checkpoint}).githubRelease();
-      mock.verify();
-      expect(releases).to.be.undefined;
-      expect(logs).to.eql([
-        [
-          'Releases already created for last merged release PR',
-          CheckpointType.Success,
-        ],
-      ]);
-    });
-
-    it('logs when last mergedPR found is missing labels', async () => {
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock);
-      expectPR(mock, {mergedPRLabels: [], lastReleaseSha});
-      expectGetFiles(mock, {
-        inlineFiles: [
-          // minimal manifest/config to pass validation
-          ['.release-please-manifest.json', '{}'],
-          ['release-please-config.json', '{"packages": {"path":{}}}'],
-        ],
-      });
-      expectLabelAndComment(mock);
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const releases = await new Manifest({github, checkpoint}).githubRelease();
-      mock.verify();
-      expect(releases).to.be.undefined;
-      expect(logs).to.eql([
-        [
-          'Warning: last merged PR(#22) is missing label ' +
-            '"autorelease: pending" but has not yet been labeled ' +
-            '"autorelease: tagged". If PR(#22) is meant to be a release PR, ' +
-            'please apply the label "autorelease: pending".',
-          CheckpointType.Failure,
-        ],
-      ]);
-    });
-
-    it('logs a user deleting a manifest entry before merging last PR', async () => {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-        // python: '1.2.3', - user deleted this one
-      });
-      const config = JSON.stringify({
-        packages: {
-          'node/pkg1': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {
-        lastReleaseSha,
-        mergedPRFiles: [
-          'node/pkg1/package.json',
-          'node/pkg1/CHANGELOG.md',
-          'python/setup.py',
-          'python/CHANGELOG.md',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-          '.release-please-manifest.json',
-        ],
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg1/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-        ],
-      });
-      expectLabelAndComment(mock, {
-        addLabel: 'autorelease: tagged',
-        removeLabel: 'autorelease: pending',
-        prComments: [
-          ':robot: Release for @node/pkg1 is at https://pkg1@3.2.1:html :sunflower:',
-        ],
-      });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          '@node/pkg1',
-          'pkg1-v3.2.1',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .resolves({
-          name: '@node/pkg1 pkg1-v3.2.1',
-          tag_name: 'pkg1-v3.2.1',
-          draft: false,
-          body: '',
-          html_url: 'https://pkg1@3.2.1:html',
-          upload_url: 'https://pkg1@3.2.1:upload',
-        });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          'foolib',
-          'foolib-v1.2.3',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .never();
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-
-      const releases = await new Manifest({github, checkpoint}).githubRelease();
-      mock.verify();
-      expect(releases).to.eql({
-        'node/pkg1': {
-          version: '3.2.1',
-          major: 3,
-          minor: 2,
-          patch: 1,
-          pr: 22,
-          draft: false,
-          body: '',
-          sha: 'abc123',
-          html_url: 'https://pkg1@3.2.1:html',
-          tag_name: 'pkg1-v3.2.1',
-          name: '@node/pkg1 pkg1-v3.2.1',
-          upload_url: 'https://pkg1@3.2.1:upload',
-        },
-        python: undefined,
-      });
-      // python entry was manually deleted from manifest (user error)
-      // log the problem, continue releasing other pkgs from manifest
-      expect(logs).to.eql([
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Failed to find version for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Failure,
-        ],
-        [
-          'Bootstrapping from .release-please-manifest.json at tip of main ' +
-            'for missing paths [python]',
-          CheckpointType.Failure,
-        ],
-        [
-          'Failed to find version for python in ' +
-            '.release-please-manifest.json at tip of main',
-          CheckpointType.Failure,
-        ],
-        ['Creating release for Node(@node/pkg1)@3.2.1', CheckpointType.Success],
-        [
-          'Unable to find last version for Python(foolib).',
-          CheckpointType.Failure,
-        ],
-      ]);
-    });
-
-    it('logs transient pkg release creation errors', async () => {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = JSON.stringify({
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {
-        lastReleaseSha,
-        mergedPRFiles: [
-          'node/pkg1/package.json',
-          'node/pkg1/CHANGELOG.md',
-          'node/pkg2/package.json',
-          'node/pkg2/CHANGELOG.md',
-          'python/setup.py',
-          'python/CHANGELOG.md',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-          '.release-please-manifest.json',
-        ],
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-          ['node/pkg2/CHANGELOG.md', '#Changelog\n\n## v0.1.2\n\n* entry'],
-          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
-        ],
-      });
-      expectLabelAndComment(mock, {
-        prComments: [
-          ':robot: Release for @node/pkg1 is at https://pkg1@3.2.1:html :sunflower:',
-          ':robot: Failed to create release for @node/pkg2 :cloud:',
-          ':robot: Release for foolib is at https://foolib@1.2.3:html :sunflower:',
-        ],
-      });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          '@node/pkg1',
-          'pkg1-v3.2.1',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .resolves({
-          name: '@node/pkg1 pkg1-v3.2.1',
-          tag_name: 'pkg1-v3.2.1',
-          draft: false,
-          body: '',
-          html_url: 'https://pkg1@3.2.1:html',
-          upload_url: 'https://pkg1@3.2.1:upload',
-        });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          '@node/pkg2',
-          'pkg2-v0.1.2',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .rejects(new Error('Boom!'));
-      mock
-        .expects('createRelease')
-        .withArgs(
-          'foolib',
-          'foolib-v1.2.3',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .resolves({
-          name: 'foolib foolib-v1.2.3',
-          tag_name: 'foolib-v1.2.3',
-          draft: false,
-          body: '',
-          html_url: 'https://foolib@1.2.3:html',
-          upload_url: 'https://foolib@1.2.3:upload',
-        });
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-
-      const releases = await new Manifest({github, checkpoint}).githubRelease();
-      mock.verify();
-      expect(releases).to.eql({
-        'node/pkg1': {
-          version: '3.2.1',
-          major: 3,
-          minor: 2,
-          patch: 1,
-          pr: 22,
-          draft: false,
-          body: '',
-          sha: 'abc123',
-          html_url: 'https://pkg1@3.2.1:html',
-          tag_name: 'pkg1-v3.2.1',
-          name: '@node/pkg1 pkg1-v3.2.1',
-          upload_url: 'https://pkg1@3.2.1:upload',
-        },
-        'node/pkg2': undefined,
-        python: {
-          version: '1.2.3',
-          major: 1,
-          minor: 2,
-          patch: 3,
-          pr: 22,
-          draft: false,
-          body: '',
-          sha: 'abc123',
-          html_url: 'https://foolib@1.2.3:html',
-          tag_name: 'foolib-v1.2.3',
-          name: 'foolib foolib-v1.2.3',
-          upload_url: 'https://foolib@1.2.3:upload',
-        },
-      });
-      expect(logs).to.eql([
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Creating release for Node(@node/pkg1)@3.2.1', CheckpointType.Success],
-        ['Creating release for Node(@node/pkg2)@0.1.2', CheckpointType.Success],
-        [
-          // node/pkg2 failed when we tried to create it.
-          'Failed to create release for Node(@node/pkg2)@0.1.2: Boom!',
-          CheckpointType.Failure,
-        ],
-        ['Creating release for Python(foolib)@1.2.3', CheckpointType.Success],
-      ]);
-    });
-
-    it('gracefully handles re-running after node/pkg2 failure', async () => {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = JSON.stringify({
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
-          },
-        },
-      });
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {
-        lastReleaseSha,
-        mergedPRFiles: [
-          'node/pkg1/package.json',
-          'node/pkg1/CHANGELOG.md',
-          'node/pkg2/package.json',
-          'node/pkg2/CHANGELOG.md',
-          'python/setup.py',
-          'python/CHANGELOG.md',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-          '.release-please-manifest.json',
-        ],
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg1/package.json', 'node/pkg2/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-          ['node/pkg2/CHANGELOG.md', '#Changelog\n\n## v0.1.2\n\n* entry'],
-          ['python/CHANGELOG.md', '#Changelog\n\n## v1.2.3\n\n* entry'],
-        ],
-      });
-      expectLabelAndComment(mock, {
-        addLabel: 'autorelease: tagged',
-        removeLabel: 'autorelease: pending',
-        prComments: [
-          ':robot: Release for @node/pkg2 is at https://pkg2@0.1.2:html :sunflower:',
-        ],
-      });
-
-      class AlreadyExistsError extends Error {
-        status = 422;
-        errors = [{code: 'already_exists', field: 'tag_name'}];
-      }
-
-      // @node/pkg1 and foolib releases were created successfully in last run but
-      // @node/pkg2 had errored out. Rerunning we get 422/already_exists errors
-      // for the first two.
-      mock
-        .expects('createRelease')
-        .withArgs(
-          '@node/pkg1',
-          'pkg1-v3.2.1',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .rejects(new AlreadyExistsError('Invalid Input'));
-      mock
-        .expects('createRelease')
-        .withArgs(
-          '@node/pkg2',
-          'pkg2-v0.1.2',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .resolves({
-          name: '@node/pkg2 pkg2-v0.1.2',
-          tag_name: 'pkg2-v0.1.2',
-          draft: false,
-          body: '',
-          html_url: 'https://pkg2@0.1.2:html',
-          upload_url: 'https://pkg2@0.1.2:upload',
-        });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          'foolib',
-          'foolib-v1.2.3',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .rejects(new AlreadyExistsError('Invalid Input'));
-
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-
-      const releases = await new Manifest({github, checkpoint}).githubRelease();
-      mock.verify();
-      expect(releases).to.eql({
-        'node/pkg1': undefined,
-        'node/pkg2': {
-          version: '0.1.2',
-          major: 0,
-          minor: 1,
-          patch: 2,
-          pr: 22,
-          draft: false,
-          body: '',
-          sha: 'abc123',
-          html_url: 'https://pkg2@0.1.2:html',
-          tag_name: 'pkg2-v0.1.2',
-          name: '@node/pkg2 pkg2-v0.1.2',
-          upload_url: 'https://pkg2@0.1.2:upload',
-        },
-        python: undefined,
-      });
-      expect(logs).to.eql([
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 0.1.2 for node/pkg2 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Creating release for Node(@node/pkg1)@3.2.1', CheckpointType.Success],
-        [
-          'Release for Node(@node/pkg1)@3.2.1 already exists',
-          CheckpointType.Success,
-        ],
-        ['Creating release for Node(@node/pkg2)@0.1.2', CheckpointType.Success],
-        ['Creating release for Python(foolib)@1.2.3', CheckpointType.Success],
-        [
-          'Release for Python(foolib)@1.2.3 already exists',
-          CheckpointType.Success,
-        ],
-      ]);
-    });
-
-    it('handles non-already_exists 422 error ', async () => {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-      });
-      const config = JSON.stringify({
-        packages: {
-          'node/pkg1': {},
-        },
-      });
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {
-        lastReleaseSha,
-        mergedPRFiles: [
-          'node/pkg1/package.json',
-          'node/pkg1/CHANGELOG.md',
-          '.release-please-manifest.json',
-        ],
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg1/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['node/pkg1/CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-        ],
-      });
-      expectLabelAndComment(mock, {
-        prComments: [':robot: Failed to create release for @node/pkg1 :cloud:'],
-      });
-
-      class ValidationError extends Error {
-        status = 422;
-      }
-
-      mock
-        .expects('createRelease')
-        .withArgs(
-          '@node/pkg1',
-          'pkg1-v3.2.1',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .rejects(new ValidationError('A different 422'));
-
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-      const releases = await new Manifest({github, checkpoint}).githubRelease();
-      mock.verify();
-      expect(releases).to.eql({'node/pkg1': undefined});
-      expect(logs).to.eql([
-        [
-          'Found version 3.2.1 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Creating release for Node(@node/pkg1)@3.2.1', CheckpointType.Success],
-        [
-          // an 'already_exists' 422 would have logged as:
-          // "Release ... already exists" / CheckpointType.Success
-          'Failed to create release for Node(@node/pkg1)@3.2.1: A different 422',
-          CheckpointType.Failure,
-        ],
-      ]);
-    });
-
-    it('releases library in root (".")', async () => {
-      const manifest = JSON.stringify({
-        '.': '3.2.1',
-      });
-      const config = JSON.stringify({
-        packages: {
-          '.': {},
-        },
-      });
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {
-        lastReleaseSha,
-        mergedPRFiles: [
-          // lack of any "node/pkg2/ files indicates that package did not
-          // change in the last merged PR.
-          'package.json',
-          'CHANGELOG.md',
-        ],
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: ['package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-          ['CHANGELOG.md', '#Changelog\n\n## v3.2.1\n\n* entry'],
-        ],
-      });
-      expectLabelAndComment(mock, {
-        addLabel: 'autorelease: tagged',
-        removeLabel: 'autorelease: pending',
-        prComments: [
-          ':robot: Release for googleapis is at https://googleapis@3.2.1:html :sunflower:',
-        ],
-      });
-      mock
-        .expects('createRelease')
-        .withArgs(
-          'googleapis',
-          'googleapis-v3.2.1',
-          lastReleaseSha,
-          sinon.match.string,
-          false
-        )
-        .once()
-        .resolves({
-          name: 'googleapis googleapis-v3.2.1',
-          tag_name: 'googleapis-v3.2.1',
-          draft: false,
-          body: '',
-          html_url: 'https://googleapis@3.2.1:html',
-          upload_url: 'https://googleapis@3.2.1:upload',
-        });
-
-      const releases = await new Manifest({github}).githubRelease();
-      mock.verify();
-      expect(releases).to.eql({
-        '.': {
-          version: '3.2.1',
-          major: 3,
-          minor: 2,
-          patch: 1,
-          pr: 22,
-          draft: false,
-          body: '',
-          sha: 'abc123',
-          html_url: 'https://googleapis@3.2.1:html',
-          tag_name: 'googleapis-v3.2.1',
-          name: 'googleapis googleapis-v3.2.1',
-          upload_url: 'https://googleapis@3.2.1:upload',
-        },
-      });
-    });
-
-    it('"skip-github-release" option works', async () => {
-      const manifest = JSON.stringify({
-        'node/pkg1': '3.2.1',
-      });
-      const config = JSON.stringify({
-        packages: {
-          'node/pkg1': {
-            'skip-github-release': true,
-          },
-        },
-      });
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {
-        lastReleaseSha,
-        mergedPRFiles: [
-          // lack of any "node/pkg2/ files indicates that package did not
-          // change in the last merged PR.
-          'node/pkg1/package.json',
-          'node/pkg1/CHANGELOG.md',
-          '.release-please-manifest.json',
-        ],
-      });
-      expectGetFiles(mock, {
-        fixtureFiles: ['node/pkg1/package.json'],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectLabelAndComment(mock, {
-        addLabel: 'autorelease: tagged',
-        removeLabel: 'autorelease: pending',
-        prComments: [
-          ':robot: @node/pkg1 not configured for release :no_entry_sign:',
-        ],
-      });
-
-      const releases = await new Manifest({github}).githubRelease();
-      mock.verify();
-      expect(releases).to.eql({
-        'node/pkg1': undefined,
-      });
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].draft).to.be.true;
     });
   });
 
-  describe('validate', () => {
-    const entryPoints: ('pullRequest' | 'githubRelease')[] = [
-      'pullRequest',
-      'githubRelease',
-    ];
-    const invalidConfigs = [
-      {
-        setupName: 'invalid json',
-        manifest: 'foo',
-        config: 'bar',
-        expectedLogs: [
-          [
-            'Invalid JSON in release-please-config.json',
-            CheckpointType.Failure,
-          ],
-          [
-            'Invalid JSON in .release-please-manifest.json',
-            CheckpointType.Failure,
-          ],
-        ],
-      },
-      {
-        setupName: 'no config.packages, bad manifest format',
-        manifest: '{"path": 1}',
-        config: '{"release-type": "node"}',
-        expectedLogs: [
-          [
-            'No packages found: release-please-config.json',
-            CheckpointType.Failure,
-          ],
-          [
-            '.release-please-manifest.json must only contain string values',
-            CheckpointType.Failure,
-          ],
-        ],
-      },
-      {
-        setupName: 'valid config, invalid manifest',
-        manifest: '{"path": 1}',
-        config: '{"packages":{"foo":{}}}',
-        expectedLogs: [
-          [
-            '.release-please-manifest.json must only contain string values',
-            CheckpointType.Failure,
-          ],
-        ],
-      },
-    ];
-    for (const method of entryPoints) {
-      for (const test of invalidConfigs) {
-        const {config, manifest, expectedLogs, setupName} = test;
-        it(`validates manifest and config in ${method} for ${setupName}`, async () => {
-          const github = new GitHub({
-            owner: 'fake',
-            repo: 'repo',
-            defaultBranch,
-          });
-          const mock = mockGithub(github);
-          expectGetFiles(mock, {
-            inlineFiles: [
-              ['release-please-config.json', config],
-              ['.release-please-manifest.json', manifest],
+  describe('createReleases', () => {
+    it('should handle a single manifest release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+    });
+    it('should handle a multiple manifest release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/multiple.txt'),
+            labels: ['autorelease: pending'],
+            files: [
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+              'packages/object-selector/package.json',
+              'packages/datastore-lock/package.json',
             ],
-          });
-          const logs: [string, CheckpointType][] = [];
-          const checkpoint = (msg: string, type: CheckpointType) =>
-            logs.push([msg, type]);
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        )
+        .withArgs('packages/object-selector/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/object-selector'})
+          )
+        )
+        .withArgs('packages/datastore-lock/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/datastore-lock'})
+          )
+        );
 
-          const m = new Manifest({github, checkpoint});
-          const result = await m[method]();
-          mock.verify();
-
-          expect(result).to.be.undefined;
-          expect(logs).to.eql(expectedLogs);
-        });
-      }
-      it(`is missing config for ${method}`, async () => {
-        const github = new GitHub({
-          owner: 'fake',
-          repo: 'repo',
-          defaultBranch,
-        });
-        sandbox
-          .stub(github, 'getFileContentsOnBranch')
-          .rejects(Object.assign(Error('not found'), {status: 404}));
-        const logs: [string, CheckpointType][] = [];
-        const checkpoint = (msg: string, type: CheckpointType) =>
-          logs.push([msg, type]);
-        const m = new Manifest({github, checkpoint});
-        await m[method]();
-        expect(logs).to.eql([
-          [
-            'Failed to get release-please-config.json at HEAD: 404',
-            CheckpointType.Failure,
-          ],
-          [
-            'Unable to getConfigJson(release-please-config.json): not found',
-            CheckpointType.Failure,
-          ],
-          [
-            'Failed to get .release-please-manifest.json at HEAD: 404',
-            CheckpointType.Failure,
-          ],
-          [
-            'Unable to getManifestJson(.release-please-manifest.json): not found',
-            CheckpointType.Failure,
-          ],
-        ]);
-      });
-      it(`is missing manifest for ${method}`, async () => {
-        const github = new GitHub({
-          owner: 'fake',
-          repo: 'repo',
-          defaultBranch,
-        });
-        const stub = sandbox.stub(github, 'getFileContentsOnBranch');
-        stub.withArgs('release-please-config.json', defaultBranch).resolves({
-          sha: '',
-          content: '',
-          parsedContent: '{"packages": {"path":{}}}',
-        });
-        stub
-          .withArgs('.release-please-manifest.json', defaultBranch)
-          .rejects(Object.assign(Error('not found'), {status: 404}));
-        const logs: [string, CheckpointType][] = [];
-        const checkpoint = (msg: string, type: CheckpointType) =>
-          logs.push([msg, type]);
-        const m = new Manifest({github, checkpoint});
-        await m[method]();
-        expect(logs).to.eql([
-          [
-            'Failed to get .release-please-manifest.json at HEAD: 404',
-            CheckpointType.Failure,
-          ],
-          [
-            'Unable to getManifestJson(.release-please-manifest.json): not found',
-            CheckpointType.Failure,
-          ],
-        ]);
-      });
-    }
-  });
-
-  describe('plugins', () => {
-    it('runs the node-workspace plugin', async function () {
-      const manifest = prettyJsonStringify({
-        'node/pkg1': '0.123.4',
-        'node/pkg2': '0.1.2',
-        python: '1.2.3',
-      });
-      const config = prettyJsonStringify({
-        plugins: ['node-workspace'],
-        packages: {
-          'node/pkg1': {},
-          'node/pkg2': {},
-          python: {
-            'release-type': 'python',
-            'package-name': 'foolib',
+      mockCreateRelease(github, [
+        {sha: 'abc123', tagName: 'bot-config-utils-v3.2.0'},
+        {sha: 'abc123', tagName: 'label-utils-v1.1.0'},
+        {sha: 'abc123', tagName: 'object-selector-v1.1.0'},
+        {sha: 'abc123', tagName: 'datastore-lock-v2.1.0'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
           },
         },
-      });
-      const commits = [
-        buildMockCommit('fix(foolib): bufix python foolib', [
-          'python/src/foolib/foo.py',
-        ]),
-        buildMockCommit('fix(@node/pkg1): bugfix pkg1', [
-          'node/pkg1/src/foo.ts',
-        ]),
-      ];
-
-      const github = new GitHub({
-        owner: 'fake',
-        repo: 'repo',
-        defaultBranch,
-      });
-      const mock = mockGithub(github);
-      expectManifest(mock, {manifest, lastReleaseSha});
-      expectPR(mock, {lastReleaseSha});
-      expectCommitsSinceSha(mock, {commits, lastReleaseSha});
-      expectGetFiles(mock, {
-        fixtureFiles: [
-          'node/pkg1/package.json',
-          'node/pkg2/package.json',
-          'python/setup.py',
-          'python/setup.cfg',
-          'python/src/foolib/version.py',
-        ],
-        inlineFiles: [
-          ['release-please-config.json', config],
-          ['.release-please-manifest.json', manifest],
-        ],
-      });
-      expectLabelAndComment(mock, {addLabel});
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
-      const logs: [string, CheckpointType][] = [];
-      const checkpoint = (msg: string, type: CheckpointType) =>
-        logs.push([msg, type]);
-
-      const pr = await new Manifest({github, checkpoint}).pullRequest();
-
-      mock.verify();
-      expect(pr).to.equal(22);
-      expect(logs).to.eql([
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(4);
+      expect(releases[0]!.tagName).to.eql('bot-config-utils-v3.2.0');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.be.string;
+      expect(releases[1]!.tagName).to.eql('label-utils-v1.1.0');
+      expect(releases[1]!.sha).to.eql('abc123');
+      expect(releases[1]!.notes).to.be.string;
+      expect(releases[2]!.tagName).to.eql('object-selector-v1.1.0');
+      expect(releases[2]!.sha).to.eql('abc123');
+      expect(releases[2]!.notes).to.be.string;
+      expect(releases[3]!.tagName).to.eql('datastore-lock-v2.1.0');
+      expect(releases[3]!.sha).to.eql('abc123');
+      expect(releases[3]!.notes).to.be.string;
+      sinon.assert.callCount(commentStub, 4);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+    });
+    it('should handle a single standalone release', async () => {
+      mockPullRequests(
+        github,
+        [],
         [
-          'Found last release sha "abc123" using "last-release-pr"',
-          CheckpointType.Success,
-        ],
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore(main): release 3.2.7',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+          },
+        },
+        {
+          '.': Version.parse('3.2.6'),
+        }
+      );
+      mockCreateRelease(github, [{sha: 'abc123', tagName: 'v3.2.7'}]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('v3.2.7');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.be.string;
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+    });
+    it('should allow customizing pull request labels', async () => {
+      mockPullRequests(
+        github,
+        [],
         [
-          'Found version 0.123.4 for node/pkg1 in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        [
-          'Found version 1.2.3 for python in ' +
-            '.release-please-manifest.json at abc123 of main',
-          CheckpointType.Success,
-        ],
-        ['Processing package: Node(@node/pkg1)', CheckpointType.Success],
-        ['Processing package: Python(foolib)', CheckpointType.Success],
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['some-pull-request-label'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
       ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        },
+        {
+          labels: ['some-pull-request-label'],
+          releaseLabels: ['some-tagged-label'],
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['some-tagged-label'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['some-pull-request-label'],
+        1234
+      );
+    });
+    it('should create a draft release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {sha: 'abc123', tagName: 'release-brancher-v1.3.1', draft: true},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            draft: true,
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.draft).to.be.true;
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
     });
   });
 });

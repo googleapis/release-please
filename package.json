@@ -43,10 +43,10 @@
     "@types/js-yaml": "^4.0.0",
     "@types/mocha": "^8.0.0",
     "@types/node": "^16.0.0",
-    "@types/pino": "^6.3.0",
+    "@types/pino": "^7.0.0",
     "@types/semver": "^7.0.0",
     "@types/sinon": "^10.0.0",
-    "@types/yargs": "^16.0.0",
+    "@types/yargs": "^17.0.0",
     "c8": "^7.0.0",
     "chai": "^4.2.0",
     "cross-env": "^7.0.0",
@@ -75,16 +75,17 @@
     "conventional-commits-filter": "^2.0.2",
     "figures": "^3.0.0",
     "js-yaml": "^4.0.0",
+    "node-html-parser": "^5.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
     "type-fest": "^1.0.0",
     "typescript": "^3.8.3",
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
-    "yargs": "^16.0.0",
+    "yargs": "^17.0.0",
     "detect-indent": "^6.1.0"
   },
   "engines": {
-    "node": ">=10.12.0"
+    "node": ">=12.18.0"
   }
 }

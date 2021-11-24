@@ -12,41 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
 import {logger} from '../../util/logger';
+import {DefaultUpdater} from '../default';
 
-export class KRMBlueprintVersion implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-    this.versions = options.versions;
-  }
+/**
+ * Updates KMR blueprint yaml file.
+ */
+export class KRMBlueprintVersion extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     // js-yaml(and kpt TS SDK) does not preserve comments hence regex match
     // match starting cnrm/ ending with semver to prevent wrong updates like pinned config.kubernetes.io/function
     let matchRegex = '(cnrm/.*/)(v[0-9]+.[0-9]+.[0-9]+)+(-w+)?';
     // if explicit previous version, match only that version
-    if (this.versions?.has('previousVersion')) {
-      matchRegex = `(cnrm/.*/)(${this.versions.get('previousVersion')})+(-w+)?`;
+    if (this.versionsMap?.has('previousVersion')) {
+      matchRegex = `(cnrm/.*/)(${this.versionsMap.get(
+        'previousVersion'
+      )})+(-w+)?`;
     }
     const oldVersion = content.match(new RegExp(matchRegex));
 
     if (oldVersion) {
-      logger.info(
-        `updating ${this.path} from ${oldVersion[2]} to v${this.version}`
-      );
+      logger.info(`updating from ${oldVersion[2]} to v${this.version}`);
     }
     const newVersion = content.replace(
       new RegExp(matchRegex, 'g'),

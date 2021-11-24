@@ -16,7 +16,8 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {PackageLockJson} from '../../src/updaters/package-lock-json';
+import {PackageLockJson} from '../../src/updaters/node/package-lock-json';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,7 @@ describe('PackageLockJson', () => {
         'utf8'
       );
       const packageJson = new PackageLockJson({
-        path: 'package-lock.json',
-        changelogEntry: '',
-        version: '14.0.0',
-        packageName: '@google-cloud/foo',
+        version: Version.parse('14.0.0'),
       });
       const newContent = packageJson.updateContent(oldContent);
       snapshot(newContent.replace(/\r\n/g, '\n'));
@@ -45,10 +43,7 @@ describe('PackageLockJson', () => {
         'utf8'
       );
       const packageJson = new PackageLockJson({
-        path: 'package-lock.json',
-        changelogEntry: '',
-        version: '14.0.0',
-        packageName: '@google-cloud/foo',
+        version: Version.parse('14.0.0'),
       });
       const newContent = packageJson.updateContent(oldContent);
       snapshot(newContent.replace(/\r\n/g, '\n'));

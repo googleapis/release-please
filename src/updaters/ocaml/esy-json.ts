@@ -12,34 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
 import {logger} from '../../util/logger';
 import {jsonStringify} from '../../util/json-stringify';
+import {DefaultUpdater} from '../default';
 
-export class EsyJson implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
-
+/**
+ * Updates an OCaml esy.json file.
+ */
+export class EsyJson extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     const parsed = JSON.parse(content);
-    logger.info(
-      `updating ${this.path} from ${parsed.version} to ${this.version}`
-    );
-    parsed.version = this.version;
+    logger.info(`updating from ${parsed.version} to ${this.version}`);
+    parsed.version = this.version.toString();
     return jsonStringify(parsed, content);
   }
 }

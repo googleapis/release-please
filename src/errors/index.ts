@@ -81,14 +81,3 @@ export class DuplicateReleaseError extends GitHubAPIError {
     this.name = DuplicateReleaseError.name;
   }
 }
-
-export class MissingReleaseNotesError extends Error {
-  changelogContents: string;
-  version: string;
-  constructor(changelogContents: string, version: string) {
-    super(`could not find changelog entry corresponding to release ${version}`);
-    this.changelogContents = changelogContents;
-    this.version = version;
-    this.name = MissingReleaseNotesError.name;
-  }
-}

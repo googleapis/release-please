@@ -12,32 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
 import {logger} from '../../util/logger';
+import {DefaultUpdater} from '../default';
 
-export class ModuleVersion implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
+/**
+ * Updates a Terraform Module versions.tf file.
+ */
+export class ModuleVersion extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     const oldVersion = content.match(/v[0-9]+\.[0-9]+\.[0-9]+(-\w+)?/);
     if (oldVersion) {
-      logger.info(
-        `updating ${this.path} from ${oldVersion} to v${this.version}`
-      );
+      logger.info(`updating from ${oldVersion} to v${this.version}`);
     }
     return content.replace(
       /v[0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g,

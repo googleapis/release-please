@@ -18,6 +18,7 @@ import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {PyProjectToml} from '../../src/updaters/python/pyproject-toml';
 import {expect} from 'chai';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -25,10 +26,7 @@ describe('PyProjectToml', () => {
   it('refuses to update something that is not a valid pyproject', async () => {
     const oldContent = '[woops]\nindeed = true';
     const pyProject = new PyProjectToml({
-      path: 'pyproject.toml',
-      changelogEntry: '',
-      version: '0.6.0',
-      packageName: '',
+      version: Version.parse('0.6.0'),
     });
     expect(() => {
       pyProject.updateContent(oldContent);
@@ -38,10 +36,7 @@ describe('PyProjectToml', () => {
   it('refuses to update when version is missing', async () => {
     const oldContent = "[project]\nname = 'project'";
     const pyProject = new PyProjectToml({
-      path: 'pyproject.toml',
-      changelogEntry: '',
-      version: '0.6.0',
-      packageName: '',
+      version: Version.parse('0.6.0'),
     });
     expect(() => {
       pyProject.updateContent(oldContent);
@@ -57,10 +52,7 @@ describe('pyproject-project.toml', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new PyProjectToml({
-        path: 'pyproject-project.toml',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
@@ -76,10 +68,7 @@ describe('pyproject-poetry.toml', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new PyProjectToml({
-        path: 'pyproject-poetry.toml',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);

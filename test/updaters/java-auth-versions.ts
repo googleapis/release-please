@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -27,11 +28,11 @@ describe('JavaAuthVersions', () => {
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
       ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      versions.set('google-auth-library', Version.parse('0.25.0'));
       const javaAuthVersions = new VersionsManifest({
-        path: 'versions.txt',
-        changelogEntry: '',
-        version: '0.25.0',
-        packageName: 'google-auth-library',
+        version: Version.parse('0.25.0'),
+        versionsMap: versions,
       });
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);
@@ -42,11 +43,14 @@ describe('JavaAuthVersions', () => {
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
       ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      versions.set(
+        'google-auth-library-oauth2-http',
+        Version.parse('0.16.2-SNAPSHOT')
+      );
       const javaAuthVersions = new VersionsManifest({
-        path: 'versions.txt',
-        changelogEntry: '',
-        version: '0.16.2-SNAPSHOT',
-        packageName: 'google-auth-library-oauth2-http',
+        version: Version.parse('0.16.2-SNAPSHOT'),
+        versionsMap: versions,
       });
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);
@@ -57,15 +61,15 @@ describe('JavaAuthVersions', () => {
         resolve(fixturesPath, './java-auth-versions.txt'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const versions = new Map<string, string>();
-      versions.set('google-auth-library', '0.25.0');
-      versions.set('google-auth-library-oauth2-http', '0.16.2-SNAPSHOT');
+      const versions = new Map<string, Version>();
+      versions.set('google-auth-library', Version.parse('0.25.0'));
+      versions.set(
+        'google-auth-library-oauth2-http',
+        Version.parse('0.16.2-SNAPSHOT')
+      );
       const javaAuthVersions = new VersionsManifest({
-        path: 'versions.txt',
-        changelogEntry: '',
-        versions,
-        version: 'unused',
-        packageName: 'used',
+        versionsMap: versions,
+        version: Version.parse('0.25.0'),
       });
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);

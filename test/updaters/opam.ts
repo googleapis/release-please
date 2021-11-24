@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Opam} from '../../src/updaters/ocaml/opam';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,7 @@ describe('Opam', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new Opam({
-        path: 'sample.opam',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {logger} from './logger';
+import {Version} from '../version';
+
 // cannot import from '..' - transpiled code references to RELEASE_PLEASE
 // at the script level are undefined, they are only defined inside function
 // or instance methods/properties.
@@ -23,34 +26,35 @@ export function generateMatchPattern(pullRequestTitlePattern?: string): RegExp {
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{scope\}/) === -1
   )
-    throw Error("pullRequestTitlePattern miss the part of '${scope}'");
+    logger.warn("pullRequestTitlePattern miss the part of '${scope}'");
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{component\}/) === -1
   )
-    throw Error("pullRequestTitlePattern miss the part of '${component}'");
+    logger.warn("pullRequestTitlePattern miss the part of '${component}'");
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{version\}/) === -1
   )
-    throw Error("pullRequestTitlePattern miss the part of '${version}'");
+    logger.warn("pullRequestTitlePattern miss the part of '${version}'");
   return new RegExp(
     `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
       .replace('${scope}', '(\\((?<branch>[\\w-.]+)\\))?')
       .replace('${component}', ' ?(?<component>[\\w-.]*)?')
-      .replace('${version}', 'v?(?<version>[0-9].*)')}$`
+      .replace('${version}', 'v?(?<version>[0-9].*)')
+      .replace('${branch}', '(?<branch>[\\w-.]+)?')}$`
   );
 }
 
 export class PullRequestTitle {
   component?: string;
   targetBranch?: string;
-  version: string;
+  version?: Version;
   pullRequestTitlePattern: string;
   matchPattern: RegExp;
 
   private constructor(opts: {
-    version: string;
+    version?: Version;
     component?: string;
     targetBranch?: string;
     pullRequestTitlePattern?: string;
@@ -71,7 +75,9 @@ export class PullRequestTitle {
     const match = title.match(matchPattern);
     if (match?.groups) {
       return new PullRequestTitle({
-        version: match.groups['version'],
+        version: match.groups['version']
+          ? Version.parse(match.groups['version'])
+          : undefined,
         component: match.groups['component'],
         targetBranch: match.groups['branch'],
         pullRequestTitlePattern: pullRequestTitlePattern,
@@ -82,20 +88,20 @@ export class PullRequestTitle {
 
   static ofComponentVersion(
     component: string,
-    version: string,
+    version: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({version, component, pullRequestTitlePattern});
   }
   static ofVersion(
-    version: string,
+    version: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({version, pullRequestTitlePattern});
   }
   static ofTargetBranchVersion(
     targetBranch: string,
-    version: string,
+    version: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
@@ -107,12 +113,21 @@ export class PullRequestTitle {
   static ofComponentTargetBranchVersion(
     component: string,
     targetBranch: string,
-    version: string,
+    version: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
       version,
       component,
+      targetBranch,
+      pullRequestTitlePattern,
+    });
+  }
+  static ofTargetBranch(
+    targetBranch: string,
+    pullRequestTitlePattern?: string
+  ): PullRequestTitle {
+    return new PullRequestTitle({
       targetBranch,
       pullRequestTitlePattern,
     });
@@ -124,16 +139,18 @@ export class PullRequestTitle {
   getComponent(): string | undefined {
     return this.component;
   }
-  getVersion(): string {
+  getVersion(): Version | undefined {
     return this.version;
   }
 
   toString(): string {
     const scope = this.targetBranch ? `(${this.targetBranch})` : '';
     const component = this.component ? ` ${this.component}` : '';
+    const version = this.version ?? '';
     return this.pullRequestTitlePattern
       .replace('${scope}', scope)
       .replace('${component}', component)
-      .replace('${version}', this.getVersion());
+      .replace('${version}', version.toString())
+      .trim();
   }
 }

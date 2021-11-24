@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Changelog} from '../../src/updaters/changelog';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,8 @@ describe('ChangelogUpdater', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const changelog = new Changelog({
-        path: 'CHANGELOG.md',
         changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-        version: '1.0.0',
-        packageName: '@google-cloud/foo',
+        version: Version.parse('1.0.0'),
       });
       const newContent = changelog.updateContent(oldContent);
       snapshot(newContent);
@@ -43,10 +42,8 @@ describe('ChangelogUpdater', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const changelog = new Changelog({
-        path: 'CHANGELOG.md',
         changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-        version: '1.0.0',
-        packageName: '@google-cloud/foo',
+        version: Version.parse('1.0.0'),
       });
       const newContent = changelog.updateContent(oldContent);
       snapshot(newContent);
@@ -58,10 +55,8 @@ describe('ChangelogUpdater', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const changelog = new Changelog({
-        path: 'CHANGELOG.md',
         changelogEntry: '## 0.7.0\n\n* added a new foo to bar.',
-        version: '0.7.0',
-        packageName: '@google-cloud/foo',
+        version: Version.parse('0.7.0'),
       });
       const newContent = changelog.updateContent(oldContent);
       snapshot(newContent);
@@ -69,10 +64,8 @@ describe('ChangelogUpdater', () => {
 
     it('populates a new CHANGELOG if none exists', async () => {
       const changelog = new Changelog({
-        path: 'CHANGELOG.md',
         changelogEntry: '## 2.0.0\n\n* added a new foo to bar.',
-        version: '1.0.0',
-        packageName: 'foo-package',
+        version: Version.parse('1.0.0'),
       });
       const newContent = changelog.updateContent(undefined);
       snapshot(newContent);

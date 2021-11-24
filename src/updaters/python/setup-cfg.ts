@@ -12,25 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Update, UpdateOptions, VersionsMap} from '../update';
-import {GitHubFileContents} from '../../github';
+import {DefaultUpdater} from '../default';
 
-export class SetupCfg implements Update {
-  path: string;
-  changelogEntry: string;
-  version: string;
-  versions?: VersionsMap;
-  packageName: string;
-  create: boolean;
-  contents?: GitHubFileContents;
-
-  constructor(options: UpdateOptions) {
-    this.create = false;
-    this.path = options.path;
-    this.changelogEntry = options.changelogEntry;
-    this.version = options.version;
-    this.packageName = options.packageName;
-  }
+/**
+ * Updates a setup.cfg file
+ */
+export class SetupCfg extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string): string {
     return content.replace(
       /(version ?= ?)[0-9]+\.[0-9]+\.[0-9](?:-\w+)?/,

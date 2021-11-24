@@ -17,6 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {DuneProject} from '../../src/updaters/ocaml/dune-project';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -28,10 +29,7 @@ describe('DuneProject', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const version = new DuneProject({
-        path: 'dune-project',
-        changelogEntry: '',
-        version: '0.6.0',
-        packageName: '',
+        version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
