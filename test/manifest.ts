@@ -246,11 +246,33 @@ describe('Manifest', () => {
           {
             '.': {
               releaseType: 'simple',
-              draft: true,
+              draftPullRequest: true,
             },
           },
           {
             '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.draft).to.be.true;
+      });
+
+      it('should create a draft pull request manifest wide', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          },
+          {
+            draftPullRequest: true,
           }
         );
         const pullRequests = await manifest.buildPullRequests();
@@ -1782,6 +1804,54 @@ describe('Manifest', () => {
         },
         {
           '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].draft).to.be.true;
+    });
+
+    it('should build draft releases manifest wide', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        },
+        {
+          draft: true,
         }
       );
       const releases = await manifest.buildReleases();

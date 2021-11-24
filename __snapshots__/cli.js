@@ -49,34 +49,34 @@ release-please manifest-pr
 create a release-PR using a manifest file
 
 Options:
-  --help            Show help                                          [boolean]
-  --version         Show version number                                [boolean]
-  --debug           print verbose errors (use only for local debugging).
+  --help                Show help                                      [boolean]
+  --version             Show version number                            [boolean]
+  --debug               print verbose errors (use only for local debugging).
                                                       [boolean] [default: false]
-  --trace           print extra verbose errors (use only for local debugging).
-                                                      [boolean] [default: false]
-  --token           GitHub token with repo write permissions
-  --api-url         URL to use when making API requests
+  --trace               print extra verbose errors (use only for local
+                        debugging).                   [boolean] [default: false]
+  --token               GitHub token with repo write permissions
+  --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
-  --graphql-url     URL to use when making GraphQL requests
+  --graphql-url         URL to use when making GraphQL requests
                                     [string] [default: "https://api.github.com"]
-  --default-branch  The branch to open release PRs against and tag releases on
-                              [deprecated: use --target-branch instead] [string]
-  --target-branch   The branch to open release PRs against and tag releases on
-                                                                        [string]
-  --repo-url        GitHub URL to generate release for                [required]
-  --dry-run         Prepare but do not take action    [boolean] [default: false]
-  --label           comma-separated list of labels to add to from release PR
+  --default-branch      The branch to open release PRs against and tag releases
+                        on    [deprecated: use --target-branch instead] [string]
+  --target-branch       The branch to open release PRs against and tag releases
+                        on                                              [string]
+  --repo-url            GitHub URL to generate release for            [required]
+  --dry-run             Prepare but do not take action[boolean] [default: false]
+  --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
-  --fork            should the PR be created from a fork
+  --fork                should the PR be created from a fork
                                                       [boolean] [default: false]
-  --draft           mark pull request as a draft      [boolean] [default: false]
-  --signoff         Add Signed-off-by line at the end of the commit log message
-                    using the user and email provided. (format "Name
-                    <email@example.com>").                              [string]
-  --config-file     where can the config file be found in the project?
+  --draft-pull-request  mark pull request as a draft  [boolean] [default: false]
+  --signoff             Add Signed-off-by line at the end of the commit log
+                        message using the user and email provided. (format "Name
+                        <email@example.com>").                          [string]
+  --config-file         where can the config file be found in the project?
                                          [default: "release-please-config.json"]
-  --manifest-file   where can the manifest file be found in the project?
+  --manifest-file       where can the manifest file be found in the project?
                                       [default: ".release-please-manifest.json"]
 `
 
@@ -176,7 +176,7 @@ Options:
                                                [default: "autorelease: pending"]
   --fork                            should the PR be created from a fork
                                                       [boolean] [default: false]
-  --draft                           mark pull request as a draft
+  --draft-pull-request              mark pull request as a draft
                                                       [boolean] [default: false]
   --signoff                         Add Signed-off-by line at the end of the
                                     commit log message using the user and email
