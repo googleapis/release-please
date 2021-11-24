@@ -20,7 +20,7 @@ import {parseConventionalCommits, Commit, ConventionalCommit} from './commit';
 import {VersioningStrategy} from './versioning-strategy';
 import {DefaultVersioningStrategy} from './versioning-strategies/default';
 import {PullRequestTitle} from './util/pull-request-title';
-import {ReleaseNotes, ChangelogSection} from './release-notes';
+import {ChangelogNotes, ChangelogSection} from './changelog-notes';
 import {Update} from './update';
 import {Repository} from './repository';
 import {PullRequest} from './pull-request';
@@ -32,6 +32,7 @@ import {
   ROOT_PROJECT_PATH,
 } from './manifest';
 import {PullRequestBody} from './util/pull-request-body';
+import {DefaultChangelogNotes} from './changelog-notes/default';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -58,6 +59,7 @@ export interface StrategyOptions {
   tagSeparator?: string;
   skipGitHubRelease?: boolean;
   releaseAs?: string;
+  changelogNotes?: ChangelogNotes;
 }
 
 /**
@@ -77,11 +79,10 @@ export abstract class Strategy {
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
 
+  protected changelogNotes: ChangelogNotes;
+
   // CHANGELOG configuration
   protected changelogSections?: ChangelogSection[];
-  protected commitPartial?: string;
-  protected headerPartial?: string;
-  protected mainTemplate?: string;
 
   constructor(options: StrategyOptions) {
     this.path = options.path || ROOT_PROJECT_PATH;
@@ -95,12 +96,11 @@ export abstract class Strategy {
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
     this.changelogSections = options.changelogSections;
-    this.commitPartial = options.commitPartial;
-    this.headerPartial = options.headerPartial;
-    this.mainTemplate = options.mainTemplate;
     this.tagSeparator = options.tagSeparator;
     this.skipGitHubRelease = options.skipGitHubRelease || false;
     this.releaseAs = options.releaseAs;
+    this.changelogNotes =
+      options.changelogNotes || new DefaultChangelogNotes(options);
   }
 
   /**
@@ -147,13 +147,7 @@ export abstract class Strategy {
     newVersionTag: TagName,
     latestRelease?: Release
   ): Promise<string> {
-    const releaseNotes = new ReleaseNotes({
-      changelogSections: this.changelogSections,
-      commitPartial: this.commitPartial,
-      headerPartial: this.headerPartial,
-      mainTemplate: this.mainTemplate,
-    });
-    return await releaseNotes.buildNotes(conventionalCommits, {
+    return await this.changelogNotes.buildNotes(conventionalCommits, {
       owner: this.repository.owner,
       repository: this.repository.repo,
       version: newVersion.toString(),

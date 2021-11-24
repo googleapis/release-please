@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ChangelogSection} from './release-notes';
+import {ChangelogSection} from './changelog-notes';
 import {GitHub, GitHubRelease} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit} from './commit';
