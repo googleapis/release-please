@@ -200,7 +200,11 @@ export abstract class Strategy {
     const component = await this.getComponent();
     logger.debug('component:', component);
 
-    const newVersionTag = new TagName(newVersion, component);
+    const newVersionTag = new TagName(
+      newVersion,
+      this.includeComponentInTag ? component : undefined,
+      this.tagSeparator
+    );
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,

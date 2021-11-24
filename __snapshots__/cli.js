@@ -21,6 +21,8 @@ Options:
                                                                         [string]
   --repo-url        GitHub URL to generate release for                [required]
   --dry-run         Prepare but do not take action    [boolean] [default: false]
+  --monorepo-tags   include library name in tags and release branches
+                                                      [boolean] [default: false]
   --path            release from path other than root directory         [string]
   --component       name of component release is being minted for       [string]
   --package-name    name of package release is being minted for         [string]
@@ -151,8 +153,6 @@ Options:
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
-  --monorepo-tags                   include library name in tags and release
-                                    branches          [boolean] [default: false]
   --extra-files                     extra files for the strategy to consider
                                                                         [string]
   --version-file                    path to version file to update, e.g.,
@@ -182,6 +182,8 @@ Options:
                                     commit log message using the user and email
                                     provided. (format "Name
                                     <email@example.com>").              [string]
+  --monorepo-tags                   include library name in tags and release
+                                    branches          [boolean] [default: false]
   --path                            release from path other than root directory
                                                                         [string]
   --component                       name of component release is being minted
