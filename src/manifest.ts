@@ -72,6 +72,7 @@ export interface CandidateReleasePullRequest {
 export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
   draft?: boolean;
+  path: string;
 }
 
 interface ReleaserConfigJson {
@@ -139,6 +140,10 @@ const DEFAULT_LABELS = ['autorelease: pending'];
 const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
+
+interface CreatedRelease extends GitHubRelease {
+  path: string;
+}
 
 export class Manifest {
   private repository: Repository;
@@ -520,7 +525,7 @@ export class Manifest {
    *
    * @returns {number[]} Pull request numbers of release pull requests
    */
-  async createPullRequests(): Promise<(number | undefined)[]> {
+  async createPullRequests(): Promise<(PullRequest | undefined)[]> {
     const candidatePullRequests = await this.buildPullRequests();
     if (candidatePullRequests.length === 0) {
       return [];
@@ -554,7 +559,7 @@ export class Manifest {
     }
     logger.info(`found ${openPullRequests.length} open release pull requests.`);
 
-    const promises: Promise<number | undefined>[] = [];
+    const promises: Promise<PullRequest | undefined>[] = [];
     for (const pullRequest of candidatePullRequests) {
       promises.push(
         this.createOrUpdatePullRequest(pullRequest, openPullRequests)
@@ -566,7 +571,7 @@ export class Manifest {
   private async createOrUpdatePullRequest(
     pullRequest: ReleasePullRequest,
     openPullRequests: PullRequest[]
-  ): Promise<number | undefined> {
+  ): Promise<PullRequest | undefined> {
     // look for existing, open pull rquest
     const existing = openPullRequests.find(
       openPullRequest =>
@@ -589,7 +594,7 @@ export class Manifest {
           signoffUser: this.signoffUser,
         }
       );
-      return updatedPullRequest.number;
+      return updatedPullRequest;
     } else {
       const newPullRequest = await this.github.createReleasePullRequest(
         pullRequest,
@@ -599,7 +604,7 @@ export class Manifest {
           signoffUser: this.signoffUser,
         }
       );
-      return newPullRequest.number;
+      return newPullRequest;
     }
   }
 
@@ -669,6 +674,7 @@ export class Manifest {
         if (release) {
           releases.push({
             ...release,
+            path,
             pullRequest,
             draft: config.draft ?? this.draft,
           });
@@ -714,9 +720,9 @@ export class Manifest {
   private async createReleasesForPullRequest(
     releases: CandidateRelease[],
     pullRequest: PullRequest
-  ): Promise<GitHubRelease[]> {
+  ): Promise<CreatedRelease[]> {
     // create the release
-    const promises: Promise<GitHubRelease>[] = [];
+    const promises: Promise<CreatedRelease>[] = [];
     for (const release of releases) {
       promises.push(this.createRelease(release));
     }
@@ -733,7 +739,7 @@ export class Manifest {
 
   private async createRelease(
     release: CandidateRelease
-  ): Promise<GitHubRelease> {
+  ): Promise<CreatedRelease> {
     const githubRelease = await this.github.createRelease(release, {
       draft: release.draft,
     });
@@ -742,7 +748,10 @@ export class Manifest {
     const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
     await this.github.commentOnIssue(comment, release.pullRequest.number);
 
-    return githubRelease;
+    return {
+      ...githubRelease,
+      path: release.path,
+    };
   }
 
   private async getStrategiesByPath(): Promise<Record<string, Strategy>> {
