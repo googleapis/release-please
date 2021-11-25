@@ -913,6 +913,27 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createPullRequestsStub);
       });
+
+      it('handles --monorepo-tags', async () => {
+        await parser.parseAsync(
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --monorepo-tags'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({releaseType: 'java-yoshi', includeComponentInTag: true}),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createPullRequestsStub);
+      });
     });
   });
   describe('github-release', () => {
@@ -1237,6 +1258,27 @@ describe('CLI', () => {
           fakeGitHub,
           'main',
           sinon.match({releaseType: 'java-yoshi', packageName: '@foo/bar'}),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createReleasesStub);
+      });
+
+      it('handles --monorepo-tags', async () => {
+        await parser.parseAsync(
+          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --monorepo-tags'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({releaseType: 'java-yoshi', includeComponentInTag: true}),
           sinon.match.any,
           undefined
         );

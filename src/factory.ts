@@ -111,7 +111,7 @@ export async function buildStrategy(
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
   });
-  const strategyOptions = {
+  const strategyOptions: StrategyOptions = {
     github: options.github,
     targetBranch,
     path: options.path,
@@ -124,6 +124,7 @@ export async function buildStrategy(
     versioningStrategy,
     skipGitHubRelease: options.skipGithubRelease,
     releaseAs: options.releaseAs,
+    includeComponentInTag: options.includeComponentInTag,
   };
   switch (options.releaseType) {
     case 'ruby': {

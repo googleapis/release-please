@@ -91,7 +91,6 @@ interface PullRequestArgs {
 
 interface PullRequestStrategyArgs {
   snapshot?: boolean;
-  monorepoTags?: boolean;
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
   versioningStrategy?: VersioningStrategyType;
@@ -103,18 +102,24 @@ interface PullRequestStrategyArgs {
   extraFiles?: string[];
 }
 
+interface TaggingArgs {
+  monorepoTags?: boolean;
+}
+
 interface CreatePullRequestArgs
   extends GitHubArgs,
     ManifestArgs,
     ManifestConfigArgs,
     VersioningArgs,
     PullRequestArgs,
-    PullRequestStrategyArgs {}
+    PullRequestStrategyArgs,
+    TaggingArgs {}
 interface CreateReleaseArgs
   extends GitHubArgs,
     ManifestArgs,
     ManifestConfigArgs,
-    ReleaseArgs {}
+    ReleaseArgs,
+    TaggingArgs {}
 interface CreateManifestPullRequestArgs
   extends GitHubArgs,
     ManifestArgs,
@@ -239,11 +244,6 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       default: false,
       type: 'boolean',
     })
-    .option('monorepo-tags', {
-      describe: 'include library name in tags and release branches',
-      type: 'boolean',
-      default: false,
-    })
     .option('extra-files', {
       describe: 'extra files for the strategy to consider',
       type: 'string',
@@ -350,6 +350,14 @@ function manifestOptions(yargs: yargs.Argv): yargs.Argv {
     });
 }
 
+function taggingOptions(yargs: yargs.Argv): yargs.Argv {
+  return yargs.option('monorepo-tags', {
+    describe: 'include library name in tags and release branches',
+    type: 'boolean',
+    default: false,
+  });
+}
+
 const createReleasePullRequestCommand: yargs.CommandModule<
   {},
   CreatePullRequestArgs
@@ -359,7 +367,9 @@ const createReleasePullRequestCommand: yargs.CommandModule<
   builder(yargs) {
     return manifestOptions(
       manifestConfigOptions(
-        pullRequestOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+        taggingOptions(
+          pullRequestOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+        )
       )
     );
   },
@@ -384,6 +394,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           versioning: argv.versioningStrategy,
           extraFiles: argv.extraFiles,
           versionFile: argv.versionFile,
+          includeComponentInTag: argv.monorepoTags,
         },
         extractManifestOptions(argv),
         argv.path
@@ -429,7 +440,9 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
   describe: 'create a GitHub release from a release PR',
   builder(yargs) {
     return releaseOptions(
-      manifestOptions(manifestConfigOptions(gitHubOptions(yargs)))
+      manifestOptions(
+        manifestConfigOptions(taggingOptions(gitHubOptions(yargs)))
+      )
     );
   },
   async handler(argv) {
@@ -448,6 +461,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
           component: argv.component,
           packageName: argv.packageName,
           draft: argv.draft,
+          includeComponentInTag: argv.monorepoTags,
         },
         extractManifestOptions(argv),
         argv.path

@@ -60,6 +60,7 @@ export interface StrategyOptions {
   skipGitHubRelease?: boolean;
   releaseAs?: string;
   changelogNotes?: ChangelogNotes;
+  includeComponentInTag?: boolean;
 }
 
 /**
@@ -78,6 +79,7 @@ export abstract class Strategy {
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
+  private includeComponentInTag: boolean;
 
   protected changelogNotes: ChangelogNotes;
 
@@ -101,6 +103,7 @@ export abstract class Strategy {
     this.releaseAs = options.releaseAs;
     this.changelogNotes =
       options.changelogNotes || new DefaultChangelogNotes(options);
+    this.includeComponentInTag = options.includeComponentInTag ?? true;
   }
 
   /**
@@ -197,7 +200,11 @@ export abstract class Strategy {
     const component = await this.getComponent();
     logger.debug('component:', component);
 
-    const newVersionTag = new TagName(newVersion, component);
+    const newVersionTag = new TagName(
+      newVersion,
+      this.includeComponentInTag ? component : undefined,
+      this.tagSeparator
+    );
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
@@ -327,8 +334,13 @@ export abstract class Strategy {
       throw new Error('Pull request should have included version');
     }
 
+    const tag = new TagName(
+      version,
+      this.includeComponentInTag ? component : undefined,
+      this.tagSeparator
+    );
     return {
-      tag: new TagName(version, component, this.tagSeparator),
+      tag,
       notes: notes || '',
       sha: mergedPullRequest.sha,
     };
