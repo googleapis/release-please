@@ -74,14 +74,15 @@ describe('DefaultChangelogNotes', () => {
       safeSnapshot(notes);
     });
     it('should build with custom changelog sections', async () => {
-      const changelogNotes = new DefaultChangelogNotes({
+      const changelogNotes = new DefaultChangelogNotes();
+      const notes = await changelogNotes.buildNotes(commits, {
+        ...notesOptions,
         changelogSections: [
           {type: 'feat', section: 'Features'},
           {type: 'fix', section: 'Bug Fixes'},
           {type: 'docs', section: 'Documentation'},
         ],
       });
-      const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });

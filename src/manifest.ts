@@ -29,6 +29,7 @@ import {
   ReleaseType,
   VersioningStrategyType,
   buildPlugin,
+  ChangelogNotesType,
 } from './factory';
 import {Release} from './release';
 import {Strategy} from './strategy';
@@ -48,8 +49,6 @@ export interface ReleaserConfig {
   bumpPatchForMinorPreMajor?: boolean;
 
   // Strategy options
-  changelogSections?: ChangelogSection[];
-  changelogPath?: string;
   releaseAs?: string;
   skipGithubRelease?: boolean;
   draft?: boolean;
@@ -57,6 +56,11 @@ export interface ReleaserConfig {
   component?: string;
   packageName?: string;
   includeComponentInTag?: boolean;
+
+  // Changelog options
+  changelogSections?: ChangelogSection[];
+  changelogPath?: string;
+  changelogType?: ChangelogNotesType;
 
   // Ruby-only
   versionFile?: string;
@@ -88,6 +92,7 @@ interface ReleaserConfigJson {
   label?: string;
   'release-label'?: string;
   'include-component-in-tag'?: boolean;
+  'changelog-type'?: ChangelogNotesType;
 
   // Ruby-only
   'version-file'?: string;
@@ -826,6 +831,7 @@ function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
     versionFile: config['version-file'],
     extraFiles: config['extra-files'],
     includeComponentInTag: config['include-component-in-tag'],
+    changelogType: config['changelog-type'],
   };
 }
 

@@ -40,6 +40,9 @@ import {DependencyManifest} from './versioning-strategies/dependency-manifest';
 import {ManifestPlugin} from './plugin';
 import {NodeWorkspace} from './plugins/node-workspace';
 import {CargoWorkspace} from './plugins/cargo-workspace';
+import {ChangelogNotes, ChangelogSection} from './changelog-notes';
+import {GitHubChangelogNotes} from './changelog-notes/github';
+import {DefaultChangelogNotes} from './changelog-notes/default';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
@@ -95,6 +98,10 @@ export function getVersioningStrategyTypes(): readonly VersioningStrategyType[] 
   return allVersioningTypes;
 }
 
+export function getChangelogTypes(): readonly ChangelogNotesType[] {
+  return allChangelogNotesTypes;
+}
+
 export interface StrategyFactoryOptions extends ReleaserConfig {
   github: GitHub;
   path?: string;
@@ -111,7 +118,15 @@ export async function buildStrategy(
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
   });
-  const strategyOptions: StrategyOptions = {
+  const changelogNotes = buildChangelogNotes({
+    type: options.changelogType || 'default',
+    github: options.github,
+    changelogSections: options.changelogSections,
+    // commitPartial: options.commitPartial,
+    // headerPartial: options.headerPartial,
+    // mainTemplate: options.mainTemplate,
+  });
+  const strategyOptions = {
     github: options.github,
     targetBranch,
     path: options.path,
@@ -125,6 +140,7 @@ export async function buildStrategy(
     skipGitHubRelease: options.skipGithubRelease,
     releaseAs: options.releaseAs,
     includeComponentInTag: options.includeComponentInTag,
+    changelogNotes,
   };
   switch (options.releaseType) {
     case 'ruby': {
@@ -234,5 +250,29 @@ export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
       );
     default:
       throw new Error(`Unknown plugin type: ${options.type}`);
+  }
+}
+
+const allChangelogNotesTypes = ['default', 'github'] as const;
+export type ChangelogNotesType = typeof allChangelogNotesTypes[number];
+interface ChangelogNotesFactoryOptions {
+  type: ChangelogNotesType;
+  github: GitHub;
+  changelogSections?: ChangelogSection[];
+  commitPartial?: string;
+  headerPartial?: string;
+  mainTemplate?: string;
+}
+
+export function buildChangelogNotes(
+  options: ChangelogNotesFactoryOptions
+): ChangelogNotes {
+  switch (options.type) {
+    case 'github':
+      return new GitHubChangelogNotes(options.github);
+    case 'default':
+      return new DefaultChangelogNotes(options);
+    default:
+      throw new Error(`Unknown changelog type: ${options.type}`);
   }
 }

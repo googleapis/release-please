@@ -26,7 +26,6 @@ const presetFactory = require('conventional-changelog-conventionalcommits');
 const DEFAULT_HOST = 'https://github.com';
 
 interface DefaultChangelogNotesOptions {
-  changelogSections?: ChangelogSection[];
   commitPartial?: string;
   headerPartial?: string;
   mainTemplate?: string;
@@ -34,13 +33,11 @@ interface DefaultChangelogNotesOptions {
 
 export class DefaultChangelogNotes implements ChangelogNotes {
   // allow for customized commit template.
-  private changelogSections?: ChangelogSection[];
   private commitPartial?: string;
   private headerPartial?: string;
   private mainTemplate?: string;
 
   constructor(options: DefaultChangelogNotesOptions = {}) {
-    this.changelogSections = options.changelogSections;
     this.commitPartial = options.commitPartial;
     this.headerPartial = options.headerPartial;
     this.mainTemplate = options.mainTemplate;
@@ -61,8 +58,8 @@ export class DefaultChangelogNotes implements ChangelogNotes {
     };
 
     const config: {[key: string]: ChangelogSection[]} = {};
-    if (this.changelogSections) {
-      config.types = this.changelogSections;
+    if (options.changelogSections) {
+      config.types = options.changelogSections;
     }
     const preset = await presetFactory(config);
     preset.writerOpts.commitPartial =
