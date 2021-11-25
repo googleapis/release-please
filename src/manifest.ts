@@ -57,6 +57,7 @@ export interface ReleaserConfig {
   component?: string;
   packageName?: string;
   includeComponentInTag?: boolean;
+  pullRequestTitlePattern?: string;
 
   // Ruby-only
   versionFile?: string;
@@ -88,6 +89,7 @@ interface ReleaserConfigJson {
   label?: string;
   'release-label'?: string;
   'include-component-in-tag'?: boolean;
+  'pull-request-title-pattern'?: string;
 
   // Ruby-only
   'version-file'?: string;
@@ -298,7 +300,8 @@ export class Manifest {
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
-      component
+      component,
+      config.pullRequestTitlePattern
     );
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
@@ -826,6 +829,7 @@ function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
     versionFile: config['version-file'],
     extraFiles: config['extra-files'],
     includeComponentInTag: config['include-component-in-tag'],
+    pullRequestTitlePattern: config['pull-request-title-pattern'],
   };
 }
 
@@ -895,7 +899,8 @@ async function parseReleasedVersions(
 async function latestReleaseVersion(
   github: GitHub,
   targetBranch: string,
-  prefix?: string
+  prefix?: string,
+  pullRequestTitlePattern?: string
 ): Promise<Version | undefined> {
   const branchPrefix = prefix
     ? prefix.endsWith('-')
@@ -928,7 +933,10 @@ async function latestReleaseVersion(
       continue;
     }
 
-    const pullRequestTitle = PullRequestTitle.parse(mergedPullRequest.title);
+    const pullRequestTitle = PullRequestTitle.parse(
+      mergedPullRequest.title,
+      pullRequestTitlePattern
+    );
     if (!pullRequestTitle) {
       continue;
     }

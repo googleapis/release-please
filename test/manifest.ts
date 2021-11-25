@@ -180,6 +180,33 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
     });
+    it('should find custom release pull request title', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'release: 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        pullRequestTitlePattern: 'release: ${version}',
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+    });
   });
 
   describe('buildPullRequests', () => {
@@ -301,6 +328,26 @@ describe('Manifest', () => {
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.labels).to.eql(['some-special-label']);
+      });
+
+      it('allows customizing pull request title', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+              pullRequestTitlePattern: 'release: ${version}',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.title.toString()).to.eql('release: 1.0.1');
       });
     });
 
@@ -1911,6 +1958,46 @@ describe('Manifest', () => {
       const releases = await manifest.buildReleases();
       expect(releases).lengthOf(1);
       expect(releases[0].tag.toString()).to.eql('v1.3.1');
+    });
+
+    it('should handle customized pull request title', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'release: 3.2.7',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            pullRequestTitlePattern: 'release: ${version}',
+          },
+        },
+        {
+          '.': Version.parse('3.2.6'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('v3.2.7');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+      expect(releases[0].path).to.eql('.');
     });
   });
 
