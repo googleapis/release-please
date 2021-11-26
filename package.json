@@ -68,7 +68,7 @@
     "@octokit/request-error": "^2.1.0",
     "@octokit/rest": "^18.6.6",
     "@types/npm-package-arg": "^6.1.0",
-    "chalk": "^4.0.0",
+    "chalk": "^5.0.0",
     "code-suggester": "^2.0.0",
     "conventional-changelog-conventionalcommits": "^4.6.0",
     "conventional-changelog-writer": "^5.0.0",
