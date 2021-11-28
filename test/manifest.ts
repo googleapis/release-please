@@ -189,8 +189,8 @@ describe('Manifest', () => {
           pullRequest: {
             headBranchName: 'release-please/branches/main',
             baseBranchName: 'main',
-            number: 123,
             title: 'release: 1.2.3',
+            number: 123,
             body: '',
             labels: [],
             files: [],
@@ -203,6 +203,64 @@ describe('Manifest', () => {
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
         pullRequestTitlePattern: 'release: ${version}',
+        component: 'foobar',
+        includeComponentInTag: false,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+    });
+    it('finds previous release without tag', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            title: 'chore: release 1.2.3',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'foobar',
+        includeComponentInTag: false,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+    });
+    it('finds previous release with tag', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'foobar',
+        includeComponentInTag: true,
       });
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
@@ -1923,8 +1981,8 @@ describe('Manifest', () => {
             headBranchName: 'release-please/branches/main',
             baseBranchName: 'main',
             number: 1234,
-            title: 'chore: release main',
-            body: pullRequestBody('release-notes/single-manifest.txt'),
+            title: 'chore(main): release v1.3.1',
+            body: pullRequestBody('release-notes/single.txt'),
             labels: ['autorelease: pending'],
             files: [],
             sha: 'abc123',
