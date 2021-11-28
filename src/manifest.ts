@@ -298,7 +298,7 @@ export class Manifest {
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
-      component
+      config.includeComponentInTag ? component : ''
     );
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
@@ -789,8 +789,7 @@ export class Manifest {
       const strategiesByPath = await this.getStrategiesByPath();
       for (const path in this.repositoryConfig) {
         const strategy = strategiesByPath[path];
-        const component =
-          strategy.component || (await strategy.getDefaultComponent()) || '';
+        const component = (await strategy.getComponent()) || '';
         if (this._pathsByComponent[component]) {
           logger.warn(
             `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`

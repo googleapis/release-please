@@ -115,6 +115,9 @@ export abstract class Strategy {
   ): Promise<Update[]>;
 
   async getComponent(): Promise<string | undefined> {
+    if (!this.includeComponentInTag) {
+      return '';
+    }
     return this.component || (await this.getDefaultComponent());
   }
 
@@ -300,7 +303,12 @@ export abstract class Strategy {
     mergedPullRequest: PullRequest
   ): Promise<Release | undefined> {
     if (this.skipGitHubRelease) {
-      return undefined;
+      logger.info('Release skipped from strategy config');
+      return;
+    }
+    if (!mergedPullRequest.sha) {
+      logger.error('Pull request should have been merged');
+      return;
     }
 
     const pullRequestTitle =
@@ -310,18 +318,18 @@ export abstract class Strategy {
         MANIFEST_PULL_REQUEST_TITLE_PATTERN
       );
     if (!pullRequestTitle) {
-      throw new Error(`Bad pull request title: '${mergedPullRequest.title}'`);
+      logger.error(`Bad pull request title: '${mergedPullRequest.title}'`);
+      return;
     }
     const branchName = BranchName.parse(mergedPullRequest.headBranchName);
     if (!branchName) {
-      throw new Error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
-    }
-    if (!mergedPullRequest.sha) {
-      throw new Error('Pull request should have been merged');
+      logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
+      return;
     }
     const pullRequestBody = PullRequestBody.parse(mergedPullRequest.body);
     if (!pullRequestBody) {
-      throw new Error('could not parse pull request body as a release PR');
+      logger.error('Could not parse pull request body as a release PR');
+      return;
     }
     const component = await this.getComponent();
     logger.info('component:', component);
@@ -341,7 +349,8 @@ export abstract class Strategy {
     }
     const version = pullRequestTitle.getVersion() || releaseData?.version;
     if (!version) {
-      throw new Error('Pull request should have included version');
+      logger.error('Pull request should have included version');
+      return;
     }
 
     const tag = new TagName(
