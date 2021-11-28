@@ -125,6 +125,7 @@ export async function buildStrategy(
     skipGitHubRelease: options.skipGithubRelease,
     releaseAs: options.releaseAs,
     includeComponentInTag: options.includeComponentInTag,
+    pullRequestTitlePattern: options.pullRequestTitlePattern,
   };
   switch (options.releaseType) {
     case 'ruby': {
