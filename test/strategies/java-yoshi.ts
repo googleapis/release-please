@@ -127,6 +127,52 @@ describe('JavaYoshi', () => {
       );
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
+    it('handles promotion to 1.0.0', async () => {
+      const commits = [
+        buildMockCommit('feat: promote to 1.0.0\n\nRelease-As: 1.0.0'),
+      ];
+      const expectedVersion = '1.0.0';
+      const strategy = new JavaYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'versions-with-beta-artifacts.txt'
+          )
+        );
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const releasePullRequest = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      expect(releasePullRequest!.version?.toString()).to.eql(expectedVersion);
+      const update = assertHasUpdate(
+        releasePullRequest!.updates,
+        'versions.txt',
+        VersionsManifest
+      );
+      const versionsMap = (update.updater as VersionsManifest).versionsMap!;
+      expect(versionsMap.get('grpc-google-cloud-trace-v1')?.toString()).to.eql(
+        '1.0.0'
+      );
+      expect(
+        versionsMap.get('grpc-google-cloud-trace-v1beta1')?.toString()
+      ).to.eql('0.74.0');
+    });
   });
   describe('buildUpdates', () => {
     it('builds common files', async () => {
