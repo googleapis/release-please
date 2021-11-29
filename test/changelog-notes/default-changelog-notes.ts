@@ -65,6 +65,7 @@ describe('DefaultChangelogNotes', () => {
       version: '1.2.3',
       previousTag: 'v1.2.2',
       currentTag: 'v1.2.3',
+      targetBranch: 'main',
     };
     it('should build default release notes', async () => {
       const changelogNotes = new DefaultChangelogNotes();
@@ -73,14 +74,15 @@ describe('DefaultChangelogNotes', () => {
       safeSnapshot(notes);
     });
     it('should build with custom changelog sections', async () => {
-      const changelogNotes = new DefaultChangelogNotes({
+      const changelogNotes = new DefaultChangelogNotes();
+      const notes = await changelogNotes.buildNotes(commits, {
+        ...notesOptions,
         changelogSections: [
           {type: 'feat', section: 'Features'},
           {type: 'fix', section: 'Bug Fixes'},
           {type: 'docs', section: 'Documentation'},
         ],
       });
-      const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });

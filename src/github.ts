@@ -1241,6 +1241,27 @@ export class GitHub {
       });
     }
   );
+
+  /**
+   * Generate release notes from GitHub at tag
+   * @param {string} tagName Name of new release tag
+   * @param {string} targetCommitish Target commitish for new tag
+   * @param {string} previousTag Optional. Name of previous tag to analyze commits since
+   */
+  async generateReleaseNotes(
+    tagName: string,
+    targetCommitish: string,
+    previousTag?: string
+  ): Promise<string> {
+    const resp = await this.octokit.repos.generateReleaseNotes({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      tag_name: tagName,
+      previous_tag_name: previousTag,
+      target_commitish: targetCommitish,
+    });
+    return resp.data.body;
+  }
 }
 
 // Takes a potentially unqualified branch name, and turns it

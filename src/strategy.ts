@@ -83,7 +83,7 @@ export abstract class Strategy {
   private includeComponentInTag: boolean;
   private pullRequestTitlePattern?: string;
 
-  protected changelogNotes: ChangelogNotes;
+  readonly changelogNotes: ChangelogNotes;
 
   // CHANGELOG configuration
   protected changelogSections?: ChangelogSection[];
@@ -162,6 +162,8 @@ export abstract class Strategy {
       version: newVersion.toString(),
       previousTag: latestRelease?.tag?.toString(),
       currentTag: newVersionTag.toString(),
+      targetBranch: this.targetBranch,
+      changelogSections: this.changelogSections,
     });
   }
 

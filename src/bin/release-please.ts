@@ -25,6 +25,8 @@ import {
   ReleaseType,
   VersioningStrategyType,
   getVersioningStrategyTypes,
+  ChangelogNotesType,
+  getChangelogTypes,
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
 
@@ -113,7 +115,9 @@ interface CreatePullRequestArgs
     VersioningArgs,
     PullRequestArgs,
     PullRequestStrategyArgs,
-    TaggingArgs {}
+    TaggingArgs {
+  changelogType?: ChangelogNotesType;
+}
 interface CreateReleaseArgs
   extends GitHubArgs,
     ManifestArgs,
@@ -273,6 +277,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'where can the CHANGELOG be found in the project?',
       type: 'string',
     })
+    .option('changelog-type', {
+      describe: 'type of changelog to build',
+      choices: getChangelogTypes(),
+    })
     .option('last-package-version', {
       describe: 'last version # that package was released as',
       type: 'string',
@@ -390,6 +398,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           bumpMinorPreMajor: argv.bumpMinorPreMajor,
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
           changelogPath: argv.changelogPath,
+          changelogType: argv.changelogType,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,

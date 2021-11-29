@@ -173,6 +173,8 @@ Options:
   [choices: "default", "always-bump-patch", "service-pack"] [default: "default"]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?  [string] [default: "CHANGELOG.md"]
+  --changelog-type                  type of changelog to build
+                                                  [choices: "default", "github"]
   --last-package-version            last version # that package was released as
                          [deprecated: use --latest-tag-version instead] [string]
   --latest-tag-version              Override the detected latest tag version

@@ -24,6 +24,8 @@ import {JavaYoshi} from '../src/strategies/java-yoshi';
 import {JavaSnapshot} from '../src/versioning-strategies/java-snapshot';
 import {ServicePackVersioningStrategy} from '../src/versioning-strategies/service-pack';
 import {DependencyManifest} from '../src/versioning-strategies/dependency-manifest';
+import {GitHubChangelogNotes} from '../src/changelog-notes/github';
+import {DefaultChangelogNotes} from '../src/changelog-notes/default';
 
 describe('factory', () => {
   let github: GitHub;
@@ -49,6 +51,7 @@ describe('factory', () => {
       expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.false;
       expect(strategy.path).to.eql('.');
       expect(strategy.component).not.ok;
+      expect(strategy.changelogNotes).instanceof(DefaultChangelogNotes);
     });
     it('should build a with configuration', async () => {
       const strategy = await buildStrategy({
@@ -83,6 +86,15 @@ describe('factory', () => {
       expect(strategy.versioningStrategy).instanceof(
         ServicePackVersioningStrategy
       );
+    });
+    it('should build with a configured changelog type', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'simple',
+        changelogType: 'github',
+      });
+      expect(strategy).instanceof(Simple);
+      expect(strategy.changelogNotes).instanceof(GitHubChangelogNotes);
     });
     it('should build a ruby strategy', async () => {
       const strategy = await buildStrategy({

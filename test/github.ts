@@ -621,4 +621,41 @@ describe('GitHub', () => {
       expect(thrown).to.be.true;
     });
   });
+
+  describe('generateReleaseNotes', () => {
+    it('can generate notes with previous tag', async () => {
+      req
+        .post('/repos/fake/fake/releases/generate-notes', body => {
+          snapshot(body);
+          return body;
+        })
+        .reply(200, {
+          name: 'Release v1.0.0 is now available!',
+          body: '##Changes in Release v1.0.0 ... ##Contributors @monalisa',
+        });
+      const notes = await github.generateReleaseNotes(
+        'v1.2.3',
+        'main',
+        'v1.2.2'
+      );
+      expect(notes).to.eql(
+        '##Changes in Release v1.0.0 ... ##Contributors @monalisa'
+      );
+    });
+    it('can generate notes without previous tag', async () => {
+      req
+        .post('/repos/fake/fake/releases/generate-notes', body => {
+          snapshot(body);
+          return body;
+        })
+        .reply(200, {
+          name: 'Release v1.0.0 is now available!',
+          body: '##Changes in Release v1.0.0 ... ##Contributors @monalisa',
+        });
+      const notes = await github.generateReleaseNotes('v1.2.3', 'main');
+      expect(notes).to.eql(
+        '##Changes in Release v1.0.0 ... ##Contributors @monalisa'
+      );
+    });
+  });
 });
