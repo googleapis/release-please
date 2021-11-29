@@ -24,7 +24,13 @@ const RELEASE_PLEASE = 'release-please';
 type BranchNameType = typeof BranchName;
 
 function getAllResourceNames(): BranchNameType[] {
-  return [AutoreleaseBranchName, ComponentBranchName, DefaultBranchName];
+  return [
+    AutoreleaseBranchName,
+    ComponentBranchName,
+    DefaultBranchName,
+    V12ComponentBranchName,
+    V12DefaultBranchName,
+  ];
 }
 
 export class BranchName {
@@ -51,14 +57,16 @@ export class BranchName {
     return new AutoreleaseBranchName(`release-v${version}`);
   }
   static ofTargetBranch(targetBranch: string): BranchName {
-    return new DefaultBranchName(`${RELEASE_PLEASE}/branches/${targetBranch}`);
+    return new DefaultBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}`
+    );
   }
   static ofComponentTargetBranch(
     component: string,
     targetBranch: string
   ): BranchName {
     return new ComponentBranchName(
-      `${RELEASE_PLEASE}/branches/${targetBranch}/components/${component}`
+      `${RELEASE_PLEASE}--branches--${targetBranch}--components--${component}`
     );
   }
   constructor(_branchName: string) {}
@@ -80,6 +88,11 @@ export class BranchName {
   }
 }
 
+/**
+ * This is the legacy branch pattern used by releasetool
+ *
+ * @see https://github.com/googleapis/releasetool
+ */
 const AUTORELEASE_PATTERN =
   /^release-?(?<component>[\w-.]*)?-v(?<version>[0-9].*)$/;
 class AutoreleaseBranchName extends BranchName {
@@ -102,7 +115,56 @@ class AutoreleaseBranchName extends BranchName {
   }
 }
 
-const DEFAULT_PATTERN = `^${RELEASE_PLEASE}/branches/(?<branch>[^/]+)$`;
+/**
+ * This is a parsable branch pattern used by release-please v12.
+ * It has potential issues due to git treating `/` like directories.
+ * This should be removed at some point in the future.
+ *
+ * @see https://github.com/googleapis/release-please/issues/1024
+ */
+const V12_DEFAULT_PATTERN = `^${RELEASE_PLEASE}/branches/(?<branch>[^/]+)$`;
+class V12DefaultBranchName extends BranchName {
+  static matches(branchName: string): boolean {
+    return !!branchName.match(V12_DEFAULT_PATTERN);
+  }
+  constructor(branchName: string) {
+    super(branchName);
+    const match = branchName.match(V12_DEFAULT_PATTERN);
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+    }
+  }
+  toString(): string {
+    return `${RELEASE_PLEASE}/branches/${this.targetBranch}`;
+  }
+}
+
+/**
+ * This is a parsable branch pattern used by release-please v12.
+ * It has potential issues due to git treating `/` like directories.
+ * This should be removed at some point in the future.
+ *
+ * @see https://github.com/googleapis/release-please/issues/1024
+ */
+const V12_COMPONENT_PATTERN = `^${RELEASE_PLEASE}/branches/(?<branch>[^/]+)/components/(?<component>.+)$`;
+class V12ComponentBranchName extends BranchName {
+  static matches(branchName: string): boolean {
+    return !!branchName.match(V12_COMPONENT_PATTERN);
+  }
+  constructor(branchName: string) {
+    super(branchName);
+    const match = branchName.match(V12_COMPONENT_PATTERN);
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+      this.component = match.groups['component'];
+    }
+  }
+  toString(): string {
+    return `${RELEASE_PLEASE}/branches/${this.targetBranch}/components/${this.component}`;
+  }
+}
+
+const DEFAULT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)$`;
 class DefaultBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(DEFAULT_PATTERN);
@@ -115,11 +177,11 @@ class DefaultBranchName extends BranchName {
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}/branches/${this.targetBranch}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}`;
   }
 }
 
-const COMPONENT_PATTERN = `^${RELEASE_PLEASE}/branches/(?<branch>[^/]+)/components/(?<component>.+)$`;
+const COMPONENT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--components--(?<component>.+)$`;
 class ComponentBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(COMPONENT_PATTERN);
@@ -133,6 +195,6 @@ class ComponentBranchName extends BranchName {
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}/branches/${this.targetBranch}/components/${this.component}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--components--${this.component}`;
   }
 }

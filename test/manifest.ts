@@ -180,6 +180,91 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
     });
+    it('should find custom release pull request title', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            title: 'release: 1.2.3',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        pullRequestTitlePattern: 'release: ${version}',
+        component: 'foobar',
+        includeComponentInTag: false,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+    });
+    it('finds previous release without tag', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            title: 'chore: release 1.2.3',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'foobar',
+        includeComponentInTag: false,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+    });
+    it('finds previous release with tag', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'foobar',
+        includeComponentInTag: true,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+    });
   });
 
   describe('buildPullRequests', () => {
@@ -237,6 +322,9 @@ describe('Manifest', () => {
         assertHasUpdate(pullRequest.updates, 'CHANGELOG.md');
         assertHasUpdate(pullRequest.updates, 'version.txt');
         assertHasUpdate(pullRequest.updates, '.release-please-manifest.json');
+        expect(pullRequest.headRefName).to.eql(
+          'release-please--branches--main'
+        );
       });
 
       it('should create a draft pull request', async () => {
@@ -302,6 +390,26 @@ describe('Manifest', () => {
         const pullRequest = pullRequests[0];
         expect(pullRequest.labels).to.eql(['some-special-label']);
       });
+
+      it('allows customizing pull request title', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+              pullRequestTitlePattern: 'release: ${version}',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.title.toString()).to.eql('release: 1.0.1');
+      });
     });
 
     it('should find the component from config', async () => {
@@ -362,6 +470,9 @@ describe('Manifest', () => {
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.headRefName).to.eql(
+        'release-please--branches--main--components--pkg1'
+      );
     });
 
     it('should handle multiple package repository', async () => {
@@ -1023,8 +1134,8 @@ describe('Manifest', () => {
         }
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([]);
-      const pullRequestNumbers = await manifest.createPullRequests();
-      expect(pullRequestNumbers).to.be.empty;
+      const pullRequests = await manifest.createPullRequests();
+      expect(pullRequests).to.be.empty;
     });
 
     it('handles a single pull request', async function () {
@@ -1085,8 +1196,8 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
-      const pullRequestNumbers = await manifest.createPullRequests();
-      expect(pullRequestNumbers).lengthOf(1);
+      const pullRequests = await manifest.createPullRequests();
+      expect(pullRequests).lengthOf(1);
     });
 
     it('handles a multiple pull requests', async () => {
@@ -1207,8 +1318,10 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
-      const pullRequestNumbers = await manifest.createPullRequests();
-      expect(pullRequestNumbers).to.eql([123, 124]);
+      const pullRequests = await manifest.createPullRequests();
+      expect(pullRequests.map(pullRequest => pullRequest!.number)).to.eql([
+        123, 124,
+      ]);
     });
 
     it('handles signoff users', async function () {
@@ -1531,6 +1644,7 @@ describe('Manifest', () => {
       expect(releases[0].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Bug Fixes'));
+      expect(releases[0].path).to.eql('.');
     });
 
     it('should handle a multiple manifest release', async () => {
@@ -1615,21 +1729,25 @@ describe('Manifest', () => {
       expect(releases[0].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[0].path).to.eql('packages/bot-config-utils');
       expect(releases[1].tag.toString()).to.eql('label-utils-v1.1.0');
       expect(releases[1].sha).to.eql('abc123');
       expect(releases[1].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].path).to.eql('packages/label-utils');
       expect(releases[2].tag.toString()).to.eql('object-selector-v1.1.0');
       expect(releases[2].sha).to.eql('abc123');
       expect(releases[2].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[2].path).to.eql('packages/object-selector');
       expect(releases[3].tag.toString()).to.eql('datastore-lock-v2.1.0');
       expect(releases[3].sha).to.eql('abc123');
       expect(releases[3].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[3].path).to.eql('packages/datastore-lock');
     });
 
     it('should handle a single standalone release', async () => {
@@ -1668,6 +1786,7 @@ describe('Manifest', () => {
       expect(releases[0].notes)
         .to.be.a('string')
         .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+      expect(releases[0].path).to.eql('.');
     });
 
     it('should allow skipping releases', async () => {
@@ -1858,6 +1977,92 @@ describe('Manifest', () => {
       expect(releases).lengthOf(1);
       expect(releases[0].draft).to.be.true;
     });
+
+    it('should skip component in tag', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore(main): release v1.3.1',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            includeComponentInTag: false,
+          },
+        },
+        {
+          '.': Version.parse('1.3.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('v1.3.1');
+    });
+
+    it('should handle customized pull request title', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'release: 3.2.7',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            pullRequestTitlePattern: 'release: ${version}',
+          },
+        },
+        {
+          '.': Version.parse('3.2.6'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('v3.2.7');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+      expect(releases[0].path).to.eql('.');
+    });
   });
 
   describe('createReleases', () => {
@@ -1914,6 +2119,7 @@ describe('Manifest', () => {
       expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.path).to.eql('.');
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -2018,15 +2224,19 @@ describe('Manifest', () => {
       expect(releases[0]!.tagName).to.eql('bot-config-utils-v3.2.0');
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
+      expect(releases[0]!.path).to.eql('packages/bot-config-utils');
       expect(releases[1]!.tagName).to.eql('label-utils-v1.1.0');
       expect(releases[1]!.sha).to.eql('abc123');
       expect(releases[1]!.notes).to.be.string;
+      expect(releases[1]!.path).to.eql('packages/label-utils');
       expect(releases[2]!.tagName).to.eql('object-selector-v1.1.0');
       expect(releases[2]!.sha).to.eql('abc123');
       expect(releases[2]!.notes).to.be.string;
+      expect(releases[2]!.path).to.eql('packages/object-selector');
       expect(releases[3]!.tagName).to.eql('datastore-lock-v2.1.0');
       expect(releases[3]!.sha).to.eql('abc123');
       expect(releases[3]!.notes).to.be.string;
+      expect(releases[3]!.path).to.eql('packages/datastore-lock');
       sinon.assert.callCount(commentStub, 4);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -2079,6 +2289,7 @@ describe('Manifest', () => {
       expect(releases[0]!.tagName).to.eql('v3.2.7');
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
+      expect(releases[0]!.path).to.eql('.');
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,

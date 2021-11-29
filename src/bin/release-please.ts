@@ -18,7 +18,7 @@ import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
 import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
-import {ChangelogSection} from '../release-notes';
+import {ChangelogSection} from '../changelog-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
 import {
   getReleaserTypes,
@@ -91,7 +91,6 @@ interface PullRequestArgs {
 
 interface PullRequestStrategyArgs {
   snapshot?: boolean;
-  monorepoTags?: boolean;
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
   versioningStrategy?: VersioningStrategyType;
@@ -99,8 +98,12 @@ interface PullRequestStrategyArgs {
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
   // and then remove this property
   versionFile?: string;
-  pullRequestTitlePattern?: string;
   extraFiles?: string[];
+}
+
+interface TaggingArgs {
+  monorepoTags?: boolean;
+  pullRequestTitlePattern?: string;
 }
 
 interface CreatePullRequestArgs
@@ -109,12 +112,14 @@ interface CreatePullRequestArgs
     ManifestConfigArgs,
     VersioningArgs,
     PullRequestArgs,
-    PullRequestStrategyArgs {}
+    PullRequestStrategyArgs,
+    TaggingArgs {}
 interface CreateReleaseArgs
   extends GitHubArgs,
     ManifestArgs,
     ManifestConfigArgs,
-    ReleaseArgs {}
+    ReleaseArgs,
+    TaggingArgs {}
 interface CreateManifestPullRequestArgs
   extends GitHubArgs,
     ManifestArgs,
@@ -239,11 +244,6 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       default: false,
       type: 'boolean',
     })
-    .option('monorepo-tags', {
-      describe: 'include library name in tags and release branches',
-      type: 'boolean',
-      default: false,
-    })
     .option('extra-files', {
       describe: 'extra files for the strategy to consider',
       type: 'string',
@@ -267,10 +267,6 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'strategy used for bumping versions',
       choices: getVersioningStrategyTypes(),
       default: 'default',
-    })
-    .option('pull-request-title-pattern', {
-      describe: 'Title pattern to make release PR',
-      type: 'string',
     })
     .option('changelog-path', {
       default: 'CHANGELOG.md',
@@ -350,6 +346,19 @@ function manifestOptions(yargs: yargs.Argv): yargs.Argv {
     });
 }
 
+function taggingOptions(yargs: yargs.Argv): yargs.Argv {
+  return yargs
+    .option('monorepo-tags', {
+      describe: 'include library name in tags and release branches',
+      type: 'boolean',
+      default: false,
+    })
+    .option('pull-request-title-pattern', {
+      describe: 'Title pattern to make release PR',
+      type: 'string',
+    });
+}
+
 const createReleasePullRequestCommand: yargs.CommandModule<
   {},
   CreatePullRequestArgs
@@ -359,7 +368,9 @@ const createReleasePullRequestCommand: yargs.CommandModule<
   builder(yargs) {
     return manifestOptions(
       manifestConfigOptions(
-        pullRequestOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+        taggingOptions(
+          pullRequestOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+        )
       )
     );
   },
@@ -384,6 +395,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           versioning: argv.versioningStrategy,
           extraFiles: argv.extraFiles,
           versionFile: argv.versionFile,
+          includeComponentInTag: argv.monorepoTags,
         },
         extractManifestOptions(argv),
         argv.path
@@ -429,7 +441,9 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
   describe: 'create a GitHub release from a release PR',
   builder(yargs) {
     return releaseOptions(
-      manifestOptions(manifestConfigOptions(gitHubOptions(yargs)))
+      manifestOptions(
+        manifestConfigOptions(taggingOptions(gitHubOptions(yargs)))
+      )
     );
   },
   async handler(argv) {
@@ -448,6 +462,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
           component: argv.component,
           packageName: argv.packageName,
           draft: argv.draft,
+          includeComponentInTag: argv.monorepoTags,
         },
         extractManifestOptions(argv),
         argv.path

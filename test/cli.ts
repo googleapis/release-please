@@ -98,7 +98,17 @@ describe('CLI', () => {
         .resolves(fakeManifest);
       createPullRequestsStub = sandbox
         .stub(fakeManifest, 'createPullRequests')
-        .resolves([123]);
+        .resolves([
+          {
+            title: 'fake title',
+            body: 'fake body',
+            headBranchName: 'head-branch-name',
+            baseBranchName: 'base-branch-name',
+            number: 123,
+            files: [],
+            labels: [],
+          },
+        ]);
     });
     it('instantiates a basic Manifest', async () => {
       await await parser.parseAsync(
@@ -282,6 +292,11 @@ describe('CLI', () => {
             sha: 'abc123',
             notes: 'some release notes',
             url: 'url-of-release',
+            path: '.',
+            version: 'v1.2.3',
+            major: 1,
+            minor: 2,
+            patch: 3,
           },
         ]);
     });
@@ -435,16 +450,26 @@ describe('CLI', () => {
   describe('release-pr', () => {
     describe('with manifest options', () => {
       let fromManifestStub: sinon.SinonStub;
+      let createPullRequestsStub: sinon.SinonStub;
       beforeEach(() => {
         fromManifestStub = sandbox
           .stub(Manifest, 'fromManifest')
           .resolves(fakeManifest);
+        createPullRequestsStub = sandbox
+          .stub(fakeManifest, 'createPullRequests')
+          .resolves([
+            {
+              title: 'fake title',
+              body: 'fake body',
+              headBranchName: 'head-branch-name',
+              baseBranchName: 'base-branch-name',
+              number: 123,
+              files: [],
+              labels: [],
+            },
+          ]);
       });
       it('instantiates a basic Manifest', async () => {
-        const createPullRequestsStub = sandbox
-          .stub(fakeManifest, 'createPullRequests')
-          .resolves([123]);
-
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli'
         );
@@ -465,10 +490,6 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createPullRequestsStub);
       });
       it('instantiates Manifest with custom config/manifest', async () => {
-        const createPullRequestsStub = sandbox
-          .stub(fakeManifest, 'createPullRequests')
-          .resolves([123]);
-
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
         );
@@ -490,10 +511,6 @@ describe('CLI', () => {
       });
       for (const flag of ['--target-branch', '--default-branch']) {
         it(`handles ${flag}`, async () => {
-          const createPullRequestsStub = sandbox
-            .stub(fakeManifest, 'createPullRequests')
-            .resolves([123]);
-
           await parser.parseAsync(
             `release-pr --repo-url=googleapis/release-please-cli ${flag}=1.x`
           );
@@ -548,7 +565,17 @@ describe('CLI', () => {
           .resolves(fakeManifest);
         createPullRequestsStub = sandbox
           .stub(fakeManifest, 'createPullRequests')
-          .resolves([123]);
+          .resolves([
+            {
+              title: 'fake title',
+              body: 'fake body',
+              headBranchName: 'head-branch-name',
+              baseBranchName: 'base-branch-name',
+              number: 123,
+              files: [],
+              labels: [],
+            },
+          ]);
       });
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
@@ -886,6 +913,27 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createPullRequestsStub);
       });
+
+      it('handles --monorepo-tags', async () => {
+        await parser.parseAsync(
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --monorepo-tags'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({releaseType: 'java-yoshi', includeComponentInTag: true}),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createPullRequestsStub);
+      });
     });
   });
   describe('github-release', () => {
@@ -904,6 +952,11 @@ describe('CLI', () => {
               sha: 'abc123',
               notes: 'some release notes',
               url: 'url-of-release',
+              path: '.',
+              version: 'v1.2.3',
+              major: 1,
+              minor: 2,
+              patch: 3,
             },
           ]);
       });
@@ -1054,6 +1107,11 @@ describe('CLI', () => {
               sha: 'abc123',
               notes: 'some release notes',
               url: 'url-of-release',
+              path: '.',
+              version: 'v1.2.3',
+              major: 1,
+              minor: 2,
+              patch: 3,
             },
           ]);
       });
@@ -1200,6 +1258,27 @@ describe('CLI', () => {
           fakeGitHub,
           'main',
           sinon.match({releaseType: 'java-yoshi', packageName: '@foo/bar'}),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createReleasesStub);
+      });
+
+      it('handles --monorepo-tags', async () => {
+        await parser.parseAsync(
+          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --monorepo-tags'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({releaseType: 'java-yoshi', includeComponentInTag: true}),
           sinon.match.any,
           undefined
         );

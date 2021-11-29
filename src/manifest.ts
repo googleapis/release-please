@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ChangelogSection} from './release-notes';
+import {ChangelogSection} from './changelog-notes';
 import {GitHub, GitHubRelease} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit} from './commit';
@@ -56,6 +56,8 @@ export interface ReleaserConfig {
   draftPullRequest?: boolean;
   component?: string;
   packageName?: string;
+  includeComponentInTag?: boolean;
+  pullRequestTitlePattern?: string;
 
   // Ruby-only
   versionFile?: string;
@@ -72,6 +74,7 @@ export interface CandidateReleasePullRequest {
 export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
   draft?: boolean;
+  path: string;
 }
 
 interface ReleaserConfigJson {
@@ -85,6 +88,8 @@ interface ReleaserConfigJson {
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
+  'include-component-in-tag'?: boolean;
+  'pull-request-title-pattern'?: string;
 
   // Ruby-only
   'version-file'?: string;
@@ -139,6 +144,14 @@ const DEFAULT_LABELS = ['autorelease: pending'];
 const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
+
+interface CreatedRelease extends GitHubRelease {
+  path: string;
+  version: string;
+  major: number;
+  minor: number;
+  patch: number;
+}
 
 export class Manifest {
   private repository: Repository;
@@ -287,7 +300,8 @@ export class Manifest {
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
-      component
+      config.includeComponentInTag ? component : '',
+      config.pullRequestTitlePattern
     );
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
@@ -520,7 +534,7 @@ export class Manifest {
    *
    * @returns {number[]} Pull request numbers of release pull requests
    */
-  async createPullRequests(): Promise<(number | undefined)[]> {
+  async createPullRequests(): Promise<(PullRequest | undefined)[]> {
     const candidatePullRequests = await this.buildPullRequests();
     if (candidatePullRequests.length === 0) {
       return [];
@@ -554,7 +568,7 @@ export class Manifest {
     }
     logger.info(`found ${openPullRequests.length} open release pull requests.`);
 
-    const promises: Promise<number | undefined>[] = [];
+    const promises: Promise<PullRequest | undefined>[] = [];
     for (const pullRequest of candidatePullRequests) {
       promises.push(
         this.createOrUpdatePullRequest(pullRequest, openPullRequests)
@@ -566,7 +580,7 @@ export class Manifest {
   private async createOrUpdatePullRequest(
     pullRequest: ReleasePullRequest,
     openPullRequests: PullRequest[]
-  ): Promise<number | undefined> {
+  ): Promise<PullRequest | undefined> {
     // look for existing, open pull rquest
     const existing = openPullRequests.find(
       openPullRequest =>
@@ -589,7 +603,7 @@ export class Manifest {
           signoffUser: this.signoffUser,
         }
       );
-      return updatedPullRequest.number;
+      return updatedPullRequest;
     } else {
       const newPullRequest = await this.github.createReleasePullRequest(
         pullRequest,
@@ -599,7 +613,7 @@ export class Manifest {
           signoffUser: this.signoffUser,
         }
       );
-      return newPullRequest.number;
+      return newPullRequest;
     }
   }
 
@@ -669,6 +683,7 @@ export class Manifest {
         if (release) {
           releases.push({
             ...release,
+            path,
             pullRequest,
             draft: config.draft ?? this.draft,
           });
@@ -686,7 +701,7 @@ export class Manifest {
    *
    * @returns {GitHubRelease[]} List of created GitHub releases
    */
-  async createReleases(): Promise<(GitHubRelease | undefined)[]> {
+  async createReleases(): Promise<(CreatedRelease | undefined)[]> {
     const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
     const pullRequestsByNumber: Record<number, PullRequest> = {};
     for (const release of await this.buildReleases()) {
@@ -698,7 +713,7 @@ export class Manifest {
       }
     }
 
-    const promises: Promise<GitHubRelease[]>[] = [];
+    const promises: Promise<CreatedRelease[]>[] = [];
     for (const pullNumber in releasesByPullRequest) {
       promises.push(
         this.createReleasesForPullRequest(
@@ -714,9 +729,9 @@ export class Manifest {
   private async createReleasesForPullRequest(
     releases: CandidateRelease[],
     pullRequest: PullRequest
-  ): Promise<GitHubRelease[]> {
+  ): Promise<CreatedRelease[]> {
     // create the release
-    const promises: Promise<GitHubRelease>[] = [];
+    const promises: Promise<CreatedRelease>[] = [];
     for (const release of releases) {
       promises.push(this.createRelease(release));
     }
@@ -733,7 +748,7 @@ export class Manifest {
 
   private async createRelease(
     release: CandidateRelease
-  ): Promise<GitHubRelease> {
+  ): Promise<CreatedRelease> {
     const githubRelease = await this.github.createRelease(release, {
       draft: release.draft,
     });
@@ -742,7 +757,14 @@ export class Manifest {
     const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
     await this.github.commentOnIssue(comment, release.pullRequest.number);
 
-    return githubRelease;
+    return {
+      ...githubRelease,
+      path: release.path,
+      version: release.tag.version.toString(),
+      major: release.tag.version.major,
+      minor: release.tag.version.minor,
+      patch: release.tag.version.patch,
+    };
   }
 
   private async getStrategiesByPath(): Promise<Record<string, Strategy>> {
@@ -770,8 +792,7 @@ export class Manifest {
       const strategiesByPath = await this.getStrategiesByPath();
       for (const path in this.repositoryConfig) {
         const strategy = strategiesByPath[path];
-        const component =
-          strategy.component || (await strategy.getDefaultComponent()) || '';
+        const component = (await strategy.getComponent()) || '';
         if (this._pathsByComponent[component]) {
           logger.warn(
             `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`
@@ -806,6 +827,8 @@ function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
     packageName: config['package-name'],
     versionFile: config['version-file'],
     extraFiles: config['extra-files'],
+    includeComponentInTag: config['include-component-in-tag'],
+    pullRequestTitlePattern: config['pull-request-title-pattern'],
   };
 }
 
@@ -875,7 +898,8 @@ async function parseReleasedVersions(
 async function latestReleaseVersion(
   github: GitHub,
   targetBranch: string,
-  prefix?: string
+  prefix?: string,
+  pullRequestTitlePattern?: string
 ): Promise<Version | undefined> {
   const branchPrefix = prefix
     ? prefix.endsWith('-')
@@ -908,7 +932,10 @@ async function latestReleaseVersion(
       continue;
     }
 
-    const pullRequestTitle = PullRequestTitle.parse(mergedPullRequest.title);
+    const pullRequestTitle = PullRequestTitle.parse(
+      mergedPullRequest.title,
+      pullRequestTitlePattern
+    );
     if (!pullRequestTitle) {
       continue;
     }

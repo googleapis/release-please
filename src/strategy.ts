@@ -20,7 +20,7 @@ import {parseConventionalCommits, Commit, ConventionalCommit} from './commit';
 import {VersioningStrategy} from './versioning-strategy';
 import {DefaultVersioningStrategy} from './versioning-strategies/default';
 import {PullRequestTitle} from './util/pull-request-title';
-import {ReleaseNotes, ChangelogSection} from './release-notes';
+import {ChangelogNotes, ChangelogSection} from './changelog-notes';
 import {Update} from './update';
 import {Repository} from './repository';
 import {PullRequest} from './pull-request';
@@ -32,6 +32,7 @@ import {
   ROOT_PROJECT_PATH,
 } from './manifest';
 import {PullRequestBody} from './util/pull-request-body';
+import {DefaultChangelogNotes} from './changelog-notes/default';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -58,6 +59,9 @@ export interface StrategyOptions {
   tagSeparator?: string;
   skipGitHubRelease?: boolean;
   releaseAs?: string;
+  changelogNotes?: ChangelogNotes;
+  includeComponentInTag?: boolean;
+  pullRequestTitlePattern?: string;
 }
 
 /**
@@ -76,12 +80,13 @@ export abstract class Strategy {
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
+  private includeComponentInTag: boolean;
+  private pullRequestTitlePattern?: string;
+
+  protected changelogNotes: ChangelogNotes;
 
   // CHANGELOG configuration
   protected changelogSections?: ChangelogSection[];
-  protected commitPartial?: string;
-  protected headerPartial?: string;
-  protected mainTemplate?: string;
 
   constructor(options: StrategyOptions) {
     this.path = options.path || ROOT_PROJECT_PATH;
@@ -95,12 +100,13 @@ export abstract class Strategy {
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
     this.changelogSections = options.changelogSections;
-    this.commitPartial = options.commitPartial;
-    this.headerPartial = options.headerPartial;
-    this.mainTemplate = options.mainTemplate;
     this.tagSeparator = options.tagSeparator;
     this.skipGitHubRelease = options.skipGitHubRelease || false;
     this.releaseAs = options.releaseAs;
+    this.changelogNotes =
+      options.changelogNotes || new DefaultChangelogNotes(options);
+    this.includeComponentInTag = options.includeComponentInTag ?? true;
+    this.pullRequestTitlePattern = options.pullRequestTitlePattern;
   }
 
   /**
@@ -112,6 +118,9 @@ export abstract class Strategy {
   ): Promise<Update[]>;
 
   async getComponent(): Promise<string | undefined> {
+    if (!this.includeComponentInTag) {
+      return '';
+    }
     return this.component || (await this.getDefaultComponent());
   }
 
@@ -147,13 +156,7 @@ export abstract class Strategy {
     newVersionTag: TagName,
     latestRelease?: Release
   ): Promise<string> {
-    const releaseNotes = new ReleaseNotes({
-      changelogSections: this.changelogSections,
-      commitPartial: this.commitPartial,
-      headerPartial: this.headerPartial,
-      mainTemplate: this.mainTemplate,
-    });
-    return await releaseNotes.buildNotes(conventionalCommits, {
+    return await this.changelogNotes.buildNotes(conventionalCommits, {
       owner: this.repository.owner,
       repository: this.repository.repo,
       version: newVersion.toString(),
@@ -203,11 +206,17 @@ export abstract class Strategy {
     const component = await this.getComponent();
     logger.debug('component:', component);
 
-    const newVersionTag = new TagName(newVersion, component);
+    const newVersionTag = new TagName(
+      newVersion,
+      this.includeComponentInTag ? component : undefined,
+      this.tagSeparator
+    );
+    logger.warn('pull request title pattern:', this.pullRequestTitlePattern);
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
-      newVersion
+      newVersion,
+      this.pullRequestTitlePattern
     );
     const branchName = component
       ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
@@ -289,28 +298,36 @@ export abstract class Strategy {
     mergedPullRequest: PullRequest
   ): Promise<Release | undefined> {
     if (this.skipGitHubRelease) {
-      return undefined;
+      logger.info('Release skipped from strategy config');
+      return;
+    }
+    if (!mergedPullRequest.sha) {
+      logger.error('Pull request should have been merged');
+      return;
     }
 
     const pullRequestTitle =
-      PullRequestTitle.parse(mergedPullRequest.title) ||
+      PullRequestTitle.parse(
+        mergedPullRequest.title,
+        this.pullRequestTitlePattern
+      ) ||
       PullRequestTitle.parse(
         mergedPullRequest.title,
         MANIFEST_PULL_REQUEST_TITLE_PATTERN
       );
     if (!pullRequestTitle) {
-      throw new Error(`Bad pull request title: '${mergedPullRequest.title}'`);
+      logger.error(`Bad pull request title: '${mergedPullRequest.title}'`);
+      return;
     }
     const branchName = BranchName.parse(mergedPullRequest.headBranchName);
     if (!branchName) {
-      throw new Error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
-    }
-    if (!mergedPullRequest.sha) {
-      throw new Error('Pull request should have been merged');
+      logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
+      return;
     }
     const pullRequestBody = PullRequestBody.parse(mergedPullRequest.body);
     if (!pullRequestBody) {
-      throw new Error('could not parse pull request body as a release PR');
+      logger.error('Could not parse pull request body as a release PR');
+      return;
     }
     const component = await this.getComponent();
     logger.info('component:', component);
@@ -330,11 +347,17 @@ export abstract class Strategy {
     }
     const version = pullRequestTitle.getVersion() || releaseData?.version;
     if (!version) {
-      throw new Error('Pull request should have included version');
+      logger.error('Pull request should have included version');
+      return;
     }
 
+    const tag = new TagName(
+      version,
+      this.includeComponentInTag ? component : undefined,
+      this.tagSeparator
+    );
     return {
-      tag: new TagName(version, component, this.tagSeparator),
+      tag,
       notes: notes || '',
       sha: mergedPullRequest.sha,
     };
