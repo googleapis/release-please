@@ -19,6 +19,7 @@ import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
+import {VersionGo} from '../updaters/go/version-go';
 
 // Commits containing a scope prefixed with an item in this array will be
 // ignored when generating a release PR for the parent module.
@@ -53,6 +54,13 @@ export class GoYoshi extends Strategy {
       updater: new Changelog({
         version,
         changelogEntry: options.changelogEntry,
+      }),
+    });
+    updates.push({
+      path: this.addPath('internal/version.go'),
+      createIfMissing: false,
+      updater: new VersionGo({
+        version,
       }),
     });
 
