@@ -100,12 +100,12 @@ interface PullRequestStrategyArgs {
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
   // and then remove this property
   versionFile?: string;
-  pullRequestTitlePattern?: string;
   extraFiles?: string[];
 }
 
 interface TaggingArgs {
   monorepoTags?: boolean;
+  pullRequestTitlePattern?: string;
 }
 
 interface CreatePullRequestArgs
@@ -272,10 +272,6 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       choices: getVersioningStrategyTypes(),
       default: 'default',
     })
-    .option('pull-request-title-pattern', {
-      describe: 'Title pattern to make release PR',
-      type: 'string',
-    })
     .option('changelog-path', {
       default: 'CHANGELOG.md',
       describe: 'where can the CHANGELOG be found in the project?',
@@ -359,11 +355,16 @@ function manifestOptions(yargs: yargs.Argv): yargs.Argv {
 }
 
 function taggingOptions(yargs: yargs.Argv): yargs.Argv {
-  return yargs.option('monorepo-tags', {
-    describe: 'include library name in tags and release branches',
-    type: 'boolean',
-    default: false,
-  });
+  return yargs
+    .option('monorepo-tags', {
+      describe: 'include library name in tags and release branches',
+      type: 'boolean',
+      default: false,
+    })
+    .option('pull-request-title-pattern', {
+      describe: 'Title pattern to make release PR',
+      type: 'string',
+    });
 }
 
 const createReleasePullRequestCommand: yargs.CommandModule<

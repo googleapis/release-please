@@ -56,6 +56,7 @@ export interface ReleaserConfig {
   component?: string;
   packageName?: string;
   includeComponentInTag?: boolean;
+  pullRequestTitlePattern?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -93,6 +94,7 @@ interface ReleaserConfigJson {
   'release-label'?: string;
   'include-component-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
+  'pull-request-title-pattern'?: string;
 
   // Ruby-only
   'version-file'?: string;
@@ -303,7 +305,8 @@ export class Manifest {
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
-      component
+      config.includeComponentInTag ? component : '',
+      config.pullRequestTitlePattern
     );
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
@@ -794,8 +797,7 @@ export class Manifest {
       const strategiesByPath = await this.getStrategiesByPath();
       for (const path in this.repositoryConfig) {
         const strategy = strategiesByPath[path];
-        const component =
-          strategy.component || (await strategy.getDefaultComponent()) || '';
+        const component = (await strategy.getComponent()) || '';
         if (this._pathsByComponent[component]) {
           logger.warn(
             `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`
@@ -832,6 +834,7 @@ function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
     extraFiles: config['extra-files'],
     includeComponentInTag: config['include-component-in-tag'],
     changelogType: config['changelog-type'],
+    pullRequestTitlePattern: config['pull-request-title-pattern'],
   };
 }
 
@@ -901,7 +904,8 @@ async function parseReleasedVersions(
 async function latestReleaseVersion(
   github: GitHub,
   targetBranch: string,
-  prefix?: string
+  prefix?: string,
+  pullRequestTitlePattern?: string
 ): Promise<Version | undefined> {
   const branchPrefix = prefix
     ? prefix.endsWith('-')
@@ -934,7 +938,10 @@ async function latestReleaseVersion(
       continue;
     }
 
-    const pullRequestTitle = PullRequestTitle.parse(mergedPullRequest.title);
+    const pullRequestTitle = PullRequestTitle.parse(
+      mergedPullRequest.title,
+      pullRequestTitlePattern
+    );
     if (!pullRequestTitle) {
       continue;
     }
