@@ -322,6 +322,9 @@ describe('Manifest', () => {
         assertHasUpdate(pullRequest.updates, 'CHANGELOG.md');
         assertHasUpdate(pullRequest.updates, 'version.txt');
         assertHasUpdate(pullRequest.updates, '.release-please-manifest.json');
+        expect(pullRequest.headRefName).to.eql(
+          'release-please--branches--main'
+        );
       });
 
       it('should create a draft pull request', async () => {
@@ -467,6 +470,9 @@ describe('Manifest', () => {
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.headRefName).to.eql(
+        'release-please--branches--main--components--pkg1'
+      );
     });
 
     it('should handle multiple package repository', async () => {
