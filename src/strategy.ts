@@ -192,19 +192,10 @@ export abstract class Strategy {
       conventionalCommits,
       latestRelease
     );
-    const versionsMap = await this.buildVersionsMap(conventionalCommits);
-    for (const versionKey of versionsMap.keys()) {
-      const version = versionsMap.get(versionKey);
-      if (!version) {
-        logger.warn(`didn't find version for ${versionKey}`);
-        continue;
-      }
-      const newVersion = await this.versioningStrategy.bump(
-        version,
-        conventionalCommits
-      );
-      versionsMap.set(versionKey, newVersion);
-    }
+    const versionsMap = await this.updateVersionsMap(
+      await this.buildVersionsMap(conventionalCommits),
+      conventionalCommits
+    );
     const component = await this.getComponent();
     logger.debug('component:', component);
 
@@ -264,6 +255,25 @@ export abstract class Strategy {
 
   protected changelogEmpty(changelogEntry: string): boolean {
     return changelogEntry.split('\n').length <= 1;
+  }
+
+  protected async updateVersionsMap(
+    versionsMap: VersionsMap,
+    conventionalCommits: ConventionalCommit[]
+  ): Promise<VersionsMap> {
+    for (const versionKey of versionsMap.keys()) {
+      const version = versionsMap.get(versionKey);
+      if (!version) {
+        logger.warn(`didn't find version for ${versionKey}`);
+        continue;
+      }
+      const newVersion = await this.versioningStrategy.bump(
+        version,
+        conventionalCommits
+      );
+      versionsMap.set(versionKey, newVersion);
+    }
+    return versionsMap;
   }
 
   protected async buildNewVersion(

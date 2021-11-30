@@ -21,7 +21,7 @@ import {Changelog} from '../updaters/changelog';
 import {GitHubFileContents} from '../github';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
-import {Commit} from '../commit';
+import {Commit, ConventionalCommit} from '../commit';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
 import {logger} from '../util/logger';
@@ -260,7 +260,74 @@ export class JavaYoshi extends Strategy {
     return updates;
   }
 
+  protected async updateVersionsMap(
+    versionsMap: VersionsMap,
+    conventionalCommits: ConventionalCommit[]
+  ): Promise<VersionsMap> {
+    let isPromotion = false;
+    const modifiedCommits: ConventionalCommit[] = [];
+    for (const commit of conventionalCommits) {
+      if (isPromotionCommit(commit)) {
+        isPromotion = true;
+        modifiedCommits.push({
+          ...commit,
+          notes: commit.notes.filter(note => !isPromotionNote(note)),
+        });
+      } else {
+        modifiedCommits.push(commit);
+      }
+    }
+    for (const versionKey of versionsMap.keys()) {
+      const version = versionsMap.get(versionKey);
+      if (!version) {
+        logger.warn(`didn't find version for ${versionKey}`);
+        continue;
+      }
+      if (isPromotion && isStableArtifact(versionKey)) {
+        versionsMap.set(versionKey, Version.parse('1.0.0'));
+      } else {
+        const newVersion = await this.versioningStrategy.bump(
+          version,
+          modifiedCommits
+        );
+        versionsMap.set(versionKey, newVersion);
+      }
+    }
+    return versionsMap;
+  }
+
   protected initialReleaseVersion(): Version {
     return Version.parse('0.1.0');
   }
+}
+
+const VERSIONED_ARTIFACT_REGEX = /^.*-(v\d+[^-]*)$/;
+const VERSION_REGEX = /^v\d+(.*)$/;
+
+/**
+ * Returns true if the artifact should be considered stable
+ * @param artifact name of the artifact to check
+ */
+function isStableArtifact(artifact: string): boolean {
+  const match = artifact.match(VERSIONED_ARTIFACT_REGEX);
+  if (!match) {
+    // The artifact does not have a version qualifier at the end
+    return true;
+  }
+
+  const versionMatch = match[1].match(VERSION_REGEX);
+  if (versionMatch && versionMatch[1]) {
+    // The version is not stable (probably alpha/beta/rc)
+    return false;
+  }
+
+  return true;
+}
+
+function isPromotionCommit(commit: ConventionalCommit): boolean {
+  return commit.notes.some(isPromotionNote);
+}
+
+function isPromotionNote(note: {title: string; text: string}): boolean {
+  return note.title === 'RELEASE AS' && note.text === '1.0.0';
 }
