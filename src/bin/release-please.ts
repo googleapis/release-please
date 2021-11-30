@@ -399,6 +399,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
+          pullRequestTitlePattern: argv.pullRequestTitlePattern,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,
