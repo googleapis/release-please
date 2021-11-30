@@ -39,8 +39,30 @@ describe('BranchName', () => {
         expect(branchName?.toString()).to.eql(name);
       });
     });
+    describe('v12 format', () => {
+      it('parses a target branch', () => {
+        const name = 'release-please/branches/main';
+        const branchName = BranchName.parse(name);
+        expect(branchName).to.not.be.undefined;
+        expect(branchName?.getTargetBranch()).to.eql('main');
+        expect(branchName?.getComponent()).to.be.undefined;
+        expect(branchName?.getVersion()).to.be.undefined;
+        expect(branchName?.toString()).to.eql(name);
+      });
+
+      it('parses a target branch and component', () => {
+        const name = 'release-please/branches/main/components/storage';
+        const branchName = BranchName.parse(name);
+        expect(branchName).to.not.be.undefined;
+        expect(branchName?.getTargetBranch()).to.eql('main');
+        expect(branchName?.getComponent()).to.eql('storage');
+        expect(branchName?.getVersion()).to.be.undefined;
+        expect(branchName?.toString()).to.eql(name);
+      });
+    });
+
     it('parses a target branch', () => {
-      const name = 'release-please/branches/main';
+      const name = 'release-please--branches--main';
       const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('main');
@@ -50,7 +72,7 @@ describe('BranchName', () => {
     });
 
     it('parses a target branch and component', () => {
-      const name = 'release-please/branches/main/components/storage';
+      const name = 'release-please--branches--main--components--storage';
       const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('main');
@@ -82,14 +104,14 @@ describe('BranchName', () => {
   describe('ofTargetBranch', () => {
     it('builds branchname with only target branch', () => {
       const branchName = BranchName.ofTargetBranch('main');
-      expect(branchName.toString()).to.eql('release-please/branches/main');
+      expect(branchName.toString()).to.eql('release-please--branches--main');
     });
   });
   describe('ofComponentTargetBranch', () => {
     it('builds branchname with target branch and component', () => {
       const branchName = BranchName.ofComponentTargetBranch('foo', 'main');
       expect(branchName.toString()).to.eql(
-        'release-please/branches/main/components/foo'
+        'release-please--branches--main--components--foo'
       );
     });
   });

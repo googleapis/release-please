@@ -23,6 +23,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import snapshot = require('snap-shot-it');
+import {VersionGo} from '../../src/updaters/go/version-go';
 
 const sandbox = sinon.createSandbox();
 
@@ -96,6 +97,7 @@ describe('GoYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGES.md', Changelog);
+      assertHasUpdate(updates, 'internal/version.go', VersionGo);
     });
   });
   describe('buildReleasePullRequest', () => {

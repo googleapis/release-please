@@ -61,6 +61,7 @@ export interface StrategyOptions {
   releaseAs?: string;
   changelogNotes?: ChangelogNotes;
   includeComponentInTag?: boolean;
+  pullRequestTitlePattern?: string;
 }
 
 /**
@@ -80,8 +81,9 @@ export abstract class Strategy {
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
   private includeComponentInTag: boolean;
+  private pullRequestTitlePattern?: string;
 
-  protected changelogNotes: ChangelogNotes;
+  readonly changelogNotes: ChangelogNotes;
 
   // CHANGELOG configuration
   protected changelogSections?: ChangelogSection[];
@@ -104,6 +106,7 @@ export abstract class Strategy {
     this.changelogNotes =
       options.changelogNotes || new DefaultChangelogNotes(options);
     this.includeComponentInTag = options.includeComponentInTag ?? true;
+    this.pullRequestTitlePattern = options.pullRequestTitlePattern;
   }
 
   /**
@@ -159,6 +162,8 @@ export abstract class Strategy {
       version: newVersion.toString(),
       previousTag: latestRelease?.tag?.toString(),
       currentTag: newVersionTag.toString(),
+      targetBranch: this.targetBranch,
+      changelogSections: this.changelogSections,
     });
   }
 
@@ -199,10 +204,12 @@ export abstract class Strategy {
       this.includeComponentInTag ? component : undefined,
       this.tagSeparator
     );
+    logger.warn('pull request title pattern:', this.pullRequestTitlePattern);
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
-      newVersion
+      newVersion,
+      this.pullRequestTitlePattern
     );
     const branchName = component
       ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
@@ -312,7 +319,10 @@ export abstract class Strategy {
     }
 
     const pullRequestTitle =
-      PullRequestTitle.parse(mergedPullRequest.title) ||
+      PullRequestTitle.parse(
+        mergedPullRequest.title,
+        this.pullRequestTitlePattern
+      ) ||
       PullRequestTitle.parse(
         mergedPullRequest.title,
         MANIFEST_PULL_REQUEST_TITLE_PATTERN

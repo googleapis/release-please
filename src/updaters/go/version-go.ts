@@ -12,28 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ConventionalCommit} from './commit';
+import {DefaultUpdater} from '../default';
 
-export interface BuildNotesOptions {
-  host?: string;
-  owner: string;
-  repository: string;
-  version: string;
-  previousTag?: string;
-  currentTag: string;
-  targetBranch: string;
-  changelogSections?: ChangelogSection[];
-}
-
-export interface ChangelogNotes {
-  buildNotes(
-    commits: ConventionalCommit[],
-    options: BuildNotesOptions
-  ): Promise<string>;
-}
-
-export interface ChangelogSection {
-  type: string;
-  section: string;
-  hidden?: boolean;
+export class VersionGo extends DefaultUpdater {
+  updateContent(content: string): string {
+    return content.replace(
+      /const Version = "[0-9]+\.[0-9]+\.[0-9](-\w+)?"/,
+      `const Version = "${this.version.toString()}"`
+    );
+  }
 }

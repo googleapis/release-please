@@ -12,28 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ConventionalCommit} from './commit';
+package api
 
-export interface BuildNotesOptions {
-  host?: string;
-  owner: string;
-  repository: string;
-  version: string;
-  previousTag?: string;
-  currentTag: string;
-  targetBranch: string;
-  changelogSections?: ChangelogSection[];
-}
-
-export interface ChangelogNotes {
-  buildNotes(
-    commits: ConventionalCommit[],
-    options: BuildNotesOptions
-  ): Promise<string>;
-}
-
-export interface ChangelogSection {
-  type: string;
-  section: string;
-  hidden?: boolean;
-}
+const Version = "0.58.0"
