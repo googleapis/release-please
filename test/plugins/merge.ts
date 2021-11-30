@@ -55,9 +55,9 @@ describe('Merge plugin', () => {
       const plugin = new Merge(github, 'main', {});
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
-      console.log(newCandidates[0].pullRequest.title);
-      console.log(newCandidates[0].pullRequest.title.toString());
-      expect(newCandidates[0].pullRequest.title.toString()).to.eql('chore: release main');
+      expect(newCandidates[0].pullRequest.title.toString()).to.eql(
+        'chore: release main'
+      );
     });
 
     it('merges multiple pull requests into an aggregate', async () => {
