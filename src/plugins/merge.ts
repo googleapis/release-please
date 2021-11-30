@@ -34,7 +34,7 @@ export class Merge extends ManifestPlugin {
   async run(
     candidates: CandidateReleasePullRequest[]
   ): Promise<CandidateReleasePullRequest[]> {
-    if (candidates.length < 2) {
+    if (candidates.length < 1) {
       return candidates;
     }
 
