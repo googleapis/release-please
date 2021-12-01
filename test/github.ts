@@ -468,6 +468,43 @@ describe('GitHub', () => {
       }
       expect(releases).lengthOf(5);
     });
+
+    it('iterates through up to 3 releases', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'releases.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const generator = github.releaseIterator(3);
+      const releases: GitHubRelease[] = [];
+      for await (const release of generator) {
+        releases.push(release);
+      }
+      expect(releases).lengthOf(3);
+    });
+
+    it('iterates through a result withouth releases', async () => {
+      req.post('/graphql').reply(200, {
+        data: {
+          repository: {
+            releases: {
+              nodes: [],
+              pageInfo: {
+                endCursor: null,
+                hasNextPage: false,
+              },
+            },
+          },
+        },
+      });
+      const generator = github.releaseIterator();
+      const releases: GitHubRelease[] = [];
+      for await (const release of generator) {
+        releases.push(release);
+      }
+      expect(releases).lengthOf(0);
+    });
   });
 
   describe('createRelease', () => {
