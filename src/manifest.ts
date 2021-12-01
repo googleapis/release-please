@@ -217,7 +217,9 @@ export class Manifest {
     this.releasedVersions = releasedVersions;
     this.manifestPath =
       manifestOptions?.manifestPath || DEFAULT_RELEASE_PLEASE_MANIFEST;
-    this.separatePullRequests = manifestOptions?.separatePullRequests || false;
+    this.separatePullRequests =
+      manifestOptions?.separatePullRequests ??
+      Object.keys(repositoryConfig).length === 1;
     this.plugins = manifestOptions?.plugins || [];
     this.fork = manifestOptions?.fork || false;
     this.signoffUser = manifestOptions?.signoff;
@@ -316,7 +318,10 @@ export class Manifest {
       targetBranch,
       repositoryConfig,
       releasedVersions,
-      manifestOptions
+      {
+        separatePullRequests: true,
+        ...manifestOptions,
+      }
     );
   }
 

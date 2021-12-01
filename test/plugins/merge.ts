@@ -48,13 +48,16 @@ describe('Merge plugin', () => {
       expect(newCandidates).lengthOf(0);
     });
 
-    it('ignores a single pull request', async () => {
+    it('merges a single pull request', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
       ];
       const plugin = new Merge(github, 'main', {});
       const newCandidates = await plugin.run(candidates);
-      expect(newCandidates).to.eql(candidates);
+      expect(newCandidates).lengthOf(1);
+      expect(newCandidates[0].pullRequest.title.toString()).to.eql(
+        'chore: release main'
+      );
     });
 
     it('merges multiple pull requests into an aggregate', async () => {

@@ -151,6 +151,7 @@ export class PullRequestTitle {
       .replace('${scope}', scope)
       .replace('${component}', component)
       .replace('${version}', version.toString())
+      .replace('${branch}', this.targetBranch || '')
       .trim();
   }
 }
