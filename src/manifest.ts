@@ -484,7 +484,22 @@ export class Manifest {
       }
 
       const strategy = strategiesByPath[path];
-      const latestRelease = releasesByPath[path];
+      let latestRelease = releasesByPath[path];
+      if (
+        !latestRelease &&
+        this.releasedVersions[path].toString() !== '0.0.0'
+      ) {
+        const version = this.releasedVersions[path];
+        const component = await strategy.getComponent();
+        logger.info(
+          `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
+        );
+        latestRelease = {
+          tag: new TagName(version, component),
+          sha: '',
+          notes: '',
+        };
+      }
       const releasePullRequest = await strategy.buildReleasePullRequest(
         pathCommits,
         latestRelease,
