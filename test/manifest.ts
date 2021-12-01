@@ -971,6 +971,48 @@ describe('Manifest', () => {
       expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
     });
 
+    it('should read latest version from manifest if no release tag found', async () => {
+      mockReleases(github, []);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+      ]);
+      const config = {
+        packages: {
+          'path/a': {
+            'release-type': 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            'release-type': 'simple',
+            component: 'pkg2',
+          },
+        },
+      };
+      const versions = {
+        'path/a': '1.2.3',
+        'path/b': '2.3.4',
+      };
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('release-please-config.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(config)))
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
+      const manifest = await Manifest.fromManifest(github, 'main');
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].version?.toString()).to.eql('1.2.4');
+    });
+
     describe('with plugins', () => {
       beforeEach(() => {
         mockReleases(github, [
