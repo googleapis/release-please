@@ -1012,7 +1012,9 @@ describe('Manifest', () => {
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].body.releaseData).lengthOf(1);
       expect(pullRequests[0].body.releaseData[0].component).to.eql('pkg1');
-      expect(pullRequests[0].body.releaseData[0].version?.toString()).to.eql('1.2.4');
+      expect(pullRequests[0].body.releaseData[0].version?.toString()).to.eql(
+        '1.2.4'
+      );
     });
 
     describe('with plugins', () => {
