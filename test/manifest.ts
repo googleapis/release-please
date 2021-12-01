@@ -555,6 +555,7 @@ describe('Manifest', () => {
       );
       const pullRequests = await manifest.buildPullRequests();
       expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
       snapshot(dateSafe(pullRequests[0].body.toString()));
     });
 

@@ -148,5 +148,58 @@ describe('Merge plugin', () => {
       snapshot(dateSafe(candidate!.pullRequest.body.toString()));
       expect(candidate.pullRequest.draft).to.be.true;
     });
+
+    it('merges all labels for pull requests', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest(
+          'python',
+          'python',
+          '1.0.0',
+          'python-pkg',
+          [
+            {
+              path: 'path1/foo',
+              createIfMissing: false,
+              updater: new RawContent('foo'),
+            },
+          ],
+          undefined,
+          undefined,
+          ['label-a', 'label-b']
+        ),
+        buildMockCandidatePullRequest(
+          'node',
+          'node',
+          '3.3.4',
+          '@here/pkgA',
+          [
+            {
+              path: 'path1/foo',
+              createIfMissing: false,
+              updater: new RawContent('bar'),
+            },
+            {
+              path: 'path2/foo',
+              createIfMissing: false,
+              updater: new RawContent('asdf'),
+            },
+          ],
+          undefined,
+          undefined,
+          ['label-a', 'label-c']
+        ),
+      ];
+      const plugin = new Merge(github, 'main', {});
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const candidate = newCandidates[0]!;
+      expect(candidate.pullRequest.labels).lengthOf(3);
+      expect(candidate.pullRequest.labels).to.eql([
+        'label-a',
+        'label-b',
+        'label-c',
+      ]);
+      snapshot(dateSafe(candidate.pullRequest.body.toString()));
+    });
   });
 });

@@ -50,6 +50,9 @@ export class Merge extends ManifestPlugin {
           updatesByPath[update.path] = [update];
         }
       }
+      for (const label of pullRequest.labels) {
+        labels.add(label);
+      }
       releaseData.push(...pullRequest.body.releaseData);
     }
 
