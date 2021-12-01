@@ -624,12 +624,11 @@ export class GitHub {
       repo: this.repository.repo,
       num: 25,
     });
-    if (!response.repository.releases) {
+    if (!response.repository.releases.nodes.length) {
       logger.warn('Could not find releases.');
       return null;
     }
-    const releases = (response.repository.releases.nodes ||
-      []) as GraphQLRelease[];
+    const releases = response.repository.releases.nodes as GraphQLRelease[];
     return {
       pageInfo: response.repository.releases.pageInfo,
       data: releases
