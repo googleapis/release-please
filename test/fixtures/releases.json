@@ -11,7 +11,8 @@
             "oid": "010b83b2a5c3d1bab0d6a5af028a288bc6dcb8a9"
           },
           "url": "https://github.com/googleapis/repo-automation-bots/releases/tag/flakybot-1.1.0",
-          "description": ""
+          "description": "",
+          "isDraft": true
         },
         {
           "name": "@google-cloud/release-brancher release-brancher-v1.3.1",
@@ -22,7 +23,8 @@
             "oid": "10675394580552bb73af8b4e1fcd87b759d3ccfd"
           },
           "url": "https://github.com/googleapis/repo-automation-bots/releases/tag/release-brancher-v1.3.1",
-          "description": "\n\n### Bug Fixes\n\n* **release-brancher:** use \"ci:\" (non-releasable) in init ([#2622](https://www.github.com/googleapis/repo-automation-bots/issues/2622)) ([c4b3ac5](https://www.github.com/googleapis/repo-automation-bots/commit/c4b3ac5e50f9579202a614c655e79eaf4bca362e))\n"
+          "description": "\n\n### Bug Fixes\n\n* **release-brancher:** use \"ci:\" (non-releasable) in init ([#2622](https://www.github.com/googleapis/repo-automation-bots/issues/2622)) ([c4b3ac5](https://www.github.com/googleapis/repo-automation-bots/commit/c4b3ac5e50f9579202a614c655e79eaf4bca362e))\n",
+          "isDraft": false
         },
         {
           "name": "@google-cloud/release-brancher release-brancher-v1.3.0",
@@ -33,7 +35,8 @@
             "oid": "3dde1e3df5aaae655bd8068fcb6cc70445f57512"
           },
           "url": "https://github.com/googleapis/repo-automation-bots/releases/tag/release-brancher-v1.3.0",
-          "description": "\n\n### Features\n\n* **release-brancher:** add argument to override pull request title ([#2615](https://www.github.com/googleapis/repo-automation-bots/issues/2615)) ([1f952c7](https://www.github.com/googleapis/repo-automation-bots/commit/1f952c73eba10bc8eedc5c5a16944622b8e84c46))\n\n\n### Bug Fixes\n\n* **release-brancher:** provide default branch name for PRs ([#2618](https://www.github.com/googleapis/repo-automation-bots/issues/2618)) ([24a15a8](https://www.github.com/googleapis/repo-automation-bots/commit/24a15a89a76e15153f0e6cce2c7d69d97464df5c))\n"
+          "description": "\n\n### Features\n\n* **release-brancher:** add argument to override pull request title ([#2615](https://www.github.com/googleapis/repo-automation-bots/issues/2615)) ([1f952c7](https://www.github.com/googleapis/repo-automation-bots/commit/1f952c73eba10bc8eedc5c5a16944622b8e84c46))\n\n\n### Bug Fixes\n\n* **release-brancher:** provide default branch name for PRs ([#2618](https://www.github.com/googleapis/repo-automation-bots/issues/2618)) ([24a15a8](https://www.github.com/googleapis/repo-automation-bots/commit/24a15a89a76e15153f0e6cce2c7d69d97464df5c))\n",
+          "isDraft": false
         },
         {
           "name": "gcf-utils gcf-utils-v13.0.2",
@@ -44,7 +47,8 @@
             "oid": "96496ea1233fc8decaea3049a9f529f1a3fd85e7"
           },
           "url": "https://github.com/googleapis/repo-automation-bots/releases/tag/gcf-utils-v13.0.2",
-          "description": "\n\n### Bug Fixes\n\n* **deps:** update dependency @googleapis/run to v5 ([#2527](https://www.github.com/googleapis/repo-automation-bots/issues/2527)) ([439484f](https://www.github.com/googleapis/repo-automation-bots/commit/439484fbf9fdb2545581472e5e88aa7c5bc8f0d9))\n"
+          "description": "\n\n### Bug Fixes\n\n* **deps:** update dependency @googleapis/run to v5 ([#2527](https://www.github.com/googleapis/repo-automation-bots/issues/2527)) ([439484f](https://www.github.com/googleapis/repo-automation-bots/commit/439484fbf9fdb2545581472e5e88aa7c5bc8f0d9))\n",
+          "isDraft": false
         },
         {
           "name": "@google-automations/cron-utils cron-utils-v3.0.1",
@@ -55,7 +59,8 @@
             "oid": "96496ea1233fc8decaea3049a9f529f1a3fd85e7"
           },
           "url": "https://github.com/googleapis/repo-automation-bots/releases/tag/cron-utils-v3.0.1",
-          "description": "\n\n### Bug Fixes\n\n* **deps:** update dependency @googleapis/run to v5 ([#2527](https://www.github.com/googleapis/repo-automation-bots/issues/2527)) ([439484f](https://www.github.com/googleapis/repo-automation-bots/commit/439484fbf9fdb2545581472e5e88aa7c5bc8f0d9))\n"
+          "description": "\n\n### Bug Fixes\n\n* **deps:** update dependency @googleapis/run to v5 ([#2527](https://www.github.com/googleapis/repo-automation-bots/issues/2527)) ([439484f](https://www.github.com/googleapis/repo-automation-bots/commit/439484fbf9fdb2545581472e5e88aa7c5bc8f0d9))\n",
+          "isDraft": false
         }
       ],
       "pageInfo": {
