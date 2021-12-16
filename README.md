@@ -95,28 +95,19 @@ Release Please automates releases for the following flavors of repositories:
 
 | release type            | description
 |-------------------|---------------------------------------------------------|
-| dart              | A repository with a pubspec.yaml and a CHANGELOG.md |
-| elixir            | A repository with a mix.exs and a CHANGELOG.md |
-| go                | A repository with a CHANGELOG.md |
-| helm              | A repository with a Chart.yaml and a CHANGELOG.md |
-| krm-blueprint     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
-| node              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
-| ocaml             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
-| php               | A repository with a composer.json and a CHANGELOG.md |
-| python            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
-| ruby              | A repository with a version.rb and a CHANGELOG.md |
-| rust              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
-| simple            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
-| terraform-module  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
-
-## Adding additional strategy types
-
-To add a new release type, simply use the existing [strategies](https://github.com/googleapis/release-please/tree/main/src/strategies) and [updaters](https://github.com/googleapis/release-please/tree/main/src/updaters)
-as a starting point.
-
-**strategies** describe the files that should be updated for a release.
-
-**updaters** describe how to update the version in these files.
+| `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
+| `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
+| `go`                | A repository with a CHANGELOG.md |
+| `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
+| `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
+| `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
+| `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
+| `php`               | A repository with a composer.json and a CHANGELOG.md |
+| `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
+| `ruby`              | A repository with a version.rb and a CHANGELOG.md |
+| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
+| `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
+| `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
 
 ## Setting up Release Please
 
@@ -124,7 +115,7 @@ There are a variety of ways you can deploy release-please:
 
 ### GitHub Action (recommended)
 
-The easiest way to run release please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for configuration instructions.
+The easiest way to run release please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for installation and configuration instructions.
 
 ### Running as CLI
 
@@ -133,9 +124,9 @@ Please see [Running release-please CLI](docs/cli.md) for all the configuration o
 ### Running as a GitHub App
 
 There is a probot application available, which allows you to deploy Release
-Please as a GitHub App:
-
-* [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please).
+Please as a GitHub App. Please see 
+[github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please)
+for installation and configuration instructions.
 
 ## Supported Node.js Versions
 
