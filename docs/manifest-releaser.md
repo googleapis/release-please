@@ -4,15 +4,35 @@ release-please can be setup to use source controlled files containing releaser
 specific configuration (the `release-please-config.json`) as well package
 version tracking (the `.release-please-manifest.json`).
 
-
 The motivation of the manifest-based releaser is support for monorepos:
 
 * a combined [Release PR](https://github.com/googleapis/release-please#whats-a-release-pr) will be created for all configured packages.
 * release configuration for potentially hundreds of libraries is combined in two configuration files.
 
-Note: currently only `node`, `python`, and `rust` release types are supported.
-
 ## Quick Start
+
+### Bootstrap with CLI
+
+Step 1: Install release-please CLI
+
+```bash
+npm i release-please -g
+```
+
+Step 2: Bootstrap a release configuration
+
+```bash
+release-please bootstrap --token=$GITHUB_TOKEN \
+  --release-type=<release-type> \
+  --repo-url=<owner>/<repo>
+```
+
+This will open a pull request that configures the initial
+`release-please-config.json` and `.release-please-manifest.json` files.
+
+For the full options, see the [CLI documentation](cli.md#bootstrapping-a-repository).
+
+### Bootstrap manually
 
 Create a minimal `release-please-config.json`, e.g., for a single JS package:
 ```js
