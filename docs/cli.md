@@ -46,9 +46,9 @@ Extra options:
 | `--path` | `string` | Path for changes to consider part of this component's release. Defaults to `.` |
 | `--package-name` | `string` | Name of the package being released. Defaults to a value determined by the configured release type |
 | `--component` | `string` | Name of the component used for branch naming and release tagging. Defaults to a normalized version based on the package name |
-| `--release-type` | [`ReleaseType`](docs/customizing.md#strategy-language-types-supported) | Language strategy that determines which files to update |
+| `--release-type` | [`ReleaseType`](/docs/customizing.md#strategy-language-types-supported) | Language strategy that determines which files to update |
 | `--initial-version` | `string` | Version string to set as the last released version of this package. Defaults to `0.0.0` |
-| `--versioning-strategy` | [`VersioningStrategyType`](docs/customizing.md#versioning-strategies) | Override method of determining SemVer version bumps based on commits. Defaults to `default` |
+| `--versioning-strategy` | [`VersioningStrategyType`](/docs/customizing.md#versioning-strategies) | Override method of determining SemVer version bumps based on commits. Defaults to `default` |
 | `--bump-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the minor version for breaking changes for versions < 1.0.0 |
 | `--bump-patch-for-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the patch version for features for versions < 1.0.0 |
 | `--draft` | `boolean` | If set, create releases as drafts |
@@ -56,7 +56,7 @@ Extra options:
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |
 | `--release-label` | `string` | Comma-separated list of labels to apply to the pull request after the release has been tagged. Defaults to `autorelease: tagged` |
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
-| `--changelog-type` | [`ChangelogType`](docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
+| `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
