@@ -121,17 +121,21 @@ The easiest way to run release please is as a GitHub action. Please see [google-
 
 Please see [Running release-please CLI](docs/cli.md) for all the configuration options.
 
-## Customizing Release Please
-
-Release Please provides several configuration options to allow customizing
-your release process. Please see [customizing.md](docs/customizing.md) for more details.
-
-### Running as a GitHub App
+### Install the GitHub App
 
 There is a probot application available, which allows you to deploy Release
 Please as a GitHub App. Please see 
 [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please)
 for installation and configuration instructions.
+
+## Bootstrapping your Repository
+
+See [Bootstrapping](/docs/cli.md#bootstrapping).
+
+## Customizing Release Please
+
+Release Please provides several configuration options to allow customizing
+your release process. Please see [customizing.md](docs/customizing.md) for more details.
 
 ## Supported Node.js Versions
 
