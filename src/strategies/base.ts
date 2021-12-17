@@ -72,12 +72,12 @@ export interface BaseStrategyOptions {
 export abstract class BaseStrategy implements Strategy {
   readonly path: string;
   protected github: GitHub;
-  readonly component?: string;
+  protected component?: string;
   protected packageName?: string;
   readonly versioningStrategy: VersioningStrategy;
   protected targetBranch: string;
   protected repository: Repository;
-  readonly changelogPath: string;
+  protected changelogPath: string;
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
   private releaseAs?: string;

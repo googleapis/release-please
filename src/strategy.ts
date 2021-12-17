@@ -16,12 +16,17 @@ import {ReleasePullRequest} from './release-pull-request';
 import {Release} from './release';
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
+import {VersioningStrategy} from './versioning-strategy';
+import {ChangelogNotes} from './changelog-notes';
 
 /**
  * A strategy is responsible for determining which files are
  * necessary to update in a release pull request.
  */
 export interface Strategy {
+  readonly changelogNotes: ChangelogNotes;
+  readonly path: string;
+  readonly versioningStrategy: VersioningStrategy;
   /**
    * Builds a candidate release pull request
    * @param {Commit[]} commits Raw commits to consider for this release.
