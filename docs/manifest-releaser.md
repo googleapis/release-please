@@ -9,6 +9,9 @@ The motivation of the manifest-based releaser is support for monorepos:
 * a combined [Release PR](https://github.com/googleapis/release-please#whats-a-release-pr) will be created for all configured packages.
 * release configuration for potentially hundreds of libraries is combined in two configuration files.
 
+Although originally designed for repositories that contain multiple releasable artifacts, it also
+supports single artifact workflows just as easily.
+
 ## Quick Start
 
 ### Bootstrap with CLI
@@ -22,15 +25,16 @@ npm i release-please -g
 Step 2: Bootstrap a release configuration
 
 ```bash
-release-please bootstrap --token=$GITHUB_TOKEN \
-  --release-type=<release-type> \
-  --repo-url=<owner>/<repo>
+release-please bootstrap \
+  --token=$GITHUB_TOKEN \
+  --repo-url=<owner>/<repo> \
+  --release-type=<release-type> [extra options]
 ```
 
 This will open a pull request that configures the initial
 `release-please-config.json` and `.release-please-manifest.json` files.
 
-For the full options, see the [CLI documentation](cli.md#bootstrapping-a-repository).
+For the full options, see the [CLI documentation](/docs/cli.md#bootstrapping).
 
 ### Bootstrap manually
 
@@ -46,12 +50,12 @@ Create a minimal `release-please-config.json`, e.g., for a single JS package:
 Create an empty `.release-please-manifest.json`
 
 Commit/push/merge these to your remote GitHub repo (using either the repo's
-default branch or a test branch in which case you'll use the `--default-branch`
+default branch or a test branch in which case you'll use the `--target-branch`
 flag in the next step).
 
 Run release-please:
 ```sh
-release-please [--token=your/apikey.txt] [--default-branch=testing] manifest-pr
+release-please [--token=your/apikey.txt] [--target-branch=testing] manifest-pr
 ```
 
 The resulting PR will assume a default starting version for your package
@@ -61,19 +65,22 @@ changelog generation.
 
 If that is not the desired behavior for your first release PR, read on!
 
-### Bootstrapping
+#### Bootstrapping
+
 There are two items to consider when running release-please for the first time:
 1. which commit to start at (i.e. how much to include in your next changelog entry)
 2. what version release-please should propose in this first release PR
 
-#### Starting commit
+##### Starting commit
+
 You can add a top level `"bootstrap-sha": <full sha value>` key/value entry to
 the config which will cause release-please to stop there for collecting
 changelog commits (so choose one commit earlier than the first commit you want
 to include). Note: once a release-please generated PR has been merged,
 this config value will be ignored for all subsequent runs and can be removed.
 
-#### Initial Version
+# #### Initial Version
+
 The simplest way to tell release-please the current version for a package
 it has never released before is to manually add an entry into
 `.release-please-manifest.json`. This change should be made directly on the
@@ -236,7 +243,7 @@ documented in comments)
 
 ## Manifest
 
-At a minimum, a manifest file must exist at the tip of the `--default-branch`.
+At a minimum, a manifest file must exist at the tip of the `--target-branch`.
 It can be empty when release-please is run for the first time but it must exist.
 Manually editing the manifest is only appropriate in the bootstrap case outlined
 above. release-please will record a new version into the manifest file for each
@@ -301,54 +308,10 @@ jobs:
         run: npx lerna publish from-package --no-push --no-private --yes
 ```
 
-## CLI usage
-The commands available for this mode are `manifest-pr` and `manifest-release`
-
-They both take the following optional flags:
-```sh
-❯ release-please manifest-pr --help
-release-please manifest-pr
-
-create a release-PR using a manifest file
-
-Options:
-  --help                        Show help                              [boolean]
-  --version                     Show version number                    [boolean]
-  --debug                       print verbose errors (use only for local
-                                debugging).           [boolean] [default: false]
-  --token                       GitHub token with repo write permissions
-  --api-url                     URL to use when making API requests
-                                    [string] [default: "https://api.github.com"]
-  --default-branch              The branch to open release PRs against and tag
-                                releases on                             [string]
-  --fork                        should the PR be created from a fork
-                                                      [boolean] [default: false]
-  --repo-url                    GitHub URL to generate release for    [required]
-  --config-file                 where can the config file be found in the
-                                project? [default: "release-please-config.json"]
-  --manifest-file               where can the manifest file be found in the
-                                project?
-                                      [default: ".release-please-manifest.json"]
-```
-
-### `manifest-pr`
-
-This command can be run anytime and it will create or update a release PR. It
-labels the PR as `"autorelease: pending"` (used by `manifest-release`).
-
-### `manifest-release`
-
-This command should run some time after a release PR has been merged and before
-the next release PR is merged. It will create GitHub Releases based on the
-last merged release PR it finds (which is why you don't want to let two release
-PRs merge w/out running it). If successful it will remove the
-`"autorelease: pending"` label and adds the `"autorelease: tagged"` label.
-Creating all the releases is not transactional. If any fail to create the
-command can be re-run safely to finish creating releases.
-
 ### Releasing Root Path of Library (".")
 
-One use-case that arose for [googleapis](https://github.com/googleapis/google-api-nodejs-client), was the need to publish individual libraries along
+One use-case that arose for [googleapis](https://github.com/googleapis/google-api-nodejs-client),
+was the need to publish individual libraries along
 with a combined version of the library, i.e.,
 
 * an individual library for `@googleapis/youtube`, `@googleapis/sheets`, etc.
@@ -375,15 +338,15 @@ plugin must already be implemented, see below)
 ### Plugin implementation
 
 A `ManifestPlugin` instance has these resources avilable:
-- `this.gh`: a `GitHub` instance for any API operations it might want to perform
-- `this.config`: a `Config` object representing all the packages configured for the monorepo
+- `this.github`: a `GitHub` instance for any API operations it might want to perform
+- `this.repositoryConfig`: a `RepositoryConfig` object representing all the packages
+  configured for the monorepo
+- `this.targetBranch`: a `string` representing the target branch of the release
 
-It must implement a `run` method which receives two arguments:
-- the latest versions of all packages (ultimately be written to the manifest)
-- an array of the mapping of package-to-currently-proposed-changes
-and makes any modifications, additions, or deletions to either argument (in
-addition to any other out-of-band side effect) and returns both (potentially
-modified) arguments in a tuple.
+It must implement a `run` method which receives one argument (an array containing the
+candidate release pull requests) and returns an array of post-processed candidate
+pull requests. The plugin may choose to merge multiple pull requests into an
+aggregate pull request.
 
 For example, a very basic plugin that simply logs the number of packages
 currently appearing in the release written as `src/plugins/num-packages.ts`:
@@ -394,21 +357,19 @@ import {CheckpointType} from '../util/checkpoint';
 export default class LogNumberPkgsReleased extends ManifestPlugin {
 
   async run(
-    newManifestVersions: VersionsMap,
-    pkgsWithPRData: ManifestPackageWithPRData[]
+    pullRequests: CandidateReleasePullRequest[]
   ): Promise<[VersionsMap, ManifestPackageWithPRData[]]> {
-    this.log(
-      `Number of packages to release: ${pkgsWithPRData.length}`,
-      CheckpointType.Success
+    logger.info(
+      `Number of packages to release: ${pullRequests.length}`
     );
-    return [newManifestVersions, pkgsWithPRData];
+    return pullRequests;
   }
 }
 ```
 
 The `num-packages` plugin is not very interesting. Also, if it is not last in
 the `"plugins"` configuration array, it might not be accurate (a subsequent
-plugin could add or remove entries to/from `pkgsWithPRData`)
+plugin could add or remove entries to/from `pullRequests`)
 
 However, one place a plugin has particular value is in a monorepo where local
 packages depend on the latest version of each other (e.g. yarn/npm workspaces

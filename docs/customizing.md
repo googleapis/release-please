@@ -42,7 +42,7 @@ version given a list of parsed commits.
 ### Adding additional versioning strategy types
 
 To add a new versiong strategy, create a new class that implements the
-[`VersioningStrategy` interface](src/versioning-strategy.ts).
+[`VersioningStrategy` interface](/src/versioning-strategy.ts).
 
 ## Changelog Types
 
@@ -57,7 +57,7 @@ of parsed commits.
 ### Adding additional changelog types
 
 To add a new changelog type, create a new class that implements the
-[`ChangelogNotes` interface](src/changelog-notes.ts).
+[`ChangelogNotes` interface](/src/changelog-notes.ts).
 
 ## Pull Requests
 

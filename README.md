@@ -121,6 +121,11 @@ The easiest way to run release please is as a GitHub action. Please see [google-
 
 Please see [Running release-please CLI](docs/cli.md) for all the configuration options.
 
+## Customizing Release Please
+
+Release Please provides several configuration options to allow customizing
+your release process. Please see [customizing.md](docs/customizing.md) for more details.
+
 ### Running as a GitHub App
 
 There is a probot application available, which allows you to deploy Release
