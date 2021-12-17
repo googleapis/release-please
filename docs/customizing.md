@@ -86,7 +86,7 @@ request title would be `chore(main): release foo-bar v1.2.3`.
 | ------- | ----------- |
 | `${scope}` | This pattern is used for specifying the conventional commit scope (e.g. `chore(scope): some message`). We expect that the target branch name is used for the scope value |
 | `${component}` | The name of the component being released |
-| `${vesrion}` | The version of the component being released |
+| `${version}` | The version of the component being released |
 | `${branch?}` | The target branch of the pull request. If you have multiple release branches, this helps identify which release branch we are working on |
 
 ## Release Lifecycle Labels

@@ -55,7 +55,7 @@ flag in the next step).
 
 Run release-please:
 ```sh
-release-please [--token=your/apikey.txt] [--target-branch=testing] manifest-pr
+release-please [--token=your/apikey.txt] [--target-branch=testing] release-pr
 ```
 
 The resulting PR will assume a default starting version for your package
@@ -249,7 +249,7 @@ Manually editing the manifest is only appropriate in the bootstrap case outlined
 above. release-please will record a new version into the manifest file for each
 package it is configured to release.
 
-Once the first release PR has been merged, subsequent `manifest-pr` runs will
+Once the first release PR has been merged, subsequent `release-pr` runs will
 retrieve the content of the manifest at the commit corresponding to that merged
 PR. It will use this to find the last-released version for each package. It will
 only read the manifest versions at the tip of the default/configured branch if

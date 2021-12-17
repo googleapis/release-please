@@ -130,12 +130,19 @@ for installation and configuration instructions.
 
 ## Bootstrapping your Repository
 
-See [Bootstrapping](/docs/cli.md#bootstrapping).
+Release Please looks at commits since your last release tag. It may or may not be able to find
+your previous releases. The easiest way to on-board your repository is to
+[bootstrap a manifest config](/docs/cli.md#bootstrapping).
 
 ## Customizing Release Please
 
 Release Please provides several configuration options to allow customizing
 your release process. Please see [customizing.md](docs/customizing.md) for more details.
+
+## Supporting Monorepos via Manifest Configuration
+
+Release Please also supports releasing multiple artifacts from the same repository.
+See more at [manifest-releaser.md](docs/manifest-releaser.md).
 
 ## Supported Node.js Versions
 
