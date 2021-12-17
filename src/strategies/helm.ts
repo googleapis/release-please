@@ -19,10 +19,10 @@ import {Changelog} from '../updaters/changelog';
 import * as yaml from 'js-yaml';
 // helm
 import {ChartYaml} from '../updaters/helm/chart-yaml';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 
-export class Helm extends Strategy {
+export class Helm extends BaseStrategy {
   private chartYmlContents?: GitHubFileContents;
 
   protected async buildUpdates(

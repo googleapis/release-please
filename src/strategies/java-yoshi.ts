@@ -16,7 +16,7 @@ import {Update} from '../update';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
 import {JavaUpdate} from '../updaters/java/java-update';
-import {Strategy, StrategyOptions, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Changelog} from '../updaters/changelog';
 import {GitHubFileContents} from '../github';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
@@ -47,11 +47,11 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-interface JavaStrategyOptions extends StrategyOptions {
+interface JavaStrategyOptions extends BaseStrategyOptions {
   extraFiles?: string[];
 }
 
-export class JavaYoshi extends Strategy {
+export class JavaYoshi extends BaseStrategy {
   readonly extraFiles: string[];
   private versionsContent?: GitHubFileContents;
   private snapshotVersioning: VersioningStrategy;

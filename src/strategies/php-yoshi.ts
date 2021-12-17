@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy, BuildUpdatesOptions, StrategyOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
@@ -57,8 +57,8 @@ interface ComponentInfo {
   composer: ComposerJson;
 }
 
-export class PHPYoshi extends Strategy {
-  constructor(options: StrategyOptions) {
+export class PHPYoshi extends BaseStrategy {
+  constructor(options: BaseStrategyOptions) {
     super({
       ...options,
       changelogSections: CHANGELOG_SECTIONS,

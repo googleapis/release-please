@@ -15,11 +15,11 @@
 // Generic
 import {Changelog} from '../updaters/changelog';
 // version.txt support
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {DefaultUpdater} from '../updaters/default';
 
-export class Simple extends Strategy {
+export class Simple extends BaseStrategy {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

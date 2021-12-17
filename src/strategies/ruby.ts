@@ -19,15 +19,15 @@ import {Changelog} from '../updaters/changelog';
 
 // Ruby
 import {VersionRB} from '../updaters/ruby/version-rb';
-import {StrategyOptions, Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {ConventionalCommit} from '../commit';
 import {Update} from '../update';
 
-interface RubyStrategyOptions extends StrategyOptions {
+interface RubyStrategyOptions extends BaseStrategyOptions {
   versionFile?: string;
 }
 
-export class Ruby extends Strategy {
+export class Ruby extends BaseStrategy {
   readonly versionFile: string;
   constructor(options: RubyStrategyOptions) {
     super(options);

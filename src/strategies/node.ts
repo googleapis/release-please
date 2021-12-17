@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../updaters/node/samples-package-json';
@@ -20,7 +20,7 @@ import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
 import {GitHubFileContents} from '../github';
 
-export class Node extends Strategy {
+export class Node extends BaseStrategy {
   private pkgJsonContents?: GitHubFileContents;
 
   protected async buildUpdates(

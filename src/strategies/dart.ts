@@ -18,11 +18,11 @@ import * as yaml from 'js-yaml';
 
 // pubspec
 import {PubspecYaml} from '../updaters/dart/pubspec-yaml';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {GitHubFileContents} from '../github';
 import {Update} from '../update';
 
-export class Dart extends Strategy {
+export class Dart extends BaseStrategy {
   private pubspecYmlContents?: GitHubFileContents;
 
   protected async buildUpdates(

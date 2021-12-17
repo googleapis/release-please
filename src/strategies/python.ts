@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {Version} from '../version';
@@ -26,7 +26,7 @@ import {
 import {logger} from '../util/logger';
 import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
 
-export class Python extends Strategy {
+export class Python extends BaseStrategy {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

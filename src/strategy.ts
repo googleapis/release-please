@@ -14,159 +14,14 @@
 
 import {ReleasePullRequest} from './release-pull-request';
 import {Release} from './release';
-import {GitHub} from './github';
-import {Version, VersionsMap} from './version';
-import {parseConventionalCommits, Commit, ConventionalCommit} from './commit';
-import {VersioningStrategy} from './versioning-strategy';
-import {DefaultVersioningStrategy} from './versioning-strategies/default';
-import {PullRequestTitle} from './util/pull-request-title';
-import {ChangelogNotes, ChangelogSection} from './changelog-notes';
-import {Update} from './update';
-import {Repository} from './repository';
 import {PullRequest} from './pull-request';
-import {BranchName} from './util/branch-name';
-import {TagName} from './util/tag-name';
-import {logger} from './util/logger';
-import {
-  MANIFEST_PULL_REQUEST_TITLE_PATTERN,
-  ROOT_PROJECT_PATH,
-} from './manifest';
-import {PullRequestBody} from './util/pull-request-body';
-import {DefaultChangelogNotes} from './changelog-notes/default';
-
-const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
-
-export interface BuildUpdatesOptions {
-  changelogEntry: string;
-  newVersion: Version;
-  versionsMap: VersionsMap;
-  latestVersion?: Version;
-}
-export interface StrategyOptions {
-  path?: string;
-  bumpMinorPreMajor?: boolean;
-  bumpPatchForMinorPreMajor?: boolean;
-  github: GitHub;
-  component?: string;
-  packageName?: string;
-  versioningStrategy?: VersioningStrategy;
-  targetBranch: string;
-  changelogPath?: string;
-  changelogSections?: ChangelogSection[];
-  commitPartial?: string;
-  headerPartial?: string;
-  mainTemplate?: string;
-  tagSeparator?: string;
-  skipGitHubRelease?: boolean;
-  releaseAs?: string;
-  changelogNotes?: ChangelogNotes;
-  includeComponentInTag?: boolean;
-  pullRequestTitlePattern?: string;
-}
+import {Commit} from './commit';
 
 /**
  * A strategy is responsible for determining which files are
  * necessary to update in a release pull request.
  */
-export abstract class Strategy {
-  readonly path: string;
-  protected github: GitHub;
-  readonly component?: string;
-  protected packageName?: string;
-  readonly versioningStrategy: VersioningStrategy;
-  protected targetBranch: string;
-  protected repository: Repository;
-  readonly changelogPath: string;
-  protected tagSeparator?: string;
-  private skipGitHubRelease: boolean;
-  private releaseAs?: string;
-  private includeComponentInTag: boolean;
-  private pullRequestTitlePattern?: string;
-
-  readonly changelogNotes: ChangelogNotes;
-
-  // CHANGELOG configuration
-  protected changelogSections?: ChangelogSection[];
-
-  constructor(options: StrategyOptions) {
-    this.path = options.path || ROOT_PROJECT_PATH;
-    this.github = options.github;
-    this.packageName = options.packageName;
-    this.component =
-      options.component || this.normalizeComponent(this.packageName);
-    this.versioningStrategy =
-      options.versioningStrategy || new DefaultVersioningStrategy({});
-    this.targetBranch = options.targetBranch;
-    this.repository = options.github.repository;
-    this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
-    this.changelogSections = options.changelogSections;
-    this.tagSeparator = options.tagSeparator;
-    this.skipGitHubRelease = options.skipGitHubRelease || false;
-    this.releaseAs = options.releaseAs;
-    this.changelogNotes =
-      options.changelogNotes || new DefaultChangelogNotes(options);
-    this.includeComponentInTag = options.includeComponentInTag ?? true;
-    this.pullRequestTitlePattern = options.pullRequestTitlePattern;
-  }
-
-  /**
-   * Specify the files necessary to update in a release pull request.
-   * @param {BuildUpdatesOptions} options
-   */
-  protected abstract async buildUpdates(
-    options: BuildUpdatesOptions
-  ): Promise<Update[]>;
-
-  async getComponent(): Promise<string | undefined> {
-    if (!this.includeComponentInTag) {
-      return '';
-    }
-    return this.component || (await this.getDefaultComponent());
-  }
-
-  async getDefaultComponent(): Promise<string | undefined> {
-    return this.normalizeComponent(await this.getDefaultPackageName());
-  }
-
-  async getDefaultPackageName(): Promise<string | undefined> {
-    return '';
-  }
-
-  protected normalizeComponent(component: string | undefined): string {
-    if (!component) {
-      return '';
-    }
-    return component;
-  }
-
-  /**
-   * Override this method to post process commits
-   * @param {ConventionalCommit[]} commits parsed commits
-   * @returns {ConventionalCommit[]} modified commits
-   */
-  protected postProcessCommits(
-    commits: ConventionalCommit[]
-  ): ConventionalCommit[] {
-    return commits;
-  }
-
-  protected async buildReleaseNotes(
-    conventionalCommits: ConventionalCommit[],
-    newVersion: Version,
-    newVersionTag: TagName,
-    latestRelease?: Release
-  ): Promise<string> {
-    return await this.changelogNotes.buildNotes(conventionalCommits, {
-      owner: this.repository.owner,
-      repository: this.repository.repo,
-      version: newVersion.toString(),
-      previousTag: latestRelease?.tag?.toString(),
-      currentTag: newVersionTag.toString(),
-      targetBranch: this.targetBranch,
-      changelogSections: this.changelogSections,
-    });
-  }
-
+export interface Strategy {
   /**
    * Builds a candidate release pull request
    * @param {Commit[]} commits Raw commits to consider for this release.
@@ -178,220 +33,23 @@ export abstract class Strategy {
    *   open for this path/component. Returns undefined if we should not
    *   open a pull request.
    */
-  async buildReleasePullRequest(
+  buildReleasePullRequest(
     commits: Commit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels: string[] = []
-  ): Promise<ReleasePullRequest | undefined> {
-    const conventionalCommits = this.postProcessCommits(
-      parseConventionalCommits(commits)
-    );
-
-    const newVersion = await this.buildNewVersion(
-      conventionalCommits,
-      latestRelease
-    );
-    const versionsMap = await this.updateVersionsMap(
-      await this.buildVersionsMap(conventionalCommits),
-      conventionalCommits
-    );
-    const component = await this.getComponent();
-    logger.debug('component:', component);
-
-    const newVersionTag = new TagName(
-      newVersion,
-      this.includeComponentInTag ? component : undefined,
-      this.tagSeparator
-    );
-    logger.warn('pull request title pattern:', this.pullRequestTitlePattern);
-    const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
-      component || '',
-      this.targetBranch,
-      newVersion,
-      this.pullRequestTitlePattern
-    );
-    const branchName = component
-      ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
-      : BranchName.ofTargetBranch(this.targetBranch);
-    const releaseNotesBody = await this.buildReleaseNotes(
-      conventionalCommits,
-      newVersion,
-      newVersionTag,
-      latestRelease
-    );
-    if (this.changelogEmpty(releaseNotesBody)) {
-      logger.info(
-        `No user facing commits found since ${
-          latestRelease ? latestRelease.sha : 'beginning of time'
-        } - skipping`
-      );
-      return undefined;
-    }
-    const updates = await this.buildUpdates({
-      changelogEntry: releaseNotesBody,
-      newVersion,
-      versionsMap,
-      latestVersion: latestRelease?.tag.version,
-    });
-    const pullRequestBody = new PullRequestBody([
-      {
-        component,
-        version: newVersion,
-        notes: releaseNotesBody,
-      },
-    ]);
-
-    return {
-      title: pullRequestTitle,
-      body: pullRequestBody,
-      updates,
-      labels,
-      headRefName: branchName.toString(),
-      version: newVersion,
-      draft: draft ?? false,
-    };
-  }
-
-  protected changelogEmpty(changelogEntry: string): boolean {
-    return changelogEntry.split('\n').length <= 1;
-  }
-
-  protected async updateVersionsMap(
-    versionsMap: VersionsMap,
-    conventionalCommits: ConventionalCommit[]
-  ): Promise<VersionsMap> {
-    for (const versionKey of versionsMap.keys()) {
-      const version = versionsMap.get(versionKey);
-      if (!version) {
-        logger.warn(`didn't find version for ${versionKey}`);
-        continue;
-      }
-      const newVersion = await this.versioningStrategy.bump(
-        version,
-        conventionalCommits
-      );
-      versionsMap.set(versionKey, newVersion);
-    }
-    return versionsMap;
-  }
-
-  protected async buildNewVersion(
-    conventionalCommits: ConventionalCommit[],
-    latestRelease?: Release
-  ): Promise<Version> {
-    if (this.releaseAs) {
-      logger.warn(
-        `Setting version for ${this.path} from release-as configuration`
-      );
-      return Version.parse(this.releaseAs);
-    } else if (latestRelease) {
-      return await this.versioningStrategy.bump(
-        latestRelease.tag.version,
-        conventionalCommits
-      );
-    } else {
-      return this.initialReleaseVersion();
-    }
-  }
-
-  protected async buildVersionsMap(
-    _conventionalCommits: ConventionalCommit[]
-  ): Promise<VersionsMap> {
-    return new Map();
-  }
+    labels?: string[]
+  ): Promise<ReleasePullRequest | undefined>;
 
   /**
    * Given a merged pull request, build the candidate release.
    * @param {PullRequest} mergedPullRequest The merged release pull request.
    * @returns {Release} The candidate release.
    */
-  async buildRelease(
-    mergedPullRequest: PullRequest
-  ): Promise<Release | undefined> {
-    if (this.skipGitHubRelease) {
-      logger.info('Release skipped from strategy config');
-      return;
-    }
-    if (!mergedPullRequest.sha) {
-      logger.error('Pull request should have been merged');
-      return;
-    }
-
-    const pullRequestTitle =
-      PullRequestTitle.parse(
-        mergedPullRequest.title,
-        this.pullRequestTitlePattern
-      ) ||
-      PullRequestTitle.parse(
-        mergedPullRequest.title,
-        MANIFEST_PULL_REQUEST_TITLE_PATTERN
-      );
-    if (!pullRequestTitle) {
-      logger.error(`Bad pull request title: '${mergedPullRequest.title}'`);
-      return;
-    }
-    const branchName = BranchName.parse(mergedPullRequest.headBranchName);
-    if (!branchName) {
-      logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
-      return;
-    }
-    const pullRequestBody = PullRequestBody.parse(mergedPullRequest.body);
-    if (!pullRequestBody) {
-      logger.error('Could not parse pull request body as a release PR');
-      return;
-    }
-    const component = await this.getComponent();
-    logger.info('component:', component);
-    const releaseData =
-      pullRequestBody.releaseData.length === 1 &&
-      !pullRequestBody.releaseData[0].component
-        ? pullRequestBody.releaseData[0]
-        : pullRequestBody.releaseData.find(releaseData => {
-            return (
-              this.normalizeComponent(releaseData.component) ===
-              this.normalizeComponent(component)
-            );
-          });
-    const notes = releaseData?.notes;
-    if (notes === undefined) {
-      logger.warn('Failed to find release notes');
-    }
-    const version = pullRequestTitle.getVersion() || releaseData?.version;
-    if (!version) {
-      logger.error('Pull request should have included version');
-      return;
-    }
-
-    const tag = new TagName(
-      version,
-      this.includeComponentInTag ? component : undefined,
-      this.tagSeparator
-    );
-    return {
-      tag,
-      notes: notes || '',
-      sha: mergedPullRequest.sha,
-    };
-  }
+  buildRelease(mergedPullRequest: PullRequest): Promise<Release | undefined>;
 
   /**
-   * Override this to handle the initial version of a new library.
+   * Return the component for this strategy. This may be a computed field.
+   * @returns {string}
    */
-  protected initialReleaseVersion(): Version {
-    return Version.parse('1.0.0');
-  }
-
-  protected addPath(file: string) {
-    if (this.path === ROOT_PROJECT_PATH) {
-      return file;
-    }
-    file = file.replace(/^[/\\]/, '');
-    if (this.path === undefined) {
-      return file;
-    } else {
-      const path = this.path.replace(/[/\\]$/, '');
-      return `${path}/${file}`;
-    }
-  }
+  getComponent(): Promise<string | undefined>;
 }

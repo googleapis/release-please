@@ -26,6 +26,7 @@ import {ServicePackVersioningStrategy} from '../src/versioning-strategies/servic
 import {DependencyManifest} from '../src/versioning-strategies/dependency-manifest';
 import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {DefaultChangelogNotes} from '../src/changelog-notes/default';
+import {BaseStrategy} from '../src/strategies/base';
 
 describe('factory', () => {
   let github: GitHub;
@@ -39,11 +40,12 @@ describe('factory', () => {
   });
   describe('buildStrategy', () => {
     it('should build a basic strategy', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'simple',
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(Simple);
+
       expect(strategy.versioningStrategy).instanceof(DefaultVersioningStrategy);
       const versioningStrategy =
         strategy.versioningStrategy as DefaultVersioningStrategy;
@@ -54,12 +56,12 @@ describe('factory', () => {
       expect(strategy.changelogNotes).instanceof(DefaultChangelogNotes);
     });
     it('should build a with configuration', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'simple',
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(Simple);
       expect(strategy.versioningStrategy).instanceof(DefaultVersioningStrategy);
       const versioningStrategy =
@@ -68,31 +70,31 @@ describe('factory', () => {
       expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
     });
     it('should build with a configured versioning strategy', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'simple',
         versioning: 'always-bump-patch',
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(Simple);
       expect(strategy.versioningStrategy).instanceof(AlwaysBumpPatch);
     });
     it('should build with a service pack versioning strategy', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'simple',
         versioning: 'service-pack',
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(Simple);
       expect(strategy.versioningStrategy).instanceof(
         ServicePackVersioningStrategy
       );
     });
     it('should build with a configured changelog type', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'simple',
         changelogType: 'github',
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(Simple);
       expect(strategy.changelogNotes).instanceof(GitHubChangelogNotes);
     });
@@ -106,13 +108,13 @@ describe('factory', () => {
       expect((strategy as Ruby).versionFile).to.eql('src/version.rb');
     });
     it('should build a java-yoshi strategy', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'java-yoshi',
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
         extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(JavaYoshi);
       expect((strategy as JavaYoshi).extraFiles).to.eql([
         'path1/foo1.java',
@@ -127,11 +129,11 @@ describe('factory', () => {
       expect(innerVersioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
     });
     it('should build a java-backport strategy', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'java-backport',
         extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(JavaYoshi);
       expect((strategy as JavaYoshi).extraFiles).to.eql([
         'path1/foo1.java',
@@ -142,11 +144,11 @@ describe('factory', () => {
       expect(versioningStrategy.strategy).instanceof(AlwaysBumpPatch);
     });
     it('should build a java-lts strategy', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'java-lts',
         extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(JavaYoshi);
       expect((strategy as JavaYoshi).extraFiles).to.eql([
         'path1/foo1.java',
@@ -159,13 +161,13 @@ describe('factory', () => {
       );
     });
     it('should build a java-bom strategy', async () => {
-      const strategy = await buildStrategy({
+      const strategy = (await buildStrategy({
         github,
         releaseType: 'java-bom',
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
         extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
-      });
+      })) as BaseStrategy;
       expect(strategy).instanceof(JavaYoshi);
       expect((strategy as JavaYoshi).extraFiles).to.eql([
         'path1/foo1.java',

@@ -15,14 +15,14 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
-import {Strategy} from '../../src/strategy';
+import {BaseStrategy} from '../../src/strategies/base';
 import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 
 const sandbox = sinon.createSandbox();
 
-class TestStrategy extends Strategy {
+class TestStrategy extends BaseStrategy {
   async buildUpdates(): Promise<Update[]> {
     return [];
   }
