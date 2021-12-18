@@ -127,22 +127,22 @@ The easiest way to run release please is as a GitHub action:
   repository (_this is where your actions will live_).
 2. Now create a `.github/workflows/release-please.yml` file with these contents:
 
-   ```yaml
-    on:
-      push:
-        branches:
-          - main
-    name: release-please
-    jobs:
-      release-please:
-        runs-on: ubuntu-latest
-        steps:
-          - uses: GoogleCloudPlatform/release-please-action@v2
-            with:
-              token: ${{ secrets.GITHUB_TOKEN }}
-              release-type: node
-              package-name: release-please-action
-    ```
+```yaml
+on:
+  push:
+    branches:
+      - main
+name: release-please
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GoogleCloudPlatform/release-please-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: node
+          package-name: release-please-action
+```
 
 3. Merge the above action into your repository and make sure new commits follow
   the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
