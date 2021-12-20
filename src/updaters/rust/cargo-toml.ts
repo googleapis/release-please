@@ -68,7 +68,16 @@ export class CargoToml extends DefaultUpdater {
         const dep = deps[pkgName];
 
         if (typeof dep === 'string' || typeof dep.path === 'undefined') {
-          logger.info(`skipping ${depKind}.${pkgName} in`);
+          logger.info(
+            `skipping ${depKind}.${pkgName} (no path set)`
+          );
+          continue; // to next depKind
+        }
+
+        if (typeof dep.version === 'undefined') {
+          logger.info(
+            `skipping ${depKind}.${pkgName} (no version set)`
+          );
           continue; // to next depKind
         }
 

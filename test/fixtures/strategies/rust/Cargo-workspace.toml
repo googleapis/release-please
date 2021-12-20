@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "crates/crate1",
-    "crates/crate2",
+    "crates/crate2"
 ]
 

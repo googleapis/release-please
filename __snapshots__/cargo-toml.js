@@ -10,6 +10,7 @@ normal-dep = "1.2.3"
 
 [dev-dependencies]
 dev-dep = { version = "1.2.3" }
+dev-dep-2 = { path = "../dev-dep-2" }
 
 [build-dependencies]
 # this is using a private registry
@@ -44,6 +45,7 @@ normal-dep = "1.2.3"
 
 [dev-dependencies]
 dev-dep = { version = "1.2.3" }
+dev-dep-2 = { path = "../dev-dep-2" }
 
 [build-dependencies]
 # this is using a private registry
