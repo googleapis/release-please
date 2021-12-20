@@ -89,31 +89,25 @@ chore: release 2.0.0
 Release-As: 2.0.0
 ```
 
-## Release types supported
+## Strategy (Language) types supported
 
 Release Please automates releases for the following flavors of repositories:
 
 | release type            | description
 |-------------------|---------------------------------------------------------|
-| node              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
-| python            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
-| terraform-module  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
-| krm-blueprint     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
-| rust              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
-| ocaml             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
-| simple            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
-| helm              | A repository with a Chart.yaml and a CHANGELOG.md |
-| elixir            | A repository with a mix.exs and a CHANGELOG.md |
-| dart              | A repository with a pubspec.yaml and a CHANGELOG.md |
-
-## Adding additional release types
-
-To add a new release type, simply use the existing [releasers](https://github.com/googleapis/release-please/tree/main/src/releasers) and [updaters](https://github.com/googleapis/release-please/tree/main/src/updaters)
-as a starting point.
-
-**releasers** describe the files that should be updated for a release.
-
-**updaters** describe how to update the version in these files.
+| `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
+| `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
+| `go`                | A repository with a CHANGELOG.md |
+| `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
+| `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
+| `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
+| `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
+| `php`               | A repository with a composer.json and a CHANGELOG.md |
+| `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
+| `ruby`              | A repository with a version.rb and a CHANGELOG.md |
+| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
+| `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
+| `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
 
 ## Setting up Release Please
 
@@ -121,128 +115,34 @@ There are a variety of ways you can deploy release-please:
 
 ### GitHub Action (recommended)
 
-The easiest way to run release please is as a GitHub action:
-
-1. If you haven't already done so, create a `.github/workflows` folder in your
-  repository (_this is where your actions will live_).
-2. Now create a `.github/workflows/release-please.yml` file with these contents:
-
-   ```yaml
-    on:
-      push:
-        branches:
-          - main
-    name: release-please
-    jobs:
-      release-please:
-        runs-on: ubuntu-latest
-        steps:
-          - uses: GoogleCloudPlatform/release-please-action@v2
-            with:
-              token: ${{ secrets.GITHUB_TOKEN }}
-              release-type: node
-              package-name: release-please-action
-    ```
-
-3. Merge the above action into your repository and make sure new commits follow
-  the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-  convention, [release-please](https://github.com/googleapis/release-please)
-  will start creating Release PRs for you.
-
-#### Automating publication to npm
-
-With a few additions, the Release Please action can be made to publish to
-npm when a Release PR is merged:
-
-```yaml
-on:
-  push:
-    branches:
-      - main
-name: release-please
-jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: GoogleCloudPlatform/release-please-action@v2
-        id: release
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: node
-          package-name: test-release-please
-      # The logic below handles the npm publication:
-      - uses: actions/checkout@v2
-        # these if statements ensure that a publication only occurs when
-        # a new release is created:
-        if: ${{ steps.release.outputs.release_created }}
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-          registry-url: 'https://registry.npmjs.org'
-        if: ${{ steps.release.outputs.release_created }}
-      # if you are using Yarn, substitute the command below with `yarn install --frozen-lockfile`
-      - run: npm ci
-        if: ${{ steps.release.outputs.release_created }}
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        if: ${{ steps.release.outputs.release_created }}
-```
-
-> So that you can keep 2FA enabled for npm publications, we recommend setting
-`registry-url` to your own [Wombat Dressing Room](https://github.com/GoogleCloudPlatform/wombat-dressing-room) deployment.
+The easiest way to run release please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for installation and configuration instructions.
 
 ### Running as CLI
 
-Install release-please globally:
+Please see [Running release-please CLI](docs/cli.md) for all the configuration options.
 
-```bash
-npm i release-please -g
-```
-
-### Creating/updating release PRs
-
-```bash
-release-please release-pr --package-name=@google-cloud/firestore" \
-  --repo-url=googleapis/nodejs-firestore \
-  --token=$GITHUB_TOKEN
-```
-
-| option            | description                                             |
-|-------------------|---------------------------------------------------------|
-| `--package-name`  | is the name of the package to publish to publish to an upstream registry such as npm. |
-| `--repo-url`      | is the URL of the repository on GitHub.                 |
-| `--token`         | a token with write access to `--repo-url`.              |
-| `--default-branch`| branch to open pull release PR against (detected by default). |
-| `--path`          | create a release from a path other than the repository's root |
-| `--monorepo-tags` | add prefix to tags and branches, allowing multiple libraries to be released from the same repository. |
-| `--pull-request-title-pattern` | add title pattern to make release PR, defaults to using `chore${scope}: release${component} ${version}`. |
-| `--signoff` | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
-| `--api-url` | URL to use when making API requests [default: "https://api.github.com"] |
-| `--graphql-url` | URL to use when making GraphQL requests [default: "https://api.github.com"] |
-
-### Creating a release on GitHub
-
-```bash
-release-please github-release --repo-url=googleapis/nodejs-firestore \
-  --token=$GITHUB_TOKEN
-```
-
-| option            | description                                             |
-|-------------------|---------------------------------------------------------|
-| `--package-name`  | is the name of the package to publish to publish to  an upstream registry such as npm. |
-| `--repo-url`      | is the URL of the repository on GitHub.                 |
-| `--token`         | a token with write access to `--repo-url`.              |
-| `--path`          | create a release from a path other than the repository's root |
-| `--api-url`       | URL to use when making API requests [default: "https://api.github.com"] |
-| `--graphql-url`   | URL to use when making GraphQL requests [default: "https://api.github.com"] |
-
-### Running as a GitHub App
+### Install the GitHub App
 
 There is a probot application available, which allows you to deploy Release
-Please as a GitHub App:
+Please as a GitHub App. Please see 
+[github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please)
+for installation and configuration instructions.
 
-* [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please).
+## Bootstrapping your Repository
+
+Release Please looks at commits since your last release tag. It may or may not be able to find
+your previous releases. The easiest way to on-board your repository is to
+[bootstrap a manifest config](/docs/cli.md#bootstrapping).
+
+## Customizing Release Please
+
+Release Please provides several configuration options to allow customizing
+your release process. Please see [customizing.md](docs/customizing.md) for more details.
+
+## Supporting Monorepos via Manifest Configuration
+
+Release Please also supports releasing multiple artifacts from the same repository.
+See more at [manifest-releaser.md](docs/manifest-releaser.md).
 
 ## Supported Node.js Versions
 
