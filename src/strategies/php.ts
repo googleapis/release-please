@@ -16,7 +16,7 @@
 import {Changelog} from '../updaters/changelog';
 // PHP Specific.
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
-import {Strategy, BuildUpdatesOptions, StrategyOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {VersionsMap} from '../version';
 
@@ -34,8 +34,8 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-export class PHP extends Strategy {
-  constructor(options: StrategyOptions) {
+export class PHP extends BaseStrategy {
+  constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     super(options);
   }

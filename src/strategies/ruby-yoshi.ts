@@ -19,7 +19,7 @@ import {Changelog} from '../updaters/changelog';
 
 // RubyYoshi
 import {VersionRB} from '../updaters/ruby/version-rb';
-import {StrategyOptions, Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {ConventionalCommit} from '../commit';
 import {Update} from '../update';
 import {readFileSync} from 'fs';
@@ -43,11 +43,11 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-interface RubyYoshiStrategyOptions extends StrategyOptions {
+interface RubyYoshiStrategyOptions extends BaseStrategyOptions {
   versionFile?: string;
 }
 
-export class RubyYoshi extends Strategy {
+export class RubyYoshi extends BaseStrategy {
   readonly versionFile: string;
   constructor(options: RubyYoshiStrategyOptions) {
     super({

@@ -16,10 +16,10 @@
 import {Changelog} from '../updaters/changelog';
 // mix.exs support
 import {ElixirMixExs} from '../updaters/elixir/elixir-mix-exs';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 
-export class Elixir extends Strategy {
+export class Elixir extends BaseStrategy {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

@@ -14,10 +14,10 @@
 
 // Generic
 import {Changelog} from '../updaters/changelog';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 
-export class Go extends Strategy {
+export class Go extends BaseStrategy {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

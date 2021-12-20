@@ -17,11 +17,11 @@ import {Changelog} from '../updaters/changelog';
 // Terraform specific.
 import {ReadMe} from '../updaters/terraform/readme';
 import {ModuleVersion} from '../updaters/terraform/module-version';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {Version} from '../version';
 
-export class TerraformModule extends Strategy {
+export class TerraformModule extends BaseStrategy {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

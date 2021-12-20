@@ -20,12 +20,12 @@ import {Changelog} from '../updaters/changelog';
 import {Opam} from '../updaters/ocaml/opam';
 import {EsyJson} from '../updaters/ocaml/esy-json';
 import {DuneProject} from '../updaters/ocaml/dune-project';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 
 const notEsyLock = (path: string) => !path.startsWith('esy.lock');
 
-export class OCaml extends Strategy {
+export class OCaml extends BaseStrategy {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
