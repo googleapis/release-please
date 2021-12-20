@@ -1007,7 +1007,8 @@ async function latestReleaseVersion(
     candidateReleaseVersions
   );
 
-  return candidateReleaseVersions.sort((a, b) => a.compare(b))[0];
+  // Find largest release number (sort descending then return first)
+  return candidateReleaseVersions.sort((a, b) => b.compare(a))[0];
 }
 
 function mergeReleaserConfig(
