@@ -18,7 +18,7 @@ import {GitHubFileContents} from '../github';
 import {Changelog} from '../updaters/changelog';
 // KRM specific.
 import {KRMBlueprintVersion} from '../updaters/krm/krm-blueprint-version';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {VersionsMap, Version} from '../version';
 
@@ -26,7 +26,7 @@ const KRMBlueprintAttribAnnotation = 'cnrm.cloud.google.com/blueprint';
 const hasKRMBlueprintAttrib = (content: string) =>
   content.includes(KRMBlueprintAttribAnnotation);
 
-export class KRMBlueprint extends Strategy {
+export class KRMBlueprint extends BaseStrategy {
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

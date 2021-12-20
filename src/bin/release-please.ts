@@ -591,8 +591,10 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
   command: 'bootstrap',
   describe: 'configure release manifest',
   builder(yargs) {
-    return manifestOptions(
-      releaseOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+    return manifestConfigOptions(
+      manifestOptions(
+        releaseOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+      )
     )
       .option('initial-version', {
         description: 'current version',

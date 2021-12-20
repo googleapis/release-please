@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy, StrategyOptions} from './strategy';
+import {Strategy} from './strategy';
 import {Go} from './strategies/go';
 import {GoYoshi} from './strategies/go-yoshi';
 import {JavaYoshi} from './strategies/java-yoshi';
@@ -43,6 +43,7 @@ import {CargoWorkspace} from './plugins/cargo-workspace';
 import {ChangelogNotes, ChangelogSection} from './changelog-notes';
 import {GitHubChangelogNotes} from './changelog-notes/github';
 import {DefaultChangelogNotes} from './changelog-notes/default';
+import {BaseStrategyOptions} from './strategies/base';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
@@ -71,7 +72,7 @@ const allReleaseTypes = [
   'terraform-module',
 ] as const;
 export type ReleaseType = typeof allReleaseTypes[number];
-type ReleaseBuilder = (options: StrategyOptions) => Strategy;
+type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 type Releasers = Record<string, ReleaseBuilder>;
 const releasers: Releasers = {
   go: options => new Go(options),

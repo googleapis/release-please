@@ -44,13 +44,14 @@ describe('factory', () => {
         releaseType: 'simple',
       });
       expect(strategy).instanceof(Simple);
+
       expect(strategy.versioningStrategy).instanceof(DefaultVersioningStrategy);
       const versioningStrategy =
         strategy.versioningStrategy as DefaultVersioningStrategy;
       expect(versioningStrategy.bumpMinorPreMajor).to.be.false;
       expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.false;
       expect(strategy.path).to.eql('.');
-      expect(strategy.component).not.ok;
+      expect(await strategy.getComponent()).not.ok;
       expect(strategy.changelogNotes).instanceof(DefaultChangelogNotes);
     });
     it('should build a with configuration', async () => {

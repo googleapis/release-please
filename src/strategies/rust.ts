@@ -21,11 +21,11 @@ import {CargoToml} from '../updaters/rust/cargo-toml';
 import {CargoLock} from '../updaters/rust/cargo-lock';
 import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
 import {logger} from '../util/logger';
-import {Strategy, BuildUpdatesOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {VersionsMap, Version} from '../version';
 import {Update} from '../update';
 
-export class Rust extends Strategy {
+export class Rust extends BaseStrategy {
   private packageManifest?: CargoManifest | null;
   private workspaceManifest?: CargoManifest | null;
 

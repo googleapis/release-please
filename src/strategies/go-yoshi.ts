@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy, BuildUpdatesOptions, StrategyOptions} from '../strategy';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {ConventionalCommit} from '../commit';
@@ -37,8 +37,8 @@ const IGNORED_SUB_MODULES = new Set([
 const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 const REGEN_ISSUE_REGEX = /(?<prefix>.*)\(#(?<pr>.*)\)(\n|$)/;
 
-export class GoYoshi extends Strategy {
-  constructor(options: StrategyOptions) {
+export class GoYoshi extends BaseStrategy {
+  constructor(options: BaseStrategyOptions) {
     options.changelogPath = options.changelogPath ?? 'CHANGES.md';
     super(options);
   }
