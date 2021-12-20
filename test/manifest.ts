@@ -265,6 +265,83 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
     });
+    it('finds manually tagged release', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'other-v3.3.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'other',
+        includeComponentInTag: true,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(
+        Object.keys(manifest.releasedVersions),
+        'found release versions'
+      ).lengthOf(1);
+      expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
+        '3.3.3'
+      );
+    });
+    it('ignores manually tagged release if commit not found', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'other-v3.3.3',
+          sha: 'def234',
+          url: 'http://path/to/release',
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'other',
+        includeComponentInTag: true,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions), 'found release versions')
+        .to.be.empty;
+    });
   });
 
   describe('buildPullRequests', () => {
