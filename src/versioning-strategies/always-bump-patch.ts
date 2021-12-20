@@ -17,6 +17,10 @@ import {ConventionalCommit} from '../commit';
 import {DefaultVersioningStrategy} from './default';
 import {VersionUpdater, PatchVersionUpdate} from '../versioning-strategy';
 
+/**
+ * This VersioningStrategy always bumps the patch version. This
+ * strategy is useful for backport branches.
+ */
 export class AlwaysBumpPatch extends DefaultVersioningStrategy {
   determineReleaseType(
     _version: Version,

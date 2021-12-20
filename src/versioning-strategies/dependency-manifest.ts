@@ -26,6 +26,14 @@ import {
 const DEPENDENCY_UPDATE_REGEX =
   /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
 
+/**
+ * This VersioningStrategy looks at `deps` type commits and tries to
+ * mirror the semantic version bump for that dependency update. For
+ * example, an update to v2, would be treated as a major version bump.
+ *
+ * It also respects the default commit types and will pick the
+ * greatest version bump.
+ */
 export class DependencyManifest extends DefaultVersioningStrategy {
   determineReleaseType(
     version: Version,
