@@ -342,6 +342,66 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.releasedVersions), 'found release versions')
         .to.be.empty;
     });
+    it('finds largest manually tagged release', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+        {
+          sha: 'def234',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'other-v3.3.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+        {
+          tagName: 'other-v3.3.2',
+          sha: 'def234',
+          url: 'http://path/to/release',
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'other',
+        includeComponentInTag: true,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(
+        Object.keys(manifest.releasedVersions),
+        'found release versions'
+      ).lengthOf(1);
+      expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
+        '3.3.3'
+      );
+    });
   });
 
   describe('buildPullRequests', () => {
