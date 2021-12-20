@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as semver from 'semver';
+
 const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[^+]+))?(\+(?<build>.*))?/;
 
@@ -47,6 +49,10 @@ export class Version {
     const preRelease = match.groups.preRelease;
     const build = match.groups.build;
     return new Version(major, minor, patch, preRelease, build);
+  }
+
+  compare(other: Version): -1 | 0 | 1 {
+    return semver.compare(this.toString(), other.toString());
   }
 
   toString(): string {
