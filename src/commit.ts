@@ -28,7 +28,7 @@ const conventionalCommitsFilter = require('conventional-commits-filter');
 export interface Commit {
   sha: string;
   message: string;
-  files: string[];
+  files?: string[];
   pullRequest?: PullRequest;
 }
 

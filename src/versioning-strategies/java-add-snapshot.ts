@@ -30,19 +30,25 @@ const fakeCommit: ConventionalCommit = {
 
 class AddSnapshotVersionUpdate implements VersionUpdater {
   strategy: VersioningStrategy;
-  name = 'java-snapshot';
   constructor(strategy: VersioningStrategy) {
     this.strategy = strategy;
   }
   bump(version: Version): Version {
     const nextPatch = this.strategy.bump(version, [fakeCommit]);
-    nextPatch.preRelease = nextPatch.preRelease
-      ? `${nextPatch.preRelease}-SNAPSHOT`
-      : 'SNAPSHOT';
-    return nextPatch;
+    return new Version(
+      nextPatch.major,
+      nextPatch.minor,
+      nextPatch.patch,
+      nextPatch.preRelease ? `${nextPatch.preRelease}-SNAPSHOT` : 'SNAPSHOT',
+      nextPatch.build
+    );
   }
 }
 
+/**
+ * This VersioningStrategy is used by Java releases to bump
+ * to the next snapshot version.
+ */
 export class JavaAddSnapshot implements VersioningStrategy {
   strategy: VersioningStrategy;
   constructor(strategy: VersioningStrategy) {

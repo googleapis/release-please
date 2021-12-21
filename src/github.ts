@@ -242,16 +242,23 @@ export class GitHub {
    *   commit/pull request matches certain criteria
    * @param {number} maxResults Limit the number of results searched.
    *   Defaults to unlimited.
+   * @param {boolean} backfillFiles If set, use the REST API for fetching
+   *   the list of touched files in this commit. Defaults to `false`.
    * @returns {Commit[]} List of commits to current branch
    * @throws {GitHubAPIError} on an API error
    */
   async commitsSince(
     targetBranch: string,
     filter: CommitFilter,
-    maxResults: number = Number.MAX_SAFE_INTEGER
+    maxResults: number = Number.MAX_SAFE_INTEGER,
+    backfillFiles = false
   ): Promise<Commit[]> {
     const commits: Commit[] = [];
-    const generator = this.mergeCommitIterator(targetBranch, maxResults);
+    const generator = this.mergeCommitIterator(
+      targetBranch,
+      maxResults,
+      backfillFiles
+    );
     for await (const commit of generator) {
       if (filter(commit)) {
         break;
@@ -267,19 +274,23 @@ export class GitHub {
    * @param {string} targetBranch target branch of commit
    * @param {number} maxResults maxResults - Limit the number of results searched.
    *   Defaults to unlimited.
+   * @param {boolean} backfillFiles If set, use the REST API for fetching
+   *   the list of touched files in this commit. Defaults to `false`.
    * @yields {Commit}
    * @throws {GitHubAPIError} on an API error
    */
   async *mergeCommitIterator(
     targetBranch: string,
-    maxResults: number = Number.MAX_SAFE_INTEGER
+    maxResults: number = Number.MAX_SAFE_INTEGER,
+    backfillFiles = false
   ) {
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
       const response: CommitHistory | null = await this.mergeCommitsGraphQL(
         targetBranch,
-        cursor
+        cursor,
+        backfillFiles
       );
       // no response usually means that the branch can't be found
       if (!response) {
@@ -298,7 +309,8 @@ export class GitHub {
 
   private async mergeCommitsGraphQL(
     targetBranch: string,
-    cursor?: string
+    cursor?: string,
+    backfillFiles = false
   ): Promise<CommitHistory | null> {
     logger.debug(
       `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
@@ -372,7 +384,6 @@ export class GitHub {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
-        files: [],
       };
       const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
@@ -392,7 +403,7 @@ export class GitHub {
         // We cannot directly fetch files on commits via graphql, only provide file
         // information for commits with associated pull requests
         commit.files = files;
-      } else {
+      } else if (backfillFiles) {
         // In this case, there is no squashed merge commit. This could be a simple
         // merge commit, a rebase merge commit, or a direct commit to the branch.
         // Fallback to fetching the list of commits from the REST API. In the future

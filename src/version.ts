@@ -12,15 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as semver from 'semver';
+
 const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[^+]+))?(\+(?<build>.*))?/;
 
+/**
+ * This data class is used to represent a SemVer version.
+ */
 export class Version {
-  major: number;
-  minor: number;
-  patch: number;
-  preRelease?: string;
-  build?: string;
+  readonly major: number;
+  readonly minor: number;
+  readonly patch: number;
+  readonly preRelease?: string;
+  readonly build?: string;
 
   constructor(
     major: number,
@@ -36,6 +41,13 @@ export class Version {
     this.build = build;
   }
 
+  /**
+   * Parse a version string into a data class.
+   *
+   * @param {string} versionString the input version string
+   * @returns {Version} the parsed version
+   * @throws {Error} if the version string cannot be parsed
+   */
   static parse(versionString: string): Version {
     const match = versionString.match(VERSION_REGEX);
     if (!match?.groups) {
@@ -49,6 +61,22 @@ export class Version {
     return new Version(major, minor, patch, preRelease, build);
   }
 
+  /**
+   * Comparator to other Versions to be used in sorting.
+   *
+   * @param {Version} other The other version to compare to
+   * @returns {number} -1 if this version is earlier, 0 if the versions
+   *   are the same, or 1 otherwise.
+   */
+  compare(other: Version): -1 | 0 | 1 {
+    return semver.compare(this.toString(), other.toString());
+  }
+
+  /**
+   * Returns a normalized string version of this version.
+   *
+   * @returns {string}
+   */
   toString(): string {
     const preReleasePart = this.preRelease ? `-${this.preRelease}` : '';
     const buildPart = this.build ? `+${this.build}` : '';

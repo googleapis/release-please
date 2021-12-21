@@ -29,7 +29,6 @@ const fakeCommit: ConventionalCommit = {
 };
 
 class RemoveSnapshotVersionUpdate implements VersionUpdater {
-  name = 'remove-snapshot';
   parent?: VersionUpdater;
   constructor(parent?: VersionUpdater) {
     this.parent = parent;
@@ -50,6 +49,10 @@ class RemoveSnapshotVersionUpdate implements VersionUpdater {
   }
 }
 
+/**
+ * This VersioningStrategy is used by Java releases to bump
+ * to the next non-snapshot version.
+ */
 export class JavaSnapshot implements VersioningStrategy {
   strategy: VersioningStrategy;
   constructor(strategy: VersioningStrategy) {
