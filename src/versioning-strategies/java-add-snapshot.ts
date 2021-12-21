@@ -30,7 +30,6 @@ const fakeCommit: ConventionalCommit = {
 
 class AddSnapshotVersionUpdate implements VersionUpdater {
   strategy: VersioningStrategy;
-  name = 'java-snapshot';
   constructor(strategy: VersioningStrategy) {
     this.strategy = strategy;
   }
@@ -46,6 +45,10 @@ class AddSnapshotVersionUpdate implements VersionUpdater {
   }
 }
 
+/**
+ * This VersioningStrategy is used by Java releases to bump
+ * to the next snapshot version.
+ */
 export class JavaAddSnapshot implements VersioningStrategy {
   strategy: VersioningStrategy;
   constructor(strategy: VersioningStrategy) {

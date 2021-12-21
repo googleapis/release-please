@@ -19,8 +19,12 @@ import {VersionUpdater} from '../versioning-strategy';
 
 const SERVICE_PACK_PATTERN = /sp\.(\d+)/;
 
+/**
+ * This version updater knows how to bump from a non-service pack
+ * version to a service pack version and increment the service
+ * pack number in subsequent releases.
+ */
 class ServicePackVersionUpdate implements VersionUpdater {
-  name = 'service-pack';
   bump(version: Version): Version {
     const match = version.preRelease?.match(SERVICE_PACK_PATTERN);
     if (match) {
@@ -43,6 +47,11 @@ class ServicePackVersionUpdate implements VersionUpdater {
   }
 }
 
+/**
+ * This VersioningStrategy is used for "service pack" versioning. In this
+ * strategy, we use the pre-release field with a pattern of `sp-\d+` where
+ * the number is an auto-incrementing integer starting with 1.
+ */
 export class ServicePackVersioningStrategy extends DefaultVersioningStrategy {
   determineReleaseType(
     _version: Version,
