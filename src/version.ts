@@ -16,11 +16,11 @@ const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[^+]+))?(\+(?<build>.*))?/;
 
 export class Version {
-  major: number;
-  minor: number;
-  patch: number;
-  preRelease?: string;
-  build?: string;
+  readonly major: number;
+  readonly minor: number;
+  readonly patch: number;
+  readonly preRelease?: string;
+  readonly build?: string;
 
   constructor(
     major: number,

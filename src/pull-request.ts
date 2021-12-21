@@ -13,12 +13,12 @@
 // limitations under the License.
 
 export interface PullRequest {
-  headBranchName: string;
-  baseBranchName: string;
-  number: number;
-  title: string;
-  body: string;
-  labels: string[];
-  files: string[];
-  sha?: string;
+  readonly headBranchName: string;
+  readonly baseBranchName: string;
+  readonly number: number;
+  readonly title: string;
+  readonly body: string;
+  readonly labels: string[];
+  readonly files: string[];
+  readonly sha?: string;
 }

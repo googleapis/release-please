@@ -39,6 +39,7 @@ import {ReleasePullRequest} from '../release-pull-request';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
+import {PatchVersionUpdate} from '../versioning-strategy';
 
 interface CrateInfo {
   /**
@@ -160,8 +161,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
   protected bumpVersion(pkg: CrateInfo): Version {
     const version = Version.parse(pkg.version);
-    version.patch += 1;
-    return version;
+    return new PatchVersionUpdate().bump(version);
   }
 
   protected updateCandidate(

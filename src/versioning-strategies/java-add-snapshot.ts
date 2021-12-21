@@ -36,10 +36,13 @@ class AddSnapshotVersionUpdate implements VersionUpdater {
   }
   bump(version: Version): Version {
     const nextPatch = this.strategy.bump(version, [fakeCommit]);
-    nextPatch.preRelease = nextPatch.preRelease
-      ? `${nextPatch.preRelease}-SNAPSHOT`
-      : 'SNAPSHOT';
-    return nextPatch;
+    return new Version(
+      nextPatch.major,
+      nextPatch.minor,
+      nextPatch.patch,
+      nextPatch.preRelease ? `${nextPatch.preRelease}-SNAPSHOT` : 'SNAPSHOT',
+      nextPatch.build
+    );
   }
 }
 
