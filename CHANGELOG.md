@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [12.6.2](https://www.github.com/googleapis/release-please/compare/v12.6.1...v12.6.2) (2021-12-21)
+
+
+### Bug Fixes
+
+* **release:** ensure release-backed tokens work on branch ([#1155](https://www.github.com/googleapis/release-please/issues/1155)) ([9849f93](https://www.github.com/googleapis/release-please/commit/9849f930f2137aa41b54b54d5d6a6faa2a9fe8ee))
+
 ### [12.6.1](https://www.github.com/googleapis/release-please/compare/v12.6.0...v12.6.1) (2021-12-21)
 
 
