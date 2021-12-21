@@ -15,13 +15,29 @@
 import {Version} from './version';
 import {ConventionalCommit} from './commit';
 
+/**
+ * An interface for updating a version.
+ */
 export interface VersionUpdater {
+  /**
+   * Returns the new bumped version
+   *
+   * @param {Version} version The current version
+   * @returns {Version} The bumped version
+   */
   bump(version: Version): Version;
-  name: string;
 }
 
+/**
+ * This VersionUpdater performs a SemVer major version bump.
+ */
 export class MajorVersionUpdate implements VersionUpdater {
-  name = 'major';
+  /**
+   * Returns the new bumped version
+   *
+   * @param {Version} version The current version
+   * @returns {Version} The bumped version
+   */
   bump(version: Version): Version {
     return new Version(
       version.major + 1,
@@ -33,8 +49,16 @@ export class MajorVersionUpdate implements VersionUpdater {
   }
 }
 
+/**
+ * This VersionUpdater performs a SemVer minor version bump.
+ */
 export class MinorVersionUpdate implements VersionUpdater {
-  name = 'minor';
+  /**
+   * Returns the new bumped version
+   *
+   * @param {Version} version The current version
+   * @returns {Version} The bumped version
+   */
   bump(version: Version): Version {
     return new Version(
       version.major,
@@ -46,8 +70,16 @@ export class MinorVersionUpdate implements VersionUpdater {
   }
 }
 
+/**
+ * This VersionUpdater performs a SemVer patch version bump.
+ */
 export class PatchVersionUpdate implements VersionUpdater {
-  name = 'patch';
+  /**
+   * Returns the new bumped version
+   *
+   * @param {Version} version The current version
+   * @returns {Version} The bumped version
+   */
   bump(version: Version): Version {
     return new Version(
       version.major,
@@ -59,19 +91,50 @@ export class PatchVersionUpdate implements VersionUpdater {
   }
 }
 
+/**
+ * This VersionUpdater sets the version to a specific version.
+ */
 export class CustomVersionUpdate implements VersionUpdater {
-  name = 'custom';
   private versionString: string;
   constructor(versionString: string) {
     this.versionString = versionString;
   }
+  /**
+   * Returns the new bumped version. This version is specified
+   * at initialization.
+   *
+   * @param {Version} version The current version
+   * @returns {Version} The bumped version
+   */
   bump(_version: Version): Version {
     return Version.parse(this.versionString);
   }
 }
 
+/**
+ * Implement this interface to create a new versioning scheme.
+ */
 export interface VersioningStrategy {
+  /**
+   * Given the current version of an artifact and a list of commits,
+   * return the next version.
+   *
+   * @param {Version} version The current version
+   * @param {ConventionalCommit[]} commits The list of commits to consider
+   * @returns {Version} The next version
+   */
   bump(version: Version, commits: ConventionalCommit[]): Version;
+
+  /**
+   * Given the current version of an artifact and a list of commits,
+   * return a VersionUpdater that knows how to bump the version.
+   *
+   * This is useful for chaining together versioning strategies.
+   *
+   * @param {Version} version The current version
+   * @param {ConventionalCommit[]} commits The list of commits to consider
+   * @returns {VersionUpdater} Updater for bumping the next version.
+   */
   determineReleaseType(
     version: Version,
     commits: ConventionalCommit[]

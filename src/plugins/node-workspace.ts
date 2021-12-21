@@ -35,6 +35,7 @@ import {
   DependencyNode,
   WorkspacePluginOptions,
 } from './workspace';
+import {PatchVersionUpdate} from '../versioning-strategy';
 
 class Package extends LernaPackage {
   constructor(
@@ -143,8 +144,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
   protected bumpVersion(pkg: Package): Version {
     const version = Version.parse(pkg.version);
-    version.patch += 1;
-    return version;
+    return new PatchVersionUpdate().bump(version);
   }
 
   protected updateCandidate(

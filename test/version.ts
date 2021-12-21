@@ -129,4 +129,25 @@ describe('Version', () => {
       expect(version.toString()).to.equal(input);
     });
   });
+  describe('compare', () => {
+    it('should handle pre-release versions', () => {
+      const comparison = Version.parse('1.2.3').compare(
+        Version.parse('1.2.3-alpha')
+      );
+      expect(comparison).to.eql(1);
+    });
+    it('should sort in ascending order using compare', () => {
+      const input = [
+        Version.parse('1.2.3'),
+        Version.parse('1.2.3-alpha'),
+        Version.parse('2.2.0'),
+      ];
+      const output = input.sort((a, b) => a.compare(b));
+      expect(output.map(version => version.toString())).to.eql([
+        '1.2.3-alpha',
+        '1.2.3',
+        '2.2.0',
+      ]);
+    });
+  });
 });
