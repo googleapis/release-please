@@ -135,6 +135,15 @@ interface ReleaseHistory {
   data: GitHubRelease[];
 }
 
+interface CommitIteratorOptions {
+  maxResults?: number;
+  backfillFiles?: boolean;
+}
+
+interface ReleaseIteratorOptions {
+  maxResults?: number;
+}
+
 export interface GitHubRelease {
   name?: string;
   tagName: string;
@@ -240,25 +249,21 @@ export class GitHub {
    * @param {string} targetBranch Target branch of commit
    * @param {CommitFilter} filter Callback function that returns whether a
    *   commit/pull request matches certain criteria
-   * @param {number} maxResults Limit the number of results searched.
+   * @param {CommitIteratorOptions} options Query options
+   * @param {number} options.maxResults Limit the number of results searched.
    *   Defaults to unlimited.
-   * @param {boolean} backfillFiles If set, use the REST API for fetching
-   *   the list of touched files in this commit. Defaults to `false`.
+   * @param {boolean} options.backfillFiles If set, use the REST API for
+   *   fetching the list of touched files in this commit. Defaults to `false`.
    * @returns {Commit[]} List of commits to current branch
    * @throws {GitHubAPIError} on an API error
    */
   async commitsSince(
     targetBranch: string,
     filter: CommitFilter,
-    maxResults: number = Number.MAX_SAFE_INTEGER,
-    backfillFiles = false
+    options: CommitIteratorOptions = {}
   ): Promise<Commit[]> {
     const commits: Commit[] = [];
-    const generator = this.mergeCommitIterator(
-      targetBranch,
-      maxResults,
-      backfillFiles
-    );
+    const generator = this.mergeCommitIterator(targetBranch, options);
     for await (const commit of generator) {
       if (filter(commit)) {
         break;
@@ -272,25 +277,26 @@ export class GitHub {
    * Iterate through commit history with a max number of results scanned.
    *
    * @param {string} targetBranch target branch of commit
-   * @param {number} maxResults maxResults - Limit the number of results searched.
+   * @param {CommitIteratorOptions} options Query options
+   * @param {number} options.maxResults Limit the number of results searched.
    *   Defaults to unlimited.
-   * @param {boolean} backfillFiles If set, use the REST API for fetching
-   *   the list of touched files in this commit. Defaults to `false`.
+   * @param {boolean} options.backfillFiles If set, use the REST API for
+   *   fetching the list of touched files in this commit. Defaults to `false`.
    * @yields {Commit}
    * @throws {GitHubAPIError} on an API error
    */
   async *mergeCommitIterator(
     targetBranch: string,
-    maxResults: number = Number.MAX_SAFE_INTEGER,
-    backfillFiles = false
+    options: CommitIteratorOptions = {}
   ) {
+    const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
       const response: CommitHistory | null = await this.mergeCommitsGraphQL(
         targetBranch,
         cursor,
-        backfillFiles
+        options
       );
       // no response usually means that the branch can't be found
       if (!response) {
@@ -310,7 +316,7 @@ export class GitHub {
   private async mergeCommitsGraphQL(
     targetBranch: string,
     cursor?: string,
-    backfillFiles = false
+    options: CommitIteratorOptions = {}
   ): Promise<CommitHistory | null> {
     logger.debug(
       `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
@@ -403,7 +409,7 @@ export class GitHub {
         // We cannot directly fetch files on commits via graphql, only provide file
         // information for commits with associated pull requests
         commit.files = files;
-      } else if (backfillFiles) {
+      } else if (options.backfillFiles) {
         // In this case, there is no squashed merge commit. This could be a simple
         // merge commit, a rebase merge commit, or a direct commit to the branch.
         // Fallback to fetching the list of commits from the REST API. In the future
@@ -579,12 +585,14 @@ export class GitHub {
   /**
    * Iterate through merged pull requests with a max number of results scanned.
    *
-   * @param {number} maxResults maxResults - Limit the number of results searched.
+   * @param {ReleaseIteratorOptions} options Query options
+   * @param {number} options.maxResults Limit the number of results searched.
    *   Defaults to unlimited.
    * @yields {GitHubRelease}
    * @throws {GitHubAPIError} on an API error
    */
-  async *releaseIterator(maxResults: number = Number.MAX_SAFE_INTEGER) {
+  async *releaseIterator(options: ReleaseIteratorOptions = {}) {
+    const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
     let results = 0;
     let cursor: string | undefined = undefined;
     while (true) {

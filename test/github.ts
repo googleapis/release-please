@@ -374,7 +374,9 @@ describe('GitHub', () => {
           // this commit is on page 2
           return commit.sha === 'c6d9dfb03aa2dbe1abc329592af60713fe28586d';
         },
-        10
+        {
+          maxResults: 10,
+        }
       );
       expect(commitsSinceSha.length).to.eql(10);
       snapshot(commitsSinceSha);
@@ -430,8 +432,7 @@ describe('GitHub', () => {
           // this commit is the 2nd most recent
           return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
         },
-        Number.MAX_SAFE_INTEGER,
-        true
+        {backfillFiles: true}
       );
       expect(commitsSinceSha.length).to.eql(1);
       snapshot(commitsSinceSha);
@@ -473,7 +474,7 @@ describe('GitHub', () => {
       req.post('/graphql').reply(200, {
         data: graphql,
       });
-      const generator = github.releaseIterator(3);
+      const generator = github.releaseIterator({maxResults: 3});
       const releases: GitHubRelease[] = [];
       for await (const release of generator) {
         releases.push(release);

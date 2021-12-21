@@ -348,7 +348,9 @@ export class Manifest {
 
     // Releases by path
     const releasesByPath: Record<string, Release> = {};
-    for await (const release of this.github.releaseIterator(400)) {
+    for await (const release of this.github.releaseIterator({
+      maxResults: 400,
+    })) {
       // logger.debug(release);
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
@@ -405,11 +407,10 @@ export class Manifest {
     // seen all release commits
     logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
-    const commitGenerator = this.github.mergeCommitIterator(
-      this.targetBranch,
-      500,
-      true // backfill commit files
-    );
+    const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
+      maxResults: 500,
+      backfillFiles: true,
+    });
     const releaseShas = new Set(Object.values(releaseShasByPath));
     logger.debug(releaseShas);
     const expectedShas = releaseShas.size;
@@ -946,7 +947,7 @@ async function latestReleaseVersion(
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
-  const generator = github.mergeCommitIterator(targetBranch, 250);
+  const generator = github.mergeCommitIterator(targetBranch, {maxResults: 250});
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
