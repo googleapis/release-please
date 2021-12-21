@@ -21,11 +21,11 @@ const VERSION_REGEX =
  * This data class is used to represent a SemVer version.
  */
 export class Version {
-  major: number;
-  minor: number;
-  patch: number;
-  preRelease?: string;
-  build?: string;
+  readonly major: number;
+  readonly minor: number;
+  readonly patch: number;
+  readonly preRelease?: string;
+  readonly build?: string;
 
   constructor(
     major: number,

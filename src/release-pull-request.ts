@@ -18,11 +18,11 @@ import {PullRequestBody} from './util/pull-request-body';
 import {PullRequestTitle} from './util/pull-request-title';
 
 export interface ReleasePullRequest {
-  title: PullRequestTitle;
-  body: PullRequestBody;
+  readonly title: PullRequestTitle;
+  readonly body: PullRequestBody;
+  readonly labels: string[];
+  readonly headRefName: string;
+  readonly version?: Version;
+  readonly draft: boolean;
   updates: Update[];
-  labels: string[];
-  headRefName: string;
-  version?: Version;
-  draft: boolean;
 }
