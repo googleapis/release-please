@@ -292,7 +292,6 @@ describe('GitHub', () => {
 
   describe('commitsSince', () => {
     it('finds commits up until a condition', async () => {
-      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
       );
@@ -313,7 +312,6 @@ describe('GitHub', () => {
     });
 
     it('paginates through commits', async () => {
-      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql1 = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
       );
@@ -343,7 +341,6 @@ describe('GitHub', () => {
     });
 
     it('finds first commit of a multi-commit merge pull request', async () => {
-      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since.json'), 'utf8')
       );
@@ -364,7 +361,6 @@ describe('GitHub', () => {
     });
 
     it('limits pagination', async () => {
-      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql1 = JSON.parse(
         readFileSync(resolve(fixturesPath, 'commits-since-page-1.json'), 'utf8')
       );
@@ -386,7 +382,6 @@ describe('GitHub', () => {
     });
 
     it('returns empty commits if branch does not exist', async () => {
-      sandbox.stub(github, 'getCommitFiles').resolves([]);
       const graphql = JSON.parse(
         readFileSync(
           resolve(fixturesPath, 'commits-since-missing-branch.json'),
@@ -434,7 +429,9 @@ describe('GitHub', () => {
         commit => {
           // this commit is the 2nd most recent
           return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
-        }
+        },
+        Number.MAX_SAFE_INTEGER,
+        true
       );
       expect(commitsSinceSha.length).to.eql(1);
       snapshot(commitsSinceSha);

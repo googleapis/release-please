@@ -28,6 +28,7 @@ import {Release} from '../release';
 import {Version} from '../version';
 import {TagName} from '../util/tag-name';
 import {ROOT_PROJECT_PATH} from '../manifest';
+import {logger} from '../util/logger';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -134,6 +135,10 @@ export class RubyYoshi extends BaseStrategy {
         summary = `${summary}<pre><code>${splitMessage
           .slice(1)
           .join('\n')}</code></pre>\n`;
+      }
+      if (commit.files === undefined) {
+        logger.error('No files for commit - this is likely a bug.');
+        continue;
       }
       commit.files.forEach(file => {
         if (this.path === ROOT_PROJECT_PATH || file.startsWith(this.path)) {
