@@ -144,6 +144,10 @@ interface ReleaseIteratorOptions {
   maxResults?: number;
 }
 
+interface TagIteratorOptions {
+  maxResults?: number;
+}
+
 export interface GitHubRelease {
   name?: string;
   tagName: string;
@@ -151,6 +155,11 @@ export interface GitHubRelease {
   notes?: string;
   url: string;
   draft?: boolean;
+}
+
+export interface GitHubTag {
+  name: string;
+  sha: string;
 }
 
 export class GitHub {
@@ -583,7 +592,7 @@ export class GitHub {
   }
 
   /**
-   * Iterate through merged pull requests with a max number of results scanned.
+   * Iterate through releases with a max number of results scanned.
    *
    * @param {ReleaseIteratorOptions} options Query options
    * @param {number} options.maxResults Limit the number of results searched.
@@ -668,6 +677,37 @@ export class GitHub {
           };
         }),
     };
+  }
+
+  /**
+   * Iterate through tags with a max number of results scanned.
+   *
+   * @param {TagIteratorOptions} options Query options
+   * @param {number} options.maxResults Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @yields {GitHubTag}
+   * @throws {GitHubAPIError} on an API error
+   */
+  async *tagIterator(options: TagIteratorOptions = {}) {
+    const maxResults = options.maxResults || Number.MAX_SAFE_INTEGER;
+    let results = 0;
+    for await (const response of this.octokit.paginate.iterator(
+      this.octokit.rest.repos.listTags,
+      {
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+      }
+    )) {
+      for (const tag of response.data) {
+        if ((results += 1) > maxResults) {
+          break;
+        }
+        yield {
+          name: tag.name,
+          sha: tag.commit.sha,
+        };
+      }
+    }
   }
 
   /**
