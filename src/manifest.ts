@@ -407,7 +407,8 @@ export class Manifest {
     const commits: Commit[] = [];
     const commitGenerator = this.github.mergeCommitIterator(
       this.targetBranch,
-      500
+      500,
+      true // backfill commit files
     );
     const releaseShas = new Set(Object.values(releaseShasByPath));
     logger.debug(releaseShas);

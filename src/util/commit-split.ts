@@ -85,6 +85,11 @@ export class CommitSplit {
   split<T extends Commit>(commits: T[]): Record<string, T[]> {
     const splitCommits: Record<string, T[]> = {};
     commits.forEach(commit => {
+      if (commit.files === undefined) {
+        throw new Error(
+          `Commit ${commit.sha} is missing files. Did you set "backfillFiles" to "true"?`
+        );
+      }
       const dedupe: Set<string> = new Set();
       for (let i = 0; i < commit.files.length; i++) {
         const file: string = commit.files[i];
