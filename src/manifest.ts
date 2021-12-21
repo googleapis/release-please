@@ -487,6 +487,7 @@ export class Manifest {
       let latestRelease = releasesByPath[path];
       if (
         !latestRelease &&
+        this.releasedVersions[path] &&
         this.releasedVersions[path].toString() !== '0.0.0'
       ) {
         const version = this.releasedVersions[path];
@@ -937,11 +938,16 @@ async function latestReleaseVersion(
     `Looking for latest release on branch: ${targetBranch} with prefix: ${prefix}`
   );
 
+  // collect set of recent commit SHAs seen to verify that the release
+  // is in the current branch
+  const commitShas = new Set<string>();
+
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
   const generator = github.mergeCommitIterator(targetBranch, 250);
   for await (const commitWithPullRequest of generator) {
+    commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
     if (!mergedPullRequest) {
       continue;
@@ -974,7 +980,35 @@ async function latestReleaseVersion(
 
     return version;
   }
-  return;
+
+  // If not found from recent pull requests, look at releases. Iterate
+  // through releases finding valid tags, then cross reference
+  const releaseGenerator = github.releaseIterator();
+  const candidateReleaseVersions: Version[] = [];
+  for await (const release of releaseGenerator) {
+    const tagName = TagName.parse(release.tagName);
+    if (!tagName) {
+      continue;
+    }
+
+    if (tagName.component === prefix) {
+      logger.debug(`found release for ${prefix}`, tagName.version);
+      if (!commitShas.has(release.sha)) {
+        logger.debug(
+          `SHA not found in recent commits to branch ${targetBranch}, skipping`
+        );
+        continue;
+      }
+      candidateReleaseVersions.push(tagName.version);
+    }
+  }
+  logger.debug(
+    `found ${candidateReleaseVersions.length} possible releases.`,
+    candidateReleaseVersions
+  );
+
+  // Find largest release number (sort descending then return first)
+  return candidateReleaseVersions.sort((a, b) => b.compare(a))[0];
 }
 
 function mergeReleaserConfig(
