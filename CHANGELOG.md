@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [12.6.1](https://www.github.com/googleapis/release-please/compare/v12.6.0...v12.6.1) (2021-12-21)
+
+
+### Bug Fixes
+
+* **rust:** Don't update dev-dependencies lacking a version key ([#1095](https://www.github.com/googleapis/release-please/issues/1095)) ([dc1bad9](https://www.github.com/googleapis/release-please/commit/dc1bad997ef0d028e280e75b0e6510a99d06cb44))
+
 ## [12.6.0](https://www.github.com/googleapis/release-please/compare/v12.5.0...v12.6.0) (2021-10-11)
 
 
