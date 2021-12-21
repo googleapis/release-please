@@ -348,7 +348,9 @@ export class Manifest {
 
     // Releases by path
     const releasesByPath: Record<string, Release> = {};
-    for await (const release of this.github.releaseIterator({maxResults: 400})) {
+    for await (const release of this.github.releaseIterator({
+      maxResults: 400,
+    })) {
       // logger.debug(release);
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
