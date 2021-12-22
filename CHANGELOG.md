@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [12.6.3](https://www.github.com/googleapis/release-please/compare/v12.6.2...v12.6.3) (2021-12-22)
+
+
+### Bug Fixes
+
+* GitHub#findFilesByExtension should treat prefix as a directory ([#1166](https://www.github.com/googleapis/release-please/issues/1166)) ([8329825](https://www.github.com/googleapis/release-please/commit/83298257a2021f88df4db3c95869955f8773eb70)), closes [#1164](https://www.github.com/googleapis/release-please/issues/1164)
+
 ### [12.6.2](https://www.github.com/googleapis/release-please/compare/v12.6.1...v12.6.2) (2021-12-21)
 
 
