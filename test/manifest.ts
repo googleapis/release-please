@@ -136,7 +136,7 @@ describe('Manifest', () => {
   });
 
   describe('fromManifest', () => {
-    it('it should parse config and manifest from repostiory', async () => {
+    it('should parse config and manifest from repostiory', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -159,6 +159,35 @@ describe('Manifest', () => {
       );
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(8);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
+    });
+    it('should read the default release-type from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/root-release-type.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].releaseType).to.eql('java-yoshi');
+      expect(manifest.repositoryConfig['node-package'].releaseType).to.eql(
+        'node'
+      );
     });
   });
 

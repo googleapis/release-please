@@ -167,6 +167,46 @@ describe('parseConventionalCommits', () => {
     expect(metaCommit!.notes[0].text).to.eql('v3.0.0');
   });
 
+  it('can override the commit message from BEGIN_COMMIT_OVERRIDE body', async () => {
+    const commit = buildMockCommit('chore: some commit');
+    const body = 'BEGIN_COMMIT_OVERRIDE\nfix: some fix\nEND_COMMIT_OVERRIDE';
+    commit.pullRequest = {
+      headBranchName: 'fix-something',
+      baseBranchName: 'main',
+      number: 123,
+      title: 'chore: some commit',
+      labels: [],
+      files: [],
+      body,
+    };
+
+    const conventionalCommits = parseConventionalCommits([commit]);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.eql('fix');
+    expect(conventionalCommits[0].bareMessage).to.eql('some fix');
+  });
+  it('can override the commit message from BEGIN_COMMIT_OVERRIDE body with a meta commit', async () => {
+    const commit = buildMockCommit('chore: some commit');
+    const body =
+      'BEGIN_COMMIT_OVERRIDE\nfix: some fix\n\nfeat: another feature\nEND_COMMIT_OVERRIDE';
+    commit.pullRequest = {
+      headBranchName: 'fix-something',
+      baseBranchName: 'main',
+      number: 123,
+      title: 'chore: some commit',
+      labels: [],
+      files: [],
+      body,
+    };
+
+    const conventionalCommits = parseConventionalCommits([commit]);
+    expect(conventionalCommits).lengthOf(2);
+    expect(conventionalCommits[0].type).to.eql('feat');
+    expect(conventionalCommits[0].bareMessage).to.eql('another feature');
+    expect(conventionalCommits[1].type).to.eql('fix');
+    expect(conventionalCommits[1].bareMessage).to.eql('some fix');
+  });
+
   // it('ignores reverted commits', async () => {
   //   const commits = [
   //     {sha: 'sha1', message: 'feat: some feature', files: ['path1/file1.txt']},

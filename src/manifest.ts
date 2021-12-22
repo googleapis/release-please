@@ -840,9 +840,11 @@ export class Manifest {
  * @param {ReleaserPackageConfig} config Parsed configuration from JSON file.
  * @returns {ReleaserConfig}
  */
-function extractReleaserConfig(config: ReleaserPackageConfig): ReleaserConfig {
+function extractReleaserConfig(
+  config: ReleaserPackageConfig
+): Partial<ReleaserConfig> {
   return {
-    releaseType: config['release-type'] || 'node', // for backwards-compatibility
+    releaseType: config['release-type'],
     bumpMinorPreMajor: config['bump-minor-pre-major'],
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
     changelogSections: config['changelog-sections'],
@@ -1044,11 +1046,11 @@ async function latestReleaseVersion(
 }
 
 function mergeReleaserConfig(
-  defaultConfig: ReleaserConfig,
-  pathConfig: ReleaserConfig
-) {
+  defaultConfig: Partial<ReleaserConfig>,
+  pathConfig: Partial<ReleaserConfig>
+): ReleaserConfig {
   return {
-    releaseType: pathConfig.releaseType ?? defaultConfig.releaseType,
+    releaseType: pathConfig.releaseType ?? defaultConfig.releaseType ?? 'node',
     bumpMinorPreMajor:
       pathConfig.bumpMinorPreMajor ?? defaultConfig.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor:
