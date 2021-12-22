@@ -37,3 +37,27 @@ export interface ChangelogSection {
   section: string;
   hidden?: boolean;
 }
+
+const DEFAULT_HEADINGS: Record<string, string> = {
+  feat: 'Features',
+  fix: 'Bug Fixes',
+  perf: 'Performance Improvements',
+  deps: 'Dependencies',
+  revert: 'Reverts',
+  docs: 'Documentation',
+  style: 'Styles',
+  chore: 'Miscellaneous Chores',
+  refactor: 'Code Refactoring',
+  test: 'Tests',
+  build: 'Build System',
+  ci: 'Continuous Integration',
+};
+
+export function buildChangelogSections(scopes: string[]): ChangelogSection[] {
+  return scopes.map(scope => {
+    return {
+      type: scope,
+      section: DEFAULT_HEADINGS[scope] || scope,
+    };
+  });
+}
