@@ -48,7 +48,11 @@ export class KRMBlueprint extends BaseStrategy {
     }
 
     // Update version in all yaml files with attribution annotation
-    const yamlPaths = await this.github.findFilesByExtension('yaml', this.path);
+    const yamlPaths = await this.github.findFilesByExtensionAndRef(
+      'yaml',
+      this.targetBranch,
+      this.path
+    );
     for (const yamlPath of yamlPaths) {
       const contents: GitHubFileContents = await this.github.getFileContents(
         this.addPath(yamlPath)

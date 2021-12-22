@@ -885,7 +885,7 @@ export class GitHub {
             // match the filename
             path.endsWith(filename) &&
             // match the prefix if provided
-            (!prefix || path.startsWith(prefix))
+            (!prefix || path.startsWith(`${prefix}/`))
           );
         })
         .map(file => {
@@ -1151,7 +1151,7 @@ export class GitHub {
             // match the file extension
             path.endsWith(`.${extension}`) &&
             // match the prefix if provided
-            (!prefix || path.startsWith(prefix))
+            (!prefix || path.startsWith(`${prefix}/`))
           );
         })
         .map(file => {
