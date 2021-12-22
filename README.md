@@ -75,6 +75,8 @@ The above commit message will contain:
   that it's a breaking change.
 3. an entry for the feature **"update encode to support unicode"**.
 
+> :warning: **Important:** The additional messages must be added to the bottom of the commit.
+
 ## How do I change the version number?
 
 When a commit to the main branch has `Release-As: x.x.x`(case insensitive) in the **commit body**, Release Please will open a new pull request for the specified version.
