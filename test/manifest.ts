@@ -14,7 +14,7 @@
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
 import {Manifest} from '../src/manifest';
-import {GitHub, GitHubRelease} from '../src/github';
+import {GitHub, GitHubRelease, GitHubTag} from '../src/github';
 import * as sinon from 'sinon';
 import {Commit} from '../src/commit';
 import {
@@ -57,6 +57,15 @@ function mockReleases(github: GitHub, releases: GitHubRelease[]) {
     }
   }
   sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
+}
+
+function mockTags(github: GitHub, tags: GitHubTag[]) {
+  async function* fakeGenerator() {
+    for (const tag of tags) {
+      yield tag;
+    }
+  }
+  sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
 }
 
 function mockPullRequests(
@@ -335,6 +344,47 @@ describe('Manifest', () => {
         '3.3.3'
       );
     });
+    it('finds legacy tags', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(github, []);
+      mockTags(github, [
+        {
+          name: 'other-v3.3.3',
+          sha: 'abc123',
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'other',
+        includeComponentInTag: true,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(
+        Object.keys(manifest.releasedVersions),
+        'found release versions'
+      ).lengthOf(1);
+      expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
+        '3.3.3'
+      );
+    });
     it('ignores manually tagged release if commit not found', async () => {
       mockCommits(github, [
         {
@@ -359,6 +409,7 @@ describe('Manifest', () => {
           url: 'http://path/to/release',
         },
       ]);
+      mockTags(github, []);
 
       const manifest = await Manifest.fromConfig(github, 'target-branch', {
         releaseType: 'simple',
@@ -412,6 +463,65 @@ describe('Manifest', () => {
           tagName: 'other-v3.3.2',
           sha: 'def234',
           url: 'http://path/to/release',
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'other',
+        includeComponentInTag: true,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(
+        Object.keys(manifest.releasedVersions),
+        'found release versions'
+      ).lengthOf(1);
+      expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
+        '3.3.3'
+      );
+    });
+    it('finds largest found tagged', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+        {
+          sha: 'def234',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/foobar',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release foobar 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(github, []);
+      mockTags(github, [
+        {
+          name: 'other-v3.3.3',
+          sha: 'abc123',
+        },
+        {
+          name: 'other-v3.3.2',
+          sha: 'def234',
         },
       ]);
 
