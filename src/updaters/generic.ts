@@ -17,7 +17,7 @@ import {Version} from '../version';
 import {logger} from '../util/logger';
 
 const VERSION_REGEX =
-  /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[^+]+))?(\+(?<build>.*))?/;
+  /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[\w.]+))?(\+(?<build>[-\w.]+))?/;
 const SINGLE_VERSION_REGEX = /\b\d+\b/;
 const INLINE_UPDATE_REGEX =
   /x-release-please-(?<scope>major|minor|patch|version)/;
