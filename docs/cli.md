@@ -57,6 +57,7 @@ Extra options:
 | `--release-label` | `string` | Comma-separated list of labels to apply to the pull request after the release has been tagged. Defaults to `autorelease: tagged` |
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
 | `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
+| `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
@@ -98,6 +99,9 @@ need to specify your release options:
 | `--bump-patch-for-minor-pre-major` | boolean | Configuration option for the versioning strategy. If set, will bump the patch version for features for versions < 1.0.0 |
 | `--draft-pull-request` | boolean | If set, create pull requests as drafts |
 | `--label` | string | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |`autorelease: tagged` |
+| `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
+| `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
+| `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--signoff` | string | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
