@@ -347,8 +347,9 @@ export function parseConventionalCommits(
   const conventionalCommits: ConventionalCommit[] = [];
 
   for (const commit of commits) {
+    const commitMessage = preprocessCommitMessage(commit);
     try {
-      for (const parsedCommit of parseCommits(commit.message)) {
+      for (const parsedCommit of parseCommits(commitMessage)) {
         const breaking =
           parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
             .length > 0;
@@ -375,4 +376,19 @@ export function parseConventionalCommits(
   }
 
   return conventionalCommits;
+}
+
+function preprocessCommitMessage(commit: Commit): string {
+  // look for 'BEGIN_COMMIT_OVERRIDE' section of pull request body
+  if (commit.pullRequest) {
+    const overrideMessage = (
+      commit.pullRequest.body.split('BEGIN_COMMIT_OVERRIDE')[1] || ''
+    )
+      .split('END_COMMIT_OVERRIDE')[0]
+      .trim();
+    if (overrideMessage) {
+      return overrideMessage;
+    }
+  }
+  return commit.message;
 }
