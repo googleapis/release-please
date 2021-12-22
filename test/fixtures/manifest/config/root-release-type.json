@@ -1,0 +1,11 @@
+{
+  "release-type": "java-yoshi",
+  "packages": {
+    ".": {
+      "package-name": "foo"
+    },
+    "node-package": {
+      "release-type": "node"
+    }
+  }
+}
