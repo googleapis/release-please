@@ -4,6 +4,58 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.0.0](https://www.github.com/googleapis/release-please/compare/v12.6.0...v13.0.0) (2021-12-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* releasers are now "strategies", more logic moved into base classes
+* Node 12 is now required
+* manifest is now main entrypoint for release please, and logic is shared between mono-repo/split-repo flow
+* versioning straregy now handled by VersionStrategies rather than regexes
+* merge Manifest and standard PR paths (#1104)
+
+### Features
+
+* add `includeComponentInTag` option for strategies and hook up to `--monorepo-tags` ([#1119](https://www.github.com/googleapis/release-please/issues/1119)) ([bf9aacd](https://www.github.com/googleapis/release-please/commit/bf9aacdde3a97c453f6e3280035607c97c7dffcd))
+* add ability to override merged commit message ([#1161](https://www.github.com/googleapis/release-please/issues/1161)) ([c568b57](https://www.github.com/googleapis/release-please/commit/c568b57280f2048f6dabbb716cdb4174c3386b91)), closes [#967](https://www.github.com/googleapis/release-please/issues/967)
+* add GitHub changelog notes generator ([#1120](https://www.github.com/googleapis/release-please/issues/1120)) ([1470661](https://www.github.com/googleapis/release-please/commit/1470661bd76a1e731585ed3fbf7363224c7a7a3e))
+* enable specifying changelog section headings in the CLI ([#1162](https://www.github.com/googleapis/release-please/issues/1162)) ([aaa8342](https://www.github.com/googleapis/release-please/commit/aaa8342cd48062c56fe87b3296904274b7fb9dbe)), closes [#511](https://www.github.com/googleapis/release-please/issues/511)
+* **go:** add support for bumping a Go version file ([#1112](https://www.github.com/googleapis/release-please/issues/1112)) ([8f6e52b](https://www.github.com/googleapis/release-please/commit/8f6e52b27811e6838800c7152be74e13201eb9e1))
+* reimplement custom pull request title ([#1122](https://www.github.com/googleapis/release-please/issues/1122)) ([2f3e84c](https://www.github.com/googleapis/release-please/commit/2f3e84c8c51f367cad8baae44c8d9f0727aa02a5))
+* reimplement Java 1.0.0 special version bumping ([#1126](https://www.github.com/googleapis/release-please/issues/1126)) ([28bc76b](https://www.github.com/googleapis/release-please/commit/28bc76b35d9e1eff218a5be1b9b8cebb4b1e6f9d))
+* return path along with created release ([#1114](https://www.github.com/googleapis/release-please/issues/1114)) ([81fc0f4](https://www.github.com/googleapis/release-please/commit/81fc0f49d75ec66ef1915be26330734abddd11d7))
+
+
+### Bug Fixes
+
+* add back version/major/minor/patch ([#1118](https://www.github.com/googleapis/release-please/issues/1118)) ([4b6ae50](https://www.github.com/googleapis/release-please/commit/4b6ae5049e39e6f5bca10b514256090ea76ef5bd))
+* allow setting release-type at root of manifest config ([#1159](https://www.github.com/googleapis/release-please/issues/1159)) ([fc73b6d](https://www.github.com/googleapis/release-please/commit/fc73b6dd3f5f7ed449b9d304e53bada911e3190f))
+* backfill commit files ([#1110](https://www.github.com/googleapis/release-please/issues/1110)) ([173ce70](https://www.github.com/googleapis/release-please/commit/173ce704c9413d7f0da820fdd2961166a5ff0b73))
+* backfill latest release with version found in manifest ([#1131](https://www.github.com/googleapis/release-please/issues/1131)) ([94859a0](https://www.github.com/googleapis/release-please/commit/94859a0cfbc58724016daaefaca03f34a43e0473))
+* **cli:** pass pull-request-title-pattern ([#1128](https://www.github.com/googleapis/release-please/issues/1128)) ([28d7727](https://www.github.com/googleapis/release-please/commit/28d7727bc827612b02a8fde58d13cd87f962a399))
+* combined manifest PR should include labels ([#1137](https://www.github.com/googleapis/release-please/issues/1137)) ([d8bb7ca](https://www.github.com/googleapis/release-please/commit/d8bb7caddfa14aabd3bfa19008c10ed911638a66))
+* fallback to look at releases when looking for latest release ([#1146](https://www.github.com/googleapis/release-please/issues/1146)) ([76ed1a7](https://www.github.com/googleapis/release-please/commit/76ed1a77e64f28b0af7d8125dce457b885f80e52))
+* fallback to look at tags when looking for latest release ([#1160](https://www.github.com/googleapis/release-please/issues/1160)) ([e06c6ba](https://www.github.com/googleapis/release-please/commit/e06c6ba5c3ce29689275e495934d4a6785962d5b))
+* GitHub#findFilesByExtension should treat prefix as a directory ([#1165](https://www.github.com/googleapis/release-please/issues/1165)) ([b48ec5b](https://www.github.com/googleapis/release-please/commit/b48ec5bc285233436d7cb1b367326a3c6dd555a9))
+* **github:** correctly return maxResults releases ([#1134](https://www.github.com/googleapis/release-please/issues/1134)) ([25f6811](https://www.github.com/googleapis/release-please/commit/25f68113d0e0bfa5a181d616c11bfd5e573cfaf5))
+* make PullRequest, ReleasePullRequest, Version fields readonly ([#1150](https://www.github.com/googleapis/release-please/issues/1150)) ([9659c1c](https://www.github.com/googleapis/release-please/commit/9659c1c868395394a40ff8f6caf9aaa7998fb8b8))
+* Manifest.fromConfig can find latest release version without component ([#1123](https://www.github.com/googleapis/release-please/issues/1123)) ([0aeb67b](https://www.github.com/googleapis/release-please/commit/0aeb67b4c4a497b5570bdec10f5ab15e620b235d))
+* merge manifest release PRs unless separatePullRequests is configured ([#1129](https://www.github.com/googleapis/release-please/issues/1129)) ([328009d](https://www.github.com/googleapis/release-please/commit/328009d10b4609441a6f8432fa0d2aa9df1f5ff0))
+* only backfill files if requested ([#1151](https://www.github.com/googleapis/release-please/issues/1151)) ([ae007fe](https://www.github.com/googleapis/release-please/commit/ae007feb430e97f2995d6fd431f2825512651e3a))
+* reimplement draft releases ([#1111](https://www.github.com/googleapis/release-please/issues/1111)) ([6f38b4a](https://www.github.com/googleapis/release-please/commit/6f38b4aa5a206b358468e623a020ef715257ddfe))
+* **rust:** Don't update dev-dependencies lacking a version key ([#1095](https://www.github.com/googleapis/release-please/issues/1095)) ([#1152](https://www.github.com/googleapis/release-please/issues/1152)) ([56f37d9](https://www.github.com/googleapis/release-please/commit/56f37d997c75ec5bcc330b08b0e9e25c68329b7a)), closes [#1094](https://www.github.com/googleapis/release-please/issues/1094)
+* switch branch delimiter to `--` ([#1127](https://www.github.com/googleapis/release-please/issues/1127)) ([26442f1](https://www.github.com/googleapis/release-please/commit/26442f14356c387c9117f5d660b532185c8084c4))
+
+
+### Code Refactoring
+
+* manifest is now main entrypoint for release please, and logic is shared between mono-repo/split-repo flow ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
+* merge Manifest and standard PR paths ([#1104](https://www.github.com/googleapis/release-please/issues/1104)) ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
+* Node 12 is now required ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
+* releasers are now "strategies", more logic moved into base classes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
+* versioning straregy now handled by VersionStrategies rather than regexes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
+
 ## [12.6.0](https://www.github.com/googleapis/release-please/compare/v12.5.0...v12.6.0) (2021-10-11)
 
 
