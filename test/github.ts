@@ -345,6 +345,20 @@ describe('GitHub', () => {
         expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
       });
     });
+    it('ensures the prefix is a directory', async () => {
+      const fileSearchResponse = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'pom-file-search-with-prefix.json'),
+          'utf8'
+        )
+      );
+      req
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
+        .reply(200, fileSearchResponse);
+      const pomFiles = await github.findFilesByExtension('xml', 'appengine');
+      req.done();
+      expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
+    });
   });
 
   describe('findOpenReleasePRs', () => {
