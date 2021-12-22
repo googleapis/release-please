@@ -18,7 +18,7 @@ import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
 import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
-import {ChangelogSection} from '../changelog-notes';
+import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
 import {
   getReleaserTypes,
@@ -280,6 +280,16 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
     .option('changelog-type', {
       describe: 'type of changelog to build',
       choices: getChangelogTypes(),
+    })
+    .option('changelog-sections', {
+      describe: 'comma-separated list of scopes to include in the changelog',
+      type: 'string',
+      coerce: (arg?: string) => {
+        if (arg) {
+          return buildChangelogSections(arg.split(','));
+        }
+        return arg;
+      },
     })
     .option('last-package-version', {
       describe: 'last version # that package was released as',
