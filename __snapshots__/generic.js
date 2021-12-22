@@ -18,7 +18,7 @@ package com.google.cloud.example;
 
 public final class Version {
   // {x-release-please-start-version}
-  public static String VERSION = "2.3.4
+  public static String VERSION = "2.3.4";
   // {x-release-please-end}
 
   // {x-release-please-start-major}
@@ -33,7 +33,7 @@ public final class Version {
   public static String PATCH = "4";
   // {x-release-please-end}
 
-  public static String INLINE_VERSION = "2.3.4
+  public static String INLINE_VERSION = "2.3.4"; // {x-release-please-version}
   public static String INLINE_MAJOR = "2"; // {x-release-please-major}
   public static String INLINE_MINOR = "3"; // {x-release-please-minor}
   public static String INLINE_PATCH = "4"; // {x-release-please-patch}
