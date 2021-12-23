@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.0.1](https://www.github.com/googleapis/release-please/compare/v13.0.0...v13.0.1) (2021-12-23)
+
+
+### Bug Fixes
+
+* export public interface types from index.ts ([#1169](https://www.github.com/googleapis/release-please/issues/1169)) ([cef6407](https://www.github.com/googleapis/release-please/commit/cef6407b05b8bbbc17d0c0b9d4704dc1de80ccf0))
+
 ## [13.0.0](https://www.github.com/googleapis/release-please/compare/v12.6.0...v13.0.0) (2021-12-22)
 
 
