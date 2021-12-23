@@ -187,4 +187,13 @@ describe('factory', () => {
       });
     }
   });
+  it('should customize a version-file for Simple', async () => {
+    const strategy = await buildStrategy({
+      github,
+      releaseType: 'simple',
+      versionFile: 'foo/bar',
+    });
+    expect(strategy).instanceof(Simple);
+    expect((strategy as Simple).versionFile).to.eql('foo/bar');
+  });
 });

@@ -84,7 +84,6 @@ const releasers: Releasers = {
   'php-yoshi': options => new PHPYoshi(options),
   python: options => new Python(options),
   rust: options => new Rust(options),
-  simple: options => new Simple(options),
   'terraform-module': options => new TerraformModule(options),
   helm: options => new Helm(options),
   elixir: options => new Elixir(options),
@@ -182,6 +181,12 @@ export async function buildStrategy(
         ...strategyOptions,
         extraFiles: options.extraFiles,
         versioningStrategy: new ServicePackVersioningStrategy(),
+      });
+    }
+    case 'simple': {
+      return new Simple({
+        ...strategyOptions,
+        versionFile: options.versionFile,
       });
     }
     default: {

@@ -104,7 +104,7 @@ describe('Simple', () => {
         github,
         component: 'google-cloud-automl',
         versionFile: 'some-path/VERSION',
-        path: 'packages'
+        path: 'packages',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
