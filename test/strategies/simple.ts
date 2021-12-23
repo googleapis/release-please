@@ -98,5 +98,22 @@ describe('Simple', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'version.txt', DefaultUpdater);
     });
+    it('allows configuring the version file', async () => {
+      const strategy = new Simple({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        versionFile: 'some-path/VERSION',
+        path: 'packages'
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'packages/CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'packages/some-path/VERSION', DefaultUpdater);
+    });
   });
 });
