@@ -995,7 +995,7 @@ async function latestReleaseVersion(
       continue;
     }
 
-    if (tagName.component === prefix) {
+    if (tagName.component === branchPrefix) {
       logger.debug(`found release for ${prefix}`, tagName.version);
       if (!commitShas.has(release.sha)) {
         logger.debug(
@@ -1011,8 +1011,38 @@ async function latestReleaseVersion(
     candidateReleaseVersions
   );
 
+  if (candidateReleaseVersions.length > 0) {
+    // Find largest release number (sort descending then return first)
+    return candidateReleaseVersions.sort((a, b) => b.compare(a))[0];
+  }
+
+  // If not found from recent pull requests or releases, look at tags. Iterate
+  // through tags and cross reference against SHAs in this branch
+  const tagGenerator = github.tagIterator();
+  const candidateTagVersion: Version[] = [];
+  for await (const tag of tagGenerator) {
+    const tagName = TagName.parse(tag.name);
+    if (!tagName) {
+      continue;
+    }
+
+    if (tagName.component === branchPrefix) {
+      if (!commitShas.has(tag.sha)) {
+        logger.debug(
+          `SHA not found in recent commits to branch ${targetBranch}, skipping`
+        );
+        continue;
+      }
+      candidateTagVersion.push(tagName.version);
+    }
+  }
+  logger.debug(
+    `found ${candidateTagVersion.length} possible tags.`,
+    candidateTagVersion
+  );
+
   // Find largest release number (sort descending then return first)
-  return candidateReleaseVersions.sort((a, b) => b.compare(a))[0];
+  return candidateTagVersion.sort((a, b) => b.compare(a))[0];
 }
 
 function mergeReleaserConfig(

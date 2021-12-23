@@ -58,7 +58,7 @@ describe('KRMBlueprint', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,
@@ -73,7 +73,7 @@ describe('KRMBlueprint', () => {
         github,
         component: 'some-krm-blueprint-package',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(
           Version.parse('0.123.4'),
@@ -96,7 +96,7 @@ describe('KRMBlueprint', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,
@@ -113,8 +113,8 @@ describe('KRMBlueprint', () => {
         component: 'google-cloud-automl',
       });
       sandbox
-        .stub(github, 'findFilesByExtension')
-        .withArgs('yaml', '.')
+        .stub(github, 'findFilesByExtensionAndRef')
+        .withArgs('yaml', 'main', '.')
         .resolves(['project.yaml', 'no-attrib-bucket.yaml']);
       stubFilesFromFixtures({
         github,
