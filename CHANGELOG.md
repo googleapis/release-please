@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.1.0](https://www.github.com/googleapis/release-please/compare/v13.0.2...v13.1.0) (2021-12-29)
+
+
+### Features
+
+* introduce generic updater ([#1157](https://www.github.com/googleapis/release-please/issues/1157)) ([c97598c](https://www.github.com/googleapis/release-please/commit/c97598c137b5018c76f5d62137e277b991f4bfa3)), closes [#435](https://www.github.com/googleapis/release-please/issues/435) [#305](https://www.github.com/googleapis/release-please/issues/305) [#1139](https://www.github.com/googleapis/release-please/issues/1139) [#1174](https://www.github.com/googleapis/release-please/issues/1174)
+
 ### [13.0.2](https://www.github.com/googleapis/release-please/compare/v13.0.1...v13.0.2) (2021-12-29)
 
 
