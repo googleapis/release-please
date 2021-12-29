@@ -496,6 +496,40 @@ describe('GitHub', () => {
       expect(releases).lengthOf(3);
     });
 
+    it('correctly identifies draft releases', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'releases.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const generator = github.releaseIterator();
+      let drafts = 0;
+      for await (const release of generator) {
+        if (release.draft) {
+          drafts++;
+        }
+      }
+      expect(drafts).eq(1);
+    });
+
+    it('correctly identifies prerelease releases', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'releases.json'), 'utf8')
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const generator = github.releaseIterator();
+      let prereleases = 0;
+      for await (const release of generator) {
+        if (release.draft) {
+          prereleases++;
+        }
+      }
+      expect(prereleases).eq(1);
+    });
+
     it('iterates through a result withouth releases', async () => {
       req.post('/graphql').reply(200, {
         data: {
@@ -529,6 +563,7 @@ describe('GitHub', () => {
         .reply(200, {
           tag_name: 'v1.2.3',
           draft: false,
+          prerelease: false,
           html_url: 'https://github.com/fake/fake/releases/v1.2.3',
           upload_url:
             'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
@@ -544,6 +579,7 @@ describe('GitHub', () => {
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
+      expect(release.prerelease).to.be.false;
     });
 
     it('should raise a DuplicateReleaseError if already_exists', async () => {
@@ -616,6 +652,7 @@ describe('GitHub', () => {
         .reply(200, {
           tag_name: 'v1.2.3',
           draft: true,
+          prerelease: false,
           html_url: 'https://github.com/fake/fake/releases/v1.2.3',
           upload_url:
             'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
@@ -634,7 +671,39 @@ describe('GitHub', () => {
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.true;
+      expect(release.prerelease).to.be.false;
     });
+  });
+
+  it('should create a prerelease release', async () => {
+    req
+      .post('/repos/fake/fake/releases', body => {
+        snapshot(body);
+        return true;
+      })
+      .reply(200, {
+        tag_name: 'v1.2.3',
+        draft: false,
+        prerelease: true,
+        html_url: 'https://github.com/fake/fake/releases/v1.2.3',
+        upload_url:
+          'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
+        target_commitish: 'abc123',
+      });
+    const release = await github.createRelease(
+      {
+        tag: new TagName(Version.parse('1.2.3')),
+        sha: 'abc123',
+        notes: 'Some release notes',
+      },
+      {prerelease: true}
+    );
+    req.done();
+    expect(release).to.not.be.undefined;
+    expect(release.tagName).to.eql('v1.2.3');
+    expect(release.sha).to.eql('abc123');
+    expect(release.draft).to.be.false;
+    expect(release.prerelease).to.be.true;
   });
 
   describe('commentOnIssue', () => {

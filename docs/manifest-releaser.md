@@ -180,6 +180,11 @@ documented in comments)
   // absence defaults to false and Releases are created as already Published.
   "draft": true
 
+  // when `manifest-release` creates GitHub Releases per package, create
+  // those as "Prerelease" releases that have prerelease versions.
+  // absence defaults to false and all versions are fully Published.
+  "prerelease": true
+
   // Skip creating GitHub Releases
   // absence defaults to false and Releases will be created
   "skip-github-release": true,

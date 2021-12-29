@@ -82,6 +82,7 @@ describe('CLI', () => {
       handleError(err);
       snapshot(logs);
     });
+
     it('needs yargs', async () => {
       handleError.yargsArgs = undefined;
       expect(() => handleError({message: '', stack: ''})).to.throw(
@@ -110,6 +111,7 @@ describe('CLI', () => {
           },
         ]);
     });
+
     it('instantiates a basic Manifest', async () => {
       await await parser.parseAsync(
         'manifest-pr --repo-url=googleapis/release-please-cli'
@@ -130,6 +132,7 @@ describe('CLI', () => {
       );
       sinon.assert.calledOnce(createPullRequestsStub);
     });
+
     it('instantiates Manifest with custom config/manifest', async () => {
       await parser.parseAsync(
         'manifest-pr --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
@@ -172,6 +175,7 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createPullRequestsStub);
       });
     }
+
     it('handles --dry-run', async () => {
       const buildPullRequestsStub = sandbox
         .stub(fakeManifest, 'buildPullRequests')
@@ -196,6 +200,7 @@ describe('CLI', () => {
       );
       sinon.assert.calledOnce(buildPullRequestsStub);
     });
+
     it('handles --fork', async () => {
       await parser.parseAsync(
         'manifest-pr --repo-url=googleapis/release-please-cli --fork'
@@ -216,6 +221,7 @@ describe('CLI', () => {
       );
       sinon.assert.calledOnce(createPullRequestsStub);
     });
+
     it('handles --label', async () => {
       await parser.parseAsync(
         'manifest-pr --repo-url=googleapis/release-please-cli --label=foo,bar'
@@ -236,6 +242,7 @@ describe('CLI', () => {
       );
       sinon.assert.calledOnce(createPullRequestsStub);
     });
+
     // it('handles --draft', async () => {
     //   await parser.parseAsync(
     //     'manifest-pr --repo-url=googleapis/release-please-cli --draft'
@@ -256,6 +263,7 @@ describe('CLI', () => {
     //   );
     //   sinon.assert.calledOnce(createPullRequestsStub);
     // });
+
     it('handles --signoff', async () => {
       await parser.parseAsync(
         'manifest-pr --repo-url=googleapis/release-please-cli --signoff="Alice <alice@example.com>"'
@@ -300,6 +308,7 @@ describe('CLI', () => {
           },
         ]);
     });
+
     it('instantiates a basic Manifest', async () => {
       await parser.parseAsync(
         'manifest-release --repo-url=googleapis/release-please-cli'
@@ -320,6 +329,7 @@ describe('CLI', () => {
       );
       sinon.assert.calledOnce(createReleasesStub);
     });
+
     it('instantiates Manifest with custom config/manifest', async () => {
       await parser.parseAsync(
         'manifest-release --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
@@ -362,6 +372,7 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createReleasesStub);
       });
     }
+
     it('handles --dry-run', async () => {
       const buildReleasesStub = sandbox
         .stub(fakeManifest, 'buildReleases')
@@ -386,6 +397,7 @@ describe('CLI', () => {
       );
       sinon.assert.calledOnce(buildReleasesStub);
     });
+
     it('handles --label and --release-label', async () => {
       await parser.parseAsync(
         'manifest-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer'
@@ -406,6 +418,7 @@ describe('CLI', () => {
       );
       sinon.assert.calledOnce(createReleasesStub);
     });
+
     it('handles --draft', async () => {
       await parser.parseAsync(
         'manifest-release --repo-url=googleapis/release-please-cli --draft'
@@ -423,6 +436,27 @@ describe('CLI', () => {
         DEFAULT_RELEASE_PLEASE_CONFIG,
         DEFAULT_RELEASE_PLEASE_MANIFEST,
         sinon.match({draft: true})
+      );
+      sinon.assert.calledOnce(createReleasesStub);
+    });
+
+    it('handles --prerelease', async () => {
+      await parser.parseAsync(
+        'manifest-release --repo-url=googleapis/release-please-cli --prerelease'
+      );
+
+      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+        owner: 'googleapis',
+        repo: 'release-please-cli',
+        token: undefined,
+      });
+      sinon.assert.calledOnceWithExactly(
+        fromManifestStub,
+        fakeGitHub,
+        'main',
+        DEFAULT_RELEASE_PLEASE_CONFIG,
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        sinon.match({prerelease: true})
       );
       sinon.assert.calledOnce(createReleasesStub);
     });
@@ -469,6 +503,7 @@ describe('CLI', () => {
             },
           ]);
       });
+
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli'
@@ -489,6 +524,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createPullRequestsStub);
       });
+
       it('instantiates Manifest with custom config/manifest', async () => {
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
@@ -531,6 +567,7 @@ describe('CLI', () => {
           sinon.assert.calledOnce(createPullRequestsStub);
         });
       }
+
       it('handles --dry-run', async () => {
         const buildPullRequestsStub = sandbox
           .stub(fakeManifest, 'buildPullRequests')
@@ -577,6 +614,7 @@ describe('CLI', () => {
             },
           ]);
       });
+
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi'
@@ -984,6 +1022,7 @@ describe('CLI', () => {
             },
           ]);
       });
+
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli'
@@ -1004,6 +1043,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createReleasesStub);
       });
+
       it('instantiates Manifest with custom config/manifest', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
@@ -1046,6 +1086,7 @@ describe('CLI', () => {
           sinon.assert.calledOnce(createReleasesStub);
         });
       }
+
       it('handles --dry-run', async () => {
         const buildReleasesStub = sandbox
           .stub(fakeManifest, 'buildReleases')
@@ -1070,6 +1111,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(buildReleasesStub);
       });
+
       it('handles --label and --release-label', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer'
@@ -1090,6 +1132,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createReleasesStub);
       });
+
       it('handles --draft', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli --draft'
@@ -1107,6 +1150,27 @@ describe('CLI', () => {
           DEFAULT_RELEASE_PLEASE_CONFIG,
           DEFAULT_RELEASE_PLEASE_MANIFEST,
           sinon.match({draft: true})
+        );
+        sinon.assert.calledOnce(createReleasesStub);
+      });
+
+      it('handles --prerelease', async () => {
+        await parser.parseAsync(
+          'github-release --repo-url=googleapis/release-please-cli --prerelease'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromManifestStub,
+          fakeGitHub,
+          'main',
+          DEFAULT_RELEASE_PLEASE_CONFIG,
+          DEFAULT_RELEASE_PLEASE_MANIFEST,
+          sinon.match({prerelease: true})
         );
         sinon.assert.calledOnce(createReleasesStub);
       });
@@ -1139,6 +1203,7 @@ describe('CLI', () => {
             },
           ]);
       });
+
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi'
@@ -1159,6 +1224,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createReleasesStub);
       });
+
       it('handles --dry-run', async () => {
         const buildReleasesStub = sandbox
           .stub(fakeManifest, 'buildReleases')
@@ -1182,6 +1248,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(buildReleasesStub);
       });
+
       it('handles --draft', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --draft'
@@ -1202,6 +1269,28 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createReleasesStub);
       });
+
+      it('handles --prerelease', async () => {
+        await parser.parseAsync(
+          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --prerelease'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({releaseType: 'java-yoshi', prerelease: true}),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createReleasesStub);
+      });
+
       it('handles --label and --release-label', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --label=foo,bar --release-label=asdf,qwer'
@@ -1225,6 +1314,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createReleasesStub);
       });
+
       it('handles --path', async () => {
         await parser.parseAsync(
           'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --path=submodule'
