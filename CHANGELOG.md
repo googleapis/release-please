@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.0.2](https://www.github.com/googleapis/release-please/compare/v13.0.1...v13.0.2) (2021-12-29)
+
+
+### Bug Fixes
+
+* set the title when creating a release ([#1177](https://www.github.com/googleapis/release-please/issues/1177)) ([d05001f](https://www.github.com/googleapis/release-please/commit/d05001faedcdf11869cd9db06e3a8a8071af4470))
+
 ### [13.0.1](https://www.github.com/googleapis/release-please/compare/v13.0.0...v13.0.1) (2021-12-23)
 
 
