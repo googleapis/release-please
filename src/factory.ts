@@ -77,6 +77,7 @@ type Releasers = Record<string, ReleaseBuilder>;
 const releasers: Releasers = {
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
+  'java-yoshi': options => new JavaYoshi(options),
   'krm-blueprint': options => new KRMBlueprint(options),
   node: options => new Node(options),
   ocaml: options => new OCaml(options),
@@ -140,6 +141,7 @@ export async function buildStrategy(
     includeComponentInTag: options.includeComponentInTag,
     changelogNotes,
     pullRequestTitlePattern: options.pullRequestTitlePattern,
+    extraFiles: options.extraFiles,
   };
   switch (options.releaseType) {
     case 'ruby': {
@@ -154,23 +156,15 @@ export async function buildStrategy(
         versionFile: options.versionFile,
       });
     }
-    case 'java-yoshi': {
-      return new JavaYoshi({
-        ...strategyOptions,
-        extraFiles: options.extraFiles,
-      });
-    }
     case 'java-backport': {
       return new JavaYoshi({
         ...strategyOptions,
-        extraFiles: options.extraFiles,
         versioningStrategy: new AlwaysBumpPatch(),
       });
     }
     case 'java-bom': {
       return new JavaYoshi({
         ...strategyOptions,
-        extraFiles: options.extraFiles,
         versioningStrategy: new DependencyManifest({
           bumpMinorPreMajor: options.bumpMinorPreMajor,
           bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
@@ -180,7 +174,6 @@ export async function buildStrategy(
     case 'java-lts': {
       return new JavaYoshi({
         ...strategyOptions,
-        extraFiles: options.extraFiles,
         versioningStrategy: new ServicePackVersioningStrategy(),
       });
     }

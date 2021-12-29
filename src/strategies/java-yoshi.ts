@@ -47,23 +47,17 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-interface JavaStrategyOptions extends BaseStrategyOptions {
-  extraFiles?: string[];
-}
-
 export class JavaYoshi extends BaseStrategy {
-  readonly extraFiles: string[];
   private versionsContent?: GitHubFileContents;
   private snapshotVersioning: VersioningStrategy;
 
-  constructor(options: JavaStrategyOptions) {
+  constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     // wrap the configured versioning strategy with snapshotting
     const parentVersioningStrategy =
       options.versioningStrategy || new DefaultVersioningStrategy();
     options.versioningStrategy = new JavaSnapshot(parentVersioningStrategy);
     super(options);
-    this.extraFiles = options.extraFiles || [];
     this.snapshotVersioning = new JavaAddSnapshot(parentVersioningStrategy);
   }
 

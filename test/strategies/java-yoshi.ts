@@ -24,6 +24,7 @@ import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {JavaUpdate} from '../../src/updaters/java/java-update';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
+import {CompositeUpdater} from '../../src/updaters/composite';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/java-yoshi';
@@ -259,8 +260,8 @@ describe('JavaYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-      assertHasUpdate(updates, 'foo/bar.java', JavaUpdate);
-      assertHasUpdate(updates, 'src/version.java', JavaUpdate);
+      assertHasUpdate(updates, 'foo/bar.java', CompositeUpdater);
+      assertHasUpdate(updates, 'src/version.java', CompositeUpdater);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
     });
   });
