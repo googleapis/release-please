@@ -12,11 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {TagName} from './util/tag-name';
-
-export interface Release {
-  readonly name?: string;
-  readonly tag: TagName;
-  readonly sha: string;
-  readonly notes: string;
-}
+export * as Errors from './errors';
+export {Manifest, ReleaserConfig, ManifestOptions} from './manifest';
+export {
+  ReleaseType,
+  getReleaserTypes,
+  VersioningStrategyType,
+  getVersioningStrategyTypes,
+  ChangelogNotesType,
+  getChangelogTypes,
+} from './factory';
+export {Logger, setLogger} from './util/logger';
+export {GitHub} from './github';

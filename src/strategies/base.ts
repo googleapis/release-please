@@ -373,7 +373,12 @@ export abstract class BaseStrategy implements Strategy {
       this.includeComponentInTag ? component : undefined,
       this.tagSeparator
     );
+    const releaseName =
+      component && this.includeComponentInTag
+        ? `${component}: v${version.toString()}`
+        : `v${version.toString()}`;
     return {
+      name: releaseName,
       tag,
       notes: notes || '',
       sha: mergedPullRequest.sha,
