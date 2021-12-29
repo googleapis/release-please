@@ -1204,6 +1204,7 @@ export class GitHub {
       options: {draft?: boolean} = {}
     ): Promise<GitHubRelease> => {
       const resp = await this.octokit.repos.createRelease({
+        name: release.name,
         owner: this.repository.owner,
         repo: this.repository.repo,
         tag_name: release.tag.toString(),

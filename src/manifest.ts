@@ -376,6 +376,7 @@ export class Manifest {
         logger.debug(`Found release for path ${path}, ${release.tagName}`);
         releaseShasByPath[path] = release.sha;
         releasesByPath[path] = {
+          name: release.name,
           tag: tagName,
           sha: release.sha,
           notes: release.notes || '',
