@@ -140,7 +140,11 @@ describe('Rust', () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('Cargo.toml', 'main')
-        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-workspace.toml'));
+        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-workspace.toml'))
+        .withArgs('crates/crate1/Cargo.toml', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-crate1.toml'))
+        .withArgs('crates/crate2/Cargo.toml', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-crate2.toml'));
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
