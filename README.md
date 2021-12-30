@@ -91,6 +91,24 @@ chore: release 2.0.0
 Release-As: 2.0.0
 ```
 
+## How can I fix release notes?
+
+If you have merged a pull request and you would like to amend the commit message
+used to generate the release notes for that commit, you can edit the body of
+the merged pull requests and add a section like:
+
+```
+BEGIN_COMMIT_OVERRIDE
+feat: add ability to override merged commit message
+
+fix: another message
+chore: a third message
+END_COMMIT_OVERRIDE
+```
+
+The next time release please runs, it will use that override section as the
+commit message instead of the merged commit message.
+
 ## Strategy (Language) types supported
 
 Release Please automates releases for the following flavors of repositories:
