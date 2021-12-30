@@ -66,6 +66,7 @@ describe('Rust', () => {
       );
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
+
     it('returns release PR changes with semver patch bump', async () => {
       const expectedVersion = '0.123.5';
       const strategy = new Rust({
@@ -111,6 +112,7 @@ describe('Rust', () => {
       snapshot(dateSafe(pullRequest!.body.toString()));
     });
   });
+
   describe('buildUpdates', () => {
     it('builds common files', async () => {
       const strategy = new Rust({
@@ -147,6 +149,7 @@ describe('Rust', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'crates/crate1/Cargo.toml', CargoToml);
       assertHasUpdate(updates, 'crates/crate2/Cargo.toml', CargoToml);
+      assertHasUpdate(updates, 'Cargo.toml', CargoToml);
       assertHasUpdate(updates, 'Cargo.lock', CargoLock);
     });
   });
