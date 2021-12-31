@@ -114,7 +114,7 @@ minimal content required defines at least one package:
   }
 }
 ```
-The following example shows all the possiblities. Note: for illustration
+The following example shows all the possibilities. Note: for illustration
 purposes the top level values set here are **NOT** the defaults (those are
 documented in comments)
 ```js
@@ -337,7 +337,7 @@ plugin must already be implemented, see below)
 
 ### Plugin implementation
 
-A `ManifestPlugin` instance has these resources avilable:
+A `ManifestPlugin` instance has these resources available:
 - `this.github`: a `GitHub` instance for any API operations it might want to perform
 - `this.repositoryConfig`: a `RepositoryConfig` object representing all the packages
   configured for the monorepo
