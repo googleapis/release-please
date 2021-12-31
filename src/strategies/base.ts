@@ -214,7 +214,7 @@ export abstract class BaseStrategy implements Strategy {
       this.includeComponentInTag ? component : undefined,
       this.tagSeparator
     );
-    logger.warn('pull request title pattern:', this.pullRequestTitlePattern);
+    logger.debug('pull request title pattern:', this.pullRequestTitlePattern);
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,

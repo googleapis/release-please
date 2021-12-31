@@ -115,6 +115,7 @@ export interface ManifestOptions {
   releaseLabels?: string[];
   draft?: boolean;
   draftPullRequest?: boolean;
+  groupPullRequestTitlePattern?: string;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -135,6 +136,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'always-link-local'?: boolean;
   plugins?: PluginType[];
   'separate-pull-requests'?: boolean;
+  'group-pull-request-title-pattern'?: string;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -177,6 +179,7 @@ export class Manifest {
   private lastReleaseSha?: string;
   private draft?: boolean;
   private draftPullRequest?: boolean;
+  private groupPullRequestTitlePattern?: string;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -230,6 +233,8 @@ export class Manifest {
     this.lastReleaseSha = manifestOptions?.lastReleaseSha;
     this.draft = manifestOptions?.draft;
     this.draftPullRequest = manifestOptions?.draftPullRequest;
+    this.groupPullRequestTitlePattern =
+      manifestOptions?.groupPullRequestTitlePattern;
   }
 
   /**
@@ -545,7 +550,12 @@ export class Manifest {
     // pull requests
     if (!this.separatePullRequests) {
       plugins.push(
-        new Merge(this.github, this.targetBranch, this.repositoryConfig)
+        new Merge(
+          this.github,
+          this.targetBranch,
+          this.repositoryConfig,
+          this.groupPullRequestTitlePattern
+        )
       );
     }
 
