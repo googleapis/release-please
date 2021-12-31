@@ -199,6 +199,7 @@ documented in comments)
 
   // sets the manifest pull request title for when releasing multiple packages
   // grouped together in the one pull request.
+  // This option has no effect when `separate-pull-requests` is `true`.
   // Template values (i.e. ${scope}, ${component} and ${version}) are inherited
   // from the root path's (i.e. '.') package, if present
   // absence defaults to "chore: release ${branch}"
