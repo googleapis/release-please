@@ -1331,7 +1331,7 @@ describe('Manifest', () => {
           'pkg/c': {
             releaseType: 'simple',
             component: 'c',
-            extraFiles: ['../pkg-c.properties'],
+            extraFiles: ['../pkg-c.properties', '/ccc.properties'],
             skipGithubRelease: true,
           },
         },
@@ -1347,11 +1347,15 @@ describe('Manifest', () => {
       expect(pullRequests[0].updates.map(update => update.path))
         .to.include.members([
           'pkg.properties',
+          'ccc.properties',
           'pkg/b/pkg.properties',
           'pkg/b/src/version',
           'pkg/pkg-c.properties',
         ])
-        .but.not.includes('pkg/c/pkg.properties');
+        .but.not.include.members([
+          'pkg/c/pkg-c.properties', // should be up one level
+          'pkg/c/ccc.properties', // should be at root
+        ]);
     });
 
     describe('with plugins', () => {
