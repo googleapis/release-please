@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as path from 'path';
 import {Strategy} from '../strategy';
 import {GitHub} from '../github';
 import {VersioningStrategy} from '../versioning-strategy';
@@ -268,13 +269,11 @@ export abstract class BaseStrategy implements Strategy {
 
   private extraFileUpdates(version: Version): Update[] {
     const genericUpdater = new Generic({version});
-    return this.extraFiles.map(path => {
-      return {
-        path,
-        createIfMissing: false,
-        updater: genericUpdater,
-      };
-    });
+    return this.extraFiles.map(path => ({
+      path: this.addPath(path),
+      createIfMissing: false,
+      updater: genericUpdater,
+    }));
   }
 
   protected changelogEmpty(changelogEntry: string): boolean {
@@ -411,16 +410,14 @@ export abstract class BaseStrategy implements Strategy {
     return Version.parse('1.0.0');
   }
 
+  /**
+   * Adds a given file path to the strategy path.
+   * @param {string} file Desired file path.
+   * @returns {string} The file relative to the strategy.
+   */
   protected addPath(file: string) {
-    if (this.path === ROOT_PROJECT_PATH) {
-      return file;
-    }
-    file = file.replace(/^[/\\]/, '');
-    if (this.path === undefined) {
-      return file;
-    } else {
-      const path = this.path.replace(/[/\\]$/, '');
-      return `${path}/${file}`;
-    }
+    return this.path && this.path !== ROOT_PROJECT_PATH
+      ? path.join(this.path, file)
+      : file;
   }
 }

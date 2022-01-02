@@ -1294,6 +1294,66 @@ describe('Manifest', () => {
       );
     });
 
+    it('should handle extra files', async () => {
+      mockReleases(github, []);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: a bugfix',
+          files: ['foo', 'pkg.properties'],
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: b bugfix',
+          files: ['pkg/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: c bugfix',
+          files: ['pkg/c/foo'],
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            component: 'a',
+            extraFiles: ['pkg.properties'],
+          },
+          'pkg/b': {
+            releaseType: 'simple',
+            component: 'b',
+            extraFiles: ['pkg.properties', 'src/version'],
+            skipGithubRelease: true,
+          },
+          'pkg/c': {
+            releaseType: 'simple',
+            component: 'c',
+            extraFiles: ['../pkg-c.properties'],
+            skipGithubRelease: true,
+          },
+        },
+        {
+          '.': Version.parse('1.1.0'),
+          'pkg/b': Version.parse('1.0.0'),
+          'pkg/c': Version.parse('1.0.1'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].updates).to.be.an('array');
+      expect(pullRequests[0].updates.map(update => update.path))
+        .to.include.members([
+          'pkg.properties',
+          'pkg/b/pkg.properties',
+          'pkg/b/src/version',
+          'pkg/pkg-c.properties',
+        ])
+        .but.not.includes('pkg/c/pkg.properties');
+    });
+
     describe('with plugins', () => {
       beforeEach(() => {
         mockReleases(github, [
