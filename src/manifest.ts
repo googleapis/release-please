@@ -234,7 +234,6 @@ export class Manifest {
     this.bootstrapSha = manifestOptions?.bootstrapSha;
     this.lastReleaseSha = manifestOptions?.lastReleaseSha;
     this.draft = manifestOptions?.draft;
-    this.prerelease = manifestOptions?.prerelease;
     this.draftPullRequest = manifestOptions?.draftPullRequest;
   }
 
@@ -721,9 +720,7 @@ export class Manifest {
             path,
             pullRequest,
             draft: config.draft ?? this.draft,
-            prerelease:
-              (config.prerelease ?? this.prerelease) &&
-              !!release.tag.version.preRelease,
+            prerelease: config.prerelease && !!release.tag.version.preRelease,
           });
         }
       }

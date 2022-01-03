@@ -717,9 +717,6 @@ function extractManifestOptions(
   if ('draft' in argv && argv.draft !== undefined) {
     manifestOptions.draft = argv.draft;
   }
-  if ('prerelease' in argv && argv.prerelease !== undefined) {
-    manifestOptions.prerelease = argv.prerelease;
-  }
   if ('draftPullRequest' in argv && argv.draftPullRequest !== undefined) {
     manifestOptions.draftPullRequest = argv.draftPullRequest;
   }

@@ -440,26 +440,6 @@ describe('CLI', () => {
       sinon.assert.calledOnce(createReleasesStub);
     });
 
-    it('handles --prerelease', async () => {
-      await parser.parseAsync(
-        'manifest-release --repo-url=googleapis/release-please-cli --prerelease'
-      );
-
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-      });
-      sinon.assert.calledOnceWithExactly(
-        fromManifestStub,
-        fakeGitHub,
-        'main',
-        DEFAULT_RELEASE_PLEASE_CONFIG,
-        DEFAULT_RELEASE_PLEASE_MANIFEST,
-        sinon.match({prerelease: true})
-      );
-      sinon.assert.calledOnce(createReleasesStub);
-    });
     // it('handles --release-as', async () => {
     //   await parser.parseAsync(
     //     'manifest-release --repo-url=googleapis/release-please-cli --release-as=2.3.4'
@@ -1154,26 +1134,6 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createReleasesStub);
       });
 
-      it('handles --prerelease', async () => {
-        await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --prerelease'
-        );
-
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-        });
-        sinon.assert.calledOnceWithExactly(
-          fromManifestStub,
-          fakeGitHub,
-          'main',
-          DEFAULT_RELEASE_PLEASE_CONFIG,
-          DEFAULT_RELEASE_PLEASE_MANIFEST,
-          sinon.match({prerelease: true})
-        );
-        sinon.assert.calledOnce(createReleasesStub);
-      });
       // it('handles --release-as', async () => {
       //   await parser.parseAsync(
       //     'github-release --repo-url=googleapis/release-please-cli --release-as=2.3.4'
