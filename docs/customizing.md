@@ -70,7 +70,7 @@ in the manifest configuration.
 ### Pull Request Title
 
 If you would like to customize the pull request title, you can use the
-`--pull-request-title-pattern` CLI option of the `pull-request-title-pattern`
+`--pull-request-title-pattern` CLI option or the `pull-request-title-pattern`
 option in the manifest configuration.
 
 The pattern uses string replacement and regular expressions to build and
