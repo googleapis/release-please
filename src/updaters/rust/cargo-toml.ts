@@ -39,21 +39,13 @@ export class CargoToml extends DefaultUpdater {
       logger.error(msg);
       throw new Error(msg);
     }
+    payload = replaceTomlValue(
+      payload,
+      ['package', 'version'],
+      this.version.toString()
+    );
 
     for (const [pkgName, pkgVersion] of this.versionsMap) {
-      if (parsed.package.name === pkgName) {
-        logger.info(
-          `updating own version from ${parsed.package?.version} to ${pkgVersion}`
-        );
-        payload = replaceTomlValue(
-          payload,
-          ['package', 'version'],
-          pkgVersion.toString()
-        );
-
-        continue; // to next [pkgName, pkgVersion] pair
-      }
-
       for (const depKind of DEP_KINDS) {
         const deps = parsed[depKind];
 

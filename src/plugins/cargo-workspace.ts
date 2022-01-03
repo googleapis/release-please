@@ -40,6 +40,7 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {PatchVersionUpdate} from '../versioning-strategy';
+import {CargoLock} from '../updaters/rust/cargo-lock';
 
 interface CrateInfo {
   /**
@@ -114,7 +115,9 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
     const allCrates: CrateInfo[] = [];
     const candidatesByPackage: Record<string, CandidateReleasePullRequest> = {};
-    for (const path of cargoManifest.workspace.members) {
+    const members = cargoManifest.workspace.members;
+    members.push(ROOT_PROJECT_PATH);
+    for (const path of members) {
       const manifestPath = addPath(path, 'Cargo.toml');
       logger.info(`looking for candidate with path: ${path}`);
       const candidate = candidates.find(c => c.path === path);
@@ -130,9 +133,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       const manifest = parseCargoManifest(manifestContent.parsedContent);
       const packageName = manifest.package?.name;
       if (!packageName) {
-        throw new Error(
+        logger.warn(
           `package manifest at ${manifestPath} is missing [package.name]`
         );
+        continue;
       }
       if (candidate) {
         candidatesByPackage[packageName] = candidate;
@@ -189,11 +193,18 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       existingCandidate.pullRequest.updates.map(update => {
         if (update.path === addPath(existingCandidate.path, 'Cargo.toml')) {
           update.updater = new RawContent(updatedContent);
-        } else if (update.updater instanceof Changelog) {
+        } else if (update.updater instanceof Changelog && dependencyNotes) {
           update.updater.changelogEntry = appendDependenciesSectionToChangelog(
             update.updater.changelogEntry,
             dependencyNotes
           );
+        } else if (
+          update.path === addPath(existingCandidate.path, 'Cargo.lock')
+        ) {
+          update.updater = new CargoLock({
+            version,
+            versionsMap: updatedVersions,
+          });
         }
         return update;
       });
@@ -297,10 +308,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
   }
 
   protected inScope(candidate: CandidateReleasePullRequest): boolean {
-    return (
-      candidate.config.releaseType === 'rust' &&
-      candidate.path !== ROOT_PROJECT_PATH
-    );
+    return candidate.config.releaseType === 'rust';
   }
 
   protected packageNameFromPackage(pkg: CrateInfo): string {
