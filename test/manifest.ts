@@ -101,7 +101,7 @@ function mockCreateRelease(
   }[]
 ): sinon.SinonStub {
   const releaseStub = sandbox.stub(github, 'createRelease');
-  for (const {sha, tagName, draft, prerelease} of releases) {
+  for (const {sha, tagName, draft} of releases) {
     releaseStub
       .withArgs(
         sinon.match.has(
@@ -115,7 +115,6 @@ function mockCreateRelease(
         url: 'https://path/to/release',
         notes: 'some release notes',
         draft,
-        prerelease,
       });
   }
   return releaseStub;
@@ -2982,7 +2981,6 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.eql('some release notes');
       expect(releases[0]!.draft).to.be.true;
-      expect(releases[0]!.prerelease).to.be.undefined;
       sinon.assert.calledOnceWithExactly(githubReleaseStub, sinon.match.any, {
         draft: true,
         prerelease: undefined,
@@ -3061,7 +3059,6 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.eql('some release notes');
       expect(releases[0]!.draft).to.be.undefined;
-      expect(releases[0]!.prerelease).to.be.true;
       sinon.assert.calledOnceWithExactly(githubReleaseStub, sinon.match.any, {
         draft: undefined,
         prerelease: true,
@@ -3138,7 +3135,6 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.eql('some release notes');
       expect(releases[0]!.draft).to.be.undefined;
-      expect(releases[0]!.prerelease).to.be.false;
       sinon.assert.calledOnceWithExactly(githubReleaseStub, sinon.match.any, {
         draft: undefined,
         prerelease: false,

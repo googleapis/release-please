@@ -109,7 +109,6 @@ interface GraphQLRelease {
   url: string;
   description: string;
   isDraft: boolean;
-  isPrerelease: boolean;
 }
 
 interface CommitHistory {
@@ -161,7 +160,6 @@ export interface GitHubRelease {
   notes?: string;
   url: string;
   draft?: boolean;
-  prerelease?: boolean;
 }
 
 export interface GitHubTag {
@@ -339,51 +337,51 @@ export class GitHub {
     );
     const response = await this.graphqlRequest({
       query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
-            repository(owner: $owner, name: $repo) {
-              ref(qualifiedName: $targetBranch) {
-                target {
-                  ... on Commit {
-                    history(first: $num, after: $cursor) {
+        repository(owner: $owner, name: $repo) {
+          ref(qualifiedName: $targetBranch) {
+            target {
+              ... on Commit {
+                history(first: $num, after: $cursor) {
+                  nodes {
+                    associatedPullRequests(first: 10) {
                       nodes {
-                        associatedPullRequests(first: 10) {
+                        number
+                        title
+                        baseRefName
+                        headRefName
+                        labels(first: 10) {
                           nodes {
-                            number
-                            title
-                            baseRefName
-                            headRefName
-                            labels(first: 10) {
-                              nodes {
-                                name
-                              }
-                            }
-                            body
-                            mergeCommit {
-                              oid
-                            }
-                            files(first: $maxFilesChanged) {
-                              nodes {
-                                path
-                              }
-                              pageInfo {
-                                endCursor
-                                hasNextPage
-                              }
-                            }
+                            name
                           }
                         }
-                        sha: oid
-                        message
-                      }
-                      pageInfo {
-                        hasNextPage
-                        endCursor
+                        body
+                        mergeCommit {
+                          oid
+                        }
+                        files(first: $maxFilesChanged) {
+                          nodes {
+                            path
+                          }
+                          pageInfo {
+                            endCursor
+                            hasNextPage
+                          }
+                        }
                       }
                     }
+                    sha: oid
+                    message
+                  }
+                  pageInfo {
+                    hasNextPage
+                    endCursor
                   }
                 }
               }
             }
-          }`,
+          }
+        }
+      }`,
       cursor,
       owner: this.repository.owner,
       repo: this.repository.repo,
@@ -532,39 +530,39 @@ export class GitHub {
     );
     const response = await this.graphqlRequest({
       query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
-              repository(owner: $owner, name: $repo) {
-                pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
-                  nodes {
-                    number
-                    title
-                    baseRefName
-                    headRefName
-                    labels(first: 10) {
-                      nodes {
-                        name
-                      }
-                    }
-                    body
-                    mergeCommit {
-                      oid
-                    }
-                    files(first: $maxFilesChanged) {
-                      nodes {
-                        path
-                      }
-                      pageInfo {
-                        endCursor
-                        hasNextPage
-                      }
-                    }
-                  }
-                  pageInfo {
-                    endCursor
-                    hasNextPage
-                  }
+        repository(owner: $owner, name: $repo) {
+          pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes {
+              number
+              title
+              baseRefName
+              headRefName
+              labels(first: 10) {
+                nodes {
+                  name
                 }
               }
-            }`,
+              body
+              mergeCommit {
+                oid
+              }
+              files(first: $maxFilesChanged) {
+                nodes {
+                  path
+                }
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+              }
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }`,
       cursor,
       owner: this.repository.owner,
       repo: this.repository.repo,
@@ -635,28 +633,27 @@ export class GitHub {
     logger.debug(`Fetching releases with cursor ${cursor}`);
     const response = await this.graphqlRequest({
       query: `query releases($owner: String!, $repo: String!, $num: Int!, $cursor: String) {
-            repository(owner: $owner, name: $repo) {
-              releases(first: $num, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
-                nodes {
-                  name
-                  tag {
-                    name
-                  }
-                  tagCommit {
-                    oid
-                  }
-                  url
-                  description
-                  isDraft
-                  isPrerelease
-                }
-                pageInfo {
-                  endCursor
-                  hasNextPage
-                }
+        repository(owner: $owner, name: $repo) {
+          releases(first: $num, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes {
+              name
+              tag {
+                name
               }
+              tagCommit {
+                oid
+              }
+              url
+              description
+              isDraft
             }
-          }`,
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }`,
       cursor,
       owner: this.repository.owner,
       repo: this.repository.repo,
@@ -682,10 +679,9 @@ export class GitHub {
             notes: release.description,
             url: release.url,
             draft: release.isDraft,
-            prerelease: release.isPrerelease,
-          };
+          } as GitHubRelease;
         }),
-    };
+    } as ReleaseHistory;
   }
 
   /**
@@ -1229,7 +1225,6 @@ export class GitHub {
         notes: resp.data.body_text,
         url: resp.data.html_url,
         draft: resp.data.draft,
-        prerelease: resp.data.prerelease,
       };
     },
     e => {

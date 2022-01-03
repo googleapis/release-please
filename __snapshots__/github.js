@@ -399,6 +399,14 @@ exports['GitHub createRelease should create a draft release 1'] = {
   "prerelease": false
 }
 
+exports['GitHub createRelease should create a prerelease release 1'] = {
+  "tag_name": "v1.2.3",
+  "body": "Some release notes",
+  "sha": "abc123",
+  "draft": false,
+  "prerelease": true
+}
+
 exports['GitHub createRelease should create a release with a package prefix 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
@@ -828,11 +836,3 @@ exports['GitHub pullRequestIterator finds merged pull requests with labels 1'] =
     ]
   }
 ]
-
-exports['GitHub should create a prerelease release 1'] = {
-  "tag_name": "v1.2.3",
-  "body": "Some release notes",
-  "sha": "abc123",
-  "draft": false,
-  "prerelease": true
-}
