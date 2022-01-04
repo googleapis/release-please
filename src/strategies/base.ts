@@ -416,15 +416,12 @@ export abstract class BaseStrategy implements Strategy {
    * @returns {string} The file relative to the strategy.
    */
   protected addPath(file: string) {
-    // There is no strategy path to join, or the strategy is at the root
-    if (!this.path || this.path === ROOT_PROJECT_PATH) {
-      return file;
-    }
-    // The file is at the root, as denoted by a leading slash
-    if (file.startsWith('/')) {
-      return file.substring(1);
+    // There is no strategy path to join, or the strategy is at the root, or
+    // the file is at the root, as denoted by a leading slash
+    if (!this.path || this.path === ROOT_PROJECT_PATH || file.startsWith('/')) {
+      return path.posix.normalize(file.replace(/^\/+/, ''));
     }
     // The file is relative to the strategy path
-    return path.join(this.path, file);
+    return path.posix.join(this.path, file);
   }
 }
