@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.1.1](https://www.github.com/googleapis/release-please/compare/v13.1.0...v13.1.1) (2022-01-03)
+
+
+### Bug Fixes
+
+* **rust:** Rust strategy should update root Cargo files in a workspace ([#1182](https://www.github.com/googleapis/release-please/issues/1182)) ([26a040c](https://www.github.com/googleapis/release-please/commit/26a040cf06a7a2cf97b9ebc3d204bb36f0b2c13b)), closes [#1170](https://www.github.com/googleapis/release-please/issues/1170) [#1096](https://www.github.com/googleapis/release-please/issues/1096)
+
 ## [13.1.0](https://www.github.com/googleapis/release-please/compare/v13.0.2...v13.1.0) (2021-12-29)
 
 

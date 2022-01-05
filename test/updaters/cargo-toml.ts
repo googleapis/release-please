@@ -58,10 +58,11 @@ describe('CargoToml', () => {
         resolve(fixturesPath, './Cargo.toml'),
         'utf8'
       ).replace(/\r\n/g, '\n');
+      const newVersion = Version.parse('14.0.0');
       const versions = new Map();
-      versions.set('rust-test-repo', '14.0.0');
+      versions.set('rust-test-repo', newVersion);
       const cargoToml = new CargoToml({
-        version: FAKE_VERSION,
+        version: newVersion,
         versionsMap: versions,
       });
       const newContent = cargoToml.updateContent(oldContent);
@@ -73,6 +74,7 @@ describe('CargoToml', () => {
         resolve(fixturesPath, './Cargo.toml'),
         'utf8'
       ).replace(/\r\n/g, '\n');
+      const newVersion = Version.parse('12.0.0');
       const versions = new Map();
       versions.set('normal-dep', '2.0.0');
       versions.set('dev-dep', '2.0.0');
@@ -84,7 +86,7 @@ describe('CargoToml', () => {
       versions.set('x86-64-dep', '2.0.0');
       versions.set('foobar-dep', '2.0.0');
       const cargoToml = new CargoToml({
-        version: FAKE_VERSION,
+        version: newVersion,
         versionsMap: versions,
       });
       const newContent = cargoToml.updateContent(oldContent);

@@ -70,7 +70,7 @@ in the manifest configuration.
 ### Pull Request Title
 
 If you would like to customize the pull request title, you can use the
-`--pull-request-title-pattern` CLI option of the `pull-request-title-pattern`
+`--pull-request-title-pattern` CLI option or the `pull-request-title-pattern`
 option in the manifest configuration.
 
 The pattern uses string replacement and regular expressions to build and
@@ -109,7 +109,7 @@ configuration.
 ## Updating arbitrary files
 
 For most release strategies, you can provide additional files to update
-using the [Generic](src/updaters/generic.ts) updater. You can specify
+using the [Generic](/src/updaters/generic.ts) updater. You can specify
 a comma separated list of file paths with the `--extra-files` CLI option
 or the `extra-files` option in the manifest configuration.
 
