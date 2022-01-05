@@ -901,6 +901,7 @@ async function parseConfig(
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
     separatePullRequests: config['separate-pull-requests'],
+    groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
   };
   return {config: repositoryConfig, options: manifestOptions};
@@ -1078,6 +1079,9 @@ function mergeReleaserConfig(
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
     extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
+    pullRequestTitlePattern:
+      pathConfig.pullRequestTitlePattern ??
+      defaultConfig.pullRequestTitlePattern,
   };
 }
 

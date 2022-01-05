@@ -189,6 +189,37 @@ describe('Manifest', () => {
         'node'
       );
     });
+    it('should read custom pull request title patterns from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/group-pr-title-pattern.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['groupPullRequestTitlePattern']).to.eql(
+        'chore${scope}: release${component} v${version}'
+      );
+      expect(
+        manifest.repositoryConfig['packages/cron-utils'].pullRequestTitlePattern
+      ).to.eql('chore${scope}: send it v${version}');
+    });
   });
 
   describe('fromConfig', () => {
