@@ -1353,13 +1353,11 @@ describe('Manifest', () => {
           'pkg/b/pkg.properties',
           'pkg/b/src/version',
         ])
-        .and.not.include('~/bbb.properties', 'expected file at repo root')
-        .and.not.include('~/./bbb.properties', 'expected file at repo root')
-        .and.not.include('pkg/b/bbb.properties', 'expected file at repo root')
-        .and.not.include('/bbb.properties', 'expected file at repo root')
-        .and.not.include('pkg/c/ccc.properties', 'expected file at repo root')
-        .and.not.include('pkg/c/pkg-c.properties', 'should be up one level')
-        .and.not.include('/ccc.properties', 'expected file not at root');
+        .but.not.include.oneOf([
+          'pkg/b/bbb.properties', // should be at root
+          'pkg/c/ccc.properties', // should be at root
+          'pkg/c/pkg-c.properties', // should be up one level
+        ]);
     });
 
     describe('with plugins', () => {

@@ -15,7 +15,6 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
-import {buildMockCommit} from '../helpers';
 import {BaseStrategy} from '../../src/strategies/base';
 import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
@@ -58,40 +57,47 @@ describe('Strategy', () => {
         component: 'google-cloud-automl',
         extraFiles: [
           '0',
-          '/1.java',
-          '~/2.md',
-          '~/./3',
-          'foo/4.~csv',
-          'foo/5.bak',
+          'foo/1.~csv',
+          'foo/2.bak',
           'foo/bar/../baz',
           'foo/baz/bar/',
+          'foo/baz/../../../../../etc/hostname',
+          '/3.java',
+          '~/4.md',
+          '~/./5',
+          '~/../../.././level/../../../up',
+          './../../../opt/',
+          '../../../../etc/passwd',
         ],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [
-          buildMockCommit('fix: a bugfix'),
-          buildMockCommit('feat: a feature'),
-          buildMockCommit('docs: update README.md'),
-        ],
+        [{sha: 'aaa', message: 'fix: a bugfix'}],
         undefined
       );
-      expect(pullRequest).to.not.be.undefined;
+      expect(pullRequest).to.exist;
       expect(pullRequest?.updates).to.be.an('array');
       expect(pullRequest?.updates.map(update => update.path))
         .to.include.members([
           '0',
-          '1.java',
-          '2.md',
-          '3',
-          'foo/4.~csv',
-          'foo/5.bak',
+          '3.java',
+          '4.md',
+          '5',
+          'foo/1.~csv',
+          'foo/2.bak',
           'foo/baz',
           'foo/baz/bar',
+          'etc/hostname',
+          'etc/passwd',
+          'opt',
+          'up',
         ])
-        .and.not.include('/1.java', 'expected file at repo root')
-        .and.not.include('~/2.md', 'expected file at repo root')
-        .and.not.include('foo/bar/baz', 'expected file up one level')
-        .and.not.include('foo/baz/bar/', 'expected file but got directory');
+        .but.not.include('foo/bar/baz', 'expected file up one level')
+        .and.not.include('foo/baz/bar/', 'expected file but got directory')
+        .and.to.satisfy(
+          (paths: string[]) =>
+            paths.every(path => /^(\.{1,2}|~|\/)*\//.test(path)),
+          'illegal pathing characters at start of file path'
+        );
     });
   });
   describe('buildRelease', () => {

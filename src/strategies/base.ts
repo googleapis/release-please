@@ -416,22 +416,16 @@ export abstract class BaseStrategy implements Strategy {
    * @returns {string} The file relative to the strategy.
    */
   protected addPath(file: string) {
-    // Strip any trailing slashes - we can't update directories
-    file = file.replace(/\/$/, '');
-
     // There is no strategy path to join, the strategy is at the root, or the
     // file is at the root (denoted by a leading slash or tilde)
     if (!this.path || this.path === ROOT_PROJECT_PATH || /^~?\//.test(file)) {
-      file = path.posix.normalize(file.replace(/^~?\//, ''));
+      file = path.posix.normalize(file);
     }
     // Otherwise, the file is relative to the strategy path
     else {
       file = path.posix.join(this.path, file);
     }
-
-    // todo: Ensure the resulting file path does not escape the git repository
-
-    // Finally, return the transformed file path
-    return file;
+    // Strip any leading pathings (i.e. ~/, ../, /) and any trailing slashes and return
+    return file.replace(/^(\.{1,2}|~|\/)*\//, '').replace(/\/+$/, '');
   }
 }
