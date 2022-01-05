@@ -15,6 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
+import {buildMockCommit} from '../helpers';
 import {BaseStrategy} from '../../src/strategies/base';
 import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
@@ -49,6 +50,48 @@ describe('Strategy', () => {
       });
       const pullRequest = await strategy.buildReleasePullRequest([]);
       expect(pullRequest).to.be.undefined;
+    });
+    it('updates extra files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: [
+          '0',
+          '/1.java',
+          '~/2.md',
+          '~/./3',
+          'foo/4.~csv',
+          'foo/5.bak',
+          'foo/bar/../baz',
+          'foo/baz/bar/',
+        ],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        [
+          buildMockCommit('fix: a bugfix'),
+          buildMockCommit('feat: a feature'),
+          buildMockCommit('docs: update README.md'),
+        ],
+        undefined
+      );
+      expect(pullRequest).to.not.be.undefined;
+      expect(pullRequest?.updates).to.be.an('array');
+      expect(pullRequest?.updates.map(update => update.path))
+        .to.include.members([
+          '0',
+          '1.java',
+          '2.md',
+          '3',
+          'foo/4.~csv',
+          'foo/5.bak',
+          'foo/baz',
+          'foo/baz/bar',
+        ])
+        .and.not.include('/1.java', 'expected file at repo root')
+        .and.not.include('~/2.md', 'expected file at repo root')
+        .and.not.include('foo/bar/baz', 'expected file up one level')
+        .and.not.include('foo/baz/bar/', 'expected file but got directory');
     });
   });
   describe('buildRelease', () => {

@@ -1325,7 +1325,7 @@ describe('Manifest', () => {
           'pkg/b': {
             releaseType: 'simple',
             component: 'b',
-            extraFiles: ['pkg.properties', 'src/version'],
+            extraFiles: ['pkg.properties', 'src/version', '~/./bbb.properties'],
             skipGithubRelease: true,
           },
           'pkg/c': {
@@ -1346,16 +1346,20 @@ describe('Manifest', () => {
       expect(pullRequests[0].updates).to.be.an('array');
       expect(pullRequests[0].updates.map(update => update.path))
         .to.include.members([
-          'pkg.properties',
+          'bbb.properties',
           'ccc.properties',
+          'pkg.properties',
+          'pkg/pkg-c.properties',
           'pkg/b/pkg.properties',
           'pkg/b/src/version',
-          'pkg/pkg-c.properties',
         ])
-        .but.not.include.members([
-          'pkg/c/pkg-c.properties', // should be up one level
-          'pkg/c/ccc.properties', // should be at root
-        ]);
+        .and.not.include('~/bbb.properties', 'expected file at repo root')
+        .and.not.include('~/./bbb.properties', 'expected file at repo root')
+        .and.not.include('pkg/b/bbb.properties', 'expected file at repo root')
+        .and.not.include('/bbb.properties', 'expected file at repo root')
+        .and.not.include('pkg/c/ccc.properties', 'expected file at repo root')
+        .and.not.include('pkg/c/pkg-c.properties', 'should be up one level')
+        .and.not.include('/ccc.properties', 'expected file not at root');
     });
 
     describe('with plugins', () => {
