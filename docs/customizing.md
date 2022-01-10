@@ -109,7 +109,7 @@ configuration.
 ## Updating arbitrary files
 
 For most release strategies, you can provide additional files to update
-using the [Generic](src/updaters/generic.ts) updater. You can specify
+using the [Generic](/src/updaters/generic.ts) updater. You can specify
 a comma separated list of file paths with the `--extra-files` CLI option
 or the `extra-files` option in the manifest configuration.
 
