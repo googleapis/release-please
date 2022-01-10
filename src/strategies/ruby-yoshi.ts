@@ -26,7 +26,6 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {Release} from '../release';
 import {Version} from '../version';
-import {TagName} from '../util/tag-name';
 import {ROOT_PROJECT_PATH} from '../manifest';
 import {logger} from '../util/logger';
 import {PullRequestBody} from '../util/pull-request-body';
