@@ -30,11 +30,40 @@ describe('JavaUpdate', () => {
       ).replace(/\r\n/g, '\n');
       const versions = new Map<string, Version>();
       versions.set('google-auth-library-parent', Version.parse('v0.16.2-sp.1'));
-      const pom = new JavaUpdate({
+      const updater = new JavaUpdate({
         versionsMap: versions,
         version: Version.parse('v0.16.2-sp.1'),
       });
-      const newContent = pom.updateContent(oldContent);
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
+    it('only updates current versions for snapshots', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './java-replacements-test.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      versions.set('module-name', Version.parse('3.3.3'));
+      const updater = new JavaUpdate({
+        versionsMap: versions,
+        version: Version.parse('3.3.3'),
+        isSnapshot: true,
+      });
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
+    it('updates all versions for non snapshots', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './java-replacements-test.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      versions.set('module-name', Version.parse('3.3.3'));
+      const updater = new JavaUpdate({
+        versionsMap: versions,
+        version: Version.parse('3.3.3'),
+      });
+      const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
   });
