@@ -79,7 +79,7 @@ changelog commits (so choose one commit earlier than the first commit you want
 to include). Note: once a release-please generated PR has been merged,
 this config value will be ignored for all subsequent runs and can be removed.
 
-# #### Initial Version
+##### Initial Version
 
 The simplest way to tell release-please the current version for a package
 it has never released before is to manually add an entry into
