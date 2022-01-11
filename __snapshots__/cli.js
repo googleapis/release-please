@@ -48,6 +48,8 @@ Options:
                                 with the release for future tag creation upon
                                 "un-drafting" the release.
                                                       [boolean] [default: false]
+  --prerelease                  mark release that have prerelease versions as as
+                                a prerelease on Github[boolean] [default: false]
   --label                       comma-separated list of labels to remove to from
                                 release PR     [default: "autorelease: pending"]
   --release-label               set a pull request label other than
@@ -119,6 +121,8 @@ Options:
                     target_commitish are associated with the release for future
                     tag creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
+  --prerelease      mark release that have prerelease versions as as a
+                    prerelease on Github              [boolean] [default: false]
   --label           comma-separated list of labels to remove to from release PR
                                                [default: "autorelease: pending"]
   --release-label   set a pull request label other than "autorelease: tagged"
