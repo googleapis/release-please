@@ -720,7 +720,10 @@ export class Manifest {
             path,
             pullRequest,
             draft: config.draft ?? this.draft,
-            prerelease: config.prerelease && !!release.tag.version.preRelease,
+            prerelease:
+              config.prerelease &&
+              (!!release.tag.version.preRelease ||
+                release.tag.version.major === 0),
           });
         }
       }

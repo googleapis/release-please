@@ -181,7 +181,7 @@ documented in comments)
   "draft": true
 
   // when `manifest-release` creates GitHub Releases per package, create
-  // those as "Prerelease" releases that have prerelease versions.
+  // those as "Prerelease" releases that have pre-major or prerelease versions.
   // absence defaults to false and all versions are fully Published.
   "prerelease": true
 

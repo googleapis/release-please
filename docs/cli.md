@@ -52,7 +52,7 @@ Extra options:
 | `--bump-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the minor version for breaking changes for versions < 1.0.0 |
 | `--bump-patch-for-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the patch version for features for versions < 1.0.0 |
 | `--draft` | `boolean` | If set, create releases as drafts |
-| `--prerelease` | `boolean` | If set, create releases that have prerelease verion marked as prerelease on Github|
+| `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--draft-pull-request` | `boolean` | If set, create pull requests as drafts |
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |
 | `--release-label` | `string` | Comma-separated list of labels to apply to the pull request after the release has been tagged. Defaults to `autorelease: tagged` |
@@ -143,7 +143,7 @@ need to specify your release options:
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--draft` | `boolean` | If set, create releases as drafts |
-| `--prerelease` | `boolean` | If set, create releases as prerelease |
+| `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |
 | `--release-label` | `string` | Comma-separated list of labels to apply to the pull request after the release has been tagged. Defaults to `autorelease: tagged` |
 
