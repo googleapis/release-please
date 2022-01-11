@@ -1,0 +1,17 @@
+# this is an inline current entry and should always be replaced
+1.2.3 # {x-version-update:module-name:current}
+
+# this is a block current entry and should always be replaced
+# {x-version-update-start:module-name:current}
+2.3.4
+3.4.5
+# {x-version-update-end}
+
+# this is an inline released entry and should be replaced for non-snapshot releases
+1.2.3 # {x-version-update:module-name:released}
+
+# this is a block released entry and should be replaced for non-snapshot releases
+# {x-version-update-start:module-name:released}
+2.3.4
+3.4.5
+# {x-version-update-end}
