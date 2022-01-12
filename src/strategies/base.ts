@@ -177,6 +177,22 @@ export abstract class BaseStrategy implements Strategy {
     });
   }
 
+  protected async buildPullRequestBody(
+    component: string | undefined,
+    newVersion: Version,
+    releaseNotesBody: string,
+    _conventionalCommits: ConventionalCommit[],
+    _latestRelease?: Release
+  ): Promise<PullRequestBody> {
+    return new PullRequestBody([
+      {
+        component,
+        version: newVersion,
+        notes: releaseNotesBody,
+      },
+    ]);
+  }
+
   /**
    * Builds a candidate release pull request
    * @param {Commit[]} commits Raw commits to consider for this release.
@@ -247,13 +263,13 @@ export abstract class BaseStrategy implements Strategy {
     const updatesWithExtras = mergeUpdates(
       updates.concat(...this.extraFileUpdates(newVersion))
     );
-    const pullRequestBody = new PullRequestBody([
-      {
-        component,
-        version: newVersion,
-        notes: releaseNotesBody,
-      },
-    ]);
+    const pullRequestBody = await this.buildPullRequestBody(
+      component,
+      newVersion,
+      releaseNotesBody,
+      conventionalCommits,
+      latestRelease
+    );
 
     return {
       title: pullRequestTitle,
