@@ -24,15 +24,18 @@ const NOTES_DELIMITER = '---';
 interface PullRequestBodyOptions {
   header?: string;
   footer?: string;
+  extra?: string;
 }
 
 export class PullRequestBody {
   header: string;
   footer: string;
+  extra?: string;
   releaseData: ReleaseData[];
   constructor(releaseData: ReleaseData[], options?: PullRequestBodyOptions) {
     this.header = options?.header || DEFAULT_HEADER;
     this.footer = options?.footer || DEFAULT_FOOTER;
+    this.extra = options?.extra;
     this.releaseData = releaseData;
   }
   static parse(body: string): PullRequestBody | undefined {
@@ -75,7 +78,7 @@ ${NOTES_DELIMITER}
 
 ${notes}
 
-${NOTES_DELIMITER}
+${NOTES_DELIMITER}${this.extra ? `\n\n${this.extra}\n` : ''}
 ${this.footer}`;
   }
 }
@@ -102,7 +105,7 @@ function splitBody(
   };
 }
 
-const SUMMARY_PATTERN = /^(?<component>.*): (?<version>\d+\.\d+\.\d+.*)$/;
+const SUMMARY_PATTERN = /^(?<component>.*[^:]):? (?<version>\d+\.\d+\.\d+.*)$/;
 export interface ReleaseData {
   component?: string;
   version?: Version;

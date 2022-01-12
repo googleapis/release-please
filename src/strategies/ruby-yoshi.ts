@@ -26,9 +26,9 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {Release} from '../release';
 import {Version} from '../version';
-import {TagName} from '../util/tag-name';
 import {ROOT_PROJECT_PATH} from '../manifest';
 import {logger} from '../util/logger';
+import {PullRequestBody} from '../util/pull-request-body';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -108,20 +108,21 @@ export class RubyYoshi extends BaseStrategy {
     return commits;
   }
 
-  protected async buildReleaseNotes(
-    conventionalCommits: ConventionalCommit[],
+  protected async buildPullRequestBody(
+    component: string | undefined,
     newVersion: Version,
-    newVersionTag: TagName,
+    releaseNotesBody: string,
+    conventionalCommits: ConventionalCommit[],
     latestRelease?: Release
-  ): Promise<string> {
-    const releaseNotes = await super.buildReleaseNotes(
-      conventionalCommits,
-      newVersion,
-      newVersionTag,
-      latestRelease
-    );
+  ): Promise<PullRequestBody> {
     if (!latestRelease) {
-      return releaseNotes;
+      return await super.buildPullRequestBody(
+        component,
+        newVersion,
+        releaseNotesBody,
+        conventionalCommits,
+        latestRelease
+      );
     }
     // summarize the commits that landed:
     let summary = '### Commits since last release:\n\n';
@@ -152,6 +153,18 @@ export class RubyYoshi extends BaseStrategy {
       summary += `${file}\n`;
     });
     summary += `</code></pre>\n[Compare Changes](https://github.com/${repoUrl}/compare/${latestRelease.sha}...HEAD)\n`;
-    return releaseNotes + `\n---\n${summary}`;
+
+    return new PullRequestBody(
+      [
+        {
+          component,
+          version: newVersion,
+          notes: releaseNotesBody,
+        },
+      ],
+      {
+        extra: summary,
+      }
+    );
   }
 }

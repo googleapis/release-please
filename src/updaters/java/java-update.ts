@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {DefaultUpdater} from '../default';
+import {DefaultUpdater, UpdateOptions} from '../default';
 import {logger} from '../../util/logger';
 
 const INLINE_UPDATE_REGEX = /{x-version-update:([\w\-_]+):(current|released)}/;
@@ -21,12 +21,21 @@ const BLOCK_START_REGEX =
 const BLOCK_END_REGEX = /{x-version-update-end}/;
 const VERSION_REGEX = /\d+\.\d+\.\d+(-\w+(\.\d+)?)?(-SNAPSHOT)?/;
 
+interface JavaUpdateOptions extends UpdateOptions {
+  isSnapshot?: boolean;
+}
+
 /**
  * Updates a file annotated with region markers. These region markers are
  * either denoted inline with `{x-version-update:<component-name>:current|released}`
  * or with a `{x-version-update-start:<component-name>}` and `{x-version-update-end}`.
  */
 export class JavaUpdate extends DefaultUpdater {
+  isSnapshot: boolean;
+  constructor(options: JavaUpdateOptions) {
+    super(options);
+    this.isSnapshot = !!options.isSnapshot;
+  }
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
@@ -41,7 +50,7 @@ export class JavaUpdate extends DefaultUpdater {
     let blockPackageName: string | null = null;
     content.split(/\r?\n/).forEach(line => {
       let match = line.match(INLINE_UPDATE_REGEX);
-      if (match) {
+      if (match && (!this.isSnapshot || match[2] === 'current')) {
         const newVersion = this.versionsMap!.get(match[1]);
         if (newVersion) {
           newLines.push(line.replace(VERSION_REGEX, newVersion.toString()));
@@ -60,7 +69,7 @@ export class JavaUpdate extends DefaultUpdater {
         }
       } else {
         match = line.match(BLOCK_START_REGEX);
-        if (match) {
+        if (match && (!this.isSnapshot || match[2] === 'current')) {
           blockPackageName = match[1];
         }
         newLines.push(line);

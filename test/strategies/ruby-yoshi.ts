@@ -59,11 +59,11 @@ describe('RubyYoshi', () => {
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest(
         COMMITS,
         latestRelease
       );
-      expect(release!.version?.toString()).to.eql(expectedVersion);
+      expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
     it('returns release PR changes with semver patch bump', async () => {
       const expectedVersion = '0.123.5';
@@ -77,12 +77,12 @@ describe('RubyYoshi', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest(
         COMMITS,
         latestRelease
       );
-      expect(release!.version?.toString()).to.eql(expectedVersion);
-      safeSnapshot(release!.body.toString());
+      expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
+      safeSnapshot(pullRequest!.body.toString());
     });
   });
   describe('buildUpdates', () => {
@@ -93,14 +93,36 @@ describe('RubyYoshi', () => {
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest(
         COMMITS,
         latestRelease
       );
-      const updates = release!.updates;
+      const updates = pullRequest!.updates;
       expect(updates).lengthOf(2);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/google/cloud/automl/version.rb', VersionRB);
+    });
+    it('does not add summary to changelog', async () => {
+      const strategy = new RubyYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      const latestRelease = {
+        tag: new TagName(Version.parse('v1.2.3')),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const pullRequest = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = pullRequest!.updates;
+      expect(updates).lengthOf(2);
+      const {updater} = assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      expect((updater as Changelog).changelogEntry).not.to.contain(
+        'Files edited since'
+      );
     });
     it('allows overriding version file', async () => {
       const strategy = new RubyYoshi({
@@ -110,11 +132,11 @@ describe('RubyYoshi', () => {
         versionFile: 'lib/foo/version.rb',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest(
         COMMITS,
         latestRelease
       );
-      const updates = release!.updates;
+      const updates = pullRequest!.updates;
       expect(updates).lengthOf(2);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/foo/version.rb', VersionRB);
