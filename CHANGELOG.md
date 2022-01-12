@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.2.1](https://github.com/googleapis/release-please/compare/v13.2.0...v13.2.1) (2022-01-12)
+
+
+### Bug Fixes
+
+* **php-yoshi:** fix parsing of pull request body ([#1213](https://github.com/googleapis/release-please/issues/1213)) ([00702ca](https://github.com/googleapis/release-please/commit/00702ca575e5d134505280b436e1348eccb2de01))
+
 ## [13.2.0](https://github.com/googleapis/release-please/compare/v13.1.1...v13.2.0) (2022-01-11)
 
 
