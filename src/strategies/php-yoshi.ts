@@ -120,7 +120,7 @@ export class PHPYoshi extends BaseStrategy {
           }
         );
         releaseNotesBody = updatePHPChangelogEntry(
-          `${composer.name}: ${newVersion.toString()}`,
+          `${composer.name} ${newVersion.toString()}`,
           releaseNotesBody,
           partialReleaseNotes
         );
@@ -192,6 +192,29 @@ export class PHPYoshi extends BaseStrategy {
       version: newVersion,
       draft: draft ?? false,
     };
+  }
+
+  protected async parsePullRequestBody(
+    pullRequestBody: string
+  ): Promise<PullRequestBody | undefined> {
+    const body = PullRequestBody.parse(pullRequestBody);
+    if (!body) {
+      return undefined;
+    }
+    const component = await this.getComponent();
+    const notes = body.releaseData
+      .map(release => {
+        return `<details><summary>${
+          release.component
+        }: ${release.version?.toString()}</summary>\n\n${
+          release.notes
+        }\n</details>`;
+      })
+      .join('\n\n');
+    return new PullRequestBody([{component, notes}], {
+      footer: body.footer,
+      header: body.header,
+    });
   }
 
   protected async buildUpdates(
