@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.3.0](https://github.com/googleapis/release-please/compare/v13.2.1...v13.3.0) (2022-01-12)
+
+
+### Features
+
+* allow configuring simple strategy version file ([#1168](https://github.com/googleapis/release-please/issues/1168)) ([08a0cf2](https://github.com/googleapis/release-please/commit/08a0cf2b2135713f856d8621cffa8f5b92fb8699))
+
+
+### Bug Fixes
+
+* ruby-yoshi strategy should put commit summary only in pull request body ([#1193](https://github.com/googleapis/release-please/issues/1193)) ([d29eda1](https://github.com/googleapis/release-please/commit/d29eda172597979cea5cb54ce6eb278a1dfb03a0)), closes [#1192](https://github.com/googleapis/release-please/issues/1192)
+
 ### [13.2.1](https://github.com/googleapis/release-please/compare/v13.2.0...v13.2.1) (2022-01-12)
 
 
