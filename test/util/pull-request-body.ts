@@ -80,6 +80,19 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].version?.toString()).to.eql('3.2.7');
       expect(releaseData[0].notes).matches(/^### \[3\.2\.7\]/);
     });
+    it('should parse legacy PHP body', () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './legacy-php-yoshi.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      const releaseData = pullRequestBody!.releaseData;
+      expect(releaseData).lengthOf(109);
+      expect(releaseData[0].component).to.eql('google/cloud-access-approval');
+      expect(releaseData[0].version?.toString()).to.eql('0.3.0');
+      expect(releaseData[0].notes).matches(/Database operations/);
+    });
   });
   describe('toString', () => {
     it('can handle multiple entries', () => {

@@ -120,7 +120,7 @@ export class PHPYoshi extends BaseStrategy {
           }
         );
         releaseNotesBody = updatePHPChangelogEntry(
-          `${composer.name} ${newVersion.toString()}`,
+          `${composer.name}: ${newVersion.toString()}`,
           releaseNotesBody,
           partialReleaseNotes
         );
