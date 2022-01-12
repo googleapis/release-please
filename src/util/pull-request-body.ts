@@ -105,7 +105,7 @@ function splitBody(
   };
 }
 
-const SUMMARY_PATTERN = /^(?<component>.*): (?<version>\d+\.\d+\.\d+.*)$/;
+const SUMMARY_PATTERN = /^(?<component>.*[^:]):? (?<version>\d+\.\d+\.\d+.*)$/;
 export interface ReleaseData {
   component?: string;
   version?: Version;

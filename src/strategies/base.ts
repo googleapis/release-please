@@ -341,6 +341,12 @@ export abstract class BaseStrategy implements Strategy {
     return new Map();
   }
 
+  protected async parsePullRequestBody(
+    pullRequestBody: string
+  ): Promise<PullRequestBody | undefined> {
+    return PullRequestBody.parse(pullRequestBody);
+  }
+
   /**
    * Given a merged pull request, build the candidate release.
    * @param {PullRequest} mergedPullRequest The merged release pull request.
@@ -376,7 +382,9 @@ export abstract class BaseStrategy implements Strategy {
       logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
       return;
     }
-    const pullRequestBody = PullRequestBody.parse(mergedPullRequest.body);
+    const pullRequestBody = await this.parsePullRequestBody(
+      mergedPullRequest.body
+    );
     if (!pullRequestBody) {
       logger.error('Could not parse pull request body as a release PR');
       return;
