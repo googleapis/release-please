@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.2.0](https://github.com/googleapis/release-please/compare/v13.1.1...v13.2.0) (2022-01-11)
+
+
+### Features
+
+* allow prerelease releases on Github ([#1181](https://github.com/googleapis/release-please/issues/1181)) ([267dbfc](https://github.com/googleapis/release-please/commit/267dbfc58a50cde7ffa378b357df62066a1218c9))
+
+
+### Bug Fixes
+
+* java snapshots should update all files with :current annotations ([#1204](https://github.com/googleapis/release-please/issues/1204)) ([6f3ae8b](https://github.com/googleapis/release-please/commit/6f3ae8b58afb6673dab2f49daa3d17fbbbef352c))
+
 ### [13.1.1](https://www.github.com/googleapis/release-please/compare/v13.1.0...v13.1.1) (2022-01-03)
 
 

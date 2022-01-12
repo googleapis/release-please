@@ -395,28 +395,40 @@ exports['GitHub createRelease should create a draft release 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
   "sha": "abc123",
-  "draft": true
+  "draft": true,
+  "prerelease": false
+}
+
+exports['GitHub createRelease should create a prerelease release 1'] = {
+  "tag_name": "v1.2.3",
+  "body": "Some release notes",
+  "sha": "abc123",
+  "draft": false,
+  "prerelease": true
 }
 
 exports['GitHub createRelease should create a release with a package prefix 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
   "sha": "abc123",
-  "draft": false
+  "draft": false,
+  "prerelease": false
 }
 
 exports['GitHub createRelease should raise a DuplicateReleaseError if already_exists 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
   "sha": "abc123",
-  "draft": false
+  "draft": false,
+  "prerelease": false
 }
 
 exports['GitHub createRelease should raise a RequestError for other validation errors 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
   "sha": "abc123",
-  "draft": false
+  "draft": false,
+  "prerelease": false
 }
 
 exports['GitHub findFilesByExtension returns files matching the requested pattern 1'] = [
