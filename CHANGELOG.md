@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.3.1](https://github.com/googleapis/release-please/compare/v13.3.0...v13.3.1) (2022-01-12)
+
+
+### Bug Fixes
+
+* pass target_commitish instead of sha ([#1219](https://github.com/googleapis/release-please/issues/1219)) ([3f26ec3](https://github.com/googleapis/release-please/commit/3f26ec3de527497d7180f2cd987983c6ae6e44cd))
+
 ## [13.3.0](https://github.com/googleapis/release-please/compare/v13.2.1...v13.3.0) (2022-01-12)
 
 
