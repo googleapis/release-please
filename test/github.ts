@@ -570,7 +570,7 @@ describe('GitHub', () => {
         repo: 'fake',
         tag_name: 'v1.2.3',
         body: 'Some release notes',
-        sha: 'abc123',
+        target_commitish: 'abc123',
         draft: false,
         prerelease: false,
       });
@@ -670,7 +670,7 @@ describe('GitHub', () => {
         repo: 'fake',
         tag_name: 'v1.2.3',
         body: 'Some release notes',
-        sha: 'abc123',
+        target_commitish: 'abc123',
         draft: true,
         prerelease: false,
       });
@@ -709,7 +709,7 @@ describe('GitHub', () => {
         repo: 'fake',
         tag_name: 'v1.2.3',
         body: 'Some release notes',
-        sha: 'abc123',
+        target_commitish: 'abc123',
         draft: false,
         prerelease: true,
       });
