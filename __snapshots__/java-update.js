@@ -1,3 +1,45 @@
+exports['JavaUpdate updateContent only updates current versions for snapshots 1'] = `
+# this is an inline current entry and should always be replaced
+3.3.3 # {x-version-update:module-name:current}
+
+# this is a block current entry and should always be replaced
+# {x-version-update-start:module-name:current}
+3.3.3
+3.3.3
+# {x-version-update-end}
+
+# this is an inline released entry and should be replaced for non-snapshot releases
+1.2.3 # {x-version-update:module-name:released}
+
+# this is a block released entry and should be replaced for non-snapshot releases
+# {x-version-update-start:module-name:released}
+2.3.4
+3.4.5
+# {x-version-update-end}
+
+`
+
+exports['JavaUpdate updateContent updates all versions for non snapshots 1'] = `
+# this is an inline current entry and should always be replaced
+3.3.3 # {x-version-update:module-name:current}
+
+# this is a block current entry and should always be replaced
+# {x-version-update-start:module-name:current}
+3.3.3
+3.3.3
+# {x-version-update-end}
+
+# this is an inline released entry and should be replaced for non-snapshot releases
+3.3.3 # {x-version-update:module-name:released}
+
+# this is a block released entry and should be replaced for non-snapshot releases
+# {x-version-update-start:module-name:released}
+3.3.3
+3.3.3
+# {x-version-update-end}
+
+`
+
 exports['JavaUpdate updateContent updates an LTS snapshot version 1'] = `
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">

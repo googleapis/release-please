@@ -52,6 +52,7 @@ export interface ReleaserConfig {
   releaseAs?: string;
   skipGithubRelease?: boolean;
   draft?: boolean;
+  prerelease?: boolean;
   draftPullRequest?: boolean;
   component?: string;
   packageName?: string;
@@ -77,8 +78,9 @@ export interface CandidateReleasePullRequest {
 
 export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
-  draft?: boolean;
   path: string;
+  draft?: boolean;
+  prerelease?: boolean;
 }
 
 interface ReleaserConfigJson {
@@ -89,6 +91,7 @@ interface ReleaserConfigJson {
   'release-as'?: string;
   'skip-github-release'?: boolean;
   draft?: boolean;
+  prerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
@@ -114,6 +117,7 @@ export interface ManifestOptions {
   labels?: string[];
   releaseLabels?: string[];
   draft?: boolean;
+  prerelease?: boolean;
   draftPullRequest?: boolean;
   groupPullRequestTitlePattern?: string;
 }
@@ -178,6 +182,7 @@ export class Manifest {
   private bootstrapSha?: string;
   private lastReleaseSha?: string;
   private draft?: boolean;
+  private prerelease?: boolean;
   private draftPullRequest?: boolean;
   private groupPullRequestTitlePattern?: string;
 
@@ -725,6 +730,10 @@ export class Manifest {
             path,
             pullRequest,
             draft: config.draft ?? this.draft,
+            prerelease:
+              config.prerelease &&
+              (!!release.tag.version.preRelease ||
+                release.tag.version.major === 0),
           });
         }
       }
@@ -790,6 +799,7 @@ export class Manifest {
   ): Promise<CreatedRelease> {
     const githubRelease = await this.github.createRelease(release, {
       draft: release.draft,
+      prerelease: release.prerelease,
     });
 
     // comment on pull request
@@ -863,6 +873,7 @@ function extractReleaserConfig(
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
     draft: config.draft,
+    prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
     component: config['component'],
     packageName: config['package-name'],
@@ -1075,6 +1086,7 @@ function mergeReleaserConfig(
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
     draft: pathConfig.draft ?? defaultConfig.draft,
+    prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
     component: pathConfig.component ?? defaultConfig.component,
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
