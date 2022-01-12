@@ -70,7 +70,7 @@ in the manifest configuration.
 ### Pull Request Title
 
 If you would like to customize the pull request title, you can use the
-`--pull-request-title-pattern` CLI option of the `pull-request-title-pattern`
+`--pull-request-title-pattern` CLI option or the `pull-request-title-pattern`
 option in the manifest configuration.
 
 The pattern uses string replacement and regular expressions to build and
@@ -105,3 +105,32 @@ option or the `label` option in the manifest configuration.
 You can customize the "tagged" pull request label(s) via the
 `--release-label` CLI option or the `release-label` option in the manifest
 configuration.
+
+## Updating arbitrary files
+
+For most release strategies, you can provide additional files to update
+using the [Generic](/src/updaters/generic.ts) updater. You can specify
+a comma separated list of file paths with the `--extra-files` CLI option
+or the `extra-files` option in the manifest configuration.
+
+To mark versions needing update in those files, you will add annotations
+(usually in comments).
+
+You can annotate a line (inline) via:
+
+* `x-release-please-version`
+* `x-release-please-major`
+* `x-release-please-minor`
+* `x-release-please-patch`
+
+For these annotations, we will try to replace the value on that line only.
+
+You can annotate a block by starting with a line containing:
+
+* `x-release-please-start-version`
+* `x-release-please-start-major`
+* `x-release-please-start-minor`
+* `x-release-please-start-patch`
+
+and close the block with a line containing `x-release-please-end`. Within
+the block, we will attempt to replace version values.

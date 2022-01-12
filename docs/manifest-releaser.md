@@ -114,7 +114,7 @@ minimal content required defines at least one package:
   }
 }
 ```
-The following example shows all the possiblities. Note: for illustration
+The following example shows all the possibilities. Note: for illustration
 purposes the top level values set here are **NOT** the defaults (those are
 documented in comments)
 ```js
@@ -179,6 +179,11 @@ documented in comments)
   // those as "Draft" releases (which can later be manually published).
   // absence defaults to false and Releases are created as already Published.
   "draft": true
+
+  // when `manifest-release` creates GitHub Releases per package, create
+  // those as "Prerelease" releases that have pre-major or prerelease versions.
+  // absence defaults to false and all versions are fully Published.
+  "prerelease": true
 
   // Skip creating GitHub Releases
   // absence defaults to false and Releases will be created
@@ -337,7 +342,7 @@ plugin must already be implemented, see below)
 
 ### Plugin implementation
 
-A `ManifestPlugin` instance has these resources avilable:
+A `ManifestPlugin` instance has these resources available:
 - `this.github`: a `GitHub` instance for any API operations it might want to perform
 - `this.repositoryConfig`: a `RepositoryConfig` object representing all the packages
   configured for the monorepo

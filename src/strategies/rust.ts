@@ -44,36 +44,66 @@ export class Rust extends BaseStrategy {
       }),
     });
 
-    const workspaceManifest = await this.getWorkspaceManifest();
-    const manifestPaths: string[] = [];
-    let lockPath: string;
+    const workspaceManifest = await this.getPackageManifest();
+    const versionsMap: VersionsMap = new Map();
 
-    if (
-      workspaceManifest &&
-      workspaceManifest.workspace &&
-      workspaceManifest.workspace.members
-    ) {
+    if (workspaceManifest?.workspace?.members) {
       const members = workspaceManifest.workspace.members;
+      if (workspaceManifest.package?.name) {
+        versionsMap.set(workspaceManifest.package.name, version);
+      } else {
+        logger.warn('No workspace manifest package name found');
+      }
+
       logger.info(
         `found workspace with ${members.length} members, upgrading all`
       );
+
+      // Collect submodule names to update
+      const manifestsByPath: Map<string, GitHubFileContents> = new Map();
       for (const member of members) {
-        manifestPaths.push(`${member}/Cargo.toml`);
+        const manifestPath = `${member}/Cargo.toml`;
+        const manifestContent = await this.getContent(manifestPath);
+        if (!manifestContent) {
+          logger.warn(`member ${member} declared but did not find Cargo.toml`);
+          continue;
+        }
+        const manifest = parseCargoManifest(manifestContent.parsedContent);
+        manifestsByPath.set(manifestPath, manifestContent);
+        if (!manifest.package?.name) {
+          logger.warn(`member ${member} has no package name`);
+          continue;
+        }
+        versionsMap.set(manifest.package.name, version);
       }
-      lockPath = 'Cargo.lock';
+      logger.info(`updating ${manifestsByPath.size} submodules`);
+      logger.debug('versions map:', versionsMap);
+
+      for (const [manifestPath, manifestContent] of manifestsByPath) {
+        updates.push({
+          path: this.addPath(manifestPath),
+          createIfMissing: false,
+          cachedFileContents: manifestContent,
+          updater: new CargoToml({
+            version,
+            versionsMap,
+          }),
+        });
+      }
+      // Update root Cargo.toml
+      updates.push({
+        path: this.addPath('Cargo.toml'),
+        createIfMissing: false,
+        updater: new CargoToml({
+          version,
+          versionsMap,
+        }),
+      });
     } else {
       const manifestPath = this.addPath('Cargo.toml');
       logger.info(`single crate found, updating ${manifestPath}`);
-      manifestPaths.push(manifestPath);
-      lockPath = this.addPath('Cargo.lock');
-    }
-
-    const versionsMap: VersionsMap = new Map();
-    versionsMap.set(this.component || '', version);
-
-    for (const path of manifestPaths) {
       updates.push({
-        path,
+        path: manifestPath,
         createIfMissing: false,
         updater: new CargoToml({
           version,
@@ -83,7 +113,7 @@ export class Rust extends BaseStrategy {
     }
 
     updates.push({
-      path: lockPath,
+      path: this.addPath('Cargo.lock'),
       createIfMissing: false,
       updater: new CargoLock({
         version,
@@ -111,31 +141,24 @@ export class Rust extends BaseStrategy {
    */
   protected async getPackageManifest(): Promise<CargoManifest | null> {
     if (this.packageManifest === undefined) {
-      this.packageManifest = await this.getManifest(this.addPath('Cargo.toml'));
+      this.packageManifest = await this.getManifest('Cargo.toml');
     }
     return this.packageManifest;
   }
 
-  /**
-   * @returns the workspace's manifest, ie. `Cargo.toml` (top-level)
-   */
-  protected async getWorkspaceManifest(): Promise<CargoManifest | null> {
-    if (this.workspaceManifest === undefined) {
-      this.workspaceManifest = await this.getManifest('Cargo.toml');
-    }
-    return this.workspaceManifest;
-  }
-
-  protected async getManifest(path: string): Promise<CargoManifest | null> {
-    let content: GitHubFileContents;
+  private async getContent(path: string): Promise<GitHubFileContents | null> {
     try {
-      content = await this.github.getFileContentsOnBranch(
-        path,
+      return await this.github.getFileContentsOnBranch(
+        this.addPath(path),
         this.targetBranch
       );
     } catch (e) {
       return null;
     }
-    return parseCargoManifest(content.parsedContent);
+  }
+
+  protected async getManifest(path: string): Promise<CargoManifest | null> {
+    const content = await this.getContent(path);
+    return content ? parseCargoManifest(content.parsedContent) : null;
   }
 }

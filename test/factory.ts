@@ -180,6 +180,18 @@ describe('factory', () => {
       expect(innerVersioningStrategy.bumpMinorPreMajor).to.be.true;
       expect(innerVersioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
     });
+    it('should handle extra-files', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'simple',
+        extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
+      });
+      expect(strategy).instanceof(Simple);
+      expect((strategy as Simple).extraFiles).to.eql([
+        'path1/foo1.java',
+        'path2/foo2.java',
+      ]);
+    });
     for (const releaseType of getReleaserTypes()) {
       it(`should build a default ${releaseType}`, async () => {
         const strategy = await buildStrategy({github, releaseType});

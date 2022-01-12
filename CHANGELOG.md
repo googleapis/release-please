@@ -4,6 +4,39 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.2.1](https://github.com/googleapis/release-please/compare/v13.2.0...v13.2.1) (2022-01-12)
+
+
+### Bug Fixes
+
+* **php-yoshi:** fix parsing of pull request body ([#1213](https://github.com/googleapis/release-please/issues/1213)) ([00702ca](https://github.com/googleapis/release-please/commit/00702ca575e5d134505280b436e1348eccb2de01))
+
+## [13.2.0](https://github.com/googleapis/release-please/compare/v13.1.1...v13.2.0) (2022-01-11)
+
+
+### Features
+
+* allow prerelease releases on Github ([#1181](https://github.com/googleapis/release-please/issues/1181)) ([267dbfc](https://github.com/googleapis/release-please/commit/267dbfc58a50cde7ffa378b357df62066a1218c9))
+
+
+### Bug Fixes
+
+* java snapshots should update all files with :current annotations ([#1204](https://github.com/googleapis/release-please/issues/1204)) ([6f3ae8b](https://github.com/googleapis/release-please/commit/6f3ae8b58afb6673dab2f49daa3d17fbbbef352c))
+
+### [13.1.1](https://www.github.com/googleapis/release-please/compare/v13.1.0...v13.1.1) (2022-01-03)
+
+
+### Bug Fixes
+
+* **rust:** Rust strategy should update root Cargo files in a workspace ([#1182](https://www.github.com/googleapis/release-please/issues/1182)) ([26a040c](https://www.github.com/googleapis/release-please/commit/26a040cf06a7a2cf97b9ebc3d204bb36f0b2c13b)), closes [#1170](https://www.github.com/googleapis/release-please/issues/1170) [#1096](https://www.github.com/googleapis/release-please/issues/1096)
+
+## [13.1.0](https://www.github.com/googleapis/release-please/compare/v13.0.2...v13.1.0) (2021-12-29)
+
+
+### Features
+
+* introduce generic updater ([#1157](https://www.github.com/googleapis/release-please/issues/1157)) ([c97598c](https://www.github.com/googleapis/release-please/commit/c97598c137b5018c76f5d62137e277b991f4bfa3)), closes [#435](https://www.github.com/googleapis/release-please/issues/435) [#305](https://www.github.com/googleapis/release-please/issues/305) [#1139](https://www.github.com/googleapis/release-please/issues/1139) [#1174](https://www.github.com/googleapis/release-please/issues/1174)
+
 ### [13.0.2](https://www.github.com/googleapis/release-please/compare/v13.0.1...v13.0.2) (2021-12-29)
 
 

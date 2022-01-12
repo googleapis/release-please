@@ -47,23 +47,21 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-interface JavaStrategyOptions extends BaseStrategyOptions {
-  extraFiles?: string[];
+interface JavaBuildUpdatesOption extends BuildUpdatesOptions {
+  isSnapshot?: boolean;
 }
 
 export class JavaYoshi extends BaseStrategy {
-  readonly extraFiles: string[];
   private versionsContent?: GitHubFileContents;
   private snapshotVersioning: VersioningStrategy;
 
-  constructor(options: JavaStrategyOptions) {
+  constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     // wrap the configured versioning strategy with snapshotting
     const parentVersioningStrategy =
       options.versioningStrategy || new DefaultVersioningStrategy();
     options.versioningStrategy = new JavaSnapshot(parentVersioningStrategy);
     super(options);
-    this.extraFiles = options.extraFiles || [];
     this.snapshotVersioning = new JavaAddSnapshot(parentVersioningStrategy);
   }
 
@@ -111,27 +109,25 @@ export class JavaYoshi extends BaseStrategy {
     const branchName = component
       ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
       : BranchName.ofTargetBranch(this.targetBranch);
+    const notes =
+      '### Updating meta-information for bleeding-edge SNAPSHOT release.';
     const pullRequestBody = new PullRequestBody([
       {
         component,
         version: newVersion,
-        notes:
-          '### Updating meta-information for bleeding-edge SNAPSHOT release.',
+        notes,
       },
     ]);
+    const updates = await this.buildUpdates({
+      newVersion,
+      versionsMap,
+      changelogEntry: notes,
+      isSnapshot: true,
+    });
     return {
       title: pullRequestTitle,
       body: pullRequestBody,
-      updates: [
-        {
-          path: this.addPath('versions.txt'),
-          createIfMissing: false,
-          updater: new VersionsManifest({
-            version: newVersion,
-            versionsMap,
-          }),
-        },
-      ],
+      updates,
       labels: [],
       headRefName: branchName.toString(),
       version: newVersion,
@@ -172,7 +168,7 @@ export class JavaYoshi extends BaseStrategy {
   }
 
   protected async buildUpdates(
-    options: BuildUpdatesOptions
+    options: JavaBuildUpdatesOption
   ): Promise<Update[]> {
     const updates: Update[] = [];
     const version = options.newVersion;
@@ -209,6 +205,7 @@ export class JavaYoshi extends BaseStrategy {
         updater: new JavaUpdate({
           version,
           versionsMap,
+          isSnapshot: options.isSnapshot,
         }),
       });
     });
@@ -221,6 +218,7 @@ export class JavaYoshi extends BaseStrategy {
         updater: new JavaUpdate({
           version,
           versionsMap,
+          isSnapshot: options.isSnapshot,
         }),
       });
     });
@@ -233,6 +231,7 @@ export class JavaYoshi extends BaseStrategy {
         updater: new JavaUpdate({
           version,
           versionsMap,
+          isSnapshot: options.isSnapshot,
         }),
       });
     });
@@ -244,18 +243,21 @@ export class JavaYoshi extends BaseStrategy {
         updater: new JavaUpdate({
           version,
           versionsMap,
+          isSnapshot: options.isSnapshot,
         }),
       });
     });
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    if (!options.isSnapshot) {
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
+    }
 
     return updates;
   }

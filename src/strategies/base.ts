@@ -34,6 +34,8 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
 import {PullRequest} from '../pull-request';
+import {mergeUpdates} from '../updaters/composite';
+import {Generic} from '../updaters/generic';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -63,6 +65,7 @@ export interface BaseStrategyOptions {
   changelogNotes?: ChangelogNotes;
   includeComponentInTag?: boolean;
   pullRequestTitlePattern?: string;
+  extraFiles?: string[];
 }
 
 /**
@@ -83,6 +86,7 @@ export abstract class BaseStrategy implements Strategy {
   private releaseAs?: string;
   private includeComponentInTag: boolean;
   private pullRequestTitlePattern?: string;
+  readonly extraFiles: string[];
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -108,6 +112,7 @@ export abstract class BaseStrategy implements Strategy {
       options.changelogNotes || new DefaultChangelogNotes(options);
     this.includeComponentInTag = options.includeComponentInTag ?? true;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
+    this.extraFiles = options.extraFiles || [];
   }
 
   /**
@@ -239,6 +244,9 @@ export abstract class BaseStrategy implements Strategy {
       versionsMap,
       latestVersion: latestRelease?.tag.version,
     });
+    const updatesWithExtras = mergeUpdates(
+      updates.concat(...this.extraFileUpdates(newVersion))
+    );
     const pullRequestBody = new PullRequestBody([
       {
         component,
@@ -250,12 +258,23 @@ export abstract class BaseStrategy implements Strategy {
     return {
       title: pullRequestTitle,
       body: pullRequestBody,
-      updates,
+      updates: updatesWithExtras,
       labels,
       headRefName: branchName.toString(),
       version: newVersion,
       draft: draft ?? false,
     };
+  }
+
+  private extraFileUpdates(version: Version): Update[] {
+    const genericUpdater = new Generic({version});
+    return this.extraFiles.map(path => {
+      return {
+        path,
+        createIfMissing: false,
+        updater: genericUpdater,
+      };
+    });
   }
 
   protected changelogEmpty(changelogEntry: string): boolean {
@@ -306,6 +325,12 @@ export abstract class BaseStrategy implements Strategy {
     return new Map();
   }
 
+  protected async parsePullRequestBody(
+    pullRequestBody: string
+  ): Promise<PullRequestBody | undefined> {
+    return PullRequestBody.parse(pullRequestBody);
+  }
+
   /**
    * Given a merged pull request, build the candidate release.
    * @param {PullRequest} mergedPullRequest The merged release pull request.
@@ -341,7 +366,9 @@ export abstract class BaseStrategy implements Strategy {
       logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
       return;
     }
-    const pullRequestBody = PullRequestBody.parse(mergedPullRequest.body);
+    const pullRequestBody = await this.parsePullRequestBody(
+      mergedPullRequest.body
+    );
     if (!pullRequestBody) {
       logger.error('Could not parse pull request body as a release PR');
       return;

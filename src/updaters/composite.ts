@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Updater} from '../update';
+import {Updater, Update} from '../update';
 
 /**
  * The CompositeUpdater chains 0...n updaters and updates
  * the content in order.
  */
 export class CompositeUpdater implements Updater {
-  updaters: Updater[];
+  readonly updaters: Updater[];
   /**
    * Instantiate a new CompositeUpdater
    * @param {Updater[]} updaters The updaters to chain together
@@ -39,4 +39,28 @@ export class CompositeUpdater implements Updater {
     }
     return content || '';
   }
+}
+
+export function mergeUpdates(updates: Update[]): Update[] {
+  const updatesByPath: Record<string, Update[]> = {};
+  for (const update of updates) {
+    if (updatesByPath[update.path]) {
+      updatesByPath[update.path].push(update);
+    } else {
+      updatesByPath[update.path] = [update];
+    }
+  }
+
+  const newUpdates: Update[] = [];
+  for (const path in updatesByPath) {
+    const update = updatesByPath[path];
+    const updaters = update.map(u => u.updater);
+    newUpdates.push({
+      path,
+      createIfMissing: update[0].createIfMissing,
+      updater:
+        updaters.length === 1 ? updaters[0] : new CompositeUpdater(...updaters),
+    });
+  }
+  return newUpdates;
 }

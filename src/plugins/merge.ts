@@ -22,7 +22,7 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {Update} from '../update';
-import {CompositeUpdater} from '../updaters/composite';
+import {mergeUpdates} from '../updaters/composite';
 
 /**
  * This plugin merges multiple pull requests into a single
@@ -38,37 +38,18 @@ export class Merge extends ManifestPlugin {
       return candidates;
     }
 
-    const updatesByPath: Record<string, Update[]> = {};
     const releaseData: ReleaseData[] = [];
     const labels = new Set<string>();
+    let rawUpdates: Update[] = [];
     for (const candidate of candidates) {
       const pullRequest = candidate.pullRequest;
-      for (const update of pullRequest.updates) {
-        if (updatesByPath[update.path]) {
-          updatesByPath[update.path].push(update);
-        } else {
-          updatesByPath[update.path] = [update];
-        }
-      }
+      rawUpdates = rawUpdates.concat(...pullRequest.updates);
       for (const label of pullRequest.labels) {
         labels.add(label);
       }
       releaseData.push(...pullRequest.body.releaseData);
     }
-
-    const updates: Update[] = [];
-    for (const path in updatesByPath) {
-      const update = updatesByPath[path];
-      const updaters = update.map(u => u.updater);
-      updates.push({
-        path,
-        createIfMissing: update[0].createIfMissing,
-        updater:
-          updaters.length === 1
-            ? updaters[0]
-            : new CompositeUpdater(...updaters),
-      });
-    }
+    const updates = mergeUpdates(rawUpdates);
 
     const pullRequest = {
       title: PullRequestTitle.ofTargetBranch(
