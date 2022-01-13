@@ -74,7 +74,7 @@
     "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
     "detect-indent": "^6.1.0",
-    "figures": "^3.0.0",
+    "figures": "^4.0.0",
     "js-yaml": "^4.0.0",
     "node-html-parser": "^5.0.0",
     "parse-github-repo-url": "^1.4.1",
