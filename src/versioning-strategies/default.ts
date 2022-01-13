@@ -22,6 +22,7 @@ import {
 } from '../versioning-strategy';
 import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
+import {logger} from '../util/logger';
 
 interface DefaultVersioningStrategyOptions {
   bumpMinorPreMajor?: boolean;
@@ -66,21 +67,20 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
     // iterate through list of commits and find biggest commit type
     let breaking = 0;
     let features = 0;
-    let customVersion: Version | undefined;
     for (const commit of commits) {
       const releaseAs = commit.notes.find(note => note.title === 'RELEASE AS');
       if (releaseAs) {
-        customVersion = Version.parse(releaseAs.text);
+        // commits are handled newest to oldest, so take the first one (newest) found
+        logger.debug(`found Release-As: ${releaseAs.text}, forcing version`);
+        return new CustomVersionUpdate(
+          Version.parse(releaseAs.text).toString()
+        );
       }
       if (commit.breaking) {
         breaking++;
       } else if (commit.type === 'feat' || commit.type === 'feature') {
         features++;
       }
-    }
-
-    if (customVersion) {
-      return new CustomVersionUpdate(customVersion.toString());
     }
 
     if (breaking > 0) {
