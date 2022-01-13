@@ -169,42 +169,94 @@ describe('DefaultVersioningStrategy', () => {
   });
 
   describe('with release-as', () => {
-    const commits = [
-      {
-        sha: 'sha1',
-        message: 'feat: some feature',
-        files: ['path1/file1.txt'],
-        type: 'feat',
-        scope: null,
-        bareMessage: 'some feature',
-        notes: [],
-        references: [],
-        breaking: false,
-      },
-      {
-        sha: 'sha2',
-        message: 'fix!: some bugfix',
-        files: ['path1/file1.rb'],
-        type: 'fix',
-        scope: null,
-        bareMessage: 'some bugfix',
-        notes: [{title: 'RELEASE AS', text: '3.1.2'}],
-        references: [],
-        breaking: true,
-      },
-      {
-        sha: 'sha3',
-        message: 'docs: some documentation',
-        files: ['path1/file1.java'],
-        type: 'docs',
-        scope: null,
-        bareMessage: 'some documentation',
-        notes: [],
-        references: [],
-        breaking: false,
-      },
-    ];
     it('sets the version', async () => {
+      const commits = [
+        {
+          sha: 'sha1',
+          message: 'feat: some feature',
+          files: ['path1/file1.txt'],
+          type: 'feat',
+          scope: null,
+          bareMessage: 'some feature',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+        {
+          sha: 'sha2',
+          message: 'fix!: some bugfix',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [{title: 'RELEASE AS', text: '3.1.2'}],
+          references: [],
+          breaking: true,
+        },
+        {
+          sha: 'sha3',
+          message: 'docs: some documentation',
+          files: ['path1/file1.java'],
+          type: 'docs',
+          scope: null,
+          bareMessage: 'some documentation',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DefaultVersioningStrategy();
+      const oldVersion = Version.parse('1.2.3');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('3.1.2');
+    });
+    it('handles multiple release-as commits', async () => {
+      const commits = [
+        {
+          sha: 'sha1',
+          message: 'feat: some feature',
+          files: ['path1/file1.txt'],
+          type: 'feat',
+          scope: null,
+          bareMessage: 'some feature',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+        {
+          sha: 'sha2',
+          message: 'fix!: some bugfix',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [{title: 'RELEASE AS', text: '3.1.2'}],
+          references: [],
+          breaking: true,
+        },
+        {
+          sha: 'sha3',
+          message: 'docs: some documentation',
+          files: ['path1/file1.java'],
+          type: 'docs',
+          scope: null,
+          bareMessage: 'some documentation',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+        {
+          sha: 'sha4',
+          message: 'fix!: some bugfix',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [{title: 'RELEASE AS', text: '2.0.0'}],
+          references: [],
+          breaking: true,
+        },
+      ];
       const strategy = new DefaultVersioningStrategy();
       const oldVersion = Version.parse('1.2.3');
       const newVersion = await strategy.bump(oldVersion, commits);
