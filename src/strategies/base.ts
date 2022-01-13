@@ -325,14 +325,28 @@ export abstract class BaseStrategy implements Strategy {
         `Setting version for ${this.path} from release-as configuration`
       );
       return Version.parse(this.releaseAs);
-    } else if (latestRelease) {
+    }
+
+    const releaseAsCommit = conventionalCommits.find(conventionalCommit =>
+      conventionalCommit.notes.find(note => note.title === 'RELEASE AS')
+    );
+    if (releaseAsCommit) {
+      const note = releaseAsCommit.notes.find(
+        note => note.title === 'RELEASE AS'
+      );
+      if (note) {
+        return Version.parse(note.text);
+      }
+    }
+
+    if (latestRelease) {
       return await this.versioningStrategy.bump(
         latestRelease.tag.version,
         conventionalCommits
       );
-    } else {
-      return this.initialReleaseVersion();
     }
+
+    return this.initialReleaseVersion();
   }
 
   protected async buildVersionsMap(
