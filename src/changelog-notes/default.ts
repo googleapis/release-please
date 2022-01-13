@@ -75,13 +75,16 @@ export class DefaultChangelogNotes implements ChangelogNotes {
         subject: commit.bareMessage,
         type: commit.type,
         scope: commit.scope,
-        notes: commit.notes,
+        notes: commit.notes.filter(note => note.title === 'BREAKING CHANGE'),
         references: commit.references,
         mentions: [],
         merge: null,
         revert: null,
         header: commit.message,
-        footer: null,
+        footer: commit.notes
+          .filter(note => note.title === 'RELEASE AS')
+          .map(note => `Release-As: ${note.text}`)
+          .join('\n'),
         hash: commit.sha,
       };
     });

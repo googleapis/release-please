@@ -4,6 +4,42 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.3.2](https://github.com/googleapis/release-please/compare/v13.3.1...v13.3.2) (2022-01-13)
+
+
+### Bug Fixes
+
+* BranchName.parse should not throw exceptions ([#1227](https://github.com/googleapis/release-please/issues/1227)) ([364f1ac](https://github.com/googleapis/release-please/commit/364f1ac996b0120820d9bb37db96bb27a79aa936))
+* initial release version should respect Release-As commit ([#1222](https://github.com/googleapis/release-please/issues/1222)) ([22b9770](https://github.com/googleapis/release-please/commit/22b977028e2959aea088c09e3a021e2aa0e10f03))
+* Release-As commits should appear in the changelog correctly ([#1220](https://github.com/googleapis/release-please/issues/1220)) ([ab56c82](https://github.com/googleapis/release-please/commit/ab56c82e81091cbedeb8f328451ac486d7f986a4))
+* use latest Release-As commit when overriding version ([#1224](https://github.com/googleapis/release-please/issues/1224)) ([2d7cb8f](https://github.com/googleapis/release-please/commit/2d7cb8fa329d1c60b881bc0435523b81ea47a32d))
+
+### [13.3.1](https://github.com/googleapis/release-please/compare/v13.3.0...v13.3.1) (2022-01-12)
+
+
+### Bug Fixes
+
+* pass target_commitish instead of sha ([#1219](https://github.com/googleapis/release-please/issues/1219)) ([3f26ec3](https://github.com/googleapis/release-please/commit/3f26ec3de527497d7180f2cd987983c6ae6e44cd))
+
+## [13.3.0](https://github.com/googleapis/release-please/compare/v13.2.1...v13.3.0) (2022-01-12)
+
+
+### Features
+
+* allow configuring simple strategy version file ([#1168](https://github.com/googleapis/release-please/issues/1168)) ([08a0cf2](https://github.com/googleapis/release-please/commit/08a0cf2b2135713f856d8621cffa8f5b92fb8699))
+
+
+### Bug Fixes
+
+* ruby-yoshi strategy should put commit summary only in pull request body ([#1193](https://github.com/googleapis/release-please/issues/1193)) ([d29eda1](https://github.com/googleapis/release-please/commit/d29eda172597979cea5cb54ce6eb278a1dfb03a0)), closes [#1192](https://github.com/googleapis/release-please/issues/1192)
+
+### [13.2.1](https://github.com/googleapis/release-please/compare/v13.2.0...v13.2.1) (2022-01-12)
+
+
+### Bug Fixes
+
+* **php-yoshi:** fix parsing of pull request body ([#1213](https://github.com/googleapis/release-please/issues/1213)) ([00702ca](https://github.com/googleapis/release-please/commit/00702ca575e5d134505280b436e1348eccb2de01))
+
 ## [13.2.0](https://github.com/googleapis/release-please/compare/v13.1.1...v13.2.0) (2022-01-11)
 
 

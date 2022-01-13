@@ -27,6 +27,8 @@ import {PHPManifest} from '../../src/updaters/php/php-manifest';
 import {PHPClientVersion} from '../../src/updaters/php/php-client-version';
 import {DefaultUpdater} from '../../src/updaters/default';
 import snapshot = require('snap-shot-it');
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 
 const sandbox = sinon.createSandbox();
 
@@ -144,6 +146,34 @@ describe('PHPYoshi', () => {
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
       assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
       assertHasUpdate(updates, 'Client3/src/Entry.php', PHPClientVersion);
+    });
+  });
+  describe('buildRelease', () => {
+    it('parses the release notes', async () => {
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+      });
+      const body = readFileSync(
+        resolve('./test/fixtures/release-notes/legacy-php-yoshi.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const mergedPullRequest = {
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 123,
+        title: 'chore(main): release 0.173.0',
+        body,
+        labels: ['autorelease: pending'],
+        files: [],
+        sha: 'abc123',
+      };
+      const release = await strategy.buildRelease(mergedPullRequest);
+      expect(release).to.not.be.undefined;
+      snapshot(release!.notes);
+      expect(release!.name).to.eql('v0.173.0');
+      expect(release!.sha).to.eql('abc123');
+      expect(release!.tag.toString()).to.eql('v0.173.0');
     });
   });
 });
