@@ -4,6 +4,16 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.3.2](https://github.com/googleapis/release-please/compare/v13.3.1...v13.3.2) (2022-01-13)
+
+
+### Bug Fixes
+
+* BranchName.parse should not throw exceptions ([#1227](https://github.com/googleapis/release-please/issues/1227)) ([364f1ac](https://github.com/googleapis/release-please/commit/364f1ac996b0120820d9bb37db96bb27a79aa936))
+* initial release version should respect Release-As commit ([#1222](https://github.com/googleapis/release-please/issues/1222)) ([22b9770](https://github.com/googleapis/release-please/commit/22b977028e2959aea088c09e3a021e2aa0e10f03))
+* Release-As commits should appear in the changelog correctly ([#1220](https://github.com/googleapis/release-please/issues/1220)) ([ab56c82](https://github.com/googleapis/release-please/commit/ab56c82e81091cbedeb8f328451ac486d7f986a4))
+* use latest Release-As commit when overriding version ([#1224](https://github.com/googleapis/release-please/issues/1224)) ([2d7cb8f](https://github.com/googleapis/release-please/commit/2d7cb8fa329d1c60b881bc0435523b81ea47a32d))
+
 ### [13.3.1](https://github.com/googleapis/release-please/compare/v13.3.0...v13.3.1) (2022-01-12)
 
 
