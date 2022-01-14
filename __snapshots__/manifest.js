@@ -30,7 +30,7 @@ exports['Manifest buildPullRequests should allow creating multiple pull requests
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
-exports['Manifest buildPullRequests should allow customizing pull request title 1'] = `
+exports['Manifest buildPullRequests should allow customizing pull request title with root package 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
 
