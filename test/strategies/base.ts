@@ -20,6 +20,7 @@ import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import snapshot = require('snap-shot-it');
+import {dateSafe} from '../helpers';
 
 const sandbox = sinon.createSandbox();
 
@@ -66,7 +67,7 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       expect(pullRequest).to.not.be.undefined;
       expect(pullRequest?.version?.toString()).to.eql('2.3.4');
-      snapshot(pullRequest!.body.toString());
+      snapshot(dateSafe(pullRequest!.body.toString()));
     });
   });
   describe('buildRelease', () => {
