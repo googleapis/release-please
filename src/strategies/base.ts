@@ -84,7 +84,7 @@ export abstract class BaseStrategy implements Strategy {
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
-  private includeComponentInTag: boolean;
+  protected includeComponentInTag: boolean;
   private pullRequestTitlePattern?: string;
   readonly extraFiles: string[];
 
@@ -154,9 +154,9 @@ export abstract class BaseStrategy implements Strategy {
    * @param {ConventionalCommit[]} commits parsed commits
    * @returns {ConventionalCommit[]} modified commits
    */
-  protected postProcessCommits(
+  protected async postProcessCommits(
     commits: ConventionalCommit[]
-  ): ConventionalCommit[] {
+  ): Promise<ConventionalCommit[]> {
     return commits;
   }
 
@@ -210,9 +210,10 @@ export abstract class BaseStrategy implements Strategy {
     draft?: boolean,
     labels: string[] = []
   ): Promise<ReleasePullRequest | undefined> {
-    const conventionalCommits = this.postProcessCommits(
+    const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits)
     );
+    logger.info(`Considering: ${conventionalCommits.length} commits`);
 
     const newVersion = await this.buildNewVersion(
       conventionalCommits,
