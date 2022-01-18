@@ -97,6 +97,22 @@ export class Python extends BaseStrategy {
           version,
         }),
       });
+      // In case the project name is splitted by -, replace - with _
+      let projectDirectoryName = projectName.replace('-', '_');
+      updates.push({
+        path: this.addPath(`${projectDirectoryName}/__init__.py`),
+        createIfMissing: false,
+        updater: new PythonFileWithVersion({
+          version,
+        }),
+      });
+      updates.push({
+        path: this.addPath(`src/${projectDirectoryName}/__init__.py`),
+        createIfMissing: false,
+        updater: new PythonFileWithVersion({
+          version,
+        }),
+      });
     }
 
     // There should be only one version.py, but foreach in case that is incorrect
