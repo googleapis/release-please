@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.4.0](https://github.com/googleapis/release-please/compare/v13.3.2...v13.4.0) (2022-01-18)
+
+
+### Features
+
+* add grouped manifest pr title pattern option ([#1184](https://github.com/googleapis/release-please/issues/1184)) ([df1332f](https://github.com/googleapis/release-please/commit/df1332f3b95e622752d351a29fc0a1b5083963c6))
+
+
+### Bug Fixes
+
+* **go-yoshi:** restore scope-based commit filtering ([#1233](https://github.com/googleapis/release-please/issues/1233)) ([597e6dd](https://github.com/googleapis/release-please/commit/597e6dd58217c62d562070032138cee8cad5e693))
+* search for files on target branch, not default branch ([#1235](https://github.com/googleapis/release-please/issues/1235)) ([d891f00](https://github.com/googleapis/release-please/commit/d891f000eb2b198bfb4331b41bc5020fff52e1da))
+
 ### [13.3.2](https://github.com/googleapis/release-please/compare/v13.3.1...v13.3.2) (2022-01-13)
 
 
