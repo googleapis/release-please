@@ -100,8 +100,9 @@ export class Python extends BaseStrategy {
     }
 
     // There should be only one version.py, but foreach in case that is incorrect
-    const versionPyFilesSearch = this.github.findFilesByFilename(
+    const versionPyFilesSearch = this.github.findFilesByFilenameAndRef(
       'version.py',
+      this.targetBranch,
       this.path
     );
     const versionPyFiles = await versionPyFilesSearch;
