@@ -70,7 +70,7 @@ export class PHPYoshi extends BaseStrategy {
     draft?: boolean,
     labels: string[] = []
   ): Promise<ReleasePullRequest> {
-    const conventionalCommits = this.postProcessCommits(
+    const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits)
     );
 
