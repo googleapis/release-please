@@ -213,6 +213,7 @@ export abstract class BaseStrategy implements Strategy {
     const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits)
     );
+    logger.info(`Considering: ${conventionalCommits.length} commits`);
 
     const newVersion = await this.buildNewVersion(
       conventionalCommits,

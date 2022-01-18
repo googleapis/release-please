@@ -20,6 +20,7 @@ import {Version} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
 import {VersionGo} from '../updaters/go/version-go';
+import {logger} from '../util/logger';
 
 // Commits containing a scope prefixed with an item in this array will be
 // ignored when generating a release PR for the parent module.
@@ -72,7 +73,7 @@ export class GoYoshi extends BaseStrategy {
   ): Promise<ConventionalCommit[]> {
     let regenCommit: ConventionalCommit;
     const component = await this.getComponent();
-
+    logger.debug('Filtering commits');
     return commits.filter(commit => {
       // ignore commits whose scope is in the list of ignored modules
       if (IGNORED_SUB_MODULES.has(commit.scope || '')) {
@@ -121,6 +122,7 @@ export class GoYoshi extends BaseStrategy {
         // Skip commits that don't have a scope as we don't know where to
         // put them
         if (!commit.scope) {
+          logger.debug(`Skipping commit without scope: ${commit.message}`);
           return false;
         }
 
@@ -129,12 +131,18 @@ export class GoYoshi extends BaseStrategy {
         if (this.includeComponentInTag) {
           // This is a submodule release, so only include commits in this
           // scope
-          return commitMatchesScope(commit.scope, component!);
+          if (!commitMatchesScope(commit.scope, component!)) {
+            logger.debug(
+              `Skipping commit scope: ${commit.scope} != ${component}`
+            );
+            return false;
+          }
         } else {
           // This is the main module release, so ignore sub modules that
           // are released independently
           for (const submodule of IGNORED_SUB_MODULES) {
             if (commitMatchesScope(commit.scope, submodule)) {
+              logger.debug(`Skipping ignored commit scope: ${commit.scope}`);
               return false;
             }
           }

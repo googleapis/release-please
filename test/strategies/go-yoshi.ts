@@ -29,10 +29,8 @@ const sandbox = sinon.createSandbox();
 
 const COMMITS = [
   buildMockCommit(
-    'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
-  ),
-  buildMockCommit(
-    'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
+    'fix(iam): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
+    ['iam/foo.go']
   ),
   buildMockCommit('chore: update common templates'),
 ];
@@ -42,7 +40,7 @@ describe('GoYoshi', () => {
   beforeEach(async () => {
     github = await GitHub.create({
       owner: 'googleapis',
-      repo: 'go-yoshi-test-repo',
+      repo: 'google-cloud-go',
       defaultBranch: 'main',
     });
   });
@@ -55,7 +53,7 @@ describe('GoYoshi', () => {
       const strategy = new GoYoshi({
         targetBranch: 'main',
         github,
-        component: 'google-cloud-automl',
+        component: 'iam',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -69,10 +67,10 @@ describe('GoYoshi', () => {
       const strategy = new GoYoshi({
         targetBranch: 'main',
         github,
-        component: 'google-cloud-automl',
+        component: 'iam',
       });
       const latestRelease = {
-        tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
+        tag: new TagName(Version.parse('0.123.4'), 'iam'),
         sha: 'abc123',
         notes: 'some notes',
       };
@@ -88,7 +86,7 @@ describe('GoYoshi', () => {
       const strategy = new GoYoshi({
         targetBranch: 'main',
         github,
-        component: 'google-cloud-automl',
+        component: 'iam',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -105,6 +103,7 @@ describe('GoYoshi', () => {
       const strategy = new GoYoshi({
         targetBranch: 'main',
         github,
+        includeComponentInTag: false,
       });
       const commits = [
         buildMockCommit('fix: some generic fix'),
@@ -115,6 +114,26 @@ describe('GoYoshi', () => {
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       const pullRequestBody = pullRequest!.body.toString();
       expect(pullRequestBody).to.not.include('logging');
+      snapshot(dateSafe(pullRequestBody));
+    });
+    it('filters out touched files not matching submodule commits', async () => {
+      const strategy = new GoYoshi({
+        targetBranch: 'main',
+        github,
+        includeComponentInTag: false,
+      });
+      const commits = [
+        buildMockCommit('fix: some generic fix'),
+        buildMockCommit('fix(iam/apiv1): some firestore fix', [
+          'accessapproval/apiv1/access_approval_client.go',
+          'iam/apiv1/admin/firestore_admin_client.go',
+        ]),
+        buildMockCommit('feat: some generic feature'),
+      ];
+      const pullRequest = await strategy.buildReleasePullRequest(commits);
+      const pullRequestBody = pullRequest!.body.toString();
+      expect(pullRequestBody).to.not.include('access');
+      expect(pullRequestBody).to.include('iam');
       snapshot(dateSafe(pullRequestBody));
     });
 
