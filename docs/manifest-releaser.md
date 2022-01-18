@@ -173,12 +173,12 @@ documented in comments)
 
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
-  "changelog-sections": [...]
+  "changelog-sections": [...],
 
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
   // absence defaults to false and Releases are created as already Published.
-  "draft": true
+  "draft": true,
 
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Prerelease" releases that have pre-major or prerelease versions.
@@ -195,7 +195,20 @@ documented in comments)
   // setting to false will only bump your local dependencies within the SemVer range.
   // see Breaking Changes section below
   // absence defaults to true
-  "always-link-local": false
+  "always-link-local": false,
+
+  // if true, create separate pull requests for each package instead of a
+  // single manifest release pull request
+  // absence defaults to false and one pull request will be raised
+  "separate-pull-requests": false,
+
+  // sets the manifest pull request title for when releasing multiple packages
+  // grouped together in the one pull request.
+  // This option has no effect when `separate-pull-requests` is `true`.
+  // Template values (i.e. ${scope}, ${component} and ${version}) are inherited
+  // from the root path's (i.e. '.') package, if present
+  // absence defaults to "chore: release ${branch}"
+  "group-pull-request-title-pattern": "chore: release ${branch}",
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
@@ -214,7 +227,7 @@ documented in comments)
       // overrides release-type for node
       "release-type": "node",
       // create published GitHub Releases on `manifest-release` runs
-      "draft": false,
+      "draft": false
     },
 
     "path/to/myJSPkgB": {
@@ -266,7 +279,7 @@ handling the new package bootstrap case).
 
 If you're using Release Please on a Node.js monorepo project that is also
 using [Lerna](https://github.com/lerna/lerna) you can set up a GitHub Action
-to automate the creation of release PRs. An example `release-please.yml` 
+to automate the creation of release PRs. An example `release-please.yml`
 similar to the [example for single packages](https://github.com/googleapis/release-please#automating-publication-to-npm)
 is shown below.
 

@@ -1,0 +1,16 @@
+{
+  "release-type": "simple",
+  "group-pull-request-title-pattern": "chore${scope}: release${component} v${version}",
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils"
+    },
+    "packages/cron-utils": {
+      "component": "cron-utils",
+      "pull-request-title-pattern": "chore${scope}: send it v${version}"
+    }
+  }
+}
