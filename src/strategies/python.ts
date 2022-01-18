@@ -98,7 +98,7 @@ export class Python extends BaseStrategy {
         }),
       });
       // In case the project name is splitted by -, replace - with _
-      let projectDirectoryName = projectName.replace('-', '_');
+      const projectDirectoryName = projectName.replace('-', '_');
       updates.push({
         path: this.addPath(`${projectDirectoryName}/__init__.py`),
         createIfMissing: false,
