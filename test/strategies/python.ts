@@ -59,7 +59,7 @@ describe('Python', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -74,7 +74,7 @@ describe('Python', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
         sha: 'abc123',
@@ -94,7 +94,7 @@ describe('Python', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -127,7 +127,7 @@ describe('Python', () => {
         .resolves(
           buildGitHubFileContent('./test/updaters/fixtures', 'pyproject.toml')
         );
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -143,7 +143,9 @@ describe('Python', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves(['src/version.py']);
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .resolves(['src/version.py']);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,

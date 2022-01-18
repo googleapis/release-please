@@ -63,7 +63,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -85,7 +85,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -111,7 +111,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -142,7 +142,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -186,7 +186,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -210,15 +210,15 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByFilename');
+      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
       findFilesStub
-        .withArgs('pom.xml', '.')
+        .withArgs('pom.xml', 'main', '.')
         .resolves(['path1/pom.xml', 'path2/pom.xml']);
       findFilesStub
-        .withArgs('build.gradle', '.')
+        .withArgs('build.gradle', 'main', '.')
         .resolves(['path1/build.gradle', 'path2/build.gradle']);
       findFilesStub
-        .withArgs('dependencies.properties', '.')
+        .withArgs('dependencies.properties', 'main', '.')
         .resolves(['dependencies.properties']);
       const getFileContentsStub = sandbox.stub(
         github,
@@ -250,7 +250,7 @@ describe('JavaYoshi', () => {
         component: 'google-cloud-automl',
         extraFiles: ['foo/bar.java', 'src/version.java'],
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -276,15 +276,15 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByFilename');
+      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
       findFilesStub
-        .withArgs('pom.xml', '.')
+        .withArgs('pom.xml', 'main', '.')
         .resolves(['path1/pom.xml', 'path2/pom.xml']);
       findFilesStub
-        .withArgs('build.gradle', '.')
+        .withArgs('build.gradle', 'main', '.')
         .resolves(['path1/build.gradle', 'path2/build.gradle']);
       findFilesStub
-        .withArgs('dependencies.properties', '.')
+        .withArgs('dependencies.properties', 'main', '.')
         .resolves(['dependencies.properties']);
       const getFileContentsStub = sandbox.stub(
         github,

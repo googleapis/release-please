@@ -184,16 +184,19 @@ export class JavaYoshi extends BaseStrategy {
       }),
     });
 
-    const pomFilesSearch = this.github.findFilesByFilename(
+    const pomFilesSearch = this.github.findFilesByFilenameAndRef(
       'pom.xml',
+      this.targetBranch,
       this.path
     );
-    const buildFilesSearch = this.github.findFilesByFilename(
+    const buildFilesSearch = this.github.findFilesByFilenameAndRef(
       'build.gradle',
+      this.targetBranch,
       this.path
     );
-    const dependenciesSearch = this.github.findFilesByFilename(
+    const dependenciesSearch = this.github.findFilesByFilenameAndRef(
       'dependencies.properties',
+      this.targetBranch,
       this.path
     );
 
