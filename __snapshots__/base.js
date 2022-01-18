@@ -3,7 +3,7 @@ exports['Strategy buildReleasePullRequest allows overriding initial version 1'] 
 ---
 
 
-### 2.3.4 (2022-01-13)
+### 2.3.4 (1983-10-10)
 
 
 ### Miscellaneous Chores
