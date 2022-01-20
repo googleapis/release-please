@@ -44,7 +44,7 @@ const CHANGELOG_SECTIONS = [
 export class Python extends BaseStrategy {
   constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
-    super(options)
+    super(options);
   }
 
   protected async buildUpdates(
