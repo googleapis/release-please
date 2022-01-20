@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.1](https://github.com/googleapis/release-please/compare/v13.4.0...v13.4.1) (2022-01-20)
+
+
+### Bug Fixes
+
+* handle windows newlines in pull request body ([#1239](https://github.com/googleapis/release-please/issues/1239)) ([69a424f](https://github.com/googleapis/release-please/commit/69a424ff2671ccfb661efd376aede155caee42ce))
+* **python:** fix version regex to find multiple digit patch versions ([#1238](https://github.com/googleapis/release-please/issues/1238)) ([e03a3bf](https://github.com/googleapis/release-please/commit/e03a3bf81f0706b96bc76f217ab420a0f90b4152)), closes [#1237](https://github.com/googleapis/release-please/issues/1237)
+* **python:** restore default changelog config for python ([#1240](https://github.com/googleapis/release-please/issues/1240)) ([54007ea](https://github.com/googleapis/release-please/commit/54007ea6d7d6c12f5757eeb2b5abdf13a8b524be))
+
 ## [13.4.0](https://github.com/googleapis/release-please/compare/v13.3.2...v13.4.0) (2022-01-18)
 
 
