@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {BaseStrategy, BuildUpdatesOptions} from './base';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {Version} from '../version';
@@ -26,7 +26,27 @@ import {
 import {logger} from '../util/logger';
 import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
 
+const CHANGELOG_SECTIONS = [
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'deps', section: 'Dependencies'},
+  {type: 'revert', section: 'Reverts'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'style', section: 'Styles', hidden: true},
+  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
+];
+
 export class Python extends BaseStrategy {
+  constructor(options: BaseStrategyOptions) {
+    options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
+    super(options);
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

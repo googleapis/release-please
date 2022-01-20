@@ -86,7 +86,7 @@ ${this.footer}`;
 function splitBody(
   body: string
 ): {header: string; footer: string; content: string} | undefined {
-  const lines = body.trim().split('\n');
+  const lines = body.trim().replace(/\r\n/g, '\n').split('\n');
   const index = lines.indexOf(NOTES_DELIMITER);
   if (index === -1) {
     return undefined;
