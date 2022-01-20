@@ -28,7 +28,7 @@ describe('PullRequestBody', () => {
       const body = readFileSync(
         resolve(fixturesPath, './multiple.txt'),
         'utf8'
-      ).replace(/\r\n/g, '\n');
+      );
       const pullRequestBody = PullRequestBody.parse(body);
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
@@ -58,7 +58,7 @@ describe('PullRequestBody', () => {
       const body = readFileSync(
         resolve(fixturesPath, './single-manifest.txt'),
         'utf8'
-      ).replace(/\r\n/g, '\n');
+      );
       const pullRequestBody = PullRequestBody.parse(body);
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
@@ -68,10 +68,7 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].notes).matches(/^### Bug Fixes/);
     });
     it('should parse standalone release', () => {
-      const body = readFileSync(
-        resolve(fixturesPath, './single.txt'),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
+      const body = readFileSync(resolve(fixturesPath, './single.txt'), 'utf8');
       const pullRequestBody = PullRequestBody.parse(body);
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
@@ -84,7 +81,7 @@ describe('PullRequestBody', () => {
       const body = readFileSync(
         resolve(fixturesPath, './legacy-php-yoshi.txt'),
         'utf8'
-      ).replace(/\r\n/g, '\n');
+      );
       const pullRequestBody = PullRequestBody.parse(body);
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
