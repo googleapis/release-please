@@ -270,7 +270,11 @@ export class Manifest {
       targetBranch,
       repositoryConfig,
       releasedVersions,
-      {...manifestOptions, ...manifestOptionOverrides}
+      {
+        manifestPath: manifestFile,
+        ...manifestOptions,
+        ...manifestOptionOverrides
+      }
     );
   }
 

@@ -640,6 +640,35 @@ describe('Manifest', () => {
         );
       });
 
+      it('should honour the manifestFile argument in Manifest.fromManifest', async () => {
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
+        );
+        getFileContentsStub
+          .withArgs('release-please-config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(fixturesPath, 'manifest/config/simple.json')
+          )
+          .withArgs('non/default/path/manifest.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/versions/simple.json'
+            )
+          );
+        const manifest = await Manifest.fromManifest(
+          github,
+          'main',
+          undefined,
+          'non/default/path/manifest.json'
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        assertHasUpdate(pullRequest.updates, 'non/default/path/manifest.json');
+      })
+
       it('should create a draft pull request', async () => {
         const manifest = new Manifest(
           github,
