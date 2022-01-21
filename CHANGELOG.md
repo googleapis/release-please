@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.2](https://github.com/googleapis/release-please/compare/v13.4.1...v13.4.2) (2022-01-21)
+
+
+### Bug Fixes
+
+* Manifest.fromFile no longer ignores manifestFile arg ([#1243](https://github.com/googleapis/release-please/issues/1243)) ([04a44ab](https://github.com/googleapis/release-please/commit/04a44ab08e8ce3911ad814744cebb79aab2ef8aa))
+
 ### [13.4.1](https://github.com/googleapis/release-please/compare/v13.4.0...v13.4.1) (2022-01-20)
 
 
