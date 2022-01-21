@@ -25,6 +25,7 @@ import {BranchName} from '../util/branch-name';
 import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
 import {GitHub} from '../github';
+import {logger} from '../util/logger';
 
 /**
  * This plugin merges multiple pull requests into a single
@@ -52,6 +53,7 @@ export class Merge extends ManifestPlugin {
     if (candidates.length < 1) {
       return candidates;
     }
+    logger.info(`Merging ${candidates.length} pull requests`);
 
     const releaseData: ReleaseData[] = [];
     const labels = new Set<string>();
@@ -77,7 +79,7 @@ export class Merge extends ManifestPlugin {
         rootRelease?.pullRequest.title.version,
         this.pullRequestTitlePattern
       ),
-      body: new PullRequestBody(releaseData),
+      body: new PullRequestBody(releaseData, {useComponents: true}),
       updates,
       labels: Array.from(labels),
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
