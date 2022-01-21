@@ -273,7 +273,7 @@ export class Manifest {
       {
         manifestPath: manifestFile,
         ...manifestOptions,
-        ...manifestOptionOverrides
+        ...manifestOptionOverrides,
       }
     );
   }

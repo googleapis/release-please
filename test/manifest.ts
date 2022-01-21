@@ -667,7 +667,7 @@ describe('Manifest', () => {
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         assertHasUpdate(pullRequest.updates, 'non/default/path/manifest.json');
-      })
+      });
 
       it('should create a draft pull request', async () => {
         const manifest = new Manifest(
