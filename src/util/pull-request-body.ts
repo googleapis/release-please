@@ -132,7 +132,7 @@ function extractMultipleReleases(notes: string): ReleaseData[] {
   }
   return data;
 }
-const COMPARE_REGEX = /^#{2,} \[(?<version>\d+\.\d+\.\d+.*)\]/;
+const COMPARE_REGEX = /^#{2,} \[?(?<version>\d+\.\d+\.\d+.*)\]?/;
 function extractSingleRelease(body: string): ReleaseData[] {
   body = body.trim();
   const match = body.match(COMPARE_REGEX);
