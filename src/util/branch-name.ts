@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {Version} from '../version';
+import {logger} from './logger';
 
 // cannot import from '..' - transpiled code references to RELEASE_PLEASE
 // at the script level are undefined, they are only defined inside function
@@ -39,13 +40,18 @@ export class BranchName {
   version?: Version;
 
   static parse(branchName: string): BranchName | undefined {
-    const branchNameClass = getAllResourceNames().find(clazz => {
-      return clazz.matches(branchName);
-    });
-    if (!branchNameClass) {
+    try {
+      const branchNameClass = getAllResourceNames().find(clazz => {
+        return clazz.matches(branchName);
+      });
+      if (!branchNameClass) {
+        return undefined;
+      }
+      return new branchNameClass(branchName);
+    } catch (e) {
+      logger.warn(`Error parsing branch name: ${branchName}`, e);
       return undefined;
     }
-    return new branchNameClass(branchName);
   }
   static ofComponentVersion(
     branchPrefix: string,

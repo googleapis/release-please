@@ -15,11 +15,20 @@
 // Generic
 import {Changelog} from '../updaters/changelog';
 // version.txt support
-import {BaseStrategy, BuildUpdatesOptions} from './base';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {DefaultUpdater} from '../updaters/default';
 
+interface SimpleStrategyOptions extends BaseStrategyOptions {
+  versionFile?: string;
+}
+
 export class Simple extends BaseStrategy {
+  readonly versionFile: string;
+  constructor(options: SimpleStrategyOptions) {
+    super(options);
+    this.versionFile = options.versionFile ?? 'version.txt';
+  }
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
@@ -36,7 +45,7 @@ export class Simple extends BaseStrategy {
     });
 
     updates.push({
-      path: this.addPath('version.txt'),
+      path: this.addPath(this.versionFile),
       createIfMissing: false,
       updater: new DefaultUpdater({
         version,

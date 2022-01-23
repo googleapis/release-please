@@ -52,7 +52,7 @@ describe('Elixir', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,

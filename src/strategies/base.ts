@@ -85,7 +85,7 @@ export abstract class BaseStrategy implements Strategy {
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
-  private includeComponentInTag: boolean;
+  protected includeComponentInTag: boolean;
   private pullRequestTitlePattern?: string;
   readonly extraFiles: string[];
 
@@ -155,9 +155,9 @@ export abstract class BaseStrategy implements Strategy {
    * @param {ConventionalCommit[]} commits parsed commits
    * @returns {ConventionalCommit[]} modified commits
    */
-  protected postProcessCommits(
+  protected async postProcessCommits(
     commits: ConventionalCommit[]
-  ): ConventionalCommit[] {
+  ): Promise<ConventionalCommit[]> {
     return commits;
   }
 
@@ -178,6 +178,22 @@ export abstract class BaseStrategy implements Strategy {
     });
   }
 
+  protected async buildPullRequestBody(
+    component: string | undefined,
+    newVersion: Version,
+    releaseNotesBody: string,
+    _conventionalCommits: ConventionalCommit[],
+    _latestRelease?: Release
+  ): Promise<PullRequestBody> {
+    return new PullRequestBody([
+      {
+        component,
+        version: newVersion,
+        notes: releaseNotesBody,
+      },
+    ]);
+  }
+
   /**
    * Builds a candidate release pull request
    * @param {Commit[]} commits Raw commits to consider for this release.
@@ -195,9 +211,10 @@ export abstract class BaseStrategy implements Strategy {
     draft?: boolean,
     labels: string[] = []
   ): Promise<ReleasePullRequest | undefined> {
-    const conventionalCommits = this.postProcessCommits(
+    const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits)
     );
+    logger.info(`Considering: ${conventionalCommits.length} commits`);
 
     const newVersion = await this.buildNewVersion(
       conventionalCommits,
@@ -215,7 +232,7 @@ export abstract class BaseStrategy implements Strategy {
       this.includeComponentInTag ? component : undefined,
       this.tagSeparator
     );
-    logger.warn('pull request title pattern:', this.pullRequestTitlePattern);
+    logger.debug('pull request title pattern:', this.pullRequestTitlePattern);
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
@@ -248,13 +265,13 @@ export abstract class BaseStrategy implements Strategy {
     const updatesWithExtras = mergeUpdates(
       updates.concat(...this.extraFileUpdates(newVersion))
     );
-    const pullRequestBody = new PullRequestBody([
-      {
-        component,
-        version: newVersion,
-        notes: releaseNotesBody,
-      },
-    ]);
+    const pullRequestBody = await this.buildPullRequestBody(
+      component,
+      newVersion,
+      releaseNotesBody,
+      conventionalCommits,
+      latestRelease
+    );
 
     return {
       title: pullRequestTitle,
@@ -308,20 +325,40 @@ export abstract class BaseStrategy implements Strategy {
         `Setting version for ${this.path} from release-as configuration`
       );
       return Version.parse(this.releaseAs);
-    } else if (latestRelease) {
+    }
+
+    const releaseAsCommit = conventionalCommits.find(conventionalCommit =>
+      conventionalCommit.notes.find(note => note.title === 'RELEASE AS')
+    );
+    if (releaseAsCommit) {
+      const note = releaseAsCommit.notes.find(
+        note => note.title === 'RELEASE AS'
+      );
+      if (note) {
+        return Version.parse(note.text);
+      }
+    }
+
+    if (latestRelease) {
       return await this.versioningStrategy.bump(
         latestRelease.tag.version,
         conventionalCommits
       );
-    } else {
-      return this.initialReleaseVersion();
     }
+
+    return this.initialReleaseVersion();
   }
 
   protected async buildVersionsMap(
     _conventionalCommits: ConventionalCommit[]
   ): Promise<VersionsMap> {
     return new Map();
+  }
+
+  protected async parsePullRequestBody(
+    pullRequestBody: string
+  ): Promise<PullRequestBody | undefined> {
+    return PullRequestBody.parse(pullRequestBody);
   }
 
   /**
@@ -359,7 +396,9 @@ export abstract class BaseStrategy implements Strategy {
       logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
       return;
     }
-    const pullRequestBody = PullRequestBody.parse(mergedPullRequest.body);
+    const pullRequestBody = await this.parsePullRequestBody(
+      mergedPullRequest.body
+    );
     if (!pullRequestBody) {
       logger.error('Could not parse pull request body as a release PR');
       return;

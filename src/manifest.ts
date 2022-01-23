@@ -119,6 +119,7 @@ export interface ManifestOptions {
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
+  groupPullRequestTitlePattern?: string;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -139,6 +140,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'always-link-local'?: boolean;
   plugins?: PluginType[];
   'separate-pull-requests'?: boolean;
+  'group-pull-request-title-pattern'?: string;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -182,6 +184,7 @@ export class Manifest {
   private draft?: boolean;
   private prerelease?: boolean;
   private draftPullRequest?: boolean;
+  private groupPullRequestTitlePattern?: string;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -235,6 +238,8 @@ export class Manifest {
     this.lastReleaseSha = manifestOptions?.lastReleaseSha;
     this.draft = manifestOptions?.draft;
     this.draftPullRequest = manifestOptions?.draftPullRequest;
+    this.groupPullRequestTitlePattern =
+      manifestOptions?.groupPullRequestTitlePattern;
   }
 
   /**
@@ -265,7 +270,11 @@ export class Manifest {
       targetBranch,
       repositoryConfig,
       releasedVersions,
-      {...manifestOptions, ...manifestOptionOverrides}
+      {
+        manifestPath: manifestFile,
+        ...manifestOptions,
+        ...manifestOptionOverrides,
+      }
     );
   }
 
@@ -550,7 +559,12 @@ export class Manifest {
     // pull requests
     if (!this.separatePullRequests) {
       plugins.push(
-        new Merge(this.github, this.targetBranch, this.repositoryConfig)
+        new Merge(
+          this.github,
+          this.targetBranch,
+          this.repositoryConfig,
+          this.groupPullRequestTitlePattern
+        )
       );
     }
 
@@ -902,6 +916,7 @@ async function parseConfig(
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
     separatePullRequests: config['separate-pull-requests'],
+    groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
   };
   return {config: repositoryConfig, options: manifestOptions};
@@ -1080,6 +1095,9 @@ function mergeReleaserConfig(
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
     extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
+    pullRequestTitlePattern:
+      pathConfig.pullRequestTitlePattern ??
+      defaultConfig.pullRequestTitlePattern,
   };
 }
 

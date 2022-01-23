@@ -1214,9 +1214,9 @@ export class GitHub {
         repo: this.repository.repo,
         tag_name: release.tag.toString(),
         body: release.notes,
-        sha: release.sha,
         draft: !!options.draft,
         prerelease: !!options.prerelease,
+        target_commitish: release.sha,
       });
       return {
         name: resp.data.name || undefined,

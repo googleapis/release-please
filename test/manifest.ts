@@ -195,6 +195,37 @@ describe('Manifest', () => {
         'node'
       );
     });
+    it('should read custom pull request title patterns from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/group-pr-title-pattern.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['groupPullRequestTitlePattern']).to.eql(
+        'chore${scope}: release${component} v${version}'
+      );
+      expect(
+        manifest.repositoryConfig['packages/cron-utils'].pullRequestTitlePattern
+      ).to.eql('chore${scope}: send it v${version}');
+    });
   });
 
   describe('fromConfig', () => {
@@ -607,6 +638,35 @@ describe('Manifest', () => {
         expect(pullRequest.headRefName).to.eql(
           'release-please--branches--main'
         );
+      });
+
+      it('should honour the manifestFile argument in Manifest.fromManifest', async () => {
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
+        );
+        getFileContentsStub
+          .withArgs('release-please-config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(fixturesPath, 'manifest/config/simple.json')
+          )
+          .withArgs('non/default/path/manifest.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/versions/simple.json'
+            )
+          );
+        const manifest = await Manifest.fromManifest(
+          github,
+          'main',
+          undefined,
+          'non/default/path/manifest.json'
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        assertHasUpdate(pullRequest.updates, 'non/default/path/manifest.json');
       });
 
       it('should create a draft pull request', async () => {
@@ -1252,6 +1312,209 @@ describe('Manifest', () => {
       const pullRequests = await manifest.buildPullRequests();
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
+    });
+
+    it('should allow customizing pull request title with root package', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          sha: 'abc123',
+          tagName: 'root-v1.2.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/root-v1.2.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg1-v1.0.1',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.1',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
+        },
+        {
+          sha: 'def234',
+          tagName: 'root-v1.2.1',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/root-v1.2.1',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release v1.2.1',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.1',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            component: 'root',
+          },
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+          },
+        },
+        {
+          '.': Version.parse('1.2.1'),
+          'path/a': Version.parse('1.0.1'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          groupPullRequestTitlePattern:
+            'chore${scope}: release${component} v${version}',
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.title.toString()).to.eql(
+        'chore(main): release root v1.2.2'
+      );
+      snapshot(dateSafe(pullRequest.body.toString()));
+    });
+
+    it('should allow customizing pull request title without root package', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg1-v1.0.1',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.1',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release v1.2.1',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.1',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.1'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          groupPullRequestTitlePattern:
+            'chore${scope}: release${component} v${version}',
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].title.toString()).to.eql('chore(main): release v');
     });
 
     it('should read latest version from manifest if no release tag found', async () => {
