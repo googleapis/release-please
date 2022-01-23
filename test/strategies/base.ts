@@ -78,15 +78,10 @@ describe('Strategy', () => {
           '0',
           'foo/1.~csv',
           'foo/2.bak',
-          'foo/bar/../baz',
           'foo/baz/bar/',
-          'foo/baz/../../../../../etc/hostname',
           '/3.java',
           '~/4.md',
           '~/./5',
-          '~/../../.././level/../../../up',
-          './../../../opt/',
-          '../../../../etc/passwd',
         ],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
@@ -100,23 +95,47 @@ describe('Strategy', () => {
           '0',
           '3.java',
           '4.md',
-          '5',
+          './5',
           'foo/1.~csv',
           'foo/2.bak',
-          'foo/baz',
           'foo/baz/bar',
-          'etc/hostname',
-          'etc/passwd',
-          'opt',
-          'up',
         ])
-        .but.not.include('foo/bar/baz', 'expected file up one level')
         .and.not.include('foo/baz/bar/', 'expected file but got directory')
         .and.to.satisfy(
           (paths: string[]) =>
-            paths.every(path => /^(\.{1,2}|~|\/)*\//.test(path)),
-          'illegal pathing characters at start of file path'
+            paths.every(path => /(\.{1,2}|^~|^\/*)+\//.test(path)),
+          'illegal pathing characters found in path'
         );
+    });
+    it('rejects relative extra files', async () => {
+      const extraFiles = [
+        'foo/bar/../baz',
+        'foo/baz/../../../../../etc/hostname',
+        '~/../../.././level/../../../up',
+        './../../../opt/',
+        '/../../../etc/hosts',
+        '../../../../etc/hosts',
+      ];
+      for (const file of extraFiles) {
+        try {
+          const strategy = new TestStrategy({
+            targetBranch: 'main',
+            github,
+            component: 'google-cloud-automl',
+            extraFiles: [file],
+          });
+          await strategy.buildReleasePullRequest(
+            [{sha: 'aaa', message: 'fix: a bugfix'}],
+            undefined
+          );
+          expect.fail(`expected [addPath] to reject path: ${file}`);
+        } catch (err) {
+          expect(err).to.be.instanceof(Error);
+          expect(err.message).to.have.string(
+            'illegal pathing characters in path'
+          );
+        }
+      }
     });
   });
   describe('buildRelease', () => {

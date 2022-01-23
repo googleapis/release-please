@@ -1589,18 +1589,18 @@ describe('Manifest', () => {
           '.': {
             releaseType: 'simple',
             component: 'a',
-            extraFiles: ['pkg.properties'],
+            extraFiles: ['root.properties'],
           },
           'pkg/b': {
             releaseType: 'simple',
             component: 'b',
-            extraFiles: ['pkg.properties', 'src/version', '~/./bbb.properties'],
+            extraFiles: ['pkg.properties', 'src/version', '/bbb.properties'],
             skipGithubRelease: true,
           },
           'pkg/c': {
             releaseType: 'simple',
             component: 'c',
-            extraFiles: ['../pkg-c.properties', '/ccc.properties'],
+            extraFiles: ['/pkg/pkg-c.properties', '~/ccc.properties'],
             skipGithubRelease: true,
           },
         },
@@ -1615,9 +1615,9 @@ describe('Manifest', () => {
       expect(pullRequests[0].updates).to.be.an('array');
       expect(pullRequests[0].updates.map(update => update.path))
         .to.include.members([
+          'root.properties',
           'bbb.properties',
           'ccc.properties',
-          'pkg.properties',
           'pkg/pkg-c.properties',
           'pkg/b/pkg.properties',
           'pkg/b/src/version',

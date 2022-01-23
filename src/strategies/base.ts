@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as path from 'path';
 import {Strategy} from '../strategy';
 import {GitHub} from '../github';
 import {VersioningStrategy} from '../versioning-strategy';
@@ -453,18 +452,23 @@ export abstract class BaseStrategy implements Strategy {
    * Adds a given file path to the strategy path.
    * @param {string} file Desired file path.
    * @returns {string} The file relative to the strategy.
+   * @throws {Error} If the file path contains relative pathing characters, i.e. ../
    */
   protected addPath(file: string) {
     // There is no strategy path to join, the strategy is at the root, or the
     // file is at the root (denoted by a leading slash or tilde)
     if (!this.path || this.path === ROOT_PROJECT_PATH || /^~?\//.test(file)) {
-      file = path.posix.normalize(file);
+      file = file.replace(/^(~|\/)*\//, '');
     }
     // Otherwise, the file is relative to the strategy path
     else {
-      file = path.posix.join(this.path, file);
+      file = `${this.path}/${file}`;
     }
-    // Strip any leading pathings (i.e. ~/, ../, /) and any trailing slashes and return
-    return file.replace(/^(\.{1,2}|~|\/)*\//, '').replace(/\/+$/, '');
+    // Ensure the file path does not escape the workspace
+    if (/(\.{2}|^~|^\/*)+\//.test(file)) {
+      throw new Error(`illegal pathing characters in path: ${file}`);
+    }
+    // Strip any trailing slashes and return
+    return file.replace(/\/+$/, '');
   }
 }
