@@ -90,6 +90,20 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].version?.toString()).to.eql('0.3.0');
       expect(releaseData[0].notes).matches(/Database operations/);
     });
+
+    it('can parse initial release pull rqeuest body', () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './initial-version.txt'),
+        'utf8'
+      );
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      const releaseData = pullRequestBody!.releaseData;
+      expect(releaseData).lengthOf(1);
+      expect(releaseData[0].component).to.be.undefined;
+      expect(releaseData[0].version?.toString()).to.eql('0.1.0');
+      expect(releaseData[0].notes).matches(/initial generation/);
+    });
   });
   describe('toString', () => {
     it('can handle multiple entries', () => {
