@@ -1563,6 +1563,70 @@ describe('Manifest', () => {
       );
     });
 
+    describe('without commits', () => {
+      beforeEach(() => {
+        mockReleases(github, [
+          {
+            sha: 'abc123',
+            tagName: 'v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+          },
+        ]);
+        mockCommits(github, []);
+      });
+      it('should ignore by default', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(0);
+      });
+
+      it('should delegate to strategies', async () => {
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
+        );
+        getFileContentsStub
+          .withArgs('versions.txt', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'strategies/java-yoshi/versions-released.txt'
+            )
+          );
+        sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'java-yoshi',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.version?.toString()).to.eql('1.0.1-SNAPSHOT');
+        expect(pullRequest.headRefName).to.eql(
+          'release-please--branches--main'
+        );
+      });
+    });
+
     describe('with plugins', () => {
       beforeEach(() => {
         mockReleases(github, [
