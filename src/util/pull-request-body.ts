@@ -25,6 +25,7 @@ interface PullRequestBodyOptions {
   header?: string;
   footer?: string;
   extra?: string;
+  useComponents?: boolean;
 }
 
 export class PullRequestBody {
@@ -32,11 +33,13 @@ export class PullRequestBody {
   footer: string;
   extra?: string;
   releaseData: ReleaseData[];
+  useComponents: boolean;
   constructor(releaseData: ReleaseData[], options?: PullRequestBodyOptions) {
     this.header = options?.header || DEFAULT_HEADER;
     this.footer = options?.footer || DEFAULT_FOOTER;
     this.extra = options?.extra;
     this.releaseData = releaseData;
+    this.useComponents = options?.useComponents ?? this.releaseData.length > 1;
   }
   static parse(body: string): PullRequestBody | undefined {
     const parts = splitBody(body);
@@ -57,7 +60,7 @@ export class PullRequestBody {
     });
   }
   notes(): string {
-    if (this.releaseData.length > 1) {
+    if (this.useComponents) {
       return this.releaseData
         .map(release => {
           return `<details><summary>${

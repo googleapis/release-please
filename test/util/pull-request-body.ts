@@ -135,6 +135,18 @@ describe('PullRequestBody', () => {
       snapshot(pullRequestBody.toString());
     });
 
+    it('can handle a single entries forced components', () => {
+      const data = [
+        {
+          component: 'pkg1',
+          version: Version.parse('1.2.3'),
+          notes: 'some special notes go here',
+        },
+      ];
+      const pullRequestBody = new PullRequestBody(data, {useComponents: true});
+      snapshot(pullRequestBody.toString());
+    });
+
     it('can handle a custom header and footer', () => {
       const data = [
         {

@@ -55,7 +55,10 @@ exports['NodeWorkspace plugin run handles a single node package 1'] = `
 ---
 
 
+<details><summary>@here/pkgA: 3.3.4</summary>
+
 Release notes for path: node1, releaseType: node
+</details>
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

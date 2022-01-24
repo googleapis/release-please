@@ -555,6 +555,7 @@ export class Manifest {
       })
     );
 
+    logger.info(`separate pull requests: ${this.separatePullRequests}`);
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
