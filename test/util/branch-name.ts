@@ -38,6 +38,11 @@ describe('BranchName', () => {
         expect(branchName?.getVersion()?.toString()).to.eql('1.2.3');
         expect(branchName?.toString()).to.eql(name);
       });
+      it('should not crash on parsing', () => {
+        const name = 'release-storage-v1';
+        const branchName = BranchName.parse(name);
+        expect(branchName).to.be.undefined;
+      });
     });
     describe('v12 format', () => {
       it('parses a target branch', () => {

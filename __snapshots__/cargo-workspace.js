@@ -62,7 +62,10 @@ exports['CargoWorkspace plugin run handles a single rust package 1'] = `
 ---
 
 
+<details><summary>pkgA: 1.1.2</summary>
+
 Release notes for path: packages/rustA, releaseType: rust
+</details>
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

@@ -1,0 +1,12 @@
+:robot: I have created a release \*beep\* \*boop\*
+---
+<details><summary>@google-cloud/release-brancher: 1.3.1-beta1</summary>
+
+
+### Bug Fixes
+
+* **release-brancher:** use "ci:" (non-releasable) in init ([#2622](https://www.github.com/googleapis/repo-automation-bots/issues/2622)) ([c4b3ac5](https://www.github.com/googleapis/repo-automation-bots/commit/c4b3ac5e50f9579202a614c655e79eaf4bca362e))
+</details>
+
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

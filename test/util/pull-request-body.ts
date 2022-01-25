@@ -28,7 +28,7 @@ describe('PullRequestBody', () => {
       const body = readFileSync(
         resolve(fixturesPath, './multiple.txt'),
         'utf8'
-      ).replace(/\r\n/g, '\n');
+      );
       const pullRequestBody = PullRequestBody.parse(body);
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
@@ -58,7 +58,7 @@ describe('PullRequestBody', () => {
       const body = readFileSync(
         resolve(fixturesPath, './single-manifest.txt'),
         'utf8'
-      ).replace(/\r\n/g, '\n');
+      );
       const pullRequestBody = PullRequestBody.parse(body);
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
@@ -68,10 +68,7 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].notes).matches(/^### Bug Fixes/);
     });
     it('should parse standalone release', () => {
-      const body = readFileSync(
-        resolve(fixturesPath, './single.txt'),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
+      const body = readFileSync(resolve(fixturesPath, './single.txt'), 'utf8');
       const pullRequestBody = PullRequestBody.parse(body);
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
@@ -79,6 +76,33 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].component).to.be.undefined;
       expect(releaseData[0].version?.toString()).to.eql('3.2.7');
       expect(releaseData[0].notes).matches(/^### \[3\.2\.7\]/);
+    });
+    it('should parse legacy PHP body', () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './legacy-php-yoshi.txt'),
+        'utf8'
+      );
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      const releaseData = pullRequestBody!.releaseData;
+      expect(releaseData).lengthOf(109);
+      expect(releaseData[0].component).to.eql('google/cloud-access-approval');
+      expect(releaseData[0].version?.toString()).to.eql('0.3.0');
+      expect(releaseData[0].notes).matches(/Database operations/);
+    });
+
+    it('can parse initial release pull rqeuest body', () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './initial-version.txt'),
+        'utf8'
+      );
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      const releaseData = pullRequestBody!.releaseData;
+      expect(releaseData).lengthOf(1);
+      expect(releaseData[0].component).to.be.undefined;
+      expect(releaseData[0].version?.toString()).to.eql('0.1.0');
+      expect(releaseData[0].notes).matches(/initial generation/);
     });
   });
   describe('toString', () => {
@@ -108,6 +132,18 @@ describe('PullRequestBody', () => {
         },
       ];
       const pullRequestBody = new PullRequestBody(data);
+      snapshot(pullRequestBody.toString());
+    });
+
+    it('can handle a single entries forced components', () => {
+      const data = [
+        {
+          component: 'pkg1',
+          version: Version.parse('1.2.3'),
+          notes: 'some special notes go here',
+        },
+      ];
+      const pullRequestBody = new PullRequestBody(data, {useComponents: true});
       snapshot(pullRequestBody.toString());
     });
 

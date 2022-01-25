@@ -15,6 +15,7 @@
 import {ManifestPlugin} from '../plugin';
 import {
   CandidateReleasePullRequest,
+  RepositoryConfig,
   MANIFEST_PULL_REQUEST_TITLE_PATTERN,
   ROOT_PROJECT_PATH,
 } from '../manifest';
@@ -23,6 +24,8 @@ import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
+import {GitHub} from '../github';
+import {logger} from '../util/logger';
 
 /**
  * This plugin merges multiple pull requests into a single
@@ -31,16 +34,31 @@ import {mergeUpdates} from '../updaters/composite';
  * Release notes are broken up using `<summary>`/`<details>` blocks.
  */
 export class Merge extends ManifestPlugin {
+  private pullRequestTitlePattern?: string;
+
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    pullRequestTitlePattern?: string
+  ) {
+    super(github, targetBranch, repositoryConfig);
+    this.pullRequestTitlePattern =
+      pullRequestTitlePattern || MANIFEST_PULL_REQUEST_TITLE_PATTERN;
+  }
+
   async run(
     candidates: CandidateReleasePullRequest[]
   ): Promise<CandidateReleasePullRequest[]> {
     if (candidates.length < 1) {
       return candidates;
     }
+    logger.info(`Merging ${candidates.length} pull requests`);
 
     const releaseData: ReleaseData[] = [];
     const labels = new Set<string>();
     let rawUpdates: Update[] = [];
+    let rootRelease: CandidateReleasePullRequest | null = null;
     for (const candidate of candidates) {
       const pullRequest = candidate.pullRequest;
       rawUpdates = rawUpdates.concat(...pullRequest.updates);
@@ -48,15 +66,20 @@ export class Merge extends ManifestPlugin {
         labels.add(label);
       }
       releaseData.push(...pullRequest.body.releaseData);
+      if (candidate.path === '.') {
+        rootRelease = candidate;
+      }
     }
     const updates = mergeUpdates(rawUpdates);
 
     const pullRequest = {
-      title: PullRequestTitle.ofTargetBranch(
+      title: PullRequestTitle.ofComponentTargetBranchVersion(
+        rootRelease?.pullRequest.title.component,
         this.targetBranch,
-        MANIFEST_PULL_REQUEST_TITLE_PATTERN
+        rootRelease?.pullRequest.title.version,
+        this.pullRequestTitlePattern
       ),
-      body: new PullRequestBody(releaseData),
+      body: new PullRequestBody(releaseData, {useComponents: true}),
       updates,
       labels: Array.from(labels),
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),

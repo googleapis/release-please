@@ -17,7 +17,11 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {JavaYoshi} from '../../src/strategies/java-yoshi';
 import * as sinon from 'sinon';
-import {buildGitHubFileContent, assertHasUpdate} from '../helpers';
+import {
+  buildGitHubFileContent,
+  assertHasUpdate,
+  assertNoHasUpdate,
+} from '../helpers';
 import {buildMockCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -59,7 +63,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -81,7 +85,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -107,7 +111,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -138,7 +142,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -182,7 +186,7 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -206,15 +210,15 @@ describe('JavaYoshi', () => {
         github,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByFilename');
+      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
       findFilesStub
-        .withArgs('pom.xml', '.')
+        .withArgs('pom.xml', 'main', '.')
         .resolves(['path1/pom.xml', 'path2/pom.xml']);
       findFilesStub
-        .withArgs('build.gradle', '.')
+        .withArgs('build.gradle', 'main', '.')
         .resolves(['path1/build.gradle', 'path2/build.gradle']);
       findFilesStub
-        .withArgs('dependencies.properties', '.')
+        .withArgs('dependencies.properties', 'main', '.')
         .resolves(['dependencies.properties']);
       const getFileContentsStub = sandbox.stub(
         github,
@@ -230,7 +234,8 @@ describe('JavaYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-      assertHasUpdate(updates, 'path1/pom.xml', JavaUpdate);
+      const {updater} = assertHasUpdate(updates, 'path1/pom.xml', JavaUpdate);
+      expect((updater as JavaUpdate).isSnapshot).to.be.false;
       assertHasUpdate(updates, 'path2/pom.xml', JavaUpdate);
       assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
       assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
@@ -245,7 +250,7 @@ describe('JavaYoshi', () => {
         component: 'google-cloud-automl',
         extraFiles: ['foo/bar.java', 'src/version.java'],
       });
-      sandbox.stub(github, 'findFilesByFilename').resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -262,6 +267,47 @@ describe('JavaYoshi', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'foo/bar.java', CompositeUpdater);
       assertHasUpdate(updates, 'src/version.java', CompositeUpdater);
+      assertHasUpdate(updates, 'versions.txt', VersionsManifest);
+    });
+
+    it('updates all files for snapshots', async () => {
+      const strategy = new JavaYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
+      findFilesStub
+        .withArgs('pom.xml', 'main', '.')
+        .resolves(['path1/pom.xml', 'path2/pom.xml']);
+      findFilesStub
+        .withArgs('build.gradle', 'main', '.')
+        .resolves(['path1/build.gradle', 'path2/build.gradle']);
+      findFilesStub
+        .withArgs('dependencies.properties', 'main', '.')
+        .resolves(['dependencies.properties']);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'versions-released.txt')
+        );
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+      const {updater} = assertHasUpdate(updates, 'path1/pom.xml', JavaUpdate);
+      expect((updater as JavaUpdate).isSnapshot).to.be.true;
+      assertHasUpdate(updates, 'path2/pom.xml', JavaUpdate);
+      assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
+      assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
+      assertHasUpdate(updates, 'dependencies.properties', JavaUpdate);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
     });
   });

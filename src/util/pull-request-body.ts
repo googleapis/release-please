@@ -24,16 +24,22 @@ const NOTES_DELIMITER = '---';
 interface PullRequestBodyOptions {
   header?: string;
   footer?: string;
+  extra?: string;
+  useComponents?: boolean;
 }
 
 export class PullRequestBody {
   header: string;
   footer: string;
+  extra?: string;
   releaseData: ReleaseData[];
+  useComponents: boolean;
   constructor(releaseData: ReleaseData[], options?: PullRequestBodyOptions) {
     this.header = options?.header || DEFAULT_HEADER;
     this.footer = options?.footer || DEFAULT_FOOTER;
+    this.extra = options?.extra;
     this.releaseData = releaseData;
+    this.useComponents = options?.useComponents ?? this.releaseData.length > 1;
   }
   static parse(body: string): PullRequestBody | undefined {
     const parts = splitBody(body);
@@ -54,7 +60,7 @@ export class PullRequestBody {
     });
   }
   notes(): string {
-    if (this.releaseData.length > 1) {
+    if (this.useComponents) {
       return this.releaseData
         .map(release => {
           return `<details><summary>${
@@ -75,7 +81,7 @@ ${NOTES_DELIMITER}
 
 ${notes}
 
-${NOTES_DELIMITER}
+${NOTES_DELIMITER}${this.extra ? `\n\n${this.extra}\n` : ''}
 ${this.footer}`;
   }
 }
@@ -83,7 +89,7 @@ ${this.footer}`;
 function splitBody(
   body: string
 ): {header: string; footer: string; content: string} | undefined {
-  const lines = body.trim().split('\n');
+  const lines = body.trim().replace(/\r\n/g, '\n').split('\n');
   const index = lines.indexOf(NOTES_DELIMITER);
   if (index === -1) {
     return undefined;
@@ -102,7 +108,7 @@ function splitBody(
   };
 }
 
-const SUMMARY_PATTERN = /^(?<component>.*): (?<version>\d+\.\d+\.\d+.*)$/;
+const SUMMARY_PATTERN = /^(?<component>.*[^:]):? (?<version>\d+\.\d+\.\d+.*)$/;
 export interface ReleaseData {
   component?: string;
   version?: Version;
@@ -129,7 +135,7 @@ function extractMultipleReleases(notes: string): ReleaseData[] {
   }
   return data;
 }
-const COMPARE_REGEX = /^#{2,} \[(?<version>\d+\.\d+\.\d+.*)\]/;
+const COMPARE_REGEX = /^#{2,} \[?(?<version>\d+\.\d+\.\d+.*)\]?/;
 function extractSingleRelease(body: string): ReleaseData[] {
   body = body.trim();
   const match = body.match(COMPARE_REGEX);

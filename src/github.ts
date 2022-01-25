@@ -148,6 +148,11 @@ interface TagIteratorOptions {
   maxResults?: number;
 }
 
+export interface ReleaseOptions {
+  draft?: boolean;
+  prerelease?: boolean;
+}
+
 export interface GitHubRelease {
   name?: string;
   tagName: string;
@@ -525,39 +530,39 @@ export class GitHub {
     );
     const response = await this.graphqlRequest({
       query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
-          repository(owner: $owner, name: $repo) {
-            pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
-              nodes {
-                number
-                title
-                baseRefName
-                headRefName
-                labels(first: 10) {
-                  nodes {
-                    name
-                  }
-                }
-                body
-                mergeCommit {
-                  oid
-                }
-                files(first: $maxFilesChanged) {
-                  nodes {
-                    path
-                  }
-                  pageInfo {
-                    endCursor
-                    hasNextPage
-                  }
+        repository(owner: $owner, name: $repo) {
+          pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes {
+              number
+              title
+              baseRefName
+              headRefName
+              labels(first: 10) {
+                nodes {
+                  name
                 }
               }
-              pageInfo {
-                endCursor
-                hasNextPage
+              body
+              mergeCommit {
+                oid
+              }
+              files(first: $maxFilesChanged) {
+                nodes {
+                  path
+                }
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
               }
             }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
           }
-        }`,
+        }
+      }`,
       cursor,
       owner: this.repository.owner,
       repo: this.repository.repo,
@@ -674,9 +679,9 @@ export class GitHub {
             notes: release.description,
             url: release.url,
             draft: release.isDraft,
-          };
+          } as GitHubRelease;
         }),
-    };
+    } as ReleaseHistory;
   }
 
   /**
@@ -1194,14 +1199,14 @@ export class GitHub {
    * Create a GitHub release
    *
    * @param {Release} release Release parameters
-   * @param {boolean} draft Whether or not to create the release as a draft
+   * @param {ReleaseOptions} options Release option parameters
    * @throws {DuplicateReleaseError} if the release tag already exists
    * @throws {GitHubAPIError} on other API errors
    */
   createRelease = wrapAsync(
     async (
       release: Release,
-      options: {draft?: boolean} = {}
+      options: ReleaseOptions = {}
     ): Promise<GitHubRelease> => {
       const resp = await this.octokit.repos.createRelease({
         name: release.name,
@@ -1209,8 +1214,9 @@ export class GitHub {
         repo: this.repository.repo,
         tag_name: release.tag.toString(),
         body: release.notes,
-        sha: release.sha,
         draft: !!options.draft,
+        prerelease: !!options.prerelease,
+        target_commitish: release.sha,
       });
       return {
         name: resp.data.name || undefined,

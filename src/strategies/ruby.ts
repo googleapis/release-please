@@ -63,9 +63,9 @@ export class Ruby extends BaseStrategy {
     return updates;
   }
 
-  protected postProcessCommits(
+  protected async postProcessCommits(
     commits: ConventionalCommit[]
-  ): ConventionalCommit[] {
+  ): Promise<ConventionalCommit[]> {
     commits.forEach(commit => {
       commit.message = indentCommit(commit);
     });

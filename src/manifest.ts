@@ -52,6 +52,7 @@ export interface ReleaserConfig {
   releaseAs?: string;
   skipGithubRelease?: boolean;
   draft?: boolean;
+  prerelease?: boolean;
   draftPullRequest?: boolean;
   component?: string;
   packageName?: string;
@@ -77,8 +78,9 @@ export interface CandidateReleasePullRequest {
 
 export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
-  draft?: boolean;
   path: string;
+  draft?: boolean;
+  prerelease?: boolean;
 }
 
 interface ReleaserConfigJson {
@@ -89,6 +91,7 @@ interface ReleaserConfigJson {
   'release-as'?: string;
   'skip-github-release'?: boolean;
   draft?: boolean;
+  prerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
@@ -114,7 +117,9 @@ export interface ManifestOptions {
   labels?: string[];
   releaseLabels?: string[];
   draft?: boolean;
+  prerelease?: boolean;
   draftPullRequest?: boolean;
+  groupPullRequestTitlePattern?: string;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -135,6 +140,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'always-link-local'?: boolean;
   plugins?: PluginType[];
   'separate-pull-requests'?: boolean;
+  'group-pull-request-title-pattern'?: string;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -176,7 +182,9 @@ export class Manifest {
   private bootstrapSha?: string;
   private lastReleaseSha?: string;
   private draft?: boolean;
+  private prerelease?: boolean;
   private draftPullRequest?: boolean;
+  private groupPullRequestTitlePattern?: string;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -230,6 +238,8 @@ export class Manifest {
     this.lastReleaseSha = manifestOptions?.lastReleaseSha;
     this.draft = manifestOptions?.draft;
     this.draftPullRequest = manifestOptions?.draftPullRequest;
+    this.groupPullRequestTitlePattern =
+      manifestOptions?.groupPullRequestTitlePattern;
   }
 
   /**
@@ -260,7 +270,11 @@ export class Manifest {
       targetBranch,
       repositoryConfig,
       releasedVersions,
-      {...manifestOptions, ...manifestOptionOverrides}
+      {
+        manifestPath: manifestFile,
+        ...manifestOptions,
+        ...manifestOptionOverrides,
+      }
     );
   }
 
@@ -541,11 +555,17 @@ export class Manifest {
       })
     );
 
+    logger.info(`separate pull requests: ${this.separatePullRequests}`);
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
       plugins.push(
-        new Merge(this.github, this.targetBranch, this.repositoryConfig)
+        new Merge(
+          this.github,
+          this.targetBranch,
+          this.repositoryConfig,
+          this.groupPullRequestTitlePattern
+        )
       );
     }
 
@@ -715,6 +735,10 @@ export class Manifest {
             path,
             pullRequest,
             draft: config.draft ?? this.draft,
+            prerelease:
+              config.prerelease &&
+              (!!release.tag.version.preRelease ||
+                release.tag.version.major === 0),
           });
         }
       }
@@ -780,6 +804,7 @@ export class Manifest {
   ): Promise<CreatedRelease> {
     const githubRelease = await this.github.createRelease(release, {
       draft: release.draft,
+      prerelease: release.prerelease,
     });
 
     // comment on pull request
@@ -853,6 +878,7 @@ function extractReleaserConfig(
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
     draft: config.draft,
+    prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
     component: config['component'],
     packageName: config['package-name'],
@@ -891,6 +917,7 @@ async function parseConfig(
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
     separatePullRequests: config['separate-pull-requests'],
+    groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
   };
   return {config: repositoryConfig, options: manifestOptions};
@@ -1064,10 +1091,14 @@ function mergeReleaserConfig(
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
     draft: pathConfig.draft ?? defaultConfig.draft,
+    prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
     component: pathConfig.component ?? defaultConfig.component,
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
     extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
+    pullRequestTitlePattern:
+      pathConfig.pullRequestTitlePattern ??
+      defaultConfig.pullRequestTitlePattern,
   };
 }
 

@@ -111,9 +111,9 @@ export class PullRequestTitle {
     });
   }
   static ofComponentTargetBranchVersion(
-    component: string,
-    targetBranch: string,
-    version: Version,
+    component?: string,
+    targetBranch?: string,
+    version?: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
