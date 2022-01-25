@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.3](https://github.com/googleapis/release-please/compare/v13.4.2...v13.4.3) (2022-01-24)
+
+
+### Bug Fixes
+
+* multi-component manifest release notes for single component release ([#1247](https://github.com/googleapis/release-please/issues/1247)) ([16aee09](https://github.com/googleapis/release-please/commit/16aee099c79d75853e565f83017745eef13b57fa))
+* release notes should parse initial version heading ([#1248](https://github.com/googleapis/release-please/issues/1248)) ([71dc495](https://github.com/googleapis/release-please/commit/71dc4954e2393f74c4442c021fcf6c8ee530b4ae))
+
 ### [13.4.2](https://github.com/googleapis/release-please/compare/v13.4.1...v13.4.2) (2022-01-21)
 
 
