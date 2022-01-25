@@ -74,15 +74,7 @@ describe('Strategy', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
-        extraFiles: [
-          '0',
-          'foo/1.~csv',
-          'foo/2.bak',
-          'foo/baz/bar/',
-          '/3.java',
-          '~/4.md',
-          '~/./5',
-        ],
+        extraFiles: ['0', 'foo/1.~csv', 'foo/2.bak', 'foo/baz/bar/', '/3.java'],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
         [{sha: 'aaa', message: 'fix: a bugfix'}],
@@ -94,27 +86,23 @@ describe('Strategy', () => {
         .to.include.members([
           '0',
           '3.java',
-          '4.md',
-          './5',
           'foo/1.~csv',
           'foo/2.bak',
           'foo/baz/bar',
         ])
-        .and.not.include('foo/baz/bar/', 'expected file but got directory')
-        .and.to.satisfy(
-          (paths: string[]) =>
-            paths.every(path => /(\.{1,2}|^~|^\/*)+\//.test(path)),
-          'illegal pathing characters found in path'
-        );
+        .and.not.include('foo/baz/bar/', 'expected file but got directory');
     });
     it('rejects relative extra files', async () => {
       const extraFiles = [
+        './bar',
+        './../../../etc/hosts',
+        '../../../../etc/hosts',
+        '~/./5',
+        '~/.ssh/config',
+        '~/../../.././level/../../../up',
+        '/../../../opt',
         'foo/bar/../baz',
         'foo/baz/../../../../../etc/hostname',
-        '~/../../.././level/../../../up',
-        './../../../opt/',
-        '/../../../etc/hosts',
-        '../../../../etc/hosts',
       ];
       for (const file of extraFiles) {
         try {

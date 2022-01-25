@@ -452,20 +452,20 @@ export abstract class BaseStrategy implements Strategy {
    * Adds a given file path to the strategy path.
    * @param {string} file Desired file path.
    * @returns {string} The file relative to the strategy.
-   * @throws {Error} If the file path contains relative pathing characters, i.e. ../
+   * @throws {Error} If the file path contains relative pathing characters, i.e. ../, ~/
    */
   protected addPath(file: string) {
     // There is no strategy path to join, the strategy is at the root, or the
     // file is at the root (denoted by a leading slash or tilde)
-    if (!this.path || this.path === ROOT_PROJECT_PATH || /^~?\//.test(file)) {
-      file = file.replace(/^(~|\/)*\//, '');
+    if (!this.path || this.path === ROOT_PROJECT_PATH || file.startsWith('/')) {
+      file = file.replace(/^\/+/, '');
     }
     // Otherwise, the file is relative to the strategy path
     else {
-      file = `${this.path}/${file}`;
+      file = `${this.path.replace(/\/+$/, '')}/${file}`;
     }
     // Ensure the file path does not escape the workspace
-    if (/(\.{2}|^~|^\/*)+\//.test(file)) {
+    if (/((^|\/)\.{1,2}|^~|^\/*)+\//.test(file)) {
       throw new Error(`illegal pathing characters in path: ${file}`);
     }
     // Strip any trailing slashes and return
