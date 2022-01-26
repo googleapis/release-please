@@ -214,6 +214,10 @@ export abstract class BaseStrategy implements Strategy {
       parseConventionalCommits(commits)
     );
     logger.info(`Considering: ${conventionalCommits.length} commits`);
+    if (conventionalCommits.length === 0) {
+      logger.info(`No commits for path: ${this.path}, skipping`);
+      return undefined;
+    }
 
     const newVersion = await this.buildNewVersion(
       conventionalCommits,
