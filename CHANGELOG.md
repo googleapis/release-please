@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.4](https://github.com/googleapis/release-please/compare/v13.4.3...v13.4.4) (2022-01-26)
+
+
+### Bug Fixes
+
+* delegate empty commit handling to strategies ([#1254](https://github.com/googleapis/release-please/issues/1254)) ([757f2a9](https://github.com/googleapis/release-please/commit/757f2a9304aec164632ee081b09d22595c5f1e67))
+* extra file should include strategy path ([#1187](https://github.com/googleapis/release-please/issues/1187)) ([c8fffb0](https://github.com/googleapis/release-please/commit/c8fffb0bca7be83487e9d2e3257277e8650cdfaf))
+
 ### [13.4.3](https://github.com/googleapis/release-please/compare/v13.4.2...v13.4.3) (2022-01-24)
 
 
