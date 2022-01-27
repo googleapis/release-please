@@ -19,31 +19,14 @@ import {describe, it} from 'mocha';
 import {expect} from 'chai';
 import {CargoLock} from '../../src/updaters/rust/cargo-lock';
 import {parseCargoLockfile} from '../../src/updaters/rust/common';
-import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
-const FAKE_VERSION = Version.parse('1.2.3');
 
 describe('CargoLock', () => {
   describe('updateContent', () => {
-    it('refuses to update without versions', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './Cargo.lock'),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
-      const cargoLock = new CargoLock({
-        version: FAKE_VERSION,
-      });
-      expect(() => {
-        cargoLock.updateContent(oldContent);
-      }).to.throw();
-    });
-
     it('refuses to update something that is not a lockfile', async () => {
       const oldContent = '[woops]\nindeed = true';
-      const cargoLock = new CargoLock({
-        version: FAKE_VERSION,
-      });
+      const cargoLock = new CargoLock(new Map());
       expect(() => {
         cargoLock.updateContent(oldContent);
       }).to.throw();
@@ -56,10 +39,7 @@ describe('CargoLock', () => {
       ).replace(/\r\n/g, '\n');
       const versions = new Map();
       versions.set('delf', '0.2.0');
-      const cargoLock = new CargoLock({
-        version: FAKE_VERSION,
-        versionsMap: versions,
-      });
+      const cargoLock = new CargoLock(versions);
       const newContent = cargoLock.updateContent(oldContent);
       const pkg = parseCargoLockfile(newContent).package![4];
       expect(pkg).to.deep.include({
@@ -76,10 +56,7 @@ describe('CargoLock', () => {
       ).replace(/\r\n/g, '\n');
       const versions = new Map();
       versions.set('delf', '0.2.0');
-      const cargoLock = new CargoLock({
-        version: FAKE_VERSION,
-        versionsMap: versions,
-      });
+      const cargoLock = new CargoLock(versions);
       const newContent = cargoLock.updateContent(oldContent);
       const pkg = parseCargoLockfile(newContent).package![0];
       expect(pkg).to.deep.include({

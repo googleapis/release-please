@@ -15,12 +15,17 @@
 import {replaceTomlValue} from '../../util/toml-edit';
 import {parseCargoLockfile} from './common';
 import {logger} from '../../util/logger';
-import {DefaultUpdater} from '../default';
+import {Updater} from '../../update';
+import {VersionsMap} from '../../version';
 
 /**
  * Updates `Cargo.lock` lockfiles, preserving formatting and comments.
  */
-export class CargoLock extends DefaultUpdater {
+export class CargoLock implements Updater {
+  versionsMap: VersionsMap;
+  constructor(versionsMap: VersionsMap) {
+    this.versionsMap = versionsMap;
+  }
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
@@ -28,10 +33,6 @@ export class CargoLock extends DefaultUpdater {
    */
   updateContent(content: string): string {
     let payload = content;
-
-    if (!this.versionsMap) {
-      throw new Error('updateContent called with no versions');
-    }
 
     const parsed = parseCargoLockfile(payload);
     if (!parsed.package) {
