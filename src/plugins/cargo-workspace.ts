@@ -282,6 +282,14 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     };
   }
 
+  protected postProcessCandidates(
+    candidates: CandidateReleasePullRequest[],
+    _updatedVersions: VersionsMap
+  ): CandidateReleasePullRequest[] {
+    // NOP for now
+    return candidates;
+  }
+
   protected async buildGraph(
     allPackages: CrateInfo[]
   ): Promise<DependencyGraph<CrateInfo>> {
