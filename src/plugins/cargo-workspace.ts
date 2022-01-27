@@ -284,9 +284,19 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
   protected postProcessCandidates(
     candidates: CandidateReleasePullRequest[],
-    _updatedVersions: VersionsMap
+    updatedVersions: VersionsMap
   ): CandidateReleasePullRequest[] {
-    // NOP for now
+    const rootCandidate = candidates.find(c => c.path === ROOT_PROJECT_PATH);
+    if (!rootCandidate) {
+      throw Error('Unable to find root candidate pull request');
+    }
+
+    rootCandidate.pullRequest.updates.push({
+      path: 'Cargo.lock',
+      createIfMissing: false,
+      updater: new CargoLock(updatedVersions),
+    });
+
     return candidates;
   }
 
