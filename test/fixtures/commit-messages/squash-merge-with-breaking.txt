@@ -1,0 +1,11 @@
+fix: some fix (#1234)
+
+* first commit summary
+
+body
+
+footer
+
+* 2nd commit summary
+
+BREAKING CHANGE: my comment

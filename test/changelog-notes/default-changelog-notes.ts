@@ -227,6 +227,18 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.is.string;
         safeSnapshot(notes);
       });
+
+      it('handles squash merged breaking changes', async () => {
+        const commits = [buildCommitFromFixture('squash-merge-with-breaking')];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
+          parseConventionalCommits(commits),
+          notesOptions
+        );
+        expect(notes).to.is.string;
+        safeSnapshot(notes);
+      });
+
       // it('ignores reverted commits', async () => {
       //   const commits = [buildCommitFromFixture('multiple-messages')];
       //   const changelogNotes = new DefaultChangelogNotes();

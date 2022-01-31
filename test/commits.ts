@@ -185,6 +185,7 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].type).to.eql('fix');
     expect(conventionalCommits[0].bareMessage).to.eql('some fix');
   });
+
   it('can override the commit message from BEGIN_COMMIT_OVERRIDE body with a meta commit', async () => {
     const commit = buildMockCommit('chore: some commit');
     const body =
@@ -205,6 +206,17 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].bareMessage).to.eql('another feature');
     expect(conventionalCommits[1].type).to.eql('fix');
     expect(conventionalCommits[1].bareMessage).to.eql('some fix');
+  });
+
+  it('parses squash merged BREAKING CHANGE', async () => {
+    const commit = buildCommitFromFixture('squash-merge-with-breaking');
+    const conventionalCommits = parseConventionalCommits([commit]);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.eql('fix');
+    expect(conventionalCommits[0].bareMessage).to.eql('some fix (#1234)');
+    expect(conventionalCommits[0].breaking).to.be.true;
+    expect(conventionalCommits[0].notes).lengthOf(1);
+    expect(conventionalCommits[0].notes[0].text).to.eql('my comment');
   });
 
   // it('ignores reverted commits', async () => {

@@ -74,6 +74,19 @@ exports['DefaultChangelogNotes buildNotes with commit parsing handles Release-As
 * correct release ([1f64add](https://github.com/googleapis/java-asset/commit/1f64add37f426e87ce1b777616a137ec))
 `
 
+exports['DefaultChangelogNotes buildNotes with commit parsing handles squash merged breaking changes 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* my comment
+
+### Bug Fixes
+
+* some fix ([#1234](https://github.com/googleapis/java-asset/issues/1234)) ([e631294](https://github.com/googleapis/java-asset/commit/e63129486449bb7a19554019e1193da6))
+`
+
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle BREAKING CHANGE body 1'] = `
 ### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
