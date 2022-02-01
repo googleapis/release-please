@@ -164,7 +164,11 @@ describe('Node', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'package-lock.json', PackageLockJson);
       assertHasUpdate(updates, 'npm-shrinkwrap.json', PackageLockJson);
-      const update = assertHasUpdate(updates, 'samples/package.json', SamplesPackageJson);
+      const update = assertHasUpdate(
+        updates,
+        'samples/package.json',
+        SamplesPackageJson
+      );
       const updater = update.updater as SamplesPackageJson;
       expect(updater.packageName).to.equal('google-cloud-automl-pkg');
       assertHasUpdate(updates, 'package.json', PackageJson);
