@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.5](https://github.com/googleapis/release-please/compare/v13.4.4...v13.4.5) (2022-02-01)
+
+
+### Bug Fixes
+
+* read packageName from config ([#1270](https://github.com/googleapis/release-please/issues/1270)) ([e953e1a](https://github.com/googleapis/release-please/commit/e953e1a387f6124fbacb7952b5451ca43bd498fa))
+
 ### [13.4.4](https://github.com/googleapis/release-please/compare/v13.4.3...v13.4.4) (2022-01-26)
 
 
