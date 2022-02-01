@@ -76,7 +76,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly path: string;
   protected github: GitHub;
   protected component?: string;
-  protected packageName?: string;
+  private packageName?: string;
   readonly versioningStrategy: VersioningStrategy;
   protected targetBranch: string;
   protected repository: Repository;
@@ -141,7 +141,7 @@ export abstract class BaseStrategy implements Strategy {
   }
 
   async getDefaultPackageName(): Promise<string | undefined> {
-    return '';
+    return this.packageName ?? '';
   }
 
   protected normalizeComponent(component: string | undefined): string {
@@ -229,8 +229,6 @@ export abstract class BaseStrategy implements Strategy {
       await this.buildVersionsMap(conventionalCommits),
       conventionalCommits
     );
-    this.packageName = this.packageName ?? (await this.getDefaultPackageName());
-    logger.debug('packageName', this.packageName);
     const component = await this.getComponent();
     logger.debug('component:', component);
 

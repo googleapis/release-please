@@ -143,9 +143,6 @@ describe('Node', () => {
         commits,
         latestRelease
       );
-      // Check that we've loaded protected property packageName.
-      // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-      expect((strategy as any).packageName).to.eql('node-test-repo');
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -167,15 +164,9 @@ describe('Node', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'package-lock.json', PackageLockJson);
       assertHasUpdate(updates, 'npm-shrinkwrap.json', PackageLockJson);
-      assertHasUpdate(updates, 'samples/package.json', SamplesPackageJson);
-      // Ensure that the packageName is used vs., the component
-      // when updating samples/package.json:
-      for (const update of updates) {
-        if (update.path === 'samples/package.json') {
-          const updater = update.updater as SamplesPackageJson;
-          expect(updater.packageName).to.equal('google-cloud-automl-pkg');
-        }
-      }
+      const update = assertHasUpdate(updates, 'samples/package.json', SamplesPackageJson);
+      const updater = update.updater as SamplesPackageJson;
+      expect(updater.packageName).to.equal('google-cloud-automl-pkg');
       assertHasUpdate(updates, 'package.json', PackageJson);
     });
   });

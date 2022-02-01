@@ -28,8 +28,7 @@ export class Node extends BaseStrategy {
   ): Promise<Update[]> {
     const updates: Update[] = [];
     const version = options.newVersion;
-    const packageName = this.packageName || '';
-
+    const packageName = (await this.getDefaultPackageName()) ?? '';
     const lockFiles = ['package-lock.json', 'npm-shrinkwrap.json'];
     lockFiles.forEach(lockFile => {
       updates.push({
@@ -72,6 +71,9 @@ export class Node extends BaseStrategy {
   }
 
   async getDefaultPackageName(): Promise<string | undefined> {
+    if (await super.getDefaultPackageName()) {
+      return await super.getDefaultPackageName();
+    }
     const pkgJsonContents = await this.getPkgJsonContents();
     const pkg = JSON.parse(pkgJsonContents.parsedContent);
     return pkg.name;
