@@ -71,8 +71,9 @@ export class Node extends BaseStrategy {
   }
 
   async getDefaultPackageName(): Promise<string | undefined> {
+    const defaultPkgName = await super.getDefaultPackageName();
     if (await super.getDefaultPackageName()) {
-      return await super.getDefaultPackageName();
+      return defaultPkgName;
     }
     const pkgJsonContents = await this.getPkgJsonContents();
     const pkg = JSON.parse(pkgJsonContents.parsedContent);
