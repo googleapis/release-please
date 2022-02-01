@@ -30,7 +30,7 @@ export class KRMBlueprintVersion extends DefaultUpdater {
     let matchRegex = '(cnrm/.*/)(v[0-9]+.[0-9]+.[0-9]+)+(-w+)?';
     // if explicit previous version, match only that version
     if (this.versionsMap?.has('previousVersion')) {
-      matchRegex = `(cnrm/.*/)(${this.versionsMap.get(
+      matchRegex = `(cnrm/.*/)(v${this.versionsMap.get(
         'previousVersion'
       )})+(-w+)?`;
     }
