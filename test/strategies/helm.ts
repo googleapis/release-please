@@ -56,6 +56,7 @@ describe('Helm', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -70,6 +71,7 @@ describe('Helm', () => {
         targetBranch: 'main',
         github,
         component: 'some-helm-package',
+        packageName: 'some-helm-package',
       });
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'some-helm-package'),
@@ -113,6 +115,7 @@ describe('Helm', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(

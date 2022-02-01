@@ -135,7 +135,9 @@ export abstract class BaseStrategy implements Strategy {
   }
 
   async getDefaultComponent(): Promise<string | undefined> {
-    return this.normalizeComponent(await this.getDefaultPackageName());
+    return this.normalizeComponent(
+      this.packageName ?? (await this.getDefaultPackageName())
+    );
   }
 
   async getDefaultPackageName(): Promise<string | undefined> {
@@ -227,6 +229,8 @@ export abstract class BaseStrategy implements Strategy {
       await this.buildVersionsMap(conventionalCommits),
       conventionalCommits
     );
+    this.packageName = this.packageName ?? (await this.getDefaultPackageName());
+    logger.debug('packageName', this.packageName);
     const component = await this.getComponent();
     logger.debug('component:', component);
 
