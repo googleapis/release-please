@@ -129,6 +129,7 @@ describe('CargoWorkspace plugin', () => {
       expect(rustCandidate).to.not.be.undefined;
       const updates = rustCandidate!.pullRequest.updates;
       assertHasUpdate(updates, 'packages/rustA/Cargo.toml');
+      assertHasUpdate(updates, 'Cargo.lock');
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
     it('combines rust packages', async () => {
