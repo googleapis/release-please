@@ -246,6 +246,13 @@ describe('Manifest', () => {
           },
         },
       ]);
+      mockReleases(github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+      ]);
 
       const manifest = await Manifest.fromConfig(github, 'target-branch', {
         releaseType: 'simple',
@@ -270,6 +277,13 @@ describe('Manifest', () => {
             labels: [],
             files: [],
           },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
         },
       ]);
 
@@ -301,6 +315,13 @@ describe('Manifest', () => {
           },
         },
       ]);
+      mockReleases(github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+      ]);
 
       const manifest = await Manifest.fromConfig(github, 'target-branch', {
         releaseType: 'simple',
@@ -327,6 +348,13 @@ describe('Manifest', () => {
             labels: [],
             files: [],
           },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'foobar-v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
         },
       ]);
 
