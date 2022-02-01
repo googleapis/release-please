@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.6](https://github.com/googleapis/release-please/compare/v13.4.5...v13.4.6) (2022-02-01)
+
+
+### Bug Fixes
+
+* cargo workspace cargo lock handling ([#1260](https://github.com/googleapis/release-please/issues/1260)) ([55e9d38](https://github.com/googleapis/release-please/commit/55e9d3822d4d36d3123231f22dccacf35910929e))
+* krm blueprints should update yaml files ([#1269](https://github.com/googleapis/release-please/issues/1269)) ([d6ef98a](https://github.com/googleapis/release-please/commit/d6ef98a7031b599e38a505af2ffc51e85b3c6da6)), closes [#1268](https://github.com/googleapis/release-please/issues/1268)
+
 ### [13.4.5](https://github.com/googleapis/release-please/compare/v13.4.4...v13.4.5) (2022-02-01)
 
 
