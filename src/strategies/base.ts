@@ -140,6 +140,10 @@ export abstract class BaseStrategy implements Strategy {
     );
   }
 
+  async getPackageName(): Promise<string | undefined> {
+    return this.packageName ?? (await this.getDefaultPackageName());
+  }
+
   async getDefaultPackageName(): Promise<string | undefined> {
     return this.packageName ?? '';
   }
