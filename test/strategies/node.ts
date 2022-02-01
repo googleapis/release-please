@@ -155,7 +155,7 @@ describe('Node', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
-        packageName: 'google-cloud-automl',
+        packageName: 'google-cloud-automl-pkg',
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
@@ -168,6 +168,14 @@ describe('Node', () => {
       assertHasUpdate(updates, 'package-lock.json', PackageLockJson);
       assertHasUpdate(updates, 'npm-shrinkwrap.json', PackageLockJson);
       assertHasUpdate(updates, 'samples/package.json', SamplesPackageJson);
+      // Ensure that the packageName is used vs., the component
+      // when updating samples/package.json:
+      for (const update of updates) {
+        if (update.path === 'samples/package.json') {
+          const updater = update.updater as SamplesPackageJson;
+          expect(updater.packageName).to.equal('google-cloud-automl-pkg');
+        }
+      }
       assertHasUpdate(updates, 'package.json', PackageJson);
     });
   });

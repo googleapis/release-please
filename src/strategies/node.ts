@@ -28,6 +28,7 @@ export class Node extends BaseStrategy {
   ): Promise<Update[]> {
     const updates: Update[] = [];
     const version = options.newVersion;
+    const packageName = this.packageName || '';
 
     const lockFiles = ['package-lock.json', 'npm-shrinkwrap.json'];
     lockFiles.forEach(lockFile => {
@@ -45,7 +46,7 @@ export class Node extends BaseStrategy {
       createIfMissing: false,
       updater: new SamplesPackageJson({
         version,
-        packageName: this.packageName ?? '',
+        packageName,
       }),
     });
 
