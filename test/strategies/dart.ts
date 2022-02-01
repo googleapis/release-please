@@ -56,6 +56,7 @@ describe('Dart', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl',
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
@@ -71,6 +72,7 @@ describe('Dart', () => {
         targetBranch: 'main',
         github,
         component: 'some-dart-package',
+        packageName: 'some-dart-package',
       });
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'some-dart-package'),
@@ -119,6 +121,7 @@ describe('Dart', () => {
         targetBranch: 'main',
         github,
         component: 'some-dart-package',
+        packageName: 'some-dart-package',
       });
       const commits = [
         buildMockCommit(

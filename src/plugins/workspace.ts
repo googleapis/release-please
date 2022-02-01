@@ -148,6 +148,9 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     );
     newCandidates = await mergePlugin.run(newCandidates);
 
+    logger.info(`Post-processing ${newCandidates.length} in-scope candidates`);
+    newCandidates = this.postProcessCandidates(newCandidates, updatedVersions);
+
     return [...outOfScopeCandidates, ...newCandidates];
   }
 
@@ -220,6 +223,23 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
    * @returns {string} The package name.
    */
   protected abstract packageNameFromPackage(pkg: T): string;
+
+  /**
+   * Amend any or all in-scope candidates once all other processing has occured.
+   *
+   * This gives the workspace plugin once last chance to tweak the pull-requests
+   * once all the underlying information has been collated.
+   * @param {CandidateReleasePullRequest[]} candidates - The list of candidates
+   *   once all other workspace processing has occured.
+   * @param {VersionMap} updatedVersions - Map containing any component versions
+   *   that have changed.
+   * @returns {CandidateReleasePullRequest[]} potentially amended list of
+   *   candidates.
+   */
+  protected abstract postProcessCandidates(
+    candidates: CandidateReleasePullRequest[],
+    updatedVersions: VersionsMap
+  ): CandidateReleasePullRequest[];
 
   /**
    * Helper to invert the graph from package => packages that it depends on

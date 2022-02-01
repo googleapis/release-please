@@ -115,10 +115,7 @@ export class Rust extends BaseStrategy {
     updates.push({
       path: this.addPath('Cargo.lock'),
       createIfMissing: false,
-      updater: new CargoLock({
-        version,
-        versionsMap,
-      }),
+      updater: new CargoLock(versionsMap),
     });
 
     return updates;

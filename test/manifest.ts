@@ -1763,10 +1763,12 @@ describe('Manifest', () => {
             'path/a': {
               releaseType: 'node',
               component: 'pkg1',
+              packageName: 'pkg1',
             },
             'path/b': {
               releaseType: 'node',
               component: 'pkg2',
+              packageName: 'pkg2',
             },
           },
           {
@@ -1797,10 +1799,12 @@ describe('Manifest', () => {
             'path/a': {
               releaseType: 'node',
               component: 'pkg1',
+              packageName: '@foo/pkg1',
             },
             'path/b': {
               releaseType: 'node',
               component: 'pkg2',
+              packageName: '@foo/pkg2',
             },
           },
           {

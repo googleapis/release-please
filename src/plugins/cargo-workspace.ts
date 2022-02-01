@@ -201,10 +201,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         } else if (
           update.path === addPath(existingCandidate.path, 'Cargo.lock')
         ) {
-          update.updater = new CargoLock({
-            version,
-            versionsMap: updatedVersions,
-          });
+          update.updater = new CargoLock(updatedVersions);
         }
         return update;
       });
@@ -283,6 +280,24 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         releaseType: 'rust',
       },
     };
+  }
+
+  protected postProcessCandidates(
+    candidates: CandidateReleasePullRequest[],
+    updatedVersions: VersionsMap
+  ): CandidateReleasePullRequest[] {
+    const rootCandidate = candidates.find(c => c.path === ROOT_PROJECT_PATH);
+    if (!rootCandidate) {
+      throw Error('Unable to find root candidate pull request');
+    }
+
+    rootCandidate.pullRequest.updates.push({
+      path: 'Cargo.lock',
+      createIfMissing: false,
+      updater: new CargoLock(updatedVersions),
+    });
+
+    return candidates;
   }
 
   protected async buildGraph(
