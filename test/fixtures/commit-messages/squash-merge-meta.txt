@@ -1,0 +1,9 @@
+fix: some fix (#1234)
+
+* fix: this becomes the new breaking change comment
+
+* fix: breaking change
+
+BREAKING CHANGE: my comment
+
+* fix: this breaks the footer parser
