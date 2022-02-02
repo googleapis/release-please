@@ -179,58 +179,86 @@ describe('GitHub', () => {
   });
 
   describe('getFileContents', () => {
-    it('should support Github Data API in case of a big file', async () => {
-      const simpleAPIResponse = JSON.parse(
-        readFileSync(
-          resolve(
-            fixturesPath,
-            'github-data-api',
-            '403-too-large-file-response.json'
-          ),
-          'utf8'
-        )
-      );
-      const dataAPITreesResponse = JSON.parse(
-        readFileSync(
-          resolve(
-            fixturesPath,
-            'github-data-api',
-            'data-api-trees-successful-response.json'
-          ),
-          'utf8'
-        )
-      );
-      const dataAPIBlobResponse = JSON.parse(
-        readFileSync(
-          resolve(
-            fixturesPath,
-            'github-data-api',
-            'data-api-blobs-successful-response.json'
-          ),
-          'utf8'
-        )
-      );
+    describe('with large file', () => {
+      const simpleAPIResponse = require(resolve(
+        fixturesPath,
+        'github-data-api',
+        '403-too-large-file-response.json'
+      ));
+      const rootDataAPITreesResponse = require(resolve(
+        fixturesPath,
+        'github-data-api',
+        'data-api-trees-successful-response.json'
+      ));
+      const dataAPIBlobResponse = require(resolve(
+        fixturesPath,
+        'github-data-api',
+        'data-api-blobs-successful-response.json'
+      ));
+      it('should support Github Data API in case of a big file', async () => {
+        req
+          .get(
+            '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmain'
+          )
+          .reply(403, simpleAPIResponse)
+          .get('/repos/fake/fake/git/trees/main')
+          .reply(200, rootDataAPITreesResponse)
+          .get(
+            '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
+          )
+          .reply(200, dataAPIBlobResponse);
 
-      req
-        .get(
-          '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(403, simpleAPIResponse)
-        .get('/repos/fake/fake/git/trees/main')
-        .reply(200, dataAPITreesResponse)
-        .get(
-          '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
-        )
-        .reply(200, dataAPIBlobResponse);
+        const fileContents = await github.getFileContents('package-lock.json');
+        expect(fileContents).to.have.property('content');
+        expect(fileContents).to.have.property('parsedContent');
+        expect(fileContents)
+          .to.have.property('sha')
+          .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
+        snapshot(fileContents);
+        req.done();
+      });
+      it('should support Github Data API in case of a nested big file', async () => {
+        const subdir1TreesResponse = require(resolve(
+          fixturesPath,
+          'github-data-api',
+          'data-api-trees-successful-response-subdir1.json'
+        ));
+        const subdir2TreesResponse = require(resolve(
+          fixturesPath,
+          'github-data-api',
+          'data-api-trees-successful-response-subdir2.json'
+        ));
+        req
+          .get(
+            '/repos/fake/fake/contents/subdir1%2Fsubdir2%2Fpackage-lock.json?ref=refs%2Fheads%2Fmain'
+          )
+          .reply(403, simpleAPIResponse)
+          .get('/repos/fake/fake/git/trees/main')
+          .reply(200, rootDataAPITreesResponse)
+          .get(
+            '/repos/fake/fake/git/trees/0ab7edc1143a47be42513c0acc64165cf5da9181'
+          )
+          .reply(200, subdir1TreesResponse)
+          .get(
+            '/repos/fake/fake/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc'
+          )
+          .reply(200, subdir2TreesResponse)
+          .get(
+            '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
+          )
+          .reply(200, dataAPIBlobResponse);
 
-      const fileContents = await github.getFileContents('package-lock.json');
-      expect(fileContents).to.have.property('content');
-      expect(fileContents).to.have.property('parsedContent');
-      expect(fileContents)
-        .to.have.property('sha')
-        .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
-      snapshot(fileContents);
-      req.done();
+        const fileContents = await github.getFileContents(
+          'subdir1/subdir2/package-lock.json'
+        );
+        expect(fileContents).to.have.property('content');
+        expect(fileContents).to.have.property('parsedContent');
+        expect(fileContents)
+          .to.have.property('sha')
+          .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
+        snapshot(fileContents);
+        req.done();
+      });
     });
   });
 

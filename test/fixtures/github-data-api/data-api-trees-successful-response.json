@@ -10,6 +10,13 @@
       "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/trees/cc64165cf5da91810ab7edc1143a47be42513c0a"
     },
     {
+      "path": "subdir1",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "0ab7edc1143a47be42513c0acc64165cf5da9181",
+      "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/trees/0ab7edc1143a47be42513c0acc64165cf5da9181"
+    },
+    {
       "path": ".gitignore",
       "mode": "100644",
       "type": "blob",

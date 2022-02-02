@@ -1,0 +1,15 @@
+{
+  "sha": "1143a47be42513c0acc64165cf5da91810ab7edc",
+  "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc",
+  "tree": [
+    {
+      "path": "package-lock.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2f3d2c47bf49f81aca0df9ffc49524a213a2dc33",
+      "size": 1352120,
+      "url": "https://api.github.com/repos/lancedikson/release-please-403-example/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33"
+    }
+  ],
+  "truncated": false
+}
