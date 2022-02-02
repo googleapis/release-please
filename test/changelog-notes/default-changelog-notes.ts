@@ -227,6 +227,21 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.is.string;
         safeSnapshot(notes);
       });
+      it('should allow customizing sections', async () => {
+        const commits = [buildMockCommit('chore: some chore')];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
+          parseConventionalCommits(commits),
+          {
+            ...notesOptions,
+            changelogSections: [
+              {type: 'chore', section: 'Miscellaneous Chores'},
+            ],
+          }
+        );
+        expect(notes).to.is.string;
+        safeSnapshot(notes);
+      });
       // it('ignores reverted commits', async () => {
       //   const commits = [buildCommitFromFixture('multiple-messages')];
       //   const changelogNotes = new DefaultChangelogNotes();

@@ -74,6 +74,15 @@ exports['DefaultChangelogNotes buildNotes with commit parsing handles Release-As
 * correct release ([1f64add](https://github.com/googleapis/java-asset/commit/1f64add37f426e87ce1b777616a137ec))
 `
 
+exports['DefaultChangelogNotes buildNotes with commit parsing should allow customizing sections 1'] = `
+### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Miscellaneous Chores
+
+* some chore ([be1aa27](https://github.com/googleapis/java-asset/commit/be1aa271694db576f28f23da1df93519))
+`
+
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle BREAKING CHANGE body 1'] = `
 ### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
