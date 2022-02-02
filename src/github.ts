@@ -774,23 +774,25 @@ export class GitHub {
    */
   getFileContentsWithDataAPI = wrapAsync(
     async (path: string, branch: string): Promise<GitHubFileContents> => {
-      const repoTree = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: branch,
-      });
-
-      const blobDescriptor = repoTree.data.tree.find(
-        tree => tree.path === path
-      );
-      if (!blobDescriptor) {
-        throw new Error(`Could not find requested path: ${path}`);
+      const parts = path.split('/');
+      let treeSha = branch;
+      for (const part of parts) {
+        const resp = await this.octokit.git.getTree({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          tree_sha: treeSha,
+        });
+        const blobDescriptor = resp.data.tree.find(item => item.path === part);
+        if (!blobDescriptor?.sha) {
+          throw new Error(`Could not find requested path: ${path}`);
+        }
+        treeSha = blobDescriptor.sha;
       }
 
       const resp = await this.octokit.git.getBlob({
         owner: this.repository.owner,
         repo: this.repository.repo,
-        file_sha: blobDescriptor.sha!,
+        file_sha: treeSha,
       });
 
       return {
