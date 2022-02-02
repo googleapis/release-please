@@ -121,6 +121,7 @@ export class PHPYoshi extends BaseStrategy {
             previousTag: latestRelease?.tag?.toString(),
             currentTag: newVersionTag.toString(),
             targetBranch: this.targetBranch,
+            changelogSections: this.changelogSections,
           }
         );
         releaseNotesBody = updatePHPChangelogEntry(

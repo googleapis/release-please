@@ -734,6 +734,27 @@ exports['PHPYoshi buildRelease parses the release notes 1'] = `
 </details>
 `
 
+exports['PHPYoshi buildReleasePullRequest includes chore commits 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+## 0.123.5
+
+<details><summary>google/client3 0.1.3</summary>
+
+
+
+### Miscellaneous Chores
+
+* some miscellaneous task ([def234](https://github.com/googleapis/php-yoshi-test-repo/commit/def234))
+
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['PHPYoshi buildReleasePullRequest returns release PR changes with defaultInitialVersion 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
