@@ -15,6 +15,7 @@
 import {Octokit} from '@octokit/rest';
 import {Repository} from '../repository';
 import {logger} from './logger';
+import {FileNotFoundError} from '../errors';
 
 export const DEFAULT_FILE_MODE = '100644';
 
@@ -25,16 +26,37 @@ export interface GitHubFileContents {
   mode: string;
 }
 
+/**
+ * This class is a read-through cache aimed at minimizing the
+ * number of API requests needed to fetch file data/contents.
+ * It lazy-caches data as it reads and will return cached data
+ * for resources already fetched.
+ */
 export class RepositoryFileCache {
   private octokit: Octokit;
   private repository: Repository;
   private cache: Map<string, BranchFileCache>;
 
+  /**
+   * Instantiate a new loading cache instance
+   *
+   * @param {Octokit} octokit An authenticated octokit instance
+   * @param {Repository} repository The repository we are fetching data for
+   */
   constructor(octokit: Octokit, repository: Repository) {
     this.octokit = octokit;
     this.repository = repository;
     this.cache = new Map();
   }
+
+  /**
+   * Fetch file contents for given path on a given branch. If the
+   * data has already been fetched, return a cached copy.
+   *
+   * @param {string} path Path to the file
+   * @param {string} branch Branch to fetch the file from
+   * @returns {GitHubFileContents} The file contents
+   */
   async getFileContents(
     path: string,
     branch: string
@@ -56,6 +78,12 @@ interface TreeEntry {
   size?: number;
 }
 
+/**
+ * This class is a read-through cache for a single branch aimed
+ * at minimizing the number of API requests needed to fetch file
+ * data/contents. It lazy-caches data as it reads and will return
+ * cached data for resources already fetched.
+ */
 export class BranchFileCache {
   private octokit: Octokit;
   private repository: Repository;
@@ -64,6 +92,13 @@ export class BranchFileCache {
   private treeCache: Map<string, TreeEntry[]>;
   private treeEntries?: TreeEntry[] | null;
 
+  /**
+   * Instantiate a new loading cache instance
+   *
+   * @param {Octokit} octokit An authenticated octokit instance
+   * @param {Repository} repository The repository we are fetching data for
+   * @param {string} branch The branch we are fetching data from
+   */
   constructor(octokit: Octokit, repository: Repository, branch: string) {
     this.octokit = octokit;
     this.repository = repository;
@@ -72,6 +107,14 @@ export class BranchFileCache {
     this.treeCache = new Map();
   }
 
+  /**
+   * Fetch file contents for given path. If the data has already been
+   * fetched, return the cached copy.
+   *
+   * @param {string} path Path to the file
+   * @param {string} branch Branch to fetch the file from
+   * @returns {GitHubFileContents} The file contents
+   */
   async getFileContents(path: string): Promise<GitHubFileContents> {
     const cached = this.cache.get(path);
     if (cached) {
@@ -82,6 +125,12 @@ export class BranchFileCache {
     return fetched;
   }
 
+  /**
+   * Actually fetch the file contents. Uses the tree API to fetch file
+   * data.
+   *
+   * @param {string} path Path to the file
+   */
   private async fetchFileContents(path: string): Promise<GitHubFileContents> {
     // try to use the entire git tree if it's not too big
     const treeEntries = await this.getFullTree();
@@ -101,7 +150,7 @@ export class BranchFileCache {
       const tree = await this.getTree(treeSha);
       found = tree.find(item => item.path === part);
       if (!found?.sha) {
-        throw new Error(`Could not find requested path: ${path}`);
+        throw new FileNotFoundError(path);
       }
       treeSha = found.sha;
     }
@@ -109,9 +158,15 @@ export class BranchFileCache {
     if (found?.sha) {
       return await this.fetchContents(found.sha, found);
     }
-    throw Error('not implement');
+    throw new FileNotFoundError(path);
   }
 
+  /**
+   * Return the full recursive git tree. If already fetched, return
+   * the cached version. If the tree is too big, return null.
+   *
+   * @returns {TreeEntry[]} The tree entries
+   */
   private async getFullTree(): Promise<TreeEntry[] | null> {
     if (this.treeEntries === undefined) {
       // fetch all tree entries recursively
@@ -133,6 +188,13 @@ export class BranchFileCache {
     return this.treeEntries;
   }
 
+  /**
+   * Returns the git tree for a given SHA. If already fetched, return
+   * the cached version.
+   *
+   * @param {string} sha The tree SHA
+   * @returns {TreeEntry[]} The tree entries
+   */
   private async getTree(sha: string): Promise<TreeEntry[]> {
     const cached = this.treeCache.get(sha);
     if (cached) {
@@ -143,6 +205,12 @@ export class BranchFileCache {
     return fetched;
   }
 
+  /**
+   * Fetch the git tree via the GitHub API
+   *
+   * @param {string} sha The tree SHA
+   * @returns {TreeEntry[]} The tree entries
+   */
   private async fetchTree(sha: string): Promise<TreeEntry[]> {
     const {
       data: {tree},
@@ -155,6 +223,13 @@ export class BranchFileCache {
     return tree;
   }
 
+  /**
+   * Fetch the git blob from the GitHub API and convert into a
+   * GitHubFileContents object.
+   *
+   * @param {string} blobSha The git blob SHA
+   * @param {TreeEntry} treeEntry The associated tree object
+   */
   private async fetchContents(
     blobSha: string,
     treeEntry: TreeEntry
