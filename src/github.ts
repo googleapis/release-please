@@ -34,12 +34,16 @@ import {Update} from './update';
 import {Release} from './release';
 import {ROOT_PROJECT_PATH} from './manifest';
 import {signoffCommitMessage} from './util/signoff-commit-message';
+import {
+  RepositoryFileCache,
+  GitHubFileContents,
+  DEFAULT_FILE_MODE,
+} from './util/file-cache';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
 type DefaultFunctionType = RequestBuilderType['defaults'];
 type RequestFunctionType = ReturnType<DefaultFunctionType>;
-type RequestOptionsType = Parameters<DefaultFunctionType>[0];
 export interface OctokitAPIs {
   graphql: Function;
   request: RequestFunctionType;
@@ -59,12 +63,6 @@ interface GitHubCreateOptions {
   graphqlUrl?: string;
   octokitAPIs?: OctokitAPIs;
   token?: string;
-}
-
-export interface GitHubFileContents {
-  sha: string;
-  content: string;
-  parsedContent: string;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -172,12 +170,14 @@ export class GitHub {
   private octokit: OctokitType;
   private request: RequestFunctionType;
   private graphql: Function;
+  private fileCache: RepositoryFileCache;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
     this.octokit = options.octokitAPIs.octokit;
     this.request = options.octokitAPIs.request;
     this.graphql = options.octokitAPIs.graphql;
+    this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
   }
 
   /**
@@ -730,80 +730,6 @@ export class GitHub {
   }
 
   /**
-   * Fetch the contents of a file with the Contents API
-   *
-   * @param {string} path The path to the file in the repository
-   * @param {string} branch The branch to fetch from
-   * @returns {GitHubFileContents}
-   * @throws {GitHubAPIError} on other API errors
-   */
-  getFileContentsWithSimpleAPI = wrapAsync(
-    async (
-      path: string,
-      ref: string,
-      isBranch = true
-    ): Promise<GitHubFileContents> => {
-      ref = isBranch ? fullyQualifyBranchRef(ref) : ref;
-      const options: RequestOptionsType = {
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        path,
-        ref,
-      };
-      const resp = await this.request(
-        'GET /repos/:owner/:repo/contents/:path',
-        options
-      );
-      return {
-        parsedContent: Buffer.from(resp.data.content, 'base64').toString(
-          'utf8'
-        ),
-        content: resp.data.content,
-        sha: resp.data.sha,
-      };
-    }
-  );
-
-  /**
-   * Fetch the contents of a file using the Git data API
-   *
-   * @param {string} path The path to the file in the repository
-   * @param {string} branch The branch to fetch from
-   * @returns {GitHubFileContents}
-   * @throws {GitHubAPIError} on other API errors
-   */
-  getFileContentsWithDataAPI = wrapAsync(
-    async (path: string, branch: string): Promise<GitHubFileContents> => {
-      const repoTree = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: branch,
-      });
-
-      const blobDescriptor = repoTree.data.tree.find(
-        tree => tree.path === path
-      );
-      if (!blobDescriptor) {
-        throw new Error(`Could not find requested path: ${path}`);
-      }
-
-      const resp = await this.octokit.git.getBlob({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        file_sha: blobDescriptor.sha!,
-      });
-
-      return {
-        parsedContent: Buffer.from(resp.data.content, 'base64').toString(
-          'utf8'
-        ),
-        content: resp.data.content,
-        sha: resp.data.sha,
-      };
-    }
-  );
-
-  /**
    * Fetch the contents of a file
    *
    * @param {string} path The path to the file in the repository
@@ -816,14 +742,7 @@ export class GitHub {
     branch: string
   ): Promise<GitHubFileContents> {
     logger.debug(`Fetching ${path} from branch ${branch}`);
-    try {
-      return await this.getFileContentsWithSimpleAPI(path, branch);
-    } catch (err) {
-      if (err.status === 403) {
-        return await this.getFileContentsWithDataAPI(path, branch);
-      }
-      throw err;
-    }
+    return await this.fileCache.getFileContents(path, branch);
   }
 
   async getFileJson<T>(path: string, branch: string): Promise<T> {
@@ -1083,19 +1002,12 @@ export class GitHub {
   ): Promise<Changes> {
     const changes = new Map();
     for (const update of updates) {
-      let content;
+      let content: GitHubFileContents | undefined;
       try {
-        if (update.cachedFileContents) {
-          // we already loaded the file contents earlier, let's not
-          // hit GitHub again.
-          content = {data: update.cachedFileContents};
-        } else {
-          const fileContent = await this.getFileContentsOnBranch(
-            update.path,
-            defaultBranch
-          );
-          content = {data: fileContent};
-        }
+        content = await this.getFileContentsOnBranch(
+          update.path,
+          defaultBranch
+        );
       } catch (err) {
         if (err.status !== 404) throw err;
         // if the file is missing and create = false, just continue
@@ -1106,13 +1018,13 @@ export class GitHub {
         }
       }
       const contentText = content
-        ? Buffer.from(content.data.content, 'base64').toString('utf8')
+        ? Buffer.from(content.content, 'base64').toString('utf8')
         : undefined;
       const updatedContent = update.updater.updateContent(contentText);
       if (updatedContent) {
         changes.set(update.path, {
           content: updatedContent,
-          mode: '100644',
+          mode: content?.mode || DEFAULT_FILE_MODE,
         });
       }
     }
@@ -1329,19 +1241,6 @@ export class GitHub {
     });
     return resp.data.body;
   }
-}
-
-// Takes a potentially unqualified branch name, and turns it
-// into a fully qualified ref.
-//
-// e.g. main -> refs/heads/main
-function fullyQualifyBranchRef(refName: string): string {
-  let final = refName;
-  if (final.indexOf('/') < 0) {
-    final = `refs/heads/${final}`;
-  }
-
-  return final;
 }
 
 /**

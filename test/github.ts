@@ -180,16 +180,6 @@ describe('GitHub', () => {
 
   describe('getFileContents', () => {
     it('should support Github Data API in case of a big file', async () => {
-      const simpleAPIResponse = JSON.parse(
-        readFileSync(
-          resolve(
-            fixturesPath,
-            'github-data-api',
-            '403-too-large-file-response.json'
-          ),
-          'utf8'
-        )
-      );
       const dataAPITreesResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -212,11 +202,7 @@ describe('GitHub', () => {
       );
 
       req
-        .get(
-          '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(403, simpleAPIResponse)
-        .get('/repos/fake/fake/git/trees/main')
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, dataAPITreesResponse)
         .get(
           '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
@@ -230,57 +216,6 @@ describe('GitHub', () => {
         .to.have.property('sha')
         .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
       snapshot(fileContents);
-      req.done();
-    });
-  });
-
-  describe('getFileContentsWithSimpleAPI', () => {
-    const setupReq = (ref: string) => {
-      req
-        .get(
-          `/repos/fake/fake/contents/release-please-manifest.json?ref=${ref}`
-        )
-        .reply(200, {
-          sha: 'abc123',
-          content: Buffer.from('I am a manifest').toString('base64'),
-        });
-      return req;
-    };
-    it('gets a file using shorthand branch name', async () => {
-      const req = setupReq('refs%2Fheads%2Fmain');
-      const ghFile = await github.getFileContentsWithSimpleAPI(
-        'release-please-manifest.json',
-        'main'
-      );
-      expect(ghFile)
-        .to.have.property('parsedContent')
-        .to.equal('I am a manifest');
-      expect(ghFile).to.have.property('sha').to.equal('abc123');
-      req.done();
-    });
-    it('gets a file using fully qualified branch name', async () => {
-      const req = setupReq('refs%2Fheads%2Fmain');
-      const ghFile = await github.getFileContentsWithSimpleAPI(
-        'release-please-manifest.json',
-        'refs/heads/main'
-      );
-      expect(ghFile)
-        .to.have.property('parsedContent')
-        .to.equal('I am a manifest');
-      expect(ghFile).to.have.property('sha').to.equal('abc123');
-      req.done();
-    });
-    it('gets a file using a non-branch "ref"', async () => {
-      const req = setupReq('abc123');
-      const ghFile = await github.getFileContentsWithSimpleAPI(
-        'release-please-manifest.json',
-        'abc123',
-        false
-      );
-      expect(ghFile)
-        .to.have.property('parsedContent')
-        .to.equal('I am a manifest');
-      expect(ghFile).to.have.property('sha').to.equal('abc123');
       req.done();
     });
   });
