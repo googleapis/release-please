@@ -23,6 +23,7 @@ import {
   stubSuggesterWithSnapshot,
   assertHasUpdate,
   dateSafe,
+  safeSnapshot,
 } from './helpers';
 import {expect} from 'chai';
 import {Version} from '../src/version';
@@ -1690,6 +1691,67 @@ describe('Manifest', () => {
           'pkg/b/bbb.properties', // should be at root
           'pkg/c/pkg-c.properties', // should be up one level
         ]);
+    });
+
+    it('should allow overriding commit message', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'def456',
+          message: 'fix: some bugfix',
+          files: [],
+          pullRequest: {
+            headBranchName: 'fix-1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'fix: some bugfix',
+            body: 'BEGIN_COMMIT_OVERRIDE\nfix: real fix message\nEND_COMMIT_OVERRIDE',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+          },
+        },
+        {
+          '.': Version.parse('1.0.0'),
+        },
+        {
+          draftPullRequest: true,
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      safeSnapshot(pullRequest.body.toString());
     });
 
     describe('with plugins', () => {
