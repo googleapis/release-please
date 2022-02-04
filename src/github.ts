@@ -95,6 +95,9 @@ interface GraphQLPullRequest {
     nodes: {
       path: string;
     }[];
+    pageInfo: {
+      hasNextPage: boolean;
+    };
   };
 }
 
@@ -387,7 +390,7 @@ export class GitHub {
       repo: this.repository.repo,
       num: 25,
       targetBranch,
-      maxFilesChanged: 64,
+      maxFilesChanged: 100, // max is 100
     });
 
     // if the branch does exist, return null
@@ -420,9 +423,14 @@ export class GitHub {
           labels: pullRequest.labels.nodes.map(node => node.name),
           files,
         };
-        // We cannot directly fetch files on commits via graphql, only provide file
-        // information for commits with associated pull requests
-        commit.files = files;
+        if (pullRequest.files.pageInfo?.hasNextPage && options.backfillFiles) {
+          logger.info(`PR #${pullRequest.number} has many files, backfilling`);
+          commit.files = await this.getCommitFiles(graphCommit.sha);
+        } else {
+          // We cannot directly fetch files on commits via graphql, only provide file
+          // information for commits with associated pull requests
+          commit.files = files;
+        }
       } else if (options.backfillFiles) {
         // In this case, there is no squashed merge commit. This could be a simple
         // merge commit, a rebase merge commit, or a direct commit to the branch.
@@ -447,13 +455,29 @@ export class GitHub {
    */
   getCommitFiles = wrapAsync(async (sha: string): Promise<string[]> => {
     logger.debug(`Backfilling file list for commit: ${sha}`);
-    const resp = await this.octokit.repos.getCommit({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      ref: sha,
-    });
-    const files = resp.data.files || [];
-    return files.map(file => file.filename!).filter(filename => !!filename);
+    const files: string[] = [];
+    for await (const resp of this.octokit.paginate.iterator(
+      this.octokit.repos.getCommit,
+      {
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        ref: sha,
+      }
+    )) {
+      for (const f of resp.data.files || []) {
+        if (f.filename) {
+          files.push(f.filename);
+        }
+      }
+    }
+    if (files.length >= 3000) {
+      logger.warn(
+        `Found ${files.length} files. This may not include all the files.`
+      );
+    } else {
+      logger.debug(`Found ${files.length} files`);
+    }
+    return files;
   });
 
   private graphqlRequest = wrapAsync(
