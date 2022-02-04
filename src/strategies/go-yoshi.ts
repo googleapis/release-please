@@ -75,11 +75,6 @@ export class GoYoshi extends BaseStrategy {
     const component = await this.getComponent();
     logger.debug('Filtering commits');
     return commits.filter(commit => {
-      // ignore commits whose scope is in the list of ignored modules
-      if (IGNORED_SUB_MODULES.has(commit.scope || '')) {
-        return false;
-      }
-
       // Only have a single entry of the nightly regen listed in the changelog.
       // If there are more than one of these commits, append associated PR.
       if (
