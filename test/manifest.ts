@@ -1563,6 +1563,135 @@ describe('Manifest', () => {
       );
     });
 
+    describe('without commits', () => {
+      beforeEach(() => {
+        mockReleases(github, [
+          {
+            sha: 'abc123',
+            tagName: 'v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+          },
+        ]);
+        mockCommits(github, []);
+      });
+      it('should ignore by default', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(0);
+      });
+
+      it('should delegate to strategies', async () => {
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
+        );
+        getFileContentsStub
+          .withArgs('versions.txt', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'strategies/java-yoshi/versions-released.txt'
+            )
+          );
+        sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'java-yoshi',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.version?.toString()).to.eql('1.0.1-SNAPSHOT');
+        expect(pullRequest.headRefName).to.eql(
+          'release-please--branches--main'
+        );
+      });
+    });
+
+    it('should handle extra files', async () => {
+      mockReleases(github, []);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: a bugfix',
+          files: ['foo', 'pkg.properties'],
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: b bugfix',
+          files: ['pkg/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: c bugfix',
+          files: ['pkg/c/foo'],
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            component: 'a',
+            extraFiles: ['root.properties'],
+          },
+          'pkg/b': {
+            releaseType: 'simple',
+            component: 'b',
+            extraFiles: ['pkg.properties', 'src/version', '/bbb.properties'],
+            skipGithubRelease: true,
+          },
+          'pkg/c': {
+            releaseType: 'simple',
+            component: 'c',
+            extraFiles: ['/pkg/pkg-c.properties', 'ccc.properties'],
+            skipGithubRelease: true,
+          },
+        },
+        {
+          '.': Version.parse('1.1.0'),
+          'pkg/b': Version.parse('1.0.0'),
+          'pkg/c': Version.parse('1.0.1'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].updates).to.be.an('array');
+      expect(pullRequests[0].updates.map(update => update.path))
+        .to.include.members([
+          'root.properties',
+          'bbb.properties',
+          'pkg/pkg-c.properties',
+          'pkg/b/pkg.properties',
+          'pkg/b/src/version',
+          'pkg/c/ccc.properties',
+        ])
+        .but.not.include.oneOf([
+          'pkg/b/bbb.properties', // should be at root
+          'pkg/c/pkg-c.properties', // should be up one level
+        ]);
+    });
+
     describe('with plugins', () => {
       beforeEach(() => {
         mockReleases(github, [
@@ -1634,10 +1763,12 @@ describe('Manifest', () => {
             'path/a': {
               releaseType: 'node',
               component: 'pkg1',
+              packageName: 'pkg1',
             },
             'path/b': {
               releaseType: 'node',
               component: 'pkg2',
+              packageName: 'pkg2',
             },
           },
           {
@@ -1668,10 +1799,12 @@ describe('Manifest', () => {
             'path/a': {
               releaseType: 'node',
               component: 'pkg1',
+              packageName: '@foo/pkg1',
             },
             'path/b': {
               releaseType: 'node',
               component: 'pkg2',
+              packageName: '@foo/pkg2',
             },
           },
           {

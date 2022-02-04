@@ -76,7 +76,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly path: string;
   protected github: GitHub;
   protected component?: string;
-  protected packageName?: string;
+  private packageName?: string;
   readonly versioningStrategy: VersioningStrategy;
   protected targetBranch: string;
   protected repository: Repository;
@@ -135,11 +135,17 @@ export abstract class BaseStrategy implements Strategy {
   }
 
   async getDefaultComponent(): Promise<string | undefined> {
-    return this.normalizeComponent(await this.getDefaultPackageName());
+    return this.normalizeComponent(
+      this.packageName ?? (await this.getDefaultPackageName())
+    );
+  }
+
+  async getPackageName(): Promise<string | undefined> {
+    return this.packageName ?? (await this.getDefaultPackageName());
   }
 
   async getDefaultPackageName(): Promise<string | undefined> {
-    return '';
+    return this.packageName ?? '';
   }
 
   protected normalizeComponent(component: string | undefined): string {
@@ -214,6 +220,10 @@ export abstract class BaseStrategy implements Strategy {
       parseConventionalCommits(commits)
     );
     logger.info(`Considering: ${conventionalCommits.length} commits`);
+    if (conventionalCommits.length === 0) {
+      logger.info(`No commits for path: ${this.path}, skipping`);
+      return undefined;
+    }
 
     const newVersion = await this.buildNewVersion(
       conventionalCommits,
@@ -285,13 +295,11 @@ export abstract class BaseStrategy implements Strategy {
 
   private extraFileUpdates(version: Version): Update[] {
     const genericUpdater = new Generic({version});
-    return this.extraFiles.map(path => {
-      return {
-        path,
-        createIfMissing: false,
-        updater: genericUpdater,
-      };
-    });
+    return this.extraFiles.map(path => ({
+      path: this.addPath(path),
+      createIfMissing: false,
+      updater: genericUpdater,
+    }));
   }
 
   protected changelogEmpty(changelogEntry: string): boolean {
@@ -450,16 +458,27 @@ export abstract class BaseStrategy implements Strategy {
     return Version.parse('1.0.0');
   }
 
+  /**
+   * Adds a given file path to the strategy path.
+   * @param {string} file Desired file path.
+   * @returns {string} The file relative to the strategy.
+   * @throws {Error} If the file path contains relative pathing characters, i.e. ../, ~/
+   */
   protected addPath(file: string) {
-    if (this.path === ROOT_PROJECT_PATH) {
-      return file;
+    // There is no strategy path to join, the strategy is at the root, or the
+    // file is at the root (denoted by a leading slash or tilde)
+    if (!this.path || this.path === ROOT_PROJECT_PATH || file.startsWith('/')) {
+      file = file.replace(/^\/+/, '');
     }
-    file = file.replace(/^[/\\]/, '');
-    if (this.path === undefined) {
-      return file;
-    } else {
-      const path = this.path.replace(/[/\\]$/, '');
-      return `${path}/${file}`;
+    // Otherwise, the file is relative to the strategy path
+    else {
+      file = `${this.path.replace(/\/+$/, '')}/${file}`;
     }
+    // Ensure the file path does not escape the workspace
+    if (/((^|\/)\.{1,2}|^~|^\/*)+\//.test(file)) {
+      throw new Error(`illegal pathing characters in path: ${file}`);
+    }
+    // Strip any trailing slashes and return
+    return file.replace(/\/+$/, '');
   }
 }

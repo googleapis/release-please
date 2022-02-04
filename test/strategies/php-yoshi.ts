@@ -112,6 +112,30 @@ describe('PHPYoshi', () => {
       expect(release!.version?.toString()).to.eql(expectedVersion);
       snapshot(dateSafe(release!.body.toString()));
     });
+    it('includes chore commits', async () => {
+      const expectedVersion = '0.123.5';
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+      });
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const release = await strategy.buildReleasePullRequest(
+        [
+          {
+            sha: 'def234',
+            message: 'chore: some miscellaneous task',
+            files: ['Client3/README.md'],
+          },
+        ],
+        latestRelease
+      );
+      expect(release!.version?.toString()).to.eql(expectedVersion);
+      snapshot(dateSafe(release!.body.toString()));
+    });
   });
   describe('buildUpdates', () => {
     it('builds common files', async () => {

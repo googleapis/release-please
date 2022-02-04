@@ -489,10 +489,6 @@ export class Manifest {
         path === ROOT_PROJECT_PATH ? commits : commitsPerPath[path],
         releaseShasByPath[path]
       );
-      if (!pathCommits || pathCommits.length === 0) {
-        logger.info(`No commits for path: ${path}, skipping`);
-        continue;
-      }
       logger.debug(`commits: ${pathCommits.length}`);
       const latestReleasePullRequest =
         releasePullRequestsBySha[releaseShasByPath[path]];
@@ -555,7 +551,6 @@ export class Manifest {
       })
     );
 
-    logger.info(`separate pull requests: ${this.separatePullRequests}`);
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {

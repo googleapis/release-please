@@ -25,26 +25,50 @@ describe('KRM Blueprint', () => {
   const tests = [
     {
       name: 'simpleKRM.yaml',
+      previousVersion: '0.2.0',
       expectedVersion: '2.1.0',
     },
     {
       name: 'multiKRMwithFn.yaml',
+      previousVersion: '0.2.0',
       expectedVersion: '18.0.0',
     },
   ];
   describe('updateContent', () => {
     tests.forEach(test => {
-      it(`updates version in ${test.name}`, async () => {
-        const oldContent = readFileSync(
-          resolve(fixturesPath, test.name),
-          'utf8'
-        ).replace(/\r\n/g, '\n');
+      describe('with previousVersion', () => {
+        it(`updates version in ${test.name}`, async () => {
+          const oldContent = readFileSync(
+            resolve(fixturesPath, test.name),
+            'utf8'
+          ).replace(/\r\n/g, '\n');
 
-        const version = new KRMBlueprintVersion({
-          version: Version.parse(test.expectedVersion),
+          const versionsMap = new Map();
+          versionsMap.set(
+            'previousVersion',
+            Version.parse(test.previousVersion)
+          );
+          const version = new KRMBlueprintVersion({
+            version: Version.parse(test.expectedVersion),
+            versionsMap,
+          });
+          const newContent = version.updateContent(oldContent);
+          snapshot(newContent);
         });
-        const newContent = version.updateContent(oldContent);
-        snapshot(newContent);
+      });
+      describe('without previousVersion', () => {
+        it(`updates version in ${test.name}`, async () => {
+          const oldContent = readFileSync(
+            resolve(fixturesPath, test.name),
+            'utf8'
+          ).replace(/\r\n/g, '\n');
+
+          const version = new KRMBlueprintVersion({
+            version: Version.parse(test.expectedVersion),
+          });
+          const newContent = version.updateContent(oldContent);
+          snapshot(newContent);
+        });
       });
     });
   });

@@ -69,10 +69,14 @@ export class PHPYoshi extends BaseStrategy {
     latestRelease?: Release,
     draft?: boolean,
     labels: string[] = []
-  ): Promise<ReleasePullRequest> {
+  ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits)
     );
+    if (conventionalCommits.length === 0) {
+      logger.info(`No commits for path: ${this.path}, skipping`);
+      return undefined;
+    }
 
     const newVersion = latestRelease
       ? await this.versioningStrategy.bump(
@@ -117,6 +121,7 @@ export class PHPYoshi extends BaseStrategy {
             previousTag: latestRelease?.tag?.toString(),
             currentTag: newVersionTag.toString(),
             targetBranch: this.targetBranch,
+            changelogSections: this.changelogSections,
           }
         );
         releaseNotesBody = updatePHPChangelogEntry(

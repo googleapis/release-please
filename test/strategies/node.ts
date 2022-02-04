@@ -58,6 +58,7 @@ describe('Node', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl',
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -72,6 +73,7 @@ describe('Node', () => {
         targetBranch: 'main',
         github,
         component: 'some-node-package',
+        packageName: 'some-node-package',
       });
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'some-node-package'),
@@ -113,6 +115,36 @@ describe('Node', () => {
       );
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
+    it('detects a default packageName', async () => {
+      const expectedVersion = '0.123.5';
+      const strategy = new Node({
+        targetBranch: 'main',
+        github,
+        component: 'abc-123',
+      });
+      const commits = [
+        buildMockCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+        ),
+      ];
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'node-test-repo'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'package.json'));
+      const pullRequest = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
+    });
   });
   describe('buildUpdates', () => {
     it('builds common files', async () => {
@@ -120,6 +152,7 @@ describe('Node', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl-pkg',
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
@@ -131,7 +164,13 @@ describe('Node', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'package-lock.json', PackageLockJson);
       assertHasUpdate(updates, 'npm-shrinkwrap.json', PackageLockJson);
-      assertHasUpdate(updates, 'samples/package.json', SamplesPackageJson);
+      const update = assertHasUpdate(
+        updates,
+        'samples/package.json',
+        SamplesPackageJson
+      );
+      const updater = update.updater as SamplesPackageJson;
+      expect(updater.packageName).to.equal('google-cloud-automl-pkg');
       assertHasUpdate(updates, 'package.json', PackageJson);
     });
   });

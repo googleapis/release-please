@@ -269,6 +269,14 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     };
   }
 
+  protected postProcessCandidates(
+    candidates: CandidateReleasePullRequest[],
+    _updatedVersions: VersionsMap
+  ): CandidateReleasePullRequest[] {
+    // NOP for node workspaces
+    return candidates;
+  }
+
   protected async buildGraph(
     allPackages: Package[]
   ): Promise<DependencyGraph<Package>> {
