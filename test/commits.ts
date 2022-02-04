@@ -207,6 +207,19 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[1].bareMessage).to.eql('some fix');
   });
 
+  it('parses breaking change meta footer', async () => {
+    const commits = [
+      buildCommitFromFixture('meta-footer-breaking-change-with-scope'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    console.log(conventionalCommits);
+    expect(conventionalCommits).lengthOf(4);
+    expect(conventionalCommits[0].type).to.eql('feat');
+    expect(conventionalCommits[0].bareMessage).to.eql('another feature');
+    expect(conventionalCommits[1].type).to.eql('fix');
+    expect(conventionalCommits[1].bareMessage).to.eql('some fix');
+  });
+
   // it('ignores reverted commits', async () => {
   //   const commits = [
   //     {sha: 'sha1', message: 'feat: some feature', files: ['path1/file1.txt']},

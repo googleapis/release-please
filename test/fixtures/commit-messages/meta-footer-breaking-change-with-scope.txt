@@ -1,0 +1,20 @@
+chore(all): auto-regenerate gapics (#5427)
+
+This is an auto-generated regeneration of the gapic clients by
+cloud.google.com/go/internal/gapicgen. Once the corresponding genproto PR is
+submitted, genbot will update this PR with a newer dependency to the newer
+version of genproto and assign reviewers to this PR.
+
+If you have been assigned to review this PR, please:
+
+- Ensure that the version of genproto in go.mod has been updated.
+- Ensure that CI is passing. If it's failing, it requires your manual attention.
+- Approve and submit this PR if you believe it's ready to ship.
+
+Corresponding genproto PR: googleapis/go-genproto#750
+
+Changes:
+
+feat(dataflow): new parameters in FlexTemplateRuntimeEnvironment fix: added google.api.http annotations to RPCs
+feat!(storage/internal): Update definition of RewriteObjectRequest to bring to parity with JSON API support
+feat(securitycenter): Release the access field in the v1 finding proto, which represents an access event tied to the finding docs: added more clarification around what event_time means on a v1 finding
