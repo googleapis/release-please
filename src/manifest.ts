@@ -58,6 +58,7 @@ export interface ReleaserConfig {
   packageName?: string;
   includeComponentInTag?: boolean;
   pullRequestTitlePattern?: string;
+  tagSeparator?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -98,6 +99,7 @@ interface ReleaserConfigJson {
   'include-component-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'pull-request-title-pattern'?: string;
+  'tag-separator'?: string;
 
   // Ruby-only
   'version-file'?: string;
@@ -882,6 +884,7 @@ function extractReleaserConfig(
     includeComponentInTag: config['include-component-in-tag'],
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
+    tagSeparator: config['tag-separator'],
   };
 }
 
@@ -1091,6 +1094,9 @@ function mergeReleaserConfig(
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
     extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
+    includeComponentInTag:
+      pathConfig.includeComponentInTag ?? defaultConfig.includeComponentInTag,
+    tagSeparator: pathConfig.tagSeparator ?? defaultConfig.tagSeparator,
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
       defaultConfig.pullRequestTitlePattern,

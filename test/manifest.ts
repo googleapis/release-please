@@ -226,6 +226,67 @@ describe('Manifest', () => {
         manifest.repositoryConfig['packages/cron-utils'].pullRequestTitlePattern
       ).to.eql('chore${scope}: send it v${version}');
     });
+
+    it('should read custom tag separator from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/tag-separator.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].tagSeparator).to.eql('-');
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].tagSeparator
+      ).to.eql('/');
+    });
+
+    it('should read custom include component in tag from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/include-component-in-tag.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].includeComponentInTag).to.be.false;
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils']
+          .includeComponentInTag
+      ).to.be.true;
+    });
   });
 
   describe('fromConfig', () => {
