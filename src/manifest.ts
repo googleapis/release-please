@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease} from './github';
+import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit} from './commit';
 import {PullRequest} from './pull-request';
@@ -367,7 +367,6 @@ export class Manifest {
     for await (const release of this.github.releaseIterator({
       maxResults: 400,
     })) {
-      // logger.debug(release);
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
         logger.warn(`Unable to parse release name: ${release.name}`);
@@ -406,6 +405,43 @@ export class Manifest {
     }
 
     const needsBootstrap = releasesFound < expectedReleases;
+    if (releasesFound < expectedReleases) {
+      logger.warn(
+        `Expected ${expectedReleases} releases, only found ${releasesFound}`
+      );
+      // Fall back to looking for missing releases using expected tags
+      const missingPaths = Object.keys(strategiesByPath).filter(
+        path => !releasesByPath[path]
+      );
+      logger.warn(`Missing ${missingPaths.length} paths: ${missingPaths}`);
+      const allTags = await this.getAllTags();
+      for (const path of missingPaths) {
+        const expectedVersion = this.releasedVersions[path];
+        if (!expectedVersion) {
+          logger.warn(`No version for path ${path}`);
+          continue;
+        }
+        const component = await strategiesByPath[path].getComponent();
+        const expectedTag = new TagName(
+          expectedVersion,
+          component,
+          this.repositoryConfig[path].tagSeparator
+        );
+        logger.debug(`looking for tagName: ${expectedTag.toString()}`);
+        const foundTag = allTags[expectedTag.toString()];
+        if (foundTag) {
+          logger.debug(`found: ${foundTag.name} ${foundTag.sha}`);
+          releaseShasByPath[path] = foundTag.sha;
+          releasesByPath[path] = {
+            name: foundTag.name,
+            tag: expectedTag,
+            sha: foundTag.sha,
+            notes: '',
+          };
+          releasesFound += 1;
+        }
+      }
+    }
     if (releasesFound < expectedReleases) {
       logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -573,6 +609,14 @@ export class Manifest {
     return newReleasePullRequests.map(
       pullRequestWithConfig => pullRequestWithConfig.pullRequest
     );
+  }
+
+  private async getAllTags(): Promise<Record<string, GitHubTag>> {
+    const allTags: Record<string, GitHubTag> = {};
+    for await (const tag of this.github.tagIterator()) {
+      allTags[tag.name] = tag;
+    }
+    return allTags;
   }
 
   /**

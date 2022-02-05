@@ -702,6 +702,7 @@ describe('Manifest', () => {
       });
 
       it('should honour the manifestFile argument in Manifest.fromManifest', async () => {
+        mockTags(github, []);
         const getFileContentsStub = sandbox.stub(
           github,
           'getFileContentsOnBranch'
@@ -1255,6 +1256,7 @@ describe('Manifest', () => {
           files: ['path/b/foo'],
         },
       ]);
+      mockTags(github, []);
       const config = {
         'bootstrap-sha': 'cccccc',
         'separate-pull-requests': true,
@@ -1345,6 +1347,7 @@ describe('Manifest', () => {
           },
         },
       ]);
+      mockTags(github, []);
       const config = {
         'last-release-sha': 'bbbbbb',
         'separate-pull-requests': true,
@@ -1592,6 +1595,7 @@ describe('Manifest', () => {
           files: ['path/a/foo'],
         },
       ]);
+      mockTags(github, []);
       const config = {
         packages: {
           'path/a': {
@@ -1690,6 +1694,7 @@ describe('Manifest', () => {
 
     it('should handle extra files', async () => {
       mockReleases(github, []);
+      mockTags(github, []);
       mockCommits(github, [
         {
           sha: 'aaaaaa',
@@ -1892,6 +1897,69 @@ describe('Manifest', () => {
         sinon.assert.calledOnce(mockPlugin.run);
         sinon.assert.calledOnce(mockPlugin2.run);
       });
+    });
+
+    it('should fallback to tagged version', async () => {
+      mockReleases(github, []);
+      mockTags(github, [
+        {
+          name: 'pkg1-v1.0.0',
+          sha: 'abc123',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'def456',
+          message: 'fix: some bugfix',
+          files: [],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+      ]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/repo/node/pkg1/package.json'
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.0.0'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.headRefName).to.eql(
+        'release-please--branches--main--components--pkg1'
+      );
     });
   });
 
