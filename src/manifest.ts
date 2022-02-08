@@ -414,32 +414,14 @@ export class Manifest {
         path => !releasesByPath[path]
       );
       logger.warn(`Missing ${missingPaths.length} paths: ${missingPaths}`);
-      const allTags = await this.getAllTags();
-      for (const path of missingPaths) {
-        const expectedVersion = this.releasedVersions[path];
-        if (!expectedVersion) {
-          logger.warn(`No version for path ${path}`);
-          continue;
-        }
-        const component = await strategiesByPath[path].getComponent();
-        const expectedTag = new TagName(
-          expectedVersion,
-          component,
-          this.repositoryConfig[path].tagSeparator
-        );
-        logger.debug(`looking for tagName: ${expectedTag.toString()}`);
-        const foundTag = allTags[expectedTag.toString()];
-        if (foundTag) {
-          logger.debug(`found: ${foundTag.name} ${foundTag.sha}`);
-          releaseShasByPath[path] = foundTag.sha;
-          releasesByPath[path] = {
-            name: foundTag.name,
-            tag: expectedTag,
-            sha: foundTag.sha,
-            notes: '',
-          };
-          releasesFound += 1;
-        }
+      const missingReleases = await this.backfillReleasesFromTags(
+        missingPaths,
+        strategiesByPath
+      );
+      for (const path in missingReleases) {
+        releaseShasByPath[path] = missingReleases[path].sha;
+        releasesByPath[path] = missingReleases[path];
+        releasesFound++;
       }
     }
     if (releasesFound < expectedReleases) {
@@ -609,6 +591,39 @@ export class Manifest {
     return newReleasePullRequests.map(
       pullRequestWithConfig => pullRequestWithConfig.pullRequest
     );
+  }
+
+  private async backfillReleasesFromTags(
+    missingPaths: string[],
+    strategiesByPath: Record<string, Strategy>
+  ): Promise<Record<string, Release>> {
+    const releasesByPath: Record<string, Release> = {};
+    const allTags = await this.getAllTags();
+    for (const path of missingPaths) {
+      const expectedVersion = this.releasedVersions[path];
+      if (!expectedVersion) {
+        logger.warn(`No version for path ${path}`);
+        continue;
+      }
+      const component = await strategiesByPath[path].getComponent();
+      const expectedTag = new TagName(
+        expectedVersion,
+        component,
+        this.repositoryConfig[path].tagSeparator
+      );
+      logger.debug(`looking for tagName: ${expectedTag.toString()}`);
+      const foundTag = allTags[expectedTag.toString()];
+      if (foundTag) {
+        logger.debug(`found: ${foundTag.name} ${foundTag.sha}`);
+        releasesByPath[path] = {
+          name: foundTag.name,
+          tag: expectedTag,
+          sha: foundTag.sha,
+          notes: '',
+        };
+      }
+    }
+    return releasesByPath;
   }
 
   private async getAllTags(): Promise<Record<string, GitHubTag>> {
