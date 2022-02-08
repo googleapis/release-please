@@ -141,6 +141,7 @@ export async function buildStrategy(
     changelogNotes,
     pullRequestTitlePattern: options.pullRequestTitlePattern,
     extraFiles: options.extraFiles,
+    tagSeparator: options.tagSeparator,
   };
   switch (options.releaseType) {
     case 'ruby': {

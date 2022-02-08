@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease} from './github';
+import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit} from './commit';
 import {PullRequest} from './pull-request';
@@ -58,6 +58,7 @@ export interface ReleaserConfig {
   packageName?: string;
   includeComponentInTag?: boolean;
   pullRequestTitlePattern?: string;
+  tagSeparator?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -98,6 +99,7 @@ interface ReleaserConfigJson {
   'include-component-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'pull-request-title-pattern'?: string;
+  'tag-separator'?: string;
 
   // Ruby-only
   'version-file'?: string;
@@ -365,7 +367,6 @@ export class Manifest {
     for await (const release of this.github.releaseIterator({
       maxResults: 400,
     })) {
-      // logger.debug(release);
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
         logger.warn(`Unable to parse release name: ${release.name}`);
@@ -404,6 +405,25 @@ export class Manifest {
     }
 
     const needsBootstrap = releasesFound < expectedReleases;
+    if (releasesFound < expectedReleases) {
+      logger.warn(
+        `Expected ${expectedReleases} releases, only found ${releasesFound}`
+      );
+      // Fall back to looking for missing releases using expected tags
+      const missingPaths = Object.keys(strategiesByPath).filter(
+        path => !releasesByPath[path]
+      );
+      logger.warn(`Missing ${missingPaths.length} paths: ${missingPaths}`);
+      const missingReleases = await this.backfillReleasesFromTags(
+        missingPaths,
+        strategiesByPath
+      );
+      for (const path in missingReleases) {
+        releaseShasByPath[path] = missingReleases[path].sha;
+        releasesByPath[path] = missingReleases[path];
+        releasesFound++;
+      }
+    }
     if (releasesFound < expectedReleases) {
       logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -572,6 +592,47 @@ export class Manifest {
     return newReleasePullRequests.map(
       pullRequestWithConfig => pullRequestWithConfig.pullRequest
     );
+  }
+
+  private async backfillReleasesFromTags(
+    missingPaths: string[],
+    strategiesByPath: Record<string, Strategy>
+  ): Promise<Record<string, Release>> {
+    const releasesByPath: Record<string, Release> = {};
+    const allTags = await this.getAllTags();
+    for (const path of missingPaths) {
+      const expectedVersion = this.releasedVersions[path];
+      if (!expectedVersion) {
+        logger.warn(`No version for path ${path}`);
+        continue;
+      }
+      const component = await strategiesByPath[path].getComponent();
+      const expectedTag = new TagName(
+        expectedVersion,
+        component,
+        this.repositoryConfig[path].tagSeparator
+      );
+      logger.debug(`looking for tagName: ${expectedTag.toString()}`);
+      const foundTag = allTags[expectedTag.toString()];
+      if (foundTag) {
+        logger.debug(`found: ${foundTag.name} ${foundTag.sha}`);
+        releasesByPath[path] = {
+          name: foundTag.name,
+          tag: expectedTag,
+          sha: foundTag.sha,
+          notes: '',
+        };
+      }
+    }
+    return releasesByPath;
+  }
+
+  private async getAllTags(): Promise<Record<string, GitHubTag>> {
+    const allTags: Record<string, GitHubTag> = {};
+    for await (const tag of this.github.tagIterator()) {
+      allTags[tag.name] = tag;
+    }
+    return allTags;
   }
 
   /**
@@ -883,6 +944,7 @@ function extractReleaserConfig(
     includeComponentInTag: config['include-component-in-tag'],
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
+    tagSeparator: config['tag-separator'],
   };
 }
 
@@ -1098,6 +1160,9 @@ function mergeReleaserConfig(
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
     extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
+    includeComponentInTag:
+      pathConfig.includeComponentInTag ?? defaultConfig.includeComponentInTag,
+    tagSeparator: pathConfig.tagSeparator ?? defaultConfig.tagSeparator,
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
       defaultConfig.pullRequestTitlePattern,
