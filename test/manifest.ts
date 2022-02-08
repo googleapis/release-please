@@ -247,6 +247,13 @@ describe('Manifest', () => {
           },
         },
       ]);
+      mockReleases(github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+      ]);
 
       const manifest = await Manifest.fromConfig(github, 'target-branch', {
         releaseType: 'simple',
@@ -271,6 +278,13 @@ describe('Manifest', () => {
             labels: [],
             files: [],
           },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
         },
       ]);
 
@@ -302,6 +316,13 @@ describe('Manifest', () => {
           },
         },
       ]);
+      mockReleases(github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+      ]);
 
       const manifest = await Manifest.fromConfig(github, 'target-branch', {
         releaseType: 'simple',
@@ -328,6 +349,13 @@ describe('Manifest', () => {
             labels: [],
             files: [],
           },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'foobar-v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
         },
       ]);
 
@@ -577,6 +605,61 @@ describe('Manifest', () => {
       ).lengthOf(1);
       expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
         '3.3.3'
+      );
+    });
+    it('finds manually tagged release commit over earlier automated commit', async () => {
+      mockCommits(github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+        },
+        {
+          sha: 'def234',
+          message: 'this commit should be found',
+          files: [],
+        },
+        {
+          sha: 'ghi345',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            title: 'chore: release 3.3.1',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(github, [
+        {
+          tagName: 'v3.3.2',
+          sha: 'def234',
+          url: 'http://path/to/release',
+        },
+        {
+          tagName: 'v3.3.1',
+          sha: 'ghi345',
+          url: 'http://path/to/release',
+        },
+      ]);
+      mockTags(github, []);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(
+        Object.keys(manifest.releasedVersions),
+        'found release versions'
+      ).lengthOf(1);
+      expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
+        '3.3.2'
       );
     });
   });

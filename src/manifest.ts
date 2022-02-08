@@ -970,6 +970,7 @@ async function latestReleaseVersion(
   // is in the current branch
   const commitShas = new Set<string>();
 
+  const candidateReleaseVersions: Version[] = [];
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
@@ -1006,13 +1007,18 @@ async function latestReleaseVersion(
       continue;
     }
 
-    return version;
+    if (version) {
+      logger.debug(
+        `Found latest release pull request: ${mergedPullRequest.number} version: ${version}`
+      );
+      candidateReleaseVersions.push(version);
+      break;
+    }
   }
 
   // If not found from recent pull requests, look at releases. Iterate
   // through releases finding valid tags, then cross reference
   const releaseGenerator = github.releaseIterator();
-  const candidateReleaseVersions: Version[] = [];
   for await (const release of releaseGenerator) {
     const tagName = TagName.parse(release.tagName);
     if (!tagName) {
