@@ -462,6 +462,7 @@ export class Manifest {
         sha: commit.sha,
         message: commit.message,
         files: commit.files,
+        pullRequest: commit.pullRequest,
       });
     }
 
