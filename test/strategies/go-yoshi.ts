@@ -100,6 +100,10 @@ describe('GoYoshi', () => {
   });
   describe('buildReleasePullRequest', () => {
     it('filters out submodule commits', async () => {
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('go.mod', 'main')
+        .resolves(['go.mod', 'internal/go.mod', 'logging/go.mod']);
       const strategy = new GoYoshi({
         targetBranch: 'main',
         github,
@@ -117,6 +121,10 @@ describe('GoYoshi', () => {
       snapshot(dateSafe(pullRequestBody));
     });
     it('filters out touched files not matching submodule commits', async () => {
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('go.mod', 'main')
+        .resolves(['go.mod', 'internal/go.mod', 'logging/go.mod']);
       const strategy = new GoYoshi({
         targetBranch: 'main',
         github,
@@ -156,6 +164,54 @@ describe('GoYoshi', () => {
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       const pullRequestBody = pullRequest!.body.toString();
       snapshot(dateSafe(pullRequestBody));
+    });
+  });
+  describe('getIgnoredSubModules', () => {
+    it('ignores non-google-cloud-go repos', async () => {
+      github = await GitHub.create({
+        owner: 'googleapis',
+        repo: 'google-cloud-foo',
+        defaultBranch: 'main',
+      });
+      const strategy = new GoYoshi({
+        targetBranch: 'main',
+        github,
+        includeComponentInTag: false,
+      });
+      const ignoredSubModules = await strategy.getIgnoredSubModules();
+      expect(ignoredSubModules.size).to.eql(0);
+    });
+    it('ignores submodule configurations', async () => {
+      const strategy = new GoYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'storage',
+        includeComponentInTag: true,
+      });
+      const ignoredSubModules = await strategy.getIgnoredSubModules();
+      expect(ignoredSubModules.size).to.eql(0);
+    });
+    it('fetches the list of submodules', async () => {
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('go.mod', 'main')
+        .resolves([
+          'storage/go.mod',
+          'go.mod',
+          'internal/foo/go.mod',
+          'internal/go.mod',
+          'pubsub/go.mod',
+        ]);
+      const strategy = new GoYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'main',
+        includeComponentInTag: false,
+      });
+      const ignoredSubModules = await strategy.getIgnoredSubModules();
+      expect(ignoredSubModules.size).to.eql(2);
+      expect(ignoredSubModules.has('storage')).to.be.true;
+      expect(ignoredSubModules.has('pubsub')).to.be.true;
     });
   });
 });

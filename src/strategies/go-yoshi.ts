@@ -21,20 +21,8 @@ import {TagName} from '../util/tag-name';
 import {Release} from '../release';
 import {VersionGo} from '../updaters/go/version-go';
 import {logger} from '../util/logger';
+import {dirname} from 'path';
 
-// Commits containing a scope prefixed with an item in this array will be
-// ignored when generating a release PR for the parent module.
-const IGNORED_SUB_MODULES = new Set([
-  'bigtable',
-  'bigquery',
-  'datastore',
-  'firestore',
-  'logging',
-  'pubsub',
-  'pubsublite',
-  'spanner',
-  'storage',
-]);
 const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 const REGEN_ISSUE_REGEX = /(?<prefix>.*)\(#(?<pr>.*)\)(\n|$)/;
 
@@ -74,6 +62,7 @@ export class GoYoshi extends BaseStrategy {
     let regenCommit: ConventionalCommit;
     const component = await this.getComponent();
     logger.debug('Filtering commits');
+    const ignoredSubmodules = await this.getIgnoredSubModules();
     return commits.filter(commit => {
       // Only have a single entry of the nightly regen listed in the changelog.
       // If there are more than one of these commits, append associated PR.
@@ -135,7 +124,7 @@ export class GoYoshi extends BaseStrategy {
         } else {
           // This is the main module release, so ignore sub modules that
           // are released independently
-          for (const submodule of IGNORED_SUB_MODULES) {
+          for (const submodule of ignoredSubmodules) {
             if (commitMatchesScope(commit.scope, submodule)) {
               logger.debug(`Skipping ignored commit scope: ${commit.scope}`);
               return false;
@@ -145,6 +134,28 @@ export class GoYoshi extends BaseStrategy {
       }
       return true;
     });
+  }
+
+  async getIgnoredSubModules(): Promise<Set<string>> {
+    // ignored submodules only applies to the root component of
+    // googleapis/google-cloud-go
+    if (
+      this.repository.owner !== 'googleapis' ||
+      this.repository.repo !== 'google-cloud-go' ||
+      this.includeComponentInTag
+    ) {
+      return new Set();
+    }
+
+    logger.info('Looking for go.mod files');
+    const paths = (
+      await this.github.findFilesByFilenameAndRef('go.mod', this.targetBranch)
+    )
+      .filter(path => !path.includes('internal') && path !== 'go.mod')
+      .map(path => dirname(path));
+    logger.info(`Found ${paths.length} submodules`);
+    logger.debug(JSON.stringify(paths));
+    return new Set(paths);
   }
 
   // "closes" is a little presumptuous, let's just indicate that the
