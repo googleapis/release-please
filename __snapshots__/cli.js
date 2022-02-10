@@ -23,6 +23,8 @@ Options:
   --repo-url                    GitHub URL to generate release for    [required]
   --dry-run                     Prepare but do not take action
                                                       [boolean] [default: false]
+  --include-v-in-tags           include "v" in tag versions
+                                                       [boolean] [default: true]
   --monorepo-tags               include library name in tags and release
                                 branches              [boolean] [default: false]
   --pull-request-title-pattern  Title pattern to make release PR        [string]
@@ -199,6 +201,8 @@ Options:
                                     commit log message using the user and email
                                     provided. (format "Name
                                     <email@example.com>").              [string]
+  --include-v-in-tags               include "v" in tag versions
+                                                       [boolean] [default: true]
   --monorepo-tags                   include library name in tags and release
                                     branches          [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]

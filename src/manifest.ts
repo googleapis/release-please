@@ -57,6 +57,7 @@ export interface ReleaserConfig {
   component?: string;
   packageName?: string;
   includeComponentInTag?: boolean;
+  includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   tagSeparator?: string;
 
@@ -97,6 +98,7 @@ interface ReleaserConfigJson {
   label?: string;
   'release-label'?: string;
   'include-component-in-tag'?: boolean;
+  'include-v-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'pull-request-title-pattern'?: string;
   'tag-separator'?: string;
@@ -610,7 +612,8 @@ export class Manifest {
       const expectedTag = new TagName(
         expectedVersion,
         component,
-        this.repositoryConfig[path].tagSeparator
+        this.repositoryConfig[path].tagSeparator,
+        this.repositoryConfig[path].includeVInTag
       );
       logger.debug(`looking for tagName: ${expectedTag.toString()}`);
       const foundTag = allTags[expectedTag.toString()];
@@ -942,6 +945,7 @@ function extractReleaserConfig(
     versionFile: config['version-file'],
     extraFiles: config['extra-files'],
     includeComponentInTag: config['include-component-in-tag'],
+    includeVInTag: config['include-v-in-tag'],
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     tagSeparator: config['tag-separator'],
@@ -1162,6 +1166,7 @@ function mergeReleaserConfig(
     extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
     includeComponentInTag:
       pathConfig.includeComponentInTag ?? defaultConfig.includeComponentInTag,
+    includeVInTag: pathConfig.includeVInTag ?? defaultConfig.includeVInTag,
     tagSeparator: pathConfig.tagSeparator ?? defaultConfig.tagSeparator,
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
