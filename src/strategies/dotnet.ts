@@ -15,6 +15,13 @@
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
+import {CsProj} from '../updaters/dotnet/csproj';
+import {Apis} from '../updaters/dotnet/apis';
+import {logger} from '../util/logger';
+import {ConventionalCommit} from '../commit';
+import {Version} from '../version';
+import {TagName} from '../util/tag-name';
+import {Release} from '../release';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'New features'},
@@ -29,11 +36,38 @@ const CHANGELOG_SECTIONS = [
   {type: 'build', section: 'Build System', hidden: true},
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
+const DEFAULT_CHANGELOG_PATH = 'docs/history.md';
+const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
+  'Release${component} version ${version}';
+const RELEASE_NOTES_HEADER_PATTERN =
+  /#{2,3} \[?(\d+\.\d+\.\d+-?[^\]]*)\]?.* \((\d{4}-\d{2}-\d{2})\)/;
 
 export class Dotnet extends BaseStrategy {
   constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
+    options.changelogPath = options.changelogPath ?? DEFAULT_CHANGELOG_PATH;
+    options.pullRequestTitlePattern =
+      options.pullRequestTitlePattern ?? DEFAULT_PULL_REQUEST_TITLE_PATTERN;
+    options.includeVInTag = options.includeVInTag ?? false;
     super(options);
+  }
+
+  protected async buildReleaseNotes(
+    conventionalCommits: ConventionalCommit[],
+    newVersion: Version,
+    newVersionTag: TagName,
+    latestRelease?: Release
+  ): Promise<string> {
+    const notes = await super.buildReleaseNotes(
+      conventionalCommits,
+      newVersion,
+      newVersionTag,
+      latestRelease
+    );
+    return notes.replace(
+      RELEASE_NOTES_HEADER_PATTERN,
+      '## Version $1, released $2'
+    );
   }
 
   protected async buildUpdates(
@@ -49,6 +83,27 @@ export class Dotnet extends BaseStrategy {
         version,
         changelogEntry: options.changelogEntry,
       }),
+    });
+
+    if (!this.component) {
+      logger.warn(
+        'Dotnet strategy expects to use components, could not update all files'
+      );
+      return updates;
+    }
+
+    updates.push({
+      path: this.addPath(`${this.component}.csproj`),
+      createIfMissing: false,
+      updater: new CsProj({
+        version,
+      }),
+    });
+
+    updates.push({
+      path: 'apis/apis.json',
+      createIfMissing: false,
+      updater: new Apis(this.component, version),
     });
 
     return updates;
