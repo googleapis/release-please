@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "include-v-in-tag": true,
+  "packages": {
+    ".": {
+      "component": "root",
+      "include-v-in-tag": false
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils"
+    }
+  }
+}
