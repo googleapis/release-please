@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.9](https://github.com/googleapis/release-please/compare/v13.4.8...v13.4.9) (2022-02-14)
+
+
+### Bug Fixes
+
+* standalone releases should only be released by its matching component ([#1296](https://github.com/googleapis/release-please/issues/1296)) ([75dd686](https://github.com/googleapis/release-please/commit/75dd686a667da397b54498f543128d4cc6bb784e))
+
 ### [13.4.8](https://github.com/googleapis/release-please/compare/v13.4.7...v13.4.8) (2022-02-08)
 
 
