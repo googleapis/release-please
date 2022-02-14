@@ -3229,6 +3229,41 @@ describe('Manifest', () => {
         .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
       expect(releases[0].path).to.eql('.');
     });
+
+    it('should skip component releases for non-component configs', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName:
+              'release-please--branches--main--components--storage',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore(main): release storage 3.2.7',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            includeComponentInTag: false,
+          },
+        },
+        {
+          '.': Version.parse('3.2.6'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(0);
+    });
   });
 
   describe('createReleases', () => {
