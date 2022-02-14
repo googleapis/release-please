@@ -163,6 +163,7 @@ export interface GitHubRelease {
   notes?: string;
   url: string;
   draft?: boolean;
+  uploadUrl?: string;
 }
 
 export interface GitHubTag {
@@ -1246,9 +1247,14 @@ export class GitHub {
         name: resp.data.name || undefined,
         tagName: resp.data.tag_name,
         sha: resp.data.target_commitish,
-        notes: resp.data.body_text,
+        notes:
+          resp.data.body_text ||
+          resp.data.body ||
+          resp.data.body_html ||
+          undefined,
         url: resp.data.html_url,
         draft: resp.data.draft,
+        uploadUrl: resp.data.upload_url,
       };
     },
     e => {
