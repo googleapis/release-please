@@ -604,6 +604,7 @@ describe('GitHub', () => {
           upload_url:
             'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
           target_commitish: 'abc123',
+          body: 'Some release notes response.',
         });
       const release = await github.createRelease({
         tag: new TagName(Version.parse('1.2.3')),
@@ -625,6 +626,10 @@ describe('GitHub', () => {
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
+      expect(release.uploadUrl).to.eql(
+        'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}'
+      );
+      expect(release.notes).to.eql('Some release notes response.');
     });
 
     it('should raise a DuplicateReleaseError if already_exists', async () => {
