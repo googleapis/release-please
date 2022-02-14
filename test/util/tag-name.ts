@@ -37,10 +37,37 @@ describe('TagName', () => {
         expect(tagName?.separator).to.eql('/');
         expect(tagName?.toString()).to.eql(name);
       });
+      it('handles tag without a v', () => {
+        const name = 'some-component-1.2.3';
+        const tagName = TagName.parse(name);
+        expect(tagName).to.not.be.undefined;
+        expect(tagName?.component).to.eql('some-component');
+        expect(tagName?.version.toString()).to.eql('1.2.3');
+        expect(tagName?.separator).to.eql('-');
+        expect(tagName?.toString()).to.eql(name);
+      });
+      it('handles tag without a v with a / separator', () => {
+        const name = 'some-component/1.2.3';
+        const tagName = TagName.parse(name);
+        expect(tagName).to.not.be.undefined;
+        expect(tagName?.component).to.eql('some-component');
+        expect(tagName?.version.toString()).to.eql('1.2.3');
+        expect(tagName?.separator).to.eql('/');
+        expect(tagName?.toString()).to.eql(name);
+      });
     });
     describe('without component', () => {
       it('handles a version', () => {
         const name = 'v1.2.3';
+        const tagName = TagName.parse(name);
+        expect(tagName).to.not.be.undefined;
+        expect(tagName?.component).to.be.undefined;
+        expect(tagName?.version.toString()).to.eql('1.2.3');
+        expect(tagName?.separator).to.eql('-');
+        expect(tagName?.toString()).to.eql(name);
+      });
+      it('handles a version without a v', () => {
+        const name = '1.2.3';
         const tagName = TagName.parse(name);
         expect(tagName).to.not.be.undefined;
         expect(tagName?.component).to.be.undefined;

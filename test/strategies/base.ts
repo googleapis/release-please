@@ -223,5 +223,26 @@ describe('Strategy', () => {
       expect(release, 'Release').to.not.be.undefined;
       expect(release!.tag.toString()).to.eql('v1.2.3');
     });
+    it('skips v in release tag', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: false,
+        includeVInTag: false,
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release v1.2.3',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release, 'Release').to.not.be.undefined;
+      expect(release!.tag.toString()).to.eql('1.2.3');
+    });
   });
 });
