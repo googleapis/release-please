@@ -32,7 +32,7 @@ import {ReleasePullRequest} from '../release-pull-request';
 import {logger} from '../util/logger';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
-import {PullRequestBody} from '../util/pull-request-body';
+import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {PullRequest} from '../pull-request';
 import {mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
@@ -413,17 +413,31 @@ export abstract class BaseStrategy implements Strategy {
       return;
     }
     const component = await this.getComponent();
-    logger.info('component:', component);
-    const releaseData =
+    let releaseData: ReleaseData | undefined;
+    if (
       pullRequestBody.releaseData.length === 1 &&
       !pullRequestBody.releaseData[0].component
-        ? pullRequestBody.releaseData[0]
-        : pullRequestBody.releaseData.find(releaseData => {
-            return (
-              this.normalizeComponent(releaseData.component) ===
-              this.normalizeComponent(component)
-            );
-          });
+    ) {
+      // standalone release PR, ensure the components match
+      if (
+        this.normalizeComponent(branchName.component) !==
+        this.normalizeComponent(component)
+      ) {
+        logger.warn(
+          `PR component: ${branchName.component} does not match configured component: ${component}`
+        );
+        return;
+      }
+      releaseData = pullRequestBody.releaseData[0];
+    } else {
+      // manifest release with multiple components
+      releaseData = pullRequestBody.releaseData.find(releaseData => {
+        return (
+          this.normalizeComponent(releaseData.component) ===
+          this.normalizeComponent(component)
+        );
+      });
+    }
     const notes = releaseData?.notes;
     if (notes === undefined) {
       logger.warn('Failed to find release notes');
