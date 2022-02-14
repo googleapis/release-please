@@ -4,6 +4,33 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.9](https://github.com/googleapis/release-please/compare/v13.4.8...v13.4.9) (2022-02-14)
+
+
+### Bug Fixes
+
+* standalone releases should only be released by its matching component ([#1296](https://github.com/googleapis/release-please/issues/1296)) ([75dd686](https://github.com/googleapis/release-please/commit/75dd686a667da397b54498f543128d4cc6bb784e))
+
+### [13.4.8](https://github.com/googleapis/release-please/compare/v13.4.7...v13.4.8) (2022-02-08)
+
+
+### Bug Fixes
+
+* allow configuring includeComponentInTag and tagSeparator from manifest config ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* check recent commits and latest releases for latest version ([#1267](https://github.com/googleapis/release-please/issues/1267)) ([f931842](https://github.com/googleapis/release-please/commit/f931842a117c97dd117f161c89beb1c9e2257fa2))
+* correctly fetch full list of files ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* **go-yoshi:** allows using go-yoshi with manifest ([#1287](https://github.com/googleapis/release-please/issues/1287)) ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* **go-yoshi:** should not always skip modules ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* Manifest should be able to find tagged versions without a release ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* provide pull request to commit parser allow overrides ([#1285](https://github.com/googleapis/release-please/issues/1285)) ([e54028b](https://github.com/googleapis/release-please/commit/e54028bb39c4535f42b0b90c60b7f331847d005c))
+
+### [13.4.7](https://github.com/googleapis/release-please/compare/v13.4.6...v13.4.7) (2022-02-02)
+
+
+### Bug Fixes
+
+* php-yoshi strategy should handle custom changelog secctions ([#1277](https://github.com/googleapis/release-please/issues/1277)) ([bd74a5b](https://github.com/googleapis/release-please/commit/bd74a5b7b622a6cec0d64cbf9b9e01102dc835b2))
+
 ### [13.4.6](https://github.com/googleapis/release-please/compare/v13.4.5...v13.4.6) (2022-02-01)
 
 

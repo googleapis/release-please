@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "tag-separator": "/",
+  "packages": {
+    ".": {
+      "component": "root",
+      "tag-separator": "-"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils"
+    }
+  }
+}

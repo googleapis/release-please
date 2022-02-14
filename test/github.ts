@@ -387,6 +387,36 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('backfills commit files for pull requests with lots of files', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-since-many-files.json'),
+          'utf8'
+        )
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
+        .get(
+          '/repos/fake/fake/commits/e6daec403626c9987c7af0d97b34f324cd84320a'
+        )
+        .reply(200, {files: [{filename: 'abc'}]});
+      const targetBranch = 'main';
+      const commitsSinceSha = await github.commitsSince(
+        targetBranch,
+        commit => {
+          // this commit is the 2nd most recent
+          return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+        },
+        {backfillFiles: true}
+      );
+      expect(commitsSinceSha.length).to.eql(1);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
   });
 
   describe('getCommitFiles', () => {
@@ -396,6 +426,23 @@ describe('GitHub', () => {
         .reply(200, {files: [{filename: 'abc'}]});
       const files = await github.getCommitFiles('abc123');
       expect(files).to.eql(['abc']);
+      req.done();
+    });
+
+    it('paginates', async () => {
+      req
+        .get('/repos/fake/fake/commits/abc123')
+        .reply(
+          200,
+          {files: [{filename: 'abc'}]},
+          {
+            link: '<https://api.github.com/repos/fake/fake/commits/abc123?page=2>; rel="next", <https://api.github.com/repos/fake/fake/commits/abc123?page=2>; rel="last"',
+          }
+        )
+        .get('/repos/fake/fake/commits/abc123?page=2')
+        .reply(200, {files: [{filename: 'def'}]});
+      const files = await github.getCommitFiles('abc123');
+      expect(files).to.eql(['abc', 'def']);
       req.done();
     });
   });
@@ -492,6 +539,7 @@ describe('GitHub', () => {
           upload_url:
             'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
           target_commitish: 'abc123',
+          body: 'Some release notes response.',
         });
       const release = await github.createRelease({
         tag: new TagName(Version.parse('1.2.3')),
@@ -513,6 +561,10 @@ describe('GitHub', () => {
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
+      expect(release.uploadUrl).to.eql(
+        'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}'
+      );
+      expect(release.notes).to.eql('Some release notes response.');
     });
 
     it('should raise a DuplicateReleaseError if already_exists', async () => {
