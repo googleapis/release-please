@@ -970,6 +970,8 @@ async function parseConfig(
       extractReleaserConfig(config.packages[path])
     );
   }
+  const configLabel = config['label'];
+  const configReleaseLabel = config['release-label'];
   const manifestOptions = {
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
@@ -977,6 +979,8 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
+    labels: configLabel == null ? undefined : [configLabel],
+    releaseLabels: configReleaseLabel == null ? undefined : [configReleaseLabel],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
