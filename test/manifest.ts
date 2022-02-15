@@ -2841,6 +2841,80 @@ describe('Manifest', () => {
       expect(releases[3].name).to.eql('datastore-lock: v2.1.0');
     });
 
+    it('should handle a mixed manifest release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody(
+              'release-notes/mixed-componentless-manifest.txt'
+            ),
+            labels: ['autorelease: pending'],
+            files: [
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+            includeComponentInTag: false,
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+        },
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(2);
+      expect(releases[0].tag.toString()).to.eql('v3.2.0');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[0].path).to.eql('packages/bot-config-utils');
+      expect(releases[0].name).to.eql('v3.2.0');
+      expect(releases[1].tag.toString()).to.eql('label-utils-v1.1.0');
+      expect(releases[1].sha).to.eql('abc123');
+      expect(releases[1].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].path).to.eql('packages/label-utils');
+      expect(releases[1].name).to.eql('label-utils: v1.1.0');
+    });
+
     it('should handle a single standalone release', async () => {
       mockPullRequests(
         github,
