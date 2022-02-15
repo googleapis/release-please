@@ -191,5 +191,21 @@ describe('PullRequestBody', () => {
       expect(pullRequestBody2?.header).to.eql('My special header!!!');
       expect(pullRequestBody2?.footer).to.eql('A custom footer');
     });
+
+    it('can handle componently entries', () => {
+      const data = [
+        {
+          version: Version.parse('1.2.3'),
+          notes: 'some special notes go here',
+        },
+        {
+          component: 'pkg2',
+          version: Version.parse('2.0.0'),
+          notes: 'more special notes go here',
+        },
+      ];
+      const pullRequestBody = new PullRequestBody(data);
+      snapshot(pullRequestBody.toString());
+    });
   });
 });

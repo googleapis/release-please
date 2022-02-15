@@ -64,8 +64,8 @@ export class PullRequestBody {
       return this.releaseData
         .map(release => {
           return `<details><summary>${
-            release.component
-          }: ${release.version?.toString()}</summary>\n\n${
+            release.component ? `${release.component}: ` : ''
+          }${release.version?.toString()}</summary>\n\n${
             release.notes
           }\n</details>`;
         })
