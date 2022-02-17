@@ -64,8 +64,8 @@ export class PullRequestBody {
       return this.releaseData
         .map(release => {
           return `<details><summary>${
-            release.component
-          }: ${release.version?.toString()}</summary>\n\n${
+            release.component ? `${release.component}: ` : ''
+          }${release.version?.toString()}</summary>\n\n${
             release.notes
           }\n</details>`;
         })
@@ -109,6 +109,7 @@ function splitBody(
 }
 
 const SUMMARY_PATTERN = /^(?<component>.*[^:]):? (?<version>\d+\.\d+\.\d+.*)$/;
+const COMPONENTLESS_SUMMARY_PATTERN = /^(?<version>\d+\.\d+\.\d+.*)$/;
 export interface ReleaseData {
   component?: string;
   version?: Version;
@@ -121,17 +122,27 @@ function extractMultipleReleases(notes: string): ReleaseData[] {
     const summaryNode = detail.getElementsByTagName('summary')[0];
     const summary = summaryNode?.textContent;
     const match = summary.match(SUMMARY_PATTERN);
-    if (!match?.groups) {
-      logger.warn(`Summary: ${summary} did not match the expected pattern`);
-      continue;
+    if (match?.groups) {
+      detail.removeChild(summaryNode);
+      const notes = detail.textContent.trim();
+      data.push({
+        component: match.groups.component,
+        version: Version.parse(match.groups.version),
+        notes,
+      });
+    } else {
+      const componentlessMatch = summary.match(COMPONENTLESS_SUMMARY_PATTERN);
+      if (!componentlessMatch?.groups) {
+        logger.warn(`Summary: ${summary} did not match the expected pattern`);
+        continue;
+      }
+      detail.removeChild(summaryNode);
+      const notes = detail.textContent.trim();
+      data.push({
+        version: Version.parse(componentlessMatch.groups.version),
+        notes,
+      });
     }
-    detail.removeChild(summaryNode);
-    const notes = detail.textContent.trim();
-    data.push({
-      component: match.groups.component,
-      version: Version.parse(match.groups.version),
-      notes,
-    });
   }
   return data;
 }
