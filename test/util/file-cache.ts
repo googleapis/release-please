@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {describe, it} from 'mocha';
 import {Octokit} from '@octokit/rest';
 import {resolve} from 'path';
-import {BranchFileCache} from '../../src/util/file-cache';
+import {BranchFileCache, RepositoryFileCache} from '../../src/util/file-cache';
 import * as assert from 'assert';
 import {FileNotFoundError} from '../../src/errors';
 
@@ -320,7 +320,105 @@ describe('BranchFileCache', () => {
 });
 
 describe('RepositoryFileCache', () => {
-  it('fetches a file', async () => {});
+  let cache: RepositoryFileCache;
+  beforeEach(() => {
+    cache = new RepositoryFileCache(octokit, {
+      owner: 'testOwner',
+      repo: 'testRepo',
+      defaultBranch: 'main',
+    });
+  });
+  it('fetches a file', async () => {
+    const req = nock('https://api.github.com')
+      .get('/repos/testOwner/testRepo/git/trees/feature-branch?recursive=true')
+      .reply(
+        200,
+        require(resolve(
+          fixturesPath,
+          'github-data-api/data-api-trees-successful-response-recursive'
+        ))
+      )
+      .get(
+        '/repos/testOwner/testRepo/git/blobs/3c3629e647f5ddf82548912e337bea9826b434af'
+      )
+      .reply(
+        200,
+        require(resolve(
+          fixturesPath,
+          'github-data-api/data-api-blobs-successful-response'
+        ))
+      );
+    const contents = await cache.getFileContents(
+      'pkg/a/foo.json',
+      'feature-branch'
+    );
+    expect(contents.mode).to.eql('100644');
+    expect(contents.sha).to.eql('3c3629e647f5ddf82548912e337bea9826b434af');
+    req.done();
+  });
 
-  it('caches same file on different branches separately', async () => {});
+  it('caches same file on different branches separately', async () => {
+    const req = nock('https://api.github.com')
+      .get('/repos/testOwner/testRepo/git/trees/feature-branch?recursive=true')
+      .reply(
+        200,
+        require(resolve(
+          fixturesPath,
+          'github-data-api/data-api-trees-successful-response-recursive'
+        ))
+      )
+      .get(
+        '/repos/testOwner/testRepo/git/blobs/3c3629e647f5ddf82548912e337bea9826b434af'
+      )
+      .reply(
+        200,
+        require(resolve(
+          fixturesPath,
+          'github-data-api/data-api-blobs-successful-response'
+        ))
+      )
+      .get('/repos/testOwner/testRepo/git/trees/dev-branch?recursive=true')
+      .reply(
+        200,
+        require(resolve(
+          fixturesPath,
+          'github-data-api/data-api-trees-successful-response-recursive'
+        ))
+      )
+      .get(
+        '/repos/testOwner/testRepo/git/blobs/3c3629e647f5ddf82548912e337bea9826b434af'
+      )
+      .reply(
+        200,
+        require(resolve(
+          fixturesPath,
+          'github-data-api/data-api-blobs-successful-response2'
+        ))
+      );
+    const contents = await cache.getFileContents(
+      'pkg/a/foo.json',
+      'feature-branch'
+    );
+    expect(contents.mode).to.eql('100644');
+    expect(contents.sha).to.eql('3c3629e647f5ddf82548912e337bea9826b434af');
+    const contents2 = await cache.getFileContents(
+      'pkg/a/foo.json',
+      'feature-branch'
+    );
+    expect(contents2.mode).to.eql('100644');
+    expect(contents2.sha).to.eql('3c3629e647f5ddf82548912e337bea9826b434af');
+    const contents3 = await cache.getFileContents(
+      'pkg/a/foo.json',
+      'dev-branch'
+    );
+    expect(contents3.mode).to.eql('100644');
+    expect(contents3.sha).to.eql('3c3629e647f5ddf82548912e337bea9826b434af');
+    const contents4 = await cache.getFileContents(
+      'pkg/a/foo.json',
+      'dev-branch'
+    );
+    expect(contents4.mode).to.eql('100644');
+    expect(contents4.sha).to.eql('3c3629e647f5ddf82548912e337bea9826b434af');
+    req.done();
+  });
 });
