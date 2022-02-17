@@ -1,0 +1,21 @@
+{
+  "sha": "cc64165cf5da91810ab7edc1143a47be42513c0a",
+  "url": "https://api.github.com/repos/testOwner/testRepo/git/trees/0ab7edc1143a47be42513c0acc64165cf5da9181",
+  "tree": [
+    {
+      "path": "a",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1143a47be42513c0acc64165cf5da91810ab7edc",
+      "url": "https://api.github.com/repos/testOwner/testRepo/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc"
+    },
+    {
+      "path": "b",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "0acc64165cf5da91810ab7edc1143a47be42513c",
+      "url": "https://api.github.com/repos/testOwner/testRepo/git/trees/0acc64165cf5da91810ab7edc1143a47be42513c"
+    }
+  ],
+  "truncated": false
+}

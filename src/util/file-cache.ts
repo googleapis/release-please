@@ -140,6 +140,7 @@ export class BranchFileCache {
       if (found?.sha) {
         return await this.fetchContents(found.sha, found);
       }
+      throw new FileNotFoundError(path);
     }
 
     // full tree is too big, use data API to fetch
