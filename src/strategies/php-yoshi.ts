@@ -29,7 +29,7 @@ import {TagName} from '../util/tag-name';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
-import {GitHubFileContents} from '../github';
+import {GitHubFileContents} from '../util/file-cache';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},

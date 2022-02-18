@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../github';
+import {GitHubFileContents} from '../util/file-cache';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
