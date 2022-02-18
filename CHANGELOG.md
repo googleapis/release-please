@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.11](https://github.com/googleapis/release-please/compare/v13.4.10...v13.4.11) (2022-02-18)
+
+
+### Bug Fixes
+
+* introduce file cache to simplify fetching files including file mode ([#1280](https://github.com/googleapis/release-please/issues/1280)) ([d7280b7](https://github.com/googleapis/release-please/commit/d7280b7eac3056e28399a0b80ea26002f0dff1b4))
+
 ### [13.4.10](https://github.com/googleapis/release-please/compare/v13.4.9...v13.4.10) (2022-02-16)
 
 
