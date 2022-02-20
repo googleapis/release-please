@@ -1,0 +1,15 @@
+{
+  "sha": "0acc64165cf5da91810ab7edc1143a47be42513c",
+  "url": "https://api.github.com/repos/testOwner/testRepo/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc",
+  "tree": [
+    {
+      "path": "foo.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "47bf49f81aca0df9ffc49524a213a2dc332f3d2c",
+      "size": 1352120,
+      "url": "https://api.github.com/repos/testOwner/testRepo/git/blobs/47bf49f81aca0df9ffc49524a213a2dc332f3d2c"
+    }
+  ],
+  "truncated": false
+}

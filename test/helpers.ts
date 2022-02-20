@@ -21,7 +21,7 @@ import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {Octokit} from '@octokit/rest';
 import {Commit} from '../src/commit';
-import {GitHubFileContents, GitHub} from '../src/github';
+import {GitHub} from '../src/github';
 import {Update} from '../src/update';
 import {expect} from 'chai';
 import {CandidateReleasePullRequest} from '../src/manifest';
@@ -30,6 +30,7 @@ import {PullRequestTitle} from '../src/util/pull-request-title';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {BranchName} from '../src/util/branch-name';
 import {ReleaseType} from '../src/factory';
+import {GitHubFileContents, DEFAULT_FILE_MODE} from '../src/util/file-cache';
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -128,6 +129,7 @@ export function buildGitHubFileRaw(content: string): GitHubFileContents {
     parsedContent: content,
     // fake a consistent sha
     sha: crypto.createHash('md5').update(content).digest('hex'),
+    mode: DEFAULT_FILE_MODE,
   };
 }
 

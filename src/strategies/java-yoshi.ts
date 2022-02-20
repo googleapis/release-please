@@ -18,7 +18,7 @@ import {Version, VersionsMap} from '../version';
 import {JavaUpdate} from '../updaters/java/java-update';
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Changelog} from '../updaters/changelog';
-import {GitHubFileContents} from '../github';
+import {GitHubFileContents} from '../util/file-cache';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
 import {Commit, ConventionalCommit} from '../commit';

@@ -2125,6 +2125,91 @@ describe('Manifest', () => {
         'release-please--branches--main--components--pkg1'
       );
     });
+
+    it('should handle mixing componentless configs', async () => {
+      mockReleases(github, [
+        {
+          sha: 'abc123',
+          tagName: 'v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
+        },
+        {
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
+        },
+      ]);
+      mockCommits(github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release main',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release main',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+            includeComponentInTag: false,
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
+      snapshot(dateSafe(pullRequests[0].body.toString()));
+    });
   });
 
   describe('createPullRequests', () => {
@@ -2773,6 +2858,80 @@ describe('Manifest', () => {
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
       expect(releases[3].path).to.eql('packages/datastore-lock');
       expect(releases[3].name).to.eql('datastore-lock: v2.1.0');
+    });
+
+    it('should handle a mixed manifest release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody(
+              'release-notes/mixed-componentless-manifest.txt'
+            ),
+            labels: ['autorelease: pending'],
+            files: [
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+            includeComponentInTag: false,
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+        },
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(2);
+      expect(releases[0].tag.toString()).to.eql('v3.2.0');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[0].path).to.eql('packages/bot-config-utils');
+      expect(releases[0].name).to.eql('v3.2.0');
+      expect(releases[1].tag.toString()).to.eql('label-utils-v1.1.0');
+      expect(releases[1].sha).to.eql('abc123');
+      expect(releases[1].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].path).to.eql('packages/label-utils');
+      expect(releases[1].name).to.eql('label-utils: v1.1.0');
     });
 
     it('should handle a single standalone release', async () => {

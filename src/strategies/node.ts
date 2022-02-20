@@ -18,7 +18,7 @@ import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../updaters/node/samples-package-json';
 import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
-import {GitHubFileContents} from '../github';
+import {GitHubFileContents} from '../util/file-cache';
 
 export class Node extends BaseStrategy {
   private pkgJsonContents?: GitHubFileContents;
