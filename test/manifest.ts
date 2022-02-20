@@ -290,6 +290,25 @@ describe('Manifest', () => {
     });
   });
 
+  it('should read custom labels from manifest', async () => {
+    const getFileContentsStub = sandbox.stub(github, 'getFileContentsOnBranch');
+    getFileContentsStub
+      .withArgs('release-please-config.json', 'main')
+      .resolves(
+        buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+      )
+      .withArgs('.release-please-manifest.json', 'main')
+      .resolves(
+        buildGitHubFileContent(fixturesPath, 'manifest/versions/versions.json')
+      );
+    const manifest = await Manifest.fromManifest(
+      github,
+      github.repository.defaultBranch
+    );
+    expect(manifest['labels']).to.deep.equal(['custom: pending']);
+    expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+  });
+
   describe('fromConfig', () => {
     it('should pass strategy options to the strategy', async () => {
       mockCommits(github, [
