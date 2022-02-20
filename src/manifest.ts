@@ -979,8 +979,9 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
-    labels: configLabel == null ? undefined : [configLabel],
-    releaseLabels: configReleaseLabel == null ? undefined : [configReleaseLabel],
+    labels: configLabel === undefined ? undefined : [configLabel],
+    releaseLabels:
+      configReleaseLabel === undefined ? undefined : [configReleaseLabel],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
