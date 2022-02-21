@@ -20,7 +20,11 @@ import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
 import {RequestError} from '@octokit/request-error';
-import {GitHubAPIError, DuplicateReleaseError} from './errors';
+import {
+  GitHubAPIError,
+  DuplicateReleaseError,
+  FileNotFoundError,
+} from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 export const GH_API_URL = 'https://api.github.com';
@@ -1034,7 +1038,7 @@ export class GitHub {
           defaultBranch
         );
       } catch (err) {
-        if (err.status !== 404) throw err;
+        if (!(err instanceof FileNotFoundError)) throw err;
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
         if (!update.createIfMissing) {
