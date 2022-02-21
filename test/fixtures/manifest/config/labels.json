@@ -1,0 +1,10 @@
+{
+  "release-type": "simple",
+  "label": "custom: pending",
+  "release-label": "custom: tagged",
+  "packages": {
+    ".": {
+      "component": "root"
+    }
+  }
+}
