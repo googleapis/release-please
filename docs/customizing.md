@@ -44,6 +44,16 @@ version given a list of parsed commits.
 To add a new versioning strategy, create a new class that implements the
 [`VersioningStrategy` interface](/src/versioning-strategy.ts).
 
+## Subdirectories (paths) in a repository
+
+Release Please can operate on a subdirectory of a repository. If you configurate a `path`,
+Release Please will only consider commits that touch files on that path. The format of the
+`path` configuration option should be a simple path segment (`.`, `..`, etc are not allowed)
+relative to the repository root.
+
+To configure multiple components on different paths, configure a
+[manifest release](/docs/manifest-releaser).
+
 ## Changelog Types
 
 A changelog type's job is to build the CHANGELOG notes given a list

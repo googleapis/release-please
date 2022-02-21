@@ -223,6 +223,12 @@ documented in comments)
   //                     for a package key of "path/to/mypkg", the location in
   //                     the repo is path/to/pkg/CHANGELOG.md
   "packages": {
+    // `.` is a special case for handling to root of the repository
+    ".": {
+      // overrides release-type for node
+      "release-type": "node",
+    },
+    // path segment should be relative to repository root
     "path/to/myJSPkgA": {
       // overrides release-type for node
       "release-type": "node",
