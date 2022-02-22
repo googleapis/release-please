@@ -101,8 +101,12 @@ export class BranchName {
  */
 const AUTORELEASE_PATTERN =
   /^release-?(?<component>[\w-.]*)?-v(?<version>[0-9].*)$/;
+const RELEASE_PLEASE_BRANCH_PREFIX = 'release-please--branches';
 class AutoreleaseBranchName extends BranchName {
   static matches(branchName: string): boolean {
+    if (branchName.startsWith(RELEASE_PLEASE_BRANCH_PREFIX)) {
+      return false;
+    }
     return !!branchName.match(AUTORELEASE_PATTERN);
   }
   constructor(branchName: string) {
