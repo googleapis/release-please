@@ -76,6 +76,26 @@ describe('BranchName', () => {
       expect(branchName?.toString()).to.eql(name);
     });
 
+    it('parses a target branch that starts with a v', () => {
+      const name = 'release-please--branches--v3.3.x';
+      const branchName = BranchName.parse(name);
+      expect(branchName).to.not.be.undefined;
+      expect(branchName?.getTargetBranch()).to.eql('v3.3.x');
+      expect(branchName?.getComponent()).to.be.undefined;
+      expect(branchName?.getVersion()).to.be.undefined;
+      expect(branchName?.toString()).to.eql(name);
+    });
+
+    it('parses a target branch named with a valid semver', () => {
+      const name = 'release-please--branches--v3.3.9';
+      const branchName = BranchName.parse(name);
+      expect(branchName).to.not.be.undefined;
+      expect(branchName?.getTargetBranch()).to.eql('v3.3.9');
+      expect(branchName?.getComponent()).to.be.undefined;
+      expect(branchName?.getVersion()).to.be.undefined;
+      expect(branchName?.toString()).to.eql(name);
+    });
+
     it('parses a target branch and component', () => {
       const name = 'release-please--branches--main--components--storage';
       const branchName = BranchName.parse(name);
