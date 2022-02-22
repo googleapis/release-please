@@ -114,9 +114,10 @@ commit message instead of the merged commit message.
 Release Please creates a release pull request after it sees the default branch
 contains "releaseable units" since the last release.
 A releasable unit is a commit to the branch with one of the following
-prefixes: "feat" and "fix".
+prefixes: "feat" and "fix". (A "chore" commit is not a releasable unit.)
 
-Note that a "chore" commit is not a releasable unit.
+Some languages have their specific releasable unit configuration. For example,
+"docs" is a prefix for releasable units in Java and Python.
 
 ## Strategy (Language) types supported
 
