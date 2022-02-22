@@ -109,6 +109,16 @@ END_COMMIT_OVERRIDE
 The next time release please runs, it will use that override section as the
 commit message instead of the merged commit message.
 
+## Release Please bot does not create a release PR. Why?
+
+Release Please creates a release pull request after it sees the default branch
+contains "releaseable units" since the last release.
+A releasable unit is a commit to the branch with one of the following
+prefixes: "feat" and "fix". (A "chore" commit is not a releasable unit.)
+
+Some languages have their specific releasable unit configuration. For example,
+"docs" is a prefix for releasable units in Java and Python.
+
 ## Strategy (Language) types supported
 
 Release Please automates releases for the following flavors of repositories:
