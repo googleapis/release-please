@@ -46,7 +46,7 @@ To add a new versioning strategy, create a new class that implements the
 
 ## Subdirectories (paths) in a repository
 
-Release Please can operate on a subdirectory of a repository. If you configurate a `path`,
+Release Please can operate on a subdirectory of a repository. If you configure a `path`,
 Release Please will only consider commits that touch files on that path. The format of the
 `path` configuration option should be a simple path segment (`.`, `..`, etc are not allowed)
 relative to the repository root.
