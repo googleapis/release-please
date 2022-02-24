@@ -4116,5 +4116,103 @@ describe('Manifest', () => {
         1234
       );
     });
+
+    it('should throw DuplicateReleaseError if all releases already tagged', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/multiple.txt'),
+            labels: ['autorelease: pending'],
+            files: [
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+              'packages/object-selector/package.json',
+              'packages/datastore-lock/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        )
+        .withArgs('packages/object-selector/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/object-selector'})
+          )
+        )
+        .withArgs('packages/datastore-lock/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/datastore-lock'})
+          )
+        );
+
+      mockCreateRelease(github, [
+        {sha: 'abc123', tagName: 'bot-config-utils-v3.2.0', duplicate: true},
+        {sha: 'abc123', tagName: 'label-utils-v1.1.0', duplicate: true},
+        {sha: 'abc123', tagName: 'object-selector-v1.1.0', duplicate: true},
+        {sha: 'abc123', tagName: 'datastore-lock-v2.1.0', duplicate: true},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
+          },
+        },
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        }
+      );
+      try {
+        await manifest.createReleases();
+        expect(false).to.be.true;
+      } catch (err) {
+        expect(err).instanceof(DuplicateReleaseError);
+      }
+      sinon.assert.notCalled(commentStub);
+      sinon.assert.notCalled(addLabelsStub);
+      sinon.assert.notCalled(removeLabelsStub);
+    });
   });
 });
