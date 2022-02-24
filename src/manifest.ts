@@ -847,6 +847,7 @@ export class Manifest {
       promises.push(this.createRelease(release));
     }
 
+    const duplicateReleases: DuplicateReleaseError[] = [];
     const githubReleases: CreatedRelease[] = [];
     for (const promise of promises) {
       try {
@@ -854,10 +855,14 @@ export class Manifest {
       } catch (err) {
         if (err instanceof DuplicateReleaseError) {
           logger.warn(`Duplicate release tag: ${err.tag}`);
+          duplicateReleases.push(err);
         } else {
           throw err;
         }
       }
+    }
+    if (duplicateReleases.length > 0 && githubReleases.length === 0) {
+      throw duplicateReleases[0];
     }
 
     // adjust tags on pullRequest
