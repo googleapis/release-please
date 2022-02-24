@@ -38,6 +38,8 @@ import {PullRequestBody} from '../src/util/pull-request-body';
 import {RawContent} from '../src/updaters/raw-content';
 import {TagName} from '../src/util/tag-name';
 import snapshot = require('snap-shot-it');
+import {DuplicateReleaseError} from '../src/errors';
+import {RequestError} from '@octokit/request-error';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
@@ -99,24 +101,45 @@ function mockCreateRelease(
     tagName: string;
     draft?: boolean;
     prerelease?: boolean;
+    duplicate?: boolean;
   }[]
 ): sinon.SinonStub {
   const releaseStub = sandbox.stub(github, 'createRelease');
-  for (const {sha, tagName, draft} of releases) {
-    releaseStub
-      .withArgs(
-        sinon.match.has(
-          'tag',
-          sinon.match((tag: TagName) => tag.toString() === tagName)
-        )
+  for (const {sha, tagName, draft, duplicate} of releases) {
+    const stub = releaseStub.withArgs(
+      sinon.match.has(
+        'tag',
+        sinon.match((tag: TagName) => tag.toString() === tagName)
       )
-      .resolves({
+    );
+    if (duplicate) {
+      stub.rejects(
+        new DuplicateReleaseError(
+          new RequestError('dup', 400, {
+            response: {
+              headers: {},
+              status: 400,
+              url: '',
+              data: '',
+            },
+            request: {
+              headers: {},
+              method: 'POST',
+              url: '',
+            },
+          }),
+          tagName
+        )
+      );
+    } else {
+      stub.resolves({
         tagName,
         sha,
         url: 'https://path/to/release',
         notes: 'some release notes',
         draft,
       });
+    }
   }
   return releaseStub;
 }
@@ -3968,6 +3991,120 @@ describe('Manifest', () => {
         prerelease: false,
       } as ReleaseOptions);
       sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+    });
+
+    it('should handle partially failed manifest release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/multiple.txt'),
+            labels: ['autorelease: pending'],
+            files: [
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+              'packages/object-selector/package.json',
+              'packages/datastore-lock/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        )
+        .withArgs('packages/object-selector/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/object-selector'})
+          )
+        )
+        .withArgs('packages/datastore-lock/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/datastore-lock'})
+          )
+        );
+
+      mockCreateRelease(github, [
+        {sha: 'abc123', tagName: 'bot-config-utils-v3.2.0', duplicate: true},
+        {sha: 'abc123', tagName: 'label-utils-v1.1.0'},
+        {sha: 'abc123', tagName: 'object-selector-v1.1.0'},
+        {sha: 'abc123', tagName: 'datastore-lock-v2.1.0'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
+          },
+        },
+        {
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(3);
+      expect(releases[0]!.tagName).to.eql('label-utils-v1.1.0');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.be.string;
+      expect(releases[0]!.path).to.eql('packages/label-utils');
+      expect(releases[1]!.tagName).to.eql('object-selector-v1.1.0');
+      expect(releases[1]!.sha).to.eql('abc123');
+      expect(releases[1]!.notes).to.be.string;
+      expect(releases[1]!.path).to.eql('packages/object-selector');
+      expect(releases[2]!.tagName).to.eql('datastore-lock-v2.1.0');
+      expect(releases[2]!.sha).to.eql('abc123');
+      expect(releases[2]!.notes).to.be.string;
+      expect(releases[2]!.path).to.eql('packages/datastore-lock');
+      sinon.assert.callCount(commentStub, 3);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
         ['autorelease: tagged'],
