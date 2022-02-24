@@ -36,6 +36,7 @@ import {Strategy} from './strategy';
 import {PullRequestBody} from './util/pull-request-body';
 import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
+import {DuplicateReleaseError} from './errors';
 
 /**
  * These are configurations provided to each strategy per-path.
@@ -845,7 +846,19 @@ export class Manifest {
     for (const release of releases) {
       promises.push(this.createRelease(release));
     }
-    const githubReleases = await Promise.all(promises);
+
+    const githubReleases: CreatedRelease[] = [];
+    for (const promise of promises) {
+      try {
+        githubReleases.push(await promise);
+      } catch (err) {
+        if (err instanceof DuplicateReleaseError) {
+          logger.warn(`Duplicate release tag: ${err.tag}`);
+        } else {
+          throw err;
+        }
+      }
+    }
 
     // adjust tags on pullRequest
     await Promise.all([
