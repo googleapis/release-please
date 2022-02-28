@@ -28,10 +28,12 @@ import {
   dateSafe,
   assertNoHasUpdate,
   buildMockCandidatePullRequest,
+  buildGitHubFileRaw,
 } from '../helpers';
 import {RawContent} from '../../src/updaters/raw-content';
 import snapshot = require('snap-shot-it');
 import {ManifestPlugin} from '../../src/plugin';
+import {Changelog} from '../../src/updaters/changelog';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -49,6 +51,23 @@ export function buildMockPackageUpdate(
       version: Version.parse(
         JSON.parse(cachedFileContents.parsedContent).version
       ),
+    }),
+  };
+}
+
+function buildMockChangelogUpdate(
+  path: string,
+  versionString: string,
+  changelogEntry: string
+): Update {
+  const cachedFileContents = buildGitHubFileRaw(changelogEntry);
+  return {
+    path,
+    createIfMissing: false,
+    cachedFileContents,
+    updater: new Changelog({
+      changelogEntry,
+      version: Version.parse(versionString),
     }),
   };
 }
@@ -201,13 +220,25 @@ describe('NodeWorkspace plugin', () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
           buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          buildMockChangelogUpdate(
+            'node1/CHANGELOG.md',
+            '3.3.4',
+            'other notes'
+          ),
         ]),
         buildMockCandidatePullRequest(
           'node2',
           'node',
           '2.2.3',
           '@here/pkgB',
-          [buildMockPackageUpdate('node2/package.json', 'node2/package.json')],
+          [
+            buildMockPackageUpdate('node2/package.json', 'node2/package.json'),
+            buildMockChangelogUpdate(
+              'node2/CHANGELOG.md',
+              '3.3.4',
+              existingNotes
+            ),
+          ],
           existingNotes
         ),
       ];
@@ -245,6 +276,12 @@ describe('NodeWorkspace plugin', () => {
       );
       assertNoHasUpdate(updates, 'node4/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+      const update = assertHasUpdate(updates, 'node1/CHANGELOG.md', Changelog);
+      snapshot((update.updater as Changelog).changelogEntry);
+      const update2 = assertHasUpdate(updates, 'node2/CHANGELOG.md', Changelog);
+      snapshot((update2.updater as Changelog).changelogEntry);
+      const update3 = assertHasUpdate(updates, 'node3/CHANGELOG.md', Changelog);
+      snapshot((update3.updater as Changelog).changelogEntry);
     });
   });
 });
