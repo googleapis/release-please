@@ -18,7 +18,7 @@ Release notes for path: node1, releaseType: node
     * @here/pkgA bumped from 3.3.3 to ^3.3.4
 </details>
 
-<details><summary>@here/pkgC: 1.1.1</summary>
+<details><summary>@here/pkgC: 1.1.2</summary>
 
 ### Dependencies
 
@@ -74,7 +74,7 @@ exports['NodeWorkspace plugin run walks dependency tree and updates previously u
 Release notes for path: node1, releaseType: node
 </details>
 
-<details><summary>@here/pkgB: 2.2.2</summary>
+<details><summary>@here/pkgB: 2.2.3</summary>
 
 ### Dependencies
 
@@ -83,7 +83,7 @@ Release notes for path: node1, releaseType: node
     * @here/pkgA bumped from 3.3.3 to ^3.3.4
 </details>
 
-<details><summary>@here/pkgC: 1.1.1</summary>
+<details><summary>@here/pkgC: 1.1.2</summary>
 
 ### Dependencies
 

@@ -53,6 +53,13 @@ export function buildMockPackageUpdate(
   };
 }
 
+function assertHasVersionUpdate(update: Update, expectedVersion: string) {
+  expect(update.updater).instanceof(RawContent);
+  const updater = update.updater as RawContent;
+  const data = JSON.parse(updater.rawContent);
+  expect(data.version).to.eql(expectedVersion);
+}
+
 describe('NodeWorkspace plugin', () => {
   let github: GitHub;
   let plugin: ManifestPlugin;
@@ -170,10 +177,22 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'node1/package.json', RawContent);
-      assertHasUpdate(updates, 'node2/package.json', RawContent);
-      assertHasUpdate(updates, 'node3/package.json', RawContent);
-      assertHasUpdate(updates, 'node4/package.json', RawContent);
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node1/package.json', RawContent),
+        '3.3.4'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node2/package.json', RawContent),
+        '2.2.3'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node3/package.json', RawContent),
+        '1.1.2'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node4/package.json', RawContent),
+        '4.4.5'
+      );
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
     it('appends dependency notes to an updated module', async () => {
@@ -212,9 +231,18 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'node1/package.json', RawContent);
-      assertHasUpdate(updates, 'node2/package.json', RawContent);
-      assertHasUpdate(updates, 'node3/package.json', RawContent);
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node1/package.json', RawContent),
+        '3.3.4'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node2/package.json', RawContent),
+        '2.2.3'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node3/package.json', RawContent),
+        '1.1.2'
+      );
       assertNoHasUpdate(updates, 'node4/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
