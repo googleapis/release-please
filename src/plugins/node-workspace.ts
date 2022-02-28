@@ -157,6 +157,13 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       throw new Error(`Could not find graph package for ${pkg.name}`);
     }
     const updatedPackage = pkg.clone();
+    // Update version of the package
+    const newVersion = updatedVersions.get(updatedPackage.name);
+    if (newVersion) {
+      logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
+      updatedPackage.version = newVersion.toString();
+    }
+    // Update dependency versions
     for (const [depName, resolved] of graphPackage.localDependencies) {
       const depVersion = updatedVersions.get(depName);
       if (depVersion && resolved.type !== 'directory') {
@@ -213,6 +220,12 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       throw new Error(`Could not find graph package for ${pkg.name}`);
     }
     const updatedPackage = pkg.clone();
+    // Update version of the package
+    const newVersion = updatedVersions.get(updatedPackage.name);
+    if (newVersion) {
+      logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
+      updatedPackage.version = newVersion.toString();
+    }
     for (const [depName, resolved] of graphPackage.localDependencies) {
       const depVersion = updatedVersions.get(depName);
       if (depVersion && resolved.type !== 'directory') {
