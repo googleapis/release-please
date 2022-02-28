@@ -185,10 +185,13 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
             jsonStringify(updatedPackage.toJSON(), updatedPackage.rawContent)
           );
         } else if (update.updater instanceof Changelog) {
-          update.updater.changelogEntry = appendDependenciesSectionToChangelog(
-            update.updater.changelogEntry,
-            dependencyNotes
-          );
+          if (dependencyNotes) {
+            update.updater.changelogEntry =
+              appendDependenciesSectionToChangelog(
+                update.updater.changelogEntry,
+                dependencyNotes
+              );
+          }
         }
         return update;
       });
@@ -264,7 +267,10 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           createIfMissing: false,
           updater: new Changelog({
             version,
-            changelogEntry: dependencyNotes,
+            changelogEntry: appendDependenciesSectionToChangelog(
+              '',
+              dependencyNotes
+            ),
           }),
         },
       ],
