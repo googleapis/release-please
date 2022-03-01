@@ -28,10 +28,12 @@ import {
   dateSafe,
   assertNoHasUpdate,
   buildMockCandidatePullRequest,
+  buildGitHubFileRaw,
 } from '../helpers';
 import {RawContent} from '../../src/updaters/raw-content';
 import snapshot = require('snap-shot-it');
 import {ManifestPlugin} from '../../src/plugin';
+import {Changelog} from '../../src/updaters/changelog';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -51,6 +53,30 @@ export function buildMockPackageUpdate(
       ),
     }),
   };
+}
+
+function buildMockChangelogUpdate(
+  path: string,
+  versionString: string,
+  changelogEntry: string
+): Update {
+  const cachedFileContents = buildGitHubFileRaw(changelogEntry);
+  return {
+    path,
+    createIfMissing: false,
+    cachedFileContents,
+    updater: new Changelog({
+      changelogEntry,
+      version: Version.parse(versionString),
+    }),
+  };
+}
+
+function assertHasVersionUpdate(update: Update, expectedVersion: string) {
+  expect(update.updater).instanceof(RawContent);
+  const updater = update.updater as RawContent;
+  const data = JSON.parse(updater.rawContent);
+  expect(data.version).to.eql(expectedVersion);
 }
 
 describe('NodeWorkspace plugin', () => {
@@ -170,10 +196,22 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'node1/package.json', RawContent);
-      assertHasUpdate(updates, 'node2/package.json', RawContent);
-      assertHasUpdate(updates, 'node3/package.json', RawContent);
-      assertHasUpdate(updates, 'node4/package.json', RawContent);
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node1/package.json', RawContent),
+        '3.3.4'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node2/package.json', RawContent),
+        '2.2.3'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node3/package.json', RawContent),
+        '1.1.2'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node4/package.json', RawContent),
+        '4.4.5'
+      );
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
     it('appends dependency notes to an updated module', async () => {
@@ -182,13 +220,25 @@ describe('NodeWorkspace plugin', () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
           buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          buildMockChangelogUpdate(
+            'node1/CHANGELOG.md',
+            '3.3.4',
+            'other notes'
+          ),
         ]),
         buildMockCandidatePullRequest(
           'node2',
           'node',
           '2.2.3',
           '@here/pkgB',
-          [buildMockPackageUpdate('node2/package.json', 'node2/package.json')],
+          [
+            buildMockPackageUpdate('node2/package.json', 'node2/package.json'),
+            buildMockChangelogUpdate(
+              'node2/CHANGELOG.md',
+              '3.3.4',
+              existingNotes
+            ),
+          ],
           existingNotes
         ),
       ];
@@ -212,11 +262,26 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'node1/package.json', RawContent);
-      assertHasUpdate(updates, 'node2/package.json', RawContent);
-      assertHasUpdate(updates, 'node3/package.json', RawContent);
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node1/package.json', RawContent),
+        '3.3.4'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node2/package.json', RawContent),
+        '2.2.3'
+      );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node3/package.json', RawContent),
+        '1.1.2'
+      );
       assertNoHasUpdate(updates, 'node4/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+      const update = assertHasUpdate(updates, 'node1/CHANGELOG.md', Changelog);
+      snapshot((update.updater as Changelog).changelogEntry);
+      const update2 = assertHasUpdate(updates, 'node2/CHANGELOG.md', Changelog);
+      snapshot((update2.updater as Changelog).changelogEntry);
+      const update3 = assertHasUpdate(updates, 'node3/CHANGELOG.md', Changelog);
+      snapshot((update3.updater as Changelog).changelogEntry);
     });
   });
 });
