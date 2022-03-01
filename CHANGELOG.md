@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.14](https://github.com/googleapis/release-please/compare/v13.4.13...v13.4.14) (2022-03-01)
+
+
+### Bug Fixes
+
+* node-workspace plugin should update package.json versions ([#1319](https://github.com/googleapis/release-please/issues/1319)) ([e2aaacb](https://github.com/googleapis/release-please/commit/e2aaacbab59c7660abe572c5e6ce31ad666a90c5))
+
 ### [13.4.13](https://github.com/googleapis/release-please/compare/v13.4.12...v13.4.13) (2022-02-28)
 
 
