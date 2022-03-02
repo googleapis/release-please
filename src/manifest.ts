@@ -761,30 +761,11 @@ export class Manifest {
     const generator = await this.findMergedReleasePullRequests();
     const releases: CandidateRelease[] = [];
     for await (const pullRequest of generator) {
-      logger.info('Looking at files touched by path');
-      const cs = new CommitSplit({
-        includeEmpty: true,
-        packagePaths: Object.keys(this.repositoryConfig),
-      });
-      const commits = [
-        {
-          sha: pullRequest.sha!,
-          message: pullRequest.title,
-          files: pullRequest.files,
-        },
-      ];
-      const commitsPerPath = cs.split(commits);
       for (const path in this.repositoryConfig) {
         const config = this.repositoryConfig[path];
         logger.info(`Building release for path: ${path}`);
         logger.debug(`type: ${config.releaseType}`);
         logger.debug(`targetBranch: ${this.targetBranch}`);
-        const pathCommits =
-          path === ROOT_PROJECT_PATH ? commits : commitsPerPath[path];
-        if (!pathCommits || pathCommits.length === 0) {
-          logger.info(`No commits for path: ${path}, skipping`);
-          continue;
-        }
         const strategy = strategiesByPath[path];
         const release = await strategy.buildRelease(pullRequest);
         if (release) {
@@ -798,6 +779,8 @@ export class Manifest {
               (!!release.tag.version.preRelease ||
                 release.tag.version.major === 0),
           });
+        } else {
+          logger.info(`No release necessary for path: ${path}`);
         }
       }
     }
