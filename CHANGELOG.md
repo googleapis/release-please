@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.4.15](https://github.com/googleapis/release-please/compare/v13.4.14...v13.4.15) (2022-03-02)
+
+
+### Bug Fixes
+
+* tagging many GitHub releases should not require a file touched check ([#1321](https://github.com/googleapis/release-please/issues/1321)) ([ab99242](https://github.com/googleapis/release-please/commit/ab9924215e68838e6ec62d283b5712cbff6e6a4c))
+
 ### [13.4.14](https://github.com/googleapis/release-please/compare/v13.4.13...v13.4.14) (2022-03-01)
 
 
