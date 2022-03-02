@@ -509,7 +509,18 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
 
     if (argv.dryRun) {
       const releases = await manifest.buildReleases();
-      logger.info(releases);
+      logger.info(`Would tag ${releases.length} releases:`);
+      for (const release of releases) {
+        logger.info({
+          name: release.name,
+          tag: release.tag.toString(),
+          notes: release.notes,
+          sha: release.sha,
+          draft: release.draft,
+          prerelease: release.prerelease,
+          pullNumber: release.pullRequest.number,
+        });
+      }
     } else {
       const releaseNumbers = await manifest.createReleases();
       console.log(releaseNumbers);
