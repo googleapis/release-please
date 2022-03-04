@@ -37,6 +37,7 @@ import {PullRequestBody} from './util/pull-request-body';
 import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {DuplicateReleaseError} from './errors';
+import {LinkedVersion} from './plugins/linked-versions';
 
 /**
  * These are configurations provided to each strategy per-path.
@@ -499,26 +500,19 @@ export class Manifest {
       includeEmpty: true,
       packagePaths: Object.keys(this.repositoryConfig),
     });
-    const commitsPerPath = cs.split(commits);
+    const splitCommits = cs.split(commits);
 
-    let newReleasePullRequests: CandidateReleasePullRequest[] = [];
+    // limit paths to ones since the last release
+    const commitsPerPath: Record<string, Commit[]> = {};
     for (const path in this.repositoryConfig) {
-      const config = this.repositoryConfig[path];
-      logger.info(`Building candidate release pull request for path: ${path}`);
-      logger.debug(`type: ${config.releaseType}`);
-      logger.debug(`targetBranch: ${this.targetBranch}`);
-      const pathCommits = commitsAfterSha(
-        path === ROOT_PROJECT_PATH ? commits : commitsPerPath[path],
+      commitsPerPath[path] = commitsAfterSha(
+        path === ROOT_PROJECT_PATH ? commits : splitCommits[path],
         releaseShasByPath[path]
       );
-      logger.debug(`commits: ${pathCommits.length}`);
-      const latestReleasePullRequest =
-        releasePullRequestsBySha[releaseShasByPath[path]];
-      if (!latestReleasePullRequest) {
-        logger.warn('No latest release pull request found.');
-      }
+    }
 
-      const strategy = strategiesByPath[path];
+    // backfill latest release tags from manifest
+    for (const path in this.repositoryConfig) {
       let latestRelease = releasesByPath[path];
       if (
         !latestRelease &&
@@ -526,6 +520,7 @@ export class Manifest {
         this.releasedVersions[path].toString() !== '0.0.0'
       ) {
         const version = this.releasedVersions[path];
+        const strategy = strategiesByPath[path];
         const component = await strategy.getComponent();
         logger.info(
           `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
@@ -536,6 +531,52 @@ export class Manifest {
           notes: '',
         };
       }
+    }
+
+    // Build plugins
+    const plugins = this.plugins.map(pluginType =>
+      buildPlugin({
+        type: pluginType,
+        github: this.github,
+        targetBranch: this.targetBranch,
+        repositoryConfig: this.repositoryConfig,
+      })
+    );
+    // plugins.push(
+    //   new LinkedVersion(
+    //     this.github,
+    //     this.targetBranch,
+    //     this.repositoryConfig,
+    //     'Spanner libraries',
+    //     ['video', 'gkehub', 'aiplatform']
+    //   )
+    // );
+
+    let strategies = strategiesByPath;
+    for (const plugin of plugins) {
+      strategies = await plugin.preconfigure(
+        strategies,
+        commitsPerPath,
+        releasesByPath
+      );
+    }
+
+    let newReleasePullRequests: CandidateReleasePullRequest[] = [];
+    for (const path in this.repositoryConfig) {
+      const config = this.repositoryConfig[path];
+      logger.info(`Building candidate release pull request for path: ${path}`);
+      logger.debug(`type: ${config.releaseType}`);
+      logger.debug(`targetBranch: ${this.targetBranch}`);
+      const pathCommits = commitsPerPath[path];
+      logger.debug(`commits: ${pathCommits.length}`);
+      const latestReleasePullRequest =
+        releasePullRequestsBySha[releaseShasByPath[path]];
+      if (!latestReleasePullRequest) {
+        logger.warn('No latest release pull request found.');
+      }
+
+      const strategy = strategies[path];
+      const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
         pathCommits,
         latestRelease,
@@ -562,16 +603,6 @@ export class Manifest {
         });
       }
     }
-
-    // Build plugins
-    const plugins = this.plugins.map(pluginType =>
-      buildPlugin({
-        type: pluginType,
-        github: this.github,
-        targetBranch: this.targetBranch,
-        repositoryConfig: this.repositoryConfig,
-      })
-    );
 
     // Combine pull requests into 1 unless configured for separate
     // pull requests
