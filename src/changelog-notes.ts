@@ -51,6 +51,7 @@ const DEFAULT_HEADINGS: Record<string, string> = {
   test: 'Tests',
   build: 'Build System',
   ci: 'Continuous Integration',
+  undefined: 'Non-conforming Commits',
 };
 
 export function buildChangelogSections(scopes: string[]): ChangelogSection[] {

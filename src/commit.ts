@@ -326,9 +326,24 @@ function hasExtendedContext(line: string) {
   return false;
 }
 
-function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
+function parseOrUndefined(commit: Commit, message: string): parser.Message {
+  try {
+    return parser.parser(message);
+  } catch (_err) {
+    logger.debug(
+      `commit could not be parsed: ${commit.sha} ${message.split('\n')[0]}`
+    );
+
+    return parser.parser('undefined: ' + message);
+  }
+}
+
+function parseCommits(
+  commit: Commit,
+  message: string
+): parser.ConventionalChangelogCommit[] {
   return conventionalCommitsFilter(
-    toConventionalChangelogFormat(parser.parser(message))
+    toConventionalChangelogFormat(parseOrUndefined(commit, message))
   ).map(postProcessCommits);
 }
 
@@ -349,7 +364,7 @@ export function parseConventionalCommits(
   for (const commit of commits) {
     const commitMessage = preprocessCommitMessage(commit);
     try {
-      for (const parsedCommit of parseCommits(commitMessage)) {
+      for (const parsedCommit of parseCommits(commit, commitMessage)) {
         const breaking =
           parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
             .length > 0;

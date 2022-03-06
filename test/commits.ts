@@ -24,15 +24,19 @@ describe('parseConventionalCommits', () => {
       buildMockCommit('feat: some feature'),
       buildMockCommit('fix: some bugfix'),
       buildMockCommit('docs: some documentation'),
+      buildMockCommit('invalid message'),
     ];
     const conventionalCommits = parseConventionalCommits(commits);
-    expect(conventionalCommits).lengthOf(3);
+    expect(conventionalCommits).lengthOf(4);
     expect(conventionalCommits[0].type).to.equal('feat');
     expect(conventionalCommits[0].scope).is.null;
     expect(conventionalCommits[1].type).to.equal('fix');
     expect(conventionalCommits[1].scope).is.null;
     expect(conventionalCommits[2].type).to.equal('docs');
     expect(conventionalCommits[2].scope).is.null;
+    expect(conventionalCommits[3].type).to.equal('undefined');
+    expect(conventionalCommits[3].scope).is.null;
+    expect(conventionalCommits[3].bareMessage).is.equal('invalid message');
   });
 
   it('can parse a breaking change', async () => {
