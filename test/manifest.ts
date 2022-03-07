@@ -14,9 +14,8 @@
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
 import {Manifest} from '../src/manifest';
-import {GitHub, GitHubRelease, GitHubTag, ReleaseOptions} from '../src/github';
+import {GitHub, ReleaseOptions} from '../src/github';
 import * as sinon from 'sinon';
-import {Commit} from '../src/commit';
 import {
   buildGitHubFileContent,
   buildGitHubFileRaw,
