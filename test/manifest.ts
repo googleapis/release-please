@@ -311,25 +311,85 @@ describe('Manifest', () => {
           .includeComponentInTag
       ).to.be.true;
     });
-  });
-
-  it('should read custom labels from manifest', async () => {
-    const getFileContentsStub = sandbox.stub(github, 'getFileContentsOnBranch');
-    getFileContentsStub
-      .withArgs('release-please-config.json', 'main')
-      .resolves(
-        buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
-      )
-      .withArgs('.release-please-manifest.json', 'main')
-      .resolves(
-        buildGitHubFileContent(fixturesPath, 'manifest/versions/versions.json')
+    it('should read custom labels from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
       );
-    const manifest = await Manifest.fromManifest(
-      github,
-      github.repository.defaultBranch
-    );
-    expect(manifest['labels']).to.deep.equal(['custom: pending']);
-    expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['labels']).to.deep.equal(['custom: pending']);
+      expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+    });
+    it('should build simple plugins from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/plugins.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['plugins']).to.deep.equal([
+        'node-workspace',
+        'cargo-workspace',
+      ]);
+    });
+    it('should build complex plugins from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/complex-plugins.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['plugins']).to.deep.equal([
+        {
+          type: 'linked-versions',
+          groupName: 'grouped components',
+          components: ['pkg2', 'pkg3'],
+        },
+      ]);
+    });
   });
 
   describe('fromConfig', () => {
@@ -2035,6 +2095,7 @@ describe('Manifest', () => {
         );
         const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
         mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
         sandbox
           .stub(factory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
@@ -2071,8 +2132,10 @@ describe('Manifest', () => {
         );
         const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
         mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
         const mockPlugin2 = sandbox.createStubInstance(CargoWorkspace);
         mockPlugin2.run.returnsArg(0);
+        mockPlugin2.preconfigure.returnsArg(0);
         sandbox
           .stub(factory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))

@@ -1,0 +1,12 @@
+{
+  "release-type": "simple",
+  "plugins": [
+    "node-workspace",
+    "cargo-workspace"
+  ],
+  "packages": {
+    ".": {
+      "component": "root"
+    }
+  }
+}
