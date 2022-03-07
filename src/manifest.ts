@@ -37,7 +37,6 @@ import {PullRequestBody} from './util/pull-request-body';
 import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {DuplicateReleaseError} from './errors';
-import {LinkedVersion} from './plugins/linked-versions';
 
 /**
  * These are configurations provided to each strategy per-path.
@@ -132,7 +131,13 @@ interface ReleaserPackageConfig extends ReleaserConfigJson {
   'changelog-path'?: string;
 }
 
-export type PluginType = 'node-workspace' | 'cargo-workspace';
+type DirectPluginType = 'node-workspace' | 'cargo-workspace';
+interface LinkedVersionPluginConfig {
+  type: 'linked-versions';
+  groupName: string;
+  components: string[];
+}
+export type PluginType = DirectPluginType | LinkedVersionPluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -542,15 +547,6 @@ export class Manifest {
         repositoryConfig: this.repositoryConfig,
       })
     );
-    // plugins.push(
-    //   new LinkedVersion(
-    //     this.github,
-    //     this.targetBranch,
-    //     this.repositoryConfig,
-    //     'Spanner libraries',
-    //     ['video', 'gkehub', 'aiplatform']
-    //   )
-    // );
 
     let strategies = strategiesByPath;
     for (const plugin of plugins) {

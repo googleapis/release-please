@@ -44,6 +44,7 @@ import {ChangelogNotes, ChangelogSection} from './changelog-notes';
 import {GitHubChangelogNotes} from './changelog-notes/github';
 import {DefaultChangelogNotes} from './changelog-notes/default';
 import {BaseStrategyOptions} from './strategies/base';
+import {LinkedVersion} from './plugins/linked-versions';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
@@ -231,6 +232,20 @@ interface PluginFactoryOptions {
 }
 
 export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
+  if (typeof options.type === 'object') {
+    switch (options.type.type) {
+      case 'linked-versions':
+        return new LinkedVersion(
+          options.github,
+          options.targetBranch,
+          options.repositoryConfig,
+          options.type.groupName,
+          options.type.components
+        );
+      default:
+        throw new Error(`Unknown plugin type: ${options.type}`);
+    }
+  }
   switch (options.type) {
     case 'cargo-workspace':
       return new CargoWorkspace(
