@@ -518,7 +518,7 @@ export class Manifest {
 
     // backfill latest release tags from manifest
     for (const path in this.repositoryConfig) {
-      let latestRelease = releasesByPath[path];
+      const latestRelease = releasesByPath[path];
       if (
         !latestRelease &&
         this.releasedVersions[path] &&
@@ -530,7 +530,7 @@ export class Manifest {
         logger.info(
           `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
         );
-        latestRelease = {
+        releasesByPath[path] = {
           tag: new TagName(version, component),
           sha: '',
           notes: '',

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ManifestPlugin} from '../plugin';
-import {RepositoryConfig} from '../manifest';
+import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 import {GitHub} from '../github';
 import {logger} from '../util/logger';
 import {Strategy} from '../strategy';
@@ -21,6 +21,7 @@ import {Commit} from '../commit';
 import {Release} from '../release';
 import {Version} from '../version';
 import {buildStrategy} from '../factory';
+import {Merge} from './merge';
 
 /**
  * This plugin reconfigures strategies by linking multiple components
@@ -127,5 +128,44 @@ export class LinkedVersion extends ManifestPlugin {
     }
 
     return newStrategies;
+  }
+
+  /**
+   * Post-process candidate pull requests.
+   * @param {CandidateReleasePullRequest[]} pullRequests Candidate pull requests
+   * @returns {CandidateReleasePullRequest[]} Updated pull requests
+   */
+  async run(
+    candidates: CandidateReleasePullRequest[]
+  ): Promise<CandidateReleasePullRequest[]> {
+    const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce(
+      (collection, candidate) => {
+        if (!candidate.pullRequest.version) {
+          logger.warn('pull request missing version', candidate);
+          return collection;
+        }
+        if (this.components.has(candidate.config.component || '')) {
+          collection[0].push(candidate);
+        } else {
+          collection[1].push(candidate);
+        }
+        return collection;
+      },
+      [[], []] as CandidateReleasePullRequest[][]
+    );
+
+    // delegate to the merge plugin and add merged pull request
+    if (inScopeCandidates.length > 0) {
+      const merge = new Merge(
+        this.github,
+        this.targetBranch,
+        this.repositoryConfig,
+        `chore\${branch}: release ${this.groupName} libraries`
+      );
+      const merged = await merge.run(inScopeCandidates);
+      outOfScopeCandidates.push(...merged);
+    }
+
+    return outOfScopeCandidates;
   }
 }
