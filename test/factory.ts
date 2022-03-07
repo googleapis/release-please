@@ -27,7 +27,7 @@ import {DependencyManifest} from '../src/versioning-strategies/dependency-manife
 import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {DefaultChangelogNotes} from '../src/changelog-notes/default';
 import {PluginType, RepositoryConfig} from '../src/manifest';
-import {LinkedVersion} from '../src/plugins/linked-versions';
+import {LinkedVersions} from '../src/plugins/linked-versions';
 
 describe('factory', () => {
   let github: GitHub;
@@ -241,7 +241,7 @@ describe('factory', () => {
         repositoryConfig,
       });
       expect(plugin).to.not.be.undefined;
-      expect(plugin).instanceof(LinkedVersion);
+      expect(plugin).instanceof(LinkedVersions);
     });
   });
 });

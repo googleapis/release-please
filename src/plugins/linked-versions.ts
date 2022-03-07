@@ -29,7 +29,7 @@ import {Merge} from './merge';
  *
  * Release notes are broken up using `<summary>`/`<details>` blocks.
  */
-export class LinkedVersion extends ManifestPlugin {
+export class LinkedVersions extends ManifestPlugin {
   private groupName: string;
   private components: Set<string>;
 

@@ -44,7 +44,7 @@ import {ChangelogNotes, ChangelogSection} from './changelog-notes';
 import {GitHubChangelogNotes} from './changelog-notes/github';
 import {DefaultChangelogNotes} from './changelog-notes/default';
 import {BaseStrategyOptions} from './strategies/base';
-import {LinkedVersion} from './plugins/linked-versions';
+import {LinkedVersions} from './plugins/linked-versions';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
@@ -235,7 +235,7 @@ export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
   if (typeof options.type === 'object') {
     switch (options.type.type) {
       case 'linked-versions':
-        return new LinkedVersion(
+        return new LinkedVersions(
           options.github,
           options.targetBranch,
           options.repositoryConfig,
