@@ -24,7 +24,7 @@ import {
 } from '../versioning-strategy';
 
 const DEPENDENCY_UPDATE_REGEX =
-  /^deps: update dependency (.*) to (v.*)(\s\(#\d+\))?$/m;
+  /^deps: update dependency (.*) to (v[^\s]*)(\s\(#\d+\))?$/m;
 
 /**
  * This VersioningStrategy looks at `deps` type commits and tries to
