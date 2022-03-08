@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.5.0](https://github.com/googleapis/release-please/compare/v13.4.15...v13.5.0) (2022-03-08)
+
+
+### Features
+
+* **ocaml:** update opam `project.opam.locked` files ([#1325](https://github.com/googleapis/release-please/issues/1325)) ([858199e](https://github.com/googleapis/release-please/commit/858199e4fac71ce2574c4195b85dc4e8bf26e0f7))
+
+
+### Bug Fixes
+
+* fix regex for parsing major version update ([#1330](https://github.com/googleapis/release-please/issues/1330)) ([afadec9](https://github.com/googleapis/release-please/commit/afadec95aa62aa32372512455326c4cdf8943f70))
+
 ### [13.4.15](https://github.com/googleapis/release-please/compare/v13.4.14...v13.4.15) (2022-03-02)
 
 
