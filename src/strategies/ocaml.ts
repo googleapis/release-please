@@ -72,6 +72,20 @@ export class OCaml extends BaseStrategy {
       });
     });
 
+    const opamLockedPaths = await this.github.findFilesByExtension(
+      'opam.locked',
+      this.path
+    );
+    opamLockedPaths.filter(notEsyLock).forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new Opam({
+          version,
+        }),
+      });
+    });
+
     updates.push({
       path: this.addPath('dune-project'),
       createIfMissing: false,

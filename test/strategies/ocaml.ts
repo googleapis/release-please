@@ -119,12 +119,15 @@ describe('OCaml', () => {
       const findFilesStub = sandbox.stub(github, 'findFilesByExtension');
       findFilesStub.withArgs('json', '.').resolves(['esy.json', 'other.json']);
       findFilesStub.withArgs('opam', '.').resolves(['sample.opam']);
+      findFilesStub
+        .withArgs('opam.locked', '.')
+        .resolves(['sample.opam.locked']);
       stubFilesFromFixtures({
         sandbox,
         github,
         targetBranch: 'main',
         fixturePath: fixturesPath,
-        files: ['esy.json', 'other.json', 'sample.opam'],
+        files: ['esy.json', 'other.json', 'sample.opam', 'sample.opam.locked'],
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -132,10 +135,11 @@ describe('OCaml', () => {
         latestRelease
       );
       const updates = release!.updates;
-      expect(updates).lengthOf(4);
+      expect(updates).lengthOf(5);
       assertHasUpdate(updates, 'esy.json', EsyJson);
       assertNoHasUpdate(updates, 'other.json');
       assertHasUpdate(updates, 'sample.opam', Opam);
+      assertHasUpdate(updates, 'sample.opam.locked', Opam);
     });
   });
 });
