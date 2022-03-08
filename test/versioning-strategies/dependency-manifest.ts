@@ -249,5 +249,26 @@ describe('DependencyManifest', () => {
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('0.2.0');
     });
+    it('can bump a major', async () => {
+      const commits = [
+        {
+          sha: 'sha2',
+          message: 'deps: update dependency foo to v4 (#1234)',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DependencyManifest({
+        bumpMinorPreMajor: true,
+      });
+      const oldVersion = Version.parse('1.2.3');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('2.0.0');
+    });
   });
 });
