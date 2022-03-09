@@ -45,6 +45,7 @@ import {GitHubChangelogNotes} from './changelog-notes/github';
 import {DefaultChangelogNotes} from './changelog-notes/default';
 import {BaseStrategyOptions} from './strategies/base';
 import {LinkedVersions} from './plugins/linked-versions';
+import {Java} from './strategies/java';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
@@ -56,6 +57,7 @@ const allReleaseTypes = [
   'go',
   'go-yoshi',
   'helm',
+  'java',
   'java-backport',
   'java-bom',
   'java-lts',
@@ -79,6 +81,7 @@ const releasers: Releasers = {
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
   'java-yoshi': options => new JavaYoshi(options),
+  java: options => new Java(options),
   'krm-blueprint': options => new KRMBlueprint(options),
   node: options => new Node(options),
   ocaml: options => new OCaml(options),

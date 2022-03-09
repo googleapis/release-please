@@ -341,6 +341,7 @@ export class Manifest {
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
+      version => strategy.isValidRelease(version),
       config.includeComponentInTag ? component : '',
       config.pullRequestTitlePattern
     );
@@ -1052,13 +1053,16 @@ async function parseReleasedVersions(
  * Find the most recent matching release tag on the branch we're
  * configured for.
  *
- * @param {string} prefix - Limit the release to a specific component.
- * @param {boolean} preRelease - Whether or not to return pre-release
- *   versions. Defaults to false.
+ * @param github GitHub client instance.
+ * @param {string} targetBranch Name of the scanned branch.
+ * @param releaseFilter Validator function for release version. Used to filter-out SNAPSHOT releases for Java strategy.
+ * @param {string} prefix Limit the release to a specific component.
+ * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
   github: GitHub,
   targetBranch: string,
+  releaseFilter: (version: Version) => boolean,
   prefix?: string,
   pullRequestTitlePattern?: string
 ): Promise<Version | undefined> {
@@ -1108,12 +1112,7 @@ async function latestReleaseVersion(
     }
 
     const version = pullRequestTitle.getVersion();
-    if (version?.preRelease?.includes('SNAPSHOT')) {
-      // FIXME, don't hardcode this
-      continue;
-    }
-
-    if (version) {
+    if (version && releaseFilter(version)) {
       logger.debug(
         `Found latest release pull request: ${mergedPullRequest.number} version: ${version}`
       );
