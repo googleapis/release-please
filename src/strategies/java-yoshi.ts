@@ -15,153 +15,21 @@
 import {Update} from '../update';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
-import {JavaUpdate} from '../updaters/java/java-update';
-import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
-import {Changelog} from '../updaters/changelog';
+import {BaseStrategyOptions} from './base';
 import {GitHubFileContents} from '../util/file-cache';
-import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
-import {Commit, ConventionalCommit} from '../commit';
-import {Release} from '../release';
-import {ReleasePullRequest} from '../release-pull-request';
+import {ConventionalCommit} from '../commit';
 import {logger} from '../util/logger';
-import {PullRequestTitle} from '../util/pull-request-title';
-import {BranchName} from '../util/branch-name';
-import {PullRequestBody} from '../util/pull-request-body';
-import {VersioningStrategy} from '../versioning-strategy';
-import {DefaultVersioningStrategy} from '../versioning-strategies/default';
-import {JavaAddSnapshot} from '../versioning-strategies/java-add-snapshot';
+import {Java, JavaBuildUpdatesOption} from './java';
 
-const CHANGELOG_SECTIONS = [
-  {type: 'feat', section: 'Features'},
-  {type: 'fix', section: 'Bug Fixes'},
-  {type: 'perf', section: 'Performance Improvements'},
-  {type: 'deps', section: 'Dependencies'},
-  {type: 'revert', section: 'Reverts'},
-  {type: 'docs', section: 'Documentation'},
-  {type: 'style', section: 'Styles', hidden: true},
-  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
-  {type: 'refactor', section: 'Code Refactoring', hidden: true},
-  {type: 'test', section: 'Tests', hidden: true},
-  {type: 'build', section: 'Build System', hidden: true},
-  {type: 'ci', section: 'Continuous Integration', hidden: true},
-];
-
-interface JavaBuildUpdatesOption extends BuildUpdatesOptions {
-  isSnapshot?: boolean;
-}
-
-export class JavaYoshi extends BaseStrategy {
+export class JavaYoshi extends Java {
   private versionsContent?: GitHubFileContents;
-  private snapshotVersioning: VersioningStrategy;
 
   constructor(options: BaseStrategyOptions) {
-    options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
-    // wrap the configured versioning strategy with snapshotting
-    const parentVersioningStrategy =
-      options.versioningStrategy || new DefaultVersioningStrategy();
-    options.versioningStrategy = new JavaSnapshot(parentVersioningStrategy);
     super(options);
-    this.snapshotVersioning = new JavaAddSnapshot(parentVersioningStrategy);
   }
 
-  async buildReleasePullRequest(
-    commits: Commit[],
-    latestRelease?: Release,
-    draft?: boolean,
-    labels: string[] = []
-  ): Promise<ReleasePullRequest | undefined> {
-    if (await this.needsSnapshot()) {
-      logger.info('Repository needs a snapshot bump.');
-      return await this.buildSnapshotPullRequest(latestRelease);
-    }
-    logger.info('No Java snapshot needed');
-    return await super.buildReleasePullRequest(
-      commits,
-      latestRelease,
-      draft,
-      labels
-    );
-  }
-
-  private async buildSnapshotPullRequest(
-    latestRelease?: Release
-  ): Promise<ReleasePullRequest> {
-    const component = await this.getComponent();
-    const newVersion = latestRelease
-      ? await this.snapshotVersioning.bump(latestRelease.tag.version, [])
-      : this.initialReleaseVersion();
-    const versionsMap = await this.buildVersionsMap();
-    for (const versionKey of versionsMap.keys()) {
-      const version = versionsMap.get(versionKey);
-      if (!version) {
-        logger.warn(`didn't find version for ${versionKey}`);
-        continue;
-      }
-      const newVersion = await this.snapshotVersioning.bump(version, []);
-      versionsMap.set(versionKey, newVersion);
-    }
-    const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
-      component || '',
-      this.targetBranch,
-      newVersion
-    );
-    const branchName = component
-      ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
-      : BranchName.ofTargetBranch(this.targetBranch);
-    const notes =
-      '### Updating meta-information for bleeding-edge SNAPSHOT release.';
-    const pullRequestBody = new PullRequestBody([
-      {
-        component,
-        version: newVersion,
-        notes,
-      },
-    ]);
-    const updates = await this.buildUpdates({
-      newVersion,
-      versionsMap,
-      changelogEntry: notes,
-      isSnapshot: true,
-    });
-    return {
-      title: pullRequestTitle,
-      body: pullRequestBody,
-      updates,
-      labels: [],
-      headRefName: branchName.toString(),
-      version: newVersion,
-      draft: false,
-    };
-  }
-
-  /**
-   * Override this method to post process commits
-   * @param {ConventionalCommit[]} commits parsed commits
-   * @returns {ConventionalCommit[]} modified commits
-   */
-  protected async postProcessCommits(
-    commits: ConventionalCommit[]
-  ): Promise<ConventionalCommit[]> {
-    if (commits.length === 0) {
-      // For Java commits, push a fake commit so we force a
-      // SNAPSHOT release
-      commits.push({
-        type: 'fake',
-        bareMessage: 'fake commit',
-        message: 'fake commit',
-        breaking: false,
-        scope: null,
-        notes: [],
-        files: [],
-        references: [],
-        sha: 'fake',
-      });
-    }
-    return commits;
-  }
-
-  private async needsSnapshot(): Promise<boolean> {
+  protected async needsSnapshot(): Promise<boolean> {
     return VersionsManifest.needsSnapshot(
       (await this.getVersionsContent()).parsedContent
     );
@@ -170,6 +38,13 @@ export class JavaYoshi extends BaseStrategy {
   protected async buildVersionsMap(): Promise<VersionsMap> {
     this.versionsContent = await this.getVersionsContent();
     return VersionsManifest.parseVersions(this.versionsContent.parsedContent);
+  }
+
+  protected async addComponentVersion(
+    versionMap: VersionsMap,
+    _version: Version
+  ): Promise<VersionsMap> {
+    return versionMap; // don't add current component to the map
   }
 
   protected async getVersionsContent(): Promise<GitHubFileContents> {
@@ -196,9 +71,10 @@ export class JavaYoshi extends BaseStrategy {
   protected async buildUpdates(
     options: JavaBuildUpdatesOption
   ): Promise<Update[]> {
-    const updates: Update[] = [];
     const version = options.newVersion;
     const versionsMap = options.versionsMap;
+
+    const updates = await super.buildUpdates(options);
 
     updates.push({
       path: this.addPath('versions.txt'),
@@ -209,87 +85,6 @@ export class JavaYoshi extends BaseStrategy {
         versionsMap,
       }),
     });
-
-    const pomFilesSearch = this.github.findFilesByFilenameAndRef(
-      'pom.xml',
-      this.targetBranch,
-      this.path
-    );
-    const buildFilesSearch = this.github.findFilesByFilenameAndRef(
-      'build.gradle',
-      this.targetBranch,
-      this.path
-    );
-    const dependenciesSearch = this.github.findFilesByFilenameAndRef(
-      'dependencies.properties',
-      this.targetBranch,
-      this.path
-    );
-
-    const pomFiles = await pomFilesSearch;
-    pomFiles.forEach(path => {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
-    });
-
-    const buildFiles = await buildFilesSearch;
-    buildFiles.forEach(path => {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
-    });
-
-    const dependenciesFiles = await dependenciesSearch;
-    dependenciesFiles.forEach(path => {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
-    });
-
-    this.extraFiles.forEach(extraFile => {
-      if (typeof extraFile === 'object') {
-        return;
-      }
-      updates.push({
-        path: extraFile,
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
-    });
-
-    if (!options.isSnapshot) {
-      updates.push({
-        path: this.addPath(this.changelogPath),
-        createIfMissing: true,
-        updater: new Changelog({
-          version,
-          changelogEntry: options.changelogEntry,
-        }),
-      });
-    }
 
     return updates;
   }
