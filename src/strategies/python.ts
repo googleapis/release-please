@@ -103,21 +103,24 @@ export class Python extends BaseStrategy {
     if (!projectName) {
       logger.warn('No project/component found.');
     } else {
-      const possibleDirectoryNames =  new Set<string>([projectName, projectName.replace("-", "_")]);
+      const possibleDirectoryNames = new Set<string>([
+        projectName,
+        projectName.replace('-', '_'),
+      ]);
       for (const possibleDirectoryName of possibleDirectoryNames) {
         updates.push({
-            path: this.addPath(`${possibleDirectoryName}/__init__.py`),
-            createIfMissing: false,
-            updater: new PythonFileWithVersion({
+          path: this.addPath(`${possibleDirectoryName}/__init__.py`),
+          createIfMissing: false,
+          updater: new PythonFileWithVersion({
             version,
-            }),
+          }),
         });
         updates.push({
-            path: this.addPath(`src/${possibleDirectoryName}/__init__.py`),
-            createIfMissing: false,
-            updater: new PythonFileWithVersion({
+          path: this.addPath(`src/${possibleDirectoryName}/__init__.py`),
+          createIfMissing: false,
+          updater: new PythonFileWithVersion({
             version,
-            }),
+          }),
         });
       }
     }
