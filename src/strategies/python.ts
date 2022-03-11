@@ -103,36 +103,23 @@ export class Python extends BaseStrategy {
     if (!projectName) {
       logger.warn('No project/component found.');
     } else {
-      updates.push({
-        path: this.addPath(`${projectName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
-      });
-      updates.push({
-        path: this.addPath(`src/${projectName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
-      });
-      // In case the project name is splitted by -, replace - with _
-      const projectDirectoryName = projectName.replace('-', '_');
-      updates.push({
-        path: this.addPath(`${projectDirectoryName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
-      });
-      updates.push({
-        path: this.addPath(`src/${projectDirectoryName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
-      });
+      const possibleDirectoryNames =  new Set<string>([projectName, projectName.replace("-", "_")]);
+      for (let possibleDirectoryName of possibleDirectoryNames) {
+        updates.push({
+            path: this.addPath(`${possibleDirectoryName}/__init__.py`),
+            createIfMissing: false,
+            updater: new PythonFileWithVersion({
+            version,
+            }),
+        });
+        updates.push({
+            path: this.addPath(`src/${possibleDirectoryName}/__init__.py`),
+            createIfMissing: false,
+            updater: new PythonFileWithVersion({
+            version,
+            }),
+        });
+      }
     }
 
     // There should be only one version.py, but foreach in case that is incorrect
