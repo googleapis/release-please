@@ -119,6 +119,25 @@ prefixes: "feat" and "fix". (A "chore" commit is not a releasable unit.)
 Some languages have their specific releasable unit configuration. For example,
 "docs" is a prefix for releasable units in Java and Python.
 
+## How can I release on different change types?
+
+To change the "releasable units" for your code, you can [customise the changelog sections](https://github.com/google-github-actions/release-please-action#overriding-the-changelog-sections) for your project.
+
+For example, if I wanted to release when I have `docs` changes on my Node.js project, I could update the GitHub Actions Workflow like so:
+
+```yaml
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: node
+          package-name: My Package
+          # Include 'docs' for releases and in the changelog
+          changelog-types: '[{"type":"feat","section":"Features","hidden":false},{"type":"docs","section":"Documentation","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false}]'
+```
+
 ## Strategy (Language) types supported
 
 Release Please automates releases for the following flavors of repositories:
