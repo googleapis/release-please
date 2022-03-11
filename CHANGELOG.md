@@ -4,6 +4,91 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.5.0](https://github.com/googleapis/release-please/compare/v13.4.15...v13.5.0) (2022-03-08)
+
+
+### Features
+
+* **ocaml:** update opam `project.opam.locked` files ([#1325](https://github.com/googleapis/release-please/issues/1325)) ([858199e](https://github.com/googleapis/release-please/commit/858199e4fac71ce2574c4195b85dc4e8bf26e0f7))
+
+
+### Bug Fixes
+
+* fix regex for parsing major version update ([#1330](https://github.com/googleapis/release-please/issues/1330)) ([afadec9](https://github.com/googleapis/release-please/commit/afadec95aa62aa32372512455326c4cdf8943f70))
+
+### [13.4.15](https://github.com/googleapis/release-please/compare/v13.4.14...v13.4.15) (2022-03-02)
+
+
+### Bug Fixes
+
+* tagging many GitHub releases should not require a file touched check ([#1321](https://github.com/googleapis/release-please/issues/1321)) ([ab99242](https://github.com/googleapis/release-please/commit/ab9924215e68838e6ec62d283b5712cbff6e6a4c))
+
+### [13.4.14](https://github.com/googleapis/release-please/compare/v13.4.13...v13.4.14) (2022-03-01)
+
+
+### Bug Fixes
+
+* node-workspace plugin should update package.json versions ([#1319](https://github.com/googleapis/release-please/issues/1319)) ([e2aaacb](https://github.com/googleapis/release-please/commit/e2aaacbab59c7660abe572c5e6ce31ad666a90c5))
+
+### [13.4.13](https://github.com/googleapis/release-please/compare/v13.4.12...v13.4.13) (2022-02-28)
+
+
+### Bug Fixes
+
+* handle failures during multiple release creation ([#1315](https://github.com/googleapis/release-please/issues/1315)) ([fc856ae](https://github.com/googleapis/release-please/commit/fc856aed1d95def38170eff6381829cd6d7d1e0b))
+
+### [13.4.12](https://github.com/googleapis/release-please/compare/v13.4.11...v13.4.12) (2022-02-22)
+
+
+### Bug Fixes
+
+* address false-positive matches for autorelease branch naming ([#1311](https://github.com/googleapis/release-please/issues/1311)) ([c5e76dc](https://github.com/googleapis/release-please/commit/c5e76dc8202958ed5af0f3635188261b8845f561)), closes [#1310](https://github.com/googleapis/release-please/issues/1310)
+* catch FileNotFound error when building changeset ([#1306](https://github.com/googleapis/release-please/issues/1306)) ([3944b17](https://github.com/googleapis/release-please/commit/3944b17f33500cecc63a1ff63db81cdbd50ce1a1))
+* manifest config should allow overriding labels ([#1303](https://github.com/googleapis/release-please/issues/1303)) ([f4d0314](https://github.com/googleapis/release-please/commit/f4d0314d1a394389a233ba9e1383852f0875dcd1)), closes [#1302](https://github.com/googleapis/release-please/issues/1302)
+
+### [13.4.11](https://github.com/googleapis/release-please/compare/v13.4.10...v13.4.11) (2022-02-18)
+
+
+### Bug Fixes
+
+* introduce file cache to simplify fetching files including file mode ([#1280](https://github.com/googleapis/release-please/issues/1280)) ([d7280b7](https://github.com/googleapis/release-please/commit/d7280b7eac3056e28399a0b80ea26002f0dff1b4))
+
+### [13.4.10](https://github.com/googleapis/release-please/compare/v13.4.9...v13.4.10) (2022-02-16)
+
+
+### Bug Fixes
+
+* **go-yoshi:** dynamically load list of ignored submodules for google-cloud-go ([#1291](https://github.com/googleapis/release-please/issues/1291)) ([36f6ad9](https://github.com/googleapis/release-please/commit/36f6ad94fe471e5a46cc46ebd6f5b5c581a29c2c))
+* manifest release can handle componentless entry ([#1300](https://github.com/googleapis/release-please/issues/1300)) ([6b58573](https://github.com/googleapis/release-please/commit/6b585734fe7b49f0e351b73b27260a304d6c80dd))
+* return uploadUrl and body when creating release ([#1298](https://github.com/googleapis/release-please/issues/1298)) ([5d767c5](https://github.com/googleapis/release-please/commit/5d767c536594a8e24d274a4268cda1f1aa3babff))
+
+### [13.4.9](https://github.com/googleapis/release-please/compare/v13.4.8...v13.4.9) (2022-02-14)
+
+
+### Bug Fixes
+
+* standalone releases should only be released by its matching component ([#1296](https://github.com/googleapis/release-please/issues/1296)) ([75dd686](https://github.com/googleapis/release-please/commit/75dd686a667da397b54498f543128d4cc6bb784e))
+
+### [13.4.8](https://github.com/googleapis/release-please/compare/v13.4.7...v13.4.8) (2022-02-08)
+
+
+### Bug Fixes
+
+* allow configuring includeComponentInTag and tagSeparator from manifest config ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* check recent commits and latest releases for latest version ([#1267](https://github.com/googleapis/release-please/issues/1267)) ([f931842](https://github.com/googleapis/release-please/commit/f931842a117c97dd117f161c89beb1c9e2257fa2))
+* correctly fetch full list of files ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* **go-yoshi:** allows using go-yoshi with manifest ([#1287](https://github.com/googleapis/release-please/issues/1287)) ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* **go-yoshi:** should not always skip modules ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* Manifest should be able to find tagged versions without a release ([71d9b6d](https://github.com/googleapis/release-please/commit/71d9b6d5775bb1a35157c7ec512ef4d1d9f7feec))
+* provide pull request to commit parser allow overrides ([#1285](https://github.com/googleapis/release-please/issues/1285)) ([e54028b](https://github.com/googleapis/release-please/commit/e54028bb39c4535f42b0b90c60b7f331847d005c))
+
+### [13.4.7](https://github.com/googleapis/release-please/compare/v13.4.6...v13.4.7) (2022-02-02)
+
+
+### Bug Fixes
+
+* php-yoshi strategy should handle custom changelog secctions ([#1277](https://github.com/googleapis/release-please/issues/1277)) ([bd74a5b](https://github.com/googleapis/release-please/commit/bd74a5b7b622a6cec0d64cbf9b9e01102dc835b2))
+
 ### [13.4.6](https://github.com/googleapis/release-please/compare/v13.4.5...v13.4.6) (2022-02-01)
 
 

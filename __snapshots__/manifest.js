@@ -72,6 +72,51 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['Manifest buildPullRequests should allow overriding commit message 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+### [1.0.1](https://github.com/fake-owner/fake-repo/compare/v1.0.0...v1.0.1) (1983-10-10)
+
+
+### Bug Fixes
+
+* real fix message ([def456](https://github.com/fake-owner/fake-repo/commit/def456))
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['Manifest buildPullRequests should handle mixing componentless configs 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>1.0.1</summary>
+
+### [1.0.1](https://github.com/fake-owner/fake-repo/compare/v1.0.0...v1.0.1) (1983-10-10)
+
+
+### Bug Fixes
+
+* some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+</details>
+
+<details><summary>pkg2: 0.2.4</summary>
+
+### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
+
+
+### Bug Fixes
+
+* some bugfix ([bbbbbb](https://github.com/fake-owner/fake-repo/commit/bbbbbb))
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['Manifest buildPullRequests should handle multiple package repository 1'] = `
 :robot: I have created a release *beep* *boop*
 ---

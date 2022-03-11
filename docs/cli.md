@@ -43,7 +43,7 @@ Extra options:
 | ------ | ---- | ----------- |
 | `--config-file` | `string` | Override the path to the release-please config file. Defaults to `release-please-config.json` |
 | `--manifest-file` | `string` | Override the path to the release-please manifest file. Defaults to `.release-please-manifest.json` |
-| `--path` | `string` | Path for changes to consider part of this component's release. Defaults to `.` |
+| `--path` | `string` | Path for changes to consider part of this component's release. Defaults to `.` Other paths should be relative to the repository root and not include `.` |
 | `--package-name` | `string` | Name of the package being released. Defaults to a value determined by the configured release type |
 | `--component` | `string` | Name of the component used for branch naming and release tagging. Defaults to a normalized version based on the package name |
 | `--release-type` | [`ReleaseType`](/docs/customizing.md#strategy-language-types-supported) | Language strategy that determines which files to update |
@@ -90,7 +90,7 @@ need to specify your release options:
 
 | Option | Type | Description |
 | ------ | ---- | ----------- |
-| `--path` | string | Path for changes to consider part of this component's release. Defaults to `.` |
+| `--path` | string | Path for changes to consider part of this component's release. Defaults to `.` Other paths should be relative to the repository root and not include `.` |
 | `--package-name` | string | Name of the package being released. Defaults to a value determined by the configured release type |
 | `--component` | string | Name of the component used for branch naming and release tagging. Defaults to a normalized version based on the package name |
 | `--release-type` | ReleaseType | Language strategy that determines which files to update |

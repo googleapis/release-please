@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease} from './github';
+import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit} from './commit';
 import {PullRequest} from './pull-request';
@@ -36,6 +36,7 @@ import {Strategy} from './strategy';
 import {PullRequestBody} from './util/pull-request-body';
 import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
+import {DuplicateReleaseError} from './errors';
 
 /**
  * These are configurations provided to each strategy per-path.
@@ -58,6 +59,7 @@ export interface ReleaserConfig {
   packageName?: string;
   includeComponentInTag?: boolean;
   pullRequestTitlePattern?: string;
+  tagSeparator?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -98,6 +100,7 @@ interface ReleaserConfigJson {
   'include-component-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'pull-request-title-pattern'?: string;
+  'tag-separator'?: string;
 
   // Ruby-only
   'version-file'?: string;
@@ -365,7 +368,6 @@ export class Manifest {
     for await (const release of this.github.releaseIterator({
       maxResults: 400,
     })) {
-      // logger.debug(release);
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
         logger.warn(`Unable to parse release name: ${release.name}`);
@@ -404,6 +406,25 @@ export class Manifest {
     }
 
     const needsBootstrap = releasesFound < expectedReleases;
+    if (releasesFound < expectedReleases) {
+      logger.warn(
+        `Expected ${expectedReleases} releases, only found ${releasesFound}`
+      );
+      // Fall back to looking for missing releases using expected tags
+      const missingPaths = Object.keys(strategiesByPath).filter(
+        path => !releasesByPath[path]
+      );
+      logger.warn(`Missing ${missingPaths.length} paths: ${missingPaths}`);
+      const missingReleases = await this.backfillReleasesFromTags(
+        missingPaths,
+        strategiesByPath
+      );
+      for (const path in missingReleases) {
+        releaseShasByPath[path] = missingReleases[path].sha;
+        releasesByPath[path] = missingReleases[path];
+        releasesFound++;
+      }
+    }
     if (releasesFound < expectedReleases) {
       logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -462,6 +483,7 @@ export class Manifest {
         sha: commit.sha,
         message: commit.message,
         files: commit.files,
+        pullRequest: commit.pullRequest,
       });
     }
 
@@ -571,6 +593,47 @@ export class Manifest {
     return newReleasePullRequests.map(
       pullRequestWithConfig => pullRequestWithConfig.pullRequest
     );
+  }
+
+  private async backfillReleasesFromTags(
+    missingPaths: string[],
+    strategiesByPath: Record<string, Strategy>
+  ): Promise<Record<string, Release>> {
+    const releasesByPath: Record<string, Release> = {};
+    const allTags = await this.getAllTags();
+    for (const path of missingPaths) {
+      const expectedVersion = this.releasedVersions[path];
+      if (!expectedVersion) {
+        logger.warn(`No version for path ${path}`);
+        continue;
+      }
+      const component = await strategiesByPath[path].getComponent();
+      const expectedTag = new TagName(
+        expectedVersion,
+        component,
+        this.repositoryConfig[path].tagSeparator
+      );
+      logger.debug(`looking for tagName: ${expectedTag.toString()}`);
+      const foundTag = allTags[expectedTag.toString()];
+      if (foundTag) {
+        logger.debug(`found: ${foundTag.name} ${foundTag.sha}`);
+        releasesByPath[path] = {
+          name: foundTag.name,
+          tag: expectedTag,
+          sha: foundTag.sha,
+          notes: '',
+        };
+      }
+    }
+    return releasesByPath;
+  }
+
+  private async getAllTags(): Promise<Record<string, GitHubTag>> {
+    const allTags: Record<string, GitHubTag> = {};
+    for await (const tag of this.github.tagIterator()) {
+      allTags[tag.name] = tag;
+    }
+    return allTags;
   }
 
   /**
@@ -698,30 +761,11 @@ export class Manifest {
     const generator = await this.findMergedReleasePullRequests();
     const releases: CandidateRelease[] = [];
     for await (const pullRequest of generator) {
-      logger.info('Looking at files touched by path');
-      const cs = new CommitSplit({
-        includeEmpty: true,
-        packagePaths: Object.keys(this.repositoryConfig),
-      });
-      const commits = [
-        {
-          sha: pullRequest.sha!,
-          message: pullRequest.title,
-          files: pullRequest.files,
-        },
-      ];
-      const commitsPerPath = cs.split(commits);
       for (const path in this.repositoryConfig) {
         const config = this.repositoryConfig[path];
         logger.info(`Building release for path: ${path}`);
         logger.debug(`type: ${config.releaseType}`);
         logger.debug(`targetBranch: ${this.targetBranch}`);
-        const pathCommits =
-          path === ROOT_PROJECT_PATH ? commits : commitsPerPath[path];
-        if (!pathCommits || pathCommits.length === 0) {
-          logger.info(`No commits for path: ${path}, skipping`);
-          continue;
-        }
         const strategy = strategiesByPath[path];
         const release = await strategy.buildRelease(pullRequest);
         if (release) {
@@ -735,6 +779,8 @@ export class Manifest {
               (!!release.tag.version.preRelease ||
                 release.tag.version.major === 0),
           });
+        } else {
+          logger.info(`No release necessary for path: ${path}`);
         }
       }
     }
@@ -783,7 +829,24 @@ export class Manifest {
     for (const release of releases) {
       promises.push(this.createRelease(release));
     }
-    const githubReleases = await Promise.all(promises);
+
+    const duplicateReleases: DuplicateReleaseError[] = [];
+    const githubReleases: CreatedRelease[] = [];
+    for (const promise of promises) {
+      try {
+        githubReleases.push(await promise);
+      } catch (err) {
+        if (err instanceof DuplicateReleaseError) {
+          logger.warn(`Duplicate release tag: ${err.tag}`);
+          duplicateReleases.push(err);
+        } else {
+          throw err;
+        }
+      }
+    }
+    if (duplicateReleases.length > 0 && githubReleases.length === 0) {
+      throw duplicateReleases[0];
+    }
 
     // adjust tags on pullRequest
     await Promise.all([
@@ -882,6 +945,7 @@ function extractReleaserConfig(
     includeComponentInTag: config['include-component-in-tag'],
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
+    tagSeparator: config['tag-separator'],
   };
 }
 
@@ -907,6 +971,8 @@ async function parseConfig(
       extractReleaserConfig(config.packages[path])
     );
   }
+  const configLabel = config['label'];
+  const configReleaseLabel = config['release-label'];
   const manifestOptions = {
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
@@ -914,6 +980,9 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
+    labels: configLabel === undefined ? undefined : [configLabel],
+    releaseLabels:
+      configReleaseLabel === undefined ? undefined : [configReleaseLabel],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
@@ -969,6 +1038,7 @@ async function latestReleaseVersion(
   // is in the current branch
   const commitShas = new Set<string>();
 
+  const candidateReleaseVersions: Version[] = [];
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
@@ -1005,13 +1075,18 @@ async function latestReleaseVersion(
       continue;
     }
 
-    return version;
+    if (version) {
+      logger.debug(
+        `Found latest release pull request: ${mergedPullRequest.number} version: ${version}`
+      );
+      candidateReleaseVersions.push(version);
+      break;
+    }
   }
 
   // If not found from recent pull requests, look at releases. Iterate
   // through releases finding valid tags, then cross reference
   const releaseGenerator = github.releaseIterator();
-  const candidateReleaseVersions: Version[] = [];
   for await (const release of releaseGenerator) {
     const tagName = TagName.parse(release.tagName);
     if (!tagName) {
@@ -1091,6 +1166,9 @@ function mergeReleaserConfig(
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
     extraFiles: pathConfig.extraFiles ?? defaultConfig.extraFiles,
+    includeComponentInTag:
+      pathConfig.includeComponentInTag ?? defaultConfig.includeComponentInTag,
+    tagSeparator: pathConfig.tagSeparator ?? defaultConfig.tagSeparator,
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
       defaultConfig.pullRequestTitlePattern,

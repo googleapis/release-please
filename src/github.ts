@@ -20,7 +20,11 @@ import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
 import {RequestError} from '@octokit/request-error';
-import {GitHubAPIError, DuplicateReleaseError} from './errors';
+import {
+  GitHubAPIError,
+  DuplicateReleaseError,
+  FileNotFoundError,
+} from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 export const GH_API_URL = 'https://api.github.com';
@@ -34,12 +38,16 @@ import {Update} from './update';
 import {Release} from './release';
 import {ROOT_PROJECT_PATH} from './manifest';
 import {signoffCommitMessage} from './util/signoff-commit-message';
+import {
+  RepositoryFileCache,
+  GitHubFileContents,
+  DEFAULT_FILE_MODE,
+} from './util/file-cache';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
 type DefaultFunctionType = RequestBuilderType['defaults'];
 type RequestFunctionType = ReturnType<DefaultFunctionType>;
-type RequestOptionsType = Parameters<DefaultFunctionType>[0];
 export interface OctokitAPIs {
   graphql: Function;
   request: RequestFunctionType;
@@ -59,12 +67,6 @@ interface GitHubCreateOptions {
   graphqlUrl?: string;
   octokitAPIs?: OctokitAPIs;
   token?: string;
-}
-
-export interface GitHubFileContents {
-  sha: string;
-  content: string;
-  parsedContent: string;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -95,6 +97,9 @@ interface GraphQLPullRequest {
     nodes: {
       path: string;
     }[];
+    pageInfo: {
+      hasNextPage: boolean;
+    };
   };
 }
 
@@ -160,6 +165,7 @@ export interface GitHubRelease {
   notes?: string;
   url: string;
   draft?: boolean;
+  uploadUrl?: string;
 }
 
 export interface GitHubTag {
@@ -172,12 +178,14 @@ export class GitHub {
   private octokit: OctokitType;
   private request: RequestFunctionType;
   private graphql: Function;
+  private fileCache: RepositoryFileCache;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
     this.octokit = options.octokitAPIs.octokit;
     this.request = options.octokitAPIs.request;
     this.graphql = options.octokitAPIs.graphql;
+    this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
   }
 
   /**
@@ -387,7 +395,7 @@ export class GitHub {
       repo: this.repository.repo,
       num: 25,
       targetBranch,
-      maxFilesChanged: 64,
+      maxFilesChanged: 100, // max is 100
     });
 
     // if the branch does exist, return null
@@ -420,9 +428,14 @@ export class GitHub {
           labels: pullRequest.labels.nodes.map(node => node.name),
           files,
         };
-        // We cannot directly fetch files on commits via graphql, only provide file
-        // information for commits with associated pull requests
-        commit.files = files;
+        if (pullRequest.files.pageInfo?.hasNextPage && options.backfillFiles) {
+          logger.info(`PR #${pullRequest.number} has many files, backfilling`);
+          commit.files = await this.getCommitFiles(graphCommit.sha);
+        } else {
+          // We cannot directly fetch files on commits via graphql, only provide file
+          // information for commits with associated pull requests
+          commit.files = files;
+        }
       } else if (options.backfillFiles) {
         // In this case, there is no squashed merge commit. This could be a simple
         // merge commit, a rebase merge commit, or a direct commit to the branch.
@@ -447,13 +460,29 @@ export class GitHub {
    */
   getCommitFiles = wrapAsync(async (sha: string): Promise<string[]> => {
     logger.debug(`Backfilling file list for commit: ${sha}`);
-    const resp = await this.octokit.repos.getCommit({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      ref: sha,
-    });
-    const files = resp.data.files || [];
-    return files.map(file => file.filename!).filter(filename => !!filename);
+    const files: string[] = [];
+    for await (const resp of this.octokit.paginate.iterator(
+      this.octokit.repos.getCommit,
+      {
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        ref: sha,
+      }
+    )) {
+      for (const f of resp.data.files || []) {
+        if (f.filename) {
+          files.push(f.filename);
+        }
+      }
+    }
+    if (files.length >= 3000) {
+      logger.warn(
+        `Found ${files.length} files. This may not include all the files.`
+      );
+    } else {
+      logger.debug(`Found ${files.length} files`);
+    }
+    return files;
   });
 
   private graphqlRequest = wrapAsync(
@@ -730,80 +759,6 @@ export class GitHub {
   }
 
   /**
-   * Fetch the contents of a file with the Contents API
-   *
-   * @param {string} path The path to the file in the repository
-   * @param {string} branch The branch to fetch from
-   * @returns {GitHubFileContents}
-   * @throws {GitHubAPIError} on other API errors
-   */
-  getFileContentsWithSimpleAPI = wrapAsync(
-    async (
-      path: string,
-      ref: string,
-      isBranch = true
-    ): Promise<GitHubFileContents> => {
-      ref = isBranch ? fullyQualifyBranchRef(ref) : ref;
-      const options: RequestOptionsType = {
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        path,
-        ref,
-      };
-      const resp = await this.request(
-        'GET /repos/:owner/:repo/contents/:path',
-        options
-      );
-      return {
-        parsedContent: Buffer.from(resp.data.content, 'base64').toString(
-          'utf8'
-        ),
-        content: resp.data.content,
-        sha: resp.data.sha,
-      };
-    }
-  );
-
-  /**
-   * Fetch the contents of a file using the Git data API
-   *
-   * @param {string} path The path to the file in the repository
-   * @param {string} branch The branch to fetch from
-   * @returns {GitHubFileContents}
-   * @throws {GitHubAPIError} on other API errors
-   */
-  getFileContentsWithDataAPI = wrapAsync(
-    async (path: string, branch: string): Promise<GitHubFileContents> => {
-      const repoTree = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: branch,
-      });
-
-      const blobDescriptor = repoTree.data.tree.find(
-        tree => tree.path === path
-      );
-      if (!blobDescriptor) {
-        throw new Error(`Could not find requested path: ${path}`);
-      }
-
-      const resp = await this.octokit.git.getBlob({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        file_sha: blobDescriptor.sha!,
-      });
-
-      return {
-        parsedContent: Buffer.from(resp.data.content, 'base64').toString(
-          'utf8'
-        ),
-        content: resp.data.content,
-        sha: resp.data.sha,
-      };
-    }
-  );
-
-  /**
    * Fetch the contents of a file
    *
    * @param {string} path The path to the file in the repository
@@ -816,14 +771,7 @@ export class GitHub {
     branch: string
   ): Promise<GitHubFileContents> {
     logger.debug(`Fetching ${path} from branch ${branch}`);
-    try {
-      return await this.getFileContentsWithSimpleAPI(path, branch);
-    } catch (err) {
-      if (err.status === 403) {
-        return await this.getFileContentsWithDataAPI(path, branch);
-      }
-      throw err;
-    }
+    return await this.fileCache.getFileContents(path, branch);
   }
 
   async getFileJson<T>(path: string, branch: string): Promise<T> {
@@ -1083,21 +1031,14 @@ export class GitHub {
   ): Promise<Changes> {
     const changes = new Map();
     for (const update of updates) {
-      let content;
+      let content: GitHubFileContents | undefined;
       try {
-        if (update.cachedFileContents) {
-          // we already loaded the file contents earlier, let's not
-          // hit GitHub again.
-          content = {data: update.cachedFileContents};
-        } else {
-          const fileContent = await this.getFileContentsOnBranch(
-            update.path,
-            defaultBranch
-          );
-          content = {data: fileContent};
-        }
+        content = await this.getFileContentsOnBranch(
+          update.path,
+          defaultBranch
+        );
       } catch (err) {
-        if (err.status !== 404) throw err;
+        if (!(err instanceof FileNotFoundError)) throw err;
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
         if (!update.createIfMissing) {
@@ -1106,13 +1047,13 @@ export class GitHub {
         }
       }
       const contentText = content
-        ? Buffer.from(content.data.content, 'base64').toString('utf8')
+        ? Buffer.from(content.content, 'base64').toString('utf8')
         : undefined;
       const updatedContent = update.updater.updateContent(contentText);
       if (updatedContent) {
         changes.set(update.path, {
           content: updatedContent,
-          mode: '100644',
+          mode: content?.mode || DEFAULT_FILE_MODE,
         });
       }
     }
@@ -1222,9 +1163,14 @@ export class GitHub {
         name: resp.data.name || undefined,
         tagName: resp.data.tag_name,
         sha: resp.data.target_commitish,
-        notes: resp.data.body_text,
+        notes:
+          resp.data.body_text ||
+          resp.data.body ||
+          resp.data.body_html ||
+          undefined,
         url: resp.data.html_url,
         draft: resp.data.draft,
+        uploadUrl: resp.data.upload_url,
       };
     },
     e => {
@@ -1329,19 +1275,6 @@ export class GitHub {
     });
     return resp.data.body;
   }
-}
-
-// Takes a potentially unqualified branch name, and turns it
-// into a fully qualified ref.
-//
-// e.g. main -> refs/heads/main
-function fullyQualifyBranchRef(refName: string): string {
-  let final = refName;
-  if (final.indexOf('/') < 0) {
-    final = `refs/heads/${final}`;
-  }
-
-  return final;
 }
 
 /**

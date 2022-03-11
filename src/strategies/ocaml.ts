@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../github';
+import {GitHubFileContents} from '../util/file-cache';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -63,6 +63,20 @@ export class OCaml extends BaseStrategy {
 
     const opamPaths = await this.github.findFilesByExtension('opam', this.path);
     opamPaths.filter(notEsyLock).forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new Opam({
+          version,
+        }),
+      });
+    });
+
+    const opamLockedPaths = await this.github.findFilesByExtension(
+      'opam.locked',
+      this.path
+    );
+    opamLockedPaths.filter(notEsyLock).forEach(path => {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,

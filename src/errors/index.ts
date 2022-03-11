@@ -51,6 +51,7 @@ export class GitHubAPIError extends Error {
     this.body = GitHubAPIError.parseErrorBody(requestError);
     this.name = GitHubAPIError.name;
     this.cause = requestError;
+    this.stack = requestError.stack;
   }
 
   static parseErrorBody(
@@ -79,5 +80,14 @@ export class DuplicateReleaseError extends GitHubAPIError {
     super(requestError);
     this.tag = tag;
     this.name = DuplicateReleaseError.name;
+  }
+}
+
+export class FileNotFoundError extends Error {
+  path: string;
+  constructor(path: string) {
+    super(`Failed to find file: ${path}`);
+    this.path = path;
+    this.name = FileNotFoundError.name;
   }
 }

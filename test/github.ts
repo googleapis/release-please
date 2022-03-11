@@ -27,8 +27,16 @@ import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
 import assert = require('assert');
-import {DuplicateReleaseError, GitHubAPIError} from '../src/errors';
+import {
+  DuplicateReleaseError,
+  GitHubAPIError,
+  FileNotFoundError,
+} from '../src/errors';
 import {fail} from 'assert';
+import {PullRequestBody} from '../src/util/pull-request-body';
+import {PullRequestTitle} from '../src/util/pull-request-title';
+import * as codeSuggester from 'code-suggester';
+import {RawContent} from '../src/updaters/raw-content';
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -180,16 +188,6 @@ describe('GitHub', () => {
 
   describe('getFileContents', () => {
     it('should support Github Data API in case of a big file', async () => {
-      const simpleAPIResponse = JSON.parse(
-        readFileSync(
-          resolve(
-            fixturesPath,
-            'github-data-api',
-            '403-too-large-file-response.json'
-          ),
-          'utf8'
-        )
-      );
       const dataAPITreesResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -212,11 +210,7 @@ describe('GitHub', () => {
       );
 
       req
-        .get(
-          '/repos/fake/fake/contents/package-lock.json?ref=refs%2Fheads%2Fmain'
-        )
-        .reply(403, simpleAPIResponse)
-        .get('/repos/fake/fake/git/trees/main')
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, dataAPITreesResponse)
         .get(
           '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
@@ -230,57 +224,6 @@ describe('GitHub', () => {
         .to.have.property('sha')
         .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
       snapshot(fileContents);
-      req.done();
-    });
-  });
-
-  describe('getFileContentsWithSimpleAPI', () => {
-    const setupReq = (ref: string) => {
-      req
-        .get(
-          `/repos/fake/fake/contents/release-please-manifest.json?ref=${ref}`
-        )
-        .reply(200, {
-          sha: 'abc123',
-          content: Buffer.from('I am a manifest').toString('base64'),
-        });
-      return req;
-    };
-    it('gets a file using shorthand branch name', async () => {
-      const req = setupReq('refs%2Fheads%2Fmain');
-      const ghFile = await github.getFileContentsWithSimpleAPI(
-        'release-please-manifest.json',
-        'main'
-      );
-      expect(ghFile)
-        .to.have.property('parsedContent')
-        .to.equal('I am a manifest');
-      expect(ghFile).to.have.property('sha').to.equal('abc123');
-      req.done();
-    });
-    it('gets a file using fully qualified branch name', async () => {
-      const req = setupReq('refs%2Fheads%2Fmain');
-      const ghFile = await github.getFileContentsWithSimpleAPI(
-        'release-please-manifest.json',
-        'refs/heads/main'
-      );
-      expect(ghFile)
-        .to.have.property('parsedContent')
-        .to.equal('I am a manifest');
-      expect(ghFile).to.have.property('sha').to.equal('abc123');
-      req.done();
-    });
-    it('gets a file using a non-branch "ref"', async () => {
-      const req = setupReq('abc123');
-      const ghFile = await github.getFileContentsWithSimpleAPI(
-        'release-please-manifest.json',
-        'abc123',
-        false
-      );
-      expect(ghFile)
-        .to.have.property('parsedContent')
-        .to.equal('I am a manifest');
-      expect(ghFile).to.have.property('sha').to.equal('abc123');
       req.done();
     });
   });
@@ -452,6 +395,36 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('backfills commit files for pull requests with lots of files', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-since-many-files.json'),
+          'utf8'
+        )
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
+        .get(
+          '/repos/fake/fake/commits/e6daec403626c9987c7af0d97b34f324cd84320a'
+        )
+        .reply(200, {files: [{filename: 'abc'}]});
+      const targetBranch = 'main';
+      const commitsSinceSha = await github.commitsSince(
+        targetBranch,
+        commit => {
+          // this commit is the 2nd most recent
+          return commit.sha === 'b29149f890e6f76ee31ed128585744d4c598924c';
+        },
+        {backfillFiles: true}
+      );
+      expect(commitsSinceSha.length).to.eql(1);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
   });
 
   describe('getCommitFiles', () => {
@@ -461,6 +434,23 @@ describe('GitHub', () => {
         .reply(200, {files: [{filename: 'abc'}]});
       const files = await github.getCommitFiles('abc123');
       expect(files).to.eql(['abc']);
+      req.done();
+    });
+
+    it('paginates', async () => {
+      req
+        .get('/repos/fake/fake/commits/abc123')
+        .reply(
+          200,
+          {files: [{filename: 'abc'}]},
+          {
+            link: '<https://api.github.com/repos/fake/fake/commits/abc123?page=2>; rel="next", <https://api.github.com/repos/fake/fake/commits/abc123?page=2>; rel="last"',
+          }
+        )
+        .get('/repos/fake/fake/commits/abc123?page=2')
+        .reply(200, {files: [{filename: 'def'}]});
+      const files = await github.getCommitFiles('abc123');
+      expect(files).to.eql(['abc', 'def']);
       req.done();
     });
   });
@@ -557,6 +547,7 @@ describe('GitHub', () => {
           upload_url:
             'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}',
           target_commitish: 'abc123',
+          body: 'Some release notes response.',
         });
       const release = await github.createRelease({
         tag: new TagName(Version.parse('1.2.3')),
@@ -578,6 +569,10 @@ describe('GitHub', () => {
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
+      expect(release.uploadUrl).to.eql(
+        'https://uploads.github.com/repos/fake/fake/releases/1/assets{?name,label}'
+      );
+      expect(release.notes).to.eql('Some release notes response.');
     });
 
     it('should raise a DuplicateReleaseError if already_exists', async () => {
@@ -787,6 +782,136 @@ describe('GitHub', () => {
       expect(notes).to.eql(
         '##Changes in Release v1.0.0 ... ##Contributors @monalisa'
       );
+    });
+  });
+
+  describe('createReleasePullRequest', () => {
+    it('should update file', async () => {
+      const createPullRequestStub = sandbox
+        .stub(codeSuggester, 'createPullRequest')
+        .resolves(1);
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('existing-file', 'main')
+        .resolves({
+          sha: 'abc123',
+          content: 'somecontent',
+          parsedContent: 'somecontent',
+          mode: '100644',
+        });
+      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
+        title: 'created title',
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 1,
+        body: 'some body',
+        labels: [],
+        files: [],
+      });
+      const pullRequest = await github.createReleasePullRequest(
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([]),
+          labels: [],
+          headRefName: 'release-please--branches--main',
+          draft: false,
+          updates: [
+            {
+              path: 'existing-file',
+              createIfMissing: false,
+              updater: new RawContent('some content'),
+            },
+          ],
+        },
+        'main'
+      );
+      expect(pullRequest.number).to.eql(1);
+      sinon.assert.calledOnce(createPullRequestStub);
+      const changes = createPullRequestStub.getCall(0).args[1];
+      expect(changes).to.not.be.undefined;
+      expect(changes!.size).to.eql(1);
+      expect(changes!.get('existing-file')).to.not.be.undefined;
+    });
+    it('should handle missing files', async () => {
+      const createPullRequestStub = sandbox
+        .stub(codeSuggester, 'createPullRequest')
+        .resolves(1);
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('missing-file', 'main')
+        .rejects(new FileNotFoundError('missing-file'));
+      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
+        title: 'created title',
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 1,
+        body: 'some body',
+        labels: [],
+        files: [],
+      });
+      const pullRequest = await github.createReleasePullRequest(
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([]),
+          labels: [],
+          headRefName: 'release-please--branches--main',
+          draft: false,
+          updates: [
+            {
+              path: 'missing-file',
+              createIfMissing: false,
+              updater: new RawContent('some content'),
+            },
+          ],
+        },
+        'main'
+      );
+      expect(pullRequest.number).to.eql(1);
+      sinon.assert.calledOnce(createPullRequestStub);
+      const changes = createPullRequestStub.getCall(0).args[1];
+      expect(changes).to.not.be.undefined;
+      expect(changes!.size).to.eql(0);
+    });
+    it('should create missing file', async () => {
+      const createPullRequestStub = sandbox
+        .stub(codeSuggester, 'createPullRequest')
+        .resolves(1);
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('missing-file', 'main')
+        .rejects(new FileNotFoundError('missing-file'));
+      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
+        title: 'created title',
+        headBranchName: 'release-please--branches--main',
+        baseBranchName: 'main',
+        number: 1,
+        body: 'some body',
+        labels: [],
+        files: [],
+      });
+      const pullRequest = await github.createReleasePullRequest(
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([]),
+          labels: [],
+          headRefName: 'release-please--branches--main',
+          draft: false,
+          updates: [
+            {
+              path: 'missing-file',
+              createIfMissing: true,
+              updater: new RawContent('some content'),
+            },
+          ],
+        },
+        'main'
+      );
+      expect(pullRequest.number).to.eql(1);
+      sinon.assert.calledOnce(createPullRequestStub);
+      const changes = createPullRequestStub.getCall(0).args[1];
+      expect(changes).to.not.be.undefined;
+      expect(changes!.size).to.eql(1);
+      expect(changes!.get('missing-file')).to.not.be.undefined;
     });
   });
 });

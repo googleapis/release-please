@@ -10,14 +10,14 @@
       "url": "https://api.github.com/repos/testOwner/testRepo/git/trees/cc64165cf5da91810ab7edc1143a47be42513c0a"
     },
     {
-      "path": "subdir1",
+      "path": "pkg/a",
       "mode": "040000",
       "type": "tree",
       "sha": "0ab7edc1143a47be42513c0acc64165cf5da9181",
       "url": "https://api.github.com/repos/testOwner/testRepo/git/trees/0ab7edc1143a47be42513c0acc64165cf5da9181"
     },
     {
-      "path": ".gitignore",
+      "path": "pkg/a/foo.json",
       "mode": "100644",
       "type": "blob",
       "sha": "3c3629e647f5ddf82548912e337bea9826b434af",
@@ -25,7 +25,14 @@
       "url": "https://api.github.com/repos/testOwner/testRepo/git/blobs/3c3629e647f5ddf82548912e337bea9826b434af"
     },
     {
-      "path": "package-lock.json",
+      "path": "pkg/b",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "7bf49f81aca0df9ffc49524a213a2dc332f3d2c4",
+      "url": "https://api.github.com/repos/testOwner/testRepo/git/trees/7bf49f81aca0df9ffc49524a213a2dc332f3d2c4"
+    },
+    {
+      "path": "pkg/b/foo.json",
       "mode": "100644",
       "type": "blob",
       "sha": "2f3d2c47bf49f81aca0df9ffc49524a213a2dc33",

@@ -54,6 +54,24 @@ describe('PullRequestBody', () => {
       expect(releaseData[3].version?.toString()).to.eql('2.1.0');
       expect(releaseData[3].notes).matches(/^### Features/);
     });
+    it('should parse multiple components mixed with componentless', () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './mixed-componentless-manifest.txt'),
+        'utf8'
+      );
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      const releaseData = pullRequestBody!.releaseData;
+      expect(releaseData).lengthOf(2);
+      expect(releaseData[0].component).to.be.undefined;
+      expect(releaseData[0].version?.toString()).to.eql('3.2.0');
+      expect(releaseData[0].notes).matches(/^### Features/);
+      expect(releaseData[1].component).to.eql(
+        '@google-automations/label-utils'
+      );
+      expect(releaseData[1].version?.toString()).to.eql('1.1.0');
+      expect(releaseData[1].notes).matches(/^### Features/);
+    });
     it('should parse single component from legacy manifest release', () => {
       const body = readFileSync(
         resolve(fixturesPath, './single-manifest.txt'),
@@ -190,6 +208,22 @@ describe('PullRequestBody', () => {
       expect(pullRequestBody2?.releaseData).to.eql(data);
       expect(pullRequestBody2?.header).to.eql('My special header!!!');
       expect(pullRequestBody2?.footer).to.eql('A custom footer');
+    });
+
+    it('can handle componently entries', () => {
+      const data = [
+        {
+          version: Version.parse('1.2.3'),
+          notes: 'some special notes go here',
+        },
+        {
+          component: 'pkg2',
+          version: Version.parse('2.0.0'),
+          notes: 'more special notes go here',
+        },
+      ];
+      const pullRequestBody = new PullRequestBody(data);
+      snapshot(pullRequestBody.toString());
     });
   });
 });
