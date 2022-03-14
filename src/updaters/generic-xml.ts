@@ -35,7 +35,7 @@ export class GenericXml implements Updater {
     const iterator = xpath.evaluate(this.xpath, document, null, 0, null);
     let node: Node | null;
     let updated = false;
-    while (node = iterator.iterateNext()) {
+    while ((node = iterator.iterateNext())) {
       node.textContent = this.version.toString();
       updated = true;
     }

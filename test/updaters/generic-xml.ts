@@ -18,7 +18,7 @@ import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
 import {GenericXml} from '../../src/updaters/generic-xml';
-import {expect, assert} from 'chai';
+import {expect} from 'chai';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -29,7 +29,10 @@ describe('GenericXml', () => {
         resolve(fixturesPath, './Foo.csproj'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const updater = new GenericXml('//Project/PropertyGroup/Version', Version.parse('v2.3.4'));
+      const updater = new GenericXml(
+        '//Project/PropertyGroup/Version',
+        Version.parse('v2.3.4')
+      );
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
@@ -38,7 +41,10 @@ describe('GenericXml', () => {
         resolve(fixturesPath, './Foo.csproj'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const updater = new GenericXml('//project/nonExistent', Version.parse('v2.3.4'));
+      const updater = new GenericXml(
+        '//project/nonExistent',
+        Version.parse('v2.3.4')
+      );
       const newContent = updater.updateContent(oldContent);
       expect(newContent).to.eql(oldContent);
     });

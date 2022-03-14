@@ -38,6 +38,7 @@ import {PullRequest} from '../pull-request';
 import {mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
+import {GenericXml} from '../updaters/generic-xml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -305,8 +306,18 @@ export abstract class BaseStrategy implements Strategy {
               createIfMissing: false,
               updater: new GenericJson(extraFile.jsonpath, version),
             };
+          case 'xml':
+            return {
+              path: this.addPath(extraFile.path),
+              createIfMissing: false,
+              updater: new GenericXml(extraFile.xpath, version),
+            };
           default:
-            throw new Error(`unsupported extraFile type: ${extraFile.type}`);
+            throw new Error(
+              `unsupported extraFile type: ${
+                (extraFile as {type: string}).type
+              }`
+            );
         }
       }
       return {

@@ -43,7 +43,12 @@ type ExtraJsonFile = {
   path: string;
   jsonpath: string;
 };
-export type ExtraFile = string | ExtraJsonFile;
+type ExtraXmlFile = {
+  type: 'xml';
+  path: string;
+  xpath: string;
+};
+export type ExtraFile = string | ExtraJsonFile | ExtraXmlFile;
 /**
  * These are configurations provided to each strategy per-path.
  */
