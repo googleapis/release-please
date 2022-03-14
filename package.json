@@ -47,6 +47,7 @@
     "@types/pino": "^7.0.0",
     "@types/semver": "^7.0.0",
     "@types/sinon": "^10.0.0",
+    "@types/xmldom": "^0.1.31",
     "@types/yargs": "^17.0.0",
     "c8": "^7.0.0",
     "chai": "^4.2.0",
@@ -85,6 +86,8 @@
     "typescript": "^3.8.3",
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
+    "xmldom": "^0.6.0",
+    "xpath": "^0.0.32",
     "yargs": "^17.0.0"
   },
   "engines": {
