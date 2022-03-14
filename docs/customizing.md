@@ -144,3 +144,26 @@ You can annotate a block by starting with a line containing:
 
 and close the block with a line containing `x-release-please-end`. Within
 the block, we will attempt to replace version values.
+
+## Updating arbitrary JSON files
+
+For most release strategies, you can provide additional files to update
+using the [GenericJson](/src/updaters/generic-json.ts) updater. You can
+specify a configuration object in the `extra-files` option in the manifest
+configuration.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "json",
+      "path": "path/to/file.json",
+      "jsonpath": "$.json.path.to.field"
+    }
+  ]
+}
+```
+
+[JSONPath](https://goessner.net/articles/JsonPath/) is a simple query syntax
+for JSON that is similar to XPath for XML. The `jsonpath` configuration
+informs release-please on which JSON field to update with the new version.

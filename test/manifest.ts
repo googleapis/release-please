@@ -281,6 +281,50 @@ describe('Manifest', () => {
       ).to.eql('/');
     });
 
+    it('should read extra files from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/extra-files.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].extraFiles).to.eql([
+        'default.txt',
+        {
+          type: 'json',
+          path: 'path/default.json',
+          jsonpath: '$.version',
+        },
+      ]);
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].extraFiles
+      ).to.eql([
+        'foo.txt',
+        {
+          type: 'json',
+          path: 'path/bar.json',
+          jsonpath: '$.version',
+        },
+      ]);
+    });
+
     it('should read custom include component in tag from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
