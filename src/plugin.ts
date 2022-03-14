@@ -14,6 +14,9 @@
 
 import {GitHub} from './github';
 import {CandidateReleasePullRequest, RepositoryConfig} from './manifest';
+import {Strategy} from './strategy';
+import {Commit} from './commit';
+import {Release} from './release';
 
 /**
  * A plugin runs after a repository manifest has built candidate
@@ -40,7 +43,22 @@ export abstract class ManifestPlugin {
    * @param {CandidateReleasePullRequest[]} pullRequests Candidate pull requests
    * @returns {CandidateReleasePullRequest[]} Updated pull requests
    */
-  abstract run(
+  async run(
     pullRequests: CandidateReleasePullRequest[]
-  ): Promise<CandidateReleasePullRequest[]>;
+  ): Promise<CandidateReleasePullRequest[]> {
+    return pullRequests;
+  }
+
+  /**
+   * Pre-configure strategies.
+   * @param {Record<string, Strategy>} strategiesByPath Strategies indexed by path
+   * @returns {Record<string, Strategy>} Updated strategies indexed by path
+   */
+  async preconfigure(
+    strategiesByPath: Record<string, Strategy>,
+    _commitsByPath: Record<string, Commit[]>,
+    _releasesByPath: Record<string, Release>
+  ): Promise<Record<string, Strategy>> {
+    return strategiesByPath;
+  }
 }

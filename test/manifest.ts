@@ -14,9 +14,8 @@
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
 import {Manifest} from '../src/manifest';
-import {GitHub, GitHubRelease, GitHubTag, ReleaseOptions} from '../src/github';
+import {GitHub, ReleaseOptions} from '../src/github';
 import * as sinon from 'sinon';
-import {Commit} from '../src/commit';
 import {
   buildGitHubFileContent,
   buildGitHubFileRaw,
@@ -24,6 +23,9 @@ import {
   assertHasUpdate,
   dateSafe,
   safeSnapshot,
+  mockCommits,
+  mockReleases,
+  mockTags,
 } from './helpers';
 import {expect} from 'chai';
 import {Version} from '../src/version';
@@ -43,33 +45,6 @@ import {RequestError} from '@octokit/request-error';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
-
-function mockCommits(github: GitHub, commits: Commit[]) {
-  async function* fakeGenerator() {
-    for (const commit of commits) {
-      yield commit;
-    }
-  }
-  sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
-}
-
-function mockReleases(github: GitHub, releases: GitHubRelease[]) {
-  async function* fakeGenerator() {
-    for (const release of releases) {
-      yield release;
-    }
-  }
-  sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
-}
-
-function mockTags(github: GitHub, tags: GitHubTag[]) {
-  async function* fakeGenerator() {
-    for (const tag of tags) {
-      yield tag;
-    }
-  }
-  sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
-}
 
 function mockPullRequests(
   github: GitHub,
@@ -355,30 +330,93 @@ describe('Manifest', () => {
           .includeComponentInTag
       ).to.be.true;
     });
-  });
-
-  it('should read custom labels from manifest', async () => {
-    const getFileContentsStub = sandbox.stub(github, 'getFileContentsOnBranch');
-    getFileContentsStub
-      .withArgs('release-please-config.json', 'main')
-      .resolves(
-        buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
-      )
-      .withArgs('.release-please-manifest.json', 'main')
-      .resolves(
-        buildGitHubFileContent(fixturesPath, 'manifest/versions/versions.json')
+    it('should read custom labels from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
       );
-    const manifest = await Manifest.fromManifest(
-      github,
-      github.repository.defaultBranch
-    );
-    expect(manifest['labels']).to.deep.equal(['custom: pending']);
-    expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['labels']).to.deep.equal(['custom: pending']);
+      expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+    });
+    it('should build simple plugins from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/plugins.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['plugins']).to.deep.equal([
+        'node-workspace',
+        'cargo-workspace',
+      ]);
+    });
+    it('should build complex plugins from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/complex-plugins.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['plugins']).to.deep.equal([
+        {
+          type: 'linked-versions',
+          groupName: 'grouped components',
+          components: ['pkg2', 'pkg3'],
+        },
+      ]);
+    });
   });
 
   describe('fromConfig', () => {
     it('should pass strategy options to the strategy', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -394,7 +432,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'v1.2.3',
           sha: 'abc123',
@@ -411,7 +449,7 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
     });
     it('should find custom release pull request title', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -427,7 +465,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'v1.2.3',
           sha: 'abc123',
@@ -447,7 +485,7 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
     });
     it('finds previous release without tag', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -463,7 +501,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'v1.2.3',
           sha: 'abc123',
@@ -482,7 +520,7 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
     });
     it('finds previous release with tag', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -498,7 +536,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'foobar-v1.2.3',
           sha: 'abc123',
@@ -517,7 +555,7 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
     });
     it('finds manually tagged release', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -533,7 +571,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'other-v3.3.3',
           sha: 'abc123',
@@ -558,7 +596,7 @@ describe('Manifest', () => {
       );
     });
     it('finds legacy tags', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -574,8 +612,8 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, []);
-      mockTags(github, [
+      mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, [
         {
           name: 'other-v3.3.3',
           sha: 'abc123',
@@ -599,7 +637,7 @@ describe('Manifest', () => {
       );
     });
     it('ignores manually tagged release if commit not found', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -615,14 +653,14 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'other-v3.3.3',
           sha: 'def234',
           url: 'http://path/to/release',
         },
       ]);
-      mockTags(github, []);
+      mockTags(sandbox, github, []);
 
       const manifest = await Manifest.fromConfig(github, 'target-branch', {
         releaseType: 'simple',
@@ -636,7 +674,7 @@ describe('Manifest', () => {
         .to.be.empty;
     });
     it('finds largest manually tagged release', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -666,7 +704,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'other-v3.3.3',
           sha: 'abc123',
@@ -696,7 +734,7 @@ describe('Manifest', () => {
       );
     });
     it('finds largest found tagged', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -726,8 +764,8 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, []);
-      mockTags(github, [
+      mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, [
         {
           name: 'other-v3.3.3',
           sha: 'abc123',
@@ -755,7 +793,7 @@ describe('Manifest', () => {
       );
     });
     it('finds manually tagged release commit over earlier automated commit', async () => {
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'abc123',
           message: 'some commit message',
@@ -781,7 +819,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           tagName: 'v3.3.2',
           sha: 'def234',
@@ -793,7 +831,7 @@ describe('Manifest', () => {
           url: 'http://path/to/release',
         },
       ]);
-      mockTags(github, []);
+      mockTags(sandbox, github, []);
 
       const manifest = await Manifest.fromConfig(github, 'target-branch', {
         releaseType: 'simple',
@@ -814,14 +852,14 @@ describe('Manifest', () => {
   describe('buildPullRequests', () => {
     describe('with basic config', () => {
       beforeEach(() => {
-        mockReleases(github, [
+        mockReleases(sandbox, github, [
           {
             sha: 'abc123',
             tagName: 'v1.0.0',
             url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
           },
         ]);
-        mockCommits(github, [
+        mockCommits(sandbox, github, [
           {
             sha: 'def456',
             message: 'fix: some bugfix',
@@ -872,7 +910,7 @@ describe('Manifest', () => {
       });
 
       it('should honour the manifestFile argument in Manifest.fromManifest', async () => {
-        mockTags(github, []);
+        mockTags(sandbox, github, []);
         const getFileContentsStub = sandbox.stub(
           github,
           'getFileContentsOnBranch'
@@ -987,14 +1025,14 @@ describe('Manifest', () => {
     });
 
     it('should find the component from config', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'def456',
           message: 'fix: some bugfix',
@@ -1050,7 +1088,7 @@ describe('Manifest', () => {
     });
 
     it('should handle multiple package repository', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
@@ -1062,7 +1100,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1134,7 +1172,7 @@ describe('Manifest', () => {
     });
 
     it('should allow creating multiple pull requests', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
@@ -1146,7 +1184,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1221,7 +1259,7 @@ describe('Manifest', () => {
     });
 
     it('should allow forcing release-as on a single component', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
@@ -1233,7 +1271,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1312,7 +1350,7 @@ describe('Manifest', () => {
     });
 
     it('should allow forcing release-as on entire manifest', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
@@ -1324,7 +1362,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1403,8 +1441,8 @@ describe('Manifest', () => {
     });
 
     it('should allow specifying a bootstrap sha', async () => {
-      mockReleases(github, []);
-      mockCommits(github, [
+      mockReleases(sandbox, github, []);
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix 1',
@@ -1426,7 +1464,7 @@ describe('Manifest', () => {
           files: ['path/b/foo'],
         },
       ]);
-      mockTags(github, []);
+      mockTags(sandbox, github, []);
       const config = {
         'bootstrap-sha': 'cccccc',
         'separate-pull-requests': true,
@@ -1458,7 +1496,7 @@ describe('Manifest', () => {
     });
 
     it('should allow specifying a last release sha', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
@@ -1470,7 +1508,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1517,7 +1555,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      mockTags(github, []);
+      mockTags(sandbox, github, []);
       const config = {
         'last-release-sha': 'bbbbbb',
         'separate-pull-requests': true,
@@ -1549,7 +1587,7 @@ describe('Manifest', () => {
     });
 
     it('should allow customizing pull request title with root package', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
@@ -1576,7 +1614,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/root-v1.2.1',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1660,7 +1698,7 @@ describe('Manifest', () => {
     });
 
     it('should allow customizing pull request title without root package', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'pkg1-v1.0.0',
@@ -1677,7 +1715,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1752,8 +1790,8 @@ describe('Manifest', () => {
     });
 
     it('should read latest version from manifest if no release tag found', async () => {
-      mockReleases(github, []);
-      mockCommits(github, [
+      mockReleases(sandbox, github, []);
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
@@ -1765,7 +1803,7 @@ describe('Manifest', () => {
           files: ['path/a/foo'],
         },
       ]);
-      mockTags(github, []);
+      mockTags(sandbox, github, []);
       const config = {
         packages: {
           'path/a': {
@@ -1800,14 +1838,14 @@ describe('Manifest', () => {
 
     describe('without commits', () => {
       beforeEach(() => {
-        mockReleases(github, [
+        mockReleases(sandbox, github, [
           {
             sha: 'abc123',
             tagName: 'v1.0.0',
             url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
           },
         ]);
-        mockCommits(github, []);
+        mockCommits(sandbox, github, []);
       });
       it('should ignore by default', async () => {
         const manifest = new Manifest(
@@ -1863,9 +1901,9 @@ describe('Manifest', () => {
     });
 
     it('should handle extra files', async () => {
-      mockReleases(github, []);
-      mockTags(github, []);
-      mockCommits(github, [
+      mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, []);
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: a bugfix',
@@ -1929,14 +1967,14 @@ describe('Manifest', () => {
     });
 
     it('should allow overriding commit message', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'v1.0.0',
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/v1.0.0',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'def456',
           message: 'fix: some bugfix',
@@ -1991,7 +2029,7 @@ describe('Manifest', () => {
 
     describe('with plugins', () => {
       beforeEach(() => {
-        mockReleases(github, [
+        mockReleases(sandbox, github, [
           {
             sha: 'abc123',
             tagName: 'pkg1-v1.0.0',
@@ -2003,7 +2041,7 @@ describe('Manifest', () => {
             url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
           },
         ]);
-        mockCommits(github, [
+        mockCommits(sandbox, github, [
           {
             sha: 'aaaaaa',
             message: 'fix: some bugfix',
@@ -2079,6 +2117,7 @@ describe('Manifest', () => {
         );
         const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
         mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
         sandbox
           .stub(factory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
@@ -2115,8 +2154,10 @@ describe('Manifest', () => {
         );
         const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
         mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
         const mockPlugin2 = sandbox.createStubInstance(CargoWorkspace);
         mockPlugin2.run.returnsArg(0);
+        mockPlugin2.preconfigure.returnsArg(0);
         sandbox
           .stub(factory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
@@ -2131,14 +2172,14 @@ describe('Manifest', () => {
     });
 
     it('should fallback to tagged version', async () => {
-      mockReleases(github, []);
-      mockTags(github, [
+      mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, [
         {
           name: 'pkg1-v1.0.0',
           sha: 'abc123',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'def456',
           message: 'fix: some bugfix',
@@ -2194,7 +2235,7 @@ describe('Manifest', () => {
     });
 
     it('should handle mixing componentless configs', async () => {
-      mockReleases(github, [
+      mockReleases(sandbox, github, [
         {
           sha: 'abc123',
           tagName: 'v1.0.0',
@@ -2206,7 +2247,7 @@ describe('Manifest', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
         },
       ]);
-      mockCommits(github, [
+      mockCommits(sandbox, github, [
         {
           sha: 'aaaaaa',
           message: 'fix: some bugfix',
