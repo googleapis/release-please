@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "13.4.15",
+  "version": "13.5.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -41,6 +41,7 @@
     "@types/chai": "^4.1.7",
     "@types/iarna__toml": "^2.0.1",
     "@types/js-yaml": "^4.0.0",
+    "@types/jsonpath": "^0.2.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.0.0",
     "@types/pino": "^7.0.0",
@@ -76,6 +77,7 @@
     "detect-indent": "^6.1.0",
     "figures": "^3.0.0",
     "js-yaml": "^4.0.0",
+    "jsonpath": "^1.1.1",
     "node-html-parser": "^5.0.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",

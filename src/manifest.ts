@@ -38,6 +38,12 @@ import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {DuplicateReleaseError} from './errors';
 
+type ExtraJsonFile = {
+  type: 'json';
+  path: string;
+  jsonpath: string;
+};
+export type ExtraFile = string | ExtraJsonFile;
 /**
  * These are configurations provided to each strategy per-path.
  */
@@ -69,7 +75,7 @@ export interface ReleaserConfig {
   // Ruby-only
   versionFile?: string;
   // Java-only
-  extraFiles?: string[];
+  extraFiles?: ExtraFile[];
 }
 
 export interface CandidateReleasePullRequest {
