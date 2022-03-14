@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {describe, it, beforeEach} from 'mocha';
-import {buildStrategy, getReleaserTypes} from '../src/factory';
+import {buildStrategy, getReleaserTypes, buildPlugin} from '../src/factory';
 import {GitHub} from '../src/github';
 import {expect} from 'chai';
 import {Simple} from '../src/strategies/simple';
@@ -26,6 +26,8 @@ import {ServicePackVersioningStrategy} from '../src/versioning-strategies/servic
 import {DependencyManifest} from '../src/versioning-strategies/dependency-manifest';
 import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {DefaultChangelogNotes} from '../src/changelog-notes/default';
+import {PluginType, RepositoryConfig} from '../src/manifest';
+import {LinkedVersions} from '../src/plugins/linked-versions';
 
 describe('factory', () => {
   let github: GitHub;
@@ -198,14 +200,48 @@ describe('factory', () => {
         expect(strategy).to.not.be.undefined;
       });
     }
-  });
-  it('should customize a version-file for Simple', async () => {
-    const strategy = await buildStrategy({
-      github,
-      releaseType: 'simple',
-      versionFile: 'foo/bar',
+    it('should customize a version-file for Simple', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'simple',
+        versionFile: 'foo/bar',
+      });
+      expect(strategy).instanceof(Simple);
+      expect((strategy as Simple).versionFile).to.eql('foo/bar');
     });
-    expect(strategy).instanceof(Simple);
-    expect((strategy as Simple).versionFile).to.eql('foo/bar');
+  });
+  describe('buildPlugin', () => {
+    const simplePluginTypes: PluginType[] = [
+      'cargo-workspace',
+      'node-workspace',
+    ];
+    const repositoryConfig: RepositoryConfig = {
+      '.': {releaseType: 'simple'},
+    };
+    for (const pluginType of simplePluginTypes) {
+      it(`should build a simple ${pluginType}`, () => {
+        const plugin = buildPlugin({
+          github,
+          type: pluginType,
+          targetBranch: 'target-branch',
+          repositoryConfig,
+        });
+        expect(plugin).to.not.be.undefined;
+      });
+    }
+    it('should build a linked-versions config', () => {
+      const plugin = buildPlugin({
+        github,
+        type: {
+          type: 'linked-versions',
+          groupName: 'group-name',
+          components: ['pkg1', 'pkg2'],
+        },
+        targetBranch: 'target-branch',
+        repositoryConfig,
+      });
+      expect(plugin).to.not.be.undefined;
+      expect(plugin).instanceof(LinkedVersions);
+    });
   });
 });

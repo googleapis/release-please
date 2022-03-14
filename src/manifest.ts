@@ -137,7 +137,13 @@ interface ReleaserPackageConfig extends ReleaserConfigJson {
   'changelog-path'?: string;
 }
 
-export type PluginType = 'node-workspace' | 'cargo-workspace';
+type DirectPluginType = 'node-workspace' | 'cargo-workspace';
+interface LinkedVersionPluginConfig {
+  type: 'linked-versions';
+  groupName: string;
+  components: string[];
+}
+export type PluginType = DirectPluginType | LinkedVersionPluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -505,7 +511,57 @@ export class Manifest {
       includeEmpty: true,
       packagePaths: Object.keys(this.repositoryConfig),
     });
-    const commitsPerPath = cs.split(commits);
+    const splitCommits = cs.split(commits);
+
+    // limit paths to ones since the last release
+    const commitsPerPath: Record<string, Commit[]> = {};
+    for (const path in this.repositoryConfig) {
+      commitsPerPath[path] = commitsAfterSha(
+        path === ROOT_PROJECT_PATH ? commits : splitCommits[path],
+        releaseShasByPath[path]
+      );
+    }
+
+    // backfill latest release tags from manifest
+    for (const path in this.repositoryConfig) {
+      const latestRelease = releasesByPath[path];
+      if (
+        !latestRelease &&
+        this.releasedVersions[path] &&
+        this.releasedVersions[path].toString() !== '0.0.0'
+      ) {
+        const version = this.releasedVersions[path];
+        const strategy = strategiesByPath[path];
+        const component = await strategy.getComponent();
+        logger.info(
+          `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
+        );
+        releasesByPath[path] = {
+          tag: new TagName(version, component),
+          sha: '',
+          notes: '',
+        };
+      }
+    }
+
+    // Build plugins
+    const plugins = this.plugins.map(pluginType =>
+      buildPlugin({
+        type: pluginType,
+        github: this.github,
+        targetBranch: this.targetBranch,
+        repositoryConfig: this.repositoryConfig,
+      })
+    );
+
+    let strategies = strategiesByPath;
+    for (const plugin of plugins) {
+      strategies = await plugin.preconfigure(
+        strategies,
+        commitsPerPath,
+        releasesByPath
+      );
+    }
 
     let newReleasePullRequests: CandidateReleasePullRequest[] = [];
     for (const path in this.repositoryConfig) {
@@ -513,10 +569,7 @@ export class Manifest {
       logger.info(`Building candidate release pull request for path: ${path}`);
       logger.debug(`type: ${config.releaseType}`);
       logger.debug(`targetBranch: ${this.targetBranch}`);
-      const pathCommits = commitsAfterSha(
-        path === ROOT_PROJECT_PATH ? commits : commitsPerPath[path],
-        releaseShasByPath[path]
-      );
+      const pathCommits = commitsPerPath[path];
       logger.debug(`commits: ${pathCommits.length}`);
       const latestReleasePullRequest =
         releasePullRequestsBySha[releaseShasByPath[path]];
@@ -524,24 +577,8 @@ export class Manifest {
         logger.warn('No latest release pull request found.');
       }
 
-      const strategy = strategiesByPath[path];
-      let latestRelease = releasesByPath[path];
-      if (
-        !latestRelease &&
-        this.releasedVersions[path] &&
-        this.releasedVersions[path].toString() !== '0.0.0'
-      ) {
-        const version = this.releasedVersions[path];
-        const component = await strategy.getComponent();
-        logger.info(
-          `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
-        );
-        latestRelease = {
-          tag: new TagName(version, component),
-          sha: '',
-          notes: '',
-        };
-      }
+      const strategy = strategies[path];
+      const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
         pathCommits,
         latestRelease,
@@ -568,16 +605,6 @@ export class Manifest {
         });
       }
     }
-
-    // Build plugins
-    const plugins = this.plugins.map(pluginType =>
-      buildPlugin({
-        type: pluginType,
-        github: this.github,
-        targetBranch: this.targetBranch,
-        repositoryConfig: this.repositoryConfig,
-      })
-    );
 
     // Combine pull requests into 1 unless configured for separate
     // pull requests

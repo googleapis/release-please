@@ -21,7 +21,7 @@ import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {Octokit} from '@octokit/rest';
 import {Commit} from '../src/commit';
-import {GitHub} from '../src/github';
+import {GitHub, GitHubTag, GitHubRelease} from '../src/github';
 import {Update} from '../src/update';
 import {expect} from 'chai';
 import {CandidateReleasePullRequest} from '../src/manifest';
@@ -299,4 +299,43 @@ export function buildMockCandidatePullRequest(
       releaseType,
     },
   };
+}
+
+export function mockCommits(
+  sandbox: sinon.SinonSandbox,
+  github: GitHub,
+  commits: Commit[]
+) {
+  async function* fakeGenerator() {
+    for (const commit of commits) {
+      yield commit;
+    }
+  }
+  sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
+}
+
+export function mockReleases(
+  sandbox: sinon.SinonSandbox,
+  github: GitHub,
+  releases: GitHubRelease[]
+) {
+  async function* fakeGenerator() {
+    for (const release of releases) {
+      yield release;
+    }
+  }
+  sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
+}
+
+export function mockTags(
+  sandbox: sinon.SinonSandbox,
+  github: GitHub,
+  tags: GitHubTag[]
+) {
+  async function* fakeGenerator() {
+    for (const tag of tags) {
+      yield tag;
+    }
+  }
+  sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
 }
