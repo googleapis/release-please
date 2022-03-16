@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.6.0](https://github.com/googleapis/release-please/compare/v13.5.0...v13.6.0) (2022-03-16)
+
+
+### Features
+
+* add linked-versions plugin for grouping components ([#1327](https://github.com/googleapis/release-please/issues/1327)) ([f398bdf](https://github.com/googleapis/release-please/commit/f398bdffdae69772c61a82cd7158cca3478c2110))
+* introduce generic json updater ([#1332](https://github.com/googleapis/release-please/issues/1332)) ([ecbfcf0](https://github.com/googleapis/release-please/commit/ecbfcf03f7854ced3ace5eafd95f7872ddee1d14))
+* introduce generic xml updater ([#1337](https://github.com/googleapis/release-please/issues/1337)) ([02ef78b](https://github.com/googleapis/release-please/commit/02ef78b4d6a855236ff80fc139fd00a46f88d445))
+
 ## [13.5.0](https://github.com/googleapis/release-please/compare/v13.4.15...v13.5.0) (2022-03-08)
 
 
