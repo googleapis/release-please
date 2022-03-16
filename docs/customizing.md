@@ -167,3 +167,22 @@ configuration.
 [JSONPath](https://goessner.net/articles/JsonPath/) is a simple query syntax
 for JSON that is similar to XPath for XML. The `jsonpath` configuration
 informs release-please on which JSON field to update with the new version.
+
+## Updating arbitrary XML files
+
+For most release strategies, you can provide additional files to update
+using the [GenericXml](/src/updaters/generic-xml.ts) updater. You can
+specify a configuration object in the `extra-files` option in the manifest
+configuration.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "xml",
+      "path": "path/to/file.xml",
+      "xpath": "//xpath/to/field"
+    }
+  ]
+}
+```
