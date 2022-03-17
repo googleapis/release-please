@@ -69,6 +69,25 @@ of parsed commits.
 To add a new changelog type, create a new class that implements the
 [`ChangelogNotes` interface](/src/changelog-notes.ts).
 
+### Customizing Changelog Types and Releaseable Units
+
+To change the "releasable units" for your code, you can [customise the changelog sections](https://github.com/google-github-actions/release-please-action#overriding-the-changelog-sections) for your project.
+
+For example, if I wanted to release when I have `docs` changes on my Node.js project, I could update the GitHub Actions Workflow like so:
+
+```yaml
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: node
+          package-name: My Package
+          # Include 'docs' for releases and in the changelog
+          changelog-types: '[{"type":"feat","section":"Features","hidden":false},{"type":"docs","section":"Documentation","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false}]'
+```
+
 ## Pull Requests
 
 ### Opening as a draft pull request
