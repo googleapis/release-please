@@ -20,6 +20,7 @@ import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
 import {
   ROOT_PROJECT_PATH,
   MANIFEST_PULL_REQUEST_TITLE_PATTERN,
+  ExtraFile,
 } from '../manifest';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
@@ -36,6 +37,8 @@ import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {PullRequest} from '../pull-request';
 import {mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
+import {GenericJson} from '../updaters/generic-json';
+import {GenericXml} from '../updaters/generic-xml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -65,7 +68,7 @@ export interface BaseStrategyOptions {
   changelogNotes?: ChangelogNotes;
   includeComponentInTag?: boolean;
   pullRequestTitlePattern?: string;
-  extraFiles?: string[];
+  extraFiles?: ExtraFile[];
 }
 
 /**
@@ -86,7 +89,7 @@ export abstract class BaseStrategy implements Strategy {
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
   private pullRequestTitlePattern?: string;
-  readonly extraFiles: string[];
+  readonly extraFiles: ExtraFile[];
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -294,12 +297,35 @@ export abstract class BaseStrategy implements Strategy {
   }
 
   private extraFileUpdates(version: Version): Update[] {
-    const genericUpdater = new Generic({version});
-    return this.extraFiles.map(path => ({
-      path: this.addPath(path),
-      createIfMissing: false,
-      updater: genericUpdater,
-    }));
+    return this.extraFiles.map(extraFile => {
+      if (typeof extraFile === 'object') {
+        switch (extraFile.type) {
+          case 'json':
+            return {
+              path: this.addPath(extraFile.path),
+              createIfMissing: false,
+              updater: new GenericJson(extraFile.jsonpath, version),
+            };
+          case 'xml':
+            return {
+              path: this.addPath(extraFile.path),
+              createIfMissing: false,
+              updater: new GenericXml(extraFile.xpath, version),
+            };
+          default:
+            throw new Error(
+              `unsupported extraFile type: ${
+                (extraFile as {type: string}).type
+              }`
+            );
+        }
+      }
+      return {
+        path: this.addPath(extraFile),
+        createIfMissing: false,
+        updater: new Generic({version}),
+      };
+    });
   }
 
   protected changelogEmpty(changelogEntry: string): boolean {

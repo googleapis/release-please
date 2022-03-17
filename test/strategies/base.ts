@@ -20,7 +20,10 @@ import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import snapshot = require('snap-shot-it');
-import {dateSafe} from '../helpers';
+import {dateSafe, assertHasUpdate} from '../helpers';
+import {GenericJson} from '../../src/updaters/generic-json';
+import {Generic} from '../../src/updaters/generic';
+import {GenericXml} from '../../src/updaters/generic-xml';
 
 const sandbox = sinon.createSandbox();
 
@@ -91,6 +94,40 @@ describe('Strategy', () => {
           'foo/baz/bar',
         ])
         .and.not.include('foo/baz/bar/', 'expected file but got directory');
+    });
+    it('updates extra JSON files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['0', {type: 'json', path: '/3.json', jsonpath: '$.foo'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, '3.json', GenericJson);
+    });
+    it('updates extra Xml files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['0', {type: 'xml', path: '/3.xml', xpath: '$.foo'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, '3.xml', GenericXml);
     });
     it('rejects relative extra files', async () => {
       const extraFiles = [

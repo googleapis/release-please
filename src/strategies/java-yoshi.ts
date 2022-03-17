@@ -265,9 +265,12 @@ export class JavaYoshi extends BaseStrategy {
       });
     });
 
-    this.extraFiles.forEach(path => {
+    this.extraFiles.forEach(extraFile => {
+      if (typeof extraFile === 'object') {
+        return;
+      }
       updates.push({
-        path,
+        path: extraFile,
         createIfMissing: false,
         updater: new JavaUpdate({
           version,
