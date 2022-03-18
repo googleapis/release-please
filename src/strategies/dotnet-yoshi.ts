@@ -15,7 +15,6 @@
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
-import {CsProj} from '../updaters/dotnet/csproj';
 import {Apis} from '../updaters/dotnet/apis';
 import {logger} from '../util/logger';
 import {ConventionalCommit} from '../commit';
@@ -91,14 +90,6 @@ export class DotnetYoshi extends BaseStrategy {
       );
       return updates;
     }
-
-    updates.push({
-      path: this.addPath(`${this.component}.csproj`),
-      createIfMissing: false,
-      updater: new CsProj({
-        version,
-      }),
-    });
 
     updates.push({
       path: 'apis/apis.json',

@@ -23,7 +23,6 @@ import {TagName} from '../../src/util/tag-name';
 import {Changelog} from '../../src/updaters/changelog';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Apis} from '../../src/updaters/dotnet/apis';
-import {CsProj} from '../../src/updaters/dotnet/csproj';
 
 const sandbox = sinon.createSandbox();
 
@@ -105,16 +104,11 @@ describe('DotnetYoshi', () => {
         latestRelease
       );
       const updates = pullRequest!.updates;
-      expect(updates).lengthOf(3);
+      expect(updates).lengthOf(2);
       const changelogUpdate = assertHasUpdate(
         updates,
         'apis/Google.Cloud.SecurityCenter.V1/docs/history.md',
         Changelog
-      );
-      assertHasUpdate(
-        updates,
-        'apis/Google.Cloud.SecurityCenter.V1/Google.Cloud.SecurityCenter.V1.csproj',
-        CsProj
       );
       assertHasUpdate(updates, 'apis/apis.json', Apis);
       safeSnapshot((changelogUpdate.updater as Changelog).changelogEntry);
