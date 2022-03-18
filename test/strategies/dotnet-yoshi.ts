@@ -17,7 +17,12 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {DotnetYoshi} from '../../src/strategies/dotnet-yoshi';
 import * as sinon from 'sinon';
-import {assertHasUpdate, safeSnapshot} from '../helpers';
+import {
+  assertHasUpdate,
+  safeSnapshot,
+  buildGitHubFileContent,
+  assertNoHasUpdate,
+} from '../helpers';
 import {buildMockCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Changelog} from '../../src/updaters/changelog';
@@ -25,6 +30,7 @@ import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Apis} from '../../src/updaters/dotnet/apis';
 
 const sandbox = sinon.createSandbox();
+const fixturesPath = './test/fixtures/strategies/dotnet-yoshi';
 
 const COMMITS = [
   buildMockCommit(
@@ -49,6 +55,12 @@ describe('DotnetYoshi', () => {
     sandbox.restore();
   });
   describe('buildReleasePullRequest', () => {
+    beforeEach(() => {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('apis/apis.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
+    });
     it('returns release PR changes with defaultInitialVersion', async () => {
       const expectedVersion = '1.0.0';
       const expectedTitle =
@@ -98,6 +110,10 @@ describe('DotnetYoshi', () => {
         path: 'apis/Google.Cloud.SecurityCenter.V1',
         component: 'Google.Cloud.SecurityCenter.V1',
       });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('apis/apis.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
       const latestRelease = undefined;
       const pullRequest = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -112,6 +128,30 @@ describe('DotnetYoshi', () => {
       );
       assertHasUpdate(updates, 'apis/apis.json', Apis);
       safeSnapshot((changelogUpdate.updater as Changelog).changelogEntry);
+    });
+    it('skips changelog for configured libraries', async () => {
+      const strategy = new DotnetYoshi({
+        targetBranch: 'main',
+        github,
+        path: 'apis/Google.Cloud.Spanner.Admin.Database.V1',
+        component: 'Google.Cloud.Spanner.Admin.Database.V1',
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('apis/apis.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
+      const latestRelease = undefined;
+      const pullRequest = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = pullRequest!.updates;
+      expect(updates).lengthOf(1);
+      assertNoHasUpdate(
+        updates,
+        'apis/Google.Cloud.SecurityCenter.V1/docs/history.md'
+      );
+      assertHasUpdate(updates, 'apis/apis.json', Apis);
     });
   });
   describe('buildRelease', () => {

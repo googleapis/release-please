@@ -21,6 +21,7 @@ import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
+import {FileNotFoundError, MissingRequiredFileError} from '../errors';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'New features'},
@@ -40,6 +41,16 @@ const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
   'Release${component} version ${version}';
 const RELEASE_NOTES_HEADER_PATTERN =
   /#{2,3} \[?(\d+\.\d+\.\d+-?[^\]]*)\]?.* \((\d{4}-\d{2}-\d{2})\)/;
+
+interface Api {
+  id: string;
+  version: string;
+  noVersionHistory?: boolean;
+  shortName: string;
+}
+interface ApisJsonConfiguration {
+  apis: Api[];
+}
 
 export class DotnetYoshi extends BaseStrategy {
   constructor(options: BaseStrategyOptions) {
@@ -69,20 +80,49 @@ export class DotnetYoshi extends BaseStrategy {
     );
   }
 
+  private async getApi(): Promise<Api | undefined> {
+    try {
+      const contents = await this.github.getFileContentsOnBranch(
+        'apis/apis.json',
+        this.targetBranch
+      );
+      const apis = JSON.parse(contents.parsedContent) as ApisJsonConfiguration;
+      const component = await this.getComponent();
+      return apis.apis.find(api => api.id === component);
+    } catch (e) {
+      if (e instanceof FileNotFoundError) {
+        throw new MissingRequiredFileError(
+          'apis/apis.json',
+          DotnetYoshi.name,
+          `${this.repository.owner}/${this.repository.repo}`
+        );
+      }
+      throw e;
+    }
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
     const updates: Update[] = [];
     const version = options.newVersion;
+    const component = await this.getComponent();
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    const api = await this.getApi();
+    if (api?.noVersionHistory) {
+      logger.info(
+        `Skipping changelog for ${component} via noVersionHistory configuration`
+      );
+    } else {
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
+    }
 
     if (!this.component) {
       logger.warn(
