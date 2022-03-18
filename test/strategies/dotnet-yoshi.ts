@@ -15,7 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
 import {GitHub} from '../../src/github';
-import {Dotnet} from '../../src/strategies/dotnet';
+import {DotnetYoshi} from '../../src/strategies/dotnet-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, safeSnapshot} from '../helpers';
 import {buildMockCommit} from '../helpers';
@@ -37,7 +37,7 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
-describe('Dotnet', () => {
+describe('DotnetYoshi', () => {
   let github: GitHub;
   beforeEach(async () => {
     github = await GitHub.create({
@@ -54,7 +54,7 @@ describe('Dotnet', () => {
       const expectedVersion = '1.0.0';
       const expectedTitle =
         'Release Google.Cloud.SecurityCenter.V1 version 1.0.0';
-      const strategy = new Dotnet({
+      const strategy = new DotnetYoshi({
         targetBranch: 'main',
         github,
         component: 'Google.Cloud.SecurityCenter.V1',
@@ -72,7 +72,7 @@ describe('Dotnet', () => {
       const expectedVersion = '0.123.5';
       const expectedTitle =
         'Release Google.Cloud.SecurityCenter.V1 version 0.123.5';
-      const strategy = new Dotnet({
+      const strategy = new DotnetYoshi({
         targetBranch: 'main',
         github,
         component: 'Google.Cloud.SecurityCenter.V1',
@@ -93,7 +93,7 @@ describe('Dotnet', () => {
   });
   describe('buildUpdates', () => {
     it('builds common files', async () => {
-      const strategy = new Dotnet({
+      const strategy = new DotnetYoshi({
         targetBranch: 'main',
         github,
         path: 'apis/Google.Cloud.SecurityCenter.V1',
@@ -123,7 +123,7 @@ describe('Dotnet', () => {
   describe('buildRelease', () => {
     it('overrides the tag separator', async () => {
       const expectedReleaseTag = 'Google.Cloud.SecurityCenter.V1-0.123.5';
-      const strategy = new Dotnet({
+      const strategy = new DotnetYoshi({
         targetBranch: 'main',
         github,
         path: 'apis/Google.Cloud.SecurityCenter.V1',

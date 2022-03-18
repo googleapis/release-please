@@ -1,4 +1,4 @@
-exports['Dotnet buildReleasePullRequest returns release PR changes with defaultInitialVersion 1'] = `
+exports['DotnetYoshi buildReleasePullRequest returns release PR changes with defaultInitialVersion 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
 
@@ -15,7 +15,7 @@ exports['Dotnet buildReleasePullRequest returns release PR changes with defaultI
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
-exports['Dotnet buildReleasePullRequest returns release PR changes with semver patch bump 1'] = `
+exports['DotnetYoshi buildReleasePullRequest returns release PR changes with semver patch bump 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
 
@@ -32,7 +32,7 @@ exports['Dotnet buildReleasePullRequest returns release PR changes with semver p
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
-exports['Dotnet buildUpdates builds common files 1'] = `
+exports['DotnetYoshi buildUpdates builds common files 1'] = `
 ## Version 1.0.0, released 1983-10-10
 
 

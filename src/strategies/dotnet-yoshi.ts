@@ -42,7 +42,7 @@ const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
 const RELEASE_NOTES_HEADER_PATTERN =
   /#{2,3} \[?(\d+\.\d+\.\d+-?[^\]]*)\]?.* \((\d{4}-\d{2}-\d{2})\)/;
 
-export class Dotnet extends BaseStrategy {
+export class DotnetYoshi extends BaseStrategy {
   constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     options.changelogPath = options.changelogPath ?? DEFAULT_CHANGELOG_PATH;

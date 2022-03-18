@@ -36,7 +36,7 @@ Options:
                                                                         [string]
   --release-type                what type of repo is a release being created
                                 for?
-                 [choices: "dart", "dotnet", "elixir", "go", "go-yoshi", "helm",
+           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
          "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
     "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
                                                    "simple", "terraform-module"]
@@ -214,7 +214,7 @@ Options:
                                                                         [string]
   --release-type                    what type of repo is a release being created
                                     for?
-                 [choices: "dart", "dotnet", "elixir", "go", "go-yoshi", "helm",
+           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
          "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
     "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
                                                    "simple", "terraform-module"]
