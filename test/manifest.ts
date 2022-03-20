@@ -33,7 +33,7 @@ import {Version} from '../src/version';
 import {PullRequest} from '../src/pull-request';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
-import * as factory from '../src/factory';
+import * as pluginFactory from '../src/factories/plugin-factory';
 import {NodeWorkspace} from '../src/plugins/node-workspace';
 import {CargoWorkspace} from '../src/plugins/cargo-workspace';
 import {PullRequestTitle} from '../src/util/pull-request-title';
@@ -2355,7 +2355,7 @@ describe('Manifest', () => {
         mockPlugin.run.returnsArg(0);
         mockPlugin.preconfigure.returnsArg(0);
         sandbox
-          .stub(factory, 'buildPlugin')
+          .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
           .returns(mockPlugin);
         const pullRequests = await manifest.buildPullRequests();
@@ -2395,7 +2395,7 @@ describe('Manifest', () => {
         mockPlugin2.run.returnsArg(0);
         mockPlugin2.preconfigure.returnsArg(0);
         sandbox
-          .stub(factory, 'buildPlugin')
+          .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
           .returns(mockPlugin)
           .withArgs(sinon.match.has('type', 'cargo-workspace'))

@@ -151,13 +151,19 @@ interface ReleaserPackageConfig extends ReleaserConfigJson {
   'changelog-path'?: string;
 }
 
-type DirectPluginType = 'node-workspace' | 'cargo-workspace';
-interface LinkedVersionPluginConfig {
+export type DirectPluginType = string;
+export interface ConfigurablePluginType {
+  type: string;
+}
+export interface LinkedVersionPluginConfig extends ConfigurablePluginType {
   type: 'linked-versions';
   groupName: string;
   components: string[];
 }
-export type PluginType = DirectPluginType | LinkedVersionPluginConfig;
+export type PluginType =
+  | DirectPluginType
+  | ConfigurablePluginType
+  | LinkedVersionPluginConfig;
 
 /**
  * This is the schema of the manifest config json

@@ -23,7 +23,7 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {ConventionalCommit} from '../commit';
 import {Update} from '../update';
 
-interface RubyStrategyOptions extends BaseStrategyOptions {
+export interface RubyStrategyOptions extends BaseStrategyOptions {
   versionFile?: string;
 }
 

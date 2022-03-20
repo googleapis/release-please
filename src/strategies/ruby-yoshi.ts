@@ -42,7 +42,7 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-interface RubyYoshiStrategyOptions extends BaseStrategyOptions {
+export interface RubyYoshiStrategyOptions extends BaseStrategyOptions {
   versionFile?: string;
 }
 

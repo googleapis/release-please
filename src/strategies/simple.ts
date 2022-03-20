@@ -19,7 +19,7 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {DefaultUpdater} from '../updaters/default';
 
-interface SimpleStrategyOptions extends BaseStrategyOptions {
+export interface SimpleStrategyOptions extends BaseStrategyOptions {
   versionFile?: string;
 }
 
