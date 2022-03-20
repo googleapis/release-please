@@ -55,6 +55,9 @@ Options:
   --release-label               set a pull request label other than
                                 "autorelease: tagged"
                                        [string] [default: "autorelease: tagged"]
+  --snapshot-label              set a java snapshot pull request label other
+                                than "autorelease: snapshot"
+                                     [string] [default: "autorelease: snapshot"]
 `
 
 exports['CLI --help manifest-pr 1'] = `
@@ -127,6 +130,9 @@ Options:
                                                [default: "autorelease: pending"]
   --release-label   set a pull request label other than "autorelease: tagged"
                                        [string] [default: "autorelease: tagged"]
+  --snapshot-label  set a java snapshot pull request label other than
+                    "autorelease: snapshot"
+                                     [string] [default: "autorelease: snapshot"]
   --config-file     where can the config file be found in the project?
                                          [default: "release-please-config.json"]
   --manifest-file   where can the manifest file be found in the project?

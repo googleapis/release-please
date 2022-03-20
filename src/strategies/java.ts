@@ -28,6 +28,7 @@ import {PullRequestBody} from '../util/pull-request-body';
 import {VersioningStrategy} from '../versioning-strategy';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {JavaAddSnapshot} from '../versioning-strategies/java-add-snapshot';
+import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -49,8 +50,8 @@ export interface JavaBuildUpdatesOption extends BuildUpdatesOptions {
 }
 
 export class Java extends BaseStrategy {
-
   protected readonly snapshotVersioning: VersioningStrategy;
+  protected readonly snapshotLabels: string[];
 
   constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
@@ -60,6 +61,7 @@ export class Java extends BaseStrategy {
     options.versioningStrategy = new JavaSnapshot(parentVersioningStrategy);
     super(options);
     this.snapshotVersioning = new JavaAddSnapshot(parentVersioningStrategy);
+    this.snapshotLabels = options.snapshotLabels || DEFAULT_SNAPSHOT_LABELS;
   }
 
   async buildReleasePullRequest(
@@ -73,7 +75,7 @@ export class Java extends BaseStrategy {
       return await this.buildSnapshotPullRequest(
         latestRelease,
         draft,
-        []
+        this.snapshotLabels
       );
     }
     logger.info('No Java snapshot needed');

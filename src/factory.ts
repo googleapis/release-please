@@ -128,7 +128,7 @@ export async function buildStrategy(
     github: options.github,
     changelogSections: options.changelogSections,
   });
-  const strategyOptions = {
+  const strategyOptions: BaseStrategyOptions = {
     github: options.github,
     targetBranch,
     path: options.path,
@@ -146,6 +146,7 @@ export async function buildStrategy(
     pullRequestTitlePattern: options.pullRequestTitlePattern,
     extraFiles: options.extraFiles,
     tagSeparator: options.tagSeparator,
+    snapshotLabels: options.snapshotLabels,
   };
   switch (options.releaseType) {
     case 'ruby': {

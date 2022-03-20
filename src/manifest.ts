@@ -81,6 +81,7 @@ export interface ReleaserConfig {
   versionFile?: string;
   // Java-only
   extraFiles?: ExtraFile[];
+  snapshotLabels?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -108,6 +109,7 @@ interface ReleaserConfigJson {
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
+  'snapshot-label'?: string;
   'include-component-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'pull-request-title-pattern'?: string;
@@ -130,6 +132,7 @@ export interface ManifestOptions {
   manifestPath?: string;
   labels?: string[];
   releaseLabels?: string[];
+  snapshotLabels?: string[];
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
@@ -170,9 +173,10 @@ export type RepositoryConfig = Record<string, ReleaserConfig>;
 export const DEFAULT_RELEASE_PLEASE_CONFIG = 'release-please-config.json';
 export const DEFAULT_RELEASE_PLEASE_MANIFEST = '.release-please-manifest.json';
 export const ROOT_PROJECT_PATH = '.';
-const DEFAULT_COMPONENT_NAME = '';
-const DEFAULT_LABELS = ['autorelease: pending'];
-const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
+export const DEFAULT_COMPONENT_NAME = '';
+export const DEFAULT_LABELS = ['autorelease: pending'];
+export const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
+export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
@@ -195,6 +199,7 @@ export class Manifest {
   private signoffUser?: string;
   private labels: string[];
   private releaseLabels: string[];
+  private snapshotLabels: string[];
   private plugins: PluginType[];
   private _strategiesByPath?: Record<string, Strategy>;
   private _pathsByComponent?: Record<string, string>;
@@ -254,6 +259,8 @@ export class Manifest {
     this.releaseLabels =
       manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
     this.labels = manifestOptions?.labels || DEFAULT_LABELS;
+    this.snapshotLabels =
+      manifestOptions?.snapshotLabels || DEFAULT_SNAPSHOT_LABELS;
     this.bootstrapSha = manifestOptions?.bootstrapSha;
     this.lastReleaseSha = manifestOptions?.lastReleaseSha;
     this.draft = manifestOptions?.draft;
@@ -705,7 +712,8 @@ export class Manifest {
     );
     for await (const openPullRequest of generator) {
       if (
-        hasAllLabels(this.labels, openPullRequest.labels) &&
+        (hasAllLabels(this.labels, openPullRequest.labels) ||
+          hasAllLabels(this.snapshotLabels, openPullRequest.labels)) &&
         BranchName.parse(openPullRequest.headBranchName) &&
         PullRequestBody.parse(openPullRequest.body)
       ) {
@@ -1012,6 +1020,7 @@ async function parseConfig(
   }
   const configLabel = config['label'];
   const configReleaseLabel = config['release-label'];
+  const configSnapshotLabel = config['snapshot-label'];
   const manifestOptions = {
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
@@ -1022,6 +1031,8 @@ async function parseConfig(
     labels: configLabel === undefined ? undefined : [configLabel],
     releaseLabels:
       configReleaseLabel === undefined ? undefined : [configReleaseLabel],
+    snapshotLabels:
+      configSnapshotLabel === undefined ? undefined : [configSnapshotLabel],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
