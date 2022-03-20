@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ConventionalCommit} from './commit';
+import {Commit, ConventionalCommit} from './commit';
 
 export interface BuildNotesOptions {
   host?: string;
@@ -23,6 +23,7 @@ export interface BuildNotesOptions {
   currentTag: string;
   targetBranch: string;
   changelogSections?: ChangelogSection[];
+  commits?: Commit[];
 }
 
 export interface ChangelogNotes {
