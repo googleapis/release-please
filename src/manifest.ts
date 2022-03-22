@@ -173,6 +173,7 @@ export const ROOT_PROJECT_PATH = '.';
 const DEFAULT_COMPONENT_NAME = '';
 const DEFAULT_LABELS = ['autorelease: pending'];
 const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
+const SNOOZE_LABEL = 'autorelease: snooze';
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
@@ -713,21 +714,47 @@ export class Manifest {
     }
     logger.info(`found ${openPullRequests.length} open release pull requests.`);
 
+    const snoozedPullRequests: PullRequest[] = [];
+    const closedGenerator = this.github.pullRequestIterator(
+      this.targetBranch,
+      'CLOSED'
+    );
+    for await (const closedPullRequest of closedGenerator) {
+      if (
+        hasAllLabels([SNOOZE_LABEL], closedPullRequest.labels) &&
+        BranchName.parse(closedPullRequest.headBranchName) &&
+        PullRequestBody.parse(closedPullRequest.body)
+      ) {
+        snoozedPullRequests.push(closedPullRequest);
+      }
+    }
+
     const promises: Promise<PullRequest | undefined>[] = [];
     for (const pullRequest of candidatePullRequests) {
       promises.push(
-        this.createOrUpdatePullRequest(pullRequest, openPullRequests)
+        this.createOrUpdatePullRequest(
+          pullRequest,
+          openPullRequests,
+          snoozedPullRequests
+        )
       );
     }
-    return await Promise.all(promises);
+    const pullNumbers = await Promise.all(promises);
+    // reject any pull numbers that were not created or updated
+    return pullNumbers.filter(number => !!number);
   }
 
   private async createOrUpdatePullRequest(
     pullRequest: ReleasePullRequest,
-    openPullRequests: PullRequest[]
+    openPullRequests: PullRequest[],
+    snoozedPullRequests: PullRequest[]
   ): Promise<PullRequest | undefined> {
     // look for existing, open pull rquest
     const existing = openPullRequests.find(
+      openPullRequest =>
+        openPullRequest.headBranchName === pullRequest.headRefName
+    );
+    const snoozed = snoozedPullRequests.find(
       openPullRequest =>
         openPullRequest.headBranchName === pullRequest.headRefName
     );
@@ -748,6 +775,25 @@ export class Manifest {
           signoffUser: this.signoffUser,
         }
       );
+      return updatedPullRequest;
+    } else if (snoozed) {
+      // If unchanged, no need to push updates
+      if (snoozed.body === pullRequest.body.toString()) {
+        logger.info(
+          `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
+        );
+        return undefined;
+      }
+      const updatedPullRequest = await this.github.updatePullRequest(
+        snoozed.number,
+        pullRequest,
+        this.targetBranch,
+        {
+          fork: this.fork,
+          signoffUser: this.signoffUser,
+        }
+      );
+      await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
       return updatedPullRequest;
     } else {
       const newPullRequest = await this.github.createReleasePullRequest(
