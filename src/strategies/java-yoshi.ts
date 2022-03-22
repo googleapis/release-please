@@ -41,13 +41,6 @@ export class JavaYoshi extends Java {
     return VersionsManifest.parseVersions(this.versionsContent.parsedContent);
   }
 
-  protected async addComponentVersion(
-    versionMap: VersionsMap,
-    _version: Version
-  ): Promise<VersionsMap> {
-    return versionMap; // don't add current component to the map
-  }
-
   protected async getVersionsContent(): Promise<GitHubFileContents> {
     if (!this.versionsContent) {
       try {

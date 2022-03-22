@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Update} from '../update';
-import {Version, VersionsMap} from '../version';
+import {Version} from '../version';
 import {BaseStrategy, BaseStrategyOptions, BuildUpdatesOptions} from './base';
 import {Changelog} from '../updaters/changelog';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
@@ -97,10 +97,7 @@ export class Java extends BaseStrategy {
     const newVersion = latestRelease
       ? await this.snapshotVersioning.bump(latestRelease.tag.version, [])
       : this.initialReleaseVersion();
-    const versionsMap = await this.updateSnapshotsVersionsMap(
-      await this.buildVersionsMap([]),
-      newVersion
-    );
+    const versionsMap = await this.buildVersionsMap([]);
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
@@ -191,49 +188,6 @@ export class Java extends BaseStrategy {
       .map(pullRequest => pullRequest?.getVersion())
       .filter(Java.isSnapshot);
     return snapshotCommits.length === 0;
-  }
-
-  protected async updateVersionsMap(
-    versionsMap: VersionsMap,
-    conventionalCommits: ConventionalCommit[],
-    newVersion: Version
-  ): Promise<VersionsMap> {
-    versionsMap = await super.updateVersionsMap(
-      versionsMap,
-      conventionalCommits,
-      newVersion
-    );
-    return await this.addComponentVersion(versionsMap, newVersion);
-  }
-
-  protected async updateSnapshotsVersionsMap(
-    versionsMap: VersionsMap,
-    version: Version
-  ) {
-    for (const versionKey of versionsMap.keys()) {
-      const version = versionsMap.get(versionKey);
-      if (!version) {
-        logger.warn(`didn't find version for ${versionKey}`);
-        continue;
-      }
-      const newVersion = await this.snapshotVersioning.bump(version, []);
-      versionsMap.set(versionKey, newVersion);
-    }
-
-    return await this.addComponentVersion(versionsMap, version);
-  }
-
-  protected async addComponentVersion(
-    versionMap: VersionsMap,
-    version: Version
-  ): Promise<VersionsMap> {
-    // Don't use this.getComponent(), because that depends on includeComponentInTag, and we want an actual name
-    const component =
-      this.component || (await this.getDefaultComponent()) || '';
-    if (!versionMap.has(component)) {
-      versionMap.set(component, version);
-    }
-    return versionMap;
   }
 
   isValidRelease(version: Version): boolean {
