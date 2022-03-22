@@ -21,6 +21,7 @@ import {GitHubAPIError, MissingRequiredFileError} from '../errors';
 import {ConventionalCommit} from '../commit';
 import {logger} from '../util/logger';
 import {Java, JavaBuildUpdatesOption} from './java';
+import {JavaUpdate} from '../updaters/java/java-update';
 
 export class JavaYoshi extends Java {
   private versionsContent?: GitHubFileContents;
@@ -87,6 +88,22 @@ export class JavaYoshi extends Java {
     });
 
     return updates;
+  }
+
+  protected buildFileUpdates(
+    updates: Update[],
+    path: string,
+    options: JavaBuildUpdatesOption
+  ) {
+    updates.push({
+      path: this.addPath(path),
+      createIfMissing: false,
+      updater: new JavaUpdate({
+        version: options.newVersion,
+        versionsMap: options.versionsMap,
+        isSnapshot: options.isSnapshot,
+      }),
+    });
   }
 
   protected async updateVersionsMap(

@@ -14,7 +14,6 @@
 
 import {Update} from '../update';
 import {Version, VersionsMap} from '../version';
-import {JavaUpdate} from '../updaters/java/java-update';
 import {BaseStrategy, BaseStrategyOptions, BuildUpdatesOptions} from './base';
 import {Changelog} from '../updaters/changelog';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
@@ -29,6 +28,9 @@ import {VersioningStrategy} from '../versioning-strategy';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {JavaAddSnapshot} from '../versioning-strategies/java-add-snapshot';
 import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
+import {Generic} from '../updaters/generic';
+import {PomXml} from '../updaters/java/pom-xml';
+import {JavaReleased} from '../updaters/java/java-released';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -243,8 +245,6 @@ export class Java extends BaseStrategy {
     options: JavaBuildUpdatesOption
   ): Promise<Update[]> {
     const updates: Update[] = [];
-    const version = options.newVersion;
-    const versionsMap = options.versionsMap;
 
     const pomFilesSearch = this.github.findFilesByFilenameAndRef(
       'pom.xml',
@@ -262,71 +262,75 @@ export class Java extends BaseStrategy {
       this.path
     );
 
-    const pomFiles = await pomFilesSearch;
-    pomFiles.forEach(path => {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
-    });
-
-    const buildFiles = await buildFilesSearch;
-    buildFiles.forEach(path => {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
-    });
-
-    const dependenciesFiles = await dependenciesSearch;
-    dependenciesFiles.forEach(path => {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
-    });
-
-    this.extraFiles.forEach(extraFile => {
-      if (typeof extraFile === 'object') {
-        return;
-      }
-      updates.push({
-        path: extraFile,
-        createIfMissing: false,
-        updater: new JavaUpdate({
-          version,
-          versionsMap,
-          isSnapshot: options.isSnapshot,
-        }),
-      });
+    const allFiles = await Promise.all([
+      pomFilesSearch,
+      buildFilesSearch,
+      dependenciesSearch,
+    ]).then(result => result.flat());
+    allFiles.forEach(path => {
+      this.buildFileUpdates(updates, path, options);
     });
 
     if (!options.isSnapshot) {
+      this.extraFiles.forEach(extraFile => {
+        if (typeof extraFile === 'object') {
+          return;
+        }
+        // Note: Generic updater is added by base class
+        updates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new JavaReleased({
+            version: options.newVersion,
+            versionsMap: options.versionsMap,
+          }),
+        });
+      });
+
       updates.push({
         path: this.addPath(this.changelogPath),
         createIfMissing: true,
         updater: new Changelog({
-          version,
+          version: options.newVersion,
           changelogEntry: options.changelogEntry,
         }),
       });
     }
 
     return updates;
+  }
+
+  protected buildFileUpdates(
+    updates: Update[],
+    path: string,
+    options: JavaBuildUpdatesOption
+  ) {
+    if (path.match(/(^|\/|\\)pom.xml$/)) {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new PomXml(options.newVersion),
+      });
+    }
+
+    updates.push({
+      path: this.addPath(path),
+      createIfMissing: false,
+      updater: new Generic({
+        version: options.newVersion,
+        versionsMap: options.versionsMap,
+      }),
+    });
+
+    if (!options.isSnapshot) {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new JavaReleased({
+          version: options.newVersion,
+          versionsMap: options.versionsMap,
+        }),
+      });
+    }
   }
 }
