@@ -29,7 +29,6 @@ import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {JavaAddSnapshot} from '../versioning-strategies/java-add-snapshot';
 import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
 import {Generic} from '../updaters/generic';
-import {PomXml} from '../updaters/java/pom-xml';
 import {JavaReleased} from '../updaters/java/java-released';
 
 const CHANGELOG_SECTIONS = [
@@ -276,15 +275,7 @@ export class Java extends BaseStrategy {
         if (typeof extraFile === 'object') {
           return;
         }
-        // Note: Generic updater is added by base class
-        updates.push({
-          path: this.addPath(extraFile),
-          createIfMissing: false,
-          updater: new JavaReleased({
-            version: options.newVersion,
-            versionsMap: options.versionsMap,
-          }),
-        });
+        this.buildFileUpdates(updates, extraFile, options, true);
       });
 
       updates.push({
@@ -303,24 +294,19 @@ export class Java extends BaseStrategy {
   protected buildFileUpdates(
     updates: Update[],
     path: string,
-    options: JavaBuildUpdatesOption
+    options: JavaBuildUpdatesOption,
+    extraFile?: boolean
   ) {
-    if (path.match(/(^|\/|\\)pom.xml$/)) {
+    if (!extraFile) {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,
-        updater: new PomXml(options.newVersion),
+        updater: new Generic({
+          version: options.newVersion,
+          versionsMap: options.versionsMap,
+        }),
       });
     }
-
-    updates.push({
-      path: this.addPath(path),
-      createIfMissing: false,
-      updater: new Generic({
-        version: options.newVersion,
-        versionsMap: options.versionsMap,
-      }),
-    });
 
     if (!options.isSnapshot) {
       updates.push({

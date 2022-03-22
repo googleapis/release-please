@@ -46,6 +46,7 @@ import {DefaultChangelogNotes} from './changelog-notes/default';
 import {BaseStrategyOptions} from './strategies/base';
 import {LinkedVersions} from './plugins/linked-versions';
 import {Java} from './strategies/java';
+import {Maven} from './strategies/maven';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
@@ -63,6 +64,7 @@ const allReleaseTypes = [
   'java-lts',
   'java-yoshi',
   'krm-blueprint',
+  'maven',
   'node',
   'ocaml',
   'php',
@@ -83,6 +85,7 @@ const releasers: Releasers = {
   'java-yoshi': options => new JavaYoshi(options),
   java: options => new Java(options),
   'krm-blueprint': options => new KRMBlueprint(options),
+  maven: options => new Maven(options),
   node: options => new Node(options),
   ocaml: options => new OCaml(options),
   php: options => new PHP(options),
