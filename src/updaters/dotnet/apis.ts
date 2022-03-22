@@ -27,7 +27,8 @@ interface ApisDoc {
 }
 
 /**
- * Updates a .NET .csproj.
+ * Updates the apis.json format. See
+ * https://github.com/googleapis/google-cloud-dotnet/blob/main/apis/README.md.
  */
 export class Apis implements Updater {
   private version: Version;
