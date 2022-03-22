@@ -362,7 +362,10 @@ describe('Manifest', () => {
     });
 
     it('should read custom labels from manifest', async () => {
-      const getFileContentsStub = sandbox.stub(github, 'getFileContentsOnBranch');
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
       getFileContentsStub
         .withArgs('release-please-config.json', 'main')
         .resolves(
@@ -370,20 +373,23 @@ describe('Manifest', () => {
         )
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(
-          buildGitHubFileContent(fixturesPath, 'manifest/versions/versions.json')
-        );
-        getFileContentsStub
-          .withArgs('release-please-config.json', 'main')
-          .resolves(
-            buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
           )
-          .withArgs('.release-please-manifest.json', 'main')
-          .resolves(
-            buildGitHubFileContent(
-              fixturesPath,
-              'manifest/versions/versions.json'
-            )
-          );
+        );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
       const manifest = await Manifest.fromManifest(
         github,
         github.repository.defaultBranch
