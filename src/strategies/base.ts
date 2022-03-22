@@ -179,7 +179,8 @@ export abstract class BaseStrategy implements Strategy {
     conventionalCommits: ConventionalCommit[],
     newVersion: Version,
     newVersionTag: TagName,
-    latestRelease?: Release
+    latestRelease?: Release,
+    commits?: Commit[]
   ): Promise<string> {
     return await this.changelogNotes.buildNotes(conventionalCommits, {
       owner: this.repository.owner,
@@ -189,6 +190,7 @@ export abstract class BaseStrategy implements Strategy {
       currentTag: newVersionTag.toString(),
       targetBranch: this.targetBranch,
       changelogSections: this.changelogSections,
+      commits: commits,
     });
   }
 
@@ -265,7 +267,8 @@ export abstract class BaseStrategy implements Strategy {
       conventionalCommits,
       newVersion,
       newVersionTag,
-      latestRelease
+      latestRelease,
+      commits
     );
     if (this.changelogEmpty(releaseNotesBody)) {
       logger.info(

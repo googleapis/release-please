@@ -15,7 +15,7 @@
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
-import {ConventionalCommit} from '../commit';
+import {Commit, ConventionalCommit} from '../commit';
 import {Version} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
@@ -164,13 +164,15 @@ export class GoYoshi extends BaseStrategy {
     conventionalCommits: ConventionalCommit[],
     newVersion: Version,
     newVersionTag: TagName,
-    latestRelease?: Release
+    latestRelease?: Release,
+    commits?: Commit[]
   ): Promise<string> {
     const releaseNotes = await super.buildReleaseNotes(
       conventionalCommits,
       newVersion,
       newVersionTag,
-      latestRelease
+      latestRelease,
+      commits
     );
     return releaseNotes.replace(/, closes /g, ', refs ');
   }
