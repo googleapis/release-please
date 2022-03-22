@@ -303,7 +303,7 @@ export abstract class BaseStrategy implements Strategy {
     };
   }
 
-  private extraFileUpdates(version: Version): Update[] {
+  protected extraFileUpdates(version: Version): Update[] {
     return this.extraFiles.map(extraFile => {
       if (typeof extraFile === 'object') {
         switch (extraFile.type) {

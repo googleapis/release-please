@@ -30,6 +30,7 @@ import {JavaAddSnapshot} from '../versioning-strategies/java-add-snapshot';
 import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
 import {Generic} from '../updaters/generic';
 import {JavaReleased} from '../updaters/java/java-released';
+import {mergeUpdates} from '../updaters/composite';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -121,10 +122,13 @@ export class Java extends BaseStrategy {
       changelogEntry: notes,
       isSnapshot: true,
     });
+    const updatesWithExtras = mergeUpdates(
+      updates.concat(...this.extraFileUpdates(newVersion))
+    );
     return {
       title: pullRequestTitle,
       body: pullRequestBody,
-      updates,
+      updates: updatesWithExtras,
       labels: labels,
       headRefName: branchName.toString(),
       version: newVersion,
