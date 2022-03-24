@@ -696,7 +696,26 @@ export class Manifest {
       return [];
     }
 
-    // collect open release pull requests
+    // collect open and snoozed release pull requests
+    const openPullRequests = await this.findOpenReleasePullRequests();
+    const snoozedPullRequests = await this.findSnoozedReleasePullRequests();
+
+    const promises: Promise<PullRequest | undefined>[] = [];
+    for (const pullRequest of candidatePullRequests) {
+      promises.push(
+        this.createOrUpdatePullRequest(
+          pullRequest,
+          openPullRequests,
+          snoozedPullRequests
+        )
+      );
+    }
+    const pullNumbers = await Promise.all(promises);
+    // reject any pull numbers that were not created or updated
+    return pullNumbers.filter(number => !!number);
+  }
+
+  private async findOpenReleasePullRequests(): Promise<PullRequest[]> {
     logger.info('Looking for open release pull requests');
     const openPullRequests: PullRequest[] = [];
     const generator = this.github.pullRequestIterator(
@@ -713,7 +732,11 @@ export class Manifest {
       }
     }
     logger.info(`found ${openPullRequests.length} open release pull requests.`);
+    return openPullRequests;
+  }
 
+  private async findSnoozedReleasePullRequests(): Promise<PullRequest[]> {
+    logger.info('Looking for snoozed release pull requests');
     const snoozedPullRequests: PullRequest[] = [];
     const closedGenerator = this.github.pullRequestIterator(
       this.targetBranch,
@@ -728,20 +751,10 @@ export class Manifest {
         snoozedPullRequests.push(closedPullRequest);
       }
     }
-
-    const promises: Promise<PullRequest | undefined>[] = [];
-    for (const pullRequest of candidatePullRequests) {
-      promises.push(
-        this.createOrUpdatePullRequest(
-          pullRequest,
-          openPullRequests,
-          snoozedPullRequests
-        )
-      );
-    }
-    const pullNumbers = await Promise.all(promises);
-    // reject any pull numbers that were not created or updated
-    return pullNumbers.filter(number => !!number);
+    logger.info(
+      `found ${snoozedPullRequests.length} snoozed release pull requests.`
+    );
+    return snoozedPullRequests;
   }
 
   private async createOrUpdatePullRequest(
