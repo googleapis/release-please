@@ -48,11 +48,12 @@ const fixturesPath = './test/fixtures';
 
 function mockPullRequests(
   github: GitHub,
-  pullRequests: PullRequest[],
-  mergedPullRequests: PullRequest[] = []
+  openPullRequests: PullRequest[],
+  mergedPullRequests: PullRequest[] = [],
+  closedPullRequests: PullRequest[] = []
 ): sinon.SinonStub {
   async function* fakeGenerator() {
-    for (const pullRequest of pullRequests) {
+    for (const pullRequest of openPullRequests) {
       yield pullRequest;
     }
   }
@@ -61,12 +62,19 @@ function mockPullRequests(
       yield pullRequest;
     }
   }
+  async function* closedGenerator() {
+    for (const pullRequest of closedPullRequests) {
+      yield pullRequest;
+    }
+  }
   return sandbox
     .stub(github, 'pullRequestIterator')
     .withArgs(sinon.match.string, 'OPEN')
     .returns(fakeGenerator())
     .withArgs(sinon.match.string, 'MERGED')
-    .returns(mergedGenerator());
+    .returns(mergedGenerator())
+    .withArgs(sinon.match.string, 'CLOSED')
+    .returns(closedGenerator());
 }
 
 function mockCreateRelease(
@@ -2816,7 +2824,7 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(1);
     });
 
-    it('skips pull requests if there are pending, closed pull requests', async () => {
+    it('skips pull requests if there are pending, merged pull requests', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
@@ -2866,6 +2874,158 @@ describe('Manifest', () => {
               notes: 'Some release notes',
             },
           ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(0);
+    });
+
+    it('reopens snoozed, closed pull request if there are changes', async function () {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      mockPullRequests(
+        github,
+        [],
+        [],
+        [
+          {
+            number: 22,
+            title: 'pr title1',
+            body: new PullRequestBody([]).toString(),
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: ['autorelease: pending', 'autorelease: snooze'],
+            files: [],
+          },
+        ]
+      );
+      sandbox
+        .stub(github, 'updatePullRequest')
+        .withArgs(22, sinon.match.any, sinon.match.any, sinon.match.any)
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'Some release notes',
+            },
+          ]),
+          updates: [
+            {
+              path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(1);
+      sinon.assert.calledOnce(removeLabelsStub);
+    });
+
+    it('ignores snoozed, closed pull request if there are no changes', async () => {
+      const body = new PullRequestBody([
+        {
+          notes: 'Some release notes',
+        },
+      ]);
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      mockPullRequests(
+        github,
+        [],
+        [],
+        [
+          {
+            number: 22,
+            title: 'pr title1',
+            body: body.toString(),
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: ['autorelease: closed', 'autorelease: snooze'],
+            files: [],
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+          plugins: ['node-workspace'],
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body,
           updates: [
             {
               path: 'README.md',
