@@ -749,63 +749,83 @@ export class Manifest {
     openPullRequests: PullRequest[],
     snoozedPullRequests: PullRequest[]
   ): Promise<PullRequest | undefined> {
-    // look for existing, open pull rquest
+    // look for existing, open pull request
     const existing = openPullRequests.find(
       openPullRequest =>
         openPullRequest.headBranchName === pullRequest.headRefName
     );
+    if (existing) {
+      return await this.maybeUpdateExistingPullRequest(existing, pullRequest);
+    }
+
+    // look for closed, snoozed pull request
     const snoozed = snoozedPullRequests.find(
       openPullRequest =>
         openPullRequest.headBranchName === pullRequest.headRefName
     );
-    if (existing) {
-      // If unchanged, no need to push updates
-      if (existing.body === pullRequest.body.toString()) {
-        logger.info(
-          `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
-        );
-        return undefined;
-      }
-      const updatedPullRequest = await this.github.updatePullRequest(
-        existing.number,
-        pullRequest,
-        this.targetBranch,
-        {
-          fork: this.fork,
-          signoffUser: this.signoffUser,
-        }
-      );
-      return updatedPullRequest;
-    } else if (snoozed) {
-      // If unchanged, no need to push updates
-      if (snoozed.body === pullRequest.body.toString()) {
-        logger.info(
-          `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
-        );
-        return undefined;
-      }
-      const updatedPullRequest = await this.github.updatePullRequest(
-        snoozed.number,
-        pullRequest,
-        this.targetBranch,
-        {
-          fork: this.fork,
-          signoffUser: this.signoffUser,
-        }
-      );
-      await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
-      return updatedPullRequest;
-    } else {
-      const newPullRequest = await this.github.createReleasePullRequest(
-        pullRequest,
-        this.targetBranch,
-        {
-          fork: this.fork,
-          signoffUser: this.signoffUser,
-        }
-      );
-      return newPullRequest;
+    if (snoozed) {
+      return await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
     }
+
+    const newPullRequest = await this.github.createReleasePullRequest(
+      pullRequest,
+      this.targetBranch,
+      {
+        fork: this.fork,
+        signoffUser: this.signoffUser,
+      }
+    );
+    return newPullRequest;
+  }
+
+  /// only update an existing pull request if it has release note changes
+  private async maybeUpdateExistingPullRequest(
+    existing: PullRequest,
+    pullRequest: ReleasePullRequest
+  ): Promise<PullRequest | undefined> {
+    // If unchanged, no need to push updates
+    if (existing.body === pullRequest.body.toString()) {
+      logger.info(
+        `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
+      );
+      return undefined;
+    }
+    const updatedPullRequest = await this.github.updatePullRequest(
+      existing.number,
+      pullRequest,
+      this.targetBranch,
+      {
+        fork: this.fork,
+        signoffUser: this.signoffUser,
+      }
+    );
+    return updatedPullRequest;
+  }
+
+  /// only update an snoozed pull request if it has release note changes
+  private async maybeUpdateSnoozedPullRequest(
+    snoozed: PullRequest,
+    pullRequest: ReleasePullRequest
+  ): Promise<PullRequest | undefined> {
+    // If unchanged, no need to push updates
+    if (snoozed.body === pullRequest.body.toString()) {
+      logger.info(
+        `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
+      );
+      return undefined;
+    }
+    const updatedPullRequest = await this.github.updatePullRequest(
+      snoozed.number,
+      pullRequest,
+      this.targetBranch,
+      {
+        fork: this.fork,
+        signoffUser: this.signoffUser,
+      }
+    );
+    // TODO: consider leaving the snooze label
+    await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
+    return updatedPullRequest;
   }
 
   private async *findMergedReleasePullRequests() {
