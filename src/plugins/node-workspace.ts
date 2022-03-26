@@ -13,7 +13,10 @@
 // limitations under the License.
 
 import {PackageGraph} from '@lerna/package-graph';
-import {Package as LernaPackage, PackageJson} from '@lerna/package';
+import {
+  Package as LernaPackage,
+  RawManifest as PackageJson,
+} from '@lerna/package';
 import {GitHub} from '../github';
 import {logger} from '../util/logger';
 import {
