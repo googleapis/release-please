@@ -48,7 +48,7 @@ export class PomXml extends BaseXml {
     return PomXml.updateNodes(parentVersionNodes, version);
   }
 
-  private static updateNodes(nodes: Node[], value: string) {
+  private static updateNodes(nodes: Node[], value: string): boolean {
     const toUpdate = nodes.filter(node => node.textContent !== value);
     toUpdate.forEach(node => (node.textContent = value));
     return toUpdate.length > 0;
