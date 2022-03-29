@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.7.0](https://github.com/googleapis/release-please/compare/v13.6.0...v13.7.0) (2022-03-24)
+
+
+### Features
+
+* allow snoozing release pull requests ([#1345](https://github.com/googleapis/release-please/issues/1345)) ([ea69708](https://github.com/googleapis/release-please/commit/ea6970813a11cebe2394c19d8d006d352c8fb306)), closes [#1339](https://github.com/googleapis/release-please/issues/1339)
+
 ## [13.6.0](https://github.com/googleapis/release-please/compare/v13.5.0...v13.6.0) (2022-03-16)
 
 
