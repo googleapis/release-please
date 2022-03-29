@@ -16,6 +16,9 @@ import {Updater} from '../update';
 import * as xpath from 'xpath';
 import * as dom from 'xmldom';
 
+/**
+ * Base class for all updaters working with XML files.
+ */
 export abstract class BaseXml implements Updater {
   /**
    * Given initial file contents, return updated contents.
@@ -33,9 +36,21 @@ export abstract class BaseXml implements Updater {
     }
   }
 
+  /**
+   * Updates the document in-place if needed.
+   * @param document Document to be modified.
+   * @return true if document has been changed and therefore file needs to be changed, false otherwise.
+   * @protected
+   */
   protected abstract updateDocument(document: Document): boolean;
 }
 
+/**
+ * Generator function that iterates over all nodes that matches the expression in the given document.
+ * Wrapper around xpath.evaluate.
+ * @param expression XPath expression.
+ * @param document Document the expression will be evaluated against.
+ */
 export function* findNodes(expression: string, document: Document) {
   const iterator = xpath.evaluate(expression, document, null, 0, null);
   let node: Node | null;
