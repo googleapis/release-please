@@ -46,6 +46,10 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
+export interface JavaStrategyOptions extends BaseStrategyOptions {
+  snapshotLabels?: string[];
+}
+
 export interface JavaBuildUpdatesOption extends BuildUpdatesOptions {
   isSnapshot?: boolean;
 }
@@ -59,7 +63,7 @@ export class Java extends BaseStrategy {
   protected readonly snapshotVersioning: VersioningStrategy;
   protected readonly snapshotLabels: string[];
 
-  constructor(options: BaseStrategyOptions) {
+  constructor(options: JavaStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     // wrap the configured versioning strategy with snapshotting
     const parentVersioningStrategy =

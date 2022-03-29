@@ -82,10 +82,7 @@ type Releasers = Record<string, ReleaseBuilder>;
 const releasers: Releasers = {
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
-  'java-yoshi': options => new JavaYoshi(options),
-  java: options => new Java(options),
   'krm-blueprint': options => new KRMBlueprint(options),
-  maven: options => new Maven(options),
   node: options => new Node(options),
   ocaml: options => new OCaml(options),
   php: options => new PHP(options),
@@ -149,7 +146,6 @@ export async function buildStrategy(
     pullRequestTitlePattern: options.pullRequestTitlePattern,
     extraFiles: options.extraFiles,
     tagSeparator: options.tagSeparator,
-    snapshotLabels: options.snapshotLabels,
   };
   switch (options.releaseType) {
     case 'ruby': {
@@ -162,6 +158,24 @@ export async function buildStrategy(
       return new RubyYoshi({
         ...strategyOptions,
         versionFile: options.versionFile,
+      });
+    }
+    case 'java': {
+      return new Java({
+        ...strategyOptions,
+        snapshotLabels: options.snapshotLabels,
+      });
+    }
+    case 'maven': {
+      return new Maven({
+        ...strategyOptions,
+        snapshotLabels: options.snapshotLabels,
+      });
+    }
+    case 'java-yoshi': {
+      return new JavaYoshi({
+        ...strategyOptions,
+        snapshotLabels: options.snapshotLabels,
       });
     }
     case 'java-backport': {

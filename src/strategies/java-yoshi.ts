@@ -15,7 +15,6 @@
 import {Update} from '../update';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
-import {BaseStrategyOptions} from './base';
 import {Changelog} from '../updaters/changelog';
 import {GitHubFileContents} from '../util/file-cache';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
@@ -26,10 +25,6 @@ import {JavaUpdate} from '../updaters/java/java-update';
 
 export class JavaYoshi extends Java {
   private versionsContent?: GitHubFileContents;
-
-  constructor(options: BaseStrategyOptions) {
-    super(options);
-  }
 
   protected async needsSnapshot(): Promise<boolean> {
     return VersionsManifest.needsSnapshot(

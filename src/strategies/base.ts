@@ -69,8 +69,6 @@ export interface BaseStrategyOptions {
   includeComponentInTag?: boolean;
   pullRequestTitlePattern?: string;
   extraFiles?: ExtraFile[];
-  // Java-only
-  snapshotLabels?: string[];
 }
 
 /**
