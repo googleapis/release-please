@@ -348,7 +348,7 @@ export class Manifest {
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
-      version => strategy.isValidRelease(version),
+      version => isPublishedVersion(strategy, version),
       config.includeComponentInTag ? component : '',
       config.pullRequestTitlePattern
     );
@@ -1058,6 +1058,12 @@ async function parseReleasedVersions(
     releasedVersions[path] = Version.parse(manifestJson[path]);
   }
   return releasedVersions;
+}
+
+function isPublishedVersion(strategy: Strategy, version: Version): boolean {
+  return strategy.isPublishedVersion
+    ? strategy.isPublishedVersion(version)
+    : true;
 }
 
 /**

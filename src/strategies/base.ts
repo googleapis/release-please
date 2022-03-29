@@ -160,10 +160,6 @@ export abstract class BaseStrategy implements Strategy {
     return component;
   }
 
-  isValidRelease(_version: Version): boolean {
-    return true;
-  }
-
   /**
    * Override this method to post process commits
    * @param {ConventionalCommit[]} commits parsed commits

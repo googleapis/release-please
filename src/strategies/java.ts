@@ -194,7 +194,7 @@ export class Java extends BaseStrategy {
     return snapshotCommits.length === 0;
   }
 
-  isValidRelease(version: Version): boolean {
+  isPublishedVersion(version: Version): boolean {
     return !version.preRelease || version.preRelease.indexOf('SNAPSHOT') < 0;
   }
 
