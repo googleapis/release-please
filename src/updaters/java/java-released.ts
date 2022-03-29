@@ -12,14 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Generic} from '../generic';
-import {UpdateOptions} from '../default';
+import {Generic, GenericUpdateOptions} from '../generic';
 
 const INLINE_UPDATE_REGEX =
   /x-release-please-released-(?<scope>major|minor|patch|version)/;
 const BLOCK_START_REGEX =
   /x-release-please-released-start-(?<scope>major|minor|patch|version)/;
 const BLOCK_END_REGEX = /x-release-please-released-end/;
+
+const REGEX_OPTIONS = {
+  inlineUpdateRegex: INLINE_UPDATE_REGEX,
+  blockStartRegex: BLOCK_START_REGEX,
+  blockEndRegex: BLOCK_END_REGEX,
+};
 
 /**
  * The JavaReleased updater is used only when updating to stable (not SNAPSHOT)
@@ -46,12 +51,10 @@ const BLOCK_END_REGEX = /x-release-please-released-end/;
  * numbers
  */
 export class JavaReleased extends Generic {
-  constructor(
-    options: UpdateOptions,
-    inlineUpdateRegex = INLINE_UPDATE_REGEX,
-    blockStartRegex = BLOCK_START_REGEX,
-    blockEndRegex = BLOCK_END_REGEX
-  ) {
-    super(options, inlineUpdateRegex, blockStartRegex, blockEndRegex);
+  constructor(options: GenericUpdateOptions) {
+    super({
+      ...REGEX_OPTIONS,
+      ...options,
+    });
   }
 }

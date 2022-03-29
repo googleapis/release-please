@@ -28,6 +28,15 @@ const BLOCK_END_REGEX = /x-release-please-end/;
 type BlockScope = 'major' | 'minor' | 'patch' | 'version';
 
 /**
+ * Options for the Generic updater.
+ */
+export interface GenericUpdateOptions extends UpdateOptions {
+  inlineUpdateRegex?: RegExp;
+  blockStartRegex?: RegExp;
+  blockEndRegex?: RegExp;
+}
+
+/**
  * The Generic updater looks for well known patterns and replaces
  * content. The well known patterns are:
  *
@@ -55,16 +64,12 @@ export class Generic extends DefaultUpdater {
   private readonly blockStartRegex: RegExp;
   private readonly blockEndRegex: RegExp;
 
-  constructor(
-    options: UpdateOptions,
-    inlineUpdateRegex = INLINE_UPDATE_REGEX,
-    blockStartRegex = BLOCK_START_REGEX,
-    blockEndRegex = BLOCK_END_REGEX
-  ) {
+  constructor(options: GenericUpdateOptions) {
     super(options);
-    this.inlineUpdateRegex = inlineUpdateRegex;
-    this.blockStartRegex = blockStartRegex;
-    this.blockEndRegex = blockEndRegex;
+
+    this.inlineUpdateRegex = options.inlineUpdateRegex ?? INLINE_UPDATE_REGEX;
+    this.blockStartRegex = options.blockStartRegex ?? BLOCK_START_REGEX;
+    this.blockEndRegex = options.blockEndRegex ?? BLOCK_END_REGEX;
   }
 
   /**
