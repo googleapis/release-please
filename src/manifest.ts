@@ -600,7 +600,11 @@ export class Manifest {
         this.labels
       );
       if (releasePullRequest) {
-        if (releasePullRequest.version) {
+        // Update manifest, but only for valid release version - this will skip SNAPSHOT from java strategy
+        if (
+          releasePullRequest.version &&
+          isPublishedVersion(strategy, releasePullRequest.version)
+        ) {
           const versionsMap: VersionsMap = new Map();
           versionsMap.set(path, releasePullRequest.version);
           releasePullRequest.updates.push({
