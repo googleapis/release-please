@@ -28,7 +28,6 @@ import {VersioningStrategy} from '../versioning-strategy';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {JavaAddSnapshot} from '../versioning-strategies/java-add-snapshot';
 import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
-import {Generic} from '../updaters/generic';
 import {JavaReleased} from '../updaters/java/java-released';
 import {mergeUpdates} from '../updaters/composite';
 
@@ -51,6 +50,11 @@ export interface JavaBuildUpdatesOption extends BuildUpdatesOptions {
   isSnapshot?: boolean;
 }
 
+/**
+ * A strategy that generates SNAPSHOT version after each release, which is standard especially in Maven projects.
+ *
+ * This is universal strategy that does not update any files on its own. Use maven strategy for Maven projects.
+ */
 export class Java extends BaseStrategy {
   protected readonly snapshotVersioning: VersioningStrategy;
   protected readonly snapshotLabels: string[];
@@ -123,7 +127,7 @@ export class Java extends BaseStrategy {
       isSnapshot: true,
     });
     const updatesWithExtras = mergeUpdates(
-      updates.concat(...this.extraFileUpdates(newVersion))
+      updates.concat(...this.extraFileUpdates(newVersion, versionsMap))
     );
     return {
       title: pullRequestTitle,
@@ -162,8 +166,8 @@ export class Java extends BaseStrategy {
     return commits;
   }
 
-  private static isSnapshot(version?: Version): boolean {
-    return !!version?.preRelease && version.preRelease.indexOf('SNAPSHOT') >= 0;
+  isPublishedVersion(version: Version): boolean {
+    return !version.preRelease || version.preRelease.indexOf('SNAPSHOT') < 0;
   }
 
   protected async needsSnapshot(
@@ -172,12 +176,12 @@ export class Java extends BaseStrategy {
   ): Promise<boolean> {
     const version = latestRelease?.tag?.version;
     if (!version) {
-      // Don't bump snapshots for first release ever
+      // Don't bump snapshots for the first release ever
       return false;
     }
 
     // Found snapshot as a release, this is unexpected, but use it
-    if (Java.isSnapshot(version)) {
+    if (!this.isPublishedVersion(version)) {
       return false;
     }
 
@@ -190,91 +194,41 @@ export class Java extends BaseStrategy {
         )
       )
       .map(pullRequest => pullRequest?.getVersion())
-      .filter(Java.isSnapshot);
+      .filter(version => version && !this.isPublishedVersion(version));
     return snapshotCommits.length === 0;
-  }
-
-  isPublishedVersion(version: Version): boolean {
-    return !version.preRelease || version.preRelease.indexOf('SNAPSHOT') < 0;
   }
 
   protected async buildUpdates(
     options: JavaBuildUpdatesOption
   ): Promise<Update[]> {
+    const version = options.newVersion;
+    const versionsMap = options.versionsMap;
+
     const updates: Update[] = [];
 
-    const pomFilesSearch = this.github.findFilesByFilenameAndRef(
-      'pom.xml',
-      this.targetBranch,
-      this.path
-    );
-    const buildFilesSearch = this.github.findFilesByFilenameAndRef(
-      'build.gradle',
-      this.targetBranch,
-      this.path
-    );
-    const dependenciesSearch = this.github.findFilesByFilenameAndRef(
-      'dependencies.properties',
-      this.targetBranch,
-      this.path
-    );
-
-    const allFiles = await Promise.all([
-      pomFilesSearch,
-      buildFilesSearch,
-      dependenciesSearch,
-    ]).then(result => result.flat());
-    allFiles.forEach(path => {
-      this.buildFileUpdates(updates, path, options);
-    });
-
     if (!options.isSnapshot) {
+      // Append java-specific updater for extraFiles
       this.extraFiles.forEach(extraFile => {
-        if (typeof extraFile === 'object') {
-          return;
+        if (typeof extraFile === 'string') {
+          updates.push({
+            path: this.addPath(extraFile),
+            createIfMissing: false,
+            updater: new JavaReleased({version, versionsMap}),
+          });
         }
-        this.buildFileUpdates(updates, extraFile, options, true);
       });
 
+      // Update changelog
       updates.push({
         path: this.addPath(this.changelogPath),
         createIfMissing: true,
         updater: new Changelog({
-          version: options.newVersion,
+          version,
           changelogEntry: options.changelogEntry,
         }),
       });
     }
 
     return updates;
-  }
-
-  protected buildFileUpdates(
-    updates: Update[],
-    path: string,
-    options: JavaBuildUpdatesOption,
-    extraFile?: boolean
-  ) {
-    if (!extraFile) {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new Generic({
-          version: options.newVersion,
-          versionsMap: options.versionsMap,
-        }),
-      });
-    }
-
-    if (!options.isSnapshot) {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new JavaReleased({
-          version: options.newVersion,
-          versionsMap: options.versionsMap,
-        }),
-      });
-    }
   }
 }

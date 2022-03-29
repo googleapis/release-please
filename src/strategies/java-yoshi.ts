@@ -16,6 +16,7 @@ import {Update} from '../update';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
 import {BaseStrategyOptions} from './base';
+import {Changelog} from '../updaters/changelog';
 import {GitHubFileContents} from '../util/file-cache';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
 import {ConventionalCommit} from '../commit';
@@ -65,10 +66,10 @@ export class JavaYoshi extends Java {
   protected async buildUpdates(
     options: JavaBuildUpdatesOption
   ): Promise<Update[]> {
+    const updates: Update[] = [];
     const version = options.newVersion;
     const versionsMap = options.versionsMap;
-
-    const updates = await super.buildUpdates(options);
+    const isSnapshot = options.isSnapshot;
 
     updates.push({
       path: this.addPath('versions.txt'),
@@ -80,23 +81,72 @@ export class JavaYoshi extends Java {
       }),
     });
 
-    return updates;
-  }
+    const pomFilesSearch = this.github.findFilesByFilenameAndRef(
+      'pom.xml',
+      this.targetBranch,
+      this.path
+    );
+    const buildFilesSearch = this.github.findFilesByFilenameAndRef(
+      'build.gradle',
+      this.targetBranch,
+      this.path
+    );
+    const dependenciesSearch = this.github.findFilesByFilenameAndRef(
+      'dependencies.properties',
+      this.targetBranch,
+      this.path
+    );
 
-  protected buildFileUpdates(
-    updates: Update[],
-    path: string,
-    options: JavaBuildUpdatesOption
-  ) {
-    updates.push({
-      path: this.addPath(path),
-      createIfMissing: false,
-      updater: new JavaUpdate({
-        version: options.newVersion,
-        versionsMap: options.versionsMap,
-        isSnapshot: options.isSnapshot,
-      }),
+    const pomFiles = await pomFilesSearch;
+    pomFiles.forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+      });
     });
+
+    const buildFiles = await buildFilesSearch;
+    buildFiles.forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+      });
+    });
+
+    const dependenciesFiles = await dependenciesSearch;
+    dependenciesFiles.forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+      });
+    });
+
+    this.extraFiles.forEach(extraFile => {
+      if (typeof extraFile === 'object') {
+        return;
+      }
+      updates.push({
+        path: extraFile,
+        createIfMissing: false,
+        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+      });
+    });
+
+    if (!isSnapshot) {
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
+    }
+
+    return updates;
   }
 
   protected async updateVersionsMap(

@@ -14,24 +14,53 @@
 
 import {Java, JavaBuildUpdatesOption} from './java';
 import {Update} from '../update';
+import {JavaReleased} from '../updaters/java/java-released';
+import {Generic} from '../updaters/generic';
 import {PomXml} from '../updaters/java/pom-xml';
 
+/**
+ * Strategy for Maven projects. It generates SNAPSHOT version after each release, and updates all found
+ * pom.xml files automatically.
+ */
 export class Maven extends Java {
-  protected buildFileUpdates(
-    updates: Update[],
-    path: string,
-    options: JavaBuildUpdatesOption,
-    extraFile?: boolean
-  ) {
-    // Don't add updater if pom.xml is in extraFiles
-    if (!extraFile && path.match(/(^|\/|\\)pom.xml$/)) {
+  protected async buildUpdates(
+    options: JavaBuildUpdatesOption
+  ): Promise<Update[]> {
+    const version = options.newVersion;
+    const versionsMap = options.versionsMap;
+
+    // Use generic Java updates
+    const updates: Update[] = await super.buildUpdates(options);
+
+    // Update pom.xml files
+    const pomFiles = await this.github.findFilesByFilenameAndRef(
+      'pom.xml',
+      this.targetBranch,
+      this.path
+    );
+
+    pomFiles.forEach(path => {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,
-        updater: new PomXml(options.newVersion),
+        updater: new PomXml(version),
       });
-    }
 
-    super.buildFileUpdates(updates, path, options, extraFile);
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new Generic({version, versionsMap}),
+      });
+
+      if (!options.isSnapshot) {
+        updates.push({
+          path: this.addPath(path),
+          createIfMissing: false,
+          updater: new JavaReleased({version, versionsMap}),
+        });
+      }
+    });
+
+    return updates;
   }
 }

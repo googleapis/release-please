@@ -281,7 +281,7 @@ export abstract class BaseStrategy implements Strategy {
       latestVersion: latestRelease?.tag.version,
     });
     const updatesWithExtras = mergeUpdates(
-      updates.concat(...this.extraFileUpdates(newVersion))
+      updates.concat(...this.extraFileUpdates(newVersion, versionsMap))
     );
     const pullRequestBody = await this.buildPullRequestBody(
       component,
@@ -302,7 +302,10 @@ export abstract class BaseStrategy implements Strategy {
     };
   }
 
-  protected extraFileUpdates(version: Version): Update[] {
+  protected extraFileUpdates(
+    version: Version,
+    versionsMap: VersionsMap
+  ): Update[] {
     return this.extraFiles.map(extraFile => {
       if (typeof extraFile === 'object') {
         switch (extraFile.type) {
@@ -329,7 +332,7 @@ export abstract class BaseStrategy implements Strategy {
       return {
         path: this.addPath(extraFile),
         createIfMissing: false,
-        updater: new Generic({version}),
+        updater: new Generic({version, versionsMap}),
       };
     });
   }
