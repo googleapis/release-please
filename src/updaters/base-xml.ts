@@ -51,7 +51,7 @@ export abstract class BaseXml implements Updater {
  * @param expression XPath expression.
  * @param document Document the expression will be evaluated against.
  */
-export function* findNodes(expression: string, document: Document) {
+export function* findNodes(expression: string, document: Document): Generator<Node> {
   const iterator = xpath.evaluate(expression, document, null, 0, null);
   let node: Node | null;
   while ((node = iterator.iterateNext())) {

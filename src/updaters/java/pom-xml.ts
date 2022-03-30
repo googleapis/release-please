@@ -32,18 +32,20 @@ export class PomXml extends BaseXml {
   protected updateDocument(document: Document): boolean {
     const version = this.version.toString();
 
+    // NOTE this intentionally ignores namespaces - let the maven decide, what's valid and what's not
+
     // Update project.version
     const projectVersionNodes: Node[] = [
-      ...findNodes('/project/version', document),
+      ...findNodes(`/*[local-name()="project"]/*[local-name()="version"]`, document),
     ];
-    if (projectVersionNodes) {
+    if (projectVersionNodes.length) {
       // If found update, detect actual change
       return PomXml.updateNodes(projectVersionNodes, version);
     }
 
     // Try updating project.parent.version
     const parentVersionNodes: Node[] = [
-      ...findNodes('/project/parent/version', document),
+      ...findNodes(`/*[local-name()="project"]/*[local-name()="parent"]/*[local-name()="version"]`, document),
     ];
     return PomXml.updateNodes(parentVersionNodes, version);
   }
