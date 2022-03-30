@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.7.1](https://github.com/googleapis/release-please/compare/v13.7.0...v13.7.1) (2022-03-30)
+
+
+### Bug Fixes
+
+* use lerna typings provided by DefinitelyTyped project ([#1351](https://github.com/googleapis/release-please/issues/1351)) ([86dccdf](https://github.com/googleapis/release-please/commit/86dccdf9dd2fbd8c517a88f4422412c18a944e07))
+
 ## [13.7.0](https://github.com/googleapis/release-please/compare/v13.6.0...v13.7.0) (2022-03-24)
 
 
