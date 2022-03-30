@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2022 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
-import {Generic} from '../../src/updaters/generic';
-import {JavaReleased} from "../../src/updaters/java/java-released";
+import {JavaReleased} from '../../src/updaters/java/java-released';
 
 const fixturesPath = './test/updaters/fixtures';
 

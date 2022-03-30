@@ -36,7 +36,10 @@ export class PomXml extends BaseXml {
 
     // Update project.version
     const projectVersionNodes: Node[] = [
-      ...findNodes(`/*[local-name()="project"]/*[local-name()="version"]`, document),
+      ...findNodes(
+        '/*[local-name()="project"]/*[local-name()="version"]',
+        document
+      ),
     ];
     if (projectVersionNodes.length) {
       // If found update, detect actual change
@@ -45,7 +48,10 @@ export class PomXml extends BaseXml {
 
     // Try updating project.parent.version
     const parentVersionNodes: Node[] = [
-      ...findNodes(`/*[local-name()="project"]/*[local-name()="parent"]/*[local-name()="version"]`, document),
+      ...findNodes(
+        '/*[local-name()="project"]/*[local-name()="parent"]/*[local-name()="version"]',
+        document
+      ),
     ];
     return PomXml.updateNodes(parentVersionNodes, version);
   }
