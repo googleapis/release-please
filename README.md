@@ -123,22 +123,23 @@ Some languages have their specific releasable unit configuration. For example,
 
 Release Please automates releases for the following flavors of repositories:
 
-| release type       | description                                                                                                                                                                         |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `dart`             | A repository with a pubspec.yaml and a CHANGELOG.md                                                                                                                                 |
-| `elixir`           | A repository with a mix.exs and a CHANGELOG.md                                                                                                                                      |
-| `go`               | A repository with a CHANGELOG.md                                                                                                                                                    |
-| `helm`             | A repository with a Chart.yaml and a CHANGELOG.md                                                                                                                                   |
-| `java`             | A repository following Maven notation for SNAPSHOT releases                                                                                                                         |                                                                                                                        |
-| `krm-blueprint`    | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project)                                           |
-| `node`             | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs)                                                                                        |
-| `ocaml`            | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml)                                                         |
-| `php`              | A repository with a composer.json and a CHANGELOG.md                                                                                                                                |
-| `python`           | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
-| `ruby`             | A repository with a version.rb and a CHANGELOG.md                                                                                                                                   |
-| `rust`             | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md                                                                                            |
-| `simple`           | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator)                                                                                 |
-| `terraform-module` | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory)                             |
+| release type        | description |
+|---------------------|---------------------------------------------------------|
+| `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
+| `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
+| `go`                | A repository with a CHANGELOG.md |
+| `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
+| `java`              | [A strategy that generates SNAPSHOT version after each release](docs/java.md) |
+| `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
+| `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](docs/java.md) |
+| `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
+| `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
+| `php`               | A repository with a composer.json and a CHANGELOG.md |
+| `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
+| `ruby`              | A repository with a version.rb and a CHANGELOG.md |
+| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
+| `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
+| `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
 
 ## Setting up Release Please
 
