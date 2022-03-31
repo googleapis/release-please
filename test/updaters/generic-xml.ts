@@ -48,5 +48,14 @@ describe('GenericXml', () => {
       const newContent = updater.updateContent(oldContent);
       expect(newContent).to.eql(oldContent);
     });
+    it('updates matching attribute', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './Foo.csproj'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new GenericXml('//Project/@Sdk', Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });

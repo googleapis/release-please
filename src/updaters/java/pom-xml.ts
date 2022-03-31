@@ -13,7 +13,8 @@
 // limitations under the License.
 
 import {Version} from '../../version';
-import {BaseXml, findNodes} from '../base-xml';
+import {BaseXml} from '../base-xml';
+import * as xpath from 'xpath';
 
 const XPATH_PROJECT_VERSION =
   '/*[local-name()="project"]/*[local-name()="version"]';
@@ -40,18 +41,20 @@ export class PomXml extends BaseXml {
     // NOTE this intentionally ignores namespaces - let the maven decide, what's valid and what's not
 
     // Update project.version
-    const projectVersionNodes: Node[] = [
-      ...findNodes(XPATH_PROJECT_VERSION, document),
-    ];
+    const projectVersionNodes: Node[] = xpath.select(
+      XPATH_PROJECT_VERSION,
+      document
+    ) as Node[];
     if (projectVersionNodes.length) {
       // If found update, detect actual change
       return PomXml.updateNodes(projectVersionNodes, version);
     }
 
     // Try updating project.parent.version
-    const parentVersionNodes: Node[] = [
-      ...findNodes(XPATH_PROJECT_PARENT_VERSION, document),
-    ];
+    const parentVersionNodes: Node[] = xpath.select(
+      XPATH_PROJECT_PARENT_VERSION,
+      document
+    ) as Node[];
     return PomXml.updateNodes(parentVersionNodes, version);
   }
 

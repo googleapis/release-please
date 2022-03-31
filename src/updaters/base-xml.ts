@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {Updater} from '../update';
-import * as xpath from 'xpath';
 import * as dom from 'xmldom';
 
 /**
@@ -43,21 +42,4 @@ export abstract class BaseXml implements Updater {
    * @protected
    */
   protected abstract updateDocument(document: Document): boolean;
-}
-
-/**
- * Generator function that iterates over all nodes that matches the expression in the given document.
- * Wrapper around xpath.evaluate.
- * @param expression XPath expression.
- * @param document Document the expression will be evaluated against.
- */
-export function* findNodes(
-  expression: string,
-  document: Document
-): Generator<Node> {
-  const iterator = xpath.evaluate(expression, document, null, 0, null);
-  let node: Node | null;
-  while ((node = iterator.iterateNext())) {
-    yield node;
-  }
 }

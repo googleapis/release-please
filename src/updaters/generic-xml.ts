@@ -13,7 +13,8 @@
 // limitations under the License.
 
 import {Version} from '../version';
-import {BaseXml, findNodes} from './base-xml';
+import {BaseXml} from './base-xml';
+import * as xpath from 'xpath';
 
 export class GenericXml extends BaseXml {
   private readonly xpath: string;
@@ -28,7 +29,7 @@ export class GenericXml extends BaseXml {
   protected updateDocument(document: Document): boolean {
     const version = this.version.toString();
     let updated = false;
-    for (const node of findNodes(this.xpath, document)) {
+    for (const node of xpath.select(this.xpath, document) as Node[]) {
       if (node.textContent !== version) {
         node.textContent = version;
         updated = true;
