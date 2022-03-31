@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "13.6.0",
+  "version": "13.7.1",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -42,6 +42,10 @@
     "@types/iarna__toml": "^2.0.1",
     "@types/js-yaml": "^4.0.0",
     "@types/jsonpath": "^0.2.0",
+    "@types/lerna__collect-updates": "^4.0.0",
+    "@types/lerna__package": "^4.0.2",
+    "@types/lerna__package-graph": "^4.0.1",
+    "@types/lerna__run-topologically": "^4.0.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.0.0",
     "@types/pino": "^7.0.0",
