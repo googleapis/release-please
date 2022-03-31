@@ -16,13 +16,17 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import {GitHub} from '../../src';
 import {Java} from '../../src/strategies/java';
 import * as sinon from 'sinon';
-import {assertHasUpdate, assertNoHasUpdate, buildMockCommit} from '../helpers';
+import {
+  assertHasUpdate,
+  assertHasUpdates,
+  assertNoHasUpdate,
+  buildMockCommit,
+} from '../helpers';
 import {expect} from 'chai';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {Changelog} from '../../src/updaters/changelog';
 import {DEFAULT_LABELS, DEFAULT_SNAPSHOT_LABELS} from '../../src/manifest';
-import {CompositeUpdater} from '../../src/updaters/composite';
 import {Generic} from '../../src/updaters/generic';
 import {JavaReleased} from '../../src/updaters/java/java-released';
 
@@ -229,16 +233,8 @@ describe('Java', () => {
 
         const updates = release!.updates;
         assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-        assertHasUpdate(updates, 'pom.xml', CompositeUpdater);
-
-        const updater = assertHasUpdate(
-          updates,
-          'foo/bar.java',
-          CompositeUpdater
-        ).updater as CompositeUpdater;
-        expect(updater.updaters).to.be.lengthOf(2);
-        expect(updater.updaters[0]).to.be.instanceof(JavaReleased);
-        expect(updater.updaters[1]).to.be.instanceof(Generic);
+        assertHasUpdates(updates, 'pom.xml', JavaReleased, Generic);
+        assertHasUpdates(updates, 'foo/bar.java', JavaReleased, Generic);
       });
 
       it('does not update released version in extra files for snapshot', async () => {

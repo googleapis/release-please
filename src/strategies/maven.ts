@@ -46,12 +46,6 @@ export class Maven extends Java {
         updater: new PomXml(version),
       });
 
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new Generic({version, versionsMap}),
-      });
-
       if (!options.isSnapshot) {
         updates.push({
           path: this.addPath(path),
@@ -59,6 +53,12 @@ export class Maven extends Java {
           updater: new JavaReleased({version, versionsMap}),
         });
       }
+
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new Generic({version, versionsMap}),
+      });
     });
 
     return updates;
