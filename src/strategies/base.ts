@@ -67,6 +67,7 @@ export interface BaseStrategyOptions {
   releaseAs?: string;
   changelogNotes?: ChangelogNotes;
   includeComponentInTag?: boolean;
+  includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   extraFiles?: ExtraFile[];
 }
@@ -88,6 +89,7 @@ export abstract class BaseStrategy implements Strategy {
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
+  protected includeVInTag: boolean;
   private pullRequestTitlePattern?: string;
   readonly extraFiles: ExtraFile[];
 
@@ -114,6 +116,7 @@ export abstract class BaseStrategy implements Strategy {
     this.changelogNotes =
       options.changelogNotes || new DefaultChangelogNotes(options);
     this.includeComponentInTag = options.includeComponentInTag ?? true;
+    this.includeVInTag = options.includeVInTag ?? true;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.extraFiles = options.extraFiles || [];
   }
@@ -244,7 +247,8 @@ export abstract class BaseStrategy implements Strategy {
     const newVersionTag = new TagName(
       newVersion,
       this.includeComponentInTag ? component : undefined,
-      this.tagSeparator
+      this.tagSeparator,
+      this.includeVInTag
     );
     logger.debug('pull request title pattern:', this.pullRequestTitlePattern);
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
@@ -480,7 +484,8 @@ export abstract class BaseStrategy implements Strategy {
     const tag = new TagName(
       version,
       this.includeComponentInTag ? component : undefined,
-      this.tagSeparator
+      this.tagSeparator,
+      this.includeVInTag
     );
     const releaseName =
       component && this.includeComponentInTag

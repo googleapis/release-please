@@ -23,6 +23,8 @@ Options:
   --repo-url                    GitHub URL to generate release for    [required]
   --dry-run                     Prepare but do not take action
                                                       [boolean] [default: false]
+  --include-v-in-tags           include "v" in tag versions
+                                                       [boolean] [default: true]
   --monorepo-tags               include library name in tags and release
                                 branches              [boolean] [default: false]
   --pull-request-title-pattern  Title pattern to make release PR        [string]
@@ -34,10 +36,10 @@ Options:
                                                                         [string]
   --release-type                what type of repo is a release being created
                                 for?
-          [choices: "dart", "elixir", "go", "go-yoshi", "helm", "java-backport",
-  "java-bom", "java-lts", "java-yoshi", "krm-blueprint", "node", "ocaml", "php",
-                  "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "simple",
-                                                             "terraform-module"]
+           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
+         "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
+    "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
+                                                   "simple", "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
   --manifest-file               where can the manifest file be found in the
@@ -199,6 +201,8 @@ Options:
                                     commit log message using the user and email
                                     provided. (format "Name
                                     <email@example.com>").              [string]
+  --include-v-in-tags               include "v" in tag versions
+                                                       [boolean] [default: true]
   --monorepo-tags                   include library name in tags and release
                                     branches          [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]
@@ -210,10 +214,10 @@ Options:
                                                                         [string]
   --release-type                    what type of repo is a release being created
                                     for?
-          [choices: "dart", "elixir", "go", "go-yoshi", "helm", "java-backport",
-  "java-bom", "java-lts", "java-yoshi", "krm-blueprint", "node", "ocaml", "php",
-                  "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "simple",
-                                                             "terraform-module"]
+           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
+         "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
+    "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
+                                                   "simple", "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?
                                          [default: "release-please-config.json"]
