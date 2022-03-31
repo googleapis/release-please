@@ -32,9 +32,10 @@ When the Release PR is merged, release-please takes the following steps:
 You can tell where the Release PR is its lifecycle by the status label on the
 PR itself:
 
-- `autorelease:pending` is the initial state of the Release PR before it is merged
-- `autorelease:tagged` means that the Release PR has been merged and the release has been tagged in GitHub
-- `autorelease:published` means that a GitHub release has been published based on the Release PR (_release-please does not automatically add this tag, but we recommend it as a convention for publication tooling_).
+- `autorelease: pending` is the initial state of the Release PR before it is merged
+- `autorelease: tagged` means that the Release PR has been merged and the release has been tagged in GitHub
+- `autorelease: snapshot` is special state for snapshot version bumps
+- `autorelease: published` means that a GitHub release has been published based on the Release PR (_release-please does not automatically add this tag, but we recommend it as a convention for publication tooling_).
 
 ## How should I write my commits?
 
