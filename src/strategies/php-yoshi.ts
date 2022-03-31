@@ -30,6 +30,7 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
 import {GitHubFileContents} from '../util/file-cache';
+import {FileNotFoundError} from '../errors';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -130,7 +131,7 @@ export class PHPYoshi extends BaseStrategy {
           partialReleaseNotes
         );
       } catch (err) {
-        if (err.status === 404) {
+        if (err instanceof FileNotFoundError) {
           // if the updated path has no VERSION, assume this isn't a
           // module that needs updating.
           continue;
