@@ -26,6 +26,32 @@ import {JavaUpdate} from '../updaters/java/java-update';
 export class JavaYoshi extends Java {
   private versionsContent?: GitHubFileContents;
 
+  /**
+   * Override this method to post process commits
+   * @param {ConventionalCommit[]} commits parsed commits
+   * @returns {ConventionalCommit[]} modified commits
+   */
+  protected async postProcessCommits(
+    commits: ConventionalCommit[]
+  ): Promise<ConventionalCommit[]> {
+    if (commits.length === 0) {
+      // For Java commits, push a fake commit so we force a
+      // SNAPSHOT release
+      commits.push({
+        type: 'fake',
+        bareMessage: 'fake commit',
+        message: 'fake commit',
+        breaking: false,
+        scope: null,
+        notes: [],
+        files: [],
+        references: [],
+        sha: 'fake',
+      });
+    }
+    return commits;
+  }
+
   protected async needsSnapshot(): Promise<boolean> {
     return VersionsManifest.needsSnapshot(
       (await this.getVersionsContent()).parsedContent

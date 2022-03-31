@@ -17,7 +17,7 @@ import {Version} from '../version';
 import {BaseStrategy, BaseStrategyOptions, BuildUpdatesOptions} from './base';
 import {Changelog} from '../updaters/changelog';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
-import {Commit, ConventionalCommit} from '../commit';
+import {Commit} from '../commit';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
 import {logger} from '../util/logger';
@@ -144,32 +144,6 @@ export class Java extends BaseStrategy {
     };
   }
 
-  /**
-   * Override this method to post process commits
-   * @param {ConventionalCommit[]} commits parsed commits
-   * @returns {ConventionalCommit[]} modified commits
-   */
-  protected async postProcessCommits(
-    commits: ConventionalCommit[]
-  ): Promise<ConventionalCommit[]> {
-    if (commits.length === 0) {
-      // For Java commits, push a fake commit, so we force a
-      // SNAPSHOT release
-      commits.push({
-        type: 'fake',
-        bareMessage: 'fake commit',
-        message: 'fake commit',
-        breaking: false,
-        scope: null,
-        notes: [],
-        files: [],
-        references: [],
-        sha: 'fake',
-      });
-    }
-    return commits;
-  }
-
   isPublishedVersion(version: Version): boolean {
     return !version.preRelease || version.preRelease.indexOf('SNAPSHOT') < 0;
   }
@@ -178,6 +152,9 @@ export class Java extends BaseStrategy {
     commits: Commit[],
     latestRelease?: Release
   ): Promise<boolean> {
+    const component = await this.getComponent();
+    logger.debug('component:', component);
+
     const version = latestRelease?.tag?.version;
     if (!version) {
       // Don't bump snapshots for the first release ever
@@ -190,13 +167,17 @@ export class Java extends BaseStrategy {
     }
 
     // Search commits for snapshot bump
-    const snapshotCommits = commits
+    const pullRequests = commits
       .map(commit =>
         PullRequestTitle.parse(
           commit.pullRequest?.title || commit.message,
           this.pullRequestTitlePattern
         )
       )
+      .filter(pullRequest => pullRequest);
+
+    const snapshotCommits = pullRequests
+      .filter(pullRequest => (pullRequest?.component || '') === component)
       .map(pullRequest => pullRequest?.getVersion())
       .filter(version => version && !this.isPublishedVersion(version));
     return snapshotCommits.length === 0;
