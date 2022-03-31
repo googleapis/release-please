@@ -90,7 +90,6 @@ export class JavaYoshi extends Java {
     const updates: Update[] = [];
     const version = options.newVersion;
     const versionsMap = options.versionsMap;
-    const isSnapshot = options.isSnapshot;
 
     updates.push({
       path: this.addPath('versions.txt'),
@@ -123,7 +122,11 @@ export class JavaYoshi extends Java {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,
-        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+        updater: new JavaUpdate({
+          version,
+          versionsMap,
+          isSnapshot: options.isSnapshot,
+        }),
       });
     });
 
@@ -132,7 +135,11 @@ export class JavaYoshi extends Java {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,
-        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+        updater: new JavaUpdate({
+          version,
+          versionsMap,
+          isSnapshot: options.isSnapshot,
+        }),
       });
     });
 
@@ -141,7 +148,11 @@ export class JavaYoshi extends Java {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,
-        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+        updater: new JavaUpdate({
+          version,
+          versionsMap,
+          isSnapshot: options.isSnapshot,
+        }),
       });
     });
 
@@ -152,11 +163,15 @@ export class JavaYoshi extends Java {
       updates.push({
         path: extraFile,
         createIfMissing: false,
-        updater: new JavaUpdate({version, versionsMap, isSnapshot: isSnapshot}),
+        updater: new JavaUpdate({
+          version,
+          versionsMap,
+          isSnapshot: options.isSnapshot,
+        }),
       });
     });
 
-    if (!isSnapshot) {
+    if (!options.isSnapshot) {
       updates.push({
         path: this.addPath(this.changelogPath),
         createIfMissing: true,
