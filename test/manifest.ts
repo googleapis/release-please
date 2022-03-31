@@ -339,11 +339,54 @@ describe('Manifest', () => {
           .includeComponentInTag
       ).to.be.true;
     });
+
+    it('should read custom include v in tag from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/include-v-in-tag.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].includeVInTag).to.be.false;
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].includeVInTag
+      ).to.be.true;
+    });
+
     it('should read custom labels from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
       );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
       getFileContentsStub
         .withArgs('release-please-config.json', 'main')
         .resolves(
@@ -855,6 +898,39 @@ describe('Manifest', () => {
       expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
         '3.3.2'
       );
+    });
+    it('allows configuring includeVInTag', async () => {
+      mockCommits(sandbox, github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.2.3',
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(sandbox, github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'abc123',
+          url: 'http://path/to/release',
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        includeVInTag: false,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+      expect(manifest.repositoryConfig['.'].includeVInTag).to.be.false;
     });
 
     it('finds latest published release', async () => {

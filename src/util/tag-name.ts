@@ -15,22 +15,25 @@
 import {Version} from '../version';
 
 const TAG_PATTERN =
-  /^((?<component>.*)(?<separator>[^a-zA-Z]))?v(?<version>\d+\.\d+\.\d+.*)$/;
+  /^((?<component>.*)(?<separator>[^a-zA-Z]))?(?<v>v)?(?<version>\d+\.\d+\.\d+.*)$/;
 const DEFAULT_SEPARATOR = '-';
 
 export class TagName {
   component?: string;
   version: Version;
   separator: string;
+  includeV: boolean;
 
   constructor(
     version: Version,
     component?: string,
-    separator: string = DEFAULT_SEPARATOR
+    separator: string = DEFAULT_SEPARATOR,
+    includeV = true
   ) {
     this.version = version;
     this.component = component;
     this.separator = separator;
+    this.includeV = includeV;
   }
 
   static parse(tagName: string): TagName | undefined {
@@ -39,7 +42,8 @@ export class TagName {
       return new TagName(
         Version.parse(match.groups.version),
         match.groups.component,
-        match.groups.separator
+        match.groups.separator,
+        !!match.groups.v
       );
     }
     return;
@@ -47,8 +51,10 @@ export class TagName {
 
   toString(): string {
     if (this.component) {
-      return `${this.component}${this.separator}v${this.version.toString()}`;
+      return `${this.component}${this.separator}${
+        this.includeV ? 'v' : ''
+      }${this.version.toString()}`;
     }
-    return `v${this.version.toString()}`;
+    return `${this.includeV ? 'v' : ''}${this.version.toString()}`;
   }
 }

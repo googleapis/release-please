@@ -16,8 +16,8 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {Version} from '../../src/version';
-import {CsProj} from '../../src/updaters/dotnet/csproj';
+import {Version} from '../../../src/version';
+import {CsProj} from '../../../src/updaters/dotnet/csproj';
 
 const fixturesPath = './test/updaters/fixtures';
 const FAKE_VERSION = Version.parse('1.2.3');

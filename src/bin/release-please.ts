@@ -106,6 +106,7 @@ interface PullRequestStrategyArgs {
 }
 
 interface TaggingArgs {
+  includeVInTags?: boolean;
   monorepoTags?: boolean;
   pullRequestTitlePattern?: string;
 }
@@ -381,6 +382,11 @@ function manifestOptions(yargs: yargs.Argv): yargs.Argv {
 
 function taggingOptions(yargs: yargs.Argv): yargs.Argv {
   return yargs
+    .option('include-v-in-tags', {
+      describe: 'include "v" in tag versions',
+      type: 'boolean',
+      default: true,
+    })
     .option('monorepo-tags', {
       describe: 'include library name in tags and release branches',
       type: 'boolean',
@@ -431,6 +437,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           extraFiles: argv.extraFiles,
           versionFile: argv.versionFile,
           includeComponentInTag: argv.monorepoTags,
+          includeVInTag: argv.includeVInTags,
         },
         extractManifestOptions(argv),
         argv.path
@@ -499,6 +506,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
           draft: argv.draft,
           prerelease: argv.prerelease,
           includeComponentInTag: argv.monorepoTags,
+          includeVInTag: argv.includeVInTags,
         },
         extractManifestOptions(argv),
         argv.path

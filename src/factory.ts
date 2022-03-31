@@ -45,6 +45,7 @@ import {GitHubChangelogNotes} from './changelog-notes/github';
 import {DefaultChangelogNotes} from './changelog-notes/default';
 import {BaseStrategyOptions} from './strategies/base';
 import {LinkedVersions} from './plugins/linked-versions';
+import {DotnetYoshi} from './strategies/dotnet-yoshi';
 import {Java} from './strategies/java';
 import {Maven} from './strategies/maven';
 
@@ -54,6 +55,7 @@ import {Maven} from './strategies/maven';
 // object below.
 const allReleaseTypes = [
   'dart',
+  'dotnet-yoshi',
   'elixir',
   'go',
   'go-yoshi',
@@ -80,6 +82,7 @@ export type ReleaseType = typeof allReleaseTypes[number];
 type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 type Releasers = Record<string, ReleaseBuilder>;
 const releasers: Releasers = {
+  'dotnet-yoshi': options => new DotnetYoshi(options),
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
   'krm-blueprint': options => new KRMBlueprint(options),
