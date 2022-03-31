@@ -36,10 +36,10 @@ Options:
                                                                         [string]
   --release-type                what type of repo is a release being created
                                 for?
-           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
+   [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm", "java",
          "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
-    "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
-                                                   "simple", "terraform-module"]
+   "maven", "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi",
+                                           "rust", "simple", "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
   --manifest-file               where can the manifest file be found in the
@@ -220,10 +220,10 @@ Options:
                                                                         [string]
   --release-type                    what type of repo is a release being created
                                     for?
-           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
+   [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm", "java",
          "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
-    "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
-                                                   "simple", "terraform-module"]
+   "maven", "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi",
+                                           "rust", "simple", "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?
                                          [default: "release-please-config.json"]
