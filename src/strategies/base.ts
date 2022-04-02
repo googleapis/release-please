@@ -39,6 +39,7 @@ import {mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
+import {PomXml} from '../updaters/java/pom-xml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -322,6 +323,12 @@ export abstract class BaseStrategy implements Strategy {
               path: this.addPath(extraFile.path),
               createIfMissing: false,
               updater: new GenericXml(extraFile.xpath, version),
+            };
+          case 'pom':
+            return {
+              path: this.addPath(extraFile.path),
+              createIfMissing: false,
+              updater: new PomXml(version),
             };
           default:
             throw new Error(
