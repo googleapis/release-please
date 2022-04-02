@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.8.0](https://github.com/googleapis/release-please/compare/v13.7.1...v13.8.0) (2022-03-31)
+
+
+### Features
+
+* add dotnet-yoshi strategy ([#1346](https://github.com/googleapis/release-please/issues/1346)) ([3086e51](https://github.com/googleapis/release-please/commit/3086e5148e596751a2c2b82c28a7b3d3c1b960f2))
+* allow configuring tag without "v" ([3086e51](https://github.com/googleapis/release-please/commit/3086e5148e596751a2c2b82c28a7b3d3c1b960f2))
+
+
+### Bug Fixes
+
+* **php-yoshi:** correctly ignore non-client directories ([#1358](https://github.com/googleapis/release-please/issues/1358)) ([58647dd](https://github.com/googleapis/release-please/commit/58647dd22d994ba670e762a2cef6b99b4b234af8)), closes [#1356](https://github.com/googleapis/release-please/issues/1356)
+
 ### [13.7.1](https://github.com/googleapis/release-please/compare/v13.7.0...v13.7.1) (2022-03-30)
 
 

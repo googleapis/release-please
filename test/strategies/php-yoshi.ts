@@ -29,6 +29,7 @@ import {DefaultUpdater} from '../../src/updaters/default';
 import snapshot = require('snap-shot-it');
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
+import {FileNotFoundError} from '../../src/errors';
 
 const sandbox = sinon.createSandbox();
 
@@ -161,6 +162,36 @@ describe('PHPYoshi', () => {
         github,
       });
       const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client3/src/Entry.php', PHPClientVersion);
+    });
+    it('ignores non client top level directories', async () => {
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+      });
+      const latestRelease = undefined;
+      const commits = [
+        buildMockCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
+          ['Client1/foo.php', '.git/release-please.yml']
+        ),
+        buildMockCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
+          ['Client2/foo.php', 'Client3/bar.php']
+        ),
+        buildMockCommit('chore: update common templates'),
+      ];
+      getFileStub
+        .withArgs('.git/VERSION', 'main')
+        .rejects(new FileNotFoundError('.git/VERSION'));
       const release = await strategy.buildReleasePullRequest(
         commits,
         latestRelease
