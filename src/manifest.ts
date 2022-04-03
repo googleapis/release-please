@@ -114,7 +114,6 @@ interface ReleaserConfigJson {
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
-  'snapshot-label'?: string;
   'include-component-in-tag'?: boolean;
   'include-v-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
@@ -125,6 +124,7 @@ interface ReleaserConfigJson {
   'version-file'?: string;
   // Java-only
   'extra-files'?: string[];
+  'snapshot-label'?: string;
 }
 
 export interface ManifestOptions {
