@@ -23,7 +23,7 @@ import {ConventionalCommit} from '../commit';
 const conventionalChangelogWriter = require('conventional-changelog-writer');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const presetFactory = require('conventional-changelog-conventionalcommits');
-const DEFAULT_HOST = 'https://github.com';
+export const DEFAULT_HOST = 'https://github.com';
 
 interface DefaultChangelogNotesOptions {
   commitPartial?: string;

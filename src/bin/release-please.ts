@@ -17,6 +17,7 @@
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
 import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
+import {DEFAULT_HOST} from '../changelog-notes/default';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
@@ -41,6 +42,7 @@ interface ErrorObject {
 }
 
 interface GitHubArgs {
+  host?: string;
   dryRun?: boolean;
   repoUrl?: string;
   token?: string;
@@ -148,6 +150,11 @@ interface BootstrapArgs
 function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
   return yargs
     .option('token', {describe: 'GitHub token with repo write permissions'})
+    .option('host', {
+      describe: 'GitHub host to use when making changelog',
+      default: DEFAULT_HOST,
+      type: 'string',
+    })
     .option('api-url', {
       describe: 'URL to use when making API requests',
       default: GH_API_URL,
@@ -181,6 +188,7 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       // allow secrets to be loaded from file path
       // rather than being passed directly to the bin.
       if (argv.token) argv.token = coerceOption(argv.token);
+      if (argv.host) argv.host = coerceOption(argv.host);
       if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
       if (argv.graphqlUrl) argv.graphqlUrl = coerceOption(argv.graphqlUrl);
     });
