@@ -213,4 +213,4 @@ to its template in this
 
 Apache Version 2.0
 
-See [LICENSE](https://github.com/googleapis/release-please/blob/main/LICENSE)
+See [LICENSE](https://github.com/googleapis/release-please/blob/main/LICENSE).
