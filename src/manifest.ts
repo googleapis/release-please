@@ -272,6 +272,7 @@ export class Manifest {
    * @param {string} targetBranch The releaseable base branch
    * @param {string} configFile Optional. The path to the manifest config file
    * @param {string} manifestFile Optional. The path to the manifest versions file
+   * @param {string} path The single path to check. Optional
    * @returns {Manifest}
    */
   static async fromManifest(
@@ -279,13 +280,15 @@ export class Manifest {
     targetBranch: string,
     configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,
     manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
-    manifestOptionOverrides: ManifestOptions = {}
+    manifestOptionOverrides: ManifestOptions = {},
+    path?: string,
+    releaseAs?: string
   ): Promise<Manifest> {
     const [
       {config: repositoryConfig, options: manifestOptions},
       releasedVersions,
     ] = await Promise.all([
-      parseConfig(github, configFile, targetBranch),
+      parseConfig(github, configFile, targetBranch, path, releaseAs),
       parseReleasedVersions(github, manifestFile, targetBranch),
     ]);
     return new Manifest(
@@ -1077,20 +1080,28 @@ function extractReleaserConfig(
  * @param {GitHub} github GitHub client
  * @param {string} configFile Path in the repository to the manifest config
  * @param {string} branch Branch to fetch the config file from
+ * @param {string} onlyPath Optional. Use only the given package
+ * @param {string} releaseAs Optional. Override release-as and use the given version
  */
 async function parseConfig(
   github: GitHub,
   configFile: string,
-  branch: string
+  branch: string,
+  onlyPath?: string,
+  releaseAs?: string
 ): Promise<{config: RepositoryConfig; options: ManifestOptions}> {
   const config = await github.getFileJson<ManifestConfig>(configFile, branch);
   const defaultConfig = extractReleaserConfig(config);
   const repositoryConfig: RepositoryConfig = {};
   for (const path in config.packages) {
+    if (onlyPath && onlyPath !== path) continue;
     repositoryConfig[path] = mergeReleaserConfig(
       defaultConfig,
       extractReleaserConfig(config.packages[path])
     );
+    if (releaseAs) {
+      repositoryConfig[path].releaseAs = releaseAs;
+    }
   }
   const configLabel = config['label'];
   const configReleaseLabel = config['release-label'];

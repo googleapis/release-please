@@ -149,7 +149,7 @@ describe('Manifest', () => {
   });
 
   describe('fromManifest', () => {
-    it('should parse config and manifest from repostiory', async () => {
+    it('should parse config and manifest from repository', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -171,6 +171,69 @@ describe('Manifest', () => {
         github.repository.defaultBranch
       );
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(8);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
+    });
+    it('should limit manifest loading to the given path', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch,
+        undefined,
+        undefined,
+        undefined,
+        'packages/gcf-utils'
+      );
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(
+        manifest.repositoryConfig['packages/gcf-utils'].releaseType
+      ).to.eql('node');
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
+    });
+    it('should override release-as with the given argument', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch,
+        undefined,
+        undefined,
+        undefined,
+        'packages/gcf-utils',
+        '12.34.56'
+      );
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(manifest.repositoryConfig['packages/gcf-utils'].releaseAs).to.eql(
+        '12.34.56'
+      );
       expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
     });
     it('should read the default release-type from manifest', async () => {
