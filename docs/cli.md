@@ -14,6 +14,7 @@ These options are available on all commands.
 | ------ | ---- | ----------- |
 | `--token` | string |REQUIRED. GitHub token with repo write permissions |
 | `--repo-url` | string | REQUIRED. GitHub repository in the format of `<owner>/<repo>` |
+| `--host` | string | Base URI for making changelogs. Defaults to `https://github.com` |
 | `--api-url` | string | Base URI for making REST API requests. Defaults to `https://api.github.com` |
 | `--graphql-url` | string | Base URI for making GraphQL requests. Defaults to `https://api.github.com` |
 | `--target-branch` | string |The branch to open release PRs against and tag releases on. Defaults to the default branch of the repository |
@@ -170,6 +171,8 @@ Options:
   --trace               print extra verbose errors (use only for local
                         debugging).                   [boolean] [default: false]
   --token               GitHub token with repo write permissions
+  --host                GitHub host to use when making changelog
+                                    [string] [default: "https://github.com"]
   --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
   --graphql-url         URL to use when making GraphQL requests
