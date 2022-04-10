@@ -103,7 +103,9 @@ export class CommitSplit {
         let pkgName;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
-          pkgName = this.packagePaths.find(p => file.indexOf(`${p}/`) === 0);
+          pkgName = this.packagePaths.find(
+            p => file.indexOf(`${p}/`) === 0 || p === file
+          );
         } else {
           // track paths by top level folder
           pkgName = splitPath[0];

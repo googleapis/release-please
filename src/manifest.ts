@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {existsSync, lstatSync} from 'fs';
+import {dirname} from 'path';
+
 import {ChangelogSection} from './changelog-notes';
 import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
@@ -1009,7 +1012,8 @@ export class Manifest {
         const strategy = await buildStrategy({
           ...config,
           github: this.github,
-          path,
+          path:
+            existsSync(path) && lstatSync(path).isFile() ? dirname(path) : path,
           targetBranch: this.targetBranch,
         });
         this._strategiesByPath[path] = strategy;
