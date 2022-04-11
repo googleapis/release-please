@@ -28,7 +28,7 @@ const sandbox = sinon.createSandbox();
 
 const COMMITS = [
   buildMockCommit(
-    'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
+    'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0 (#1234)',
     ['path1/foo.rb']
   ),
   buildMockCommit(
