@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.8.1](https://github.com/googleapis/release-please/compare/v13.8.0...v13.8.1) (2022-04-11)
+
+
+### Bug Fixes
+
+* Restore v12 changelog formatting for ruby-yoshi ([#1361](https://github.com/googleapis/release-please/issues/1361)) ([ff87c7d](https://github.com/googleapis/release-please/commit/ff87c7df00b652512641454ead34bb2cede2f67e))
+
 ## [13.8.0](https://github.com/googleapis/release-please/compare/v13.7.1...v13.8.0) (2022-03-31)
 
 
