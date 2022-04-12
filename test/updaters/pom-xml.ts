@@ -17,43 +17,28 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
-import {GenericXml} from '../../src/updaters/generic-xml';
-import {expect} from 'chai';
+import {PomXml} from '../../src/updaters/java/pom-xml';
 
 const fixturesPath = './test/updaters/fixtures';
 
-describe('GenericXml', () => {
+describe('PomXml', () => {
   describe('updateContent', () => {
-    it('updates matching entry', async () => {
+    it('updates project.version', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './Foo.csproj'),
+        resolve(fixturesPath, './pom.xml'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const updater = new GenericXml(
-        '//Project/PropertyGroup/Version',
-        Version.parse('v2.3.4')
-      );
+      const updater = new PomXml(Version.parse('v2.3.4'));
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
-    it('ignores non-matching entry', async () => {
+
+    it('updates project.parent.version', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './Foo.csproj'),
+        resolve(fixturesPath, './pom-submodule.xml'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const updater = new GenericXml(
-        '//project/nonExistent',
-        Version.parse('v2.3.4')
-      );
-      const newContent = updater.updateContent(oldContent);
-      expect(newContent).to.eql(oldContent);
-    });
-    it('updates matching attribute', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './Foo.csproj'),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
-      const updater = new GenericXml('//Project/@Sdk', Version.parse('v2.3.4'));
+      const updater = new PomXml(Version.parse('v2.3.4'));
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });

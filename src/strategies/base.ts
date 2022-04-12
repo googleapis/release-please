@@ -39,6 +39,7 @@ import {mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
+import {PomXml} from '../updaters/java/pom-xml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -90,7 +91,7 @@ export abstract class BaseStrategy implements Strategy {
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
   protected includeVInTag: boolean;
-  private pullRequestTitlePattern?: string;
+  readonly pullRequestTitlePattern?: string;
   readonly extraFiles: ExtraFile[];
 
   readonly changelogNotes: ChangelogNotes;
@@ -239,7 +240,8 @@ export abstract class BaseStrategy implements Strategy {
     );
     const versionsMap = await this.updateVersionsMap(
       await this.buildVersionsMap(conventionalCommits),
-      conventionalCommits
+      conventionalCommits,
+      newVersion
     );
     const component = await this.getComponent();
     logger.debug('component:', component);
@@ -282,7 +284,7 @@ export abstract class BaseStrategy implements Strategy {
       latestVersion: latestRelease?.tag.version,
     });
     const updatesWithExtras = mergeUpdates(
-      updates.concat(...this.extraFileUpdates(newVersion))
+      updates.concat(...this.extraFileUpdates(newVersion, versionsMap))
     );
     const pullRequestBody = await this.buildPullRequestBody(
       component,
@@ -303,7 +305,10 @@ export abstract class BaseStrategy implements Strategy {
     };
   }
 
-  private extraFileUpdates(version: Version): Update[] {
+  protected extraFileUpdates(
+    version: Version,
+    versionsMap: VersionsMap
+  ): Update[] {
     return this.extraFiles.map(extraFile => {
       if (typeof extraFile === 'object') {
         switch (extraFile.type) {
@@ -319,6 +324,12 @@ export abstract class BaseStrategy implements Strategy {
               createIfMissing: false,
               updater: new GenericXml(extraFile.xpath, version),
             };
+          case 'pom':
+            return {
+              path: this.addPath(extraFile.path),
+              createIfMissing: false,
+              updater: new PomXml(version),
+            };
           default:
             throw new Error(
               `unsupported extraFile type: ${
@@ -330,7 +341,7 @@ export abstract class BaseStrategy implements Strategy {
       return {
         path: this.addPath(extraFile),
         createIfMissing: false,
-        updater: new Generic({version}),
+        updater: new Generic({version, versionsMap}),
       };
     });
   }
@@ -341,7 +352,8 @@ export abstract class BaseStrategy implements Strategy {
 
   protected async updateVersionsMap(
     versionsMap: VersionsMap,
-    conventionalCommits: ConventionalCommit[]
+    conventionalCommits: ConventionalCommit[],
+    _newVersion: Version
   ): Promise<VersionsMap> {
     for (const versionKey of versionsMap.keys()) {
       const version = versionsMap.get(versionKey);

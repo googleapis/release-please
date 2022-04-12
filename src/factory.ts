@@ -46,6 +46,8 @@ import {DefaultChangelogNotes} from './changelog-notes/default';
 import {BaseStrategyOptions} from './strategies/base';
 import {LinkedVersions} from './plugins/linked-versions';
 import {DotnetYoshi} from './strategies/dotnet-yoshi';
+import {Java} from './strategies/java';
+import {Maven} from './strategies/maven';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
@@ -58,11 +60,13 @@ const allReleaseTypes = [
   'go',
   'go-yoshi',
   'helm',
+  'java',
   'java-backport',
   'java-bom',
   'java-lts',
   'java-yoshi',
   'krm-blueprint',
+  'maven',
   'node',
   'ocaml',
   'php',
@@ -81,7 +85,6 @@ const releasers: Releasers = {
   'dotnet-yoshi': options => new DotnetYoshi(options),
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
-  'java-yoshi': options => new JavaYoshi(options),
   'krm-blueprint': options => new KRMBlueprint(options),
   node: options => new Node(options),
   ocaml: options => new OCaml(options),
@@ -128,7 +131,7 @@ export async function buildStrategy(
     github: options.github,
     changelogSections: options.changelogSections,
   });
-  const strategyOptions = {
+  const strategyOptions: BaseStrategyOptions = {
     github: options.github,
     targetBranch,
     path: options.path,
@@ -158,6 +161,24 @@ export async function buildStrategy(
       return new RubyYoshi({
         ...strategyOptions,
         versionFile: options.versionFile,
+      });
+    }
+    case 'java': {
+      return new Java({
+        ...strategyOptions,
+        snapshotLabels: options.snapshotLabels,
+      });
+    }
+    case 'maven': {
+      return new Maven({
+        ...strategyOptions,
+        snapshotLabels: options.snapshotLabels,
+      });
+    }
+    case 'java-yoshi': {
+      return new JavaYoshi({
+        ...strategyOptions,
+        snapshotLabels: options.snapshotLabels,
       });
     }
     case 'java-backport': {
