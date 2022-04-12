@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.10.0](https://github.com/googleapis/release-please/compare/v13.9.0...v13.10.0) (2022-04-12)
+
+
+### Features
+
+* enable overriding release-as ([ffa0f7c](https://github.com/googleapis/release-please/commit/ffa0f7c7b0d0d2b65ce6285b62802ac08951a43c))
+* support selecting a single path when releasing from a manifest ([#1362](https://github.com/googleapis/release-please/issues/1362)) ([ffa0f7c](https://github.com/googleapis/release-please/commit/ffa0f7c7b0d0d2b65ce6285b62802ac08951a43c))
+
+
+### Bug Fixes
+
+* **rust:** update Cargo.lock for single Rust crate ([#1374](https://github.com/googleapis/release-please/issues/1374)) ([e3571d3](https://github.com/googleapis/release-please/commit/e3571d32c44ae2bef8bac7dd8cdc3556a9d621c7))
+
 ## [13.9.0](https://github.com/googleapis/release-please/compare/v13.8.1...v13.9.0) (2022-04-12)
 
 
