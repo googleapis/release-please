@@ -449,7 +449,9 @@ const createReleasePullRequestCommand: yargs.CommandModule<
         targetBranch,
         argv.configFile,
         argv.manifestFile,
-        manifestOptions
+        manifestOptions,
+        argv.path,
+        argv.releaseAs
       );
     }
 
