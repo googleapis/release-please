@@ -18,6 +18,7 @@ import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 import {VersioningStrategy} from './versioning-strategy';
 import {ChangelogNotes} from './changelog-notes';
+import {Version} from './version';
 
 /**
  * A strategy is responsible for determining which files are
@@ -57,4 +58,11 @@ export interface Strategy {
    * @returns {string}
    */
   getComponent(): Promise<string | undefined>;
+
+  /**
+   * Validate whether version is a valid release.
+   * @param version Released version.
+   * @returns true of release is valid, false if it should be skipped.
+   */
+  isPublishedVersion?(version: Version): boolean;
 }

@@ -83,6 +83,7 @@ interface ReleaseArgs {
   draft?: boolean;
   prerelease?: boolean;
   releaseLabel?: string;
+  snapshotLabel?: string;
   label?: string;
 }
 
@@ -210,6 +211,12 @@ function releaseOptions(yargs: yargs.Argv): yargs.Argv {
     .option('release-label', {
       describe: 'set a pull request label other than "autorelease: tagged"',
       default: 'autorelease: tagged',
+      type: 'string',
+    })
+    .option('snapshot-label', {
+      describe:
+        'set a java snapshot pull request label other than "autorelease: snapshot"',
+      default: 'autorelease: snapshot',
       type: 'string',
     });
 }
@@ -729,6 +736,9 @@ function extractManifestOptions(
   }
   if ('releaseLabel' in argv && argv.releaseLabel) {
     manifestOptions.releaseLabels = argv.releaseLabel.split(',');
+  }
+  if ('snapshotLabel' in argv && argv.snapshotLabel) {
+    manifestOptions.snapshotLabels = argv.snapshotLabel.split(',');
   }
   if ('signoff' in argv && argv.signoff) {
     manifestOptions.signoff = argv.signoff;
