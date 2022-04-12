@@ -100,22 +100,17 @@ export class Rust extends BaseStrategy {
         }),
       });
     } else {
-      const manifestPath = this.addPath('Cargo.toml');
-      const manifestContent = await this.getContent(manifestPath);
-      if (!manifestContent) {
-        logger.warn('unable to find Cargo.toml');
-        return updates;
-      }
-      const manifest = parseCargoManifest(manifestContent.parsedContent);
-      if (manifest.package?.name) {
-        versionsMap.set(manifest.package.name, version);
+      logger.info('single crate found, updating Cargo.toml');
+
+      const packageName = await this.getDefaultPackageName();
+      if (packageName) {
+        versionsMap.set(packageName, version);
       } else {
         logger.warn('No crate package name found');
       }
 
-      logger.info(`single crate found, updating ${manifestPath}`);
       updates.push({
-        path: manifestPath,
+        path: this.addPath('Cargo.toml'),
         createIfMissing: false,
         updater: new CargoToml({
           version,
