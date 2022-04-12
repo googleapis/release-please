@@ -12,38 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Updater} from '../update';
 import {Version} from '../version';
+import {BaseXml} from './base-xml';
 import * as xpath from 'xpath';
-import * as dom from 'xmldom';
 
-export class GenericXml implements Updater {
-  private xpath: string;
-  private version: Version;
+export class GenericXml extends BaseXml {
+  private readonly xpath: string;
+  private readonly version: Version;
 
   constructor(xpath: string, version: Version) {
+    super();
     this.xpath = xpath;
     this.version = version;
   }
-  /**
-   * Given initial file contents, return updated contents.
-   * @param {string} content The initial content
-   * @returns {string} The updated content
-   */
-  updateContent(content: string): string {
-    const document = new dom.DOMParser().parseFromString(content);
-    const iterator = xpath.evaluate(this.xpath, document, null, 0, null);
-    let node: Node | null;
-    let updated = false;
-    while ((node = iterator.iterateNext())) {
-      node.textContent = this.version.toString();
-      updated = true;
-    }
 
-    if (updated) {
-      return new dom.XMLSerializer().serializeToString(document);
-    } else {
-      return content;
+  protected updateDocument(document: Document): boolean {
+    const version = this.version.toString();
+    let updated = false;
+    for (const node of xpath.select(this.xpath, document) as Node[]) {
+      if (node.textContent !== version) {
+        node.textContent = version;
+        updated = true;
+      }
     }
+    return updated;
   }
 }

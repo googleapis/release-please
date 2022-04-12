@@ -20,15 +20,13 @@ import {Changelog} from '../updaters/changelog';
 // RubyYoshi
 import {VersionRB} from '../updaters/ruby/version-rb';
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
-import {ConventionalCommit} from '../commit';
+import {ConventionalCommit, Commit} from '../commit';
 import {Update} from '../update';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {Release} from '../release';
+import {TagName} from '../util/tag-name';
 import {Version} from '../version';
-import {ROOT_PROJECT_PATH} from '../manifest';
-import {logger} from '../util/logger';
-import {PullRequestBody} from '../util/pull-request-body';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -108,63 +106,30 @@ export class RubyYoshi extends BaseStrategy {
     return commits;
   }
 
-  protected async buildPullRequestBody(
-    component: string | undefined,
-    newVersion: Version,
-    releaseNotesBody: string,
+  protected async buildReleaseNotes(
     conventionalCommits: ConventionalCommit[],
-    latestRelease?: Release
-  ): Promise<PullRequestBody> {
-    if (!latestRelease) {
-      return await super.buildPullRequestBody(
-        component,
-        newVersion,
-        releaseNotesBody,
-        conventionalCommits,
-        latestRelease
-      );
-    }
-    // summarize the commits that landed:
-    let summary = '### Commits since last release:\n\n';
-    const updatedFiles: {[key: string]: boolean} = {};
-    const repoUrl = `${this.repository.owner}/${this.repository.repo}`;
-    for (const commit of conventionalCommits) {
-      if (!commit.sha) continue;
-      const splitMessage = commit.message.split('\n');
-      summary += `* [${splitMessage[0]}](https://github.com/${repoUrl}/commit/${commit.sha})\n`;
-      if (splitMessage.length > 2) {
-        summary = `${summary}<pre><code>${splitMessage
-          .slice(1)
-          .join('\n')}</code></pre>\n`;
-      }
-      if (commit.files === undefined) {
-        logger.error('No files for commit - this is likely a bug.');
-        continue;
-      }
-      commit.files.forEach(file => {
-        if (this.path === ROOT_PROJECT_PATH || file.startsWith(this.path)) {
-          updatedFiles[file] = true;
-        }
-      });
-    }
-    // summarize the files that changed:
-    summary = `${summary}\n### Files edited since last release:\n\n<pre><code>`;
-    Object.keys(updatedFiles).forEach(file => {
-      summary += `${file}\n`;
-    });
-    summary += `</code></pre>\n[Compare Changes](https://github.com/${repoUrl}/compare/${latestRelease.sha}...HEAD)\n`;
-
-    return new PullRequestBody(
-      [
-        {
-          component,
-          version: newVersion,
-          notes: releaseNotesBody,
-        },
-      ],
-      {
-        extra: summary,
-      }
+    newVersion: Version,
+    newVersionTag: TagName,
+    latestRelease?: Release,
+    commits?: Commit[]
+  ): Promise<string> {
+    const releaseNotes = await super.buildReleaseNotes(
+      conventionalCommits,
+      newVersion,
+      newVersionTag,
+      latestRelease,
+      commits
+    );
+    return (
+      releaseNotes
+        // Remove links in version title line and standardize on h3
+        .replace(/^###? \[([\d.]+)\]\([^)]*\)/gm, '### $1')
+        // Remove PR and commit links from pull request title suffixes
+        .replace(/ \(\[#\d+\]\([^)]*\)\)( \(\[\w+\]\([^)]*\)\))?\s*$/gm, '')
+        // Standardize on h4 for change type subheaders
+        .replace(/^### (Features|Bug Fixes|Documentation)$/gm, '#### $1')
+        // Collapse 2 or more blank lines
+        .replace(/\n{3,}/g, '\n\n')
     );
   }
 }

@@ -7,13 +7,15 @@ your release process.
 
 Release Please automates releases for the following flavors of repositories:
 
-| release type            | description
-|-------------------|---------------------------------------------------------|
+| release type        | description |
+|---------------------|---------------------------------------------------------|
 | `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
 | `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
 | `go`                | A repository with a CHANGELOG.md |
 | `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
+| `java`              | [A strategy that generates SNAPSHOT version after each release](java.md) |
 | `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
+| `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](java.md) |
 | `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
 | `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | `php`               | A repository with a composer.json and a CHANGELOG.md |

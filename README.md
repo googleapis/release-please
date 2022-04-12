@@ -32,9 +32,10 @@ When the Release PR is merged, release-please takes the following steps:
 You can tell where the Release PR is its lifecycle by the status label on the
 PR itself:
 
-- `autorelease:pending` is the initial state of the Release PR before it is merged
-- `autorelease:tagged` means that the Release PR has been merged and the release has been tagged in GitHub
-- `autorelease:published` means that a GitHub release has been published based on the Release PR (_release-please does not automatically add this tag, but we recommend it as a convention for publication tooling_).
+- `autorelease: pending` is the initial state of the Release PR before it is merged
+- `autorelease: tagged` means that the Release PR has been merged and the release has been tagged in GitHub
+- `autorelease: snapshot` is special state for snapshot version bumps
+- `autorelease: published` means that a GitHub release has been published based on the Release PR (_release-please does not automatically add this tag, but we recommend it as a convention for publication tooling_).
 
 ## How should I write my commits?
 
@@ -112,7 +113,7 @@ commit message instead of the merged commit message.
 ## Release Please bot does not create a release PR. Why?
 
 Release Please creates a release pull request after it sees the default branch
-contains "releaseable units" since the last release.
+contains "releasable units" since the last release.
 A releasable unit is a commit to the branch with one of the following
 prefixes: "feat" and "fix". (A "chore" commit is not a releasable unit.)
 
@@ -123,13 +124,15 @@ Some languages have their specific releasable unit configuration. For example,
 
 Release Please automates releases for the following flavors of repositories:
 
-| release type            | description
-|-------------------|---------------------------------------------------------|
+| release type        | description |
+|---------------------|---------------------------------------------------------|
 | `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
 | `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
 | `go`                | A repository with a CHANGELOG.md |
 | `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
+| `java`              | [A strategy that generates SNAPSHOT version after each release](docs/java.md) |
 | `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
+| `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](docs/java.md) |
 | `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
 | `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | `php`               | A repository with a composer.json and a CHANGELOG.md |
