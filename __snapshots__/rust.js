@@ -1,4 +1,4 @@
-exports['Rust buildReleasePullRequest detects a default component 1'] = `
+exports['Rust Workspace buildReleasePullRequest detects a default component 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
 

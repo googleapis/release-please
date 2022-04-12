@@ -27,7 +27,7 @@ import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import snapshot = require('snap-shot-it');
 
 const sandbox = sinon.createSandbox();
-const fixturesPath = './test/fixtures/strategies/rust';
+const fixturesPath = './test/fixtures/strategies/rust-workspace';
 
 const COMMITS = [
   buildMockCommit(
@@ -39,7 +39,7 @@ const COMMITS = [
   buildMockCommit('chore: update common templates'),
 ];
 
-describe('Rust', () => {
+describe('Rust Workspace', () => {
   let github: GitHub;
   beforeEach(async () => {
     github = await GitHub.create({
