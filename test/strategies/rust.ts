@@ -27,7 +27,6 @@ import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import snapshot = require('snap-shot-it');
 
 const sandbox = sinon.createSandbox();
-const fixturesPath = './test/fixtures/strategies/rust';
 
 const COMMITS = [
   buildMockCommit(
@@ -40,6 +39,7 @@ const COMMITS = [
 ];
 
 describe('Rust', () => {
+  const fixturesPath = './test/fixtures/strategies/rust-workspace';
   let github: GitHub;
   beforeEach(async () => {
     github = await GitHub.create({
@@ -112,7 +112,21 @@ describe('Rust', () => {
       snapshot(dateSafe(pullRequest!.body.toString()));
     });
   });
+});
 
+describe('Rust Crate', () => {
+  const fixturesPath = './test/fixtures/strategies/rust';
+  let github: GitHub;
+  beforeEach(async () => {
+    github = await GitHub.create({
+      owner: 'googleapis',
+      repo: 'rust-test-repo',
+      defaultBranch: 'main',
+    });
+  });
+  afterEach(() => {
+    sandbox.restore();
+  });
   describe('buildUpdates', () => {
     it('builds common files', async () => {
       const strategy = new Rust({
@@ -120,6 +134,53 @@ describe('Rust', () => {
         github,
         component: 'google-cloud-automl',
       });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('Cargo.toml', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo.toml'))
+        .withArgs('Cargo.lock', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo.lock'));
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'Cargo.toml', CargoToml);
+      const lockUpdate = assertHasUpdate(updates, 'Cargo.lock', CargoLock);
+
+      const lockUpdater = lockUpdate.updater as CargoLock;
+      const versionsMaps = lockUpdater.versionsMap;
+      expect(versionsMaps.get('rust_test_repo')).to.eql(release?.version);
+    });
+  });
+});
+
+describe('Rust Workspace', () => {
+  const fixturesPath = './test/fixtures/strategies/rust-workspace';
+  let github: GitHub;
+  beforeEach(async () => {
+    github = await GitHub.create({
+      owner: 'googleapis',
+      repo: 'rust-test-repo',
+      defaultBranch: 'main',
+    });
+  });
+  afterEach(() => {
+    sandbox.restore();
+  });
+  describe('buildUpdates', () => {
+    it('builds common files', async () => {
+      const strategy = new Rust({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('Cargo.toml', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-workspace.toml'));
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
