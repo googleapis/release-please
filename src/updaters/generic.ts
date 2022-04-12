@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {DefaultUpdater} from './default';
+import {DefaultUpdater, UpdateOptions} from './default';
 import {Version} from '../version';
 import {logger} from '../util/logger';
 
@@ -28,6 +28,15 @@ const BLOCK_END_REGEX = /x-release-please-end/;
 type BlockScope = 'major' | 'minor' | 'patch' | 'version';
 
 /**
+ * Options for the Generic updater.
+ */
+export interface GenericUpdateOptions extends UpdateOptions {
+  inlineUpdateRegex?: RegExp;
+  blockStartRegex?: RegExp;
+  blockEndRegex?: RegExp;
+}
+
+/**
  * The Generic updater looks for well known patterns and replaces
  * content. The well known patterns are:
  *
@@ -35,13 +44,13 @@ type BlockScope = 'major' | 'minor' | 'patch' | 'version';
  *    then replace a semver-looking string on that line with the next
  *    version
  * 2. `x-release-please-major` if this string is found on the line,
- *    then replace an integer looking value with the the next version's
+ *    then replace an integer looking value with the next version's
  *    major
  * 3. `x-release-please-minor` if this string is found on the line,
- *    then replace an integer looking value with the the next version's
+ *    then replace an integer looking value with the next version's
  *    minor
  * 4. `x-release-please-patch` if this string is found on the line,
- *    then replace an integer looking value with the the next version's
+ *    then replace an integer looking value with the next version's
  *    patch
  *
  * You can also use a block-based replacement. Content between the
@@ -51,6 +60,18 @@ type BlockScope = 'major' | 'minor' | 'patch' | 'version';
  * numbers
  */
 export class Generic extends DefaultUpdater {
+  private readonly inlineUpdateRegex: RegExp;
+  private readonly blockStartRegex: RegExp;
+  private readonly blockEndRegex: RegExp;
+
+  constructor(options: GenericUpdateOptions) {
+    super(options);
+
+    this.inlineUpdateRegex = options.inlineUpdateRegex ?? INLINE_UPDATE_REGEX;
+    this.blockStartRegex = options.blockStartRegex ?? BLOCK_START_REGEX;
+    this.blockEndRegex = options.blockEndRegex ?? BLOCK_END_REGEX;
+  }
+
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
@@ -85,7 +106,7 @@ export class Generic extends DefaultUpdater {
     }
 
     content.split(/\r?\n/).forEach(line => {
-      let match = line.match(INLINE_UPDATE_REGEX);
+      let match = line.match(this.inlineUpdateRegex);
       if (match) {
         // replace inline versions
         replaceVersion(
@@ -96,12 +117,12 @@ export class Generic extends DefaultUpdater {
       } else if (blockScope) {
         // in a block, so try to replace versions
         replaceVersion(line, blockScope, this.version);
-        if (line.match(BLOCK_END_REGEX)) {
+        if (line.match(this.blockEndRegex)) {
           blockScope = undefined;
         }
       } else {
         // look for block start line
-        match = line.match(BLOCK_START_REGEX);
+        match = line.match(this.blockStartRegex);
         if (match) {
           if (match.groups?.scope) {
             blockScope = match.groups.scope as BlockScope;

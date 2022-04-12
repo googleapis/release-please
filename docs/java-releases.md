@@ -1,4 +1,4 @@
-# Java Release Strategies
+# Java Yoshi Release Strategies
 
 The Java release strategies that are currently implemented are tailored towards
 Google Cloud's Java client libraries team.

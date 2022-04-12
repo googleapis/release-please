@@ -26,6 +26,7 @@ import {
   mockCommits,
   mockReleases,
   mockTags,
+  assertNoHasUpdate,
 } from './helpers';
 import {expect} from 'chai';
 import {Version} from '../src/version';
@@ -993,6 +994,47 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
       expect(manifest.repositoryConfig['.'].includeVInTag).to.be.false;
+    });
+
+    it('finds latest published release', async () => {
+      mockReleases(sandbox, github, []);
+      mockCommits(sandbox, github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            title: 'chore: release 1.2.4-SNAPSHOT',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            title: 'chore: release 1.2.3',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'java',
+        includeComponentInTag: false,
+      });
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+      expect(manifest.releasedVersions['.'].toString()).to.be.equal('1.2.3');
     });
   });
 
@@ -1983,6 +2025,53 @@ describe('Manifest', () => {
       );
     });
 
+    it('should not update manifest if unpublished version is created', async () => {
+      mockReleases(sandbox, github, [
+        {
+          tagName: 'v1.2.3',
+          sha: 'def234',
+          url: 'http://path/to/release',
+        },
+      ]);
+      mockCommits(sandbox, github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            title: 'chore: release 1.2.3',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'java',
+          },
+        },
+        {
+          '.': Version.parse('1.2.3'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.version?.toString()).to.eql('1.2.4-SNAPSHOT');
+      // simple release type updates the changelog and version.txt
+      assertNoHasUpdate(pullRequest.updates, 'CHANGELOG.md');
+      assertNoHasUpdate(pullRequest.updates, '.release-please-manifest.json');
+      expect(pullRequest.headRefName).to.eql('release-please--branches--main');
+    });
+
     describe('without commits', () => {
       beforeEach(() => {
         mockReleases(sandbox, github, [
@@ -2874,6 +2963,84 @@ describe('Manifest', () => {
           updates: [
             {
               path: 'README.md',
+              createIfMissing: false,
+              updater: new RawContent('some raw content'),
+            },
+          ],
+          labels: [],
+          headRefName: 'release-please/branches/main',
+          draft: false,
+        },
+      ]);
+      const pullRequestNumbers = await manifest.createPullRequests();
+      expect(pullRequestNumbers).lengthOf(1);
+    });
+
+    it('updates an existing snapshot pull request', async function () {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      mockPullRequests(
+        github,
+        [
+          {
+            number: 22,
+            title: 'pr title1',
+            body: new PullRequestBody([]).toString(),
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: ['autorelease: snapshot'],
+            files: [],
+          },
+        ],
+        []
+      );
+      sandbox
+        .stub(github, 'updatePullRequest')
+        .withArgs(22, sinon.match.any, sinon.match.any, sinon.match.any)
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: ['autorelease: snapshot'],
+          files: [],
+        });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'java',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'java',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          separatePullRequests: true,
+        }
+      );
+      sandbox.stub(manifest, 'buildPullRequests').resolves([
+        {
+          title: PullRequestTitle.ofTargetBranch('main'),
+          body: new PullRequestBody([
+            {
+              notes: 'SNAPSHOT bump',
+            },
+          ]),
+          updates: [
+            {
+              path: 'pom.xml',
               createIfMissing: false,
               updater: new RawContent('some raw content'),
             },

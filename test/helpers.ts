@@ -31,6 +31,7 @@ import {PullRequestBody} from '../src/util/pull-request-body';
 import {BranchName} from '../src/util/branch-name';
 import {ReleaseType} from '../src/factory';
 import {GitHubFileContents, DEFAULT_FILE_MODE} from '../src/util/file-cache';
+import {CompositeUpdater} from '../src/updaters/composite';
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -240,6 +241,30 @@ export function assertHasUpdate(
     );
   }
   return found!;
+}
+
+export function assertHasUpdates(
+  updates: Update[],
+  path: string,
+  ...clazz: any
+) {
+  if (clazz.length <= 1) {
+    return assertHasUpdate(updates, path, clazz[0]);
+  }
+
+  const composite = assertHasUpdate(updates, path, CompositeUpdater)
+    .updater as CompositeUpdater;
+  expect(composite.updaters).to.be.lengthOf(
+    clazz.length,
+    `expected to find exactly ${clazz.length} updaters`
+  );
+  for (let i = 0; i < clazz.length; i++) {
+    expect(composite.updaters[i]).to.be.instanceof(
+      clazz[i],
+      `expected updaters[${i}] to be of class ${clazz[i]}`
+    );
+  }
+  return composite;
 }
 
 export function assertNoHasUpdate(updates: Update[], path: string) {

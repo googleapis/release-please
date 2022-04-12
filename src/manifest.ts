@@ -48,7 +48,11 @@ type ExtraXmlFile = {
   path: string;
   xpath: string;
 };
-export type ExtraFile = string | ExtraJsonFile | ExtraXmlFile;
+type ExtraPomFile = {
+  type: 'pom';
+  path: string;
+};
+export type ExtraFile = string | ExtraJsonFile | ExtraXmlFile | ExtraPomFile;
 /**
  * These are configurations provided to each strategy per-path.
  */
@@ -82,6 +86,7 @@ export interface ReleaserConfig {
   versionFile?: string;
   // Java-only
   extraFiles?: ExtraFile[];
+  snapshotLabels?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -119,6 +124,7 @@ interface ReleaserConfigJson {
   'version-file'?: string;
   // Java-only
   'extra-files'?: string[];
+  'snapshot-label'?: string;
 }
 
 export interface ManifestOptions {
@@ -132,6 +138,7 @@ export interface ManifestOptions {
   manifestPath?: string;
   labels?: string[];
   releaseLabels?: string[];
+  snapshotLabels?: string[];
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
@@ -172,10 +179,11 @@ export type RepositoryConfig = Record<string, ReleaserConfig>;
 export const DEFAULT_RELEASE_PLEASE_CONFIG = 'release-please-config.json';
 export const DEFAULT_RELEASE_PLEASE_MANIFEST = '.release-please-manifest.json';
 export const ROOT_PROJECT_PATH = '.';
-const DEFAULT_COMPONENT_NAME = '';
-const DEFAULT_LABELS = ['autorelease: pending'];
-const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
-const SNOOZE_LABEL = 'autorelease: snooze';
+export const DEFAULT_COMPONENT_NAME = '';
+export const DEFAULT_LABELS = ['autorelease: pending'];
+export const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
+export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
+export const SNOOZE_LABEL = 'autorelease: snooze';
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
@@ -198,6 +206,7 @@ export class Manifest {
   private signoffUser?: string;
   private labels: string[];
   private releaseLabels: string[];
+  private snapshotLabels: string[];
   private plugins: PluginType[];
   private _strategiesByPath?: Record<string, Strategy>;
   private _pathsByComponent?: Record<string, string>;
@@ -257,6 +266,8 @@ export class Manifest {
     this.releaseLabels =
       manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
     this.labels = manifestOptions?.labels || DEFAULT_LABELS;
+    this.snapshotLabels =
+      manifestOptions?.snapshotLabels || DEFAULT_SNAPSHOT_LABELS;
     this.bootstrapSha = manifestOptions?.bootstrapSha;
     this.lastReleaseSha = manifestOptions?.lastReleaseSha;
     this.draft = manifestOptions?.draft;
@@ -347,6 +358,7 @@ export class Manifest {
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
+      version => isPublishedVersion(strategy, version),
       config.includeComponentInTag ? component : '',
       config.pullRequestTitlePattern
     );
@@ -597,7 +609,11 @@ export class Manifest {
         this.labels
       );
       if (releasePullRequest) {
-        if (releasePullRequest.version) {
+        // Update manifest, but only for valid release version - this will skip SNAPSHOT from java strategy
+        if (
+          releasePullRequest.version &&
+          isPublishedVersion(strategy, releasePullRequest.version)
+        ) {
           const versionsMap: VersionsMap = new Map();
           versionsMap.set(path, releasePullRequest.version);
           releasePullRequest.updates.push({
@@ -730,7 +746,8 @@ export class Manifest {
     );
     for await (const openPullRequest of generator) {
       if (
-        hasAllLabels(this.labels, openPullRequest.labels) &&
+        (hasAllLabels(this.labels, openPullRequest.labels) ||
+          hasAllLabels(this.snapshotLabels, openPullRequest.labels)) &&
         BranchName.parse(openPullRequest.headBranchName) &&
         PullRequestBody.parse(openPullRequest.body)
       ) {
@@ -1105,6 +1122,7 @@ async function parseConfig(
   }
   const configLabel = config['label'];
   const configReleaseLabel = config['release-label'];
+  const configSnapshotLabel = config['snapshot-label'];
   const manifestOptions = {
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
@@ -1115,6 +1133,8 @@ async function parseConfig(
     labels: configLabel === undefined ? undefined : [configLabel],
     releaseLabels:
       configReleaseLabel === undefined ? undefined : [configReleaseLabel],
+    snapshotLabels:
+      configSnapshotLabel === undefined ? undefined : [configSnapshotLabel],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
@@ -1142,17 +1162,26 @@ async function parseReleasedVersions(
   return releasedVersions;
 }
 
+function isPublishedVersion(strategy: Strategy, version: Version): boolean {
+  return strategy.isPublishedVersion
+    ? strategy.isPublishedVersion(version)
+    : true;
+}
+
 /**
  * Find the most recent matching release tag on the branch we're
  * configured for.
  *
- * @param {string} prefix - Limit the release to a specific component.
- * @param {boolean} preRelease - Whether or not to return pre-release
- *   versions. Defaults to false.
+ * @param github GitHub client instance.
+ * @param {string} targetBranch Name of the scanned branch.
+ * @param releaseFilter Validator function for release version. Used to filter-out SNAPSHOT releases for Java strategy.
+ * @param {string} prefix Limit the release to a specific component.
+ * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
   github: GitHub,
   targetBranch: string,
+  releaseFilter: (version: Version) => boolean,
   prefix?: string,
   pullRequestTitlePattern?: string
 ): Promise<Version | undefined> {
@@ -1202,12 +1231,7 @@ async function latestReleaseVersion(
     }
 
     const version = pullRequestTitle.getVersion();
-    if (version?.preRelease?.includes('SNAPSHOT')) {
-      // FIXME, don't hardcode this
-      continue;
-    }
-
-    if (version) {
+    if (version && releaseFilter(version)) {
       logger.debug(
         `Found latest release pull request: ${mergedPullRequest.number} version: ${version}`
       );
