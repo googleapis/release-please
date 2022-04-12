@@ -500,7 +500,9 @@ describe('CLI', () => {
           'main',
           DEFAULT_RELEASE_PLEASE_CONFIG,
           DEFAULT_RELEASE_PLEASE_MANIFEST,
-          sinon.match.any
+          sinon.match.any,
+          undefined,
+          undefined
         );
         sinon.assert.calledOnce(createPullRequestsStub);
       });
@@ -521,7 +523,9 @@ describe('CLI', () => {
           'main',
           'foo.json',
           '.bar.json',
-          sinon.match.any
+          sinon.match.any,
+          undefined,
+          undefined
         );
         sinon.assert.calledOnce(createPullRequestsStub);
       });
@@ -542,7 +546,9 @@ describe('CLI', () => {
             '1.x',
             DEFAULT_RELEASE_PLEASE_CONFIG,
             DEFAULT_RELEASE_PLEASE_MANIFEST,
-            sinon.match.any
+            sinon.match.any,
+            undefined,
+            undefined
           );
           sinon.assert.calledOnce(createPullRequestsStub);
         });
@@ -568,7 +574,9 @@ describe('CLI', () => {
           'main',
           DEFAULT_RELEASE_PLEASE_CONFIG,
           DEFAULT_RELEASE_PLEASE_MANIFEST,
-          sinon.match.any
+          sinon.match.any,
+          undefined,
+          undefined
         );
         sinon.assert.calledOnce(buildPullRequestsStub);
       });
