@@ -225,6 +225,10 @@ describe('Rust Workspace', () => {
         github,
         component: 'google-cloud-automl',
       });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('Cargo.toml', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-workspace.toml'));
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
