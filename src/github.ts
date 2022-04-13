@@ -492,6 +492,7 @@ export class GitHub {
       },
       maxRetries = 1
     ) => {
+      let seconds = 1;
       while (maxRetries >= 0) {
         try {
           const response = await this.graphql(opts);
@@ -506,6 +507,11 @@ export class GitHub {
           logger.trace('received 502 error, retrying');
         }
         maxRetries -= 1;
+        if (maxRetries >= 0) {
+          logger.trace(`sleeping ${seconds} seconds`);
+          await sleepInMs(1000 * seconds);
+          seconds *= 2;
+        }
       }
       logger.trace('ran out of retries');
       return undefined;
@@ -608,7 +614,7 @@ export class GitHub {
         states,
         maxFilesChanged: 64,
       },
-      5
+      3
     );
     if (!response?.repository?.pullRequests) {
       logger.warn(
@@ -1326,3 +1332,6 @@ const wrapAsync = <T extends Array<any>, V>(
     }
   };
 };
+
+const sleepInMs = (ms: number) =>
+  new Promise(resolve => setTimeout(resolve, ms));
