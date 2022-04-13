@@ -665,7 +665,7 @@ export class GitHub {
         }
         yield response.data[i];
       }
-      if (!response.pageInfo.hasNextPage) {
+      if (results > maxResults || !response.pageInfo.hasNextPage) {
         break;
       }
       cursor = response.pageInfo.endCursor;
@@ -757,6 +757,7 @@ export class GitHub {
           sha: tag.commit.sha,
         };
       }
+      if (results > maxResults) break;
     }
   }
 
