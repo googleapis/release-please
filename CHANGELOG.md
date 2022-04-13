@@ -4,6 +4,16 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.10.1](https://github.com/googleapis/release-please/compare/v13.10.0...v13.10.1) (2022-04-13)
+
+
+### Bug Fixes
+
+* bump retries for pull request iterator from 1 to 3 ([#1377](https://github.com/googleapis/release-please/issues/1377)) ([b2b7ff8](https://github.com/googleapis/release-please/commit/b2b7ff8ce98714ac591857b194ba0d51d9c2a641)), closes [#1376](https://github.com/googleapis/release-please/issues/1376)
+* don't crash when pull request iterator GraphQL returns no response ([b2b7ff8](https://github.com/googleapis/release-please/commit/b2b7ff8ce98714ac591857b194ba0d51d9c2a641))
+* fixed maxResults check in tag and release iterators ([#1378](https://github.com/googleapis/release-please/issues/1378)) ([6492a86](https://github.com/googleapis/release-please/commit/6492a86c56bbbb9b85f96bdf7edba910f1d66fc0))
+* GraphQL retry now uses exponential backoff ([b2b7ff8](https://github.com/googleapis/release-please/commit/b2b7ff8ce98714ac591857b194ba0d51d9c2a641))
+
 ## [13.10.0](https://github.com/googleapis/release-please/compare/v13.9.0...v13.10.0) (2022-04-12)
 
 
