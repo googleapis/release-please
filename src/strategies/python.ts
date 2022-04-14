@@ -157,7 +157,7 @@ export class Python extends BaseStrategy {
   protected initialReleaseVersion(): Version {
     return Version.parse('0.1.0');
   }
-  
+
   protected async buildReleaseNotes(
     conventionalCommits: ConventionalCommit[],
     newVersion: Version,
