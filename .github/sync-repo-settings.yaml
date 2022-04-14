@@ -1,37 +1,17 @@
-rebaseMergeAllowed: true
-squashMergeAllowed: true
-mergeCommitAllowed: false
 branchProtectionRules:
   - pattern: main
-    isAdminEnforced: false
+    isAdminEnforced: true
     requiredApprovingReviewCount: 1
     requiresCodeOwnerReviews: true
-    requiresStrictStatusChecks: true
+    requiresStrictStatusChecks: false
     requiredStatusCheckContexts:
-      - cla/google
+      - "ci/kokoro: Samples test"
+      - "ci/kokoro: System test"
       - docs
       - lint
       - test (12)
       - test (14)
       - test (16)
-      - windows
-  - pattern: 12.x
-    isAdminEnforced: false
-    requiredApprovingReviewCount: 1
-    requiresCodeOwnerReviews: true
-    requiresStrictStatusChecks: true
-    requiredStatusCheckContexts:
       - cla/google
-      - docs
-      - lint
-      - test (12)
-      - test (14)
-      - test (15)
       - windows
-permissionRules:
-  - team: yoshi-admins
-    permission: admin
-  - team: yoshi-nodejs-admins
-    permission: admin
-  - team: yoshi-nodejs
-    permission: push
+      - OwlBot Post Processor
