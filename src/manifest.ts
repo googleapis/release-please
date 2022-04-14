@@ -119,12 +119,9 @@ interface ReleaserConfigJson {
   'changelog-type'?: ChangelogNotesType;
   'pull-request-title-pattern'?: string;
   'tag-separator'?: string;
-
-  // Ruby-only
-  'version-file'?: string;
-  // Java-only
   'extra-files'?: string[];
-  'snapshot-label'?: string;
+  'version-file'?: string;
+  'snapshot-label'?: string; // Java-only
 }
 
 export interface ManifestOptions {

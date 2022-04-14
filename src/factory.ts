@@ -21,10 +21,10 @@ import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
 import {Python} from './strategies/python';
-import {Ruby, RubyStrategyOptions} from './strategies/ruby';
-import {RubyYoshi, RubyYoshiStrategyOptions} from './strategies/ruby-yoshi';
+import {Ruby} from './strategies/ruby';
+import {RubyYoshi} from './strategies/ruby-yoshi';
 import {Rust} from './strategies/rust';
-import {Simple, SimpleStrategyOptions} from './strategies/simple';
+import {Simple} from './strategies/simple';
 import {TerraformModule} from './strategies/terraform-module';
 import {Helm} from './strategies/helm';
 import {Elixir} from './strategies/elixir';
@@ -37,7 +37,7 @@ import {ServicePackVersioningStrategy} from './versioning-strategies/service-pac
 import {DependencyManifest} from './versioning-strategies/dependency-manifest';
 import {BaseStrategyOptions} from './strategies/base';
 import {DotnetYoshi} from './strategies/dotnet-yoshi';
-import {Java, JavaStrategyOptions} from './strategies/java';
+import {Java} from './strategies/java';
 import {Maven} from './strategies/maven';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
@@ -51,15 +51,8 @@ export * from './factories/versioning-strategy-factory';
 // add any new releasers you create to this type as well as the `releasers`
 // object below.
 
-export type AnyStrategyOptions =
-  | BaseStrategyOptions
-  | JavaStrategyOptions
-  | RubyStrategyOptions
-  | RubyYoshiStrategyOptions
-  | SimpleStrategyOptions;
-
 export type ReleaseType = string;
-export type ReleaseBuilder = (options: AnyStrategyOptions) => Strategy;
+export type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 
 export interface StrategyFactoryOptions extends ReleaserConfig {
   github: GitHub;
@@ -123,7 +116,7 @@ export async function buildStrategy(
     github: options.github,
     changelogSections: options.changelogSections,
   });
-  const strategyOptions: AnyStrategyOptions = {
+  const strategyOptions: BaseStrategyOptions = {
     github: options.github,
     targetBranch,
     path: options.path,

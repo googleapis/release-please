@@ -22,7 +22,6 @@ export {
 export {Commit, ConventionalCommit} from './commit';
 export {BaseStrategyOptions, BuildUpdatesOptions} from './strategies/base';
 export {
-  AnyStrategyOptions,
   ReleaseBuilder,
   ReleaseType,
   getReleaserTypes,
