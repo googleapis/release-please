@@ -355,17 +355,11 @@ export abstract class BaseStrategy implements Strategy {
     conventionalCommits: ConventionalCommit[],
     _newVersion: Version
   ): Promise<VersionsMap> {
-    for (const versionKey of versionsMap.keys()) {
-      const version = versionsMap.get(versionKey);
-      if (!version) {
-        logger.warn(`didn't find version for ${versionKey}`);
-        continue;
-      }
-      const newVersion = await this.versioningStrategy.bump(
-        version,
-        conventionalCommits
+    for (const [component, version] of versionsMap.entries()) {
+      versionsMap.set(
+        component,
+        await this.versioningStrategy.bump(version, conventionalCommits)
       );
-      versionsMap.set(versionKey, newVersion);
     }
     return versionsMap;
   }
