@@ -29,6 +29,7 @@ import {
   getChangelogTypes,
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
+import {createPatch} from 'diff';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -42,6 +43,7 @@ interface ErrorObject {
 
 interface GitHubArgs {
   dryRun?: boolean;
+  trace?: boolean;
   repoUrl?: string;
   token?: string;
   apiUrl?: string;
@@ -465,12 +467,29 @@ const createReleasePullRequestCommand: yargs.CommandModule<
         console.log('draft:', pullRequest.draft);
         console.log('body:', pullRequest.body.toString());
         console.log('updates:', pullRequest.updates.length);
+        const changes = await github.buildChangeSet(
+          pullRequest.updates,
+          targetBranch
+        );
         for (const update of pullRequest.updates) {
           console.log(
             `  ${update.path}: `,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (update.updater as any).constructor
           );
+          if (argv.trace) {
+            const change = changes.get(update.path);
+            if (change) {
+              const patch = createPatch(
+                update.path,
+                change.originalContent || '',
+                change.content || ''
+              );
+              console.log(patch);
+            } else {
+              console.warn(`no change found for ${update.path}`);
+            }
+          }
         }
       }
     } else {
