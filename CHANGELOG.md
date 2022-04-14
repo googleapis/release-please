@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.10.2](https://github.com/googleapis/release-please/compare/v13.10.1...v13.10.2) (2022-04-14)
+
+
+### Bug Fixes
+
+* **java:** snapshots should bump versionsMap versions ([#1386](https://github.com/googleapis/release-please/issues/1386)) ([558331c](https://github.com/googleapis/release-please/commit/558331c160a066daeda476438f6524bf958f8d41)), closes [#1381](https://github.com/googleapis/release-please/issues/1381)
+* **ruby-yoshi:** Remove bolded scope and fix link removal ([#1382](https://github.com/googleapis/release-please/issues/1382)) ([f6b3202](https://github.com/googleapis/release-please/commit/f6b32024998c4e414b723a4071166f253e95b1d2))
+
 ### [13.10.1](https://github.com/googleapis/release-please/compare/v13.10.0...v13.10.1) (2022-04-13)
 
 

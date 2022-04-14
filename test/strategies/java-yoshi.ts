@@ -235,7 +235,11 @@ describe('JavaYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       const {updater} = assertHasUpdate(updates, 'path1/pom.xml', JavaUpdate);
-      expect((updater as JavaUpdate).isSnapshot).to.be.false;
+      const javaUpdater = updater as JavaUpdate;
+      expect(javaUpdater.isSnapshot).to.be.false;
+      expect(
+        javaUpdater.versionsMap?.get('google-cloud-trace')?.toString()
+      ).to.eql('0.108.1-beta');
       assertHasUpdate(updates, 'path2/pom.xml', JavaUpdate);
       assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
       assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
@@ -303,7 +307,11 @@ describe('JavaYoshi', () => {
       const updates = release!.updates;
       assertNoHasUpdate(updates, 'CHANGELOG.md');
       const {updater} = assertHasUpdate(updates, 'path1/pom.xml', JavaUpdate);
-      expect((updater as JavaUpdate).isSnapshot).to.be.true;
+      const javaUpdater = updater as JavaUpdate;
+      expect(javaUpdater.isSnapshot).to.be.true;
+      expect(
+        javaUpdater.versionsMap?.get('google-cloud-trace')?.toString()
+      ).to.eql('0.108.1-beta-SNAPSHOT');
       assertHasUpdate(updates, 'path2/pom.xml', JavaUpdate);
       assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
       assertHasUpdate(updates, 'path1/build.gradle', JavaUpdate);
