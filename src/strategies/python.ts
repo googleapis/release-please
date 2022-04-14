@@ -174,8 +174,8 @@ export class Python extends BaseStrategy {
     );
     return (
       releaseNotes
-        // Remove links in version title line and standardize on h2
-        .replace(/^###? \[([\d.]+)\]\([^)]*\)/gm, '## $1')
+        // Standardize on h2 for version header entries
+        .replace(/^###? (\[([\d.]+)\]\([^)]*\))/gm, '## $1')
         // Standardize on h3 for change type subheaders
         .replace(/^###? (Features|Bug Fixes|Documentation)$/gm, '### $1')
     );
