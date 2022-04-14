@@ -154,4 +154,27 @@ export class Python extends BaseStrategy {
   protected initialReleaseVersion(): Version {
     return Version.parse('0.1.0');
   }
+  
+  protected async buildReleaseNotes(
+    conventionalCommits: ConventionalCommit[],
+    newVersion: Version,
+    newVersionTag: TagName,
+    latestRelease?: Release,
+    commits?: Commit[]
+  ): Promise<string> {
+    const releaseNotes = await super.buildReleaseNotes(
+      conventionalCommits,
+      newVersion,
+      newVersionTag,
+      latestRelease,
+      commits
+    );
+    return (
+      releaseNotes
+        // Remove links in version title line and standardize on h2
+        .replace(/^###? \[([\d.]+)\]\([^)]*\)/gm, '## $1')
+        // Standardize on h3 for change type subheaders
+        .replace(/^###? (Features|Bug Fixes|Documentation)$/gm, '### $1')
+    );
+  }
 }
