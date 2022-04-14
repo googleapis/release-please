@@ -25,6 +25,9 @@ import {
 } from '../updaters/python/pyproject-toml';
 import {logger} from '../util/logger';
 import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
+import {ConventionalCommit, Commit} from '../commit';
+import {Release} from '../release';
+import {TagName} from '../util/tag-name';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
