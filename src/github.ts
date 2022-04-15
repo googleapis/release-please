@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createPullRequest, Changes} from 'code-suggester';
+import {createPullRequest} from 'code-suggester';
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 
@@ -172,6 +172,13 @@ export interface GitHubTag {
   name: string;
   sha: string;
 }
+
+interface FileDiff {
+  readonly mode: '100644' | '100755' | '040000' | '160000' | '120000';
+  readonly content: string | null;
+  readonly originalContent: string | null;
+}
+export type ChangeSet = Map<string, FileDiff>;
 
 export class GitHub {
   readonly repository: Repository;
@@ -922,7 +929,7 @@ export class GitHub {
       }
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
-      const changes = await this.getChangeSet(updates, targetBranch);
+      const changes = await this.buildChangeSet(updates, targetBranch);
       const prNumber = await createPullRequest(this.octokit, changes, {
         upstreamOwner: this.repository.owner,
         upstreamRepo: this.repository.repo,
@@ -982,7 +989,7 @@ export class GitHub {
       }
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
-      const changes = await this.getChangeSet(
+      const changes = await this.buildChangeSet(
         releasePullRequest.updates,
         targetBranch
       );
@@ -1042,10 +1049,10 @@ export class GitHub {
    * @return {Changes} The changeset to suggest.
    * @throws {GitHubAPIError} on an API error
    */
-  private async getChangeSet(
+  async buildChangeSet(
     updates: Update[],
     defaultBranch: string
-  ): Promise<Changes> {
+  ): Promise<ChangeSet> {
     const changes = new Map();
     for (const update of updates) {
       let content: GitHubFileContents | undefined;
@@ -1070,6 +1077,7 @@ export class GitHub {
       if (updatedContent) {
         changes.set(update.path, {
           content: updatedContent,
+          originalContent: content?.parsedContent || null,
           mode: content?.mode || DEFAULT_FILE_MODE,
         });
       }

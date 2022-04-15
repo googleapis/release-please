@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "13.10.1",
+  "version": "13.10.2",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -39,6 +39,7 @@
   "devDependencies": {
     "@octokit/types": "^6.1.0",
     "@types/chai": "^4.1.7",
+    "@types/diff": "^5.0.2",
     "@types/iarna__toml": "^2.0.1",
     "@types/js-yaml": "^4.0.0",
     "@types/jsonpath": "^0.2.0",
@@ -59,7 +60,7 @@
     "gts": "^3.0.0",
     "mocha": "^9.0.0",
     "nock": "^13.0.0",
-    "sinon": "13.0.1",
+    "sinon": "13.0.2",
     "snap-shot-it": "^7.0.0"
   },
   "dependencies": {
@@ -80,6 +81,7 @@
     "conventional-changelog-writer": "^5.0.0",
     "conventional-commits-filter": "^2.0.2",
     "detect-indent": "^6.1.0",
+    "diff": "^5.0.0",
     "figures": "^3.0.0",
     "js-yaml": "^4.0.0",
     "jsonpath": "^1.1.1",

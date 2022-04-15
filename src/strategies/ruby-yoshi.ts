@@ -120,8 +120,13 @@ export class RubyYoshi extends BaseStrategy {
       releaseNotes
         // Remove links in version title line and standardize on h3
         .replace(/^###? \[([\d.]+)\]\([^)]*\)/gm, '### $1')
+        // Remove bolded scope from change lines
+        .replace(/^\* \*\*[\w-]+:\*\* /gm, '* ')
         // Remove PR and commit links from pull request title suffixes
-        .replace(/ \(\[#\d+\]\([^)]*\)\)( \(\[\w+\]\([^)]*\)\))?\s*$/gm, '')
+        .replace(
+          /( \(\[(\w+|#\d+)\]\(https:\/\/github\.com\/[^)]*\)\))+\s*$/gm,
+          ''
+        )
         // Standardize on h4 for change type subheaders
         .replace(/^### (Features|Bug Fixes|Documentation)$/gm, '#### $1')
         // Collapse 2 or more blank lines

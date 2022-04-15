@@ -103,6 +103,12 @@ export class Java extends BaseStrategy {
       ? await this.snapshotVersioning.bump(latestRelease.tag.version, [])
       : this.initialReleaseVersion();
     const versionsMap = await this.buildVersionsMap([]);
+    for (const [component, version] of versionsMap.entries()) {
+      versionsMap.set(
+        component,
+        await this.snapshotVersioning.bump(version, [])
+      );
+    }
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
