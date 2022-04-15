@@ -117,25 +117,11 @@ export async function buildStrategy(
     changelogSections: options.changelogSections,
   });
   const strategyOptions: BaseStrategyOptions = {
-    github: options.github,
+    skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
+    ...options,
     targetBranch,
-    path: options.path,
-    bumpMinorPreMajor: options.bumpMinorPreMajor,
-    bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
-    component: options.component,
-    packageName: options.packageName,
-    changelogPath: options.changelogPath,
-    changelogSections: options.changelogSections,
     versioningStrategy,
-    skipGitHubRelease: options.skipGithubRelease,
-    releaseAs: options.releaseAs,
-    includeComponentInTag: options.includeComponentInTag,
     changelogNotes,
-    pullRequestTitlePattern: options.pullRequestTitlePattern,
-    extraFiles: options.extraFiles,
-    tagSeparator: options.tagSeparator,
-    versionFile: options.versionFile,
-    snapshotLabels: options.snapshotLabels,
   };
 
   const builder = releasers[options.releaseType];

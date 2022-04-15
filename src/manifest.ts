@@ -66,7 +66,7 @@ export interface ReleaserConfig {
 
   // Strategy options
   releaseAs?: string;
-  skipGithubRelease?: boolean;
+  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
