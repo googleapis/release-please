@@ -415,11 +415,10 @@ export class Manifest {
 
     // Releases by path
     const releasesByPath: Record<string, Release> = {};
-    logger.info('release search depth', this.releaseSearchDepth);
+    logger.debug(`release search depth: ${this.releaseSearchDepth}`);
     for await (const release of this.github.releaseIterator({
       maxResults: this.releaseSearchDepth,
     })) {
-      logger.warn(release);
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
         logger.warn(`Unable to parse release name: ${release.name}`);
@@ -495,6 +494,7 @@ export class Manifest {
     // seen all release commits
     logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
+    logger.debug(`commit search depth: ${this.commitSearchDepth}`);
     const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
       maxResults: this.commitSearchDepth,
       backfillFiles: true,
