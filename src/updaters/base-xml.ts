@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Updater} from '../update';
-import * as dom from 'xmldom';
+import * as dom from '@xmldom/xmldom';
 
 /**
  * Base class for all updaters working with XML files.
