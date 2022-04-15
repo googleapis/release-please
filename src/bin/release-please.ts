@@ -752,8 +752,10 @@ function extractManifestOptions(
   if ('fork' in argv && argv.fork !== undefined) {
     manifestOptions.fork = argv.fork;
   }
-  if (argv.label) {
-    manifestOptions.labels = argv.label.split(',');
+  if (argv.label !== undefined) {
+    let labels: string[] = argv.label.split(',');
+    if (labels.length === 1 && labels[0] === '') labels = [];
+    manifestOptions.labels = labels;
   }
   if ('releaseLabel' in argv && argv.releaseLabel) {
     manifestOptions.releaseLabels = argv.releaseLabel.split(',');
