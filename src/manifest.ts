@@ -140,6 +140,8 @@ export interface ManifestOptions {
   prerelease?: boolean;
   draftPullRequest?: boolean;
   groupPullRequestTitlePattern?: string;
+  releaseSearchDepth?: number;
+  commitSearchDepth?: number;
 }
 
 interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -173,6 +175,8 @@ export interface ManifestConfig extends ReleaserConfigJson {
   plugins?: PluginType[];
   'separate-pull-requests'?: boolean;
   'group-pull-request-title-pattern'?: string;
+  'release-search-depth'?: number;
+  'commit-search-depth'?: number;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -187,6 +191,8 @@ export const DEFAULT_LABELS = ['autorelease: pending'];
 export const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
 export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
+const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
+const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
@@ -220,6 +226,8 @@ export class Manifest {
   private prerelease?: boolean;
   private draftPullRequest?: boolean;
   private groupPullRequestTitlePattern?: string;
+  readonly releaseSearchDepth: number;
+  readonly commitSearchDepth: number;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -277,6 +285,10 @@ export class Manifest {
     this.draftPullRequest = manifestOptions?.draftPullRequest;
     this.groupPullRequestTitlePattern =
       manifestOptions?.groupPullRequestTitlePattern;
+    this.releaseSearchDepth =
+      manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
+    this.commitSearchDepth =
+      manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
   }
 
   /**
@@ -403,8 +415,9 @@ export class Manifest {
 
     // Releases by path
     const releasesByPath: Record<string, Release> = {};
+    logger.debug(`release search depth: ${this.releaseSearchDepth}`);
     for await (const release of this.github.releaseIterator({
-      maxResults: 400,
+      maxResults: this.releaseSearchDepth,
     })) {
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
@@ -481,8 +494,9 @@ export class Manifest {
     // seen all release commits
     logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
+    logger.debug(`commit search depth: ${this.commitSearchDepth}`);
     const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
-      maxResults: 500,
+      maxResults: this.commitSearchDepth,
       backfillFiles: true,
     });
     const releaseShas = new Set(Object.values(releaseShasByPath));
@@ -1138,6 +1152,8 @@ async function parseConfig(
       configReleaseLabel === undefined ? undefined : [configReleaseLabel],
     snapshotLabels:
       configSnapshotLabel === undefined ? undefined : [configSnapshotLabel],
+    releaseSearchDepth: config['release-search-depth'],
+    commitSearchDepth: config['commit-search-depth'],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }

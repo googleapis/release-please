@@ -527,6 +527,33 @@ describe('Manifest', () => {
         },
       ]);
     });
+    it('should configure search depth from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/search-depth.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.releaseSearchDepth).to.eql(10);
+      expect(manifest.commitSearchDepth).to.eql(50);
+    });
   });
 
   describe('fromConfig', () => {
@@ -2553,6 +2580,149 @@ describe('Manifest', () => {
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
       snapshot(dateSafe(pullRequests[0].body.toString()));
+    });
+
+    it('should allow customizing release-search-depth', async () => {
+      const releaseStub = mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, [
+        {
+          name: 'pkg1-v1.0.0',
+          sha: 'abc123',
+        },
+      ]);
+      mockCommits(sandbox, github, [
+        {
+          sha: 'def456',
+          message: 'fix: some bugfix',
+          files: [],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+      ]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/repo/node/pkg1/package.json'
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.0.0'),
+        },
+        {
+          releaseSearchDepth: 1,
+        }
+      );
+      expect(manifest.releaseSearchDepth).to.eql(1);
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.headRefName).to.eql(
+        'release-please--branches--main--components--pkg1'
+      );
+      sinon.assert.calledOnceWithMatch(
+        releaseStub,
+        sinon.match.has('maxResults', 1)
+      );
+    });
+
+    it('should allow customizing commit-search-depth', async () => {
+      mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, [
+        {
+          name: 'pkg1-v1.0.0',
+          sha: 'abc123',
+        },
+      ]);
+      const commitsStub = mockCommits(sandbox, github, [
+        {
+          sha: 'def456',
+          message: 'fix: some bugfix',
+          files: [],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release 1.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/pkg1',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release 1.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+      ]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/repo/node/pkg1/package.json'
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.0.0'),
+        },
+        {
+          commitSearchDepth: 1,
+        }
+      );
+      expect(manifest.commitSearchDepth).to.eql(1);
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.headRefName).to.eql(
+        'release-please--branches--main--components--pkg1'
+      );
+      sinon.assert.calledOnceWithMatch(
+        commitsStub,
+        'main',
+        sinon.match.has('maxResults', 1)
+      );
     });
   });
 
