@@ -330,37 +330,37 @@ export function mockCommits(
   sandbox: sinon.SinonSandbox,
   github: GitHub,
   commits: Commit[]
-) {
+): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const commit of commits) {
       yield commit;
     }
   }
-  sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
+  return sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
 }
 
 export function mockReleases(
   sandbox: sinon.SinonSandbox,
   github: GitHub,
   releases: GitHubRelease[]
-) {
+): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const release of releases) {
       yield release;
     }
   }
-  sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
+  return sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
 }
 
 export function mockTags(
   sandbox: sinon.SinonSandbox,
   github: GitHub,
   tags: GitHubTag[]
-) {
+): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const tag of tags) {
       yield tag;
     }
   }
-  sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
+  return sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
 }
