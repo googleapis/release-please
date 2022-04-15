@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.11.1](https://github.com/googleapis/release-please/compare/v13.11.0...v13.11.1) (2022-04-15)
+
+
+### Bug Fixes
+
+* **deps:** switch from `xmldom` to `@xmldom/xmldom` and update to v0.8.2 ([#1393](https://github.com/googleapis/release-please/issues/1393)) ([b6af677](https://github.com/googleapis/release-please/commit/b6af677da635493230d7e3a632aeedb5cfd1edb7))
+
 ## [13.11.0](https://github.com/googleapis/release-please/compare/v13.10.2...v13.11.0) (2022-04-15)
 
 
