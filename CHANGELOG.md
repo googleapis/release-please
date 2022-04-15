@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.11.0](https://github.com/googleapis/release-please/compare/v13.10.2...v13.11.0) (2022-04-15)
+
+
+### Features
+
+* **cli:** show file diff for release-pr command with --dry-run and --trace ([fa2cc34](https://github.com/googleapis/release-please/commit/fa2cc343c327864a98ab896ddc92ced89db9ae73))
+* introduce extensible factories ([#1342](https://github.com/googleapis/release-please/issues/1342)) ([b54e90e](https://github.com/googleapis/release-please/commit/b54e90e09751945914feb987508561c39f27cbe3))
+
 ### [13.10.2](https://github.com/googleapis/release-please/compare/v13.10.1...v13.10.2) (2022-04-14)
 
 
