@@ -182,7 +182,7 @@ Options:
   --snapshot                        is it a snapshot (or pre-release) being
                                     generated?        [boolean] [default: false]
   --versioning-strategy             strategy used for bumping versions
-  [choices: "default", "always-bump-patch", "service-pack"] [default: "default"]
+  [choices: "always-bump-patch", "default", "service-pack"] [default: "default"]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?  [string] [default: "CHANGELOG.md"]
   --changelog-type                  type of changelog to build

@@ -66,7 +66,7 @@ export interface ReleaserConfig {
 
   // Strategy options
   releaseAs?: string;
-  skipGithubRelease?: boolean;
+  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
@@ -119,12 +119,9 @@ interface ReleaserConfigJson {
   'changelog-type'?: ChangelogNotesType;
   'pull-request-title-pattern'?: string;
   'tag-separator'?: string;
-
-  // Ruby-only
-  'version-file'?: string;
-  // Java-only
   'extra-files'?: string[];
-  'snapshot-label'?: string;
+  'version-file'?: string;
+  'snapshot-label'?: string; // Java-only
 }
 
 export interface ManifestOptions {
@@ -151,13 +148,19 @@ interface ReleaserPackageConfig extends ReleaserConfigJson {
   'changelog-path'?: string;
 }
 
-type DirectPluginType = 'node-workspace' | 'cargo-workspace';
-interface LinkedVersionPluginConfig {
+export type DirectPluginType = string;
+export interface ConfigurablePluginType {
+  type: string;
+}
+export interface LinkedVersionPluginConfig extends ConfigurablePluginType {
   type: 'linked-versions';
   groupName: string;
   components: string[];
 }
-export type PluginType = DirectPluginType | LinkedVersionPluginConfig;
+export type PluginType =
+  | DirectPluginType
+  | ConfigurablePluginType
+  | LinkedVersionPluginConfig;
 
 /**
  * This is the schema of the manifest config json

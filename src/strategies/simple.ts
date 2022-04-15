@@ -19,13 +19,9 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {DefaultUpdater} from '../updaters/default';
 
-interface SimpleStrategyOptions extends BaseStrategyOptions {
-  versionFile?: string;
-}
-
 export class Simple extends BaseStrategy {
   readonly versionFile: string;
-  constructor(options: SimpleStrategyOptions) {
+  constructor(options: BaseStrategyOptions) {
     super(options);
     this.versionFile = options.versionFile ?? 'version.txt';
   }

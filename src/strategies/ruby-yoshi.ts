@@ -42,13 +42,9 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-interface RubyYoshiStrategyOptions extends BaseStrategyOptions {
-  versionFile?: string;
-}
-
 export class RubyYoshi extends BaseStrategy {
   readonly versionFile: string;
-  constructor(options: RubyYoshiStrategyOptions) {
+  constructor(options: BaseStrategyOptions) {
     super({
       ...options,
       changelogSections: CHANGELOG_SECTIONS,

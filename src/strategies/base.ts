@@ -71,6 +71,8 @@ export interface BaseStrategyOptions {
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   extraFiles?: ExtraFile[];
+  versionFile?: string;
+  snapshotLabels?: string[]; // Java-only
 }
 
 /**
