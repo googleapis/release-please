@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.12.0](https://github.com/googleapis/release-please/compare/v13.11.1...v13.12.0) (2022-04-15)
+
+
+### Features
+
+* allow configuring `release-search-depth` and `commit-search-depth` ([#1396](https://github.com/googleapis/release-please/issues/1396)) ([102d650](https://github.com/googleapis/release-please/commit/102d650394140667d17d84726bd962477d69562c)), closes [#1394](https://github.com/googleapis/release-please/issues/1394)
+
+
+### Bug Fixes
+
+* Allow an empty value for --label ([#1397](https://github.com/googleapis/release-please/issues/1397)) ([f5aff97](https://github.com/googleapis/release-please/commit/f5aff97dbb20086a26b846dde89b289a4540dba1))
+
 ### [13.11.1](https://github.com/googleapis/release-please/compare/v13.11.0...v13.11.1) (2022-04-15)
 
 
