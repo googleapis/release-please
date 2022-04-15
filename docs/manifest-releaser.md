@@ -210,6 +210,21 @@ documented in comments)
   // absence defaults to "chore: release ${branch}"
   "group-pull-request-title-pattern": "chore: release ${branch}",
 
+  // When searching for the latest release SHAs, only consider the last N releases.
+  // This option prevents paginating through all releases in history when we
+  // expect to find the release within the last N releases. For repositories with
+  // a large number of individual packages, you may want to consider raising this
+  // value, but it will increase the number of API calls used.
+  "release-search-depth": 400,
+
+  // When fetching the list of commits to consider, only consider the last N commits.
+  // This option limits paginating through every commit in history when we may not
+  // find the release SHA of the last release (there may not be one). We expect to
+  // only need to consider the last 500 commits on a branch. For repositories with
+  // a large number of individual packages, you may want to consider raising this
+  // value, but it will increase the number of API calls used.
+  "commit-search-depth": 500,
+
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
   // all the files for that package.
