@@ -510,7 +510,7 @@ export class Manifest {
           `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
         );
         break;
-      } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
+      } else if (releaseCommitsFound >= expectedShas) {
         // found enough commits
         break;
       }

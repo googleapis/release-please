@@ -26,10 +26,14 @@ import {
   FileNotFoundError,
 } from './errors';
 
+import {throttling} from '@octokit/plugin-throttling';
+import {retry} from '@octokit/plugin-retry';
+const MyOctokit = Octokit.plugin(throttling).plugin(retry);
+
 const MAX_ISSUE_BODY_SIZE = 65536;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
-type OctokitType = InstanceType<typeof Octokit>;
+type OctokitType = InstanceType<typeof MyOctokit>;
 
 import {logger} from './util/logger';
 import {Repository} from './repository';
@@ -214,9 +218,32 @@ export class GitHub {
     const graphqlUrl = options.graphqlUrl ?? GH_GRAPHQL_URL;
     const releasePleaseVersion = require('../../package.json').version;
     const apis = options.octokitAPIs ?? {
-      octokit: new Octokit({
+      octokit: new MyOctokit({
         baseUrl: apiUrl,
         auth: options.token,
+        request: {
+          retries: 3,
+          retryAfter: 2,
+        },
+        throttle: {
+          onRateLimit: (retryAfter: number, opt: any) => {
+            logger.warn(
+              `Request quota exhausted for request ${opt.method} ${opt.url}`
+            );
+            if (opt.request.retryCount <= 2) {
+              console.log(`Retrying after ${retryAfter} seconds!`);
+              return true;
+            }
+            return false;
+          },
+          onAbuseLimit: (retryAfter: number, opt: any) => {
+            // does not retry, only logs a warning
+            logger.warn(
+              `Abuse detected for request ${opt.method} ${opt.url}`
+            );
+            return false;
+          },
+        },
       }),
       request: request.defaults({
         baseUrl: apiUrl,
@@ -406,7 +433,7 @@ export class GitHub {
     });
 
     // if the branch does exist, return null
-    if (!response.repository.ref) {
+    if (!response?.repository.ref) {
       logger.warn(
         `Could not find commits for branch ${targetBranch} - it likely does not exist.`
       );
@@ -497,9 +524,9 @@ export class GitHub {
       opts: {
         [key: string]: string | number | null | undefined;
       },
-      maxRetries = 1
+      maxRetries = 3
     ) => {
-      let seconds = 1;
+      let seconds = 2;
       while (maxRetries >= 0) {
         try {
           const response = await this.graphql(opts);
@@ -508,10 +535,13 @@ export class GitHub {
           }
           logger.trace('no GraphQL response, retrying');
         } catch (err) {
-          if (err.status !== 502) {
+          if (err.status === 502) {
+            logger.trace('received 502 error, retrying');
+          } else if (err.message.includes('connect ETIMEDOUT')) {
+            logger.trace('received ETIMEDOUT error, retrying');
+          } else {
             throw err;
           }
-          logger.trace('received 502 error, retrying');
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {
@@ -753,6 +783,7 @@ export class GitHub {
       {
         owner: this.repository.owner,
         repo: this.repository.repo,
+        per_page: 100,
       }
     )) {
       for (const tag of response.data) {
