@@ -19,7 +19,10 @@ import {
   VersioningStrategyType,
 } from '../../src';
 import {DefaultVersioningStrategy} from '../../src/versioning-strategies/default';
-import {buildVersioningStrategy} from '../../src/factories/versioning-strategy-factory';
+import {
+  buildVersioningStrategy,
+  unregisterVersioningStrategy,
+} from '../../src/factories/versioning-strategy-factory';
 
 describe('VersioningStrategyFactory', () => {
   const defaultTypes: VersioningStrategyType[] = [
@@ -55,6 +58,10 @@ describe('VersioningStrategyFactory', () => {
     const versioningStrategyType = 'custom-test';
 
     class CustomTest extends DefaultVersioningStrategy {}
+
+    afterEach(() => {
+      unregisterVersioningStrategy(versioningStrategyType);
+    });
 
     it('should register new releaser', async () => {
       registerVersioningStrategy(

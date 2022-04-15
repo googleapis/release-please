@@ -54,6 +54,10 @@ export function registerChangelogNotes(
   changelogNotesFactories[name] = changelogNotesBuilder;
 }
 
+export function unregisterChangelogNotes(name: string) {
+  delete changelogNotesFactories[name];
+}
+
 export function getChangelogTypes(): readonly ChangelogNotesType[] {
   return Object.keys(changelogNotesFactories).sort();
 }

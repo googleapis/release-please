@@ -138,6 +138,10 @@ export function registerReleaseType(
   releasers[name] = strategyBuilder;
 }
 
+export function unregisterReleaseType(name: string) {
+  delete releasers[name];
+}
+
 export function getReleaserTypes(): readonly ReleaseType[] {
   return Object.keys(releasers).sort();
 }

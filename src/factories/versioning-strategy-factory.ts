@@ -52,6 +52,10 @@ export function registerVersioningStrategy(
   versioningTypes[name] = versioningStrategyBuilder;
 }
 
+export function unregisterVersioningStrategy(name: string) {
+  delete versioningTypes[name];
+}
+
 export function getVersioningStrategyTypes(): readonly VersioningStrategyType[] {
   return Object.keys(versioningTypes).sort();
 }

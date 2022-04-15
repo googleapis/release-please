@@ -20,7 +20,10 @@ import {
   GitHub,
   registerChangelogNotes,
 } from '../../src';
-import {buildChangelogNotes} from '../../src/factories/changelog-notes-factory';
+import {
+  buildChangelogNotes,
+  unregisterChangelogNotes,
+} from '../../src/factories/changelog-notes-factory';
 import {DefaultChangelogNotes} from '../../src/changelog-notes/default';
 
 describe('ChangelogNotesFactory', () => {
@@ -62,6 +65,10 @@ describe('ChangelogNotesFactory', () => {
     const changelogType = 'custom-test';
 
     class CustomTest extends DefaultChangelogNotes {}
+
+    afterEach(() => {
+      unregisterChangelogNotes(changelogType);
+    });
 
     it('should register new releaser', async () => {
       registerChangelogNotes(changelogType, options => new CustomTest(options));

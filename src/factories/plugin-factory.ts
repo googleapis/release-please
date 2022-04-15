@@ -84,6 +84,10 @@ export function registerPlugin(name: string, pluginBuilder: PluginBuilder) {
   pluginFactories[name] = pluginBuilder;
 }
 
+export function unregisterPlugin(name: string) {
+  delete pluginFactories[name];
+}
+
 export function getPluginTypes(): readonly VersioningStrategyType[] {
   return Object.keys(pluginFactories).sort();
 }

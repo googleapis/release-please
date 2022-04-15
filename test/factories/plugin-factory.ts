@@ -18,6 +18,7 @@ import {
   buildPlugin,
   getPluginTypes,
   registerPlugin,
+  unregisterPlugin,
 } from '../../src/factories/plugin-factory';
 import {expect} from 'chai';
 import {LinkedVersions} from '../../src/plugins/linked-versions';
@@ -94,6 +95,10 @@ describe('PluginFactory', () => {
     const pluginType = 'custom-test';
 
     class CustomTest extends ManifestPlugin {}
+
+    afterEach(() => {
+      unregisterPlugin(pluginType);
+    });
 
     it('should register new releaser', async () => {
       registerPlugin(

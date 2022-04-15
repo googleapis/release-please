@@ -17,6 +17,7 @@ import {
   buildStrategy,
   getReleaserTypes,
   registerReleaseType,
+  unregisterReleaseType,
 } from '../src/factory';
 import {GitHub} from '../src/github';
 import {expect} from 'chai';
@@ -228,6 +229,10 @@ describe('factory', () => {
     const releaseType = 'custom-test';
 
     class CustomTest extends Simple {}
+
+    afterEach(() => {
+      unregisterReleaseType(releaseType);
+    });
 
     it('should register new releaser', async () => {
       registerReleaseType(releaseType, options => new CustomTest(options));
