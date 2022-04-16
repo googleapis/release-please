@@ -134,6 +134,7 @@ export interface ManifestOptions {
   signoff?: string;
   manifestPath?: string;
   labels?: string[];
+  skipLabeling?: boolean;
   releaseLabels?: string[];
   snapshotLabels?: string[];
   draft?: boolean;
@@ -214,6 +215,7 @@ export class Manifest {
   readonly fork: boolean;
   private signoffUser?: string;
   private labels: string[];
+  private skipLabeling?: boolean;
   private releaseLabels: string[];
   private snapshotLabels: string[];
   private plugins: PluginType[];
@@ -277,6 +279,7 @@ export class Manifest {
     this.releaseLabels =
       manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
     this.labels = manifestOptions?.labels || DEFAULT_LABELS;
+    this.skipLabeling = manifestOptions?.skipLabeling || false;
     this.snapshotLabels =
       manifestOptions?.snapshotLabels || DEFAULT_SNAPSHOT_LABELS;
     this.bootstrapSha = manifestOptions?.bootstrapSha;
@@ -826,6 +829,7 @@ export class Manifest {
       {
         fork: this.fork,
         signoffUser: this.signoffUser,
+        skipLabeling: this.skipLabeling,
       }
     );
     return newPullRequest;

@@ -891,12 +891,16 @@ export class GitHub {
     options?: {
       signoffUser?: string;
       fork?: boolean;
+      skipLabeling?: boolean;
     }
   ): Promise<PullRequest> {
     let message = releasePullRequest.title.toString();
     if (options?.signoffUser) {
       message = signoffCommitMessage(message, options.signoffUser);
     }
+    const pullRequestLabels: string[] = options?.skipLabeling
+      ? []
+      : releasePullRequest.labels;
     return await this.createPullRequest(
       {
         headBranchName: releasePullRequest.headRefName,
@@ -904,7 +908,7 @@ export class GitHub {
         number: -1,
         title: releasePullRequest.title.toString(),
         body: releasePullRequest.body.toString().slice(0, MAX_ISSUE_BODY_SIZE),
-        labels: releasePullRequest.labels,
+        labels: pullRequestLabels,
         files: [],
       },
       targetBranch,

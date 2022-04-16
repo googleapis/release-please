@@ -264,6 +264,27 @@ describe('CLI', () => {
       sinon.assert.calledOnce(createPullRequestsStub);
     });
 
+    it('handles --skip-labeling', async () => {
+      await parser.parseAsync(
+        'manifest-pr --repo-url=googleapis/release-please-cli --skip-labeling'
+      );
+
+      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+        owner: 'googleapis',
+        repo: 'release-please-cli',
+        token: undefined,
+      });
+      sinon.assert.calledOnceWithExactly(
+        fromManifestStub,
+        fakeGitHub,
+        'main',
+        DEFAULT_RELEASE_PLEASE_CONFIG,
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        sinon.match({skipLabeling: true})
+      );
+      sinon.assert.calledOnce(createPullRequestsStub);
+    });
+
     // it('handles --draft', async () => {
     //   await parser.parseAsync(
     //     'manifest-pr --repo-url=googleapis/release-please-cli --draft'

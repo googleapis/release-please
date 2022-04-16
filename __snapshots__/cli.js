@@ -87,6 +87,8 @@ Options:
   --dry-run             Prepare but do not take action[boolean] [default: false]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
+  --skip-labeling       skip application of labels to pull requests
+                                                      [boolean] [default: false]
   --fork                should the PR be created from a fork
                                                       [boolean] [default: false]
   --draft-pull-request  mark pull request as a draft  [boolean] [default: false]
@@ -199,6 +201,8 @@ Options:
   --label                           comma-separated list of labels to add to
                                     from release PR
                                                [default: "autorelease: pending"]
+  --skip-labeling                   skip application of labels to pull requests
+                                                      [boolean] [default: false]
   --fork                            should the PR be created from a fork
                                                       [boolean] [default: false]
   --draft-pull-request              mark pull request as a draft
