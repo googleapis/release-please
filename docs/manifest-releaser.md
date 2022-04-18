@@ -225,6 +225,14 @@ documented in comments)
   // value, but it will increase the number of API calls used.
   "commit-search-depth": 500,
 
+  // when creating multiple pull requests or releases, issue GitHub API requests
+  // sequentially rather than concurrently, waiting for the previous request to
+  // complete before issuing the next one.
+  // This option may reduce failures due to throttling on repositories releasing
+  // large numbers of packages at once.
+  // absence defaults to false, causing calls to be issued concurrently.
+  "sequential-calls": false,
+
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
   // all the files for that package.
