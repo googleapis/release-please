@@ -92,6 +92,7 @@ interface ReleaseArgs {
 interface PullRequestArgs {
   draftPullRequest?: boolean;
   label?: string;
+  skipLabeling?: boolean;
   signoff?: string;
 }
 
@@ -229,6 +230,11 @@ function pullRequestOptions(yargs: yargs.Argv): yargs.Argv {
     .option('label', {
       default: 'autorelease: pending',
       describe: 'comma-separated list of labels to add to from release PR',
+    })
+    .option('skip-labeling', {
+      describe: 'skip application of labels to pull requests',
+      type: 'boolean',
+      default: false,
     })
     .option('fork', {
       describe: 'should the PR be created from a fork',
@@ -756,6 +762,9 @@ function extractManifestOptions(
     let labels: string[] = argv.label.split(',');
     if (labels.length === 1 && labels[0] === '') labels = [];
     manifestOptions.labels = labels;
+  }
+  if ('skipLabeling' in argv && argv.skipLabeling !== undefined) {
+    manifestOptions.skipLabeling = argv.skipLabeling;
   }
   if ('releaseLabel' in argv && argv.releaseLabel) {
     manifestOptions.releaseLabels = argv.releaseLabel.split(',');

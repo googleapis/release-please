@@ -56,6 +56,7 @@ Extra options:
 | `--draft-pull-request` | `boolean` | If set, create pull requests as drafts |
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |
 | `--release-label` | `string` | Comma-separated list of labels to apply to the pull request after the release has been tagged. Defaults to `autorelease: tagged` |
+| `--skip-labeling` | `boolean` | If set, labels will not be applied to pull requests |
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
 | `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
 | `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
