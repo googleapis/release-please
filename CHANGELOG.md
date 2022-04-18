@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.13.0](https://github.com/googleapis/release-please/compare/v13.12.0...v13.13.0) (2022-04-18)
+
+
+### Features
+
+* add a flag to disable adding labels to new pull requests ([#1399](https://github.com/googleapis/release-please/issues/1399)) ([3957ef5](https://github.com/googleapis/release-please/commit/3957ef542512eb1ae2c3353b3c2a7fde4540c731))
+
 ## [13.12.0](https://github.com/googleapis/release-please/compare/v13.11.1...v13.12.0) (2022-04-15)
 
 
