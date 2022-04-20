@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.14.0](https://github.com/googleapis/release-please/compare/v13.13.0...v13.14.0) (2022-04-20)
+
+
+### Features
+
+* Support sequential-calls manifest field that disables concurrency when creating multiple pull requests or releases ([#1401](https://github.com/googleapis/release-please/issues/1401)) ([50f5c99](https://github.com/googleapis/release-please/commit/50f5c990b99d991b874ba88556386c6b940743f6))
+
 ## [13.13.0](https://github.com/googleapis/release-please/compare/v13.12.0...v13.13.0) (2022-04-18)
 
 
