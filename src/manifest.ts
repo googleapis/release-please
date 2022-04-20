@@ -134,9 +134,10 @@ export interface ManifestOptions {
   signoff?: string;
   manifestPath?: string;
   labels?: string[];
-  skipLabeling?: boolean;
   releaseLabels?: string[];
   snapshotLabels?: string[];
+  skipLabeling?: boolean;
+  sequentialCalls?: boolean;
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
@@ -178,6 +179,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
+  'sequential-calls'?: boolean;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -216,6 +218,7 @@ export class Manifest {
   private signoffUser?: string;
   private labels: string[];
   private skipLabeling?: boolean;
+  private sequentialCalls?: boolean;
   private releaseLabels: string[];
   private snapshotLabels: string[];
   private plugins: PluginType[];
@@ -280,6 +283,7 @@ export class Manifest {
       manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
     this.labels = manifestOptions?.labels || DEFAULT_LABELS;
     this.skipLabeling = manifestOptions?.skipLabeling || false;
+    this.sequentialCalls = manifestOptions?.sequentialCalls || false;
     this.snapshotLabels =
       manifestOptions?.snapshotLabels || DEFAULT_SNAPSHOT_LABELS;
     this.bootstrapSha = manifestOptions?.bootstrapSha;
@@ -720,7 +724,7 @@ export class Manifest {
   /**
    * Opens/updates all candidate release pull requests for this repository.
    *
-   * @returns {number[]} Pull request numbers of release pull requests
+   * @returns {PullRequest[]} Pull request numbers of release pull requests
    */
   async createPullRequests(): Promise<(PullRequest | undefined)[]> {
     const candidatePullRequests = await this.buildPullRequests();
@@ -742,19 +746,32 @@ export class Manifest {
     const openPullRequests = await this.findOpenReleasePullRequests();
     const snoozedPullRequests = await this.findSnoozedReleasePullRequests();
 
-    const promises: Promise<PullRequest | undefined>[] = [];
-    for (const pullRequest of candidatePullRequests) {
-      promises.push(
-        this.createOrUpdatePullRequest(
+    if (this.sequentialCalls) {
+      const pullRequests: PullRequest[] = [];
+      for (const pullRequest of candidatePullRequests) {
+        const resultPullRequest = await this.createOrUpdatePullRequest(
           pullRequest,
           openPullRequests,
           snoozedPullRequests
-        )
-      );
+        );
+        if (resultPullRequest) pullRequests.push(resultPullRequest);
+      }
+      return pullRequests;
+    } else {
+      const promises: Promise<PullRequest | undefined>[] = [];
+      for (const pullRequest of candidatePullRequests) {
+        promises.push(
+          this.createOrUpdatePullRequest(
+            pullRequest,
+            openPullRequests,
+            snoozedPullRequests
+          )
+        );
+      }
+      const pullNumbers = await Promise.all(promises);
+      // reject any pull numbers that were not created or updated
+      return pullNumbers.filter(number => !!number);
     }
-    const pullNumbers = await Promise.all(promises);
-    // reject any pull numbers that were not created or updated
-    return pullNumbers.filter(number => !!number);
   }
 
   private async findOpenReleasePullRequests(): Promise<PullRequest[]> {
@@ -968,17 +985,29 @@ export class Manifest {
       }
     }
 
-    const promises: Promise<CreatedRelease[]>[] = [];
-    for (const pullNumber in releasesByPullRequest) {
-      promises.push(
-        this.createReleasesForPullRequest(
+    if (this.sequentialCalls) {
+      const resultReleases: CreatedRelease[] = [];
+      for (const pullNumber in releasesByPullRequest) {
+        const releases = await this.createReleasesForPullRequest(
           releasesByPullRequest[pullNumber],
           pullRequestsByNumber[pullNumber]
-        )
-      );
+        );
+        resultReleases.concat(releases);
+      }
+      return resultReleases;
+    } else {
+      const promises: Promise<CreatedRelease[]>[] = [];
+      for (const pullNumber in releasesByPullRequest) {
+        promises.push(
+          this.createReleasesForPullRequest(
+            releasesByPullRequest[pullNumber],
+            pullRequestsByNumber[pullNumber]
+          )
+        );
+      }
+      const releases = await Promise.all(promises);
+      return releases.reduce((collection, r) => collection.concat(r), []);
     }
-    const releases = await Promise.all(promises);
-    return releases.reduce((collection, r) => collection.concat(r), []);
   }
 
   private async createReleasesForPullRequest(
@@ -1158,6 +1187,7 @@ async function parseConfig(
       configSnapshotLabel === undefined ? undefined : [configSnapshotLabel],
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
+    sequentialCalls: config['sequential-calls'],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
