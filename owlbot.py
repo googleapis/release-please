@@ -29,5 +29,6 @@ node.owlbot_main(templates_excludes=[
   '.kokoro/system-test.sh',
   '.mocharc.js',
   '.github/release-please.yml',
+  '.github/sync-repo-settings.yml',
   '.github/workflows/ci.yaml',
 ])
