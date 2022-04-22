@@ -59,6 +59,7 @@ export interface BaseStrategyOptions {
   versioningStrategy?: VersioningStrategy;
   targetBranch: string;
   changelogPath?: string;
+  changelogHost?: string;
   changelogSections?: ChangelogSection[];
   commitPartial?: string;
   headerPartial?: string;
@@ -88,6 +89,7 @@ export abstract class BaseStrategy implements Strategy {
   protected targetBranch: string;
   protected repository: Repository;
   protected changelogPath: string;
+  protected changelogHost?: string;
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
   private releaseAs?: string;
@@ -112,6 +114,7 @@ export abstract class BaseStrategy implements Strategy {
     this.targetBranch = options.targetBranch;
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
+    this.changelogHost = options.changelogHost;
     this.changelogSections = options.changelogSections;
     this.tagSeparator = options.tagSeparator;
     this.skipGitHubRelease = options.skipGitHubRelease || false;
@@ -183,6 +186,7 @@ export abstract class BaseStrategy implements Strategy {
     commits?: Commit[]
   ): Promise<string> {
     return await this.changelogNotes.buildNotes(conventionalCommits, {
+      host: this.changelogHost,
       owner: this.repository.owner,
       repository: this.repository.repo,
       version: newVersion.toString(),

@@ -100,6 +100,7 @@ interface PullRequestStrategyArgs {
   snapshot?: boolean;
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
+  changelogHost?: string;
   versioningStrategy?: VersioningStrategyType;
 
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
@@ -315,6 +316,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
         return arg;
       },
     })
+    .option('changelog-host', {
+      describe: 'host for hyperlinks in the changelog',
+      type: 'string',
+    })
     .option('last-package-version', {
       describe: 'last version # that package was released as',
       type: 'string',
@@ -438,6 +443,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
+          changelogHost: argv.changelogHost,
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
@@ -698,6 +704,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       bumpMinorPreMajor: argv.bumpMinorPreMajor,
       bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
       changelogPath: argv.changelogPath,
+      changelogHost: argv.changelogHost,
       changelogSections: argv.changelogSections,
       releaseAs: argv.releaseAs,
       versioning: argv.versioningStrategy,
