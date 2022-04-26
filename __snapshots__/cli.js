@@ -191,6 +191,7 @@ Options:
                                                   [choices: "default", "github"]
   --changelog-sections              comma-separated list of scopes to include in
                                     the changelog                       [string]
+  --changelog-host                  host for hyperlinks in the changelog[string]
   --last-package-version            last version # that package was released as
                          [deprecated: use --latest-tag-version instead] [string]
   --latest-tag-version              Override the detected latest tag version
