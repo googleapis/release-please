@@ -59,6 +59,7 @@ Extra options:
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
 | `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
 | `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
+| `--changelog-host` | `string` | Host for commit hyperlinks in the changelog. Defaults to `https://github.com` |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
