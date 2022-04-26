@@ -901,6 +901,29 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createPullRequestsStub);
       });
 
+      it('handles --changelog-host', async () => {
+        await parser.parseAsync(
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --changelog-host=https://example.com'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({
+            releaseType: 'java-yoshi',
+            changelogHost: 'https://example.com',
+          }),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createPullRequestsStub);
+      });
       it('handles --draft-pull-request', async () => {
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --draft-pull-request'
