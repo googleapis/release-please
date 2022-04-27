@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.15.0](https://github.com/googleapis/release-please/compare/v13.14.0...v13.15.0) (2022-04-27)
+
+
+### Features
+
+* allow configuring changelog-host ([#1408](https://github.com/googleapis/release-please/issues/1408)) ([d7d525f](https://github.com/googleapis/release-please/commit/d7d525f283f931dd999ca69228e71dd6adf9e0c3))
+
 ## [13.14.0](https://github.com/googleapis/release-please/compare/v13.13.0...v13.14.0) (2022-04-20)
 
 
