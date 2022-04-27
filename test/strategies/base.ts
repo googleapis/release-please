@@ -147,6 +147,24 @@ describe('Strategy', () => {
       assertHasUpdate(updates!, '0', Generic);
       assertHasUpdate(updates!, '3.xml', PomXml);
     });
+    it('should pass changelogHost to default buildNotes', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        changelogHost: 'https://example.com'
+      });
+      const commits = [
+        {
+          sha: 'abc5566',
+          message: 'fix: a bugfix',
+        },
+      ];
+      const pullRequest = await strategy.buildReleasePullRequest(commits);
+      expect(pullRequest).to.exist;
+      expect(pullRequest?.body.toString()).to.have.string('https://example.com');
+      snapshot(dateSafe(pullRequest!.body.toString()));
+    });
     it('rejects relative extra files', async () => {
       const extraFiles = [
         './bar',
