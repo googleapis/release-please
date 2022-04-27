@@ -174,6 +174,14 @@ documented in comments)
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...],
+  
+  // set default conventional commit => changelog sections mapping/appearancei.
+  // absence defaults to https://git.io/JqCZL
+  "changelog-sections": [...],
+  
+  // set default github host in changelog
+  // absence defaults to https://github.com
+  "changelog-host": "https://example.com",
 
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
@@ -232,6 +240,7 @@ documented in comments)
   // large numbers of packages at once.
   // absence defaults to false, causing calls to be issued concurrently.
   "sequential-calls": false,
+  
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
@@ -245,6 +254,10 @@ documented in comments)
   //                     *package* directory. defaults to "CHANGELOG.md". E.g.
   //                     for a package key of "path/to/mypkg", the location in
   //                     the repo is path/to/pkg/CHANGELOG.md
+  // - "changelog-host": Override the GitHub host when writing changelog.
+  //                     Defaults to "https://github.com". E.g. for a commit of
+  //                     "abc123", it's hyperlink in changelog is
+  //                     https://github.com/<org>/<repo>/commit/abc123
   "packages": {
     // `.` is a special case for handling to root of the repository
     ".": {
@@ -283,6 +296,10 @@ documented in comments)
       // our change log is located at path/to/myPyPkgA/docs/CHANGES.rst
       "changelog-path": "docs/CHANGES.rst"
     },
+    "path/to/github-enterprise-package", {
+      // override changelog host for github enterprise package
+      "changelog-host": "https://example.com"
+    }
   }
 
 }
