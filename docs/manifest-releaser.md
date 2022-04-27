@@ -174,11 +174,7 @@ documented in comments)
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...],
-  
-  // set default conventional commit => changelog sections mapping/appearancei.
-  // absence defaults to https://git.io/JqCZL
-  "changelog-sections": [...],
-  
+
   // set default github host in changelog
   // absence defaults to https://github.com
   "changelog-host": "https://example.com",

@@ -105,6 +105,7 @@ need to specify your release options:
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
 | `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
 | `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
+| `--changelog-host` | `string` | Host for commit hyperlinks in the changelog. Defaults to `https://github.com` |
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--signoff` | string | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
