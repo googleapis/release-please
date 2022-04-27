@@ -152,7 +152,7 @@ describe('Strategy', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
-        changelogHost: 'https://example.com'
+        changelogHost: 'https://example.com',
       });
       const commits = [
         {
@@ -162,7 +162,9 @@ describe('Strategy', () => {
       ];
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       expect(pullRequest).to.exist;
-      expect(pullRequest?.body.toString()).to.have.string('https://example.com');
+      expect(pullRequest?.body.toString()).to.have.string(
+        'https://example.com'
+      );
       snapshot(dateSafe(pullRequest!.body.toString()));
     });
     it('rejects relative extra files', async () => {

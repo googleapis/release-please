@@ -2749,10 +2749,12 @@ describe('Manifest', () => {
         github,
         github.repository.defaultBranch
       );
-      expect(manifest.repositoryConfig['.'].changelogHost).to.eql("https://example.com")
+      expect(manifest.repositoryConfig['.'].changelogHost).to.eql(
+        'https://example.com'
+      );
       expect(
         manifest.repositoryConfig['packages/bot-config-utils'].changelogHost
-      ).to.eql("https://override.example.com");
+      ).to.eql('https://override.example.com');
     });
   });
 
