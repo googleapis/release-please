@@ -81,6 +81,7 @@ export interface ReleaserConfig {
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
   changelogType?: ChangelogNotesType;
+  changelogHost?: string;
 
   // Ruby-only
   versionFile?: string;
@@ -117,6 +118,7 @@ interface ReleaserConfigJson {
   'include-component-in-tag'?: boolean;
   'include-v-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
+  'changelog-host'?: string;
   'pull-request-title-pattern'?: string;
   'tag-separator'?: string;
   'extra-files'?: string[];
@@ -1123,6 +1125,7 @@ function extractReleaserConfig(
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
+    changelogHost: config['changelog-host'],
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
     draft: config.draft,
@@ -1366,6 +1369,7 @@ function mergeReleaserConfig(
     changelogSections:
       pathConfig.changelogSections ?? defaultConfig.changelogSections,
     changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,
+    changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,

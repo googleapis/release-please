@@ -2724,6 +2724,38 @@ describe('Manifest', () => {
         sinon.match.has('maxResults', 1)
       );
     });
+
+    it('should read changelog host from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/changelog-host.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].changelogHost).to.eql(
+        'https://example.com'
+      );
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].changelogHost
+      ).to.eql('https://override.example.com');
+    });
   });
 
   describe('createPullRequests', () => {

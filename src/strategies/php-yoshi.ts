@@ -116,6 +116,7 @@ export class PHPYoshi extends BaseStrategy {
         const partialReleaseNotes = await this.changelogNotes.buildNotes(
           splitCommits[directory],
           {
+            host: this.changelogHost,
             owner: this.repository.owner,
             repository: this.repository.repo,
             version: newVersion.toString(),

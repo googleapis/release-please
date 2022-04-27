@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "changelog-host": "https://example.com",
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils",
+      "changelog-host": "https://override.example.com"
+    }
+  }
+}
