@@ -152,6 +152,10 @@ export abstract class BaseStrategy implements Strategy {
     );
   }
 
+  protected async getBranchComponent(): Promise<string | undefined> {
+    return this.component || (await this.getDefaultComponent());
+  }
+
   async getPackageName(): Promise<string | undefined> {
     return this.packageName ?? (await this.getDefaultPackageName());
   }
@@ -265,8 +269,9 @@ export abstract class BaseStrategy implements Strategy {
       newVersion,
       this.pullRequestTitlePattern
     );
-    const branchName = component
-      ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
+    const branchComponent = await this.getBranchComponent();
+    const branchName = branchComponent
+      ? BranchName.ofComponentTargetBranch(branchComponent, this.targetBranch)
       : BranchName.ofTargetBranch(this.targetBranch);
     const releaseNotesBody = await this.buildReleaseNotes(
       conventionalCommits,
