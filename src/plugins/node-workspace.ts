@@ -311,7 +311,6 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         ...(packageJson.dependencies ?? {}),
         ...(packageJson.devDependencies ?? {}),
         ...(packageJson.optionalDependencies ?? {}),
-        ...(packageJson.peerDependencies ?? {}),
       });
       const workspaceDeps = allDeps.filter(dep =>
         workspacePackageNames.has(dep)
