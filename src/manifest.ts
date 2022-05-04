@@ -76,6 +76,7 @@ export interface ReleaserConfig {
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   tagSeparator?: string;
+  separatePullRequests?: boolean;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -120,6 +121,7 @@ interface ReleaserConfigJson {
   'changelog-type'?: ChangelogNotesType;
   'changelog-host'?: string;
   'pull-request-title-pattern'?: string;
+  'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: string[];
   'version-file'?: string;
@@ -177,7 +179,6 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
   plugins?: PluginType[];
-  'separate-pull-requests'?: boolean;
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
@@ -1140,6 +1141,7 @@ function extractReleaserConfig(
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     tagSeparator: config['tag-separator'],
+    separatePullRequests: config['separate-pull-requests'],
   };
 }
 
@@ -1386,6 +1388,8 @@ function mergeReleaserConfig(
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
       defaultConfig.pullRequestTitlePattern,
+    separatePullRequests:
+      pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
   };
 }
 
