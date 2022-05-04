@@ -554,6 +554,38 @@ describe('Manifest', () => {
       expect(manifest.releaseSearchDepth).to.eql(10);
       expect(manifest.commitSearchDepth).to.eql(50);
     });
+
+    it('should read changelog host from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/changelog-host.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].changelogHost).to.eql(
+        'https://example.com'
+      );
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].changelogHost
+      ).to.eql('https://override.example.com');
+    });
   });
 
   describe('fromConfig', () => {
@@ -2725,36 +2757,138 @@ describe('Manifest', () => {
       );
     });
 
-    it('should read changelog host from manifest', async () => {
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
-      getFileContentsStub
-        .withArgs('release-please-config.json', 'main')
-        .resolves(
-          buildGitHubFileContent(
-            fixturesPath,
-            'manifest/config/changelog-host.json'
-          )
-        )
-        .withArgs('.release-please-manifest.json', 'main')
-        .resolves(
-          buildGitHubFileContent(
-            fixturesPath,
-            'manifest/versions/versions.json'
-          )
+    describe('with multiple components', () => {
+      beforeEach(() => {
+        mockReleases(sandbox, github, []);
+        mockTags(sandbox, github, [
+          {
+            name: 'b-v1.0.0',
+            sha: 'abc123',
+          },
+          {
+            name: 'c-v2.0.0',
+            sha: 'abc123',
+          },
+          {
+            name: 'd-v3.0.0',
+            sha: 'abc123',
+          },
+        ]);
+        mockCommits(sandbox, github, [
+          {
+            sha: 'def456',
+            message: 'fix: some bugfix',
+            files: ['pkg/b/foo.txt', 'pkg/c/foo.txt', 'pkg/d/foo.txt'],
+          },
+          {
+            sha: 'abc123',
+            message: 'chore: release main',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main/components/pkg1',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release main',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
+          },
+        ]);
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
         );
-      const manifest = await Manifest.fromManifest(
-        github,
-        github.repository.defaultBranch
-      );
-      expect(manifest.repositoryConfig['.'].changelogHost).to.eql(
-        'https://example.com'
-      );
-      expect(
-        manifest.repositoryConfig['packages/bot-config-utils'].changelogHost
-      ).to.eql('https://override.example.com');
+        getFileContentsStub
+          .withArgs('package.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/repo/node/pkg1/package.json'
+            )
+          );
+      });
+
+      it('should allow configuring separate pull requests', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'pkg/b': {
+              releaseType: 'simple',
+              component: 'b',
+            },
+            'pkg/c': {
+              releaseType: 'simple',
+              component: 'c',
+            },
+            'pkg/d': {
+              releaseType: 'simple',
+              component: 'd',
+            },
+          },
+          {
+            'pkg/b': Version.parse('1.0.0'),
+            'pkg/c': Version.parse('2.0.0'),
+            'pkg/d': Version.parse('3.0.0'),
+          },
+          {
+            separatePullRequests: true,
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(3);
+        const pullRequestB = pullRequests[0];
+        expect(pullRequestB.headRefName).to.eql(
+          'release-please--branches--main--components--b'
+        );
+        const pullRequestC = pullRequests[1];
+        expect(pullRequestC.headRefName).to.eql(
+          'release-please--branches--main--components--c'
+        );
+        const pullRequestD = pullRequests[2];
+        expect(pullRequestD.headRefName).to.eql(
+          'release-please--branches--main--components--d'
+        );
+      });
+
+      it('should allow configuring individual separate pull requests', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'pkg/b': {
+              releaseType: 'simple',
+              component: 'b',
+            },
+            'pkg/c': {
+              releaseType: 'simple',
+              component: 'c',
+            },
+            'pkg/d': {
+              releaseType: 'simple',
+              component: 'd',
+              separatePullRequests: true,
+            },
+          },
+          {
+            'pkg/b': Version.parse('1.0.0'),
+            'pkg/c': Version.parse('2.0.0'),
+            'pkg/d': Version.parse('3.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(2);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.headRefName).to.eql(
+          'release-please--branches--main'
+        );
+        const mainPullRequest = pullRequests[1];
+        expect(mainPullRequest.headRefName).to.eql(
+          'release-please--branches--main--components--d'
+        );
+      });
     });
   });
 
