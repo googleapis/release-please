@@ -2889,6 +2889,44 @@ describe('Manifest', () => {
           'release-please--branches--main--components--d'
         );
       });
+
+      it('should allow configuring individual separate pull requests with includeComponentInTag = false', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'pkg/b': {
+              releaseType: 'simple',
+              component: 'b',
+            },
+            'pkg/c': {
+              releaseType: 'simple',
+              component: 'c',
+            },
+            'pkg/d': {
+              releaseType: 'simple',
+              component: 'd',
+              separatePullRequests: true,
+              includeComponentInTag: false,
+            },
+          },
+          {
+            'pkg/b': Version.parse('1.0.0'),
+            'pkg/c': Version.parse('2.0.0'),
+            'pkg/d': Version.parse('3.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(2);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.headRefName).to.eql(
+          'release-please--branches--main'
+        );
+        const mainPullRequest = pullRequests[1];
+        expect(mainPullRequest.headRefName).to.eql(
+          'release-please--branches--main--components--d'
+        );
+      });
     });
   });
 
