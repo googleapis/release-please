@@ -85,6 +85,20 @@ Release notes for path: node1, releaseType: node
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['NodeWorkspace plugin run should ignore peer dependencies 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 3.3.4</summary>
+
+Release notes for path: node1, releaseType: node
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['NodeWorkspace plugin run walks dependency tree and updates previously untouched packages 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
