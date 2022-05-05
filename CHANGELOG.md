@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.15.1](https://github.com/googleapis/release-please/compare/v13.15.0...v13.15.1) (2022-05-05)
+
+
+### Bug Fixes
+
+* **cargo-workspace:** stop defaulting to updating all components ([#1414](https://github.com/googleapis/release-please/issues/1414)) ([532637c](https://github.com/googleapis/release-please/commit/532637c399d38962e1c0a8622656d61e0fe7e405))
+* node-workspace should not bump versions for peer dependencies ([#1413](https://github.com/googleapis/release-please/issues/1413)) ([cc4eaaa](https://github.com/googleapis/release-please/commit/cc4eaaa864b7a6444e4dc72d1c75a596932d7b62)), closes [#1403](https://github.com/googleapis/release-please/issues/1403)
+
 ## [13.15.0](https://github.com/googleapis/release-please/compare/v13.14.0...v13.15.0) (2022-04-27)
 
 
