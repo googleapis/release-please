@@ -12,18 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  CandidateReleasePullRequest,
-  RepositoryConfig,
-  ROOT_PROJECT_PATH,
-} from '../manifest';
+import {CandidateReleasePullRequest, ROOT_PROJECT_PATH} from '../manifest';
 import {logger} from '../util/logger';
-import {
-  WorkspacePlugin,
-  DependencyGraph,
-  DependencyNode,
-  WorkspacePluginOptions,
-} from './workspace';
+import {WorkspacePlugin, DependencyGraph, DependencyNode} from './workspace';
 import {
   CargoManifest,
   parseCargoManifest,
@@ -31,7 +22,6 @@ import {
   CargoDependency,
 } from '../updaters/rust/common';
 import {VersionsMap, Version} from '../version';
-import {GitHub} from '../github';
 import {CargoToml} from '../updaters/rust/cargo-toml';
 import {RawContent} from '../updaters/raw-content';
 import {Changelog} from '../updaters/changelog';
@@ -82,17 +72,6 @@ interface CrateInfo {
  * into a single rust package.
  */
 export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
-  constructor(
-    github: GitHub,
-    targetBranch: string,
-    repositoryConfig: RepositoryConfig,
-    options: WorkspacePluginOptions = {}
-  ) {
-    super(github, targetBranch, repositoryConfig, {
-      ...options,
-      updateAllPackages: true,
-    });
-  }
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
   ): Promise<{

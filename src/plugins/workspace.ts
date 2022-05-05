@@ -277,6 +277,10 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     graph: DependencyGraph<T>,
     packageNamesToUpdate: string[]
   ): T[] {
+    logger.info(
+      `building graph order, existing package names: ${packageNamesToUpdate}`
+    );
+
     // invert the graph so it's dependency name => packages that depend on it
     const dependentGraph = this.invertGraph(graph);
     const visited: Set<T> = new Set();
