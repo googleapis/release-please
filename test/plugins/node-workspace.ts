@@ -283,5 +283,38 @@ describe('NodeWorkspace plugin', () => {
       const update3 = assertHasUpdate(updates, 'node3/CHANGELOG.md', Changelog);
       snapshot((update3.updater as Changelog).changelogEntry);
     });
+    it('should ignore peer dependencies', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
+          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+        ]),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['node1/package.json', 'plugin1/package.json'],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new NodeWorkspace(github, 'main', {
+        node1: {
+          releaseType: 'node',
+        },
+        plugin1: {
+          releaseType: 'node',
+        },
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'node1/package.json');
+      assertNoHasUpdate(updates, 'plugin1/package.json');
+      snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+    });
   });
 });

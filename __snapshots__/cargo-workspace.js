@@ -27,13 +27,6 @@ Release notes for path: packages/rustA, releaseType: rust
     * pkgB bumped from 2.2.2 to 2.2.3
 </details>
 
-<details><summary>pkgD: 1.2.4</summary>
-
-### Dependencies
-
-
-</details>
-
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
@@ -65,6 +58,29 @@ exports['CargoWorkspace plugin run handles a single rust package 1'] = `
 <details><summary>pkgA: 1.1.2</summary>
 
 Release notes for path: packages/rustA, releaseType: rust
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['CargoWorkspace plugin run skips component if not touched 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>pkgB: 2.3.0</summary>
+
+Release notes for path: packages/rustB, releaseType: rust
+</details>
+
+<details><summary>pkgC: 3.3.4</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgB bumped from 2.2.2 to 2.3.0
 </details>
 
 ---
