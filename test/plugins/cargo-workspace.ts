@@ -23,6 +23,7 @@ import {
   assertHasUpdate,
   dateSafe,
   stubFilesFromFixtures,
+  assertNoHasUpdate,
 } from '../helpers';
 import {Version} from '../../src/version';
 import {ManifestPlugin} from '../../src/plugin';
@@ -300,7 +301,47 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustA/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustB/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustC/Cargo.toml', RawContent);
-      assertHasUpdate(updates, 'packages/rustD/Cargo.toml', RawContent);
+      snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+    });
+    it('skips component if not touched', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest(
+          'packages/rustB',
+          'rust',
+          '2.3.0',
+          'pkgB',
+          [
+            buildMockPackageUpdate(
+              'packages/rustB/Cargo.toml',
+              'packages/rustB/Cargo.toml'
+            ),
+          ]
+        ),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'Cargo.toml',
+          'packages/rustA/Cargo.toml',
+          'packages/rustB/Cargo.toml',
+          'packages/rustC/Cargo.toml',
+          'packages/rustD/Cargo.toml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const rustCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'rust'
+      );
+      expect(rustCandidate).to.not.be.undefined;
+      const updates = rustCandidate!.pullRequest.updates;
+      // pkgA is not touched and does not have a dependency on pkgB
+      assertNoHasUpdate(updates, 'packages/rustA/Cargo.toml');
+      assertHasUpdate(updates, 'packages/rustB/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
   });
