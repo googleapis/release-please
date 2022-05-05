@@ -55,7 +55,9 @@ export class Merge extends ManifestPlugin {
     }
     logger.info(`Merging ${candidates.length} pull requests`);
 
-    const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce(
+    const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce<
+      Array<Array<CandidateReleasePullRequest>>
+    >(
       (collection, candidate) => {
         if (candidate.config.separatePullRequests) {
           collection[1].push(candidate);
@@ -64,7 +66,7 @@ export class Merge extends ManifestPlugin {
         }
         return collection;
       },
-      [[], []] as CandidateReleasePullRequest[][]
+      [[], []]
     );
 
     const releaseData: ReleaseData[] = [];
