@@ -17,7 +17,11 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Python} from '../../src/strategies/python';
 import * as sinon from 'sinon';
-import {buildGitHubFileContent, assertHasUpdate} from '../helpers';
+import {
+  buildGitHubFileContent,
+  assertHasUpdate,
+  assertNoHasUpdate,
+} from '../helpers';
 import {buildMockCommit} from '../helpers';
 import {PythonFileWithVersion} from '../../src/updaters/python/python-file-with-version';
 import {TagName} from '../../src/util/tag-name';
@@ -153,6 +157,43 @@ describe('Python', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'src/version.py', PythonFileWithVersion);
+    });
+
+    it('finds and updates a pyproject.toml of poetry', async () => {
+      const strategy = new Python({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(
+          buildGitHubFileContent(
+            './test/updaters/fixtures',
+            'pyproject-poetry-google-cloud-automl.toml'
+          )
+        );
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'pyproject.toml', PyProjectToml);
+      assertHasUpdate(
+        updates,
+        'google_cloud_automl/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(
+        updates,
+        'google_cloud_automl_extra/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(updates, 'extra_glob/__init__.py', PythonFileWithVersion);
+      assertNoHasUpdate(updates, 'foobar/__init__.py');
+      assertNoHasUpdate(updates, 'extra_glob/**/*.py/__init__.py');
     });
   });
 });
