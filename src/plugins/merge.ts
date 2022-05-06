@@ -55,11 +55,25 @@ export class Merge extends ManifestPlugin {
     }
     logger.info(`Merging ${candidates.length} pull requests`);
 
+    const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce<
+      Array<Array<CandidateReleasePullRequest>>
+    >(
+      (collection, candidate) => {
+        if (candidate.config.separatePullRequests) {
+          collection[1].push(candidate);
+        } else {
+          collection[0].push(candidate);
+        }
+        return collection;
+      },
+      [[], []]
+    );
+
     const releaseData: ReleaseData[] = [];
     const labels = new Set<string>();
     let rawUpdates: Update[] = [];
     let rootRelease: CandidateReleasePullRequest | null = null;
-    for (const candidate of candidates) {
+    for (const candidate of inScopeCandidates) {
       const pullRequest = candidate.pullRequest;
       rawUpdates = rawUpdates.concat(...pullRequest.updates);
       for (const label of pullRequest.labels) {
@@ -99,6 +113,7 @@ export class Merge extends ManifestPlugin {
           releaseType,
         },
       },
+      ...outOfScopeCandidates,
     ];
   }
 }
