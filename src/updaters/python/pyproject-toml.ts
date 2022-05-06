@@ -22,6 +22,7 @@ import {DefaultUpdater} from '../default';
 interface PyProjectContent {
   name: string;
   version: string;
+  packages?: [{include: string; from?: string}];
 }
 
 /**

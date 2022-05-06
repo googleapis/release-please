@@ -100,22 +100,38 @@ export class Python extends BaseStrategy {
       );
     }
 
-    if (!projectName) {
+    const packagePaths = new Set<string>();
+    if (
+      parsedPyProject?.tool?.poetry &&
+      parsedPyProject?.tool?.poetry.packages
+    ) {
+      parsedPyProject?.tool?.poetry.packages.forEach(pkg => {
+        // Use 'from' if it appears, else use 'include'.
+        // Skip glob 'extra/**/*.py by split
+        packagePaths.add((pkg.from || pkg.include).split('/')[0]);
+      });
+    } else if (projectName) {
+      packagePaths.add(projectName);
+    }
+
+    if (packagePaths.size === 0) {
       logger.warn('No project/component found.');
     } else {
-      updates.push({
-        path: this.addPath(`${projectName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
-      });
-      updates.push({
-        path: this.addPath(`src/${projectName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
+      packagePaths.forEach(packagePath => {
+        updates.push({
+          path: this.addPath(`${packagePath}/__init__.py`),
+          createIfMissing: false,
+          updater: new PythonFileWithVersion({
+            version,
+          }),
+        });
+        updates.push({
+          path: this.addPath(`src/${packagePath}/__init__.py`),
+          createIfMissing: false,
+          updater: new PythonFileWithVersion({
+            version,
+          }),
+        });
       });
     }
 
