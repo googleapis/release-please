@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.16.0](https://github.com/googleapis/release-please/compare/v13.15.1...v13.16.0) (2022-05-06)
+
+
+### Features
+
+* allow configuring separate-pull-requests per component ([#1412](https://github.com/googleapis/release-please/issues/1412)) ([d274421](https://github.com/googleapis/release-please/commit/d2744219fbbd6c58a10b177a824fb3715039162a))
+
 ### [13.15.1](https://github.com/googleapis/release-please/compare/v13.15.0...v13.15.1) (2022-05-05)
 
 
