@@ -29,6 +29,7 @@ import {
   assertNoHasUpdate,
 } from './helpers';
 import {expect} from 'chai';
+import * as assert from 'assert';
 import {Version} from '../src/version';
 import {PullRequest} from '../src/pull-request';
 import {readFileSync} from 'fs';
@@ -41,7 +42,11 @@ import {PullRequestBody} from '../src/util/pull-request-body';
 import {RawContent} from '../src/updaters/raw-content';
 import {TagName} from '../src/util/tag-name';
 import snapshot = require('snap-shot-it');
-import {DuplicateReleaseError} from '../src/errors';
+import {
+  DuplicateReleaseError,
+  FileNotFoundError,
+  ConfigurationError,
+} from '../src/errors';
 import {RequestError} from '@octokit/request-error';
 
 const sandbox = sinon.createSandbox();
@@ -585,6 +590,43 @@ describe('Manifest', () => {
       expect(
         manifest.repositoryConfig['packages/bot-config-utils'].changelogHost
       ).to.eql('https://override.example.com');
+    });
+
+    it('should throw a configuration error for a missing manifest config', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .rejects(new FileNotFoundError('.release-please-config.json'))
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      await assert.rejects(async () => {
+        await Manifest.fromManifest(github, github.repository.defaultBranch);
+      }, ConfigurationError);
+    });
+
+    it('should throw a configuration error for a missing manifest versions file', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .rejects(new FileNotFoundError('.release-please-manifest.json'));
+      await assert.rejects(async () => {
+        await Manifest.fromManifest(github, github.repository.defaultBranch);
+      }, ConfigurationError);
     });
   });
 
