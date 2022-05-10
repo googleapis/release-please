@@ -3930,7 +3930,7 @@ describe('Manifest', () => {
         [],
         [
           {
-            headBranchName: 'release-please/branches/main',
+            headBranchName: 'release-please--branches--main',
             baseBranchName: 'main',
             number: 1234,
             title: 'chore(main): release 3.2.7',
@@ -3947,6 +3947,50 @@ describe('Manifest', () => {
         {
           '.': {
             releaseType: 'simple',
+          },
+        },
+        {
+          '.': Version.parse('3.2.6'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('v3.2.7');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+      expect(releases[0].path).to.eql('.');
+      expect(releases[0].name).to.eql('v3.2.7');
+      expect(releases[0].draft).to.be.undefined;
+      expect(releases[0].prerelease).to.be.undefined;
+    });
+
+    it('should handle a single component release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main--components--foo',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore(main): release 3.2.7',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            component: 'foo',
+            includeComponentInTag: false,
           },
         },
         {
@@ -4318,7 +4362,8 @@ describe('Manifest', () => {
         [],
         [
           {
-            headBranchName: 'release-please/branches/main',
+            headBranchName:
+              'release-please--branches--main--components--release-brancher',
             baseBranchName: 'main',
             number: 1234,
             title: 'chore(main): release v1.3.1',

@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.16.1](https://github.com/googleapis/release-please/compare/v13.16.0...v13.16.1) (2022-05-10)
+
+
+### Bug Fixes
+
+* release tagging can find branch components ([#1425](https://github.com/googleapis/release-please/issues/1425)) ([2947d1e](https://github.com/googleapis/release-please/commit/2947d1e9bc49cc25e7c5eef022ba4106d72e829f))
+
 ## [13.16.0](https://github.com/googleapis/release-please/compare/v13.15.1...v13.16.0) (2022-05-06)
 
 
