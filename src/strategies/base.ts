@@ -468,13 +468,14 @@ export abstract class BaseStrategy implements Strategy {
       pullRequestBody.releaseData.length === 1 &&
       !pullRequestBody.releaseData[0].component
     ) {
+      const branchComponent = await this.getBranchComponent();
       // standalone release PR, ensure the components match
       if (
         this.normalizeComponent(branchName.component) !==
-        this.normalizeComponent(component)
+        this.normalizeComponent(branchComponent)
       ) {
         logger.warn(
-          `PR component: ${branchName.component} does not match configured component: ${component}`
+          `PR component: ${branchName.component} does not match configured component: ${branchComponent}`
         );
         return;
       }
