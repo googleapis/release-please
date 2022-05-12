@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.16.2](https://github.com/googleapis/release-please/compare/v13.16.1...v13.16.2) (2022-05-12)
+
+
+### Bug Fixes
+
+* throw ConfigurationError when required manifest config file is missing ([#1422](https://github.com/googleapis/release-please/issues/1422)) ([83e461e](https://github.com/googleapis/release-please/commit/83e461e8947d16fbd92d57a0d9c64d37ab0dfa42))
+
 ### [13.16.1](https://github.com/googleapis/release-please/compare/v13.16.0...v13.16.1) (2022-05-10)
 
 
