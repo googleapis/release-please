@@ -36,7 +36,11 @@ import {Strategy} from './strategy';
 import {PullRequestBody} from './util/pull-request-body';
 import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
-import {DuplicateReleaseError} from './errors';
+import {
+  DuplicateReleaseError,
+  FileNotFoundError,
+  ConfigurationError,
+} from './errors';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -1162,7 +1166,7 @@ async function parseConfig(
   onlyPath?: string,
   releaseAs?: string
 ): Promise<{config: RepositoryConfig; options: ManifestOptions}> {
-  const config = await github.getFileJson<ManifestConfig>(configFile, branch);
+  const config = await fetchManifestConfig(github, configFile, branch);
   const defaultConfig = extractReleaserConfig(config);
   const repositoryConfig: RepositoryConfig = {};
   for (const path in config.packages) {
@@ -1198,18 +1202,48 @@ async function parseConfig(
 }
 
 /**
+ * Helper to fetch manifest config
+ *
+ * @param {GitHub} github
+ * @param {string} configFile
+ * @param {string} branch
+ * @returns {ManifestConfig}
+ * @throws {ConfigurationError} if missing the manifest config file
+ */
+async function fetchManifestConfig(
+  github: GitHub,
+  configFile: string,
+  branch: string
+): Promise<ManifestConfig> {
+  try {
+    return await github.getFileJson<ManifestConfig>(configFile, branch);
+  } catch (e) {
+    if (e instanceof FileNotFoundError) {
+      throw new ConfigurationError(
+        `Missing required manifest config: ${configFile}`,
+        'base',
+        `${github.repository.owner}/${github.repository.repo}`
+      );
+    }
+    throw e;
+  }
+}
+
+/**
  * Helper to parse the manifest versions file.
  *
  * @param {GitHub} github GitHub client
  * @param {string} manifestFile Path in the repository to the versions file
  * @param {string} branch Branch to fetch the versions file from
+ * @returns {Record<string, string>}
  */
 async function parseReleasedVersions(
   github: GitHub,
   manifestFile: string,
   branch: string
 ): Promise<ReleasedVersions> {
-  const manifestJson = await github.getFileJson<Record<string, string>>(
+  const manifestJson = await fetchReleasedVersions(
+    github,
     manifestFile,
     branch
   );
@@ -1218,6 +1252,36 @@ async function parseReleasedVersions(
     releasedVersions[path] = Version.parse(manifestJson[path]);
   }
   return releasedVersions;
+}
+
+/**
+ * Helper to fetch manifest config
+ *
+ * @param {GitHub} github
+ * @param {string} manifestFile
+ * @param {string} branch
+ * @throws {ConfigurationError} if missing the manifest config file
+ */
+async function fetchReleasedVersions(
+  github: GitHub,
+  manifestFile: string,
+  branch: string
+): Promise<Record<string, string>> {
+  try {
+    return await github.getFileJson<Record<string, string>>(
+      manifestFile,
+      branch
+    );
+  } catch (e) {
+    if (e instanceof FileNotFoundError) {
+      throw new ConfigurationError(
+        `Missing required manifest versions: ${manifestFile}`,
+        'base',
+        `${github.repository.owner}/${github.repository.repo}`
+      );
+    }
+    throw e;
+  }
 }
 
 function isPublishedVersion(strategy: Strategy, version: Version): boolean {
