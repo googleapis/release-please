@@ -29,6 +29,7 @@ export interface PluginFactoryOptions {
   github: GitHub;
   targetBranch: string;
   repositoryConfig: RepositoryConfig;
+  manifestPath: string;
 
   // node options
   alwaysLinkLocal?: boolean;

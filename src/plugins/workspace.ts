@@ -13,11 +13,16 @@
 // limitations under the License.
 
 import {ManifestPlugin} from '../plugin';
-import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
+import {
+  CandidateReleasePullRequest,
+  RepositoryConfig,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+} from '../manifest';
 import {logger} from '../util/logger';
 import {VersionsMap, Version} from '../version';
 import {Merge} from './merge';
 import {GitHub} from '../github';
+import {ReleasePleaseManifest} from '../updaters/release-please-manifest';
 
 export type DependencyGraph<T> = Map<string, DependencyNode<T>>;
 export interface DependencyNode<T> {
@@ -26,6 +31,7 @@ export interface DependencyNode<T> {
 }
 
 export interface WorkspacePluginOptions {
+  manifestPath?: string;
   updateAllPackages?: boolean;
 }
 
@@ -47,6 +53,7 @@ interface AllPackages<T> {
  */
 export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
+  private manifestPath: string;
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -54,6 +61,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     options: WorkspacePluginOptions = {}
   ) {
     super(github, targetBranch, repositoryConfig);
+    this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
   }
   async run(
@@ -96,6 +104,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     logger.info(`Updating ${orderedPackages.length} packages`);
 
     const updatedVersions: VersionsMap = new Map();
+    const updatedPathVersions: VersionsMap = new Map();
     for (const pkg of orderedPackages) {
       const packageName = this.packageNameFromPackage(pkg);
       logger.debug(`package: ${packageName}`);
@@ -108,6 +117,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         const version = this.bumpVersion(pkg);
         logger.debug(`version: ${version} forced bump`);
         updatedVersions.set(packageName, version);
+        updatedPathVersions.set(this.pathFromPackage(pkg), version);
       }
     }
 
@@ -147,6 +157,20 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       this.repositoryConfig
     );
     newCandidates = await mergePlugin.run(newCandidates);
+
+    if (newCandidates.length === 1) {
+      const newUpdates = newCandidates[0].pullRequest.updates;
+      newUpdates.push({
+        path: this.manifestPath,
+        createIfMissing: false,
+        updater: new ReleasePleaseManifest({
+          version: newCandidates[0].pullRequest.version!,
+          versionsMap: updatedPathVersions,
+        }),
+      });
+    } else {
+      logger.warn(`Expected 1 merged candidate, got ${newCandidates.length}`);
+    }
 
     logger.info(`Post-processing ${newCandidates.length} in-scope candidates`);
     newCandidates = this.postProcessCandidates(newCandidates, updatedVersions);
@@ -223,6 +247,13 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
    * @returns {string} The package name.
    */
   protected abstract packageNameFromPackage(pkg: T): string;
+
+  /**
+   * Given a package, return the path in the repo to the package.
+   * @param {T} pkg The package definition.
+   * @returns {string} The package path.
+   */
+  protected abstract pathFromPackage(pkg: T): string;
 
   /**
    * Amend any or all in-scope candidates once all other processing has occured.
