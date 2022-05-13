@@ -605,6 +605,7 @@ export class Manifest {
         github: this.github,
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
+        manifestPath: this.manifestPath,
       })
     );
 

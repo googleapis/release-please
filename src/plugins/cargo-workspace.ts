@@ -308,6 +308,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
   protected packageNameFromPackage(pkg: CrateInfo): string {
     return pkg.name;
   }
+
+  protected pathFromPackage(pkg: CrateInfo): string {
+    return pkg.path;
+  }
 }
 
 function getChangelogDepsNotes(
