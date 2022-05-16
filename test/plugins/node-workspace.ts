@@ -34,6 +34,7 @@ import {RawContent} from '../../src/updaters/raw-content';
 import snapshot = require('snap-shot-it');
 import {ManifestPlugin} from '../../src/plugin';
 import {Changelog} from '../../src/updaters/changelog';
+import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -212,6 +213,13 @@ describe('NodeWorkspace plugin', () => {
         assertHasUpdate(updates, 'node4/package.json', RawContent),
         '4.4.5'
       );
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('node2')?.toString()).to.eql('2.2.3');
+      expect(updater.versionsMap?.get('node3')?.toString()).to.eql('1.1.2');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
     it('appends dependency notes to an updated module', async () => {

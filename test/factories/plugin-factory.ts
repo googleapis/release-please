@@ -50,6 +50,7 @@ describe('PluginFactory', () => {
           type: pluginType,
           targetBranch: 'target-branch',
           repositoryConfig,
+          manifestPath: '.manifest.json',
         });
         expect(plugin).to.not.be.undefined;
       });
@@ -61,6 +62,7 @@ describe('PluginFactory', () => {
           type: 'non-existent',
           targetBranch: 'target-branch',
           repositoryConfig,
+          manifestPath: '.manifest.json',
         })
       ).to.throw();
     });
@@ -74,6 +76,7 @@ describe('PluginFactory', () => {
         },
         targetBranch: 'target-branch',
         repositoryConfig,
+        manifestPath: '.manifest.json',
       });
       expect(plugin).to.not.be.undefined;
       expect(plugin).instanceof(LinkedVersions);
@@ -116,6 +119,7 @@ describe('PluginFactory', () => {
         github,
         repositoryConfig: {},
         targetBranch: 'main',
+        manifestPath: '.manifest.json',
       };
       const strategy = await buildPlugin(pluginOptions);
       expect(strategy).to.be.instanceof(CustomTest);
