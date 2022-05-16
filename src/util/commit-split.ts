@@ -114,8 +114,15 @@ export class CommitSplit {
         splitCommits[pkgName].push(commit);
       }
       if (commit.files.length === 0 && this.includeEmpty) {
-        for (const pkgName in splitCommits) {
-          splitCommits[pkgName].push(commit);
+        if (this.packagePaths) {
+          for (const pkgName of this.packagePaths) {
+            splitCommits[pkgName] = splitCommits[pkgName] || [];
+            splitCommits[pkgName].push(commit);
+          }
+        } else {
+          for (const pkgName in splitCommits) {
+            splitCommits[pkgName].push(commit);
+          }
         }
       }
     });
