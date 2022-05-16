@@ -5223,8 +5223,8 @@ describe('Manifest', () => {
         expect(err).instanceof(DuplicateReleaseError);
       }
       sinon.assert.notCalled(commentStub);
-      sinon.assert.notCalled(addLabelsStub);
-      sinon.assert.notCalled(removeLabelsStub);
+      sinon.assert.calledOnce(addLabelsStub);
+      sinon.assert.calledOnce(removeLabelsStub);
     });
   });
 });
