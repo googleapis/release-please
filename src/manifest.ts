@@ -1022,35 +1022,47 @@ export class Manifest {
     releases: CandidateRelease[],
     pullRequest: PullRequest
   ): Promise<CreatedRelease[]> {
-    // create the release
-    const promises: Promise<CreatedRelease>[] = [];
-    for (const release of releases) {
-      promises.push(this.createRelease(release));
-    }
-
+    logger.info(
+      `Creating ${releases.length} releases for pull #${pullRequest.number}`
+    );
     const duplicateReleases: DuplicateReleaseError[] = [];
     const githubReleases: CreatedRelease[] = [];
-    for (const promise of promises) {
+    for (const release of releases) {
       try {
-        githubReleases.push(await promise);
+        githubReleases.push(await this.createRelease(release));
       } catch (err) {
         if (err instanceof DuplicateReleaseError) {
-          logger.warn(`Duplicate release tag: ${err.tag}`);
+          logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
           duplicateReleases.push(err);
         } else {
           throw err;
         }
       }
     }
-    if (duplicateReleases.length > 0 && githubReleases.length === 0) {
-      throw duplicateReleases[0];
-    }
 
-    // adjust tags on pullRequest
-    await Promise.all([
-      this.github.removeIssueLabels(this.labels, pullRequest.number),
-      this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-    ]);
+    if (duplicateReleases.length > 0) {
+      if (
+        duplicateReleases.length + githubReleases.length ===
+        releases.length
+      ) {
+        // we've either tagged all releases or they were duplicates:
+        // adjust tags on pullRequest
+        await Promise.all([
+          this.github.removeIssueLabels(this.labels, pullRequest.number),
+          this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
+        ]);
+      }
+      if (githubReleases.length === 0) {
+        // If all releases were duplicate, throw a duplicate error
+        throw duplicateReleases[0];
+      }
+    } else {
+      // adjust tags on pullRequest
+      await Promise.all([
+        this.github.removeIssueLabels(this.labels, pullRequest.number),
+        this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
+      ]);
+    }
 
     return githubReleases;
   }
