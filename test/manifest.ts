@@ -671,7 +671,8 @@ describe('Manifest', () => {
           message: 'some commit message',
           files: [],
           pullRequest: {
-            headBranchName: 'release-please/branches/main',
+            headBranchName:
+              'release-please--branches--main--components--foobar',
             baseBranchName: 'main',
             title: 'release: 1.2.3',
             number: 123,
@@ -708,7 +709,8 @@ describe('Manifest', () => {
           files: [],
           pullRequest: {
             title: 'chore: release 1.2.3',
-            headBranchName: 'release-please/branches/main',
+            headBranchName:
+              'release-please--branches--main--components--foobar',
             baseBranchName: 'main',
             number: 123,
             body: '',
