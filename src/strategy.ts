@@ -60,6 +60,13 @@ export interface Strategy {
   getComponent(): Promise<string | undefined>;
 
   /**
+   * Return the component for this strategy used in the branch name.
+   * This may be a computed field.
+   * @returns {string}
+   */
+  getBranchComponent(): Promise<string | undefined>;
+
+  /**
    * Validate whether version is a valid release.
    * @param version Released version.
    * @returns true of release is valid, false if it should be skipped.

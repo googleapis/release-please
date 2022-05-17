@@ -382,13 +382,13 @@ export class Manifest {
       github,
       ...config,
     });
-    const component = await strategy.getComponent();
+    const component = await strategy.getBranchComponent();
     const releasedVersions: ReleasedVersions = {};
     const latestVersion = await latestReleaseVersion(
       github,
       targetBranch,
       version => isPublishedVersion(strategy, version),
-      config.includeComponentInTag ? component : '',
+      component,
       config.pullRequestTitlePattern
     );
     if (latestVersion) {
