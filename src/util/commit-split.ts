@@ -41,6 +41,12 @@ export interface CommitSplitOptions {
   packagePaths?: string[];
 }
 
+/**
+ * Helper class for splitting commits by component path. If `packagePaths`
+ * is configured, then only consider the provided paths. If `includeEmpty`
+ * is configured, then commits without any touched files apply to all
+ * configured component paths.
+ */
 export class CommitSplit {
   includeEmpty: boolean;
   packagePaths?: string[];
@@ -81,7 +87,15 @@ export class CommitSplit {
     }
   }
 
-  // split(commits: Commit[]): Record<string, Commit[]>
+  /**
+   * Split commits by component path. If the commit splitter is configured
+   * with a set of tracked package paths, then only consider paths for
+   * configured components. If `includeEmpty` is configured, then a commit
+   * that does not touch any files will be applied to all components'
+   * commits.
+   * @param {Commit[]} commits The commits to split
+   * @returns {Record<string, Commit[]>} Commits indexed by component path
+   */
   split<T extends Commit>(commits: T[]): Record<string, T[]> {
     const splitCommits: Record<string, T[]> = {};
     commits.forEach(commit => {
@@ -114,8 +128,15 @@ export class CommitSplit {
         splitCommits[pkgName].push(commit);
       }
       if (commit.files.length === 0 && this.includeEmpty) {
-        for (const pkgName in splitCommits) {
-          splitCommits[pkgName].push(commit);
+        if (this.packagePaths) {
+          for (const pkgName of this.packagePaths) {
+            splitCommits[pkgName] = splitCommits[pkgName] || [];
+            splitCommits[pkgName].push(commit);
+          }
+        } else {
+          for (const pkgName in splitCommits) {
+            splitCommits[pkgName].push(commit);
+          }
         }
       }
     });
