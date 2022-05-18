@@ -1496,11 +1496,16 @@ function commitsAfterSha(commits: Commit[], lastReleaseSha: string) {
   return commits.slice(0, index);
 }
 
+/**
+ * Returns true if the release tag matches the configured component. Returns
+ * true if `includeComponentInTag` is false and there is no component in the
+ * tag, OR if the tag's component matches the release component.
+ */
 function tagMatchesConfig(
   tag: TagName,
   branchComponent?: string,
   includeComponentInTag?: boolean
-) {
+): boolean {
   return (
     (includeComponentInTag && tag.component === branchComponent) ||
     (!includeComponentInTag && !tag.component)
