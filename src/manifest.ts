@@ -388,8 +388,8 @@ export class Manifest {
       github,
       targetBranch,
       version => isPublishedVersion(strategy, version),
-      component,
-      config.pullRequestTitlePattern
+      config,
+      component
     );
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
@@ -1317,8 +1317,8 @@ async function latestReleaseVersion(
   github: GitHub,
   targetBranch: string,
   releaseFilter: (version: Version) => boolean,
-  prefix?: string,
-  pullRequestTitlePattern?: string
+  config: ReleaserConfig,
+  prefix?: string
 ): Promise<Version | undefined> {
   const branchPrefix = prefix
     ? prefix.endsWith('-')
@@ -1359,7 +1359,7 @@ async function latestReleaseVersion(
 
     const pullRequestTitle = PullRequestTitle.parse(
       mergedPullRequest.title,
-      pullRequestTitlePattern
+      config.pullRequestTitlePattern
     );
     if (!pullRequestTitle) {
       continue;
@@ -1384,7 +1384,7 @@ async function latestReleaseVersion(
       continue;
     }
 
-    if (tagName.component === branchPrefix) {
+    if (tagMatchesConfig(tagName, branchPrefix, config.includeComponentInTag)) {
       logger.debug(`found release for ${prefix}`, tagName.version);
       if (!commitShas.has(release.sha)) {
         logger.debug(
@@ -1415,7 +1415,7 @@ async function latestReleaseVersion(
       continue;
     }
 
-    if (tagName.component === branchPrefix) {
+    if (tagMatchesConfig(tagName, branchPrefix, config.includeComponentInTag)) {
       if (!commitShas.has(tag.sha)) {
         logger.debug(
           `SHA not found in recent commits to branch ${targetBranch}, skipping`
@@ -1494,4 +1494,15 @@ function commitsAfterSha(commits: Commit[], lastReleaseSha: string) {
     return commits;
   }
   return commits.slice(0, index);
+}
+
+function tagMatchesConfig(
+  tag: TagName,
+  branchComponent?: string,
+  includeComponentInTag?: boolean
+) {
+  return (
+    (includeComponentInTag && tag.component === branchComponent) ||
+    (!includeComponentInTag && !tag.component)
+  );
 }
