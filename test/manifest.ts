@@ -671,7 +671,8 @@ describe('Manifest', () => {
           message: 'some commit message',
           files: [],
           pullRequest: {
-            headBranchName: 'release-please/branches/main',
+            headBranchName:
+              'release-please--branches--main--components--foobar',
             baseBranchName: 'main',
             title: 'release: 1.2.3',
             number: 123,
@@ -708,7 +709,8 @@ describe('Manifest', () => {
           files: [],
           pullRequest: {
             title: 'chore: release 1.2.3',
-            headBranchName: 'release-please/branches/main',
+            headBranchName:
+              'release-please--branches--main--components--foobar',
             baseBranchName: 'main',
             number: 123,
             body: '',
@@ -1136,6 +1138,59 @@ describe('Manifest', () => {
       });
       expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
       expect(manifest.releasedVersions['.'].toString()).to.be.equal('1.2.3');
+    });
+    it('falls back to release without component in tag', async () => {
+      mockCommits(sandbox, github, [
+        {
+          sha: 'abc123',
+          message: 'some commit message',
+          files: [],
+        },
+        {
+          sha: 'def234',
+          message: 'this commit should be found',
+          files: [],
+        },
+        {
+          sha: 'ghi345',
+          message: 'some commit message',
+          files: [],
+          pullRequest: {
+            title: 'chore: release 3.3.1',
+            // fails to match legacy branch name without component
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            body: '',
+            labels: [],
+            files: [],
+          },
+        },
+      ]);
+      mockReleases(sandbox, github, [
+        {
+          tagName: 'v3.3.1',
+          sha: 'ghi345',
+          url: 'http://path/to/release',
+        },
+      ]);
+      mockTags(sandbox, github, []);
+
+      const manifest = await Manifest.fromConfig(github, 'target-branch', {
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        component: 'foobar',
+        includeComponentInTag: false,
+      });
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(
+        Object.keys(manifest.releasedVersions),
+        'found release versions'
+      ).lengthOf(1);
+      expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
+        '3.3.1'
+      );
     });
   });
 

@@ -4,6 +4,22 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.16.5](https://github.com/googleapis/release-please/compare/v13.16.4...v13.16.5) (2022-05-18)
+
+
+### Bug Fixes
+
+* all release tag matching if includeComponentInTag is false ([#1442](https://github.com/googleapis/release-please/issues/1442)) ([82a7c71](https://github.com/googleapis/release-please/commit/82a7c7186cf7c30530ce179b42b439400c539b52))
+
+### [13.16.4](https://github.com/googleapis/release-please/compare/v13.16.3...v13.16.4) (2022-05-17)
+
+
+### Bug Fixes
+
+* add release labels if release PR was completed ([#1433](https://github.com/googleapis/release-please/issues/1433)) ([072498c](https://github.com/googleapis/release-please/commit/072498c8ce2f89bc86eb33445d87491e3ab31fbd))
+* CommitSplit with includeEmpty should add commit to all packages ([#1432](https://github.com/googleapis/release-please/issues/1432)) ([19629cb](https://github.com/googleapis/release-please/commit/19629cb42da625d6c62e67f1e9edf7f3cf14d6ee)), closes [#1360](https://github.com/googleapis/release-please/issues/1360)
+* Manifest.fromConfig should find branch component ([#1436](https://github.com/googleapis/release-please/issues/1436)) ([628a562](https://github.com/googleapis/release-please/commit/628a562a21245ed02546aa0c40c97a0e3d50a0c7))
+
 ### [13.16.3](https://github.com/googleapis/release-please/compare/v13.16.2...v13.16.3) (2022-05-17)
 
 
