@@ -508,7 +508,7 @@ export class GitHub {
           }
           logger.trace('no GraphQL response, retrying');
         } catch (err) {
-          if (err.status !== 502) {
+          if ((err as GitHubAPIError).status !== 502) {
             throw err;
           }
           logger.trace('received 502 error, retrying');
@@ -1336,7 +1336,7 @@ const wrapAsync = <T extends Array<any>, V>(
       return await fn(...args);
     } catch (e) {
       if (errorHandler) {
-        errorHandler(e);
+        errorHandler(e as GitHubAPIError);
       }
       if (e instanceof RequestError) {
         throw new GitHubAPIError(e);

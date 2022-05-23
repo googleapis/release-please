@@ -742,7 +742,7 @@ describe('GitHub', () => {
         fail('should have thrown');
       } catch (err) {
         thrown = true;
-        expect(err.status).to.eql(410);
+        expect((err as GitHubAPIError).status).to.eql(410);
       }
       expect(thrown).to.be.true;
     });
