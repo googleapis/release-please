@@ -14,7 +14,13 @@
 
 import {CandidateReleasePullRequest, ROOT_PROJECT_PATH} from '../manifest';
 import {logger} from '../util/logger';
-import {WorkspacePlugin, DependencyGraph, DependencyNode} from './workspace';
+import {
+  WorkspacePlugin,
+  DependencyGraph,
+  DependencyNode,
+  addPath,
+  appendDependenciesSectionToChangelog,
+} from './workspace';
 import {
   CargoManifest,
   parseCargoManifest,
@@ -381,52 +387,4 @@ function getChangelogDepsNotes(
     return `* The following workspace dependencies were updated${depUpdateNotes}`;
   }
   return '';
-}
-
-const DEPENDENCY_HEADER = new RegExp('### Dependencies');
-function appendDependenciesSectionToChangelog(
-  changelog: string,
-  notes: string
-): string {
-  if (!changelog) {
-    return `### Dependencies\n\n${notes}`;
-  }
-
-  const newLines: string[] = [];
-  let seenDependenciesSection = false;
-  let seenDependencySectionSpacer = false;
-  let injected = false;
-  for (const line of changelog.split('\n')) {
-    if (seenDependenciesSection) {
-      const trimmedLine = line.trim();
-      if (
-        seenDependencySectionSpacer &&
-        !injected &&
-        !trimmedLine.startsWith('*')
-      ) {
-        newLines.push(changelog);
-        injected = true;
-      }
-      if (trimmedLine === '') {
-        seenDependencySectionSpacer = true;
-      }
-    }
-    if (line.match(DEPENDENCY_HEADER)) {
-      seenDependenciesSection = true;
-    }
-    newLines.push(line);
-  }
-
-  if (injected) {
-    return newLines.join('\n');
-  }
-  if (seenDependenciesSection) {
-    return `${changelog}\n${notes}`;
-  }
-
-  return `${changelog}\n\n\n### Dependencies\n\n${notes}`;
-}
-
-function addPath(path: string, file: string): string {
-  return path === ROOT_PROJECT_PATH ? file : `${path}/${file}`;
 }

@@ -70,40 +70,9 @@ export class PomXml extends BaseXml {
     }
 
     if (this.dependencyVersions) {
-      const dependencyNodes = xpath.select(
-        XPATH_PROJECT_DEPENDENCIES,
-        document
-      ) as Node[];
-      const dependencyManagementNodes = xpath.select(
-        XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES,
-        document
-      ) as Node[];
-      // try to update dependency versions
-      for (const [name, version] of this.dependencyVersions.entries()) {
-        // look under:
-        // - project/dependencies
-        // - project/dependencyManagement/dependencies
-        const [groupId, artifactId] = name.split(':');
-        for (const nodeGroup of [dependencyNodes, dependencyManagementNodes]) {
-          const nodes = nodeGroup
-            .filter(hasTextContent)
-            .reduce<Node[]>((collection, node) => {
-              const dependencyNode = parseDependencyNode(node);
-              if (
-                dependencyNode.groupId === groupId &&
-                dependencyNode.artifactId === artifactId &&
-                dependencyNode.versionNode
-              ) {
-                collection.push(dependencyNode.versionNode);
-              }
-              return collection;
-            }, []);
-          updates.push({
-            nodes,
-            version,
-          });
-        }
-      }
+      updates.push(
+        ...this.dependencyUpdates(document, this.dependencyVersions)
+      );
     }
 
     let updated = false;
@@ -114,15 +83,55 @@ export class PomXml extends BaseXml {
     return updated;
   }
 
+  dependencyUpdates(
+    document: Document,
+    updatedVersions: VersionsMap
+  ): {name: string; nodes: Node[]; version: Version}[] {
+    const updates: {name: string; nodes: Node[]; version: Version}[] = [];
+    const dependencyNodes = xpath.select(
+      XPATH_PROJECT_DEPENDENCIES,
+      document
+    ) as Node[];
+    const dependencyManagementNodes = xpath.select(
+      XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES,
+      document
+    ) as Node[];
+    // try to update dependency versions
+    for (const [name, version] of updatedVersions.entries()) {
+      // look under:
+      // - project/dependencies
+      // - project/dependencyManagement/dependencies
+      const [groupId, artifactId] = name.split(':');
+      for (const nodeGroup of [dependencyNodes, dependencyManagementNodes]) {
+        const nodes = nodeGroup.reduce<Node[]>((collection, node) => {
+          const dependencyNode = parseDependencyNode(node);
+          if (
+            dependencyNode.groupId === groupId &&
+            dependencyNode.artifactId === artifactId &&
+            dependencyNode.version !== version.toString() &&
+            dependencyNode.versionNode
+          ) {
+            collection.push(dependencyNode.versionNode);
+          }
+          return collection;
+        }, []);
+        if (nodes.length) {
+          updates.push({
+            name,
+            nodes,
+            version,
+          });
+        }
+      }
+    }
+    return updates;
+  }
+
   private static updateNodes(nodes: Node[], value: string): boolean {
     const toUpdate = nodes.filter(node => node.textContent !== value);
     toUpdate.forEach(node => (node.textContent = value));
     return toUpdate.length > 0;
   }
-}
-
-function hasTextContent(node: Node): boolean {
-  return !!node.textContent;
 }
 
 interface DependencyNode {
@@ -133,7 +142,7 @@ interface DependencyNode {
   versionNode?: Node;
 }
 
-function parseDependencyNode(node: Node): DependencyNode {
+export function parseDependencyNode(node: Node): DependencyNode {
   let groupId = '';
   let artifactId = '';
   let scope: string | undefined;

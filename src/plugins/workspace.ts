@@ -17,6 +17,7 @@ import {
   CandidateReleasePullRequest,
   RepositoryConfig,
   DEFAULT_RELEASE_PLEASE_MANIFEST,
+  ROOT_PROJECT_PATH,
 } from '../manifest';
 import {logger} from '../util/logger';
 import {VersionsMap, Version} from '../version';
@@ -35,7 +36,7 @@ export interface WorkspacePluginOptions {
   updateAllPackages?: boolean;
 }
 
-interface AllPackages<T> {
+export interface AllPackages<T> {
   allPackages: T[];
   candidatesByPackage: Record<string, CandidateReleasePullRequest>;
 }
@@ -369,4 +370,52 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       visited.add(node.value);
     }
   }
+}
+
+const DEPENDENCY_HEADER = new RegExp('### Dependencies');
+export function appendDependenciesSectionToChangelog(
+  changelog: string,
+  notes: string
+): string {
+  if (!changelog) {
+    return `### Dependencies\n\n${notes}`;
+  }
+
+  const newLines: string[] = [];
+  let seenDependenciesSection = false;
+  let seenDependencySectionSpacer = false;
+  let injected = false;
+  for (const line of changelog.split('\n')) {
+    if (seenDependenciesSection) {
+      const trimmedLine = line.trim();
+      if (
+        seenDependencySectionSpacer &&
+        !injected &&
+        !trimmedLine.startsWith('*')
+      ) {
+        newLines.push(changelog);
+        injected = true;
+      }
+      if (trimmedLine === '') {
+        seenDependencySectionSpacer = true;
+      }
+    }
+    if (line.match(DEPENDENCY_HEADER)) {
+      seenDependenciesSection = true;
+    }
+    newLines.push(line);
+  }
+
+  if (injected) {
+    return newLines.join('\n');
+  }
+  if (seenDependenciesSection) {
+    return `${changelog}\n${notes}`;
+  }
+
+  return `${changelog}\n\n\n### Dependencies\n\n${notes}`;
+}
+
+export function addPath(path: string, file: string): string {
+  return path === ROOT_PROJECT_PATH ? file : `${path}/${file}`;
 }
