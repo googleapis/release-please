@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Version} from '../../version';
+import {Version, VersionsMap} from '../../version';
 import {BaseXml} from '../base-xml';
 import * as xpath from 'xpath';
 
@@ -20,6 +20,10 @@ const XPATH_PROJECT_VERSION =
   '/*[local-name()="project"]/*[local-name()="version"]';
 const XPATH_PROJECT_PARENT_VERSION =
   '/*[local-name()="project"]/*[local-name()="parent"]/*[local-name()="version"]';
+const XPATH_PROJECT_DEPENDENCIES =
+  '/*[local-name()="project"]/*[local-name()="dependencies"]/*[local-name()="dependency"]';
+const XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES =
+  '/*[local-name()="project"]/*[local-name()="dependencyManagement"]/*[local-name()="dependencies"]/*[local-name()="dependency"]';
 
 /**
  * Updates version pom.xml files.
@@ -29,16 +33,18 @@ const XPATH_PROJECT_PARENT_VERSION =
  */
 export class PomXml extends BaseXml {
   private readonly version: Version;
+  private readonly dependencyVersions?: VersionsMap;
 
-  constructor(version: Version) {
+  constructor(version: Version, dependencyVersions?: VersionsMap) {
     super();
     this.version = version;
+    this.dependencyVersions = dependencyVersions;
   }
 
   protected updateDocument(document: Document): boolean {
-    const version = this.version.toString();
-
     // NOTE this intentionally ignores namespaces - let the maven decide, what's valid and what's not
+
+    const updates: {nodes: Node[]; version: Version}[] = [];
 
     // Update project.version
     const projectVersionNodes: Node[] = xpath.select(
@@ -47,15 +53,65 @@ export class PomXml extends BaseXml {
     ) as Node[];
     if (projectVersionNodes.length) {
       // If found update, detect actual change
-      return PomXml.updateNodes(projectVersionNodes, version);
+      updates.push({
+        nodes: projectVersionNodes,
+        version: this.version,
+      });
+    } else {
+      // Try updating project.parent.version
+      const parentVersionNodes: Node[] = xpath.select(
+        XPATH_PROJECT_PARENT_VERSION,
+        document
+      ) as Node[];
+      updates.push({
+        nodes: parentVersionNodes,
+        version: this.version,
+      });
     }
 
-    // Try updating project.parent.version
-    const parentVersionNodes: Node[] = xpath.select(
-      XPATH_PROJECT_PARENT_VERSION,
-      document
-    ) as Node[];
-    return PomXml.updateNodes(parentVersionNodes, version);
+    if (this.dependencyVersions) {
+      const dependencyNodes = xpath.select(
+        XPATH_PROJECT_DEPENDENCIES,
+        document
+      ) as Node[];
+      const dependencyManagementNodes = xpath.select(
+        XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES,
+        document
+      ) as Node[];
+      // try to update dependency versions
+      for (const [name, version] of this.dependencyVersions.entries()) {
+        // look under:
+        // - project/dependencies
+        // - project/dependencyManagement/dependencies
+        const [groupId, artifactId] = name.split(':');
+        for (const nodeGroup of [dependencyNodes, dependencyManagementNodes]) {
+          const nodes = nodeGroup
+            .filter(hasTextContent)
+            .reduce<Node[]>((collection, node) => {
+              const dependencyNode = parseDependencyNode(node);
+              if (
+                dependencyNode.groupId === groupId &&
+                dependencyNode.artifactId === artifactId &&
+                dependencyNode.versionNode
+              ) {
+                collection.push(dependencyNode.versionNode);
+              }
+              return collection;
+            }, []);
+          updates.push({
+            nodes,
+            version,
+          });
+        }
+      }
+    }
+
+    let updated = false;
+    for (const {nodes, version} of updates) {
+      updated = PomXml.updateNodes(nodes, version.toString()) || updated;
+    }
+
+    return updated;
   }
 
   private static updateNodes(nodes: Node[], value: string): boolean {
@@ -63,4 +119,45 @@ export class PomXml extends BaseXml {
     toUpdate.forEach(node => (node.textContent = value));
     return toUpdate.length > 0;
   }
+}
+
+function hasTextContent(node: Node): boolean {
+  return !!node.textContent;
+}
+
+interface DependencyNode {
+  groupId: string;
+  artifactId: string;
+  version?: string;
+  scope?: string;
+  versionNode?: Node;
+}
+
+function parseDependencyNode(node: Node): DependencyNode {
+  let groupId = '';
+  let artifactId = '';
+  let scope: string | undefined;
+  let version: string | undefined;
+  let versionNode: Node | undefined;
+  for (let i = 0; i < node.childNodes.length; i++) {
+    const childNode = node.childNodes.item(i);
+    if (childNode.nodeName === 'groupId') {
+      groupId = childNode.firstChild?.textContent || '';
+    } else if (childNode.nodeName === 'artifactId') {
+      artifactId = childNode.firstChild?.textContent || '';
+    } else if (childNode.nodeName === 'scope') {
+      scope = childNode.firstChild?.textContent || '';
+    } else if (childNode.nodeName === 'version') {
+      version = childNode.firstChild?.textContent || '';
+      versionNode = childNode;
+    }
+  }
+
+  return {
+    groupId,
+    artifactId,
+    scope,
+    version,
+    versionNode,
+  };
 }
