@@ -194,7 +194,7 @@ describe('Strategy', () => {
           expect.fail(`expected [addPath] to reject path: ${file}`);
         } catch (err) {
           expect(err).to.be.instanceof(Error);
-          expect(err.message).to.have.string(
+          expect((err as Error).message).to.have.string(
             'illegal pathing characters in path'
           );
         }
