@@ -136,11 +136,16 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       this.targetBranch
     );
     for (const pomFile of pomFiles) {
+      const path = dirname(pomFile);
+      const config = this.repositoryConfig[path];
+      if (!config) {
+        logger.info(`path '${path}' not configured, ignoring '${pomFile}'`);
+        continue;
+      }
       const mavenArtifact = await this.fetchPom(pomFile);
       if (!mavenArtifact) {
         continue;
       }
-      const path = dirname(pomFile);
       allPackages.push(mavenArtifact);
       const candidate = candidates.find(candidate => candidate.path === path);
       if (candidate) {

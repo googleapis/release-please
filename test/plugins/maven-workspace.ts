@@ -51,16 +51,10 @@ describe('MavenWorkspace plugin', () => {
       maven3: {
         releaseType: 'maven',
       },
+      maven4: {
+        releaseType: 'maven',
+      },
     });
-    sandbox
-      .stub(github, 'findFilesByFilenameAndRef')
-      .withArgs('pom.xml', 'main')
-      .resolves([
-        'maven1/pom.xml',
-        'maven2/pom.xml',
-        'maven3/pom.xml',
-        'maven4/pom.xml',
-      ]);
   });
   afterEach(() => {
     sandbox.restore();
@@ -85,6 +79,15 @@ describe('MavenWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves([
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ]);
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).length(1);
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
@@ -117,12 +120,64 @@ describe('MavenWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves([
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ]);
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).length(1);
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
       expect(newCandidates[0].pullRequest.body.releaseData).length(2);
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('maven1', 'maven', '1.1.2', 'maven1', [
+          buildMockPackageUpdate('maven1/pom.xml', 'maven1/pom.xml', '1.1.2'),
+        ]),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves([
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ]);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).length(1);
+      safeSnapshot(newCandidates[0].pullRequest.body.toString());
+      expect(newCandidates[0].pullRequest.body.releaseData).length(4);
+    });
+    it('skips pom files not configured for release', async () => {
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves([
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+          'extra/pom.xml',
+        ]);
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('maven1', 'maven', '1.1.2', 'maven1', [
           buildMockPackageUpdate('maven1/pom.xml', 'maven1/pom.xml', '1.1.2'),
