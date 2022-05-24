@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.17.0](https://github.com/googleapis/release-please/compare/v13.16.6...v13.17.0) (2022-05-24)
+
+
+### Features
+
+* add maven-workspace plugin ([#1446](https://github.com/googleapis/release-please/issues/1446)) ([ef4d728](https://github.com/googleapis/release-please/commit/ef4d7283143d6ca70c3b894322975a9a2852dfaa))
+* PomXml updater can update dependency versions ([ef4d728](https://github.com/googleapis/release-please/commit/ef4d7283143d6ca70c3b894322975a9a2852dfaa))
+
 ### [13.16.6](https://github.com/googleapis/release-please/compare/v13.16.5...v13.16.6) (2022-05-24)
 
 
