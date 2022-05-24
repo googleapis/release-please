@@ -39,7 +39,7 @@ export function generateMatchPattern(pullRequestTitlePattern?: string): RegExp {
     logger.warn("pullRequestTitlePattern miss the part of '${version}'");
   return new RegExp(
     `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
-      .replace('[', '\\[')
+      .replace('[', '\\[') // TODO: handle all regex escaping
       .replace(']', '\\]')
       .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
       .replace('${component}', ' ?(?<component>[\\w-.]*)?')
