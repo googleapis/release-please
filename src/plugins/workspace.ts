@@ -380,6 +380,7 @@ export function appendDependenciesSectionToChangelog(
   if (!changelog) {
     return `### Dependencies\n\n${notes}`;
   }
+  logger.info('appending dependency notes to changelog');
 
   const newLines: string[] = [];
   let seenDependenciesSection = false;

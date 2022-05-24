@@ -223,6 +223,22 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         return update;
       });
 
+    // append dependency notes
+    if (dependencyNotes) {
+      if (existingCandidate.pullRequest.body.releaseData.length > 0) {
+        existingCandidate.pullRequest.body.releaseData[0].notes =
+          appendDependenciesSectionToChangelog(
+            existingCandidate.pullRequest.body.releaseData[0].notes,
+            dependencyNotes
+          );
+      } else {
+        existingCandidate.pullRequest.body.releaseData.push({
+          component: artifact.name,
+          version: existingCandidate.pullRequest.version,
+          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+        });
+      }
+    }
     return existingCandidate;
   }
   protected newCandidate(
@@ -317,8 +333,8 @@ function getChangelogDepsNotes(
       `bumped ${dependencyUpdate.name} to ${dependencyUpdate.version}`
     );
   }
-  if (depUpdateNotes) {
-    return `* The following workspace dependencies were updated${depUpdateNotes}`;
+  if (depUpdateNotes.length > 0) {
+    return `* The following workspace dependencies were updated${depUpdateNotes.join()}`;
   }
   return '';
 }

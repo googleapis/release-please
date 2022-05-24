@@ -1,3 +1,26 @@
+exports['MavenWorkspace plugin run appends to existing candidate 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>maven3: 3.3.4</summary>
+
+Release notes for path: maven3, releaseType: maven
+</details>
+
+<details><summary>maven4: 4.4.5</summary>
+
+### Dependencies
+
+* Updated foo to v3
+* The following workspace dependencies were updated
+    * com.google.example:maven3 bumped to 3.3.4
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['MavenWorkspace plugin run handles a single maven package 1'] = `
 :robot: I have created a release *beep* *boop*
 ---

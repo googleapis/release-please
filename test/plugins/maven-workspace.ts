@@ -90,6 +90,38 @@ describe('MavenWorkspace plugin', () => {
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
       expect(newCandidates[0].pullRequest.body.releaseData).length(1);
     });
+    it('appends to existing candidate', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('maven3', 'maven', '3.3.4', 'maven3', [
+          buildMockPackageUpdate('maven3/pom.xml', 'maven3/pom.xml', '3.3.4'),
+        ]),
+        buildMockCandidatePullRequest(
+          'maven4',
+          'maven',
+          '4.4.5',
+          'maven4',
+          [buildMockPackageUpdate('maven4/pom.xml', 'maven4/pom.xml', '4.4.5')],
+          '### Dependencies\n\n* Updated foo to v3'
+        ),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).length(1);
+      safeSnapshot(newCandidates[0].pullRequest.body.toString());
+      expect(newCandidates[0].pullRequest.body.releaseData).length(2);
+    });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('maven1', 'maven', '1.1.2', 'maven1', [
