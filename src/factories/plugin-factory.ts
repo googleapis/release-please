@@ -23,6 +23,7 @@ import {LinkedVersions} from '../plugins/linked-versions';
 import {CargoWorkspace} from '../plugins/cargo-workspace';
 import {NodeWorkspace} from '../plugins/node-workspace';
 import {VersioningStrategyType} from './versioning-strategy-factory';
+import {MavenWorkspace} from '../plugins/maven-workspace';
 
 export interface PluginFactoryOptions {
   type: PluginType;
@@ -58,6 +59,13 @@ const pluginFactories: Record<string, PluginBuilder> = {
     ),
   'node-workspace': options =>
     new NodeWorkspace(
+      options.github,
+      options.targetBranch,
+      options.repositoryConfig,
+      options
+    ),
+  'maven-workspace': options =>
+    new MavenWorkspace(
       options.github,
       options.targetBranch,
       options.repositoryConfig,

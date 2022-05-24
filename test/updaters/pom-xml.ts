@@ -42,5 +42,22 @@ describe('PomXml', () => {
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('updates dependencies', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './pom-with-dependencies.xml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updatedVersions = new Map();
+      updatedVersions.set(
+        'com.google.auth:google-auth-library-credentials',
+        Version.parse('v2.1.3')
+      );
+      updatedVersions.set('com.google.guava:guava', Version.parse('v1.2.4'));
+
+      const updater = new PomXml(Version.parse('v2.3.4'), updatedVersions);
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
