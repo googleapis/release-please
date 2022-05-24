@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.16.6](https://github.com/googleapis/release-please/compare/v13.16.5...v13.16.6) (2022-05-24)
+
+
+### Bug Fixes
+
+* allow brackets in custom pull request title ([#1445](https://github.com/googleapis/release-please/issues/1445)) ([5cdbc5b](https://github.com/googleapis/release-please/commit/5cdbc5b6735392a64ae93d578e287b27c0b34d05)), closes [#1444](https://github.com/googleapis/release-please/issues/1444)
+* **deps:** update dependency code-suggester to v3 ([#1441](https://github.com/googleapis/release-please/issues/1441)) ([8473c99](https://github.com/googleapis/release-please/commit/8473c99e12311b9a65441ff11d46990a1a494c6a))
+
 ### [13.16.5](https://github.com/googleapis/release-please/compare/v13.16.4...v13.16.5) (2022-05-18)
 
 
