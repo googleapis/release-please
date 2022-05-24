@@ -48,7 +48,7 @@ interface MavenArtifact extends Gav {
   pomContent: string;
 }
 
-const JAVA_RELEASE_TYPES = new Set(['java', 'java-yoshi', 'maven']);
+const JAVA_RELEASE_TYPES = new Set(['java', 'java-bom', 'java-yoshi', 'maven']);
 const XPATH_PROJECT_GROUP =
   '/*[local-name()="project"]/*[local-name()="groupId"]';
 const XPATH_PROJECT_ARTIFACT =
@@ -59,7 +59,7 @@ const XPATH_PROJECT_DEPENDENCIES =
   '/*[local-name()="project"]/*[local-name()="dependencies"]/*[local-name()="dependency"]';
 
 export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
-  private async fetchPom(path: string): Promise<MavenArtifact> {
+  private async fetchPom(path: string): Promise<MavenArtifact | undefined> {
     const content = await this.github.getFileContentsOnBranch(
       path,
       this.targetBranch
@@ -68,21 +68,24 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
 
     const groupNodes = xpath.select(XPATH_PROJECT_GROUP, document) as Node[];
     if (groupNodes.length === 0) {
-      throw new Error(`Missing project.groupId in ${path}`);
+      logger.warn(`Missing project.groupId in ${path}`);
+      return;
     }
     const artifactNodes = xpath.select(
       XPATH_PROJECT_ARTIFACT,
       document
     ) as Node[];
     if (artifactNodes.length === 0) {
-      throw new Error(`Missing project.artifactId in ${path}`);
+      logger.warn(`Missing project.artifactId in ${path}`);
+      return;
     }
     const versionNodes = xpath.select(
       XPATH_PROJECT_VERSION,
       document
     ) as Node[];
     if (versionNodes.length === 0) {
-      throw new Error(`Missing project.version in ${path}`);
+      logger.warn(`Missing project.version in ${path}`);
+      return;
     }
     const dependencies: Gav[] = [];
     const testDependencies: Gav[] = [];
@@ -134,6 +137,9 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     );
     for (const pomFile of pomFiles) {
       const mavenArtifact = await this.fetchPom(pomFile);
+      if (!mavenArtifact) {
+        continue;
+      }
       const path = dirname(pomFile);
       allPackages.push(mavenArtifact);
       const candidate = candidates.find(candidate => candidate.path === path);
