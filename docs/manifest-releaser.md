@@ -470,3 +470,10 @@ with the manifest releaser (`manifest-pr` / `manifest-release` commands), it
 does _not_ update the dependencies, and the `cargo-workspace` plug-in must be
 used to update dependencies and bump all dependents — this is the recommended
 way of managing a Rust monorepo with release-please.
+
+### maven-workspace
+
+The `maven-workspace` plugin operates similarly to the `node-workspace` plugin,
+but on a multi-artifact Maven workspace. It builds a dependency graph of all
+discovered `pom.xml` files that are configured in the manifest config and updates
+any packages that were directly bumped by release-please.
