@@ -39,10 +39,12 @@ export function generateMatchPattern(pullRequestTitlePattern?: string): RegExp {
     logger.warn("pullRequestTitlePattern miss the part of '${version}'");
   return new RegExp(
     `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
-      .replace('${scope}', '(\\((?<branch>[\\w-.]+)\\))?')
+      .replace('[', '\\[') // TODO: handle all regex escaping
+      .replace(']', '\\]')
+      .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
       .replace('${component}', ' ?(?<component>[\\w-.]*)?')
       .replace('${version}', 'v?(?<version>[0-9].*)')
-      .replace('${branch}', '(?<branch>[\\w-.]+)?')}$`
+      .replace('${branch}', '(?<branch>[\\w-./]+)?')}$`
   );
 }
 
@@ -80,7 +82,7 @@ export class PullRequestTitle {
           : undefined,
         component: match.groups['component'],
         targetBranch: match.groups['branch'],
-        pullRequestTitlePattern: pullRequestTitlePattern,
+        pullRequestTitlePattern,
       });
     }
     return undefined;

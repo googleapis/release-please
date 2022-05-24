@@ -106,6 +106,16 @@ describe('BranchName', () => {
       expect(branchName?.toString()).to.eql(name);
     });
 
+    it('parses a target branch that has a /', () => {
+      const name = 'release-please--branches--hotfix/3.3.x';
+      const branchName = BranchName.parse(name);
+      expect(branchName).to.not.be.undefined;
+      expect(branchName?.getTargetBranch()).to.eql('hotfix/3.3.x');
+      expect(branchName?.getComponent()).to.be.undefined;
+      expect(branchName?.getVersion()).to.be.undefined;
+      expect(branchName?.toString()).to.eql(name);
+    });
+
     it('fails to parse', () => {
       const branchName = BranchName.parse('release-foo');
       expect(branchName).to.be.undefined;

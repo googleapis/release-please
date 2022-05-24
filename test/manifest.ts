@@ -4532,6 +4532,48 @@ describe('Manifest', () => {
       const releases = await manifest.buildReleases();
       expect(releases).lengthOf(0);
     });
+
+    it('should handle complex title and base branch', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName:
+              'release-please--branches--hotfix/v3.1.0-bug--components--my-package-name',
+            baseBranchName: 'hotfix/v3.1.0-bug',
+            number: 1234,
+            title: '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'hotfix/v3.1.0-bug',
+        {
+          '.': {
+            releaseType: 'simple',
+            pullRequestTitlePattern:
+              '[HOTFIX] - chore${scope}: release${component} ${version}',
+            packageName: 'my-package-name',
+            includeComponentInTag: false,
+          },
+        },
+        {
+          '.': Version.parse('3.1.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('v3.1.0-hotfix1');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes).to.be.a('string');
+      expect(releases[0].path).to.eql('.');
+    });
   });
 
   describe('createReleases', () => {

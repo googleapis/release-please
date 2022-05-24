@@ -124,7 +124,7 @@ describe('PullRequestTitle', () => {
     it('return matchPattern with default Pattern', () => {
       const matchPattern = generateMatchPattern();
       expect(matchPattern).to.eql(
-        /^chore(\((?<branch>[\w-.]+)\))?: release ?(?<component>[\w-.]*)? v?(?<version>[0-9].*)$/
+        /^chore(\((?<branch>[\w-./]+)\))?: release ?(?<component>[\w-.]*)? v?(?<version>[0-9].*)$/
       );
     });
   });
@@ -212,6 +212,19 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       expect(pullRequestTitle?.getComponent()).to.be.undefined;
       expect(pullRequestTitle?.getVersion()).to.be.undefined;
     });
+
+    it('parses a complex title and pattern', () => {
+      const pullRequestTitle = PullRequestTitle.parse(
+        '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1',
+        '[HOTFIX] - chore${scope}: release${component} ${version}'
+      );
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('hotfix/v3.1.0-bug');
+      expect(pullRequestTitle?.getVersion()?.toString()).to.eql(
+        '3.1.0-hotfix1'
+      );
+      expect(pullRequestTitle?.getComponent()).to.be.undefined;
+    });
   });
   describe('ofVersion', () => {
     it('builds the autorelease versioned branch name', () => {
@@ -265,7 +278,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
         'chore${scope}: 🔖 release${component} ${version}'
       );
       expect(matchPattern).to.eql(
-        /^chore(\((?<branch>[\w-.]+)\))?: 🔖 release ?(?<component>[\w-.]*)? v?(?<version>[0-9].*)$/
+        /^chore(\((?<branch>[\w-./]+)\))?: 🔖 release ?(?<component>[\w-.]*)? v?(?<version>[0-9].*)$/
       );
     });
 
