@@ -41,15 +41,6 @@ export class MissingRequiredFileError extends ConfigurationError {
   }
 }
 
-export class UnexpectedFileFormatError extends ConfigurationError {
-  file: string;
-  constructor(file: string, releaserName: string, repository: string) {
-    super(`Missing required file: ${file}`, releaserName, repository);
-    this.file = file;
-    this.name = MissingRequiredFileError.name;
-  }
-}
-
 export class GitHubAPIError extends Error {
   body: RequestErrorBody | undefined;
   status: number;
