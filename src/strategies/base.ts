@@ -131,7 +131,7 @@ export abstract class BaseStrategy implements Strategy {
    * Specify the files necessary to update in a release pull request.
    * @param {BuildUpdatesOptions} options
    */
-  protected abstract async buildUpdates(
+  protected abstract buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]>;
 
