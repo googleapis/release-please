@@ -75,6 +75,42 @@ describe('TagName', () => {
         expect(tagName?.separator).to.eql('-');
         expect(tagName?.toString()).to.eql(name);
       });
+      it('handles a dual digit version without v', () => {
+        const name = '10.2.3';
+        const tagName = TagName.parse(name);
+        expect(tagName).to.not.be.undefined;
+        expect(tagName?.component).to.be.undefined;
+        expect(tagName?.version.toString()).to.eql('10.2.3');
+        expect(tagName?.separator).to.eql('-');
+        expect(tagName?.toString()).to.eql(name);
+      });
+      it('handles a dual digit version', () => {
+        const name = 'v10.2.3';
+        const tagName = TagName.parse(name);
+        expect(tagName).to.not.be.undefined;
+        expect(tagName?.component).to.be.undefined;
+        expect(tagName?.version.toString()).to.eql('10.2.3');
+        expect(tagName?.separator).to.eql('-');
+        expect(tagName?.toString()).to.eql(name);
+      });
+      it('handles a triple digit version without v', () => {
+        const name = '178.2.3';
+        const tagName = TagName.parse(name);
+        expect(tagName).to.not.be.undefined;
+        expect(tagName?.component).to.be.undefined;
+        expect(tagName?.version.toString()).to.eql('178.2.3');
+        expect(tagName?.separator).to.eql('-');
+        expect(tagName?.toString()).to.eql(name);
+      });
+      it('handles a triple digit version', () => {
+        const name = 'v178.2.3';
+        const tagName = TagName.parse(name);
+        expect(tagName).to.not.be.undefined;
+        expect(tagName?.component).to.be.undefined;
+        expect(tagName?.version.toString()).to.eql('178.2.3');
+        expect(tagName?.separator).to.eql('-');
+        expect(tagName?.toString()).to.eql(name);
+      });
     });
   });
 });
