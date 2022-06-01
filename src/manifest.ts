@@ -47,6 +47,11 @@ type ExtraJsonFile = {
   path: string;
   jsonpath: string;
 };
+type ExtraYamlFile = {
+  type: 'yaml';
+  path: string;
+  jsonpath: string;
+};
 type ExtraXmlFile = {
   type: 'xml';
   path: string;
@@ -56,7 +61,12 @@ type ExtraPomFile = {
   type: 'pom';
   path: string;
 };
-export type ExtraFile = string | ExtraJsonFile | ExtraXmlFile | ExtraPomFile;
+export type ExtraFile =
+  | string
+  | ExtraJsonFile
+  | ExtraYamlFile
+  | ExtraXmlFile
+  | ExtraPomFile;
 /**
  * These are configurations provided to each strategy per-path.
  */
