@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.0](https://github.com/googleapis/release-please/compare/v13.17.1...v13.18.0) (2022-06-01)
+
+
+### Features
+
+* add support for generic yaml updater ([#1452](https://github.com/googleapis/release-please/issues/1452)) ([002231a](https://github.com/googleapis/release-please/commit/002231acfa49b3859a7eaee184a2b520eb6611d3))
+
+
+### Bug Fixes
+
+* fix parsing of tags with major versions higher than 9 ([#1451](https://github.com/googleapis/release-please/issues/1451)) ([5fc402a](https://github.com/googleapis/release-please/commit/5fc402ae41cd5aba4be5155f90fbc39f9369817d))
+
 ### [13.17.1](https://github.com/googleapis/release-please/compare/v13.17.0...v13.17.1) (2022-05-27)
 
 
