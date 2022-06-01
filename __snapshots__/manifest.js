@@ -3,7 +3,7 @@ exports['Manifest buildPullRequests should allow creating multiple pull requests
 ---
 
 
-### [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
+## [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -19,7 +19,7 @@ exports['Manifest buildPullRequests should allow creating multiple pull requests
 ---
 
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -37,7 +37,7 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 
 <details><summary>root: 1.2.2</summary>
 
-### [1.2.2](https://github.com/fake-owner/fake-repo/compare/root-v1.2.1...root-v1.2.2) (1983-10-10)
+## [1.2.2](https://github.com/fake-owner/fake-repo/compare/root-v1.2.1...root-v1.2.2) (1983-10-10)
 
 
 ### Bug Fixes
@@ -49,7 +49,7 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 
 <details><summary>pkg1: 1.0.2</summary>
 
-### [1.0.2](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.1...pkg1-v1.0.2) (1983-10-10)
+## [1.0.2](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.1...pkg1-v1.0.2) (1983-10-10)
 
 
 ### Bug Fixes
@@ -60,7 +60,7 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 
 <details><summary>pkg2: 0.2.4</summary>
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -77,7 +77,7 @@ exports['Manifest buildPullRequests should allow overriding commit message 1'] =
 ---
 
 
-### [1.0.1](https://github.com/fake-owner/fake-repo/compare/v1.0.0...v1.0.1) (1983-10-10)
+## [1.0.1](https://github.com/fake-owner/fake-repo/compare/v1.0.0...v1.0.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -95,7 +95,7 @@ exports['Manifest buildPullRequests should handle mixing componentless configs 1
 
 <details><summary>1.0.1</summary>
 
-### [1.0.1](https://github.com/fake-owner/fake-repo/compare/v1.0.0...v1.0.1) (1983-10-10)
+## [1.0.1](https://github.com/fake-owner/fake-repo/compare/v1.0.0...v1.0.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -105,7 +105,7 @@ exports['Manifest buildPullRequests should handle mixing componentless configs 1
 
 <details><summary>pkg2: 0.2.4</summary>
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -124,7 +124,7 @@ exports['Manifest buildPullRequests should handle multiple package repository 1'
 
 <details><summary>pkg1: 1.0.1</summary>
 
-### [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
+## [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -134,7 +134,7 @@ exports['Manifest buildPullRequests should handle multiple package repository 1'
 
 <details><summary>pkg2: 0.2.4</summary>
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
 
 
 ### Bug Fixes

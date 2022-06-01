@@ -40,6 +40,7 @@ import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
+import {GenericYaml} from '../updaters/generic-yaml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -328,6 +329,12 @@ export abstract class BaseStrategy implements Strategy {
               path: this.addPath(extraFile.path),
               createIfMissing: false,
               updater: new GenericJson(extraFile.jsonpath, version),
+            };
+          case 'yaml':
+            return {
+              path: this.addPath(extraFile.path),
+              createIfMissing: false,
+              updater: new GenericYaml(extraFile.jsonpath, version),
             };
           case 'xml':
             return {

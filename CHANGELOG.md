@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+### [13.17.1](https://github.com/googleapis/release-please/compare/v13.17.0...v13.17.1) (2022-05-27)
+
+
+### Bug Fixes
+
+* **deps:** headings are now always H2 ([#1454](https://github.com/googleapis/release-please/issues/1454)) ([32a2fe4](https://github.com/googleapis/release-please/commit/32a2fe497b51be7def2646c1aceebd9c5c6a167e)), closes [#1389](https://github.com/googleapis/release-please/issues/1389)
+
 ## [13.17.0](https://github.com/googleapis/release-please/compare/v13.16.6...v13.17.0) (2022-05-24)
 
 
