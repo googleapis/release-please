@@ -3,7 +3,7 @@ exports['LinkedVersions plugin should group pull requests 1'] = `
 ---
 
 
-### [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
+## [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -21,7 +21,7 @@ exports['LinkedVersions plugin should group pull requests 2'] = `
 
 <details><summary>pkg2: 0.2.4</summary>
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -31,7 +31,7 @@ exports['LinkedVersions plugin should group pull requests 2'] = `
 
 <details><summary>pkg3: 0.2.4</summary>
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg3-v0.2.3...pkg3-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg3-v0.2.3...pkg3-v0.2.4) (1983-10-10)
 
 
 ### Miscellaneous Chores
@@ -50,7 +50,7 @@ exports['LinkedVersions plugin should sync versions pull requests 1'] = `
 
 <details><summary>pkg1: 1.0.1</summary>
 
-### [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
+## [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...pkg1-v1.0.1) (1983-10-10)
 
 
 ### Bug Fixes
@@ -60,7 +60,7 @@ exports['LinkedVersions plugin should sync versions pull requests 1'] = `
 
 <details><summary>pkg2: 0.2.4</summary>
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
 
 
 ### Bug Fixes
@@ -70,7 +70,7 @@ exports['LinkedVersions plugin should sync versions pull requests 1'] = `
 
 <details><summary>pkg3: 0.2.4</summary>
 
-### [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg3-v0.2.3...pkg3-v0.2.4) (1983-10-10)
+## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg3-v0.2.3...pkg3-v0.2.4) (1983-10-10)
 
 
 ### Miscellaneous Chores

@@ -1,5 +1,5 @@
 exports['DefaultChangelogNotes buildNotes should build default release notes 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -17,7 +17,7 @@ exports['DefaultChangelogNotes buildNotes should build default release notes 1']
 `
 
 exports['DefaultChangelogNotes buildNotes should build with custom changelog sections 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -40,7 +40,7 @@ exports['DefaultChangelogNotes buildNotes should build with custom changelog sec
 `
 
 exports['DefaultChangelogNotes buildNotes should handle BREAKING CHANGE notes 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -53,7 +53,7 @@ exports['DefaultChangelogNotes buildNotes should handle BREAKING CHANGE notes 1'
 `
 
 exports['DefaultChangelogNotes buildNotes should ignore RELEASE AS notes 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -66,7 +66,7 @@ exports['DefaultChangelogNotes buildNotes should ignore RELEASE AS notes 1'] = `
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing handles Release-As footers 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### meta
@@ -75,7 +75,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing handles Release-As
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should allow customizing sections 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### Miscellaneous Chores
@@ -84,7 +84,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should allow custo
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle BREAKING CHANGE body 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -97,7 +97,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle BREA
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle a breaking change 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -110,7 +110,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle a br
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle bug links 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### Bug Fixes
@@ -119,7 +119,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle bug 
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle git trailers 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -132,7 +132,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle git 
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle meta commits 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -151,7 +151,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle meta
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle multi-line breaking change, if prefixed with list 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -166,7 +166,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle mult
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle multi-line breaking changes 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -179,7 +179,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle mult
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should not include content two newlines after BREAKING CHANGE 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### ⚠ BREAKING CHANGES
@@ -192,7 +192,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should not include
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should parse multiple commit messages from a single commit 1'] = `
-### [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
 
 ### Features

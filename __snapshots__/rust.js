@@ -3,7 +3,7 @@ exports['Rust buildReleasePullRequest detects a default component 1'] = `
 ---
 
 
-### [0.123.5](https://github.com/googleapis/rust-test-repo/compare/rust-test-repo-v0.123.4...crate1-v0.123.5) (1983-10-10)
+## [0.123.5](https://github.com/googleapis/rust-test-repo/compare/rust-test-repo-v0.123.4...crate1-v0.123.5) (1983-10-10)
 
 
 ### Bug Fixes
