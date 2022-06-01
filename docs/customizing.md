@@ -54,7 +54,7 @@ Release Please will only consider commits that touch files on that path. The for
 relative to the repository root.
 
 To configure multiple components on different paths, configure a
-[manifest release](/docs/manifest-releaser).
+[manifest release](/docs/manifest-releaser.md).
 
 ## Changelog Types
 
