@@ -694,7 +694,8 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       argv.configFile,
       argv.initialVersion
     );
-    const pullRequest = await bootstrapper.bootstrap(argv.path!, {
+    const path = argv.path || ROOT_PROJECT_PATH;
+    const pullRequest = await bootstrapper.bootstrap(path, {
       releaseType: argv.releaseType!,
       component: argv.component,
       packageName: argv.packageName,
