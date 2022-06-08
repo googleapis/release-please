@@ -1433,6 +1433,35 @@ describe('CLI', () => {
       });
     });
   });
+  describe('bootstrap', () => {
+    it('defaults path to .', async () => {
+      const createPullStub = sandbox
+        .stub(fakeGitHub, 'createPullRequest')
+        .resolves({
+          headBranchName: 'head-branch',
+          baseBranchName: 'base-branch',
+          number: 1234,
+          title: 'pr-title',
+          body: 'pr-body',
+          labels: [],
+          files: [],
+        });
+      await await parser.parseAsync(
+        'bootstrap --repo-url=googleapis/release-please-cli --release-type=java'
+      );
+
+      sinon.assert.calledOnceWithExactly(
+        createPullStub,
+        sinon.match({
+          headBranchName: 'release-please/bootstrap/default',
+        }),
+        'main',
+        'chore: bootstrap releases for path: .',
+        sinon.match.array,
+        {}
+      );
+    });
+  });
 
   describe('--help', () => {
     for (const cmd of [
