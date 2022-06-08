@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.1](https://github.com/googleapis/release-please/compare/v13.18.0...v13.18.1) (2022-06-08)
+
+
+### Bug Fixes
+
+* set default bootstrap path to . ([#1464](https://github.com/googleapis/release-please/issues/1464)) ([c2bfbe5](https://github.com/googleapis/release-please/commit/c2bfbe5affe504f4a5183f79e338f9e7d48a8386)), closes [#1450](https://github.com/googleapis/release-please/issues/1450)
+
 ## [13.18.0](https://github.com/googleapis/release-please/compare/v13.17.1...v13.18.0) (2022-06-01)
 
 
