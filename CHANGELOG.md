@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.3](https://github.com/googleapis/release-please/compare/v13.18.2...v13.18.3) (2022-06-08)
+
+
+### Bug Fixes
+
+* handle malformed manifest JSON and throw ConfigurationError ([#1469](https://github.com/googleapis/release-please/issues/1469)) ([e3af138](https://github.com/googleapis/release-please/commit/e3af1383d8ba5c127a1e19187081353565e673f8))
+
 ## [13.18.2](https://github.com/googleapis/release-please/compare/v13.18.1...v13.18.2) (2022-06-08)
 
 
