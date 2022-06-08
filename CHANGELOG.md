@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.2](https://github.com/googleapis/release-please/compare/v13.18.1...v13.18.2) (2022-06-08)
+
+
+### Bug Fixes
+
+* factory errors for unknown types throw ConfigurationError instead of Error ([#1467](https://github.com/googleapis/release-please/issues/1467)) ([faa5d25](https://github.com/googleapis/release-please/commit/faa5d25fa2075d27d42238adf34e54f6a1bc39a4))
+
 ## [13.18.1](https://github.com/googleapis/release-please/compare/v13.18.0...v13.18.1) (2022-06-08)
 
 
