@@ -628,6 +628,55 @@ describe('Manifest', () => {
         await Manifest.fromManifest(github, github.repository.defaultBranch);
       }, ConfigurationError);
     });
+
+    it('should throw a configuration error for a malformed manifest config', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(buildGitHubFileRaw('{"malformed json"'))
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      await assert.rejects(
+        async () => {
+          await Manifest.fromManifest(github, github.repository.defaultBranch);
+        },
+        e => {
+          console.log(e);
+          return e instanceof ConfigurationError && e.message.includes('parse');
+        }
+      );
+    });
+
+    it('should throw a configuration error for a malformed manifest config', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(buildGitHubFileRaw('{"malformed json"'));
+      await assert.rejects(
+        async () => {
+          await Manifest.fromManifest(github, github.repository.defaultBranch);
+        },
+        e => {
+          console.log(e);
+          return e instanceof ConfigurationError && e.message.includes('parse');
+        }
+      );
+    });
   });
 
   describe('fromConfig', () => {

@@ -1247,6 +1247,12 @@ async function fetchManifestConfig(
         'base',
         `${github.repository.owner}/${github.repository.repo}`
       );
+    } else if (e instanceof SyntaxError) {
+      throw new ConfigurationError(
+        `Failed to parse manifest config JSON: ${configFile}\n${e.message}`,
+        'base',
+        `${github.repository.owner}/${github.repository.repo}`
+      );
     }
     throw e;
   }
@@ -1299,6 +1305,12 @@ async function fetchReleasedVersions(
     if (e instanceof FileNotFoundError) {
       throw new ConfigurationError(
         `Missing required manifest versions: ${manifestFile}`,
+        'base',
+        `${github.repository.owner}/${github.repository.repo}`
+      );
+    } else if (e instanceof SyntaxError) {
+      throw new ConfigurationError(
+        `Failed to parse manifest versions JSON: ${manifestFile}\n${e.message}`,
         'base',
         `${github.repository.owner}/${github.repository.repo}`
       );
