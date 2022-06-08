@@ -41,6 +41,7 @@ import {Java} from './strategies/java';
 import {Maven} from './strategies/maven';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
+import {ConfigurationError} from './errors';
 
 export * from './factories/changelog-notes-factory';
 export * from './factories/plugin-factory';
@@ -107,6 +108,7 @@ export async function buildStrategy(
   const targetBranch =
     options.targetBranch ?? options.github.repository.defaultBranch;
   const versioningStrategy = buildVersioningStrategy({
+    github: options.github,
     type: options.versioning,
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
@@ -128,7 +130,11 @@ export async function buildStrategy(
   if (builder) {
     return builder(strategyOptions);
   }
-  throw new Error(`Unknown release type: ${options.releaseType}`);
+  throw new ConfigurationError(
+    `Unknown release type: ${options.releaseType}`,
+    'core',
+    `${options.github.repository.owner}/${options.github.repository.repo}`
+  );
 }
 
 export function registerReleaseType(

@@ -17,6 +17,7 @@ import {
   getVersioningStrategyTypes,
   registerVersioningStrategy,
   VersioningStrategyType,
+  GitHub,
 } from '../../src';
 import {DefaultVersioningStrategy} from '../../src/versioning-strategies/default';
 import {
@@ -30,11 +31,20 @@ describe('VersioningStrategyFactory', () => {
     'always-bump-patch',
     'service-pack',
   ];
+  let github: GitHub;
+  beforeEach(async () => {
+    github = await GitHub.create({
+      owner: 'test-owner',
+      repo: 'test-repo',
+      defaultBranch: 'main',
+    });
+  });
 
   describe('buildVersioningStrategy', () => {
     for (const type of defaultTypes) {
       it(`should build a simple ${type}`, () => {
         const versioningStrategy = buildVersioningStrategy({
+          github,
           type: type,
         });
         expect(versioningStrategy).to.not.be.undefined;
@@ -43,6 +53,7 @@ describe('VersioningStrategyFactory', () => {
     it('should throw for unknown type', () => {
       expect(() =>
         buildVersioningStrategy({
+          github,
           type: 'non-existent',
         })
       ).to.throw();
@@ -70,6 +81,7 @@ describe('VersioningStrategyFactory', () => {
       );
 
       const versioningStrategyOptions = {
+        github,
         type: versioningStrategyType,
       };
       const strategy = await buildVersioningStrategy(versioningStrategyOptions);

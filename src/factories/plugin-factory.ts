@@ -24,6 +24,7 @@ import {CargoWorkspace} from '../plugins/cargo-workspace';
 import {NodeWorkspace} from '../plugins/node-workspace';
 import {VersioningStrategyType} from './versioning-strategy-factory';
 import {MavenWorkspace} from '../plugins/maven-workspace';
+import {ConfigurationError} from '../errors';
 
 export interface PluginFactoryOptions {
   type: PluginType;
@@ -79,13 +80,21 @@ export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
     if (builder) {
       return builder(options);
     }
-    throw new Error(`Unknown plugin type: ${options.type.type}`);
+    throw new ConfigurationError(
+      `Unknown plugin type: ${options.type.type}`,
+      'core',
+      `${options.github.repository.owner}/${options.github.repository.repo}`
+    );
   } else {
     const builder = pluginFactories[options.type];
     if (builder) {
       return builder(options);
     }
-    throw new Error(`Unknown plugin type: ${options.type}`);
+    throw new ConfigurationError(
+      `Unknown plugin type: ${options.type}`,
+      'core',
+      `${options.github.repository.owner}/${options.github.repository.repo}`
+    );
   }
 }
 

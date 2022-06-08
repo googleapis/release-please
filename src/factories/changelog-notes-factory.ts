@@ -16,6 +16,7 @@ import {GitHub} from '../github';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
 import {GitHubChangelogNotes} from '../changelog-notes/github';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
+import {ConfigurationError} from '../errors';
 
 export type ChangelogNotesType = string;
 
@@ -44,7 +45,11 @@ export function buildChangelogNotes(
   if (builder) {
     return builder(options);
   }
-  throw new Error(`Unknown changelog type: ${options.type}`);
+  throw new ConfigurationError(
+    `Unknown changelog type: ${options.type}`,
+    'core',
+    `${options.github.repository.owner}/${options.github.repository.repo}`
+  );
 }
 
 export function registerChangelogNotes(
