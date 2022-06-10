@@ -46,7 +46,7 @@
     "@types/lerna__collect-updates": "^4.0.0",
     "@types/lerna__package": "^4.0.2",
     "@types/lerna__package-graph": "^4.0.1",
-    "@types/lerna__run-topologically": "^4.0.0",
+    "@types/lerna__run-topologically": "^5.0.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.0.0",
     "@types/pino": "^7.0.0",
