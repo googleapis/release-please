@@ -107,8 +107,9 @@ chore: a third message
 END_COMMIT_OVERRIDE
 ```
 
-The next time release please runs, it will use that override section as the
-commit message instead of the merged commit message.
+Then add "release-please:force-run" label to the merged pull request.
+This triggers Release Please to re-process the pull request with
+that override section as the commit message instead of the merged commit message.
 
 ## Release Please bot does not create a release PR. Why?
 
