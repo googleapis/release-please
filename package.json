@@ -43,7 +43,7 @@
     "@types/iarna__toml": "^2.0.1",
     "@types/js-yaml": "^4.0.0",
     "@types/jsonpath": "^0.2.0",
-    "@types/lerna__collect-updates": "^4.0.0",
+    "@types/lerna__collect-updates": "^5.0.0",
     "@types/lerna__package": "^5.0.0",
     "@types/lerna__package-graph": "^5.0.0",
     "@types/lerna__run-topologically": "^5.0.0",
