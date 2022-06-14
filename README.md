@@ -107,7 +107,8 @@ chore: a third message
 END_COMMIT_OVERRIDE
 ```
 
-Then add "release-please:force-run" label to the merged pull request.
+Then add "release-please:force-run" label to the merged pull request
+([document](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please#forcing-the-bot-to-run)).
 This triggers Release Please to re-process the pull request with
 that override section as the commit message instead of the merged commit message.
 
