@@ -124,7 +124,7 @@ export class RubyYoshi extends BaseStrategy {
         .replace(/^\* \*\*[\w-]+:\*\* /gm, '* ')
         // Remove PR and commit links from pull request title suffixes
         .replace(
-          /( \(\[(\w+|#\d+)\]\(https:\/\/github\.com\/[^)]*\)\))+\s*$/gm,
+          /( \(\[(\w+)\]\(https:\/\/github\.com\/[^)]*\)\))+\s*$/gm,
           ''
         )
         // Standardize on h4 for change type subheaders
