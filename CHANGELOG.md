@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.5](https://github.com/googleapis/release-please/compare/v13.18.4...v13.18.5) (2022-06-24)
+
+
+### Bug Fixes
+
+* **ruby-yoshi:** don't remove PR link from changelog ([#1479](https://github.com/googleapis/release-please/issues/1479)) ([6faaebe](https://github.com/googleapis/release-please/commit/6faaebe3c317bfa1b4d98992733283296bafa20f))
+
 ## [13.18.4](https://github.com/googleapis/release-please/compare/v13.18.3...v13.18.4) (2022-06-24)
 
 
