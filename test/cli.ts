@@ -121,6 +121,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -142,6 +144,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -163,6 +167,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -189,6 +195,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -210,6 +218,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -231,6 +241,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -252,6 +264,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -273,6 +287,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -294,6 +310,8 @@ describe('CLI', () => {
     //     owner: 'googleapis',
     //     repo: 'release-please-cli',
     //     token: undefined,
+    //     apiUrl: 'https://api.github.com',
+    //     graphqlUrl: 'https://api.github.com',
     //   });
     //   sinon.assert.calledOnceWithExactly(
     //     fromManifestStub,
@@ -315,6 +333,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -360,6 +380,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -381,6 +403,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -402,6 +426,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -428,6 +454,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -449,6 +477,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -470,6 +500,8 @@ describe('CLI', () => {
         owner: 'googleapis',
         repo: 'release-please-cli',
         token: undefined,
+        apiUrl: 'https://api.github.com',
+        graphqlUrl: 'https://api.github.com',
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -491,6 +523,8 @@ describe('CLI', () => {
     //     owner: 'googleapis',
     //     repo: 'release-please-cli',
     //     token: undefined,
+    //     apiUrl: 'https://api.github.com',
+    //     graphqlUrl: 'https://api.github.com',
     //   });
     //   sinon.assert.calledOnceWithExactly(
     //     fromManifestStub,
@@ -535,6 +569,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -558,6 +594,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -581,6 +619,8 @@ describe('CLI', () => {
             owner: 'googleapis',
             repo: 'release-please-cli',
             token: undefined,
+            apiUrl: 'https://api.github.com',
+            graphqlUrl: 'https://api.github.com',
           });
           sinon.assert.calledOnceWithExactly(
             fromManifestStub,
@@ -609,6 +649,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -654,6 +696,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -676,6 +720,8 @@ describe('CLI', () => {
             owner: 'googleapis',
             repo: 'release-please-cli',
             token: undefined,
+            apiUrl: 'https://api.github.com',
+            graphqlUrl: 'https://api.github.com',
           });
           sinon.assert.calledOnceWithExactly(
             fromConfigStub,
@@ -702,6 +748,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -723,6 +771,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -744,6 +794,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -768,6 +820,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -793,6 +847,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -817,6 +873,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -841,6 +899,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -862,6 +922,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -886,6 +948,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -910,6 +974,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -933,6 +999,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -954,6 +1022,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -975,6 +1045,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -996,6 +1068,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1017,6 +1091,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1038,6 +1114,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1085,6 +1163,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1106,6 +1186,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1127,6 +1209,8 @@ describe('CLI', () => {
             owner: 'googleapis',
             repo: 'release-please-cli',
             token: undefined,
+            apiUrl: 'https://api.github.com',
+            graphqlUrl: 'https://api.github.com',
           });
           sinon.assert.calledOnceWithExactly(
             fromManifestStub,
@@ -1153,6 +1237,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1174,6 +1260,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1195,6 +1283,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1246,6 +1336,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1270,6 +1362,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1291,6 +1385,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1312,6 +1408,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1333,6 +1431,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1357,6 +1457,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1378,6 +1480,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1399,6 +1503,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1420,6 +1526,8 @@ describe('CLI', () => {
           owner: 'googleapis',
           repo: 'release-please-cli',
           token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,

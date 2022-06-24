@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.4](https://github.com/googleapis/release-please/compare/v13.18.3...v13.18.4) (2022-06-24)
+
+
+### Bug Fixes
+
+* **cli:** pass GitHub API URLs from options to builder ([#1481](https://github.com/googleapis/release-please/issues/1481)) ([44b39ba](https://github.com/googleapis/release-please/commit/44b39baf90c19db1440f142eddd9cf9ed99c2da3))
+* **go:** hide unwanted changelog sections ([#1483](https://github.com/googleapis/release-please/issues/1483)) ([60ed310](https://github.com/googleapis/release-please/commit/60ed310caf8895501d31efc6a5e28a3855b5cd78))
+
 ## [13.18.3](https://github.com/googleapis/release-please/compare/v13.18.2...v13.18.3) (2022-06-08)
 
 
