@@ -16,20 +16,28 @@ import {DefaultUpdater, UpdateOptions} from './default';
 
 interface ChangelogOptions extends UpdateOptions {
   changelogEntry: string;
+  versionHeaderRegex?: string;
 }
+
+const DEFAULT_VERSION_HEADER_REGEX = '\n###? v?[0-9[]';
 
 export class Changelog extends DefaultUpdater {
   changelogEntry: string;
+  readonly versionHeaderRegex: RegExp;
 
   constructor(options: ChangelogOptions) {
     super(options);
     this.changelogEntry = options.changelogEntry;
+    this.versionHeaderRegex = new RegExp(
+      options.versionHeaderRegex ?? DEFAULT_VERSION_HEADER_REGEX,
+      's'
+    );
   }
 
   updateContent(content: string | undefined): string {
     content = content || '';
     // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
-    const lastEntryIndex = content.search(/\n###? v?[0-9[]/s);
+    const lastEntryIndex = content.search(this.versionHeaderRegex);
     if (lastEntryIndex === -1) {
       return `${this.header()}\n${this.changelogEntry}\n`;
     } else {

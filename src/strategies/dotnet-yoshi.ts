@@ -126,6 +126,7 @@ export class DotnetYoshi extends BaseStrategy {
         updater: new Changelog({
           version,
           changelogEntry: options.changelogEntry,
+          versionHeaderRegex: '\n## Version [0-9[]+',
         }),
       });
     }

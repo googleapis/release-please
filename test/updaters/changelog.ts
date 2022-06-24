@@ -79,6 +79,7 @@ describe('ChangelogUpdater', () => {
       const changelog = new Changelog({
         changelogEntry: '## 1.0.0\n\n* added a new foo to bar.',
         version: Version.parse('1.0.0'),
+        versionHeaderRegex: '\n## Version [0-9[]+',
       });
       const newContent = changelog.updateContent(oldContent);
       snapshot(newContent);
