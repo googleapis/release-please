@@ -722,6 +722,8 @@ async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
     owner,
     repo,
     token: argv.token!,
+    apiUrl: argv.apiUrl,
+    graphqlUrl: argv.graphqlUrl,
   });
   return github;
 }
