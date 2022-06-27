@@ -17,7 +17,6 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: node --version
       - run: npm i -g npm@latest
-      - run: npm --version
       # The first installation step ensures that all of our production
       # dependencies work on the given Node.js version, this helps us find
       # dependencies that don't match our engines field:

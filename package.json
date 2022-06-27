@@ -13,7 +13,6 @@
     "lint": "gts check",
     "compile": "tsc -p .",
     "fix": "gts fix",
-    "precompile": "npm ls @octokit/types",
     "pretest": "npm run compile"
   },
   "files": [
