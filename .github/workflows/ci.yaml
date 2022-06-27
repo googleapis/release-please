@@ -22,6 +22,7 @@ jobs:
       - run: npm install --production --engine-strict --ignore-scripts --no-package-lock
       # Clean up the production install, before installing dev/production:
       - run: rm -rf node_modules
+      - run: cat package-lock.json
       - run: npm install
       - run: npm test
         env:
