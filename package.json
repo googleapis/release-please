@@ -37,7 +37,7 @@
     }
   },
   "devDependencies": {
-    "@octokit/types": "^6.1.0",
+    "@octokit/types": "6.37.0",
     "@types/chai": "^4.1.7",
     "@types/diff": "^5.0.2",
     "@types/iarna__toml": "^2.0.1",

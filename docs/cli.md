@@ -112,6 +112,7 @@ need to specify your release options:
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
 | `--skip-labeling` | `boolean` | If set, labels will not be applied to pull requests |
+| `--include-v-in-tags` | `boolean` | Include "v" in tag versions. Defaults to `true`. |
 
 ## Creating a release on GitHub
 
@@ -150,6 +151,7 @@ need to specify your release options:
 | `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |
 | `--release-label` | `string` | Comma-separated list of labels to apply to the pull request after the release has been tagged. Defaults to `autorelease: tagged` |
+| `--include-v-in-tags` | `boolean` | Include "v" in tag versions. Defaults to `true`. |
 
 ## Create a manifest pull request [deprecated]
 
