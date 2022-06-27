@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.6](https://github.com/googleapis/release-please/compare/v13.18.5...v13.18.6) (2022-06-27)
+
+
+### Bug Fixes
+
+* **dotnet-yoshi:** autodetect component from path ([563ef02](https://github.com/googleapis/release-please/commit/563ef02210cc8bd52eedbfaa0a00787bc2e41ee6))
+* **dotnet-yoshi:** handle existing google-cloud-dotnet history format ([#1486](https://github.com/googleapis/release-please/issues/1486)) ([563ef02](https://github.com/googleapis/release-please/commit/563ef02210cc8bd52eedbfaa0a00787bc2e41ee6))
+
 ## [13.18.5](https://github.com/googleapis/release-please/compare/v13.18.4...v13.18.5) (2022-06-24)
 
 
