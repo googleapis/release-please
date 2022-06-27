@@ -101,6 +101,12 @@ export class DotnetYoshi extends BaseStrategy {
     }
   }
 
+  async getDefaultComponent(): Promise<string | undefined> {
+    // default component is based on the path
+    const pathParts = this.path.split('/');
+    return pathParts[pathParts.length - 1];
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
@@ -120,11 +126,12 @@ export class DotnetYoshi extends BaseStrategy {
         updater: new Changelog({
           version,
           changelogEntry: options.changelogEntry,
+          versionHeaderRegex: '\n## Version [0-9[]+',
         }),
       });
     }
 
-    if (!this.component) {
+    if (!component) {
       logger.warn(
         'Dotnet strategy expects to use components, could not update all files'
       );
@@ -134,7 +141,7 @@ export class DotnetYoshi extends BaseStrategy {
     updates.push({
       path: 'apis/apis.json',
       createIfMissing: false,
-      updater: new Apis(this.component, version),
+      updater: new Apis(component, version),
     });
 
     return updates;

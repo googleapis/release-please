@@ -77,6 +77,19 @@ exports['ChangelogUpdater updateContent inserts content at appropriate location 
 
 `
 
+exports['ChangelogUpdater updateContent inserts content at appropriate location in yoshi-dotnet style CHANGELOG 1'] = `
+# Version history
+
+## 1.0.0
+
+* added a new foo to bar.
+
+## Version 1.0.0-alpha00, released 2022-06-24
+
+Initial release.
+
+`
+
 exports['ChangelogUpdater updateContent inserts content at appropriate location in yoshi-ruby style CHANGELOG 1'] = `
 # Release History
 
