@@ -28,9 +28,10 @@ cd $(dirname $0)/..
 npm --version
 npm i -g npm@latest
 npm --version
+npx -p npm@latest --version
 
 NPM_TOKEN=$(cat $KOKORO_KEYSTORE_DIR/73713_google-cloud-npm-token-1)
 echo "//wombat-dressing-room.appspot.com/:_authToken=${NPM_TOKEN}" > ~/.npmrc
 
-npm install
-npm publish --access=public --registry=https://wombat-dressing-room.appspot.com
+npx -p npm@latest install
+npx -p npm@latest publish --access=public --registry=https://wombat-dressing-room.appspot.com
