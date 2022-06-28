@@ -5,6 +5,6 @@ build/
 system-test/fixtures/gh/*
 .coverage
 __pycache__
-package-lock.json
+# package-lock.json
 debug.sh
 .idea/
