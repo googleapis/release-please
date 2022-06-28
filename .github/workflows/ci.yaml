@@ -16,7 +16,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: node --version
-      - run: npm i -g npm@latest
       # The first installation step ensures that all of our production
       # dependencies work on the given Node.js version, this helps us find
       # dependencies that don't match our engines field:
@@ -34,7 +33,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-      - run: npm i -g npm@latest
       - run: npm install
       - run: npm test
         env:
@@ -46,7 +44,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-      - run: npm i -g npm@latest
       - run: npm install
       - run: npm run lint
   docs:
@@ -56,7 +53,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-      - run: npm i -g npm@latest
       - run: npm install
       - run: npm run docs
       - uses: JustinBeckwith/linkinator-action@v1
