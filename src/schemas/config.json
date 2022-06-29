@@ -1,0 +1,250 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "release-please manifest config schema",
+  "description": "Schema for defining manifest config file",
+  "type": "object",
+  "additionalProperties": false,
+  "definitions": {
+    "ChangelogSection": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      },
+      "required": ["type", "section"]
+    },
+    "ReleaserConfigOptions": {
+      "type": "object",
+      "properties": {
+        "release-type": {
+          "type": "string"
+        },
+        "bump-minor-pre-major": {
+          "type": "boolean"
+        },
+        "bump-patch-for-minor-pre-major": {
+          "type": "boolean"
+        },
+        "changelog-sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChangelogSection"
+          }
+        },
+        "release-as": {
+          "type": "string"
+        },
+        "skip-github-release": {
+          "type": "boolean"
+        },
+        "draft": {
+          "type": "boolean"
+        },
+        "prerelease": {
+          "type": "boolean"
+        },
+        "draft-pull-request": {
+          "type": "boolean"
+        },
+        "label": {
+          "type": "string"
+        },
+        "release-label": {
+          "type": "string"
+        },
+        "include-component-in-tag": {
+          "type": "boolean"
+        },
+        "include-v-in-tag": {
+          "type": "boolean"
+        },
+        "changelog-type": {
+          "type": "string"
+        },
+        "changelog-host": {
+          "type": "string"
+        },
+        "pull-request-title-pattern": {
+          "type": "string"
+        },
+        "separate-pull-requests": {
+          "type": "boolean"
+        },
+        "tag-separator": {
+          "type": "string"
+        },
+        "extra-files": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": ["json", "yaml"]
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "jsonpath": {
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "path", "jsonpath"]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": ["xml"]
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "xpath": {
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "path", "xpath"]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": ["pom"]
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "path"]
+              }
+            ]
+          }
+        },
+        "version-file": {
+          "type": "string"
+        },
+        "snapshot-label": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/ReleaserConfigOptions"
+    },
+    {
+      "properties": {
+        "packages": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ReleaserConfigOptions"
+          }
+        },
+        "bootstrap-sha": {
+          "type": "string"
+        },
+        "last-release-sha": {
+          "type": "string"
+        },
+        "always-link-local": {
+          "type": "boolean"
+        },
+        "plugins": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["linked-versions"]
+                  },
+                  "groupName": {
+                    "type": "string"
+                  },
+                  "components": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["type", "groupName", "components"]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "group-pull-request-title-pattern": {
+          "type": "string"
+        },
+        "release-search-depth": {
+          "type": "number"
+        },
+        "commit-search-depth": {
+          "type": "number"
+        },
+        "sequential-calls": {
+          "type": "boolean"
+        }
+      },
+      "required": ["packages"]
+    }
+  ],
+  "properties": {
+    "packages": true,
+    "bootstrap-sha": true,
+    "last-release-sha": true,
+    "always-link-local": true,
+    "plugins": true,
+    "group-pull-request-title-pattern": true,
+    "release-search-depth": true,
+    "commit-search-depth": true,
+    "sequential-calls": true,
+    "release-type": true,
+    "bump-minor-pre-major": true,
+    "bump-patch-for-minor-pre-major": true,
+    "changelog-sections": true,
+    "release-as": true,
+    "skip-github-release": true,
+    "draft": true,
+    "prerelease": true,
+    "draft-pull-request": true,
+    "label": true,
+    "release-label": true,
+    "include-component-in-tag": true,
+    "include-v-in-tag": true,
+    "changelog-type": true,
+    "changelog-host": true,
+    "pull-request-title-pattern": true,
+    "separate-pull-requests": true,
+    "tag-separator": true,
+    "extra-files": true,
+    "version-file": true,
+    "snapshot-label": true
+  }
+}
