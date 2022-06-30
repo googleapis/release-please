@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "release-please manifest config versions",
+  "description": "Schema for defining manifest versions file",
+  "type": "object",
+  "additionalProperties": {
+    "type": "string"
+  }
+}
