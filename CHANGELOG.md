@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.0](https://github.com/googleapis/release-please/compare/v13.18.7...v13.19.0) (2022-06-30)
+
+
+### Features
+
+* add manifest schemas ([#1496](https://github.com/googleapis/release-please/issues/1496)) ([adf84ad](https://github.com/googleapis/release-please/commit/adf84ad3ebb8723ebc0e1232cd899c323c36cbfc))
+
 ## [13.18.7](https://github.com/googleapis/release-please/compare/v13.18.6...v13.18.7) (2022-06-30)
 
 
