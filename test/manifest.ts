@@ -592,6 +592,36 @@ describe('Manifest', () => {
       ).to.eql('https://override.example.com');
     });
 
+    it('should read changelog type from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/changelog-type.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].changelogType).to.eql('github');
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].changelogType
+      ).to.eql('default');
+    });
+
     it('should throw a configuration error for a missing manifest config', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
