@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.18.7](https://github.com/googleapis/release-please/compare/v13.18.6...v13.18.7) (2022-06-30)
+
+
+### Bug Fixes
+
+* correctly parse the changelog-type from the manifest config ([#1498](https://github.com/googleapis/release-please/issues/1498)) ([452f084](https://github.com/googleapis/release-please/commit/452f084ef8f664830c560472802e5942804df02d))
+* pull request title component can include '/' ([#1499](https://github.com/googleapis/release-please/issues/1499)) ([19a8e82](https://github.com/googleapis/release-please/commit/19a8e8263500dedd32f3b555a9f00f8627f27a6d))
+
 ## [13.18.6](https://github.com/googleapis/release-please/compare/v13.18.5...v13.18.6) (2022-06-27)
 
 
