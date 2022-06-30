@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "changelog-type": "github",
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils",
+      "changelog-type": "default"
+    }
+  }
+}
