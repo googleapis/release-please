@@ -69,6 +69,15 @@ describe('PullRequestTitle', () => {
       expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
     });
 
+    it('parses a target branch and component with a slash', () => {
+      const name = 'chore(main): release some/title-test 0.0.1';
+      const pullRequestTitle = PullRequestTitle.parse(name);
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('main');
+      expect(pullRequestTitle?.getComponent()).to.eql('some/title-test');
+      expect(pullRequestTitle?.getVersion()?.toString()).to.eql('0.0.1');
+    });
+
     it('fails to parse', () => {
       const pullRequestTitle = PullRequestTitle.parse('release-foo');
       expect(pullRequestTitle).to.be.undefined;
