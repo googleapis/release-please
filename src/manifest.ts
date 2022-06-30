@@ -1471,6 +1471,7 @@ function mergeReleaserConfig(
       pathConfig.changelogSections ?? defaultConfig.changelogSections,
     changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,
     changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
+    changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
