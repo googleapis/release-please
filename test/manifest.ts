@@ -560,6 +560,33 @@ describe('Manifest', () => {
       expect(manifest.commitSearchDepth).to.eql(50);
     });
 
+    it('should configure PR creation delay from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/pr-creation-delay.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.prCreationDelayMs).to.eql(5000);
+    });
+
     it('should read changelog host from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
