@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {resolve} from 'path';
-
 export * as Errors from './errors';
 export {
   Manifest,
@@ -56,5 +54,5 @@ export {
 } from './changelog-notes';
 export {Logger, setLogger} from './util/logger';
 export {GitHub} from './github';
-export const configSchema = require(resolve('./schemas/config.json'));
-export const manifestSchema = require(resolve('./schemas/manifest.json'));
+export const configSchema = require('../../schemas/config.json');
+export const manifestSchema = require('../../schemas/manifest.json');
