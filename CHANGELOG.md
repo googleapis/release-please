@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.1](https://github.com/googleapis/release-please/compare/v13.19.0...v13.19.1) (2022-07-06)
+
+
+### Bug Fixes
+
+* fix file tree listing for extremely large repositories ([#1505](https://github.com/googleapis/release-please/issues/1505)) ([b6ea25e](https://github.com/googleapis/release-please/commit/b6ea25ef34720b16697f598d957604530908e195))
+
 ## [13.19.0](https://github.com/googleapis/release-please/compare/v13.18.7...v13.19.0) (2022-06-30)
 
 
