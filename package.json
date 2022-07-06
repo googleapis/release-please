@@ -18,7 +18,8 @@
   "files": [
     "build/src",
     "templates",
-    "!build/src/**/*.map"
+    "!build/src/**/*.map",
+    "schemas"
   ],
   "repository": "googleapis/release-please",
   "keywords": [
