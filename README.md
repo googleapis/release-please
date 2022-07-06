@@ -29,12 +29,12 @@ When the Release PR is merged, release-please takes the following steps:
 2. Tags the commit with the version number
 3. Creates a GitHub Release based on the tag
 
-You can tell where the Release PR is its lifecycle by the status label on the
+You can tell where the Release PR is in its lifecycle by the status label on the
 PR itself:
 
 - `autorelease: pending` is the initial state of the Release PR before it is merged
 - `autorelease: tagged` means that the Release PR has been merged and the release has been tagged in GitHub
-- `autorelease: snapshot` is special state for snapshot version bumps
+- `autorelease: snapshot` is a special state for snapshot version bumps
 - `autorelease: published` means that a GitHub release has been published based on the Release PR (_release-please does not automatically add this tag, but we recommend it as a convention for publication tooling_).
 
 ## How should I write my commits?
@@ -80,7 +80,7 @@ The above commit message will contain:
 
 ## How do I change the version number?
 
-When a commit to the main branch has `Release-As: x.x.x`(case insensitive) in the **commit body**, Release Please will open a new pull request for the specified version.
+When a commit to the main branch has `Release-As: x.x.x` (case insensitive) in the **commit body**, Release Please will open a new pull request for the specified version.
 
 **Empty commit example:**
 
@@ -94,7 +94,7 @@ Release-As: 2.0.0
 
 ## How can I fix release notes?
 
-If you have merged a pull request and you would like to amend the commit message
+If you have merged a pull request and would like to amend the commit message
 used to generate the release notes for that commit, you can edit the body of
 the merged pull requests and add a section like:
 
@@ -107,12 +107,12 @@ chore: a third message
 END_COMMIT_OVERRIDE
 ```
 
-The next time release please runs, it will use that override section as the
+The next time Release Please runs, it will use that override section as the
 commit message instead of the merged commit message.
 
 ## Release Please bot does not create a release PR. Why?
 
-Release Please creates a release pull request after it sees the default branch
+Release Please creates a release pull request after it notices the default branch
 contains "releasable units" since the last release.
 A releasable unit is a commit to the branch with one of the following
 prefixes: "feat" and "fix". (A "chore" commit is not a releasable unit.)
@@ -148,7 +148,7 @@ There are a variety of ways you can deploy release-please:
 
 ### GitHub Action (recommended)
 
-The easiest way to run release please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for installation and configuration instructions.
+The easiest way to run Release Please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for installation and configuration instructions.
 
 ### Running as CLI
 
@@ -205,12 +205,6 @@ This library follows [Semantic Versioning](http://semver.org/).
 ## Contributing
 
 Contributions welcome! See the [Contributing Guide](https://github.com/googleapis/release-please/blob/main/CONTRIBUTING.md).
-
-Please note that this `README.md`, the `samples/README.md`,
-and a variety of configuration files in this repository (including `.nycrc` and `tsconfig.json`)
-are generated from a central template. To edit one of these files, make an edit
-to its template in this
-[directory](https://github.com/googleapis/synthtool/tree/main/synthtool/gcp/templates/node_library).
 
 ## License
 
