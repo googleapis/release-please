@@ -56,5 +56,5 @@ export {
 } from './changelog-notes';
 export {Logger, setLogger} from './util/logger';
 export {GitHub} from './github';
-export const configSchema = require(resolve('./schemas/config'));
-export const manifestSchema = require(resolve('./schemas/manifest'));
+export const configSchema = require(resolve('./schemas/config.json'));
+export const manifestSchema = require(resolve('./schemas/manifest.json'));
