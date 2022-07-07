@@ -214,13 +214,15 @@ export class BranchFileCache {
    */
   private async fetchTree(sha: string): Promise<TreeEntry[]> {
     const {
-      data: {tree},
+      data: {tree, truncated},
     } = await this.octokit.git.getTree({
       owner: this.repository.owner,
       repo: this.repository.repo,
       tree_sha: sha,
-      recursive: 'false',
     });
+    if (truncated) {
+      logger.warn(`file list for tree sha ${sha} is truncated`);
+    }
     return tree;
   }
 

@@ -129,9 +129,7 @@ describe('BranchFileCache', () => {
             'github-data-api/data-api-trees-successful-response-truncated'
           ))
         )
-        .get(
-          '/repos/testOwner/testRepo/git/trees/feature-branch?recursive=false'
-        )
+        .get('/repos/testOwner/testRepo/git/trees/feature-branch')
         .reply(
           200,
           require(resolve(
@@ -140,7 +138,7 @@ describe('BranchFileCache', () => {
           ))
         )
         .get(
-          '/repos/testOwner/testRepo/git/trees/cc64165cf5da91810ab7edc1143a47be42513c0a?recursive=false'
+          '/repos/testOwner/testRepo/git/trees/cc64165cf5da91810ab7edc1143a47be42513c0a'
         )
         .reply(
           200,
@@ -150,7 +148,7 @@ describe('BranchFileCache', () => {
           ))
         )
         .get(
-          '/repos/testOwner/testRepo/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc?recursive=false'
+          '/repos/testOwner/testRepo/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc'
         )
         .reply(
           200,
@@ -160,7 +158,7 @@ describe('BranchFileCache', () => {
           ))
         )
         .get(
-          '/repos/testOwner/testRepo/git/trees/0acc64165cf5da91810ab7edc1143a47be42513c?recursive=false'
+          '/repos/testOwner/testRepo/git/trees/0acc64165cf5da91810ab7edc1143a47be42513c'
         )
         .reply(
           200,
@@ -211,9 +209,7 @@ describe('BranchFileCache', () => {
             'github-data-api/data-api-trees-successful-response-truncated'
           ))
         )
-        .get(
-          '/repos/testOwner/testRepo/git/trees/feature-branch?recursive=false'
-        )
+        .get('/repos/testOwner/testRepo/git/trees/feature-branch')
         .reply(
           200,
           require(resolve(
@@ -222,7 +218,7 @@ describe('BranchFileCache', () => {
           ))
         )
         .get(
-          '/repos/testOwner/testRepo/git/trees/cc64165cf5da91810ab7edc1143a47be42513c0a?recursive=false'
+          '/repos/testOwner/testRepo/git/trees/cc64165cf5da91810ab7edc1143a47be42513c0a'
         )
         .reply(
           200,
@@ -232,7 +228,7 @@ describe('BranchFileCache', () => {
           ))
         )
         .get(
-          '/repos/testOwner/testRepo/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc?recursive=false'
+          '/repos/testOwner/testRepo/git/trees/1143a47be42513c0acc64165cf5da91810ab7edc'
         )
         .reply(
           200,
@@ -273,9 +269,7 @@ describe('BranchFileCache', () => {
             'github-data-api/data-api-trees-successful-response-truncated'
           ))
         )
-        .get(
-          '/repos/testOwner/testRepo/git/trees/feature-branch?recursive=false'
-        )
+        .get('/repos/testOwner/testRepo/git/trees/feature-branch')
         .reply(
           200,
           require(resolve(
@@ -301,9 +295,7 @@ describe('BranchFileCache', () => {
             'github-data-api/data-api-trees-successful-response-truncated'
           ))
         )
-        .get(
-          '/repos/testOwner/testRepo/git/trees/feature-branch?recursive=false'
-        )
+        .get('/repos/testOwner/testRepo/git/trees/feature-branch')
         .reply(
           200,
           require(resolve(
