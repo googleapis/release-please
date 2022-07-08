@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.3](https://github.com/googleapis/release-please/compare/v13.19.2...v13.19.3) (2022-07-08)
+
+
+### Bug Fixes
+
+* stop iterating if we fail to receive commits from a graphql query ([#1518](https://github.com/googleapis/release-please/issues/1518)) ([0f27cb5](https://github.com/googleapis/release-please/commit/0f27cb58d5a21e95a4f1a6c3fcfff019cdfdaff9))
+
 ## [13.19.2](https://github.com/googleapis/release-please/compare/v13.19.1...v13.19.2) (2022-07-06)
 
 
