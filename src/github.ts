@@ -350,63 +350,72 @@ export class GitHub {
     logger.debug(
       `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
     );
-    const response = await this.graphqlRequest({
-      query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
-        repository(owner: $owner, name: $repo) {
-          ref(qualifiedName: $targetBranch) {
-            target {
-              ... on Commit {
-                history(first: $num, after: $cursor) {
-                  nodes {
-                    associatedPullRequests(first: 10) {
-                      nodes {
-                        number
-                        title
-                        baseRefName
-                        headRefName
-                        labels(first: 10) {
-                          nodes {
-                            name
-                          }
+    const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
+      repository(owner: $owner, name: $repo) {
+        ref(qualifiedName: $targetBranch) {
+          target {
+            ... on Commit {
+              history(first: $num, after: $cursor) {
+                nodes {
+                  associatedPullRequests(first: 10) {
+                    nodes {
+                      number
+                      title
+                      baseRefName
+                      headRefName
+                      labels(first: 10) {
+                        nodes {
+                          name
                         }
-                        body
-                        mergeCommit {
-                          oid
+                      }
+                      body
+                      mergeCommit {
+                        oid
+                      }
+                      files(first: $maxFilesChanged) {
+                        nodes {
+                          path
                         }
-                        files(first: $maxFilesChanged) {
-                          nodes {
-                            path
-                          }
-                          pageInfo {
-                            endCursor
-                            hasNextPage
-                          }
+                        pageInfo {
+                          endCursor
+                          hasNextPage
                         }
                       }
                     }
-                    sha: oid
-                    message
                   }
-                  pageInfo {
-                    hasNextPage
-                    endCursor
-                  }
+                  sha: oid
+                  message
+                }
+                pageInfo {
+                  hasNextPage
+                  endCursor
                 }
               }
             }
           }
         }
-      }`,
+      }
+    }`;
+    const params = {
       cursor,
       owner: this.repository.owner,
       repo: this.repository.repo,
       num: 25,
       targetBranch,
       maxFilesChanged: 100, // max is 100
+    };
+    const response = await this.graphqlRequest({
+      query,
+      ...params,
     });
 
+    if (!response) {
+      logger.warn(`Did not receive a response for query: ${query}`, params);
+      return null;
+    }
+
     // if the branch does exist, return null
-    if (!response.repository.ref) {
+    if (!response.repository?.ref) {
       logger.warn(
         `Could not find commits for branch ${targetBranch} - it likely does not exist.`
       );
