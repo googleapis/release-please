@@ -40,7 +40,7 @@ export class PubspecYaml extends DefaultUpdater {
       }
     }
     return content.replace(
-      /version: ([0-9.]+)\+?([0-9]*$)/,
+      /version: ([0-9.]+)\+?([0-9]*$)/m,
       `version: ${this.version}${buildNumber}`
     );
   }
