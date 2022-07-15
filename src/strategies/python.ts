@@ -103,20 +103,18 @@ export class Python extends BaseStrategy {
     if (!projectName) {
       logger.warn('No project/component found.');
     } else {
-      [
-        `${projectName.replace('-', '_')}/__init__.py`,
-        `${projectName}/__init__.py`,
-        `src/${projectName.replace('-', '_')}/__init__.py`,
-        `src/${projectName}/__init__.py`,
-      ].forEach(path =>
-        updates.push({
-          path: this.addPath(path),
-          createIfMissing: false,
-          updater: new PythonFileWithVersion({
-            version,
-          }),
-        })
-      );
+      [projectName, projectName.replace('-', '_')]
+        .flatMap(packageName => [
+          `${packageName}/__init__.py`,
+          `src/${packageName}/__init__.py`,
+        ])
+        .forEach(packagePath =>
+          updates.push({
+            path: this.addPath(packagePath),
+            createIfMissing: false,
+            updater: new PythonFileWithVersion({version}),
+          })
+        );
     }
 
     // There should be only one version.py, but foreach in case that is incorrect
