@@ -27,24 +27,36 @@ describe('PubspecYaml', () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './pubspec.yaml'),
         'utf8'
-      ).replace(/\r\n/g, '\n');
+      ).replace(/\r\n/g, '\n'); // required for windows
       const version = new PubspecYaml({
         version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
-      snapshot(newContent.replace(/\r\n/g, '\n'));
+      snapshot(newContent);
     });
 
     it('updates version with build number in pubspec.yaml file', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './pubspec_with_build_no.yaml'),
         'utf8'
-      ).replace(/\r\n/g, '\n');
+      ).replace(/\r\n/g, '\n'); // required for windows
       const version = new PubspecYaml({
         version: Version.parse('0.6.0'),
       });
       const newContent = version.updateContent(oldContent);
-      snapshot(newContent.replace(/\r\n/g, '\n'));
+      snapshot(newContent);
+    });
+
+    it('leaves malformatted build numbers alone in pubspec.yaml file', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './pubspec_with_build_no_bad.yaml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n'); // required for windows
+      const version = new PubspecYaml({
+        version: Version.parse('0.6.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
     });
   });
 });
