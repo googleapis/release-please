@@ -103,7 +103,7 @@ export class Python extends BaseStrategy {
     if (!projectName) {
       logger.warn('No project/component found.');
     } else {
-      [projectName, projectName.replace('-', '_')]
+      [projectName, projectName.replace(/-/g, '_')]
         .flatMap(packageName => [
           `${packageName}/__init__.py`,
           `src/${packageName}/__init__.py`,
