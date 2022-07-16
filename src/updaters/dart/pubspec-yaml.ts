@@ -24,23 +24,30 @@ export class PubspecYaml extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
+
   updateContent(content: string): string {
-    const oldVersion = content.match(/version: ([0-9.]+)\+?([0-9]*$)/);
+    const oldVersion = content.match(/^version: ([0-9.]+)\+?(.*$)/m);
     let buildNumber = '';
 
     if (oldVersion) {
-      buildNumber = `${oldVersion[2]}`;
-      if (buildNumber.length > 0) {
+      buildNumber = oldVersion[2];
+      const parsedBuild = parseInt(buildNumber);
+      if (!isNaN(parsedBuild)) {
+        buildNumber = `+${parsedBuild + 1}`;
+        logger.info(
+          `updating from ${oldVersion[1]}+${oldVersion[2]} to ${this.version}${buildNumber}`
+        );
+      } else if (buildNumber.length > 0) {
         buildNumber = `+${buildNumber}`;
         logger.info(
-          `updating from ${oldVersion[1]}${buildNumber} to ${this.version}${buildNumber}`
+          `updating from ${oldVersion[1]}+${oldVersion[2]} to ${this.version}${buildNumber}`
         );
       } else {
         logger.info(`updating from ${oldVersion[1]} to ${this.version}`);
       }
     }
     return content.replace(
-      /version: ([0-9.]+)\+?([0-9]*$)/m,
+      /^version: .*$/m,
       `version: ${this.version}${buildNumber}`
     );
   }
