@@ -154,6 +154,15 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].message).not.include('I should be removed');
   });
 
+  // Refs: #1257
+  it('removes content before and after BREAKING CHANGE in body', async () => {
+    const commits = [buildCommitFromFixture('1257-breaking-change')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].breaking).to.be.true;
+    expect(conventionalCommits[0].notes[0].text).to.equal('my comment');
+  });
+
   it('handles Release-As footers', async () => {
     const commits = [buildCommitFromFixture('release-as')];
     const conventionalCommits = parseConventionalCommits(commits);

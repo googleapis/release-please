@@ -131,6 +131,7 @@ function toConventionalChangelogFormat(
     ast,
     ['breaking-change'],
     (node: parser.BreakingChange, ancestors: parser.Node[]) => {
+      let hitBreakingMarker = false;
       let parent = ancestors.pop();
       if (!parent) {
         return;
@@ -145,8 +146,13 @@ function toConventionalChangelogFormat(
           // the breaking change notes:
           visit(
             parent,
-            ['text', 'newline'],
-            (node: parser.Text | parser.BreakingChange) => {
+            ['breaking-change', 'text', 'newline'],
+            (node: SummaryNodes) => {
+              if (node.type === 'breaking-change') {
+                hitBreakingMarker = true;
+                return;
+              }
+              if (!hitBreakingMarker) return;
               breaking.text += node.value;
             }
           );
