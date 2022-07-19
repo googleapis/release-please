@@ -127,6 +127,7 @@ function toConventionalChangelogFormat(
     title: 'BREAKING CHANGE',
     text: '', // "text" will be populated if a BREAKING CHANGE token is parsed.
   };
+  let isBreaking = false;
   visitWithAncestors(
     ast,
     ['breaking-change'],
@@ -143,10 +144,16 @@ function toConventionalChangelogFormat(
           breaking.text = '';
           // We treat text from the BREAKING CHANGE marker forward as
           // the breaking change notes:
+          let hitBreakingMarker = false;
           visit(
             parent,
-            ['text', 'newline'],
-            (node: parser.Text | parser.BreakingChange) => {
+            ['breaking-change', 'text', 'newline'],
+            (node: SummaryNodes) => {
+              if (node.type === 'breaking-change') {
+                hitBreakingMarker = true;
+                return
+              }
+              if (!hitBreakingMarker) return;
               breaking.text += node.value;
             }
           );
