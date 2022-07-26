@@ -14,7 +14,11 @@
 
 import {jsonStringify} from '../util/json-stringify';
 import {Updater} from '../update';
-import {ReleaserConfig, ManifestConfig} from '../manifest';
+import {
+  ReleaserConfig,
+  ManifestConfig,
+  ReleaserPackageConfig,
+} from '../manifest';
 
 export class ReleasePleaseConfig implements Updater {
   path: string;
@@ -30,11 +34,43 @@ export class ReleasePleaseConfig implements Updater {
     } else {
       parsed = {packages: {}};
     }
-    parsed.packages[this.path] = this.config;
+    parsed.packages[this.path] = releaserConfigToJsonConfig(this.config);
     if (content) {
       return jsonStringify(parsed, content);
     } else {
       return JSON.stringify(parsed, null, 2);
     }
   }
+}
+
+function releaserConfigToJsonConfig(
+  config: ReleaserConfig
+): ReleaserPackageConfig {
+  const jsonConfig: ReleaserPackageConfig = {
+    'package-name': config.packageName,
+    component: config.component,
+    'changelog-path': config.changelogPath,
+    'release-type': config.releaseType,
+    'bump-minor-pre-major': config.bumpMinorPreMajor,
+    'bump-patch-for-minor-pre-major': config.bumpPatchForMinorPreMajor,
+    'changelog-sections': config.changelogSections,
+    'release-as': config.releaseAs,
+    'skip-github-release': config.skipGithubRelease,
+    draft: config.draft,
+    prerelease: config.prerelease,
+    'draft-pull-request': config.draftPullRequest,
+    label: config.labels?.join(','),
+    'release-label': config.releaseLabels?.join(','),
+    'include-component-in-tag': config.includeComponentInTag,
+    'include-v-in-tag': config.includeVInTag,
+    'changelog-type': config.changelogType,
+    'changelog-host': config.changelogHost,
+    'pull-request-title-pattern': config.pullRequestTitlePattern,
+    'separate-pull-requests': config.separatePullRequests,
+    'tag-separator': config.tagSeparator,
+    'extra-files': config.extraFiles,
+    'version-file': config.versionFile,
+    'snapshot-label': config.snapshotLabels?.join(','), // Java-only
+  };
+  return jsonConfig;
 }
