@@ -114,6 +114,16 @@ describe('Python', () => {
         'src/google-cloud-automl/__init__.py',
         PythonFileWithVersion
       );
+      assertHasUpdate(
+        updates,
+        'google_cloud_automl/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(
+        updates,
+        'src/google_cloud_automl/__init__.py',
+        PythonFileWithVersion
+      );
     });
 
     it('finds and updates a pyproject.toml', async () => {
