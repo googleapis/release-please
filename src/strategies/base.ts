@@ -489,13 +489,21 @@ export abstract class BaseStrategy implements Strategy {
       releaseData = pullRequestBody.releaseData[0];
     } else {
       // manifest release with multiple components
-      releaseData = pullRequestBody.releaseData.find(releaseData => {
+      releaseData = pullRequestBody.releaseData.find(datum => {
         return (
-          this.normalizeComponent(releaseData.component) ===
+          this.normalizeComponent(datum.component) ===
           this.normalizeComponent(component)
         );
       });
+
+      if (!releaseData && pullRequestBody.releaseData.length > 0) {
+        logger.info(
+          `Pull request contains releases, but not for component: ${component}`
+        );
+        return;
+      }
     }
+
     const notes = releaseData?.notes;
     if (notes === undefined) {
       logger.warn('Failed to find release notes');
