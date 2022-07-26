@@ -4653,6 +4653,65 @@ describe('Manifest', () => {
       expect(releases[0].notes).to.be.a('string');
       expect(releases[0].path).to.eql('.');
     });
+
+    it('should find the correct number of releases with a componentless tag', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main',
+            baseBranchName: 'main',
+            number: 2,
+            title: 'chore: release v1.0.1',
+            body: pullRequestBody('release-notes/grouped.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            pullRequestTitlePattern: 'chore: release v${version}',
+            component: 'base',
+            includeComponentInTag: false,
+          },
+          api: {
+            releaseType: 'simple',
+            component: 'api',
+          },
+          chat: {
+            releaseType: 'simple',
+            component: 'chat',
+          },
+          cmds: {
+            releaseType: 'simple',
+            component: 'cmds',
+          },
+          presence: {
+            releaseType: 'simple',
+            component: 'presence',
+          },
+        },
+        {
+          '.': Version.parse('1.0.0'),
+          api: Version.parse('1.0.0'),
+          chat: Version.parse('1.0.0'),
+          cmds: Version.parse('1.0.0'),
+          presence: Version.parse('1.0.0'),
+        },
+        {
+          groupPullRequestTitlePattern: 'chore: release v${version}',
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(2);
+    });
   });
 
   describe('createReleases', () => {
