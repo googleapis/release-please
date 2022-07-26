@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.5](https://github.com/googleapis/release-please/compare/v13.19.4...v13.19.5) (2022-07-26)
+
+
+### Bug Fixes
+
+* **dart:** add multiline flag to replace regex ([#1524](https://github.com/googleapis/release-please/issues/1524)) ([fd7b73b](https://github.com/googleapis/release-please/commit/fd7b73b8f9288dbfa84f37a6ce2e77f6c1b49db8)), closes [#1523](https://github.com/googleapis/release-please/issues/1523)
+
 ## [13.19.4](https://github.com/googleapis/release-please/compare/v13.19.3...v13.19.4) (2022-07-25)
 
 
