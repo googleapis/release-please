@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.6](https://github.com/googleapis/release-please/compare/v13.19.5...v13.19.6) (2022-07-27)
+
+
+### Bug Fixes
+
+* skip component when manifest release does not include component ([#1537](https://github.com/googleapis/release-please/issues/1537)) ([8f1a3a8](https://github.com/googleapis/release-please/commit/8f1a3a84a7abc81c47d8cac9295e58bc37cc92c5)), closes [#1536](https://github.com/googleapis/release-please/issues/1536)
+
 ## [13.19.5](https://github.com/googleapis/release-please/compare/v13.19.4...v13.19.5) (2022-07-26)
 
 
