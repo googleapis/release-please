@@ -488,7 +488,9 @@ export abstract class BaseStrategy implements Strategy {
       }
       releaseData = pullRequestBody.releaseData[0];
     } else {
-      // manifest release with multiple components
+      // manifest release with multiple components - find the release notes
+      // for the component to see if it was included in this release (parsed
+      // from the release pull request body)
       releaseData = pullRequestBody.releaseData.find(datum => {
         return (
           this.normalizeComponent(datum.component) ===
