@@ -648,10 +648,10 @@ export class GitHub {
           number: pullRequest.number,
           baseBranchName: pullRequest.baseRefName,
           headBranchName: pullRequest.headRefName,
-          labels: (pullRequest.labels.nodes || []).map(l => l.name),
+          labels: (pullRequest.labels?.nodes || []).map(l => l.name),
           title: pullRequest.title,
           body: pullRequest.body + '',
-          files: pullRequest.files.nodes.map(node => node.path),
+          files: (pullRequest.files?.nodes || []).map(node => node.path),
         };
       }),
     };
