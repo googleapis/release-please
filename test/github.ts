@@ -247,7 +247,10 @@ describe('GitHub', () => {
     });
     it('handles merged pull requests without files', async () => {
       const graphql = JSON.parse(
-        readFileSync(resolve(fixturesPath, 'merged-pull-requests-no-files.json'), 'utf8')
+        readFileSync(
+          resolve(fixturesPath, 'merged-pull-requests-no-files.json'),
+          'utf8'
+        )
       );
       req.post('/graphql').reply(200, {
         data: graphql,
