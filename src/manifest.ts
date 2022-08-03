@@ -91,6 +91,8 @@ export interface ReleaserConfig {
   pullRequestTitlePattern?: string;
   tagSeparator?: string;
   separatePullRequests?: boolean;
+  labels?: string[];
+  releaseLabels?: string[];
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -137,7 +139,7 @@ interface ReleaserConfigJson {
   'pull-request-title-pattern'?: string;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
-  'extra-files'?: string[];
+  'extra-files'?: ExtraFile[];
   'version-file'?: string;
   'snapshot-label'?: string; // Java-only
 }
@@ -164,7 +166,7 @@ export interface ManifestOptions {
   commitSearchDepth?: number;
 }
 
-interface ReleaserPackageConfig extends ReleaserConfigJson {
+export interface ReleaserPackageConfig extends ReleaserConfigJson {
   'package-name'?: string;
   component?: string;
   'changelog-path'?: string;
@@ -1169,6 +1171,8 @@ function extractReleaserConfig(
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
+    labels: config['label']?.split(','),
+    releaseLabels: config['release-label']?.split(','),
   };
 }
 
@@ -1212,11 +1216,9 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
-    labels: configLabel === undefined ? undefined : [configLabel],
-    releaseLabels:
-      configReleaseLabel === undefined ? undefined : [configReleaseLabel],
-    snapshotLabels:
-      configSnapshotLabel === undefined ? undefined : [configSnapshotLabel],
+    labels: configLabel?.split(','),
+    releaseLabels: configReleaseLabel?.split(','),
+    snapshotLabels: configSnapshotLabel?.split(','),
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
     sequentialCalls: config['sequential-calls'],
