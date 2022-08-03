@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.8](https://github.com/googleapis/release-please/compare/v13.19.7...v13.19.8) (2022-08-03)
+
+
+### Bug Fixes
+
+* convert ReleaserConfig JSON keys when bootstrapping ([#1535](https://github.com/googleapis/release-please/issues/1535)) ([64c267e](https://github.com/googleapis/release-please/commit/64c267e1c986029b6c483b924950135c138c510f)), closes [#1522](https://github.com/googleapis/release-please/issues/1522)
+
 ## [13.19.7](https://github.com/googleapis/release-please/compare/v13.19.6...v13.19.7) (2022-08-03)
 
 
