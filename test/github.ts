@@ -245,6 +245,25 @@ describe('GitHub', () => {
       snapshot(pullRequests!);
       req.done();
     });
+    it('handles merged pull requests without files', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'merged-pull-requests-no-files.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const generator = github.pullRequestIterator('main');
+      const pullRequests: PullRequest[] = [];
+      for await (const pullRequest of generator) {
+        pullRequests.push(pullRequest);
+      }
+      expect(pullRequests).lengthOf(25);
+      snapshot(pullRequests!);
+      req.done();
+    });
   });
 
   describe('commitsSince', () => {
