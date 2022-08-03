@@ -4,6 +4,20 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.7](https://github.com/googleapis/release-please/compare/v13.19.6...v13.19.7) (2022-08-03)
+
+
+### Bug Fixes
+
+* handles pull request iterator when graphQL returns no files ([#1544](https://github.com/googleapis/release-please/issues/1544)) ([7d0f873](https://github.com/googleapis/release-please/commit/7d0f87361f9ddd3f55eb2f40ef7150c9b7f39f34))
+
+## [13.19.6](https://github.com/googleapis/release-please/compare/v13.19.5...v13.19.6) (2022-07-27)
+
+
+### Bug Fixes
+
+* skip component when manifest release does not include component ([#1537](https://github.com/googleapis/release-please/issues/1537)) ([8f1a3a8](https://github.com/googleapis/release-please/commit/8f1a3a84a7abc81c47d8cac9295e58bc37cc92c5)), closes [#1536](https://github.com/googleapis/release-please/issues/1536)
+
 ## [13.19.5](https://github.com/googleapis/release-please/compare/v13.19.4...v13.19.5) (2022-07-26)
 
 
