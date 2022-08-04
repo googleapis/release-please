@@ -66,9 +66,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     super(github, targetBranch, repositoryConfig);
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
-    console.log(options);
     this.merge = options.merge ?? true;
-    console.log(this.merge);
   }
   async run(
     candidates: CandidateReleasePullRequest[]
