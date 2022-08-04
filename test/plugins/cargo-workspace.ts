@@ -24,6 +24,7 @@ import {
   dateSafe,
   stubFilesFromFixtures,
   assertNoHasUpdate,
+  safeSnapshot,
 } from '../helpers';
 import {Version} from '../../src/version';
 import {ManifestPlugin} from '../../src/plugin';
@@ -246,6 +247,69 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustC/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustD/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+    });
+    it('can skip merging rust packages', async () => {
+      // This is the same setup as 'walks dependency tree and updates previously untouched packages'
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest(
+          'packages/rustA',
+          'rust',
+          '1.1.2',
+          '@here/pkgA',
+          [
+            buildMockPackageUpdate(
+              'packages/rustA/Cargo.toml',
+              'packages/rustA/Cargo.toml'
+            ),
+          ]
+        ),
+        buildMockCandidatePullRequest(
+          'packages/rustD',
+          'rust',
+          '4.4.5',
+          '@here/pkgD',
+          [
+            buildMockPackageUpdate(
+              'packages/rustD/Cargo.toml',
+              'packages/rustD/Cargo.toml'
+            ),
+          ]
+        ),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'Cargo.toml',
+          'packages/rustA/Cargo.toml',
+          'packages/rustB/Cargo.toml',
+          'packages/rustC/Cargo.toml',
+          'packages/rustD/Cargo.toml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        {
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+          'packages/rustD': {
+            releaseType: 'rust',
+          },
+        },
+        {
+          merge: false,
+        }
+      );
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(4);
+      for (const newCandidate of newCandidates) {
+        safeSnapshot(newCandidate.pullRequest.body.toString());
+      }
     });
     it('appends dependency notes to an updated module', async () => {
       const existingNotes =

@@ -271,11 +271,17 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     candidates: CandidateReleasePullRequest[],
     updatedVersions: VersionsMap
   ): CandidateReleasePullRequest[] {
-    const rootCandidate = candidates.find(c => c.path === ROOT_PROJECT_PATH);
+    let rootCandidate = candidates.find(c => c.path === ROOT_PROJECT_PATH);
     if (!rootCandidate) {
-      throw Error('Unable to find root candidate pull request');
+      logger.warn('Unable to find root candidate pull request');
+      rootCandidate = candidates.find(c => c.config.releaseType === 'rust');
+    }
+    if (!rootCandidate) {
+      logger.warn('Unable to find a rust candidate pull request');
+      return candidates;
     }
 
+    // Update the root Cargo.lock if it exists
     rootCandidate.pullRequest.updates.push({
       path: 'Cargo.lock',
       createIfMissing: false,

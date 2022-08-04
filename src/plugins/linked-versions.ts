@@ -23,6 +23,10 @@ import {Version} from '../version';
 import {buildStrategy} from '../factory';
 import {Merge} from './merge';
 
+interface LinkedVersionsPluginOptions {
+  merge?: boolean;
+}
+
 /**
  * This plugin reconfigures strategies by linking multiple components
  * together.
@@ -32,17 +36,20 @@ import {Merge} from './merge';
 export class LinkedVersions extends ManifestPlugin {
   private groupName: string;
   private components: Set<string>;
+  private merge: boolean;
 
   constructor(
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     groupName: string,
-    components: string[]
+    components: string[],
+    options: LinkedVersionsPluginOptions = {}
   ) {
     super(github, targetBranch, repositoryConfig);
     this.groupName = groupName;
     this.components = new Set(components);
+    this.merge = options.merge ?? true;
   }
 
   /**
@@ -138,6 +145,10 @@ export class LinkedVersions extends ManifestPlugin {
   async run(
     candidates: CandidateReleasePullRequest[]
   ): Promise<CandidateReleasePullRequest[]> {
+    if (!this.merge) {
+      return candidates;
+    }
+
     const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce(
       (collection, candidate) => {
         if (!candidate.pullRequest.version) {

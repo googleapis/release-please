@@ -147,7 +147,7 @@ describe('Plugin compatibility', () => {
         },
         {
           plugins: [
-            {type: 'cargo-workspace'},
+            {type: 'cargo-workspace', merge: false},
             {
               type: 'linked-versions',
               groupName: 'my group',
