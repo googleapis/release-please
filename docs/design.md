@@ -3,14 +3,61 @@
 This document aims to describe the current design of `release-please` and serve as a
 primer for contributing to this library.
 
+## General concepts
+
+### Release branch
+
+The release branch is the branch that you will create releases from. Most commonly this
+is your repository's default branch (like `master` or `main`), but could also be a long
+term support (LTS) or backport branch as well.
+
+In the code, this is referred to as the `targetBranch`.
+
+### Release pull request
+
+`release-please` is designed to propose releases via a pull request. `release-please`
+will maintain a pull request ("release pull request") which proposes version bumps in
+your code and appends release notes to your `CHANGELOG.md`. Releases are not created
+until after this "release pull request" is merged to your release branch.
+
+Maintainers can merge additional commits and `release-please` will update the existing
+release pull request.
+
+### GitHub releases
+
+GitHub has a feature called a release which is the combination of a git reference (tag or
+SHA) and release notes. `release-please` creates a GitHub release after a release pull
+request is merged to your release branch.
+
+### Components
+
+In `release-please` terms, `component` is the name of a releasable unit. This could be a
+library to publish to a package manager or an application that is deployed to a server.
+
+Most commonly, a single GitHub repository contains code for a single `component`. In 
+other cases, a single GitHub repository could be a monorepo that contains code for
+multiple components. `release-please` can handle both of these scenarios.
+
+### Semantic versioning
+
+Semantic versioning is a specification that dictates how version numbers are formatted
+and incremented. This library assumes your version numbers are semantic versions.
+
+For more information, see https://semver.org
+
+### Conventional commits
+
+Conventional commits is a specification for making commit messages machine readable and
+informing automation tools (like `release-please`) about the context of the commit.
+
+For more information, see https://conventionalcommits.org
+
 ## Lifecycle of a release
 
-1. A commit is merged/pushed to the release branch (usually the default branch, but can
-   be configured to be any)
-2. `release-please` opens a "release pull request" which proposes version bumps in your
-   code as well as appends release notes to your `CHANGELOG.md`.
-3. A maintainer reviews/merges the "release pull request".
-4. `release-please` creates a new GitHub release/tag with the release notes (extracted from
+1. A commit is merged/pushed to the release branch.
+2. `release-please` opens a release pull request.
+3. A maintainer reviews/merges the release pull request.
+4. `release-please` creates a new GitHub release with the release notes (extracted from
    the release pull request).
 
 **Note**: `release-please` is not responsible for publishing your package or application.
@@ -175,7 +222,7 @@ important information that `release-please` needs.
 As such, we implement a helper [`BranchName` class][branch-name] that encapsulates that
 data.
 
-The branch name is not customizable at this time.
+The HEAD branch name is not customizable at this time.
 
 ### Pull request title
 
@@ -252,16 +299,22 @@ test to ensure we don't regress in the future.
 
 ## Public interface
 
+We only consider the binary `release-please` CLI and the exported members from the `index.ts`
+as part of the public interface. Other classes' interfaces are not considered part of the
+public API and are subject to modification without requiring a new major release of
+`release-please`.
+
 Typescript/Javascript has limitations in its visibility scopes. If you choose to organize
 source across many files, you cannot mark things as private if you use them in other files.
 For example, you could have a file `src/internal/private-class.ts` which exports `PrivateClass`
 for use as an implementation detail or for testability. An external developer could use
 `import {PrivateClass} from 'release-please/src/internal/private-class';` to access.
 
-To that end, we only consider the binary `release-please` CLI and the exported members from
-the `index.ts` as part of the public interface. Other classes' interfaces are not considered
-part of the public API and are subject to modification without requiring a new major release
-of `release-please`.
+**Contributor note**: Do not make breaking changes to any exported entities from `index.ts`.
+Doing so can break integrations. If the change is necessary, we will need to mark the
+change as breaking and release a new major version.
+
+
 
 [github-class]: /src/github.ts
 [octokit-rest]: https://github.com/octokit/rest.js/
