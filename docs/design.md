@@ -30,11 +30,11 @@ The general flow for opening a release pull request:
 More in-depth (including monorepo support):
 
 1. Build the manifest config
-   a. Fetch and parse the manifest config/versions files OR
-   b. Build the manifest in code
+  * Fetch and parse the manifest config/versions files OR
+  * Build the manifest in code
 2. Find the SHA of each of the latest released versions for each component
-   a. Iterate through the latest GitHub releases (via GitHub GraphQL API)
-   b. Fallback: iterate through GitHub tags on the repository
+  * Iterate through the latest GitHub releases (via GitHub GraphQL API)
+  * Fallback: iterate through GitHub tags on the repository
 3. Iterate backwards through commits until we've seen all the release SHAs or we hit
    a (configurable) max number of commits. Include fetching files for each of those
    commits
