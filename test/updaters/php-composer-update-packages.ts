@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {it} from "mocha";
-import {RootComposerUpdatePackages} from "../../src/updaters/php/root-composer-update-packages";
-import {Version, VersionsMap} from "../../src/version";
 import {readFileSync} from "fs";
 import {resolve} from "path";
 import * as snapshot from "snap-shot-it";
+import {describe, it} from "mocha";
 import {expect} from "chai";
+import {RootComposerUpdatePackages} from "../../src/updaters/php/root-composer-update-packages";
+import {Version, VersionsMap} from "../../src/version";
 
 const fixturesPath = './test/updaters/fixtures/php';
 
 describe('PHPComposer', () => {
     describe('updateContent', () => {
-        it.only('update version in composer.json', async () => {
+        it('update version in composer.json', async () => {
             const oldContent = readFileSync(
                 resolve(fixturesPath, './composer.json'),
                 'utf8'
