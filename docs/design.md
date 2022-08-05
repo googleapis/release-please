@@ -8,7 +8,7 @@ primer for contributing to this library.
 ### Release branch
 
 The release branch is the branch that you will create releases from. Most commonly this
-is your repository's default branch (like `master` or `main`), but could also be a long
+is your repository's default branch (like `main`), but could also be a long
 term support (LTS) or backport branch as well.
 
 In the code, this is referred to as the `targetBranch`.
@@ -69,8 +69,8 @@ The general flow for opening a release pull request:
 
 1. Find the SHA of the latest released version for the component to be released
 2. Find all commits relevant to that component since the previous release
-3. Delegate to a language handler (`Strategy`) to build the pull request, given the list
-   of commits.
+3. Delegate to a language handler ([`Strategy`][strategies]) to build the pull request,
+   given the list of commits.
 4. Create a pull request with the relevant code changes. Add the pending label
    (defaults to `autorelease: pending`) to the pull request.
 
@@ -87,7 +87,7 @@ More in-depth (including monorepo support):
    commits
 4. Split commits for each component. Only commits that touch the directory of the
    component apply to that component.
-5. Run any strategy pre-configurators.
+5. Run any plugin pre-configurators (for `Strategy` configs).
 6. For each component, build a candidate release pull request (if necessary)
 7. Run any plugin post-processors
 8. Optionally, combine multiple candidate release pull requests into a single pull
@@ -144,9 +144,6 @@ A [`Version`][version] instance contains:
 * semver patch (number)
 * pre-release version (string)
 * build (string)
-
-In previous versions of `release-please`, we passed around a single string value. This
-meant that any code that needed to interact with a version would need to parse the string.
 
 ### Versioning strategy
 
@@ -211,7 +208,7 @@ We also have a second implementation that uses the GitHub changelog generator AP
 ## Release pull request
 
 `release-please` operates without a database of information and so it relies on GitHub as
-the source of it's information. Due to this, the release pull request is heavily formatted
+the source of its information. Due to this, the release pull request is heavily formatted
 and its structure is load-bearing.
 
 ### Branch name
@@ -246,10 +243,11 @@ encapsulates the data.
 ## Monorepo support
 
 In `release-please` version 13, we integrated "manifest" releasers as a core part of the
-library. Manifests were built to support monorepos which can have many releasable libraries.
-The manifest is a JSON file that maps component path <=> current release version. The manifest
-config file is a JSON file that maps component path <=> component configuration. These files
-allow `release-please` to more easily track multiple releasable libraries.
+library. Manifests were built to support monorepos, which can have many releasable
+libraries in a single repository. The manifest is a JSON file that maps component path
+<=> current release version. The manifest config file is a JSON file that maps component
+path <=> component configuration. These files allow `release-please` to more easily track
+multiple releasable libraries.
 
 We highly recommend using manifest configurations (even for single library repositories) as
 the configuration format is well defined (see schema) and it reduces the number of necessary
@@ -325,6 +323,7 @@ change as breaking and release a new major version.
 [versioning-strategy]: /src/versioning-strategy.ts
 [default-versioning-strategy]: /src/versioning-strategies/default.ts
 [strategy]: /src/strategy.ts
+[strategies]: /src/strategies/
 [simple-strategy]: /src/strategies/simple.ts
 [base-strategy]: /src/strategies/base.ts
 [update]: /src/update.ts
