@@ -25,7 +25,7 @@ release pull request.
 
 ### GitHub releases
 
-GitHub has a feature called a release which is the combination of a git reference (tag or
+GitHub has a feature called a [release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) which is the combination of a git reference (tag or
 SHA) and release notes. `release-please` creates a GitHub release after a release pull
 request is merged to your release branch.
 
