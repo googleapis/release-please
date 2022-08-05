@@ -31,6 +31,7 @@ import {ServicePackVersioningStrategy} from '../src/versioning-strategies/servic
 import {DependencyManifest} from '../src/versioning-strategies/dependency-manifest';
 import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {DefaultChangelogNotes} from '../src/changelog-notes/default';
+import {Java} from '../src/strategies/java';
 
 describe('factory', () => {
   let github: GitHub;
@@ -196,6 +197,23 @@ describe('factory', () => {
         versioningStrategy.strategy as DependencyManifest;
       expect(innerVersioningStrategy.bumpMinorPreMajor).to.be.true;
       expect(innerVersioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
+    });
+    it('should handle skipping snapshots', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'java',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
+        skipSnapshot: true,
+      });
+      expect(strategy).instanceof(Java);
+      const javaStrategy = strategy as Java;
+      expect(javaStrategy.extraFiles).to.eql([
+        'path1/foo1.java',
+        'path2/foo2.java',
+      ]);
+      expect(javaStrategy.skipSnapshot).to.be.true;
     });
     it('should handle extra-files', async () => {
       const strategy = await buildStrategy({

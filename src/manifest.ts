@@ -105,6 +105,7 @@ export interface ReleaserConfig {
   // Java-only
   extraFiles?: ExtraFile[];
   snapshotLabels?: string[];
+  skipSnapshot?: boolean;
 }
 
 export interface CandidateReleasePullRequest {
@@ -142,6 +143,7 @@ interface ReleaserConfigJson {
   'extra-files'?: ExtraFile[];
   'version-file'?: string;
   'snapshot-label'?: string; // Java-only
+  'skip-snapshot'?: boolean; // Java-only
 }
 
 export interface ManifestOptions {
@@ -1173,6 +1175,7 @@ function extractReleaserConfig(
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
     releaseLabels: config['release-label']?.split(','),
+    skipSnapshot: config['skip-snapshot'],
   };
 }
 
@@ -1492,6 +1495,7 @@ function mergeReleaserConfig(
       defaultConfig.pullRequestTitlePattern,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
+    skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
   };
 }
 

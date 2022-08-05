@@ -58,6 +58,7 @@ export interface JavaBuildUpdatesOption extends BuildUpdatesOptions {
 export class Java extends BaseStrategy {
   protected readonly snapshotVersioning: VersioningStrategy;
   protected readonly snapshotLabels: string[];
+  readonly skipSnapshot: boolean;
 
   constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
@@ -68,6 +69,7 @@ export class Java extends BaseStrategy {
     super(options);
     this.snapshotVersioning = new JavaAddSnapshot(parentVersioningStrategy);
     this.snapshotLabels = options.snapshotLabels || DEFAULT_SNAPSHOT_LABELS;
+    this.skipSnapshot = options.skipSnapshot ?? false;
   }
 
   async buildReleasePullRequest(
@@ -154,6 +156,10 @@ export class Java extends BaseStrategy {
     commits: Commit[],
     latestRelease?: Release
   ): Promise<boolean> {
+    if (this.skipSnapshot) {
+      return false;
+    }
+
     const component = await this.getComponent();
     logger.debug('component:', component);
 

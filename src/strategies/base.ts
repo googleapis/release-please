@@ -75,6 +75,7 @@ export interface BaseStrategyOptions {
   extraFiles?: ExtraFile[];
   versionFile?: string;
   snapshotLabels?: string[]; // Java-only
+  skipSnapshot?: boolean; // Java-only
 }
 
 /**
