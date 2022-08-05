@@ -211,7 +211,7 @@ We also have a second implementation that uses the GitHub changelog generator AP
 ## Release pull request
 
 `release-please` operates without a database of information and so it relies on GitHub as
-the source of it's information. In that way, the release pull request is heavily formatted
+the source of it's information. Due to this, the release pull request is heavily formatted
 and its structure is load-bearing.
 
 ### Branch name
