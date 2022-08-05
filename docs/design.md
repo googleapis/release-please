@@ -217,7 +217,7 @@ does not know or care that is part of a bigger monorepo.
 Plugins provide an opportunity to break that encapsulation. They operate as pre-processors
 and post-processors for the `Strategy` implementations.
 
-We provide a [`ManfiestPlugin` interface][plugin] that has 2 lifecycle hooks.
+We provide a [`ManifestPlugin` interface][plugin] that has 2 lifecycle hooks.
 
 The first is the `preconfigure` hook, which allows making changes to a `Strategy`'s
 configuration. The second is the `run` (post-processor) hook, which allows making changes
