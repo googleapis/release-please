@@ -34,18 +34,18 @@ export class RootComposerUpdatePackages extends DefaultUpdater {
     if (this.versionsMap) {
       // eslint-disable-next-line prefer-const
       for (const [key, version] of this.versionsMap.entries()) {
-        const stringVersion = version.toString() || '1.0.0';
+        const toVersion = version.toString() || '1.0.0';
         let fromVersion: string | undefined;
         if (parsed.replace) {
           fromVersion = parsed.replace[key];
-          parsed.replace[key] = stringVersion;
+          parsed.replace[key] = toVersion;
         }
         if (parsed[key]) {
           fromVersion ??= parsed[key];
-          parsed[key] = stringVersion;
+          parsed[key] = toVersion;
         }
 
-        logger.info(`updating ${key} from ${fromVersion} to ${stringVersion}`);
+        logger.info(`updating ${key} from ${fromVersion} to ${toVersion}`);
       }
     }
     return jsonStringify(parsed, content);
