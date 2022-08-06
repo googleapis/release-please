@@ -32,7 +32,6 @@ export class RootComposerUpdatePackages extends DefaultUpdater {
     }
     const parsed = JSON.parse(content);
     if (this.versionsMap) {
-      // eslint-disable-next-line prefer-const
       for (const [key, version] of this.versionsMap.entries()) {
         const toVersion = version.toString() || '1.0.0';
         let fromVersion: string | undefined;
