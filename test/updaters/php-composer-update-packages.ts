@@ -12,35 +12,109 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {readFileSync} from "fs";
-import {resolve} from "path";
-import * as snapshot from "snap-shot-it";
-import {describe, it} from "mocha";
-import {expect} from "chai";
-import {RootComposerUpdatePackages} from "../../src/updaters/php/root-composer-update-packages";
-import {Version, VersionsMap} from "../../src/version";
-
-const fixturesPath = './test/updaters/fixtures/php';
+import * as snapshot from 'snap-shot-it';
+import {describe, it} from 'mocha';
+import {expect} from 'chai';
+import {RootComposerUpdatePackages} from '../../src/updaters/php/root-composer-update-packages';
+import {Version, VersionsMap} from '../../src/version';
 
 describe('PHPComposer', () => {
-    describe('updateContent', () => {
-        it('update version in composer.json', async () => {
-            const oldContent = readFileSync(
-                resolve(fixturesPath, './composer.json'),
-                'utf8'
-            )
+  describe('updateContent', () => {
+    it('does not update a version when version is the same', async () => {
+      const oldContent = '{"version":"1.0.0","replace":{"version":"1.0.0"}}';
 
-            const version = Version.parse('1.0.0');
+      const version = Version.parse('1.0.0');
 
-            const versionsMap: VersionsMap = new Map();
+      const versionsMap: VersionsMap = new Map();
 
-            versionsMap.set('version', version);
+      const newContent = new RootComposerUpdatePackages({
+        version,
+        versionsMap,
+      }).updateContent(oldContent);
 
-            const newContent = new RootComposerUpdatePackages({version, versionsMap}).updateContent(oldContent);
+      expect(newContent).to.eq(
+        '{"version":"1.0.0","replace":{"version":"1.0.0"}}'
+      );
 
-            expect(newContent).to.contain('1.0.0');
-
-            snapshot(newContent);
-        });
+      snapshot(newContent);
     });
+
+    it('update all versions in composer.json', async () => {
+      const oldContent = '{"version":"0.0.0","replace":{"version":"0.0.0"}}';
+
+      const version = Version.parse('1.0.0');
+
+      const versionsMap: VersionsMap = new Map();
+
+      versionsMap.set('version', version);
+
+      const newContent = new RootComposerUpdatePackages({
+        version,
+        versionsMap,
+      }).updateContent(oldContent);
+
+      expect(newContent).to.eq(
+        '{"version":"1.0.0","replace":{"version":"1.0.0"}}'
+      );
+
+      snapshot(newContent);
+    });
+
+    it('update root version in composer.json', async () => {
+      const oldContent = '{"version":"0.0.0"}';
+
+      const version = Version.parse('1.0.0');
+
+      const versionsMap: VersionsMap = new Map();
+
+      versionsMap.set('version', version);
+
+      const newContent = new RootComposerUpdatePackages({
+        version,
+        versionsMap,
+      }).updateContent(oldContent);
+
+      expect(newContent).to.eq('{"version":"1.0.0"}');
+
+      snapshot(newContent);
+    });
+
+    it('update replace version in composer.json when version is present', async () => {
+      const oldContent = '{"replace":{"version":"0.0.0"}}';
+
+      const version = Version.parse('1.0.0');
+
+      const versionsMap: VersionsMap = new Map();
+
+      versionsMap.set('version', version);
+
+      const newContent = new RootComposerUpdatePackages({
+        version,
+        versionsMap,
+      }).updateContent(oldContent);
+
+      expect(newContent).to.eq('{"replace":{"version":"1.0.0"}}');
+
+      snapshot(newContent);
+    });
+
+    it('update replace version in composer.json when version is missing', async () => {
+      const oldContent = '{"replace":{}}';
+
+      const version = Version.parse('1.0.0');
+
+      const versionsMap: VersionsMap = new Map();
+
+      versionsMap.set('version', version);
+
+      const newContent = new RootComposerUpdatePackages({
+        version,
+        versionsMap,
+      }).updateContent(oldContent);
+
+      expect(newContent).to.eq('{"replace":{"version":"1.0.0"}}');
+
+      snapshot(newContent);
+    });
+  });
 });
