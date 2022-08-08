@@ -95,7 +95,7 @@ export interface Scm {
    * @param {boolean} options.backfillFiles If set, use the REST API for
    *   fetching the list of touched files in this commit. Defaults to `false`.
    * @returns {Commit[]} List of commits to current branch
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   commitsSince(
     targetBranch: string,
@@ -113,7 +113,7 @@ export interface Scm {
    * @param {boolean} options.backfillFiles If set, use the REST API for
    *   fetching the list of touched files in this commit. Defaults to `false`.
    * @yields {Commit}
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   mergeCommitIterator(
     targetBranch: string,
@@ -125,7 +125,7 @@ export interface Scm {
    *
    * @param {string} sha The commit SHA
    * @returns {string[]} File paths
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   getCommitFiles(sha: string): Promise<string[]>;
 
@@ -135,7 +135,7 @@ export interface Scm {
    * @param {number} maxResults maxResults - Limit the number of results searched.
    *   Defaults to unlimited.
    * @yields {PullRequest}
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   pullRequestIterator(
     targetBranch: string,
@@ -150,7 +150,7 @@ export interface Scm {
    * @param {number} options.maxResults Limit the number of results searched.
    *   Defaults to unlimited.
    * @yields {GitHubRelease}
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   releaseIterator(
     options?: ReleaseIteratorOptions
@@ -163,7 +163,7 @@ export interface Scm {
    * @param {number} options.maxResults Limit the number of results searched.
    *   Defaults to unlimited.
    * @yields {GitHubTag}
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   tagIterator(options?: TagIteratorOptions): AsyncGenerator<ScmTag, void, void>;
 
@@ -172,7 +172,7 @@ export interface Scm {
    *
    * @param {string} path The path to the file in the repository
    * @returns {FileContents}
-   * @throws {GitHubAPIError} on other API errors
+   * @throws {ScmAPIError} on other API errors
    */
   getFileContents(path: string): Promise<FileContents>;
 
@@ -182,7 +182,7 @@ export interface Scm {
    * @param {string} path The path to the file in the repository
    * @param {string} branch The branch to fetch from
    * @returns {FileContents}
-   * @throws {GitHubAPIError} on other API errors
+   * @throws {ScmAPIError} on other API errors
    */
   getFileContentsOnBranch(path: string, branch: string): Promise<FileContents>;
 
@@ -192,7 +192,7 @@ export interface Scm {
    * @param {string} path The path to the file in the repository
    * @param {string} branch The branch to fetch from
    * @returns {T}
-   * @throws {GitHubAPIError} on other API errors
+   * @throws {ScmAPIError} on other API errors
    */
   getFileJson<T>(path: string, branch: string): Promise<T>;
 
@@ -205,7 +205,7 @@ export interface Scm {
    * @param filename The name of the file to find
    * @param prefix Optional path prefix used to filter results
    * @returns {string[]} List of file paths
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   findFilesByFilename(filename: string, prefix?: string): Promise<string[]>;
 
@@ -218,7 +218,7 @@ export interface Scm {
    * @param filename The name of the file to find
    * @param ref Git reference to search files in
    * @param prefix Optional path prefix used to filter results
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   findFilesByFilenameAndRef(
     filename: string,
@@ -232,7 +232,7 @@ export interface Scm {
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
    * @param {string} targetBranch The base branch of the pull request
    * @param {GitHubPR} options The pull request options
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   createReleasePullRequest(
     releasePullRequest: ReleasePullRequest,
@@ -293,7 +293,7 @@ export interface Scm {
    * @param {Update[]} updates The proposed updates
    * @param {string} defaultBranch The target branch
    * @return {Changes} The changeset to suggest.
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   buildChangeSet(updates: Update[], defaultBranch: string): Promise<ChangeSet>;
 
@@ -309,7 +309,7 @@ export interface Scm {
    * @param ref Git reference to search files in
    * @param prefix Optional path prefix used to filter results
    * @returns {string[]} List of file paths
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   findFilesByExtensionAndRef(
     extension: string,
@@ -328,7 +328,7 @@ export interface Scm {
    *   Example: `js`, `java`
    * @param prefix Optional path prefix used to filter results
    * @returns {string[]} List of file paths
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   findFilesByExtension(extension: string, prefix?: string): Promise<string[]>;
 
@@ -338,7 +338,7 @@ export interface Scm {
    * @param {Release} release Release parameters
    * @param {ReleaseOptions} options Release option parameters
    * @throws {DuplicateReleaseError} if the release tag already exists
-   * @throws {GitHubAPIError} on other API errors
+   * @throws {ScmAPIError} on other API errors
    */
   createRelease(
     release: Release,
@@ -350,7 +350,7 @@ export interface Scm {
    *
    * @param {string} comment - The body of the comment to post.
    * @param {number} number - The issue or pull request number.
-   * @throws {GitHubAPIError} on an API error
+   * @throws {ScmAPIError} on an API error
    */
   commentOnIssue(comment: string, number: number): Promise<string>;
 

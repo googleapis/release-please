@@ -41,7 +41,9 @@ export class MissingRequiredFileError extends ConfigurationError {
   }
 }
 
-export class GitHubAPIError extends Error {
+export class ScmAPIError extends Error {}
+
+export class GitHubAPIError extends ScmAPIError {
   body: RequestErrorBody | undefined;
   status: number;
   cause?: Error;

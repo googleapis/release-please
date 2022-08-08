@@ -327,7 +327,7 @@ export class Manifest {
   /**
    * Create a Manifest from config files in the repository.
    *
-   * @param {GitHub} github GitHub client
+   * @param {Scm} scm Source control client
    * @param {string} targetBranch The releaseable base branch
    * @param {string} configFile Optional. The path to the manifest config file
    * @param {string} manifestFile Optional. The path to the manifest versions file
@@ -361,7 +361,7 @@ export class Manifest {
    * Create a Manifest from explicit config in code. This assumes that the
    * repository has a single component at the root path.
    *
-   * @param {GitHub} github GitHub client
+   * @param {Scm} scm Source control client
    * @param {string} targetBranch The releaseable base branch
    * @param {ReleaserConfig} config Release strategy options
    * @param {ManifestOptions} manifestOptions Optional. Manifest options
@@ -1174,7 +1174,7 @@ function extractReleaserConfig(
  * Helper to convert fetch the manifest config from the repository and
  * parse into configuration for the Manifest.
  *
- * @param {GitHub} github GitHub client
+ * @param {Scm} scm Source control client
  * @param {string} configFile Path in the repository to the manifest config
  * @param {string} branch Branch to fetch the config file from
  * @param {string} onlyPath Optional. Use only the given package
@@ -1223,7 +1223,7 @@ async function parseConfig(
 /**
  * Helper to fetch manifest config
  *
- * @param {GitHub} github
+ * @param {Scm} scm
  * @param {string} configFile
  * @param {string} branch
  * @returns {ManifestConfig}
@@ -1257,7 +1257,7 @@ async function fetchManifestConfig(
 /**
  * Helper to parse the manifest versions file.
  *
- * @param {GitHub} github GitHub client
+ * @param {Scm} scm Source control client
  * @param {string} manifestFile Path in the repository to the versions file
  * @param {string} branch Branch to fetch the versions file from
  * @returns {Record<string, string>}
@@ -1278,7 +1278,7 @@ async function parseReleasedVersions(
 /**
  * Helper to fetch manifest config
  *
- * @param {GitHub} github
+ * @param {Scm} scm
  * @param {string} manifestFile
  * @param {string} branch
  * @throws {ConfigurationError} if missing the manifest config file
