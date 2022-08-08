@@ -477,3 +477,43 @@ The `maven-workspace` plugin operates similarly to the `node-workspace` plugin,
 but on a multi-artifact Maven workspace. It builds a dependency graph of all
 discovered `pom.xml` files that are configured in the manifest config and updates
 any packages that were directly bumped by release-please.
+
+### linked-versions
+
+The `linked-versions` plugin allows you to "link" the versions of multiple
+components in your monorepo. When any component in the specified group is
+updated, we pick the highest version amongst the components and update all
+group components to the same version (keeping them in sync).
+
+Note: when combining the `linked-versions` plugin with a `workspace` plugin,
+you will need to tell the `workspace` plugin to skip its own internal merge.
+See #1457 for context.
+
+Example:
+
+```json
+{
+  "release-type": "rust",
+  "packages": {
+    "packages/rustA": {
+      "component": "pkgA"
+    },
+    "packages/rustB": {
+      "component": "pkgB"
+    }
+  },
+  "plugins": [
+    {
+      "type": "cargo-workspace",
+      "merge": false
+    },
+    {
+      "type": "linked-versions",
+      "group-name": "my group",
+      "components": [
+        "pkgA", "pkgB"
+      ]
+    }
+  ]
+}
+```
