@@ -206,6 +206,8 @@ This library follows [Semantic Versioning](http://semver.org/).
 
 Contributions welcome! See the [Contributing Guide](https://github.com/googleapis/release-please/blob/main/CONTRIBUTING.md).
 
+For more information on the design of the library, see [design](https://github.com/googleapis/release-please/blob/main/docs/design.md).
+
 ## License
 
 Apache Version 2.0

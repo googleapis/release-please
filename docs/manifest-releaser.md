@@ -55,7 +55,7 @@ flag in the next step).
 
 Run release-please:
 ```sh
-release-please [--token=your/apikey.txt] [--target-branch=testing] release-pr
+release-please [--token=your/apikey.txt] --repo-url=<owner>/<repo> [--target-branch=testing] release-pr
 ```
 
 The resulting PR will assume a default starting version for your package
