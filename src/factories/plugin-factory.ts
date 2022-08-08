@@ -17,7 +17,6 @@ import {
   PluginType,
   RepositoryConfig,
 } from '../manifest';
-import {GitHub} from '../github';
 import {ManifestPlugin} from '../plugin';
 import {LinkedVersions} from '../plugins/linked-versions';
 import {CargoWorkspace} from '../plugins/cargo-workspace';
@@ -25,10 +24,11 @@ import {NodeWorkspace} from '../plugins/node-workspace';
 import {VersioningStrategyType} from './versioning-strategy-factory';
 import {MavenWorkspace} from '../plugins/maven-workspace';
 import {ConfigurationError} from '../errors';
+import {Scm} from '../scm';
 
 export interface PluginFactoryOptions {
   type: PluginType;
-  github: GitHub;
+  scm: Scm;
   targetBranch: string;
   repositoryConfig: RepositoryConfig;
   manifestPath: string;
@@ -45,7 +45,7 @@ export type PluginBuilder = (options: PluginFactoryOptions) => ManifestPlugin;
 const pluginFactories: Record<string, PluginBuilder> = {
   'linked-versions': options =>
     new LinkedVersions(
-      options.github,
+      options.scm,
       options.targetBranch,
       options.repositoryConfig,
       (options.type as LinkedVersionPluginConfig).groupName,
@@ -53,21 +53,21 @@ const pluginFactories: Record<string, PluginBuilder> = {
     ),
   'cargo-workspace': options =>
     new CargoWorkspace(
-      options.github,
+      options.scm,
       options.targetBranch,
       options.repositoryConfig,
       options
     ),
   'node-workspace': options =>
     new NodeWorkspace(
-      options.github,
+      options.scm,
       options.targetBranch,
       options.repositoryConfig,
       options
     ),
   'maven-workspace': options =>
     new MavenWorkspace(
-      options.github,
+      options.scm,
       options.targetBranch,
       options.repositoryConfig,
       options
@@ -86,7 +86,7 @@ export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
     throw new ConfigurationError(
       `Unknown plugin type: ${options.type.type}`,
       'core',
-      `${options.github.repository.owner}/${options.github.repository.repo}`
+      `${options.scm.repository.owner}/${options.scm.repository.repo}`
     );
   } else {
     const builder = pluginFactories[options.type];
@@ -96,7 +96,7 @@ export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
     throw new ConfigurationError(
       `Unknown plugin type: ${options.type}`,
       'core',
-      `${options.github.repository.owner}/${options.github.repository.repo}`
+      `${options.scm.repository.owner}/${options.scm.repository.repo}`
     );
   }
 }

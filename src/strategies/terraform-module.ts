@@ -39,7 +39,7 @@ export class TerraformModule extends BaseStrategy {
 
     // Update version in README to current candidate version.
     // A module may have submodules, so find all submodules.
-    const readmeFiles = await this.github.findFilesByFilenameAndRef(
+    const readmeFiles = await this.scm.findFilesByFilenameAndRef(
       'readme.md',
       this.targetBranch,
       this.path
@@ -57,12 +57,12 @@ export class TerraformModule extends BaseStrategy {
     // Update versions.tf to current candidate version.
     // A module may have submodules, so find all versions.tfand versions.tf.tmpl to update.
     const versionFiles = await Promise.all([
-      this.github.findFilesByFilenameAndRef(
+      this.scm.findFilesByFilenameAndRef(
         'versions.tf',
         this.targetBranch,
         this.path
       ),
-      this.github.findFilesByFilenameAndRef(
+      this.scm.findFilesByFilenameAndRef(
         'versions.tf.tmpl',
         this.targetBranch,
         this.path

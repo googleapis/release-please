@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Python} from '../../src/strategies/python';
 import * as sinon from 'sinon';
 import {buildGitHubFileContent, assertHasUpdate} from '../helpers';
@@ -26,6 +26,7 @@ import {PyProjectToml} from '../../src/updaters/python/pyproject-toml';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
 import {Changelog} from '../../src/updaters/changelog';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
@@ -40,9 +41,9 @@ const COMMITS = [
 ];
 
 describe('Python', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'py-test-repo',
       defaultBranch: 'main',
@@ -56,10 +57,10 @@ describe('Python', () => {
       const expectedVersion = '0.1.0';
       const strategy = new Python({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -71,10 +72,10 @@ describe('Python', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Python({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
         sha: 'abc123',
@@ -91,10 +92,10 @@ describe('Python', () => {
     it('builds common files', async () => {
       const strategy = new Python({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -129,15 +130,15 @@ describe('Python', () => {
     it('finds and updates a pyproject.toml', async () => {
       const strategy = new Python({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       sandbox
-        .stub(github, 'getFileContentsOnBranch')
+        .stub(scm, 'getFileContentsOnBranch')
         .resolves(
           buildGitHubFileContent('./test/updaters/fixtures', 'pyproject.toml')
         );
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -150,11 +151,11 @@ describe('Python', () => {
     it('finds and updates a version.py file', async () => {
       const strategy = new Python({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       sandbox
-        .stub(github, 'findFilesByFilenameAndRef')
+        .stub(scm, 'findFilesByFilenameAndRef')
         .resolves(['src/version.py']);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(

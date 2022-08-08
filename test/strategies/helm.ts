@@ -21,26 +21,27 @@ import {
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
 import {Changelog} from '../../src/updaters/changelog';
 import {ChartYaml} from '../../src/updaters/helm/chart-yaml';
+import {Scm} from '../../src/scm';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/helm';
 
 describe('Helm', () => {
-  let github: GitHub;
+  let scm: Scm;
   const commits = [
     buildMockCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'helm-test-repo',
       defaultBranch: 'main',
@@ -54,7 +55,7 @@ describe('Helm', () => {
       const expectedVersion = '1.0.0';
       const strategy = new Helm({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         packageName: 'google-cloud-automl',
       });
@@ -69,7 +70,7 @@ describe('Helm', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Helm({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'some-helm-package',
         packageName: 'some-helm-package',
       });
@@ -88,17 +89,14 @@ describe('Helm', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Helm({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'helm-test-repo'),
         sha: 'abc123',
         notes: 'some notes',
       };
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('Chart.yaml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Chart.yaml'));
@@ -113,7 +111,7 @@ describe('Helm', () => {
     it('builds common files', async () => {
       const strategy = new Helm({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         packageName: 'google-cloud-automl',
       });

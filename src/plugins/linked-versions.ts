@@ -14,7 +14,6 @@
 
 import {ManifestPlugin} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
-import {GitHub} from '../github';
 import {logger} from '../util/logger';
 import {Strategy} from '../strategy';
 import {Commit} from '../commit';
@@ -22,6 +21,7 @@ import {Release} from '../release';
 import {Version} from '../version';
 import {buildStrategy} from '../factory';
 import {Merge} from './merge';
+import {Scm} from '../scm';
 
 interface LinkedVersionsPluginOptions {
   merge?: boolean;
@@ -39,14 +39,14 @@ export class LinkedVersions extends ManifestPlugin {
   private merge: boolean;
 
   constructor(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     groupName: string,
     components: string[],
     options: LinkedVersionsPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(scm, targetBranch, repositoryConfig);
     this.groupName = groupName;
     this.components = new Set(components);
     this.merge = options.merge ?? true;
@@ -115,7 +115,7 @@ export class LinkedVersions extends ManifestPlugin {
         );
         newStrategies[path] = await buildStrategy({
           ...this.repositoryConfig[path],
-          github: this.github,
+          scm: this.scm,
           path,
           targetBranch: this.targetBranch,
           releaseAs: primaryVersion.toString(),
@@ -168,7 +168,7 @@ export class LinkedVersions extends ManifestPlugin {
     // delegate to the merge plugin and add merged pull request
     if (inScopeCandidates.length > 0) {
       const merge = new Merge(
-        this.github,
+        this.scm,
         this.targetBranch,
         this.repositoryConfig,
         `chore\${branch}: release ${this.groupName} libraries`

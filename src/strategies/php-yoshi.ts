@@ -29,7 +29,7 @@ import {TagName} from '../util/tag-name';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 import {FileNotFoundError} from '../errors';
 
 const CHANGELOG_SECTIONS = [
@@ -54,7 +54,7 @@ interface ComposerJson {
   };
 }
 interface ComponentInfo {
-  versionContents: GitHubFileContents;
+  versionContents: FileContents;
   composer: ComposerJson;
 }
 
@@ -95,12 +95,12 @@ export class PHPYoshi extends BaseStrategy {
     let releaseNotesBody = `## ${newVersion.toString()}`;
     for (const directory of topLevelDirectories) {
       try {
-        const contents = await this.github.getFileContentsOnBranch(
+        const contents = await this.scm.getFileContentsOnBranch(
           this.addPath(`${directory}/VERSION`),
           this.targetBranch
         );
         const version = Version.parse(contents.parsedContent);
-        const composer = await this.github.getFileJson<ComposerJson>(
+        const composer = await this.scm.getFileJson<ComposerJson>(
           this.addPath(`${directory}/composer.json`),
           this.targetBranch
         );

@@ -167,7 +167,7 @@ export class GoYoshi extends BaseStrategy {
 
     logger.info('Looking for go.mod files');
     const paths = (
-      await this.github.findFilesByFilenameAndRef('go.mod', this.targetBranch)
+      await this.scm.findFilesByFilenameAndRef('go.mod', this.targetBranch)
     )
       .filter(path => !path.includes('internal') && path !== 'go.mod')
       .map(path => dirname(path));

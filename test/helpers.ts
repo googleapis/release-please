@@ -21,7 +21,6 @@ import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {Octokit} from '@octokit/rest';
 import {Commit} from '../src/commit';
-import {GitHub, GitHubTag, GitHubRelease} from '../src/github';
 import {Update} from '../src/update';
 import {expect} from 'chai';
 import {CandidateReleasePullRequest} from '../src/manifest';
@@ -30,8 +29,9 @@ import {PullRequestTitle} from '../src/util/pull-request-title';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {BranchName} from '../src/util/branch-name';
 import {ReleaseType} from '../src/factory';
-import {GitHubFileContents, DEFAULT_FILE_MODE} from '../src/util/file-cache';
+import {DEFAULT_FILE_MODE} from '../src/util/file-cache';
 import {CompositeUpdater} from '../src/updaters/composite';
+import {FileContents, ScmRelease, ScmTag, Scm} from '../src/scm';
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -118,13 +118,13 @@ export function buildMockCommit(message: string, files: string[] = []): Commit {
 export function buildGitHubFileContent(
   fixturesPath: string,
   fixture: string
-): GitHubFileContents {
+): FileContents {
   return buildGitHubFileRaw(
     readFileSync(resolve(fixturesPath, fixture), 'utf8').replace(/\r\n/g, '\n')
   );
 }
 
-export function buildGitHubFileRaw(content: string): GitHubFileContents {
+export function buildGitHubFileRaw(content: string): FileContents {
   return {
     content: Buffer.from(content, 'utf8').toString('base64'),
     parsedContent: content,
@@ -136,7 +136,7 @@ export function buildGitHubFileRaw(content: string): GitHubFileContents {
 
 export interface StubFiles {
   sandbox: sinon.SinonSandbox;
-  github: GitHub;
+  scm: Scm;
 
   // "master" TODO update all test code to use "main"
   targetBranch?: string;
@@ -172,7 +172,7 @@ export interface StubFiles {
 }
 
 export function stubFilesFromFixtures(options: StubFiles) {
-  const {fixturePath, sandbox, github, files} = options;
+  const {fixturePath, sandbox, scm, files} = options;
   const inlineFiles = options.inlineFiles ?? [];
   const overlap = inlineFiles.filter(f => files.includes(f[0]));
   if (overlap.length > 0) {
@@ -182,7 +182,7 @@ export function stubFilesFromFixtures(options: StubFiles) {
   }
   const targetBranch = options.targetBranch ?? 'master';
   const flatten = options.flatten ?? true;
-  const stub = sandbox.stub(github, 'getFileContentsOnBranch');
+  const stub = sandbox.stub(scm, 'getFileContentsOnBranch');
   for (const file of files) {
     let fixtureFile = file;
     if (flatten) {
@@ -328,7 +328,7 @@ export function buildMockCandidatePullRequest(
 
 export function mockCommits(
   sandbox: sinon.SinonSandbox,
-  github: GitHub,
+  scm: Scm,
   commits: Commit[]
 ): sinon.SinonStub {
   async function* fakeGenerator() {
@@ -336,31 +336,31 @@ export function mockCommits(
       yield commit;
     }
   }
-  return sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
+  return sandbox.stub(scm, 'mergeCommitIterator').returns(fakeGenerator());
 }
 
 export function mockReleases(
   sandbox: sinon.SinonSandbox,
-  github: GitHub,
-  releases: GitHubRelease[]
+  scm: Scm,
+  releases: ScmRelease[]
 ): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const release of releases) {
       yield release;
     }
   }
-  return sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
+  return sandbox.stub(scm, 'releaseIterator').returns(fakeGenerator());
 }
 
 export function mockTags(
   sandbox: sinon.SinonSandbox,
-  github: GitHub,
-  tags: GitHubTag[]
+  scm: Scm,
+  tags: ScmTag[]
 ): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const tag of tags) {
       yield tag;
     }
   }
-  return sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
+  return sandbox.stub(scm, 'tagIterator').returns(fakeGenerator());
 }

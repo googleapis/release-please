@@ -33,7 +33,7 @@ export class Maven extends Java {
     const updates: Update[] = await super.buildUpdates(options);
 
     // Update pom.xml files
-    const pomFiles = await this.github.findFilesByFilenameAndRef(
+    const pomFiles = await this.scm.findFilesByFilenameAndRef(
       'pom.xml',
       this.targetBranch,
       this.path

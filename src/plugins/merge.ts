@@ -24,8 +24,8 @@ import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
-import {GitHub} from '../github';
 import {logger} from '../util/logger';
+import {Scm} from '../scm';
 
 /**
  * This plugin merges multiple pull requests into a single
@@ -37,12 +37,12 @@ export class Merge extends ManifestPlugin {
   private pullRequestTitlePattern?: string;
 
   constructor(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     pullRequestTitlePattern?: string
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(scm, targetBranch, repositoryConfig);
     this.pullRequestTitlePattern =
       pullRequestTitlePattern || MANIFEST_PULL_REQUEST_TITLE_PATTERN;
   }

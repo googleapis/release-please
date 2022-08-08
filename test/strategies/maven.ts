@@ -33,9 +33,9 @@ const COMMITS = [
 ];
 
 describe('Maven', () => {
-  let github: GitHub;
+  let scm: GitHub;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'maven-test-repo',
       defaultBranch: 'main',
@@ -48,12 +48,12 @@ describe('Maven', () => {
     it('updates pom.xml files', async () => {
       const strategy = new Maven({
         targetBranch: 'main',
-        github,
+        scm,
         extraFiles: ['foo/bar.java'],
       });
 
       sandbox
-        .stub(github, 'findFilesByFilenameAndRef')
+        .stub(scm, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')
         .resolves(['pom.xml', 'submodule/pom.xml']);
 
@@ -80,12 +80,12 @@ describe('Maven', () => {
     it('does not update released version for snapshot bump', async () => {
       const strategy = new Maven({
         targetBranch: 'main',
-        github,
+        scm,
         extraFiles: ['foo/bar.java'],
       });
 
       sandbox
-        .stub(github, 'findFilesByFilenameAndRef')
+        .stub(scm, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')
         .resolves(['pom.xml', 'submodule/pom.xml']);
 

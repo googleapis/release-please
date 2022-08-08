@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -48,13 +48,13 @@ export class KRMBlueprint extends BaseStrategy {
     }
 
     // Update version in all yaml files with attribution annotation
-    const yamlPaths = await this.github.findFilesByExtensionAndRef(
+    const yamlPaths = await this.scm.findFilesByExtensionAndRef(
       'yaml',
       this.targetBranch,
       this.path
     );
     for (const yamlPath of yamlPaths) {
-      const contents: GitHubFileContents = await this.github.getFileContents(
+      const contents: FileContents = await this.scm.getFileContents(
         this.addPath(yamlPath)
       );
       if (hasKRMBlueprintAttrib(contents.parsedContent)) {

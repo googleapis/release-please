@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -60,7 +60,7 @@ export class Rust extends BaseStrategy {
       );
 
       // Collect submodule names to update
-      const manifestsByPath: Map<string, GitHubFileContents> = new Map();
+      const manifestsByPath: Map<string, FileContents> = new Map();
       for (const member of members) {
         const manifestPath = `${member}/Cargo.toml`;
         const manifestContent = await this.getContent(manifestPath);
@@ -150,9 +150,9 @@ export class Rust extends BaseStrategy {
     return this.packageManifest;
   }
 
-  private async getContent(path: string): Promise<GitHubFileContents | null> {
+  private async getContent(path: string): Promise<FileContents | null> {
     try {
-      return await this.github.getFileContentsOnBranch(
+      return await this.scm.getFileContentsOnBranch(
         this.addPath(path),
         this.targetBranch
       );

@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {PHPYoshi} from '../../src/strategies/php-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, buildGitHubFileRaw, dateSafe} from '../helpers';
@@ -30,11 +30,12 @@ import snapshot = require('snap-shot-it');
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {FileNotFoundError} from '../../src/errors';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
 describe('PHPYoshi', () => {
-  let github: GitHub;
+  let scm: Scm;
   let getFileStub: sinon.SinonStub;
   const commits = [
     buildMockCommit(
@@ -48,12 +49,12 @@ describe('PHPYoshi', () => {
     buildMockCommit('chore: update common templates'),
   ];
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'php-yoshi-test-repo',
       defaultBranch: 'main',
     });
-    getFileStub = sandbox.stub(github, 'getFileContentsOnBranch');
+    getFileStub = sandbox.stub(scm, 'getFileContentsOnBranch');
     getFileStub
       .withArgs('Client1/VERSION', 'main')
       .resolves(buildGitHubFileRaw('1.2.3'));
@@ -85,7 +86,7 @@ describe('PHPYoshi', () => {
       const expectedVersion = '1.0.0';
       const strategy = new PHPYoshi({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -99,7 +100,7 @@ describe('PHPYoshi', () => {
       const expectedVersion = '0.123.5';
       const strategy = new PHPYoshi({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
@@ -117,7 +118,7 @@ describe('PHPYoshi', () => {
       const expectedVersion = '0.123.5';
       const strategy = new PHPYoshi({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
@@ -142,7 +143,7 @@ describe('PHPYoshi', () => {
     it('builds common files', async () => {
       const strategy = new PHPYoshi({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -159,7 +160,7 @@ describe('PHPYoshi', () => {
     it('finds touched components', async () => {
       const strategy = new PHPYoshi({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -175,7 +176,7 @@ describe('PHPYoshi', () => {
     it('ignores non client top level directories', async () => {
       const strategy = new PHPYoshi({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = undefined;
       const commits = [
@@ -207,7 +208,7 @@ describe('PHPYoshi', () => {
     it('parses the release notes', async () => {
       const strategy = new PHPYoshi({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const body = readFileSync(
         resolve('./test/fixtures/release-notes/legacy-php-yoshi.txt'),

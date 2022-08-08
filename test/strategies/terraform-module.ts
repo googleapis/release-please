@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {TerraformModule} from '../../src/strategies/terraform-module';
 import * as sinon from 'sinon';
 import {assertHasUpdate, buildMockCommit} from '../helpers';
@@ -23,6 +23,7 @@ import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {ReadMe} from '../../src/updaters/terraform/readme';
 import {ModuleVersion} from '../../src/updaters/terraform/module-version';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
@@ -37,9 +38,9 @@ const COMMITS = [
 ];
 
 describe('TerraformModule', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'terraform-module-test-repo',
       defaultBranch: 'main',
@@ -53,10 +54,10 @@ describe('TerraformModule', () => {
       const expectedVersion = '0.1.0';
       const strategy = new TerraformModule({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -68,10 +69,10 @@ describe('TerraformModule', () => {
       const expectedVersion = '0.123.5';
       const strategy = new TerraformModule({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
         sha: 'abc123',
@@ -88,10 +89,10 @@ describe('TerraformModule', () => {
     it('builds common files', async () => {
       const strategy = new TerraformModule({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -104,10 +105,10 @@ describe('TerraformModule', () => {
     it('finds and updates README files', async () => {
       const strategy = new TerraformModule({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
+      const findFilesStub = sandbox.stub(scm, 'findFilesByFilenameAndRef');
       findFilesStub
         .withArgs('readme.md', 'main', '.')
         .resolves(['path1/readme.md', 'path2/readme.md']);

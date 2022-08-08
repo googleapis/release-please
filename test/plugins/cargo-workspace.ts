@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {CandidateReleasePullRequest} from '../../src/manifest';
 import {Update} from '../../src/update';
 import {
@@ -34,6 +34,7 @@ import snapshot = require('snap-shot-it');
 import {RawContent} from '../../src/updaters/raw-content';
 import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import {parseCargoManifest} from '../../src/updaters/rust/common';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/cargo-workspace';
@@ -55,15 +56,15 @@ export function buildMockPackageUpdate(
 }
 
 describe('CargoWorkspace plugin', () => {
-  let github: GitHub;
+  let scm: Scm;
   let plugin: ManifestPlugin;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'rust-test-repo',
       defaultBranch: 'main',
     });
-    plugin = new CargoWorkspace(github, 'main', {
+    plugin = new CargoWorkspace(scm, 'main', {
       'packages/rustA': {
         releaseType: 'rust',
       },
@@ -106,7 +107,7 @@ describe('CargoWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: ['packages/rustA/Cargo.toml'],
         flatten: false,
@@ -115,7 +116,7 @@ describe('CargoWorkspace plugin', () => {
           ['Cargo.toml', '[workspace]\nmembers = ["packages/rustA"]'],
         ],
       });
-      plugin = new CargoWorkspace(github, 'main', {
+      plugin = new CargoWorkspace(scm, 'main', {
         python: {
           releaseType: 'python',
         },
@@ -163,7 +164,7 @@ describe('CargoWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: ['packages/rustA/Cargo.toml', 'packages/rustD/Cargo.toml'],
         flatten: false,
@@ -175,7 +176,7 @@ describe('CargoWorkspace plugin', () => {
           ],
         ],
       });
-      plugin = new CargoWorkspace(github, 'main', {
+      plugin = new CargoWorkspace(scm, 'main', {
         'packages/rustA': {
           releaseType: 'rust',
         },
@@ -223,7 +224,7 @@ describe('CargoWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'Cargo.toml',
@@ -343,7 +344,7 @@ describe('CargoWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'Cargo.toml',
@@ -384,7 +385,7 @@ describe('CargoWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'Cargo.toml',

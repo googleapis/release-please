@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -23,7 +23,7 @@ import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 
 export class Helm extends BaseStrategy {
-  private chartYmlContents?: GitHubFileContents;
+  private chartYmlContents?: FileContents;
 
   protected async buildUpdates(
     options: BuildUpdatesOptions
@@ -61,9 +61,9 @@ export class Helm extends BaseStrategy {
     }
   }
 
-  private async getChartYmlContents(): Promise<GitHubFileContents> {
+  private async getChartYmlContents(): Promise<FileContents> {
     if (!this.chartYmlContents) {
-      this.chartYmlContents = await this.github.getFileContents(
+      this.chartYmlContents = await this.scm.getFileContents(
         this.addPath('Chart.yaml')
       );
     }

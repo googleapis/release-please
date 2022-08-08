@@ -15,7 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
 import {MavenWorkspace} from '../../src/plugins/maven-workspace';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {ManifestPlugin} from '../../src/plugin';
 import {CandidateReleasePullRequest} from '../../src/manifest';
 import {
@@ -28,20 +28,21 @@ import {expect} from 'chai';
 import {Update} from '../../src/update';
 import {Version} from '../../src/version';
 import {PomXml} from '../../src/updaters/java/pom-xml';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/maven-workspace';
 
 describe('MavenWorkspace plugin', () => {
-  let github: GitHub;
+  let scm: Scm;
   let plugin: ManifestPlugin;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'maven-test-repo',
       defaultBranch: 'main',
     });
-    plugin = new MavenWorkspace(github, 'main', {
+    plugin = new MavenWorkspace(scm, 'main', {
       maven1: {
         releaseType: 'maven',
       },
@@ -68,7 +69,7 @@ describe('MavenWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'maven1/pom.xml',
@@ -80,7 +81,7 @@ describe('MavenWorkspace plugin', () => {
         targetBranch: 'main',
       });
       sandbox
-        .stub(github, 'findFilesByFilenameAndRef')
+        .stub(scm, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')
         .resolves([
           'maven1/pom.xml',
@@ -109,7 +110,7 @@ describe('MavenWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'maven1/pom.xml',
@@ -121,7 +122,7 @@ describe('MavenWorkspace plugin', () => {
         targetBranch: 'main',
       });
       sandbox
-        .stub(github, 'findFilesByFilenameAndRef')
+        .stub(scm, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')
         .resolves([
           'maven1/pom.xml',
@@ -142,7 +143,7 @@ describe('MavenWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'maven1/pom.xml',
@@ -154,7 +155,7 @@ describe('MavenWorkspace plugin', () => {
         targetBranch: 'main',
       });
       sandbox
-        .stub(github, 'findFilesByFilenameAndRef')
+        .stub(scm, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')
         .resolves([
           'maven1/pom.xml',
@@ -169,7 +170,7 @@ describe('MavenWorkspace plugin', () => {
     });
     it('skips pom files not configured for release', async () => {
       sandbox
-        .stub(github, 'findFilesByFilenameAndRef')
+        .stub(scm, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')
         .resolves([
           'maven1/pom.xml',
@@ -185,7 +186,7 @@ describe('MavenWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'maven1/pom.xml',

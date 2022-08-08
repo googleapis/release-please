@@ -23,7 +23,7 @@ import {
   DEFAULT_RELEASE_PLEASE_MANIFEST,
 } from '../src/manifest';
 import snapshot = require('snap-shot-it');
-import {GitHub} from '../src/github';
+import {GitHub} from '../src/scms/github';
 import {ParseCallback} from 'yargs';
 
 const sandbox = sinon.createSandbox();

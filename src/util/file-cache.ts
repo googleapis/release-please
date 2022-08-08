@@ -16,15 +16,9 @@ import {Octokit} from '@octokit/rest';
 import {Repository} from '../repository';
 import {logger} from './logger';
 import {FileNotFoundError} from '../errors';
+import {FileContents} from '../scm';
 
 export const DEFAULT_FILE_MODE = '100644';
-
-export interface GitHubFileContents {
-  sha: string;
-  content: string;
-  parsedContent: string;
-  mode: string;
-}
 
 /**
  * This class is a read-through cache aimed at minimizing the
@@ -55,12 +49,9 @@ export class RepositoryFileCache {
    *
    * @param {string} path Path to the file
    * @param {string} branch Branch to fetch the file from
-   * @returns {GitHubFileContents} The file contents
+   * @returns {FileContents} The file contents
    */
-  async getFileContents(
-    path: string,
-    branch: string
-  ): Promise<GitHubFileContents> {
+  async getFileContents(path: string, branch: string): Promise<FileContents> {
     let fileCache = this.cache.get(branch);
     if (!fileCache) {
       fileCache = new BranchFileCache(this.octokit, this.repository, branch);
@@ -88,7 +79,7 @@ export class BranchFileCache {
   private octokit: Octokit;
   private repository: Repository;
   private branch: string;
-  private cache: Map<string, GitHubFileContents>;
+  private cache: Map<string, FileContents>;
   private treeCache: Map<string, TreeEntry[]>;
   private treeEntries?: TreeEntry[] | null;
 
@@ -113,9 +104,9 @@ export class BranchFileCache {
    *
    * @param {string} path Path to the file
    * @param {string} branch Branch to fetch the file from
-   * @returns {GitHubFileContents} The file contents
+   * @returns {FileContents} The file contents
    */
-  async getFileContents(path: string): Promise<GitHubFileContents> {
+  async getFileContents(path: string): Promise<FileContents> {
     const cached = this.cache.get(path);
     if (cached) {
       return cached;
@@ -131,7 +122,7 @@ export class BranchFileCache {
    *
    * @param {string} path Path to the file
    */
-  private async fetchFileContents(path: string): Promise<GitHubFileContents> {
+  private async fetchFileContents(path: string): Promise<FileContents> {
     // try to use the entire git tree if it's not too big
     const treeEntries = await this.getFullTree();
     if (treeEntries) {
@@ -228,7 +219,7 @@ export class BranchFileCache {
 
   /**
    * Fetch the git blob from the GitHub API and convert into a
-   * GitHubFileContents object.
+   * FileContents object.
    *
    * @param {string} blobSha The git blob SHA
    * @param {TreeEntry} treeEntry The associated tree object
@@ -236,7 +227,7 @@ export class BranchFileCache {
   private async fetchContents(
     blobSha: string,
     treeEntry: TreeEntry
-  ): Promise<GitHubFileContents> {
+  ): Promise<FileContents> {
     const {
       data: {content},
     } = await this.octokit.git.getBlob({

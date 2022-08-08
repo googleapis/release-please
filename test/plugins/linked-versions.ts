@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Manifest} from '../../src/manifest';
 import {Update} from '../../src/update';
 import {
@@ -27,6 +27,7 @@ import {Version} from '../../src/version';
 import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import {parseCargoManifest} from '../../src/updaters/rust/common';
 import {expect} from 'chai';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/cargo-workspace';
@@ -48,15 +49,15 @@ export function buildMockPackageUpdate(
 }
 
 describe('LinkedVersions plugin', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'fake-owner',
       repo: 'fake-repo',
       defaultBranch: 'main',
     });
 
-    mockReleases(sandbox, github, [
+    mockReleases(sandbox, scm, [
       {
         sha: 'abc123',
         tagName: 'pkg1-v1.0.0',
@@ -73,7 +74,7 @@ describe('LinkedVersions plugin', () => {
         url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg3-v0.2.3',
       },
     ]);
-    mockCommits(sandbox, github, [
+    mockCommits(sandbox, scm, [
       {
         sha: 'aaaaaa',
         message: 'fix: some bugfix',
@@ -126,7 +127,7 @@ describe('LinkedVersions plugin', () => {
   });
   it('should sync versions pull requests', async () => {
     const manifest = new Manifest(
-      github,
+      scm,
       'target-branch',
       {
         'path/a': {
@@ -173,7 +174,7 @@ describe('LinkedVersions plugin', () => {
   });
   it('should group pull requests', async () => {
     const manifest = new Manifest(
-      github,
+      scm,
       'target-branch',
       {
         'path/a': {

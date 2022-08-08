@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Simple} from '../../src/strategies/simple';
 import * as sinon from 'sinon';
 import {assertHasUpdate} from '../helpers';
@@ -37,9 +37,9 @@ const COMMITS = [
 ];
 
 describe('Simple', () => {
-  let github: GitHub;
+  let scm: GitHub;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'simple-test-repo',
       defaultBranch: 'main',
@@ -53,7 +53,7 @@ describe('Simple', () => {
       const expectedVersion = '1.0.0';
       const strategy = new Simple({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -67,7 +67,7 @@ describe('Simple', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Simple({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = {
@@ -86,7 +86,7 @@ describe('Simple', () => {
     it('builds common files', async () => {
       const strategy = new Simple({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -101,7 +101,7 @@ describe('Simple', () => {
     it('allows configuring the version file', async () => {
       const strategy = new Simple({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         versionFile: 'some-path/VERSION',
         path: 'packages',

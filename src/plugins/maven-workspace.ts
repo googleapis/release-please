@@ -60,7 +60,7 @@ const XPATH_PROJECT_DEPENDENCIES =
 
 export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
   private async fetchPom(path: string): Promise<MavenArtifact | undefined> {
-    const content = await this.github.getFileContentsOnBranch(
+    const content = await this.scm.getFileContentsOnBranch(
       path,
       this.targetBranch
     );
@@ -131,7 +131,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     const allPackages: MavenArtifact[] = [];
     const candidatesByPackage: Record<string, CandidateReleasePullRequest> = {};
     // find all pom.xml files and build a dependency graph
-    const pomFiles = await this.github.findFilesByFilenameAndRef(
+    const pomFiles = await this.scm.findFilesByFilenameAndRef(
       'pom.xml',
       this.targetBranch
     );

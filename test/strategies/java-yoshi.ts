@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {JavaYoshi} from '../../src/strategies/java-yoshi';
 import * as sinon from 'sinon';
 import {
@@ -29,6 +29,7 @@ import {Changelog} from '../../src/updaters/changelog';
 import {JavaUpdate} from '../../src/updaters/java/java-update';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
 import {CompositeUpdater} from '../../src/updaters/composite';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/java-yoshi';
@@ -44,9 +45,9 @@ const COMMITS = [
 ];
 
 describe('JavaYoshi', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'java-yoshi-test-repo',
       defaultBranch: 'main',
@@ -60,14 +61,11 @@ describe('JavaYoshi', () => {
       const expectedVersion = '0.1.0';
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
@@ -82,14 +80,11 @@ describe('JavaYoshi', () => {
       const expectedVersion = '0.123.5';
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
@@ -108,14 +103,11 @@ describe('JavaYoshi', () => {
       const expectedVersion = '0.123.5-SNAPSHOT';
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(
@@ -139,14 +131,11 @@ describe('JavaYoshi', () => {
       const expectedVersion = '1.0.0';
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(
@@ -183,14 +172,11 @@ describe('JavaYoshi', () => {
     it('builds common files', async () => {
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
@@ -207,10 +193,10 @@ describe('JavaYoshi', () => {
     it('finds and updates standard files', async () => {
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
+      const findFilesStub = sandbox.stub(scm, 'findFilesByFilenameAndRef');
       findFilesStub
         .withArgs('pom.xml', 'main', '.')
         .resolves(['path1/pom.xml', 'path2/pom.xml']);
@@ -220,10 +206,7 @@ describe('JavaYoshi', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'main', '.')
         .resolves(['dependencies.properties']);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
@@ -250,15 +233,12 @@ describe('JavaYoshi', () => {
     it('finds and updates extra files', async () => {
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         extraFiles: ['foo/bar.java', 'src/version.java'],
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
@@ -277,10 +257,10 @@ describe('JavaYoshi', () => {
     it('updates all files for snapshots', async () => {
       const strategy = new JavaYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
+      const findFilesStub = sandbox.stub(scm, 'findFilesByFilenameAndRef');
       findFilesStub
         .withArgs('pom.xml', 'main', '.')
         .resolves(['path1/pom.xml', 'path2/pom.xml']);
@@ -290,10 +270,7 @@ describe('JavaYoshi', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'main', '.')
         .resolves(['dependencies.properties']);
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(

@@ -16,7 +16,7 @@ import {describe, it, beforeEach, afterEach} from 'mocha';
 import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {Bootstrapper} from '../src/bootstrapper';
-import {GitHub} from '../src/github';
+import {GitHub} from '../src/scms/github';
 import {assertHasUpdate} from './helpers';
 import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
 import {ReleasePleaseConfig} from '../src/updaters/release-please-config';

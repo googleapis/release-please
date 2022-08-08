@@ -84,7 +84,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     allPackages: CrateInfo[];
     candidatesByPackage: Record<string, CandidateReleasePullRequest>;
   }> {
-    const cargoManifestContent = await this.github.getFileContentsOnBranch(
+    const cargoManifestContent = await this.scm.getFileContentsOnBranch(
       'Cargo.toml',
       this.targetBranch
     );
@@ -111,7 +111,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         candidate?.pullRequest.updates.find(
           update => update.path === manifestPath
         )?.cachedFileContents ||
-        (await this.github.getFileContentsOnBranch(
+        (await this.scm.getFileContentsOnBranch(
           manifestPath,
           this.targetBranch
         ));

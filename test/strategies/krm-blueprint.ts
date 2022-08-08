@@ -22,26 +22,27 @@ import {
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
 import {KRMBlueprintVersion} from '../../src/updaters/krm/krm-blueprint-version';
 import {Changelog} from '../../src/updaters/changelog';
+import {Scm} from '../../src/scm';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/krm-blueprint';
 
 describe('KRMBlueprint', () => {
-  let github: GitHub;
+  let scm: Scm;
   const commits = [
     buildMockCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'krm-blueprint-test-repo',
       defaultBranch: 'main',
@@ -55,10 +56,10 @@ describe('KRMBlueprint', () => {
       const expectedVersion = '0.1.0';
       const strategy = new KRMBlueprint({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,
@@ -70,10 +71,10 @@ describe('KRMBlueprint', () => {
       const expectedVersion = '0.123.5';
       const strategy = new KRMBlueprint({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'some-krm-blueprint-package',
       });
-      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(
           Version.parse('0.123.4'),
@@ -93,10 +94,10 @@ describe('KRMBlueprint', () => {
     it('builds common files', async () => {
       const strategy = new KRMBlueprint({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,
@@ -109,15 +110,15 @@ describe('KRMBlueprint', () => {
     it('finds and updates a yaml files', async () => {
       const strategy = new KRMBlueprint({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       sandbox
-        .stub(github, 'findFilesByExtensionAndRef')
+        .stub(scm, 'findFilesByExtensionAndRef')
         .withArgs('yaml', 'main', '.')
         .resolves(['project.yaml', 'no-attrib-bucket.yaml']);
       stubFilesFromFixtures({
-        github,
+        scm,
         sandbox,
         fixturePath: `${fixturesPath}/nested-pkg`,
         files: ['project.yaml', 'no-attrib-bucket.yaml'],

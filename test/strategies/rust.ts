@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Rust} from '../../src/strategies/rust';
 import * as sinon from 'sinon';
 import {buildGitHubFileContent, assertHasUpdate, dateSafe} from '../helpers';
@@ -25,6 +25,7 @@ import {Changelog} from '../../src/updaters/changelog';
 import {CargoLock} from '../../src/updaters/rust/cargo-lock';
 import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import snapshot = require('snap-shot-it');
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
@@ -40,9 +41,9 @@ const COMMITS = [
 
 describe('Rust', () => {
   const fixturesPath = './test/fixtures/strategies/rust-workspace';
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'rust-test-repo',
       defaultBranch: 'main',
@@ -56,7 +57,7 @@ describe('Rust', () => {
       const expectedVersion = '0.1.0';
       const strategy = new Rust({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -71,7 +72,7 @@ describe('Rust', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Rust({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = {
@@ -90,17 +91,14 @@ describe('Rust', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Rust({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'rust-test-repo'),
         sha: 'abc123',
         notes: 'some notes',
       };
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('Cargo.toml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-crate1.toml'));
@@ -116,9 +114,9 @@ describe('Rust', () => {
 
 describe('Rust Crate', () => {
   const fixturesPath = './test/fixtures/strategies/rust';
-  let github: GitHub;
+  let scm: GitHub;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'rust-test-repo',
       defaultBranch: 'main',
@@ -131,11 +129,11 @@ describe('Rust Crate', () => {
     it('builds common files', async () => {
       const strategy = new Rust({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       sandbox
-        .stub(github, 'getFileContentsOnBranch')
+        .stub(scm, 'getFileContentsOnBranch')
         .withArgs('Cargo.toml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo.toml'))
         .withArgs('Cargo.lock', 'main')
@@ -159,9 +157,9 @@ describe('Rust Crate', () => {
 
 describe('Rust Workspace', () => {
   const fixturesPath = './test/fixtures/strategies/rust-workspace';
-  let github: GitHub;
+  let scm: GitHub;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'rust-test-repo',
       defaultBranch: 'main',
@@ -174,11 +172,11 @@ describe('Rust Workspace', () => {
     it('builds common files', async () => {
       const strategy = new Rust({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       sandbox
-        .stub(github, 'getFileContentsOnBranch')
+        .stub(scm, 'getFileContentsOnBranch')
         .withArgs('Cargo.toml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-workspace.toml'));
       const latestRelease = undefined;
@@ -195,11 +193,11 @@ describe('Rust Workspace', () => {
     it('finds crates from workspace manifest', async () => {
       const strategy = new Rust({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       sandbox
-        .stub(github, 'getFileContentsOnBranch')
+        .stub(scm, 'getFileContentsOnBranch')
         .withArgs('Cargo.toml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-workspace.toml'))
         .withArgs('crates/crate1/Cargo.toml', 'main')

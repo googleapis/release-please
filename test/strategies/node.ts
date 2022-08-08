@@ -21,7 +21,7 @@ import {
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
@@ -29,20 +29,21 @@ import {PackageLockJson} from '../../src/updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../../src/updaters/node/samples-package-json';
 import {Changelog} from '../../src/updaters/changelog';
 import {PackageJson} from '../../src/updaters/node/package-json';
+import {Scm} from '../../src/scm';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/node';
 
 describe('Node', () => {
-  let github: GitHub;
+  let scm: Scm;
   const commits = [
     buildMockCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'node-test-repo',
       defaultBranch: 'main',
@@ -56,7 +57,7 @@ describe('Node', () => {
       const expectedVersion = '1.0.0';
       const strategy = new Node({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         packageName: 'google-cloud-automl',
       });
@@ -71,7 +72,7 @@ describe('Node', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Node({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'some-node-package',
         packageName: 'some-node-package',
       });
@@ -90,7 +91,7 @@ describe('Node', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Node({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const commits = [
         buildMockCommit(
@@ -102,10 +103,7 @@ describe('Node', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('package.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'package.json'));
@@ -119,7 +117,7 @@ describe('Node', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Node({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'abc-123',
       });
       const commits = [
@@ -132,10 +130,7 @@ describe('Node', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('package.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'package.json'));
@@ -150,11 +145,11 @@ describe('Node', () => {
     it('builds common files', async () => {
       const strategy = new Node({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         packageName: 'google-cloud-automl-pkg',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,

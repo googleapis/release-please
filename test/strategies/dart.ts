@@ -21,21 +21,22 @@ import {
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
 import {Changelog} from '../../src/updaters/changelog';
 import {PubspecYaml} from '../../src/updaters/dart/pubspec-yaml';
+import {Scm} from '../../src/scm';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/dart';
 
 describe('Dart', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'dart-test-repo',
       defaultBranch: 'main',
@@ -54,11 +55,11 @@ describe('Dart', () => {
       const expectedVersion = '1.0.0';
       const strategy = new Dart({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         packageName: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,
@@ -70,7 +71,7 @@ describe('Dart', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Dart({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'some-dart-package',
         packageName: 'some-dart-package',
       });
@@ -89,7 +90,7 @@ describe('Dart', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Dart({
         targetBranch: 'main',
-        github,
+        scm,
       });
       const commits = [
         buildMockCommit(
@@ -101,10 +102,7 @@ describe('Dart', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const getFileContentsStub = sandbox.stub(
-        github,
-        'getFileContentsOnBranch'
-      );
+      const getFileContentsStub = sandbox.stub(scm, 'getFileContentsOnBranch');
       getFileContentsStub
         .withArgs('pubspec.yaml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'pubspec.yaml'));
@@ -119,7 +117,7 @@ describe('Dart', () => {
     it('builds common files', async () => {
       const strategy = new Dart({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'some-dart-package',
         packageName: 'some-dart-package',
       });

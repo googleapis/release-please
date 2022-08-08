@@ -19,7 +19,7 @@ import {
   registerReleaseType,
   unregisterReleaseType,
 } from '../src/factory';
-import {GitHub} from '../src/github';
+import {GitHub} from '../src/scms/github';
 import {expect} from 'chai';
 import {Simple} from '../src/strategies/simple';
 import {DefaultVersioningStrategy} from '../src/versioning-strategies/default';
@@ -34,9 +34,9 @@ import {DefaultChangelogNotes} from '../src/changelog-notes/default';
 import {Java} from '../src/strategies/java';
 
 describe('factory', () => {
-  let github: GitHub;
+  let scm: GitHub;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'fake-owner',
       repo: 'fake-repo',
       defaultBranch: 'main',
@@ -46,7 +46,7 @@ describe('factory', () => {
   describe('buildStrategy', () => {
     it('should build a basic strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'simple',
       });
       expect(strategy).instanceof(Simple);
@@ -62,7 +62,7 @@ describe('factory', () => {
     });
     it('should build a with configuration', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'simple',
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
@@ -77,7 +77,7 @@ describe('factory', () => {
     it('should throw for unknown type', async () => {
       try {
         await buildStrategy({
-          github,
+          scm,
           releaseType: 'non-existent',
         });
       } catch (err) {
@@ -88,7 +88,7 @@ describe('factory', () => {
     });
     it('should build with a configured versioning strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'simple',
         versioning: 'always-bump-patch',
       });
@@ -97,7 +97,7 @@ describe('factory', () => {
     });
     it('should build with a service pack versioning strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'simple',
         versioning: 'service-pack',
       });
@@ -108,7 +108,7 @@ describe('factory', () => {
     });
     it('should build with a configured changelog type', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'simple',
         changelogType: 'github',
       });
@@ -117,7 +117,7 @@ describe('factory', () => {
     });
     it('should build a ruby strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'ruby',
         versionFile: 'src/version.rb',
       });
@@ -126,7 +126,7 @@ describe('factory', () => {
     });
     it('should build a java-yoshi strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'java-yoshi',
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
@@ -147,7 +147,7 @@ describe('factory', () => {
     });
     it('should build a java-backport strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'java-backport',
         extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
       });
@@ -162,7 +162,7 @@ describe('factory', () => {
     });
     it('should build a java-lts strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'java-lts',
         extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
       });
@@ -179,7 +179,7 @@ describe('factory', () => {
     });
     it('should build a java-bom strategy', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'java-bom',
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
@@ -217,7 +217,7 @@ describe('factory', () => {
     });
     it('should handle extra-files', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'simple',
         extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
       });
@@ -229,13 +229,13 @@ describe('factory', () => {
     });
     for (const releaseType of getReleaserTypes()) {
       it(`should build a default ${releaseType}`, async () => {
-        const strategy = await buildStrategy({github, releaseType});
+        const strategy = await buildStrategy({scm, releaseType});
         expect(strategy).to.not.be.undefined;
       });
     }
     it('should customize a version-file for Simple', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'simple',
         versionFile: 'foo/bar',
       });
@@ -255,7 +255,7 @@ describe('factory', () => {
     it('should register new releaser', async () => {
       registerReleaseType(releaseType, options => new CustomTest(options));
 
-      const strategy = await buildStrategy({github, releaseType: releaseType});
+      const strategy = await buildStrategy({scm, releaseType: releaseType});
       expect(strategy).to.be.instanceof(CustomTest);
     });
     it('should return custom types', () => {

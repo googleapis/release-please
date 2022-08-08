@@ -22,8 +22,8 @@ import {
 import {logger} from '../util/logger';
 import {VersionsMap, Version} from '../version';
 import {Merge} from './merge';
-import {GitHub} from '../github';
 import {ReleasePleaseManifest} from '../updaters/release-please-manifest';
+import {Scm} from '../scm';
 
 export type DependencyGraph<T> = Map<string, DependencyNode<T>>;
 export interface DependencyNode<T> {
@@ -58,12 +58,12 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private manifestPath: string;
   private merge: boolean;
   constructor(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     options: WorkspacePluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(scm, targetBranch, repositoryConfig);
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;
@@ -157,7 +157,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     if (this.merge) {
       logger.info(`Merging ${newCandidates.length} in-scope candidates`);
       const mergePlugin = new Merge(
-        this.github,
+        this.scm,
         this.targetBranch,
         this.repositoryConfig
       );

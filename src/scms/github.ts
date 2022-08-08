@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import {createPullRequest} from 'code-suggester';
-import {PullRequest} from './pull-request';
-import {Commit} from './commit';
+import {PullRequest} from '../pull-request';
+import {Commit} from '../commit';
 
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
@@ -24,25 +24,32 @@ import {
   GitHubAPIError,
   DuplicateReleaseError,
   FileNotFoundError,
-} from './errors';
+} from '../errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
 
-import {logger} from './util/logger';
-import {Repository} from './repository';
-import {ReleasePullRequest} from './release-pull-request';
-import {Update} from './update';
-import {Release} from './release';
-import {ROOT_PROJECT_PATH} from './manifest';
-import {signoffCommitMessage} from './util/signoff-commit-message';
+import {logger} from '../util/logger';
+import {Repository} from '../repository';
+import {ReleasePullRequest} from '../release-pull-request';
+import {Update} from '../update';
+import {Release} from '../release';
+import {ROOT_PROJECT_PATH} from '../manifest';
+import {signoffCommitMessage} from '../util/signoff-commit-message';
+import {RepositoryFileCache, DEFAULT_FILE_MODE} from '../util/file-cache';
 import {
-  RepositoryFileCache,
-  GitHubFileContents,
-  DEFAULT_FILE_MODE,
-} from './util/file-cache';
+  Scm,
+  ScmRelease,
+  CommitIteratorOptions,
+  ReleaseIteratorOptions,
+  TagIteratorOptions,
+  ChangeSet,
+  ReleaseOptions,
+  CommitFilter,
+  FileContents,
+} from '../scm';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -68,8 +75,6 @@ interface GitHubCreateOptions {
   octokitAPIs?: OctokitAPIs;
   token?: string;
 }
-
-type CommitFilter = (commit: Commit) => boolean;
 
 interface GraphQLCommit {
   sha: string;
@@ -137,50 +142,10 @@ interface ReleaseHistory {
     hasNextPage: boolean;
     endCursor: string | undefined;
   };
-  data: GitHubRelease[];
+  data: ScmRelease[];
 }
 
-interface CommitIteratorOptions {
-  maxResults?: number;
-  backfillFiles?: boolean;
-}
-
-interface ReleaseIteratorOptions {
-  maxResults?: number;
-}
-
-interface TagIteratorOptions {
-  maxResults?: number;
-}
-
-export interface ReleaseOptions {
-  draft?: boolean;
-  prerelease?: boolean;
-}
-
-export interface GitHubRelease {
-  name?: string;
-  tagName: string;
-  sha: string;
-  notes?: string;
-  url: string;
-  draft?: boolean;
-  uploadUrl?: string;
-}
-
-export interface GitHubTag {
-  name: string;
-  sha: string;
-}
-
-interface FileDiff {
-  readonly mode: '100644' | '100755' | '040000' | '160000' | '120000';
-  readonly content: string | null;
-  readonly originalContent: string | null;
-}
-export type ChangeSet = Map<string, FileDiff>;
-
-export class GitHub {
+export class GitHub implements Scm {
   readonly repository: Repository;
   private octokit: OctokitType;
   private request: RequestFunctionType;
@@ -317,7 +282,7 @@ export class GitHub {
   async *mergeCommitIterator(
     targetBranch: string,
     options: CommitIteratorOptions = {}
-  ) {
+  ): AsyncGenerator<Commit, void, void> {
     const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
     let cursor: string | undefined = undefined;
     let results = 0;
@@ -740,7 +705,7 @@ export class GitHub {
             notes: release.description,
             url: release.url,
             draft: release.isDraft,
-          } as GitHubRelease;
+          } as ScmRelease;
         }),
     } as ReleaseHistory;
   }
@@ -781,10 +746,10 @@ export class GitHub {
    * Fetch the contents of a file from the configured branch
    *
    * @param {string} path The path to the file in the repository
-   * @returns {GitHubFileContents}
+   * @returns {FileContents}
    * @throws {GitHubAPIError} on other API errors
    */
-  async getFileContents(path: string): Promise<GitHubFileContents> {
+  async getFileContents(path: string): Promise<FileContents> {
     return await this.getFileContentsOnBranch(
       path,
       this.repository.defaultBranch
@@ -796,13 +761,13 @@ export class GitHub {
    *
    * @param {string} path The path to the file in the repository
    * @param {string} branch The branch to fetch from
-   * @returns {GitHubFileContents}
+   * @returns {FileContents}
    * @throws {GitHubAPIError} on other API errors
    */
   async getFileContentsOnBranch(
     path: string,
     branch: string
-  ): Promise<GitHubFileContents> {
+  ): Promise<FileContents> {
     logger.debug(`Fetching ${path} from branch ${branch}`);
     return await this.fileCache.getFileContents(path, branch);
   }
@@ -1068,7 +1033,7 @@ export class GitHub {
   ): Promise<ChangeSet> {
     const changes = new Map();
     for (const update of updates) {
-      let content: GitHubFileContents | undefined;
+      let content: FileContents | undefined;
       try {
         content = await this.getFileContentsOnBranch(
           update.path,
@@ -1186,7 +1151,7 @@ export class GitHub {
     async (
       release: Release,
       options: ReleaseOptions = {}
-    ): Promise<GitHubRelease> => {
+    ): Promise<ScmRelease> => {
       const resp = await this.octokit.repos.createRelease({
         name: release.name,
         owner: this.repository.owner,

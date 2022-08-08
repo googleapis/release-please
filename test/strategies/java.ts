@@ -29,13 +29,14 @@ import {Changelog} from '../../src/updaters/changelog';
 import {DEFAULT_LABELS, DEFAULT_SNAPSHOT_LABELS} from '../../src/manifest';
 import {Generic} from '../../src/updaters/generic';
 import {JavaReleased} from '../../src/updaters/java/java-released';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
 describe('Java', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'java-test-repo',
       defaultBranch: 'main',
@@ -59,7 +60,7 @@ describe('Java', () => {
       it('returns release PR changes with defaultInitialVersion', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
         });
 
         const latestRelease = undefined;
@@ -81,7 +82,7 @@ describe('Java', () => {
       it('returns release PR changes with semver patch bump', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
         });
 
         const latestRelease = {
@@ -107,7 +108,7 @@ describe('Java', () => {
       it('returns a snapshot bump PR', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
         });
 
         const latestRelease = {
@@ -162,7 +163,7 @@ describe('Java', () => {
       it('use snapshot latest release', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
         });
 
         const latestRelease = {
@@ -182,7 +183,7 @@ describe('Java', () => {
       it('ignores snapshot of another component', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
         });
 
         const latestRelease = {
@@ -208,7 +209,7 @@ describe('Java', () => {
       it('uses custom snapshotLabels', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
           snapshotLabels: ['bot', 'custom:snapshot'],
         });
 
@@ -230,7 +231,7 @@ describe('Java', () => {
       it('creates draft snapshot PR', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
         });
 
         const latestRelease = {
@@ -250,7 +251,7 @@ describe('Java', () => {
       it('updates released version in extra files', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
           extraFiles: ['foo/bar.java', 'pom.xml'],
         });
         const release = await strategy.buildReleasePullRequest(
@@ -267,7 +268,7 @@ describe('Java', () => {
       it('does not update released version in extra files for snapshot', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
           extraFiles: ['foo/bar.java', 'pom.xml'],
         });
 
@@ -303,7 +304,7 @@ describe('Java', () => {
       it('returns release PR changes with defaultInitialVersion', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
           component: 'test-sample',
           includeComponentInTag: true,
         });
@@ -330,7 +331,7 @@ describe('Java', () => {
       it('returns release PR changes with semver patch bump', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
           component: 'test-sample',
           includeComponentInTag: true,
         });
@@ -362,7 +363,7 @@ describe('Java', () => {
       it('returns a snapshot bump PR', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
           component: 'test-sample',
           includeComponentInTag: true,
         });

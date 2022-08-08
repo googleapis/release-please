@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {OCaml} from '../../src/strategies/ocaml';
 import * as sinon from 'sinon';
 import {
@@ -29,6 +29,7 @@ import {Changelog} from '../../src/updaters/changelog';
 import {EsyJson} from '../../src/updaters/ocaml/esy-json';
 import {Opam} from '../../src/updaters/ocaml/opam';
 import {DuneProject} from '../../src/updaters/ocaml/dune-project';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/ocaml';
@@ -44,9 +45,9 @@ const COMMITS = [
 ];
 
 describe('OCaml', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'ocaml-test-repo',
       defaultBranch: 'main',
@@ -60,10 +61,10 @@ describe('OCaml', () => {
       const expectedVersion = '1.0.0';
       const strategy = new OCaml({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(scm, 'findFilesByExtension').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -75,10 +76,10 @@ describe('OCaml', () => {
       const expectedVersion = '0.123.5';
       const strategy = new OCaml({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(scm, 'findFilesByExtension').resolves([]);
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
         sha: 'abc123',
@@ -95,10 +96,10 @@ describe('OCaml', () => {
     it('builds common files', async () => {
       const strategy = new OCaml({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(scm, 'findFilesByExtension').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -113,10 +114,10 @@ describe('OCaml', () => {
     it('finds and updates a project files', async () => {
       const strategy = new OCaml({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByExtension');
+      const findFilesStub = sandbox.stub(scm, 'findFilesByExtension');
       findFilesStub.withArgs('json', '.').resolves(['esy.json', 'other.json']);
       findFilesStub.withArgs('opam', '.').resolves(['sample.opam']);
       findFilesStub
@@ -124,7 +125,7 @@ describe('OCaml', () => {
         .resolves(['sample.opam.locked']);
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         targetBranch: 'main',
         fixturePath: fixturesPath,
         files: ['esy.json', 'other.json', 'sample.opam', 'sample.opam.locked'],

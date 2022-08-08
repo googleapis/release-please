@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from '../github';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
 import {GitHubChangelogNotes} from '../changelog-notes/github';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
 import {ConfigurationError} from '../errors';
+import {Scm} from '../scm';
 
 export type ChangelogNotesType = string;
 
 export interface ChangelogNotesFactoryOptions {
   type: ChangelogNotesType;
-  github: GitHub;
+  scm: Scm;
   changelogSections?: ChangelogSection[];
   commitPartial?: string;
   headerPartial?: string;
@@ -34,7 +34,7 @@ export type ChangelogNotesBuilder = (
 ) => ChangelogNotes;
 
 const changelogNotesFactories: Record<string, ChangelogNotesBuilder> = {
-  github: options => new GitHubChangelogNotes(options.github),
+  github: options => new GitHubChangelogNotes(options.scm),
   default: options => new DefaultChangelogNotes(options),
 };
 
@@ -48,7 +48,7 @@ export function buildChangelogNotes(
   throw new ConfigurationError(
     `Unknown changelog type: ${options.type}`,
     'core',
-    `${options.github.repository.owner}/${options.github.repository.repo}`
+    `${options.scm.repository.owner}/${options.scm.repository.repo}`
   );
 }
 

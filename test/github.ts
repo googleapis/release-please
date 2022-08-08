@@ -22,7 +22,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
 
-import {GitHub, GitHubRelease} from '../src/github';
+import {GitHub} from '../src/scms/github';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
@@ -37,6 +37,7 @@ import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import * as codeSuggester from 'code-suggester';
 import {RawContent} from '../src/updaters/raw-content';
+import {ScmRelease} from '../src/scm';
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -483,7 +484,7 @@ describe('GitHub', () => {
         data: graphql,
       });
       const generator = github.releaseIterator();
-      const releases: GitHubRelease[] = [];
+      const releases: ScmRelease[] = [];
       for await (const release of generator) {
         releases.push(release);
       }
@@ -498,7 +499,7 @@ describe('GitHub', () => {
         data: graphql,
       });
       const generator = github.releaseIterator({maxResults: 3});
-      const releases: GitHubRelease[] = [];
+      const releases: ScmRelease[] = [];
       for await (const release of generator) {
         releases.push(release);
       }
@@ -537,7 +538,7 @@ describe('GitHub', () => {
         },
       });
       const generator = github.releaseIterator();
-      const releases: GitHubRelease[] = [];
+      const releases: ScmRelease[] = [];
       for await (const release of generator) {
         releases.push(release);
       }

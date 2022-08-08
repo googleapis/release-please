@@ -24,6 +24,7 @@ import {
   buildVersioningStrategy,
   unregisterVersioningStrategy,
 } from '../../src/factories/versioning-strategy-factory';
+import {Scm} from '../../src/scm';
 
 describe('VersioningStrategyFactory', () => {
   const defaultTypes: VersioningStrategyType[] = [
@@ -31,9 +32,9 @@ describe('VersioningStrategyFactory', () => {
     'always-bump-patch',
     'service-pack',
   ];
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'test-owner',
       repo: 'test-repo',
       defaultBranch: 'main',
@@ -44,7 +45,7 @@ describe('VersioningStrategyFactory', () => {
     for (const type of defaultTypes) {
       it(`should build a simple ${type}`, () => {
         const versioningStrategy = buildVersioningStrategy({
-          github,
+          scm,
           type: type,
         });
         expect(versioningStrategy).to.not.be.undefined;
@@ -53,7 +54,7 @@ describe('VersioningStrategyFactory', () => {
     it('should throw for unknown type', () => {
       expect(() =>
         buildVersioningStrategy({
-          github,
+          scm,
           type: 'non-existent',
         })
       ).to.throw();
@@ -81,7 +82,7 @@ describe('VersioningStrategyFactory', () => {
       );
 
       const versioningStrategyOptions = {
-        github,
+        scm,
         type: versioningStrategyType,
       };
       const strategy = await buildVersioningStrategy(versioningStrategyOptions);

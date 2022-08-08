@@ -17,25 +17,26 @@ import {Elixir} from '../../src/strategies/elixir';
 import {buildMockCommit, assertHasUpdate} from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
 import {Changelog} from '../../src/updaters/changelog';
 import {ElixirMixExs} from '../../src/updaters/elixir/elixir-mix-exs';
+import {Scm} from '../../src/scm';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
 
 describe('Elixir', () => {
-  let github: GitHub;
+  let scm: Scm;
   const commits = [
     buildMockCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'elixir-test-repo',
       defaultBranch: 'main',
@@ -49,10 +50,10 @@ describe('Elixir', () => {
       const expectedVersion = '1.0.0';
       const strategy = new Elixir({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      sandbox.stub(scm, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         commits,
@@ -64,7 +65,7 @@ describe('Elixir', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Elixir({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'some-elixir-package',
       });
       const latestRelease = {
@@ -83,7 +84,7 @@ describe('Elixir', () => {
     it('builds common files', async () => {
       const strategy = new Elixir({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;

@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {PHP} from '../../src/strategies/php';
 import * as sinon from 'sinon';
 import {assertHasUpdate} from '../helpers';
@@ -23,6 +23,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {RootComposerUpdatePackages} from '../../src/updaters/php/root-composer-update-packages';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
@@ -37,9 +38,9 @@ const COMMITS = [
 ];
 
 describe('PHP', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'php-test-repo',
       defaultBranch: 'main',
@@ -53,7 +54,7 @@ describe('PHP', () => {
       const expectedVersion = '1.0.0';
       const strategy = new PHP({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -67,7 +68,7 @@ describe('PHP', () => {
       const expectedVersion = '0.123.5';
       const strategy = new PHP({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = {
@@ -86,7 +87,7 @@ describe('PHP', () => {
     it('builds common files', async () => {
       const strategy = new PHP({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;

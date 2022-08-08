@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -41,10 +41,10 @@ export class OCaml extends BaseStrategy {
       }),
     });
 
-    const jsonPaths = await this.github.findFilesByExtension('json', this.path);
+    const jsonPaths = await this.scm.findFilesByExtension('json', this.path);
     for (const path of jsonPaths) {
       if (notEsyLock(path)) {
-        const contents: GitHubFileContents = await this.github.getFileContents(
+        const contents: FileContents = await this.scm.getFileContents(
           this.addPath(path)
         );
         const pkg = JSON.parse(contents.parsedContent);
@@ -61,7 +61,7 @@ export class OCaml extends BaseStrategy {
       }
     }
 
-    const opamPaths = await this.github.findFilesByExtension('opam', this.path);
+    const opamPaths = await this.scm.findFilesByExtension('opam', this.path);
     opamPaths.filter(notEsyLock).forEach(path => {
       updates.push({
         path: this.addPath(path),
@@ -72,7 +72,7 @@ export class OCaml extends BaseStrategy {
       });
     });
 
-    const opamLockedPaths = await this.github.findFilesByExtension(
+    const opamLockedPaths = await this.scm.findFilesByExtension(
       'opam.locked',
       this.path
     );

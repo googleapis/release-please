@@ -118,7 +118,7 @@ export class Python extends BaseStrategy {
     }
 
     // There should be only one version.py, but foreach in case that is incorrect
-    const versionPyFilesSearch = this.github.findFilesByFilenameAndRef(
+    const versionPyFilesSearch = this.scm.findFilesByFilenameAndRef(
       'version.py',
       this.targetBranch,
       this.path
@@ -139,7 +139,7 @@ export class Python extends BaseStrategy {
 
   private async getPyProject(path: string): Promise<PyProject | null> {
     try {
-      const content = await this.github.getFileContentsOnBranch(
+      const content = await this.scm.getFileContentsOnBranch(
         path,
         this.targetBranch
       );

@@ -14,7 +14,7 @@
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
 import {Manifest} from '../src/manifest';
-import {GitHub, ReleaseOptions} from '../src/github';
+import {GitHub} from '../src/scms/github';
 import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
@@ -48,6 +48,7 @@ import {
   ConfigurationError,
 } from '../src/errors';
 import {RequestError} from '@octokit/request-error';
+import {ReleaseOptions} from '../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';

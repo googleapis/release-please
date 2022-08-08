@@ -82,7 +82,7 @@ export class DotnetYoshi extends BaseStrategy {
 
   private async getApi(): Promise<Api | undefined> {
     try {
-      const contents = await this.github.getFileContentsOnBranch(
+      const contents = await this.scm.getFileContentsOnBranch(
         'apis/apis.json',
         this.targetBranch
       );

@@ -25,11 +25,12 @@ import {
   unregisterChangelogNotes,
 } from '../../src/factories/changelog-notes-factory';
 import {DefaultChangelogNotes} from '../../src/changelog-notes/default';
+import {Scm} from '../../src/scm';
 
 describe('ChangelogNotesFactory', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'fake-owner',
       repo: 'fake-repo',
       defaultBranch: 'main',
@@ -37,25 +38,23 @@ describe('ChangelogNotesFactory', () => {
     });
   });
   describe('buildChangelogNotes', () => {
-    const changelogTypes = ['default', 'github'];
+    const changelogTypes = ['default', 'scm'];
     for (const changelogType of changelogTypes) {
       it(`should build a simple ${changelogType}`, () => {
         const changelogNotes = buildChangelogNotes({
-          github,
+          scm,
           type: changelogType,
         });
         expect(changelogNotes).to.not.be.undefined;
       });
     }
     it('should throw for unknown type', () => {
-      expect(() =>
-        buildChangelogNotes({github, type: 'non-existent'})
-      ).to.throw();
+      expect(() => buildChangelogNotes({scm, type: 'non-existent'})).to.throw();
     });
   });
   describe('getChangelogTypes', () => {
     it('should return default types', () => {
-      const defaultTypes: ChangelogNotesType[] = ['default', 'github'];
+      const defaultTypes: ChangelogNotesType[] = ['default', 'scm'];
 
       const types = getChangelogTypes();
       defaultTypes.forEach(type => expect(types).to.contain(type));
@@ -75,7 +74,7 @@ describe('ChangelogNotesFactory', () => {
 
       const changelogNotesOptions = {
         type: changelogType,
-        github,
+        scm,
         repositoryConfig: {},
         targetBranch: 'main',
       };

@@ -16,7 +16,7 @@ import {Update} from '../update';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
 import {Changelog} from '../updaters/changelog';
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
 import {ConventionalCommit} from '../commit';
 import {logger} from '../util/logger';
@@ -24,7 +24,7 @@ import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
 
 export class JavaYoshi extends Java {
-  private versionsContent?: GitHubFileContents;
+  private versionsContent?: FileContents;
 
   /**
    * Override this method to post process commits
@@ -63,10 +63,10 @@ export class JavaYoshi extends Java {
     return VersionsManifest.parseVersions(this.versionsContent.parsedContent);
   }
 
-  protected async getVersionsContent(): Promise<GitHubFileContents> {
+  protected async getVersionsContent(): Promise<FileContents> {
     if (!this.versionsContent) {
       try {
-        this.versionsContent = await this.github.getFileContentsOnBranch(
+        this.versionsContent = await this.scm.getFileContentsOnBranch(
           this.addPath('versions.txt'),
           this.targetBranch
         );
@@ -101,17 +101,17 @@ export class JavaYoshi extends Java {
       }),
     });
 
-    const pomFilesSearch = this.github.findFilesByFilenameAndRef(
+    const pomFilesSearch = this.scm.findFilesByFilenameAndRef(
       'pom.xml',
       this.targetBranch,
       this.path
     );
-    const buildFilesSearch = this.github.findFilesByFilenameAndRef(
+    const buildFilesSearch = this.scm.findFilesByFilenameAndRef(
       'build.gradle',
       this.targetBranch,
       this.path
     );
-    const dependenciesSearch = this.github.findFilesByFilenameAndRef(
+    const dependenciesSearch = this.scm.findFilesByFilenameAndRef(
       'dependencies.properties',
       this.targetBranch,
       this.path

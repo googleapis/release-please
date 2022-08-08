@@ -14,18 +14,18 @@
 
 import {ChangelogNotes, BuildNotesOptions} from '../changelog-notes';
 import {ConventionalCommit} from '../commit';
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 
 export class GitHubChangelogNotes implements ChangelogNotes {
-  private github: GitHub;
-  constructor(github: GitHub) {
-    this.github = github;
+  private scm: Scm;
+  constructor(scm: Scm) {
+    this.scm = scm;
   }
   async buildNotes(
     _commits: ConventionalCommit[],
     options: BuildNotesOptions
   ): Promise<string> {
-    return await this.github.generateReleaseNotes(
+    return await this.scm.generateReleaseNotes(
       options.currentTag,
       options.targetBranch,
       options.previousTag

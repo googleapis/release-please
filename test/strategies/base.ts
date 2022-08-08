@@ -17,7 +17,7 @@ import * as sinon from 'sinon';
 import {expect} from 'chai';
 import {BaseStrategy} from '../../src/strategies/base';
 import {Update} from '../../src/update';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import snapshot = require('snap-shot-it');
 import {dateSafe, assertHasUpdate} from '../helpers';
@@ -26,6 +26,7 @@ import {Generic} from '../../src/updaters/generic';
 import {GenericXml} from '../../src/updaters/generic-xml';
 import {PomXml} from '../../src/updaters/java/pom-xml';
 import {GenericYaml} from '../../src/updaters/generic-yaml';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
@@ -36,9 +37,9 @@ class TestStrategy extends BaseStrategy {
 }
 
 describe('Strategy', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'base-test-repo',
       defaultBranch: 'main',
@@ -51,7 +52,7 @@ describe('Strategy', () => {
     it('should ignore empty commits', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const pullRequest = await strategy.buildReleasePullRequest([]);
@@ -60,7 +61,7 @@ describe('Strategy', () => {
     it('allows overriding initial version', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const commits = [
@@ -77,7 +78,7 @@ describe('Strategy', () => {
     it('updates extra files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         extraFiles: ['0', 'foo/1.~csv', 'foo/2.bak', 'foo/baz/bar/', '/3.java'],
       });
@@ -100,7 +101,7 @@ describe('Strategy', () => {
     it('updates extra JSON files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         extraFiles: ['0', {type: 'json', path: '/3.json', jsonpath: '$.foo'}],
       });
@@ -117,7 +118,7 @@ describe('Strategy', () => {
     it('updates extra YAML files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         extraFiles: ['0', {type: 'yaml', path: '/3.yaml', jsonpath: '$.foo'}],
       });
@@ -134,7 +135,7 @@ describe('Strategy', () => {
     it('updates extra Xml files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         extraFiles: ['0', {type: 'xml', path: '/3.xml', xpath: '$.foo'}],
       });
@@ -151,7 +152,7 @@ describe('Strategy', () => {
     it('updates extra pom.xml files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         extraFiles: ['0', {type: 'pom', path: '/3.xml'}],
       });
@@ -168,7 +169,7 @@ describe('Strategy', () => {
     it('should pass changelogHost to default buildNotes', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         changelogHost: 'https://example.com',
       });
@@ -201,7 +202,7 @@ describe('Strategy', () => {
         try {
           const strategy = new TestStrategy({
             targetBranch: 'main',
-            github,
+            scm,
             component: 'google-cloud-automl',
             extraFiles: [file],
           });
@@ -223,7 +224,7 @@ describe('Strategy', () => {
     it('builds a release tag', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const release = await strategy.buildRelease({
@@ -242,7 +243,7 @@ describe('Strategy', () => {
     it('overrides the tag separator', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         tagSeparator: '/',
       });
@@ -262,7 +263,7 @@ describe('Strategy', () => {
     it('skips component in release tag', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         includeComponentInTag: false,
       });
@@ -282,7 +283,7 @@ describe('Strategy', () => {
     it('skips v in release tag', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         includeComponentInTag: false,
         includeVInTag: false,

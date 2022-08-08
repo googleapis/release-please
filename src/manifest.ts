@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit} from './commit';
 import {PullRequest} from './pull-request';
@@ -41,6 +40,7 @@ import {
   FileNotFoundError,
   ConfigurationError,
 } from './errors';
+import {Scm, ScmRelease, ScmTag} from './scm';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -225,7 +225,7 @@ const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
-interface CreatedRelease extends GitHubRelease {
+interface CreatedRelease extends ScmRelease {
   path: string;
   version: string;
   major: number;
@@ -235,7 +235,7 @@ interface CreatedRelease extends GitHubRelease {
 
 export class Manifest {
   private repository: Repository;
-  private github: GitHub;
+  private scm: Scm;
   readonly repositoryConfig: RepositoryConfig;
   readonly releasedVersions: ReleasedVersions;
   private targetBranch: string;
@@ -264,7 +264,7 @@ export class Manifest {
    * Create a Manifest from explicit config in code. This assumes that the
    * repository has a single component at the root path.
    *
-   * @param {GitHub} github GitHub client
+   * @param {Scm} scm Source control client
    * @param {string} targetBranch The releaseable base branch
    * @param {RepositoryConfig} repositoryConfig Parsed configuration of path => release configuration
    * @param {ReleasedVersions} releasedVersions Parsed versions of path => latest release version
@@ -286,14 +286,14 @@ export class Manifest {
    *   pull request. Defaults to `[autorelease: tagged]`
    */
   constructor(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     releasedVersions: ReleasedVersions,
     manifestOptions?: ManifestOptions
   ) {
-    this.repository = github.repository;
-    this.github = github;
+    this.repository = scm.repository;
+    this.scm = scm;
     this.targetBranch = targetBranch;
     this.repositoryConfig = repositoryConfig;
     this.releasedVersions = releasedVersions;
@@ -335,7 +335,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromManifest(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,
     manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
@@ -347,20 +347,14 @@ export class Manifest {
       {config: repositoryConfig, options: manifestOptions},
       releasedVersions,
     ] = await Promise.all([
-      parseConfig(github, configFile, targetBranch, path, releaseAs),
-      parseReleasedVersions(github, manifestFile, targetBranch),
+      parseConfig(scm, configFile, targetBranch, path, releaseAs),
+      parseReleasedVersions(scm, manifestFile, targetBranch),
     ]);
-    return new Manifest(
-      github,
-      targetBranch,
-      repositoryConfig,
-      releasedVersions,
-      {
-        manifestPath: manifestFile,
-        ...manifestOptions,
-        ...manifestOptionOverrides,
-      }
-    );
+    return new Manifest(scm, targetBranch, repositoryConfig, releasedVersions, {
+      manifestPath: manifestFile,
+      ...manifestOptions,
+      ...manifestOptionOverrides,
+    });
   }
 
   /**
@@ -389,7 +383,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromConfig(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     config: ReleaserConfig,
     manifestOptions?: ManifestOptions,
@@ -398,13 +392,13 @@ export class Manifest {
     const repositoryConfig: RepositoryConfig = {};
     repositoryConfig[path] = config;
     const strategy = await buildStrategy({
-      github,
+      scm,
       ...config,
     });
     const component = await strategy.getBranchComponent();
     const releasedVersions: ReleasedVersions = {};
     const latestVersion = await latestReleaseVersion(
-      github,
+      scm,
       targetBranch,
       version => isPublishedVersion(strategy, version),
       config,
@@ -413,16 +407,10 @@ export class Manifest {
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
     }
-    return new Manifest(
-      github,
-      targetBranch,
-      repositoryConfig,
-      releasedVersions,
-      {
-        separatePullRequests: true,
-        ...manifestOptions,
-      }
-    );
+    return new Manifest(scm, targetBranch, repositoryConfig, releasedVersions, {
+      separatePullRequests: true,
+      ...manifestOptions,
+    });
   }
 
   /**
@@ -449,7 +437,7 @@ export class Manifest {
     // Releases by path
     const releasesByPath: Record<string, Release> = {};
     logger.debug(`release search depth: ${this.releaseSearchDepth}`);
-    for await (const release of this.github.releaseIterator({
+    for await (const release of this.scm.releaseIterator({
       maxResults: this.releaseSearchDepth,
     })) {
       const tagName = TagName.parse(release.tagName);
@@ -528,7 +516,7 @@ export class Manifest {
     logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
     logger.debug(`commit search depth: ${this.commitSearchDepth}`);
-    const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
+    const commitGenerator = this.scm.mergeCommitIterator(this.targetBranch, {
       maxResults: this.commitSearchDepth,
       backfillFiles: true,
     });
@@ -621,7 +609,7 @@ export class Manifest {
     const plugins = this.plugins.map(pluginType =>
       buildPlugin({
         type: pluginType,
-        github: this.github,
+        scm: this.scm,
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
@@ -689,7 +677,7 @@ export class Manifest {
     if (!this.separatePullRequests) {
       plugins.push(
         new Merge(
-          this.github,
+          this.scm,
           this.targetBranch,
           this.repositoryConfig,
           this.groupPullRequestTitlePattern
@@ -741,9 +729,9 @@ export class Manifest {
     return releasesByPath;
   }
 
-  private async getAllTags(): Promise<Record<string, GitHubTag>> {
-    const allTags: Record<string, GitHubTag> = {};
-    for await (const tag of this.github.tagIterator()) {
+  private async getAllTags(): Promise<Record<string, ScmTag>> {
+    const allTags: Record<string, ScmTag> = {};
+    for await (const tag of this.scm.tagIterator()) {
       allTags[tag.name] = tag;
     }
     return allTags;
@@ -805,10 +793,7 @@ export class Manifest {
   private async findOpenReleasePullRequests(): Promise<PullRequest[]> {
     logger.info('Looking for open release pull requests');
     const openPullRequests: PullRequest[] = [];
-    const generator = this.github.pullRequestIterator(
-      this.targetBranch,
-      'OPEN'
-    );
+    const generator = this.scm.pullRequestIterator(this.targetBranch, 'OPEN');
     for await (const openPullRequest of generator) {
       if (
         (hasAllLabels(this.labels, openPullRequest.labels) ||
@@ -826,7 +811,7 @@ export class Manifest {
   private async findSnoozedReleasePullRequests(): Promise<PullRequest[]> {
     logger.info('Looking for snoozed release pull requests');
     const snoozedPullRequests: PullRequest[] = [];
-    const closedGenerator = this.github.pullRequestIterator(
+    const closedGenerator = this.scm.pullRequestIterator(
       this.targetBranch,
       'CLOSED'
     );
@@ -868,7 +853,7 @@ export class Manifest {
       return await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
     }
 
-    const newPullRequest = await this.github.createReleasePullRequest(
+    const newPullRequest = await this.scm.createReleasePullRequest(
       pullRequest,
       this.targetBranch,
       {
@@ -892,7 +877,7 @@ export class Manifest {
       );
       return undefined;
     }
-    const updatedPullRequest = await this.github.updatePullRequest(
+    const updatedPullRequest = await this.scm.updatePullRequest(
       existing.number,
       pullRequest,
       this.targetBranch,
@@ -916,7 +901,7 @@ export class Manifest {
       );
       return undefined;
     }
-    const updatedPullRequest = await this.github.updatePullRequest(
+    const updatedPullRequest = await this.scm.updatePullRequest(
       snoozed.number,
       pullRequest,
       this.targetBranch,
@@ -926,13 +911,13 @@ export class Manifest {
       }
     );
     // TODO: consider leaving the snooze label
-    await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
+    await this.scm.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
     return updatedPullRequest;
   }
 
   private async *findMergedReleasePullRequests() {
     // Find merged release pull requests
-    const pullRequestGenerator = this.github.pullRequestIterator(
+    const pullRequestGenerator = this.scm.pullRequestIterator(
       this.targetBranch,
       'MERGED',
       200
@@ -999,7 +984,7 @@ export class Manifest {
    * comment on the pull request used to generated it and update the pull request
    * labels.
    *
-   * @returns {GitHubRelease[]} List of created GitHub releases
+   * @returns {ScmRelease[]} List of created GitHub releases
    */
   async createReleases(): Promise<(CreatedRelease | undefined)[]> {
     const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
@@ -1068,8 +1053,8 @@ export class Manifest {
         // we've either tagged all releases or they were duplicates:
         // adjust tags on pullRequest
         await Promise.all([
-          this.github.removeIssueLabels(this.labels, pullRequest.number),
-          this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
+          this.scm.removeIssueLabels(this.labels, pullRequest.number),
+          this.scm.addIssueLabels(this.releaseLabels, pullRequest.number),
         ]);
       }
       if (githubReleases.length === 0) {
@@ -1079,8 +1064,8 @@ export class Manifest {
     } else {
       // adjust tags on pullRequest
       await Promise.all([
-        this.github.removeIssueLabels(this.labels, pullRequest.number),
-        this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
+        this.scm.removeIssueLabels(this.labels, pullRequest.number),
+        this.scm.addIssueLabels(this.releaseLabels, pullRequest.number),
       ]);
     }
 
@@ -1090,14 +1075,14 @@ export class Manifest {
   private async createRelease(
     release: CandidateRelease
   ): Promise<CreatedRelease> {
-    const githubRelease = await this.github.createRelease(release, {
+    const githubRelease = await this.scm.createRelease(release, {
       draft: release.draft,
       prerelease: release.prerelease,
     });
 
     // comment on pull request
     const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
-    await this.github.commentOnIssue(comment, release.pullRequest.number);
+    await this.scm.commentOnIssue(comment, release.pullRequest.number);
 
     return {
       ...githubRelease,
@@ -1118,7 +1103,7 @@ export class Manifest {
         logger.debug(`${path}: ${config.releaseType}`);
         const strategy = await buildStrategy({
           ...config,
-          github: this.github,
+          scm: this.scm,
           path,
           targetBranch: this.targetBranch,
         });
@@ -1196,13 +1181,13 @@ function extractReleaserConfig(
  * @param {string} releaseAs Optional. Override release-as and use the given version
  */
 async function parseConfig(
-  github: GitHub,
+  scm: Scm,
   configFile: string,
   branch: string,
   onlyPath?: string,
   releaseAs?: string
 ): Promise<{config: RepositoryConfig; options: ManifestOptions}> {
-  const config = await fetchManifestConfig(github, configFile, branch);
+  const config = await fetchManifestConfig(scm, configFile, branch);
   const defaultConfig = extractReleaserConfig(config);
   const repositoryConfig: RepositoryConfig = {};
   for (const path in config.packages) {
@@ -1245,24 +1230,24 @@ async function parseConfig(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchManifestConfig(
-  github: GitHub,
+  scm: Scm,
   configFile: string,
   branch: string
 ): Promise<ManifestConfig> {
   try {
-    return await github.getFileJson<ManifestConfig>(configFile, branch);
+    return await scm.getFileJson<ManifestConfig>(configFile, branch);
   } catch (e) {
     if (e instanceof FileNotFoundError) {
       throw new ConfigurationError(
         `Missing required manifest config: ${configFile}`,
         'base',
-        `${github.repository.owner}/${github.repository.repo}`
+        `${scm.repository.owner}/${scm.repository.repo}`
       );
     } else if (e instanceof SyntaxError) {
       throw new ConfigurationError(
         `Failed to parse manifest config JSON: ${configFile}\n${e.message}`,
         'base',
-        `${github.repository.owner}/${github.repository.repo}`
+        `${scm.repository.owner}/${scm.repository.repo}`
       );
     }
     throw e;
@@ -1278,15 +1263,11 @@ async function fetchManifestConfig(
  * @returns {Record<string, string>}
  */
 async function parseReleasedVersions(
-  github: GitHub,
+  scm: Scm,
   manifestFile: string,
   branch: string
 ): Promise<ReleasedVersions> {
-  const manifestJson = await fetchReleasedVersions(
-    github,
-    manifestFile,
-    branch
-  );
+  const manifestJson = await fetchReleasedVersions(scm, manifestFile, branch);
   const releasedVersions: ReleasedVersions = {};
   for (const path in manifestJson) {
     releasedVersions[path] = Version.parse(manifestJson[path]);
@@ -1303,27 +1284,24 @@ async function parseReleasedVersions(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchReleasedVersions(
-  github: GitHub,
+  scm: Scm,
   manifestFile: string,
   branch: string
 ): Promise<Record<string, string>> {
   try {
-    return await github.getFileJson<Record<string, string>>(
-      manifestFile,
-      branch
-    );
+    return await scm.getFileJson<Record<string, string>>(manifestFile, branch);
   } catch (e) {
     if (e instanceof FileNotFoundError) {
       throw new ConfigurationError(
         `Missing required manifest versions: ${manifestFile}`,
         'base',
-        `${github.repository.owner}/${github.repository.repo}`
+        `${scm.repository.owner}/${scm.repository.repo}`
       );
     } else if (e instanceof SyntaxError) {
       throw new ConfigurationError(
         `Failed to parse manifest versions JSON: ${manifestFile}\n${e.message}`,
         'base',
-        `${github.repository.owner}/${github.repository.repo}`
+        `${scm.repository.owner}/${scm.repository.repo}`
       );
     }
     throw e;
@@ -1347,7 +1325,7 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
-  github: GitHub,
+  scm: Scm,
   targetBranch: string,
   releaseFilter: (version: Version) => boolean,
   config: ReleaserConfig,
@@ -1371,7 +1349,7 @@ async function latestReleaseVersion(
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
-  const generator = github.mergeCommitIterator(targetBranch, {maxResults: 250});
+  const generator = scm.mergeCommitIterator(targetBranch, {maxResults: 250});
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
@@ -1410,7 +1388,7 @@ async function latestReleaseVersion(
 
   // If not found from recent pull requests, look at releases. Iterate
   // through releases finding valid tags, then cross reference
-  const releaseGenerator = github.releaseIterator();
+  const releaseGenerator = scm.releaseIterator();
   for await (const release of releaseGenerator) {
     const tagName = TagName.parse(release.tagName);
     if (!tagName) {
@@ -1440,7 +1418,7 @@ async function latestReleaseVersion(
 
   // If not found from recent pull requests or releases, look at tags. Iterate
   // through tags and cross reference against SHAs in this branch
-  const tagGenerator = github.tagIterator();
+  const tagGenerator = scm.tagIterator();
   const candidateTagVersion: Version[] = [];
   for await (const tag of tagGenerator) {
     const tagName = TagName.parse(tag.name);

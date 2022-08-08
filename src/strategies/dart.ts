@@ -19,11 +19,11 @@ import * as yaml from 'js-yaml';
 // pubspec
 import {PubspecYaml} from '../updaters/dart/pubspec-yaml';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 import {Update} from '../update';
 
 export class Dart extends BaseStrategy {
-  private pubspecYmlContents?: GitHubFileContents;
+  private pubspecYmlContents?: FileContents;
 
   protected async buildUpdates(
     options: BuildUpdatesOptions
@@ -62,9 +62,9 @@ export class Dart extends BaseStrategy {
     }
   }
 
-  private async getPubspecYmlContents(): Promise<GitHubFileContents> {
+  private async getPubspecYmlContents(): Promise<FileContents> {
     if (!this.pubspecYmlContents) {
-      this.pubspecYmlContents = await this.github.getFileContentsOnBranch(
+      this.pubspecYmlContents = await this.scm.getFileContentsOnBranch(
         this.addPath('pubspec.yaml'),
         this.targetBranch
       );

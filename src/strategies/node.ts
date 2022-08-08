@@ -18,10 +18,10 @@ import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../updaters/node/samples-package-json';
 import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
-import {GitHubFileContents} from '../util/file-cache';
+import {FileContents} from '../scm';
 
 export class Node extends BaseStrategy {
-  private pkgJsonContents?: GitHubFileContents;
+  private pkgJsonContents?: FileContents;
 
   protected async buildUpdates(
     options: BuildUpdatesOptions
@@ -83,9 +83,9 @@ export class Node extends BaseStrategy {
     return component.match(/^@[\w-]+\//) ? component.split('/')[1] : component;
   }
 
-  private async getPkgJsonContents(): Promise<GitHubFileContents> {
+  private async getPkgJsonContents(): Promise<FileContents> {
     if (!this.pkgJsonContents) {
-      this.pkgJsonContents = await this.github.getFileContentsOnBranch(
+      this.pkgJsonContents = await this.scm.getFileContentsOnBranch(
         this.addPath('package.json'),
         this.targetBranch
       );

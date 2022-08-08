@@ -13,7 +13,7 @@
 // limitations under the License.
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Merge} from '../../src/plugins/merge';
 import {CandidateReleasePullRequest} from '../../src/manifest';
 import {expect} from 'chai';
@@ -25,13 +25,14 @@ import {
 import snapshot = require('snap-shot-it');
 import {RawContent} from '../../src/updaters/raw-content';
 import {CompositeUpdater} from '../../src/updaters/composite';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
 describe('Merge plugin', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'node-test-repo',
       defaultBranch: 'main',
@@ -43,7 +44,7 @@ describe('Merge plugin', () => {
   describe('run', () => {
     it('ignores no pull requests', async () => {
       const candidates: CandidateReleasePullRequest[] = [];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(scm, 'main', {});
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(0);
     });
@@ -52,7 +53,7 @@ describe('Merge plugin', () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(scm, 'main', {});
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       expect(newCandidates[0].pullRequest.title.toString()).to.eql(
@@ -88,7 +89,7 @@ describe('Merge plugin', () => {
           },
         ]),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(scm, 'main', {});
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const candidate = newCandidates[0];
@@ -137,7 +138,7 @@ describe('Merge plugin', () => {
           true
         ),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(scm, 'main', {});
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const candidate = newCandidates[0];
@@ -189,7 +190,7 @@ describe('Merge plugin', () => {
           ['label-a', 'label-c']
         ),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(scm, 'main', {});
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const candidate = newCandidates[0]!;

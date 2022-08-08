@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {RubyYoshi} from '../../src/strategies/ruby-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, safeSnapshot} from '../helpers';
@@ -23,6 +23,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {VersionRB} from '../../src/updaters/ruby/version-rb';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
@@ -39,9 +40,9 @@ const COMMITS = [
 ];
 
 describe('RubyYoshi', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'ruby-test-repo',
       defaultBranch: 'main',
@@ -55,7 +56,7 @@ describe('RubyYoshi', () => {
       const expectedVersion = '1.0.0';
       const strategy = new RubyYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -69,7 +70,7 @@ describe('RubyYoshi', () => {
       const expectedVersion = '0.123.5';
       const strategy = new RubyYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = {
@@ -89,7 +90,7 @@ describe('RubyYoshi', () => {
     it('builds common files', async () => {
       const strategy = new RubyYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -105,7 +106,7 @@ describe('RubyYoshi', () => {
     it('does not add summary to changelog', async () => {
       const strategy = new RubyYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = {
@@ -127,7 +128,7 @@ describe('RubyYoshi', () => {
     it('allows overriding version file', async () => {
       const strategy = new RubyYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         versionFile: 'lib/foo/version.rb',
       });

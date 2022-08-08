@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {Ruby} from '../../src/strategies/ruby';
 import * as sinon from 'sinon';
 import {assertHasUpdate} from '../helpers';
@@ -24,6 +24,7 @@ import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {VersionRB} from '../../src/updaters/ruby/version-rb';
 import {PullRequestBody} from '../../src/util/pull-request-body';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 
@@ -38,9 +39,9 @@ const COMMITS = [
 ];
 
 describe('Ruby', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'ruby-test-repo',
       defaultBranch: 'main',
@@ -54,7 +55,7 @@ describe('Ruby', () => {
       const expectedVersion = '1.0.0';
       const strategy = new Ruby({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -68,7 +69,7 @@ describe('Ruby', () => {
       const expectedVersion = '0.123.5';
       const strategy = new Ruby({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = {
@@ -87,7 +88,7 @@ describe('Ruby', () => {
     it('builds common files', async () => {
       const strategy = new Ruby({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
@@ -103,7 +104,7 @@ describe('Ruby', () => {
     it('allows overriding version file', async () => {
       const strategy = new Ruby({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
         versionFile: 'lib/foo/version.rb',
       });
@@ -124,7 +125,7 @@ describe('Ruby', () => {
     it('overrides the tag separator', async () => {
       const strategy = new Ruby({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'google-cloud-automl',
       });
       const release = await strategy.buildRelease({

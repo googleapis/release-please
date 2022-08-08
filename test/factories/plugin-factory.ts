@@ -24,11 +24,12 @@ import {expect} from 'chai';
 import {LinkedVersions} from '../../src/plugins/linked-versions';
 import {ManifestPlugin} from '../../src/plugin';
 import {GitHub} from '../../src';
+import {Scm} from '../../src/scm';
 
 describe('PluginFactory', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'fake-owner',
       repo: 'fake-repo',
       defaultBranch: 'main',
@@ -46,7 +47,7 @@ describe('PluginFactory', () => {
     for (const pluginType of simplePluginTypes) {
       it(`should build a simple ${pluginType}`, () => {
         const plugin = buildPlugin({
-          github,
+          scm,
           type: pluginType,
           targetBranch: 'target-branch',
           repositoryConfig,
@@ -58,7 +59,7 @@ describe('PluginFactory', () => {
     it('should throw for unknown type', () => {
       expect(() =>
         buildPlugin({
-          github,
+          scm,
           type: 'non-existent',
           targetBranch: 'target-branch',
           repositoryConfig,
@@ -68,7 +69,7 @@ describe('PluginFactory', () => {
     });
     it('should build a linked-versions config', () => {
       const plugin = buildPlugin({
-        github,
+        scm,
         type: {
           type: 'linked-versions',
           groupName: 'group-name',
@@ -108,7 +109,7 @@ describe('PluginFactory', () => {
         pluginType,
         options =>
           new CustomTest(
-            options.github,
+            options.scm,
             options.targetBranch,
             options.repositoryConfig
           )
@@ -116,7 +117,7 @@ describe('PluginFactory', () => {
 
       const pluginOptions = {
         type: pluginType,
-        github,
+        scm,
         repositoryConfig: {},
         targetBranch: 'main',
         manifestPath: '.manifest.json',
@@ -129,7 +130,7 @@ describe('PluginFactory', () => {
         pluginType,
         options =>
           new CustomTest(
-            options.github,
+            options.scm,
             options.targetBranch,
             options.repositoryConfig
           )

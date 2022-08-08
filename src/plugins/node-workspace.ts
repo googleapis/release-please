@@ -17,7 +17,6 @@ import {
   Package as LernaPackage,
   RawManifest as PackageJson,
 } from '@lerna/package';
-import {GitHub} from '../github';
 import {logger} from '../util/logger';
 import {
   CandidateReleasePullRequest,
@@ -41,6 +40,7 @@ import {
   addPath,
 } from './workspace';
 import {PatchVersionUpdate} from '../versioning-strategy';
+import {Scm} from '../scm';
 
 class Package extends LernaPackage {
   constructor(
@@ -71,12 +71,12 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
   private packageGraph?: PackageGraph;
   constructor(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     options: NodeWorkspaceOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
+    super(scm, targetBranch, repositoryConfig, options);
     this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
   }
   protected async buildAllPackages(
@@ -114,7 +114,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           packagesByPath.set(candidate.path, pkg);
           candidatesByPackage[pkg.name] = candidate;
         } else {
-          const contents = await this.github.getFileContentsOnBranch(
+          const contents = await this.scm.getFileContentsOnBranch(
             packagePath,
             this.targetBranch
           );
@@ -127,7 +127,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         logger.debug(
           `No candidate pull request for path: ${path} - inspect package from ${packagePath}`
         );
-        const contents = await this.github.getFileContentsOnBranch(
+        const contents = await this.scm.getFileContentsOnBranch(
           packagePath,
           this.targetBranch
         );

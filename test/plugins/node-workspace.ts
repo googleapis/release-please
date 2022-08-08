@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {NodeWorkspace} from '../../src/plugins/node-workspace';
 import {CandidateReleasePullRequest} from '../../src/manifest';
 import {expect} from 'chai';
@@ -35,6 +35,7 @@ import snapshot = require('snap-shot-it');
 import {ManifestPlugin} from '../../src/plugin';
 import {Changelog} from '../../src/updaters/changelog';
 import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -81,15 +82,15 @@ function assertHasVersionUpdate(update: Update, expectedVersion: string) {
 }
 
 describe('NodeWorkspace plugin', () => {
-  let github: GitHub;
+  let scm: Scm;
   let plugin: ManifestPlugin;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'node-test-repo',
       defaultBranch: 'main',
     });
-    plugin = new NodeWorkspace(github, 'main', {
+    plugin = new NodeWorkspace(scm, 'main', {
       node1: {
         releaseType: 'node',
       },
@@ -122,7 +123,7 @@ describe('NodeWorkspace plugin', () => {
           buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
         ]),
       ];
-      plugin = new NodeWorkspace(github, 'main', {
+      plugin = new NodeWorkspace(scm, 'main', {
         python: {
           releaseType: 'python',
         },
@@ -149,7 +150,7 @@ describe('NodeWorkspace plugin', () => {
           buildMockPackageUpdate('node4/package.json', 'node4/package.json'),
         ]),
       ];
-      plugin = new NodeWorkspace(github, 'main', {
+      plugin = new NodeWorkspace(scm, 'main', {
         node1: {
           releaseType: 'node',
         },
@@ -179,7 +180,7 @@ describe('NodeWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'node1/package.json',
@@ -252,7 +253,7 @@ describe('NodeWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'node1/package.json',
@@ -299,13 +300,13 @@ describe('NodeWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: ['node1/package.json', 'plugin1/package.json'],
         flatten: false,
         targetBranch: 'main',
       });
-      plugin = new NodeWorkspace(github, 'main', {
+      plugin = new NodeWorkspace(scm, 'main', {
         node1: {
           releaseType: 'node',
         },

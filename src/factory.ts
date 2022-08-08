@@ -30,7 +30,6 @@ import {Helm} from './strategies/helm';
 import {Elixir} from './strategies/elixir';
 import {Dart} from './strategies/dart';
 import {Node} from './strategies/node';
-import {GitHub} from './github';
 import {ReleaserConfig} from './manifest';
 import {AlwaysBumpPatch} from './versioning-strategies/always-bump-patch';
 import {ServicePackVersioningStrategy} from './versioning-strategies/service-pack';
@@ -42,6 +41,7 @@ import {Maven} from './strategies/maven';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
 import {ConfigurationError} from './errors';
+import {Scm} from './scm';
 
 export * from './factories/changelog-notes-factory';
 export * from './factories/plugin-factory';
@@ -56,7 +56,7 @@ export type ReleaseType = string;
 export type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 
 export interface StrategyFactoryOptions extends ReleaserConfig {
-  github: GitHub;
+  scm: Scm;
   path?: string;
   targetBranch?: string;
 }
@@ -106,16 +106,16 @@ export async function buildStrategy(
   options: StrategyFactoryOptions
 ): Promise<Strategy> {
   const targetBranch =
-    options.targetBranch ?? options.github.repository.defaultBranch;
+    options.targetBranch ?? options.scm.repository.defaultBranch;
   const versioningStrategy = buildVersioningStrategy({
-    github: options.github,
+    scm: options.scm,
     type: options.versioning,
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
   });
   const changelogNotes = buildChangelogNotes({
     type: options.changelogType || 'default',
-    github: options.github,
+    scm: options.scm,
     changelogSections: options.changelogSections,
   });
   const strategyOptions: BaseStrategyOptions = {
@@ -133,7 +133,7 @@ export async function buildStrategy(
   throw new ConfigurationError(
     `Unknown release type: ${options.releaseType}`,
     'core',
-    `${options.github.repository.owner}/${options.github.repository.repo}`
+    `${options.scm.repository.owner}/${options.scm.repository.repo}`
   );
 }
 

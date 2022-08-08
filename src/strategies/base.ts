@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {Strategy} from '../strategy';
-import {GitHub} from '../github';
 import {VersioningStrategy} from '../versioning-strategy';
 import {Repository} from '../repository';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
@@ -41,6 +40,7 @@ import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
+import {Scm} from '../scm';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -54,7 +54,7 @@ export interface BaseStrategyOptions {
   path?: string;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
-  github: GitHub;
+  scm: Scm;
   component?: string;
   packageName?: string;
   versioningStrategy?: VersioningStrategy;
@@ -84,7 +84,7 @@ export interface BaseStrategyOptions {
  */
 export abstract class BaseStrategy implements Strategy {
   readonly path: string;
-  protected github: GitHub;
+  protected scm: Scm;
   protected component?: string;
   private packageName?: string;
   readonly versioningStrategy: VersioningStrategy;
@@ -107,14 +107,14 @@ export abstract class BaseStrategy implements Strategy {
 
   constructor(options: BaseStrategyOptions) {
     this.path = options.path || ROOT_PROJECT_PATH;
-    this.github = options.github;
+    this.scm = options.scm;
     this.packageName = options.packageName;
     this.component =
       options.component || this.normalizeComponent(this.packageName);
     this.versioningStrategy =
       options.versioningStrategy || new DefaultVersioningStrategy({});
     this.targetBranch = options.targetBranch;
-    this.repository = options.github.repository;
+    this.repository = options.scm.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
     this.changelogHost = options.changelogHost;
     this.changelogSections = options.changelogSections;

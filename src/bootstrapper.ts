@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from './github';
 import {
   DEFAULT_RELEASE_PLEASE_MANIFEST,
   DEFAULT_RELEASE_PLEASE_CONFIG,
@@ -24,21 +23,22 @@ import {Version, VersionsMap} from './version';
 import {Update} from './update';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {ReleasePleaseConfig} from './updaters/release-please-config';
+import {Scm} from './scm';
 
 export class Bootstrapper {
-  private github: GitHub;
+  private scm: Scm;
   private targetBranch: string;
   private manifestFile: string;
   private configFile: string;
   private initialVersion: Version;
   constructor(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
     configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,
     initialVersionString = '0.0.0'
   ) {
-    this.github = github;
+    this.scm = scm;
     this.targetBranch = targetBranch;
     this.manifestFile = manifestFile;
     this.configFile = configFile;
@@ -72,7 +72,7 @@ export class Bootstrapper {
         updater: new ReleasePleaseConfig(path, config),
       },
     ];
-    return await this.github.createPullRequest(
+    return await this.scm.createPullRequest(
       pullRequest,
       this.targetBranch,
       message,

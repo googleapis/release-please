@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import {GitHub} from '../../src/github';
+import {GitHub} from '../../src/scms/github';
 import {DotnetYoshi} from '../../src/strategies/dotnet-yoshi';
 import * as sinon from 'sinon';
 import {
@@ -28,6 +28,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Changelog} from '../../src/updaters/changelog';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Apis} from '../../src/updaters/dotnet/apis';
+import {Scm} from '../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/dotnet-yoshi';
@@ -43,9 +44,9 @@ const COMMITS = [
 ];
 
 describe('DotnetYoshi', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'googleapis',
       repo: 'google-cloud-dotnet',
       defaultBranch: 'main',
@@ -57,7 +58,7 @@ describe('DotnetYoshi', () => {
   describe('buildReleasePullRequest', () => {
     beforeEach(() => {
       sandbox
-        .stub(github, 'getFileContentsOnBranch')
+        .stub(scm, 'getFileContentsOnBranch')
         .withArgs('apis/apis.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
     });
@@ -67,7 +68,7 @@ describe('DotnetYoshi', () => {
         'Release Google.Cloud.SecurityCenter.V1 version 1.0.0';
       const strategy = new DotnetYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'Google.Cloud.SecurityCenter.V1',
       });
       const latestRelease = undefined;
@@ -85,7 +86,7 @@ describe('DotnetYoshi', () => {
         'Release Google.Cloud.SecurityCenter.V1 version 0.123.5';
       const strategy = new DotnetYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         component: 'Google.Cloud.SecurityCenter.V1',
       });
       const latestRelease = {
@@ -106,12 +107,12 @@ describe('DotnetYoshi', () => {
     it('builds common files', async () => {
       const strategy = new DotnetYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         path: 'apis/Google.Cloud.SecurityCenter.V1',
         component: 'Google.Cloud.SecurityCenter.V1',
       });
       sandbox
-        .stub(github, 'getFileContentsOnBranch')
+        .stub(scm, 'getFileContentsOnBranch')
         .withArgs('apis/apis.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
       const latestRelease = undefined;
@@ -132,12 +133,12 @@ describe('DotnetYoshi', () => {
     it('skips changelog for configured libraries', async () => {
       const strategy = new DotnetYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         path: 'apis/Google.Cloud.Spanner.Admin.Database.V1',
         component: 'Google.Cloud.Spanner.Admin.Database.V1',
       });
       sandbox
-        .stub(github, 'getFileContentsOnBranch')
+        .stub(scm, 'getFileContentsOnBranch')
         .withArgs('apis/apis.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
       const latestRelease = undefined;
@@ -159,7 +160,7 @@ describe('DotnetYoshi', () => {
       const expectedReleaseTag = 'Google.Cloud.SecurityCenter.V1-0.123.5';
       const strategy = new DotnetYoshi({
         targetBranch: 'main',
-        github,
+        scm,
         path: 'apis/Google.Cloud.SecurityCenter.V1',
         component: 'Google.Cloud.SecurityCenter.V1',
       });

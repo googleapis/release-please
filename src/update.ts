@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from './util/file-cache';
+import {FileContents} from './scm';
 
 /**
  * An update is a collection of data that represents changes to
@@ -20,7 +20,7 @@ import {GitHubFileContents} from './util/file-cache';
  */
 export interface Update {
   // If provided, skip looking up the file
-  cachedFileContents?: GitHubFileContents;
+  cachedFileContents?: FileContents;
 
   // Whether or not we should create the file if it is missing.
   // Defaults to `true`.

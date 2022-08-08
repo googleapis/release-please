@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from './github';
 import {CandidateReleasePullRequest, RepositoryConfig} from './manifest';
 import {Strategy} from './strategy';
 import {Commit} from './commit';
 import {Release} from './release';
+import {Scm} from './scm';
 
 /**
  * A plugin runs after a repository manifest has built candidate
@@ -25,15 +25,15 @@ import {Release} from './release';
  * or update existing files.
  */
 export abstract class ManifestPlugin {
-  readonly github: GitHub;
+  readonly scm: Scm;
   readonly targetBranch: string;
   readonly repositoryConfig: RepositoryConfig;
   constructor(
-    github: GitHub,
+    scm: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig
   ) {
-    this.github = github;
+    this.scm = scm;
     this.targetBranch = targetBranch;
     this.repositoryConfig = repositoryConfig;
   }
