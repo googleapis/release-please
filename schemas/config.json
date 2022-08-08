@@ -171,6 +171,10 @@
         "snapshot-label": {
           "description": "Label to add to snapshot pull request. Used by `java` strategies.",
           "type": "string"
+        },
+        "skip-snapshot": {
+          "description": "If set, do not propose snapshot pull requests. Used by `java` strategies.",
+          "type": "boolean"
         }
       }
     }
