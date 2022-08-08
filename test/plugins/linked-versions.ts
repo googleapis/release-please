@@ -222,4 +222,44 @@ describe('LinkedVersions plugin', () => {
     expect(packageData2?.version).to.eql(packageData3?.version);
     safeSnapshot(pullRequest.body.toString());
   });
+  it('can skip grouping pull requests', async () => {
+    const manifest = new Manifest(
+      github,
+      'target-branch',
+      {
+        'path/a': {
+          releaseType: 'simple',
+          component: 'pkg1',
+        },
+        'path/b': {
+          releaseType: 'simple',
+          component: 'pkg2',
+        },
+        'path/c': {
+          releaseType: 'simple',
+          component: 'pkg3',
+        },
+      },
+      {
+        'path/a': Version.parse('1.0.0'),
+        'path/b': Version.parse('0.2.3'),
+        'path/c': Version.parse('0.2.3'),
+      },
+      {
+        separatePullRequests: true,
+        plugins: [
+          {
+            type: 'linked-versions',
+            groupName: 'group name',
+            components: ['pkg2', 'pkg3'],
+            merge: false,
+          },
+        ],
+      }
+    );
+    const pullRequests = await manifest.buildPullRequests();
+    for (const pullRequest of pullRequests) {
+      safeSnapshot(pullRequest.body.toString());
+    }
+  });
 });

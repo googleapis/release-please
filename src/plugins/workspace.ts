@@ -34,6 +34,7 @@ export interface DependencyNode<T> {
 export interface WorkspacePluginOptions {
   manifestPath?: string;
   updateAllPackages?: boolean;
+  merge?: boolean;
 }
 
 export interface AllPackages<T> {
@@ -55,6 +56,7 @@ export interface AllPackages<T> {
 export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
   private manifestPath: string;
+  private merge: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -64,6 +66,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     super(github, targetBranch, repositoryConfig);
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
+    this.merge = options.merge ?? true;
   }
   async run(
     candidates: CandidateReleasePullRequest[]
@@ -151,27 +154,25 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       }
     }
 
-    logger.info(`Merging ${newCandidates.length} in-scope candidates`);
-    const mergePlugin = new Merge(
-      this.github,
-      this.targetBranch,
-      this.repositoryConfig
-    );
-    newCandidates = await mergePlugin.run(newCandidates);
-
-    if (newCandidates.length === 1) {
-      const newUpdates = newCandidates[0].pullRequest.updates;
-      newUpdates.push({
-        path: this.manifestPath,
-        createIfMissing: false,
-        updater: new ReleasePleaseManifest({
-          version: newCandidates[0].pullRequest.version!,
-          versionsMap: updatedPathVersions,
-        }),
-      });
-    } else {
-      logger.warn(`Expected 1 merged candidate, got ${newCandidates.length}`);
+    if (this.merge) {
+      logger.info(`Merging ${newCandidates.length} in-scope candidates`);
+      const mergePlugin = new Merge(
+        this.github,
+        this.targetBranch,
+        this.repositoryConfig
+      );
+      newCandidates = await mergePlugin.run(newCandidates);
     }
+
+    const newUpdates = newCandidates[0].pullRequest.updates;
+    newUpdates.push({
+      path: this.manifestPath,
+      createIfMissing: false,
+      updater: new ReleasePleaseManifest({
+        version: newCandidates[0].pullRequest.version!,
+        versionsMap: updatedPathVersions,
+      }),
+    });
 
     logger.info(`Post-processing ${newCandidates.length} in-scope candidates`);
     newCandidates = this.postProcessCandidates(newCandidates, updatedVersions);

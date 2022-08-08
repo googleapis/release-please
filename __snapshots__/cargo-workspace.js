@@ -31,6 +31,58 @@ Release notes for path: packages/rustA, releaseType: rust
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['CargoWorkspace plugin run can skip merging rust packages 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+Release notes for path: packages/rustA, releaseType: rust
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['CargoWorkspace plugin run can skip merging rust packages 2'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgA bumped from 1.1.1 to 1.1.2
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['CargoWorkspace plugin run can skip merging rust packages 3'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgB bumped from 2.2.2 to 2.2.3
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['CargoWorkspace plugin run can skip merging rust packages 4'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+Release notes for path: packages/rustD, releaseType: rust
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['CargoWorkspace plugin run combines rust packages 1'] = `
 :robot: I have created a release *beep* *boop*
 ---

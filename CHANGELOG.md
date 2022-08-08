@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.19.9](https://github.com/googleapis/release-please/compare/v13.19.8...v13.19.9) (2022-08-08)
+
+
+### Bug Fixes
+
+* php root-composer-update-packages version replace ([#1553](https://github.com/googleapis/release-please/issues/1553)) ([41127e6](https://github.com/googleapis/release-please/commit/41127e688597a0af6502957d85ba8cd6214e9008))
+
 ## [13.19.8](https://github.com/googleapis/release-please/compare/v13.19.7...v13.19.8) (2022-08-03)
 
 

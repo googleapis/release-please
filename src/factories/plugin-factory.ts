@@ -78,7 +78,10 @@ export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
   if (typeof options.type === 'object') {
     const builder = pluginFactories[options.type.type];
     if (builder) {
-      return builder(options);
+      return builder({
+        ...options.type,
+        ...options,
+      });
     }
     throw new ConfigurationError(
       `Unknown plugin type: ${options.type.type}`,
