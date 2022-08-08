@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.20.0](https://github.com/googleapis/release-please/compare/v13.19.9...v13.20.0) (2022-08-08)
+
+
+### Features
+
+* allow plugins to skip merging in-scope pull requests ([#1550](https://github.com/googleapis/release-please/issues/1550)) ([354b1dc](https://github.com/googleapis/release-please/commit/354b1dc89c468e44b59507b4bb2f15d6723110ed))
+* allow skipping snapshots for java strategies ([#1555](https://github.com/googleapis/release-please/issues/1555)) ([3430693](https://github.com/googleapis/release-please/commit/34306932e5fe21c89020b184a527c220d10c8390))
+
 ## [13.19.9](https://github.com/googleapis/release-please/compare/v13.19.8...v13.19.9) (2022-08-08)
 
 
