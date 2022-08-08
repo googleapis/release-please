@@ -228,9 +228,32 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "merge": {
+                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+                    "type": "boolean"
                   }
                 },
                 "required": ["type", "groupName", "components"]
+              },
+              {
+                "description": "Configuration for various `workspace` plugins.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": ["cargo-workspace", "maven-workspace", "node-workspace"]
+                  },
+                  "updateAllPackages": {
+                    "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
+                    "type": "boolean"
+                  },
+                  "merge": {
+                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+                    "type": "boolean"
+                  }
+                }
               },
               {
                 "description": "Other plugins",

@@ -180,11 +180,16 @@ export interface LinkedVersionPluginConfig extends ConfigurablePluginType {
   type: 'linked-versions';
   groupName: string;
   components: string[];
+  merge?: boolean;
+}
+export interface WorkspacePluginConfig extends ConfigurablePluginType {
+  merge?: boolean;
 }
 export type PluginType =
   | DirectPluginType
   | ConfigurablePluginType
-  | LinkedVersionPluginConfig;
+  | LinkedVersionPluginConfig
+  | WorkspacePluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -691,6 +696,7 @@ export class Manifest {
     }
 
     for (const plugin of plugins) {
+      logger.debug(`running plugin: ${plugin.constructor.name}`);
       newReleasePullRequests = await plugin.run(newReleasePullRequests);
     }
 
