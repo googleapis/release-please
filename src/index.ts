@@ -53,6 +53,7 @@ export {
   ChangelogSection,
 } from './changelog-notes';
 export {Logger, setLogger} from './util/logger';
+export {Scm} from './scm';
 export {GitHub} from './scms/github';
 export const configSchema = require('../../schemas/config.json');
 export const manifestSchema = require('../../schemas/manifest.json');
