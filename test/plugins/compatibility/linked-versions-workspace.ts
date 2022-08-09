@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
-import {GitHub} from '../../../src/github';
+import {GitHub} from '../../../src/scms/github';
 import {Manifest} from '../../../src/manifest';
 import {Update} from '../../../src/update';
 import {
@@ -33,6 +33,7 @@ import {expect} from 'chai';
 import {Changelog} from '../../../src/updaters/changelog';
 import {ReleasePleaseManifest} from '../../../src/updaters/release-please-manifest';
 import {CompositeUpdater} from '../../../src/updaters/composite';
+import {Scm} from '../../../src/scm';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/cargo-workspace';
@@ -54,9 +55,9 @@ export function buildMockPackageUpdate(
 }
 
 describe('Plugin compatibility', () => {
-  let github: GitHub;
+  let scm: Scm;
   beforeEach(async () => {
-    github = await GitHub.create({
+    scm = await GitHub.create({
       owner: 'fake-owner',
       repo: 'fake-repo',
       defaultBranch: 'main',
@@ -72,7 +73,7 @@ describe('Plugin compatibility', () => {
       //   - package a receives a new feature
       //   - package b version bumps its dependency on a
       //   - package a and b should both use a minor version bump
-      mockReleases(sandbox, github, [
+      mockReleases(sandbox, scm, [
         {
           sha: 'abc123',
           tagName: 'pkgA-v1.0.0',
@@ -84,7 +85,7 @@ describe('Plugin compatibility', () => {
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkgB-v1.0.0',
         },
       ]);
-      mockCommits(sandbox, github, [
+      mockCommits(sandbox, scm, [
         {
           sha: 'aaaaaa',
           message: 'feat: some feature',
@@ -108,7 +109,7 @@ describe('Plugin compatibility', () => {
       ]);
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [],
         flatten: false,
@@ -129,7 +130,7 @@ describe('Plugin compatibility', () => {
         ],
       });
       const manifest = new Manifest(
-        github,
+        scm,
         'main',
         {
           'packages/rustA': {

@@ -279,7 +279,7 @@ describe('CargoWorkspace plugin', () => {
       ];
       stubFilesFromFixtures({
         sandbox,
-        github,
+        scm,
         fixturePath: fixturesPath,
         files: [
           'Cargo.toml',
@@ -292,7 +292,7 @@ describe('CargoWorkspace plugin', () => {
         targetBranch: 'main',
       });
       plugin = new CargoWorkspace(
-        github,
+        scm,
         'main',
         {
           'packages/rustA': {

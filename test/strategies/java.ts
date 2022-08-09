@@ -136,7 +136,7 @@ describe('Java', () => {
       it('skips a snapshot bump PR', async () => {
         const strategy = new Java({
           targetBranch: 'main',
-          github,
+          scm,
           skipSnapshot: true,
         });
 

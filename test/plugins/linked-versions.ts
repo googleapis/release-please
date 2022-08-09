@@ -225,7 +225,7 @@ describe('LinkedVersions plugin', () => {
   });
   it('can skip grouping pull requests', async () => {
     const manifest = new Manifest(
-      github,
+      scm,
       'target-branch',
       {
         'path/a': {

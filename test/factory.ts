@@ -200,7 +200,7 @@ describe('factory', () => {
     });
     it('should handle skipping snapshots', async () => {
       const strategy = await buildStrategy({
-        github,
+        scm,
         releaseType: 'java',
         bumpMinorPreMajor: true,
         bumpPatchForMinorPreMajor: true,
