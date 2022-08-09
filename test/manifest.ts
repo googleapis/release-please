@@ -2405,13 +2405,13 @@ describe('Manifest', () => {
             releaseType: 'simple',
             component: 'b',
             extraFiles: ['pkg.properties', 'src/version', '/bbb.properties'],
-            skipGithubRelease: true,
+            skipRelease: true,
           },
           'pkg/c': {
             releaseType: 'simple',
             component: 'c',
             extraFiles: ['/pkg/pkg-c.properties', 'ccc.properties'],
-            skipGithubRelease: true,
+            skipRelease: true,
           },
         },
         {
@@ -4208,7 +4208,7 @@ describe('Manifest', () => {
           },
           'packages/object-selector': {
             releaseType: 'node',
-            skipGithubRelease: true,
+            skipRelease: true,
           },
           'packages/datastore-lock': {
             releaseType: 'node',

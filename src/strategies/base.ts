@@ -66,7 +66,7 @@ export interface BaseStrategyOptions {
   headerPartial?: string;
   mainTemplate?: string;
   tagSeparator?: string;
-  skipGitHubRelease?: boolean;
+  skipRelease?: boolean;
   releaseAs?: string;
   changelogNotes?: ChangelogNotes;
   includeComponentInTag?: boolean;
@@ -93,7 +93,7 @@ export abstract class BaseStrategy implements Strategy {
   protected changelogPath: string;
   protected changelogHost?: string;
   protected tagSeparator?: string;
-  private skipGitHubRelease: boolean;
+  private skipRelease: boolean;
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
   protected includeVInTag: boolean;
@@ -119,7 +119,7 @@ export abstract class BaseStrategy implements Strategy {
     this.changelogHost = options.changelogHost;
     this.changelogSections = options.changelogSections;
     this.tagSeparator = options.tagSeparator;
-    this.skipGitHubRelease = options.skipGitHubRelease || false;
+    this.skipRelease = options.skipRelease || false;
     this.releaseAs = options.releaseAs;
     this.changelogNotes =
       options.changelogNotes || new DefaultChangelogNotes(options);
@@ -436,7 +436,7 @@ export abstract class BaseStrategy implements Strategy {
   async buildRelease(
     mergedPullRequest: PullRequest
   ): Promise<Release | undefined> {
-    if (this.skipGitHubRelease) {
+    if (this.skipRelease) {
       logger.info('Release skipped from strategy config');
       return;
     }

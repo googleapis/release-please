@@ -46,8 +46,12 @@
           "description": "[DEPRECATED] Override the next version of this package. Consider using a `Release-As` commit instead.",
           "type": "string"
         },
+        "skip-release": {
+          "description": "Skip tagging releases for this package. Defaults to `false`.",
+          "type": "boolean"
+        },
         "skip-github-release": {
-          "description": "Skip tagging GitHub releases for this package. Defaults to `false`.",
+          "description": "[DEPRECATED] Skip tagging GitHub releases for this package. Defaults to `false`. Use `skip-release` instead.",
           "type": "boolean"
         },
         "draft": {
@@ -307,6 +311,7 @@
     "bump-patch-for-minor-pre-major": true,
     "changelog-sections": true,
     "release-as": true,
+    "skip-release": true,
     "skip-github-release": true,
     "draft": true,
     "prerelease": true,

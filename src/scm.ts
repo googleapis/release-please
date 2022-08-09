@@ -149,7 +149,7 @@ export interface Scm {
    * @param {ReleaseIteratorOptions} options Query options
    * @param {number} options.maxResults Limit the number of results searched.
    *   Defaults to unlimited.
-   * @yields {GitHubRelease}
+   * @yields {ScmRelease}
    * @throws {ScmAPIError} on an API error
    */
   releaseIterator(
@@ -162,7 +162,7 @@ export interface Scm {
    * @param {TagIteratorOptions} options Query options
    * @param {number} options.maxResults Limit the number of results searched.
    *   Defaults to unlimited.
-   * @yields {GitHubTag}
+   * @yields {ScmTag}
    * @throws {ScmAPIError} on an API error
    */
   tagIterator(options?: TagIteratorOptions): AsyncGenerator<ScmTag, void, void>;
@@ -231,7 +231,7 @@ export interface Scm {
    *
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
    * @param {string} targetBranch The base branch of the pull request
-   * @param {GitHubPR} options The pull request options
+   * @param {PullRequest} options The pull request options
    * @throws {ScmAPIError} on an API error
    */
   createReleasePullRequest(
@@ -333,7 +333,7 @@ export interface Scm {
   findFilesByExtension(extension: string, prefix?: string): Promise<string[]>;
 
   /**
-   * Create a GitHub release
+   * Create a release
    *
    * @param {Release} release Release parameters
    * @param {ReleaseOptions} options Release option parameters
@@ -371,11 +371,12 @@ export interface Scm {
   addIssueLabels(labels: string[], number: number): Promise<void>;
 
   /**
-   * Generate release notes from GitHub at tag
+   * Generate release notes from the API at tag
    * @param {string} tagName Name of new release tag
    * @param {string} targetCommitish Target commitish for new tag
    * @param {string} previousTag Optional. Name of previous tag to analyze commits since
-   */ generateReleaseNotes(
+   */
+  generateReleaseNotes(
     tagName: string,
     targetCommitish: string,
     previousTag?: string

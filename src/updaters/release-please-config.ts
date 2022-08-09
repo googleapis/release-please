@@ -55,7 +55,7 @@ function releaserConfigToJsonConfig(
     'bump-patch-for-minor-pre-major': config.bumpPatchForMinorPreMajor,
     'changelog-sections': config.changelogSections,
     'release-as': config.releaseAs,
-    'skip-github-release': config.skipGithubRelease,
+    'skip-release': config.skipRelease,
     draft: config.draft,
     prerelease: config.prerelease,
     'draft-pull-request': config.draftPullRequest,

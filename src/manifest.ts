@@ -80,7 +80,7 @@ export interface ReleaserConfig {
 
   // Strategy options
   releaseAs?: string;
-  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release
+  skipRelease?: boolean;
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
@@ -127,6 +127,7 @@ interface ReleaserConfigJson {
   'bump-patch-for-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
+  'skip-release'?: boolean;
   'skip-github-release'?: boolean;
   draft?: boolean;
   prerelease?: boolean;
@@ -1150,7 +1151,7 @@ function extractReleaserConfig(
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
     releaseAs: config['release-as'],
-    skipGithubRelease: config['skip-github-release'],
+    skipRelease: config['skip-release'] ?? config['skip-github-release'],
     draft: config.draft,
     prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
@@ -1462,8 +1463,7 @@ function mergeReleaserConfig(
     changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
-    skipGithubRelease:
-      pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
+    skipRelease: pathConfig.skipRelease ?? defaultConfig.skipRelease,
     draft: pathConfig.draft ?? defaultConfig.draft,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
     component: pathConfig.component ?? defaultConfig.component,
