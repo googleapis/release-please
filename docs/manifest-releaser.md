@@ -114,9 +114,10 @@ minimal content required defines at least one package:
   }
 }
 ```
-The following example shows all the possibilities. Note: for illustration
-purposes the top level values set here are **NOT** the defaults (those are
-documented in comments)
+The following example shows most of the available options. See the documented
+[JSON schema](/schemas/config.json) for the complete configuration definition.
+Note: for illustration purposes the top level values set here are **NOT** the
+defaults (those are documented in comments)
 ```js
 {
   // if this is the first time running `manifest-pr` on a repo
