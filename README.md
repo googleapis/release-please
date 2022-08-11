@@ -125,7 +125,7 @@ If you think Release Please missed to create a release PR after a pull request
 with with releasable unit has been merged, please re-run `release-please`. If you are using
 the GitHub application, add `release-please:force-run` label to the merged pull request. If
 you are using the action, look for the failed invocation and retry the workflow run.
-Releaes Please will process the pull request immediately to find releasable units.
+Release Please will process the pull request immediately to find releasable units.
 
 ## Strategy (Language) types supported
 
