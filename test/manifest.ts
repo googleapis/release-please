@@ -46,8 +46,12 @@ import {
   DuplicateReleaseError,
   FileNotFoundError,
   ConfigurationError,
+  GitHubAPIError,
 } from '../src/errors';
 import {RequestError} from '@octokit/request-error';
+import * as nock from 'nock';
+
+nock.disableNetConnect();
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
@@ -1302,6 +1306,34 @@ describe('Manifest', () => {
       expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
         '3.3.1'
       );
+    });
+
+    it('should fail if graphQL commits API is too slow', async () => {
+      // In this scenario, graphQL fails with a 502 when pulling the list of
+      // recent commits. We are unable to determine the latest release and thus
+      // we should abort with the underlying API error.
+      const scope = nock('https://api.github.com/')
+        .post('/graphql')
+        .twice()
+        .reply(502);
+      await assert.rejects(
+        async () => {
+          await Manifest.fromConfig(github, 'target-branch', {
+            releaseType: 'simple',
+            bumpMinorPreMajor: true,
+            bumpPatchForMinorPreMajor: true,
+            component: 'foobar',
+            includeComponentInTag: false,
+          });
+        },
+        error => {
+          return (
+            error instanceof GitHubAPIError &&
+            (error as GitHubAPIError).status === 502
+          );
+        }
+      );
+      scope.done();
     });
   });
 
