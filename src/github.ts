@@ -143,6 +143,8 @@ interface ReleaseHistory {
 interface CommitIteratorOptions {
   maxResults?: number;
   backfillFiles?: boolean;
+  // if set, throw an error if we require a response
+  requireResponse?: boolean;
 }
 
 interface ReleaseIteratorOptions {
@@ -283,6 +285,8 @@ export class GitHub {
    *   Defaults to unlimited.
    * @param {boolean} options.backfillFiles If set, use the REST API for
    *   fetching the list of touched files in this commit. Defaults to `false`.
+   * @param {boolean} options.requireResponse If set, throw if the GraphQL
+   *   query fails. Defaults to `false`.
    * @returns {Commit[]} List of commits to current branch
    * @throws {GitHubAPIError} on an API error
    */
@@ -311,6 +315,8 @@ export class GitHub {
    *   Defaults to unlimited.
    * @param {boolean} options.backfillFiles If set, use the REST API for
    *   fetching the list of touched files in this commit. Defaults to `false`.
+   * @param {boolean} options.requireResponse If set, throw if the GraphQL
+   *   query fails. Defaults to `false`.
    * @yields {Commit}
    * @throws {GitHubAPIError} on an API error
    */
@@ -404,10 +410,13 @@ export class GitHub {
       targetBranch,
       maxFilesChanged: 100, // max is 100
     };
-    const response = await this.graphqlRequest({
-      query,
-      ...params,
-    });
+    const response = await this.graphqlRequest(
+      {
+        query,
+        ...params,
+      },
+      options
+    );
 
     if (!response) {
       logger.warn(`Did not receive a response for query: ${query}`, params);
@@ -506,8 +515,13 @@ export class GitHub {
       opts: {
         [key: string]: string | number | null | undefined;
       },
-      maxRetries = 1
+      options?: {
+        maxRetries?: number;
+        requireResponse?: boolean;
+      }
     ) => {
+      let maxRetries = options?.maxRetries ?? 1;
+      const requireResponse = options?.requireResponse ?? false;
       let seconds = 1;
       while (maxRetries >= 0) {
         try {
@@ -520,11 +534,16 @@ export class GitHub {
           if ((err as GitHubAPIError).status !== 502) {
             throw err;
           }
-          logger.trace('received 502 error, retrying');
+          logger.debug(`response required: ${requireResponse}`);
+          if (requireResponse && maxRetries === 0) {
+            logger.warn('ran out of retries and response is required');
+            throw err;
+          }
+          logger.warn(`received 502 error, ${maxRetries} attempts remaining`);
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {
-          logger.trace(`sleeping ${seconds} seconds`);
+          logger.warn(`sleeping ${seconds} seconds`);
           await sleepInMs(1000 * seconds);
           seconds *= 2;
         }
@@ -630,7 +649,9 @@ export class GitHub {
         states,
         maxFilesChanged: 64,
       },
-      3
+      {
+        maxRetries: 3,
+      }
     );
     if (!response?.repository?.pullRequests) {
       logger.warn(

@@ -1373,7 +1373,10 @@ async function latestReleaseVersion(
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
-  const generator = github.mergeCommitIterator(targetBranch, {maxResults: 250});
+  const generator = github.mergeCommitIterator(targetBranch, {
+    maxResults: 250,
+    requireResponse: true,
+  });
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
