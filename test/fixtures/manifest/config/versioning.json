@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "versioning": "always-bump-patch",
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils",
+      "versioning": "default"
+    }
+  }
+}

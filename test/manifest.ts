@@ -622,6 +622,38 @@ describe('Manifest', () => {
       ).to.eql('default');
     });
 
+    it('should read versioning type from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/versioning.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].versioning).to.eql(
+        'always-bump-patch'
+      );
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].versioning
+      ).to.eql('default');
+    });
+
     it('should throw a configuration error for a missing manifest config', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
