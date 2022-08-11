@@ -1375,7 +1375,6 @@ async function latestReleaseVersion(
   // been released
   const generator = github.mergeCommitIterator(targetBranch, {
     maxResults: 250,
-    requireResponse: true,
   });
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);

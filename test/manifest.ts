@@ -15,6 +15,7 @@
 import {describe, it, beforeEach, afterEach} from 'mocha';
 import {Manifest} from '../src/manifest';
 import {GitHub, ReleaseOptions} from '../src/github';
+import * as githubModule from '../src/github';
 import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
@@ -1314,8 +1315,9 @@ describe('Manifest', () => {
       // we should abort with the underlying API error.
       const scope = nock('https://api.github.com/')
         .post('/graphql')
-        .twice()
+        .times(6) // original + 5 retries
         .reply(502);
+      const sleepStub = sandbox.stub(githubModule, 'sleepInMs').resolves();
       await assert.rejects(
         async () => {
           await Manifest.fromConfig(github, 'target-branch', {
@@ -1334,6 +1336,7 @@ describe('Manifest', () => {
         }
       );
       scope.done();
+      sinon.assert.callCount(sleepStub, 5);
     });
   });
 

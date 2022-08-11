@@ -27,6 +27,7 @@ import {
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
+const MAX_SLEEP_SECONDS = 20;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
@@ -143,8 +144,6 @@ interface ReleaseHistory {
 interface CommitIteratorOptions {
   maxResults?: number;
   backfillFiles?: boolean;
-  // if set, throw an error if we require a response
-  requireResponse?: boolean;
 }
 
 interface ReleaseIteratorOptions {
@@ -285,8 +284,6 @@ export class GitHub {
    *   Defaults to unlimited.
    * @param {boolean} options.backfillFiles If set, use the REST API for
    *   fetching the list of touched files in this commit. Defaults to `false`.
-   * @param {boolean} options.requireResponse If set, throw if the GraphQL
-   *   query fails. Defaults to `false`.
    * @returns {Commit[]} List of commits to current branch
    * @throws {GitHubAPIError} on an API error
    */
@@ -315,8 +312,6 @@ export class GitHub {
    *   Defaults to unlimited.
    * @param {boolean} options.backfillFiles If set, use the REST API for
    *   fetching the list of touched files in this commit. Defaults to `false`.
-   * @param {boolean} options.requireResponse If set, throw if the GraphQL
-   *   query fails. Defaults to `false`.
    * @yields {Commit}
    * @throws {GitHubAPIError} on an API error
    */
@@ -410,13 +405,10 @@ export class GitHub {
       targetBranch,
       maxFilesChanged: 100, // max is 100
     };
-    const response = await this.graphqlRequest(
-      {
-        query,
-        ...params,
-      },
-      options
-    );
+    const response = await this.graphqlRequest({
+      query,
+      ...params,
+    });
 
     if (!response) {
       logger.warn(`Did not receive a response for query: ${query}`, params);
@@ -517,11 +509,9 @@ export class GitHub {
       },
       options?: {
         maxRetries?: number;
-        requireResponse?: boolean;
       }
     ) => {
-      let maxRetries = options?.maxRetries ?? 1;
-      const requireResponse = options?.requireResponse ?? false;
+      let maxRetries = options?.maxRetries ?? 5;
       let seconds = 1;
       while (maxRetries >= 0) {
         try {
@@ -534,8 +524,7 @@ export class GitHub {
           if ((err as GitHubAPIError).status !== 502) {
             throw err;
           }
-          logger.debug(`response required: ${requireResponse}`);
-          if (requireResponse && maxRetries === 0) {
+          if (maxRetries === 0) {
             logger.warn('ran out of retries and response is required');
             throw err;
           }
@@ -545,7 +534,7 @@ export class GitHub {
         if (maxRetries >= 0) {
           logger.warn(`sleeping ${seconds} seconds`);
           await sleepInMs(1000 * seconds);
-          seconds *= 2;
+          seconds = Math.min(seconds * 2, MAX_SLEEP_SECONDS);
         }
       }
       logger.trace('ran out of retries');
@@ -605,9 +594,8 @@ export class GitHub {
     logger.debug(
       `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
     );
-    const response = await this.graphqlRequest(
-      {
-        query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
+    const response = await this.graphqlRequest({
+      query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
         repository(owner: $owner, name: $repo) {
           pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
             nodes {
@@ -641,18 +629,14 @@ export class GitHub {
           }
         }
       }`,
-        cursor,
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        num: 25,
-        targetBranch,
-        states,
-        maxFilesChanged: 64,
-      },
-      {
-        maxRetries: 3,
-      }
-    );
+      cursor,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      num: 25,
+      targetBranch,
+      states,
+      maxFilesChanged: 64,
+    });
     if (!response?.repository?.pullRequests) {
       logger.warn(
         `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
@@ -1376,5 +1360,5 @@ const wrapAsync = <T extends Array<any>, V>(
   };
 };
 
-const sleepInMs = (ms: number) =>
+export const sleepInMs = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms));
