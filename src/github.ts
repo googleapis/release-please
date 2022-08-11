@@ -528,11 +528,11 @@ export class GitHub {
             logger.warn('ran out of retries and response is required');
             throw err;
           }
-          logger.warn(`received 502 error, ${maxRetries} attempts remaining`);
+          logger.info(`received 502 error, ${maxRetries} attempts remaining`);
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {
-          logger.warn(`sleeping ${seconds} seconds`);
+          logger.trace(`sleeping ${seconds} seconds`);
           await sleepInMs(1000 * seconds);
           seconds = Math.min(seconds * 2, MAX_SLEEP_SECONDS);
         }
