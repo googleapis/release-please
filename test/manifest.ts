@@ -15,6 +15,7 @@
 import {describe, it, beforeEach, afterEach} from 'mocha';
 import {Manifest} from '../src/manifest';
 import {GitHub, ReleaseOptions} from '../src/github';
+import * as githubModule from '../src/github';
 import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
@@ -46,8 +47,12 @@ import {
   DuplicateReleaseError,
   FileNotFoundError,
   ConfigurationError,
+  GitHubAPIError,
 } from '../src/errors';
 import {RequestError} from '@octokit/request-error';
+import * as nock from 'nock';
+
+nock.disableNetConnect();
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures';
@@ -619,6 +624,38 @@ describe('Manifest', () => {
       expect(manifest.repositoryConfig['.'].changelogType).to.eql('github');
       expect(
         manifest.repositoryConfig['packages/bot-config-utils'].changelogType
+      ).to.eql('default');
+    });
+
+    it('should read versioning type from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/versioning.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].versioning).to.eql(
+        'always-bump-patch'
+      );
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].versioning
       ).to.eql('default');
     });
 
@@ -1270,6 +1307,36 @@ describe('Manifest', () => {
       expect(Object.values(manifest.releasedVersions)[0].toString()).to.eql(
         '3.3.1'
       );
+    });
+
+    it('should fail if graphQL commits API is too slow', async () => {
+      // In this scenario, graphQL fails with a 502 when pulling the list of
+      // recent commits. We are unable to determine the latest release and thus
+      // we should abort with the underlying API error.
+      const scope = nock('https://api.github.com/')
+        .post('/graphql')
+        .times(6) // original + 5 retries
+        .reply(502);
+      const sleepStub = sandbox.stub(githubModule, 'sleepInMs').resolves();
+      await assert.rejects(
+        async () => {
+          await Manifest.fromConfig(github, 'target-branch', {
+            releaseType: 'simple',
+            bumpMinorPreMajor: true,
+            bumpPatchForMinorPreMajor: true,
+            component: 'foobar',
+            includeComponentInTag: false,
+          });
+        },
+        error => {
+          return (
+            error instanceof GitHubAPIError &&
+            (error as GitHubAPIError).status === 502
+          );
+        }
+      );
+      scope.done();
+      sinon.assert.callCount(sleepStub, 5);
     });
   });
 

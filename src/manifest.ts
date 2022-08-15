@@ -123,6 +123,7 @@ export interface CandidateRelease extends Release {
 
 interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
+  versioning?: VersioningStrategyType;
   'bump-minor-pre-major'?: boolean;
   'bump-patch-for-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
@@ -1161,6 +1162,7 @@ function extractReleaserConfig(
     releaseType: config['release-type'],
     bumpMinorPreMajor: config['bump-minor-pre-major'],
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
+    versioning: config['versioning'],
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
@@ -1371,7 +1373,9 @@ async function latestReleaseVersion(
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
-  const generator = github.mergeCommitIterator(targetBranch, {maxResults: 250});
+  const generator = github.mergeCommitIterator(targetBranch, {
+    maxResults: 250,
+  });
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
@@ -1478,6 +1482,7 @@ function mergeReleaserConfig(
     bumpPatchForMinorPreMajor:
       pathConfig.bumpPatchForMinorPreMajor ??
       defaultConfig.bumpPatchForMinorPreMajor,
+    versioning: pathConfig.versioning ?? defaultConfig.versioning,
     changelogSections:
       pathConfig.changelogSections ?? defaultConfig.changelogSections,
     changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,

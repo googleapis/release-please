@@ -27,6 +27,7 @@ import {
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
+const MAX_SLEEP_SECONDS = 20;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
@@ -506,8 +507,11 @@ export class GitHub {
       opts: {
         [key: string]: string | number | null | undefined;
       },
-      maxRetries = 1
+      options?: {
+        maxRetries?: number;
+      }
     ) => {
+      let maxRetries = options?.maxRetries ?? 5;
       let seconds = 1;
       while (maxRetries >= 0) {
         try {
@@ -520,13 +524,17 @@ export class GitHub {
           if ((err as GitHubAPIError).status !== 502) {
             throw err;
           }
-          logger.trace('received 502 error, retrying');
+          if (maxRetries === 0) {
+            logger.warn('ran out of retries and response is required');
+            throw err;
+          }
+          logger.info(`received 502 error, ${maxRetries} attempts remaining`);
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {
           logger.trace(`sleeping ${seconds} seconds`);
           await sleepInMs(1000 * seconds);
-          seconds *= 2;
+          seconds = Math.min(seconds * 2, MAX_SLEEP_SECONDS);
         }
       }
       logger.trace('ran out of retries');
@@ -586,9 +594,8 @@ export class GitHub {
     logger.debug(
       `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
     );
-    const response = await this.graphqlRequest(
-      {
-        query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
+    const response = await this.graphqlRequest({
+      query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
         repository(owner: $owner, name: $repo) {
           pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
             nodes {
@@ -622,16 +629,14 @@ export class GitHub {
           }
         }
       }`,
-        cursor,
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        num: 25,
-        targetBranch,
-        states,
-        maxFilesChanged: 64,
-      },
-      3
-    );
+      cursor,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      num: 25,
+      targetBranch,
+      states,
+      maxFilesChanged: 64,
+    });
     if (!response?.repository?.pullRequests) {
       logger.warn(
         `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
@@ -1355,5 +1360,5 @@ const wrapAsync = <T extends Array<any>, V>(
   };
 };
 
-const sleepInMs = (ms: number) =>
+export const sleepInMs = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms));

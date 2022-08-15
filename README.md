@@ -115,10 +115,17 @@ commit message instead of the merged commit message.
 Release Please creates a release pull request after it notices the default branch
 contains "releasable units" since the last release.
 A releasable unit is a commit to the branch with one of the following
-prefixes: "feat" and "fix". (A "chore" commit is not a releasable unit.)
+prefixes: "feat", "fix", and "deps".
+(A "chore" or "build" commit is not a releasable unit.)
 
 Some languages have their specific releasable unit configuration. For example,
 "docs" is a prefix for releasable units in Java and Python.
+
+If you think Release Please missed to create a release PR after a pull request
+with with releasable unit has been merged, please re-run `release-please`. If you are using
+the GitHub application, add `release-please:force-run` label to the merged pull request. If
+you are using the action, look for the failed invocation and retry the workflow run.
+Release Please will process the pull request immediately to find releasable units.
 
 ## Strategy (Language) types supported
 

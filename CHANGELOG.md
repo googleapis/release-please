@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [13.21.0](https://github.com/googleapis/release-please/compare/v13.20.0...v13.21.0) (2022-08-11)
+
+
+### Features
+
+* parse versioning type from the manifest config ([#1572](https://github.com/googleapis/release-please/issues/1572)) ([8a7bfc1](https://github.com/googleapis/release-please/commit/8a7bfc165755cec97cc9a3baa39ccd21e719644c)), closes [#1569](https://github.com/googleapis/release-please/issues/1569)
+
+
+### Bug Fixes
+
+* throw underlying API error when the manifest fetch commits when determining the latest released version ([#1571](https://github.com/googleapis/release-please/issues/1571)) ([0944bde](https://github.com/googleapis/release-please/commit/0944bdeb04bcee2872e79a07fbe05967847caef0))
+
 ## [13.20.0](https://github.com/googleapis/release-please/compare/v13.19.9...v13.20.0) (2022-08-08)
 
 
