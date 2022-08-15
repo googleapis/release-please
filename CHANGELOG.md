@@ -4,6 +4,24 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.0.0](https://github.com/googleapis/release-please/compare/v13.21.0...v14.0.0) (2022-08-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** update octokit packages
+* drop node 12 support (#1577)
+
+### Bug Fixes
+
+* **deps:** update code-suggester to v4 ([3fc0173](https://github.com/googleapis/release-please/commit/3fc0173e7342e082794c1911b2e7a6e61d810348))
+* **deps:** update octokit packages ([3fc0173](https://github.com/googleapis/release-please/commit/3fc0173e7342e082794c1911b2e7a6e61d810348))
+
+
+### Build System
+
+* drop node 12 support ([#1577](https://github.com/googleapis/release-please/issues/1577)) ([3fc0173](https://github.com/googleapis/release-please/commit/3fc0173e7342e082794c1911b2e7a6e61d810348))
+
 ## [13.21.0](https://github.com/googleapis/release-please/compare/v13.20.0...v13.21.0) (2022-08-11)
 
 
