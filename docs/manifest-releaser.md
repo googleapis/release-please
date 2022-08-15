@@ -191,7 +191,9 @@ defaults (those are documented in comments)
   "prerelease": true
 
   // Skip creating GitHub Releases
-  // absence defaults to false and Releases will be created
+  // Absence defaults to false and Releases will be created. Release-Please still
+  // requires releases to be tagged, so this option should only be used if you
+  // have existing infrastructure to tag these releases.
   "skip-github-release": true,
 
   // when using the `node-workspace` plugin, package discovery forces all

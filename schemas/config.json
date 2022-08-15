@@ -51,7 +51,7 @@
           "type": "string"
         },
         "skip-github-release": {
-          "description": "Skip tagging GitHub releases for this package. Defaults to `false`.",
+          "description": "Skip tagging GitHub releases for this package. Release-Please still requires releases to be tagged, so this option should only be used if you have existing infrastructure to tag these releases.Defaults to `false`.",
           "type": "boolean"
         },
         "draft": {
