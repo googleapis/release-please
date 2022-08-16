@@ -177,6 +177,8 @@ Options:
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
+  --version-prefix                  prefix linked package version updates with
+                                    this string                         [string]
   --extra-files                     extra files for the strategy to consider
                                                                         [string]
   --version-file                    path to version file to update, e.g.,

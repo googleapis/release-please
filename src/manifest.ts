@@ -77,6 +77,7 @@ export interface ReleaserConfig {
   versioning?: VersioningStrategyType;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  versionPrefix?: string;
 
   // Strategy options
   releaseAs?: string;
@@ -126,6 +127,7 @@ interface ReleaserConfigJson {
   versioning?: VersioningStrategyType;
   'bump-minor-pre-major'?: boolean;
   'bump-patch-for-minor-pre-major'?: boolean;
+  'version-prefix'?: string;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
@@ -1162,6 +1164,7 @@ function extractReleaserConfig(
     releaseType: config['release-type'],
     bumpMinorPreMajor: config['bump-minor-pre-major'],
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
+    versionPrefix: config['version-prefix'],
     versioning: config['versioning'],
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],

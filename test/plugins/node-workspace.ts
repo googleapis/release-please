@@ -168,6 +168,60 @@ describe('NodeWorkspace plugin', () => {
       assertHasUpdate(updates, 'node4/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
+    it('respects version prefix', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
+          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+        ]),
+        buildMockCandidatePullRequest('node2', 'node', '2.2.2', '@here/pkgB', [
+          buildMockPackageUpdate('node2/package.json', 'node2/package.json'),
+        ]),
+      ];
+      plugin = new NodeWorkspace(github, 'main', {
+        node1: {releaseType: 'node'},
+        node2: {versionPrefix: '~', releaseType: 'node'},
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'node1/package.json');
+      assertHasUpdate(updates, 'node2/package.json');
+
+      expect(updates[1].updater).instanceof(RawContent);
+      const updater = updates[1].updater as RawContent;
+      snapshot(updater.rawContent);
+    });
+    it('respects empty version prefix', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
+          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+        ]),
+        buildMockCandidatePullRequest('node2', 'node', '2.2.2', '@here/pkgB', [
+          buildMockPackageUpdate('node2/package.json', 'node2/package.json'),
+        ]),
+      ];
+      plugin = new NodeWorkspace(github, 'main', {
+        node1: {releaseType: 'node'},
+        node2: {versionPrefix: '', releaseType: 'node'},
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'node1/package.json');
+      assertHasUpdate(updates, 'node2/package.json');
+
+      expect(updates[1].updater).instanceof(RawContent);
+      const updater = updates[1].updater as RawContent;
+      snapshot(updater.rawContent);
+    });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [

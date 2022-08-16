@@ -172,6 +172,10 @@ defaults (those are documented in comments)
   // absence defaults to false
   "bump-patch-for-minor-pre-major": true,
 
+  // prefix linked package version updates with this string
+  // absence defaults to `^`
+  "version-prefix": true,
+
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...],
@@ -239,7 +243,7 @@ defaults (those are documented in comments)
   // large numbers of packages at once.
   // absence defaults to false, causing calls to be issued concurrently.
   "sequential-calls": false,
-  
+
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains

@@ -53,6 +53,7 @@ function releaserConfigToJsonConfig(
     'release-type': config.releaseType,
     'bump-minor-pre-major': config.bumpMinorPreMajor,
     'bump-patch-for-minor-pre-major': config.bumpPatchForMinorPreMajor,
+    'version-prefix': config.versionPrefix,
     'changelog-sections': config.changelogSections,
     'release-as': config.releaseAs,
     'skip-github-release': config.skipGithubRelease,

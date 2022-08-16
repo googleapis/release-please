@@ -85,6 +85,28 @@ Release notes for path: node1, releaseType: node
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['NodeWorkspace plugin run respects empty version prefix 1'] = `
+{
+  "name": "@here/pkgB",
+  "version": "2.2.2",
+  "dependencies": {
+    "@here/pkgA": "3.3.4",
+    "anotherExternal": "^4.3.1"
+  }
+}
+`
+
+exports['NodeWorkspace plugin run respects version prefix 1'] = `
+{
+  "name": "@here/pkgB",
+  "version": "2.2.2",
+  "dependencies": {
+    "@here/pkgA": "~3.3.4",
+    "anotherExternal": "^4.3.1"
+  }
+}
+`
+
 exports['NodeWorkspace plugin run should ignore peer dependencies 1'] = `
 :robot: I have created a release *beep* *boop*
 ---

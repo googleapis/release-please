@@ -20,6 +20,10 @@
           "description": "Feature changes only bump semver patch if version < 1.0.0",
           "type": "boolean"
         },
+        "version-prefix": {
+          "description": "Version bumps of linked packages will be prefixed with this. Defaults to `^`",
+          "type": "string"
+        },
         "versioning": {
           "description": "Versioning strategy. Defaults to `default`",
           "type": "string"

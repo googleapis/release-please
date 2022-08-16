@@ -63,6 +63,7 @@ interface ManifestArgs {
 interface VersioningArgs {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  versionPrefix?: string;
   releaseAs?: string;
 
   // only for Ruby: TODO replace with generic bootstrap option
@@ -273,6 +274,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       default: false,
       type: 'boolean',
     })
+    .option('version-prefix', {
+      describe: 'prefix linked package version updates with this string',
+      type: 'string',
+    })
     .option('extra-files', {
       describe: 'extra files for the strategy to consider',
       type: 'string',
@@ -441,6 +446,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           draftPullRequest: argv.draftPullRequest,
           bumpMinorPreMajor: argv.bumpMinorPreMajor,
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
+          versionPrefix: argv.versionPrefix,
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
           changelogHost: argv.changelogHost,
