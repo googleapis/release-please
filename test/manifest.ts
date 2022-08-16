@@ -1513,6 +1513,28 @@ describe('Manifest', () => {
         const pullRequest = pullRequests[0];
         expect(pullRequest.title.toString()).to.eql('release: 1.0.1');
       });
+
+      it('allows customizing pull request header', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+              pullRequestHeader: 'No beep boop for you',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.body.header.toString()).to.eql(
+          'No beep boop for you'
+        );
+      });
     });
 
     it('should find the component from config', async () => {

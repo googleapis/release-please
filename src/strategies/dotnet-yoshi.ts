@@ -39,6 +39,8 @@ const CHANGELOG_SECTIONS = [
 const DEFAULT_CHANGELOG_PATH = 'docs/history.md';
 const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
   'Release${component} version ${version}';
+const DEFAULT_PULL_REQUEST_HEADER =
+  ':robot: I have created a release *beep* *boop*';
 const RELEASE_NOTES_HEADER_PATTERN =
   /#{2,3} \[?(\d+\.\d+\.\d+-?[^\]]*)\]?.* \((\d{4}-\d{2}-\d{2})\)/;
 
@@ -58,6 +60,8 @@ export class DotnetYoshi extends BaseStrategy {
     options.changelogPath = options.changelogPath ?? DEFAULT_CHANGELOG_PATH;
     options.pullRequestTitlePattern =
       options.pullRequestTitlePattern ?? DEFAULT_PULL_REQUEST_TITLE_PATTERN;
+    options.pullRequestHeader =
+      options.pullRequestHeader ?? DEFAULT_PULL_REQUEST_HEADER;
     options.includeVInTag = options.includeVInTag ?? false;
     super(options);
   }
