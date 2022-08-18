@@ -43,7 +43,7 @@ import {
   RepositoryFileCache,
   GitHubFileContents,
   DEFAULT_FILE_MODE,
-} from './util/file-cache';
+} from '@google-automations/git-file-utils';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
