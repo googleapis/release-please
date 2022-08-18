@@ -101,6 +101,15 @@ request title would be `chore(main): release foo-bar v1.2.3`.
 | `${version}` | The version of the component being released |
 | `${branch?}` | The target branch of the pull request. If you have multiple release branches, this helps identify which release branch we are working on |
 
+### Pull Request Header
+
+If you would like to customize the pull request header, you can use the
+`--pull-request-header` CLI option or the `pull-request-header`
+option in the manifest configuration.
+
+By default, the pull request header is:
+`:robot: I have created a release *beep* *boop*`.
+
 ## Release Lifecycle Labels
 
 By default, we open release pull requests with the `autorelease: pending`

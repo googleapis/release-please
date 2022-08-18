@@ -121,6 +121,7 @@ export class Java extends BaseStrategy {
       : BranchName.ofTargetBranch(this.targetBranch);
     const notes =
       '### Updating meta-information for bleeding-edge SNAPSHOT release.';
+    // TODO use pullrequest header here?
     const pullRequestBody = new PullRequestBody([
       {
         component,

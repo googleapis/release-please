@@ -89,6 +89,7 @@ export interface ReleaserConfig {
   includeComponentInTag?: boolean;
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
+  pullRequestHeader?: string;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
@@ -139,6 +140,7 @@ interface ReleaserConfigJson {
   'changelog-type'?: ChangelogNotesType;
   'changelog-host'?: string;
   'pull-request-title-pattern'?: string;
+  'pull-request-header'?: string;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -1179,6 +1181,7 @@ function extractReleaserConfig(
     includeVInTag: config['include-v-in-tag'],
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
+    pullRequestHeader: config['pull-request-header'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1504,6 +1507,8 @@ function mergeReleaserConfig(
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
       defaultConfig.pullRequestTitlePattern,
+    pullRequestHeader:
+      pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,

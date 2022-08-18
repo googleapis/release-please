@@ -113,6 +113,7 @@ interface TaggingArgs {
   includeVInTags?: boolean;
   monorepoTags?: boolean;
   pullRequestTitlePattern?: string;
+  pullRequestHeader?: string;
 }
 
 interface CreatePullRequestArgs
@@ -408,6 +409,10 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
     .option('pull-request-title-pattern', {
       describe: 'Title pattern to make release PR',
       type: 'string',
+    })
+    .option('pull-request-header', {
+      describe: 'Header for release PR',
+      type: 'string',
     });
 }
 
@@ -445,6 +450,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           changelogType: argv.changelogType,
           changelogHost: argv.changelogHost,
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
+          pullRequestHeader: argv.pullRequestHeader,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,
