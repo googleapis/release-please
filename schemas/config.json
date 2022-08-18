@@ -95,6 +95,10 @@
           "description": "Customize the release pull request title.",
           "type": "string"
         },
+        "pull-request-header": {
+          "description": "Customize the release pull request header.",
+          "type": "string"
+        },
         "separate-pull-requests": {
           "description": "Open a separate release pull request for each component. Defaults to `false`.",
           "type": "boolean"
@@ -328,6 +332,7 @@
     "changelog-type": true,
     "changelog-host": true,
     "pull-request-title-pattern": true,
+    "pull-request-header": true,
     "separate-pull-requests": true,
     "tag-separator": true,
     "extra-files": true,

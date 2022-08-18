@@ -61,6 +61,7 @@ Extra options:
 | `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
 | `--changelog-host` | `string` | Host for commit hyperlinks in the changelog. Defaults to `https://github.com` |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
+| `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
 
@@ -108,6 +109,7 @@ need to specify your release options:
 | `--changelog-host` | `string` | Host for commit hyperlinks in the changelog. Defaults to `https://github.com` |
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
+| `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--signoff` | string | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
@@ -147,6 +149,7 @@ need to specify your release options:
 | `--release-type` | ReleaseType | Language strategy that determines which files to update |
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
+| `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--draft` | `boolean` | If set, create releases as drafts |
 | `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |

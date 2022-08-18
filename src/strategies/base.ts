@@ -72,6 +72,7 @@ export interface BaseStrategyOptions {
   includeComponentInTag?: boolean;
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
+  pullRequestHeader?: string;
   extraFiles?: ExtraFile[];
   versionFile?: string;
   snapshotLabels?: string[]; // Java-only
@@ -98,6 +99,7 @@ export abstract class BaseStrategy implements Strategy {
   protected includeComponentInTag: boolean;
   protected includeVInTag: boolean;
   readonly pullRequestTitlePattern?: string;
+  readonly pullRequestHeader?: string;
   readonly extraFiles: ExtraFile[];
 
   readonly changelogNotes: ChangelogNotes;
@@ -126,6 +128,7 @@ export abstract class BaseStrategy implements Strategy {
     this.includeComponentInTag = options.includeComponentInTag ?? true;
     this.includeVInTag = options.includeVInTag ?? true;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
+    this.pullRequestHeader = options.pullRequestHeader;
     this.extraFiles = options.extraFiles || [];
   }
 
@@ -209,15 +212,19 @@ export abstract class BaseStrategy implements Strategy {
     newVersion: Version,
     releaseNotesBody: string,
     _conventionalCommits: ConventionalCommit[],
-    _latestRelease?: Release
+    _latestRelease?: Release,
+    pullRequestHeader?: string
   ): Promise<PullRequestBody> {
-    return new PullRequestBody([
-      {
-        component,
-        version: newVersion,
-        notes: releaseNotesBody,
-      },
-    ]);
+    return new PullRequestBody(
+      [
+        {
+          component,
+          version: newVersion,
+          notes: releaseNotesBody,
+        },
+      ],
+      {header: pullRequestHeader}
+    );
   }
 
   /**
@@ -304,7 +311,8 @@ export abstract class BaseStrategy implements Strategy {
       newVersion,
       releaseNotesBody,
       conventionalCommits,
-      latestRelease
+      latestRelease,
+      this.pullRequestHeader
     );
 
     return {
