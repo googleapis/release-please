@@ -30,7 +30,7 @@ import {PullRequestTitle} from '../src/util/pull-request-title';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {BranchName} from '../src/util/branch-name';
 import {ReleaseType} from '../src/factory';
-import {GitHubFileContents, DEFAULT_FILE_MODE} from '../src/util/file-cache';
+import {GitHubFileContents, DEFAULT_FILE_MODE} from '@google-automations/git-file-utils';
 import {CompositeUpdater} from '../src/updaters/composite';
 
 export function stubSuggesterWithSnapshot(
