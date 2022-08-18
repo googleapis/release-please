@@ -15,12 +15,14 @@
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
 import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import {readdirSync} from 'fs';
 import {resolve} from 'path';
 import {configSchema, manifestSchema} from '../src/index';
 
 const fixturesPath = './test/fixtures/manifest';
 const ajv = new Ajv();
+addFormats(ajv);
 
 describe('schemas', () => {
   describe('manifest file', () => {
