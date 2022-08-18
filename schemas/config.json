@@ -189,6 +189,11 @@
     },
     {
       "properties": {
+        "$schema": {
+          "description": "Path to the release-please manifest config schema",
+          "type": "string",
+          "format": "uri"
+        },
         "packages": {
           "description": "Per-path component configuration.",
           "type": "object",
