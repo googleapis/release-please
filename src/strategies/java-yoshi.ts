@@ -16,7 +16,7 @@ import {Update} from '../update';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
 import {Changelog} from '../updaters/changelog';
-import {GitHubFileContents} from '../util/file-cache';
+import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
 import {ConventionalCommit} from '../commit';
 import {logger} from '../util/logger';
