@@ -4,6 +4,23 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.1.0](https://github.com/googleapis/release-please/compare/v14.0.0...v14.1.0) (2022-08-19)
+
+
+### Features
+
+* Allow $schema key in manifest config schema ([#1584](https://github.com/googleapis/release-please/issues/1584)) ([d0d43a0](https://github.com/googleapis/release-please/commit/d0d43a0f15d44941c2338f3c8e8c9f972fb45938))
+* customize pr body header ([#1579](https://github.com/googleapis/release-please/issues/1579)) ([92e1366](https://github.com/googleapis/release-please/commit/92e13664bc5a7c4b849f3cea367944280e20b894))
+* use file-cache from git-file-utils ([#1585](https://github.com/googleapis/release-please/issues/1585)) ([e0572f8](https://github.com/googleapis/release-please/commit/e0572f899202ddbad995e8ff21621166d7aae07e))
+
+
+### Bug Fixes
+
+* convert `MissingFileError` thrown by `git-file-utils` ([#1590](https://github.com/googleapis/release-please/issues/1590)) ([cf4f0a3](https://github.com/googleapis/release-please/commit/cf4f0a3068a049cac99d191f40195c686baee413))
+* correct $schema format in manifest config schema ([#1589](https://github.com/googleapis/release-please/issues/1589)) ([e25537b](https://github.com/googleapis/release-please/commit/e25537b559d56c46aedba1e83f7dda7c6825781f))
+* **deps:** update git-file-utils to 1.1.0 ([297a7b7](https://github.com/googleapis/release-please/commit/297a7b7ef862b7aa5e64a6077f86d674eefc140e))
+* use git-file-utils' cache for file search ([#1588](https://github.com/googleapis/release-please/issues/1588)) ([297a7b7](https://github.com/googleapis/release-please/commit/297a7b7ef862b7aa5e64a6077f86d674eefc140e))
+
 ## [14.0.0](https://github.com/googleapis/release-please/compare/v13.21.0...v14.0.0) (2022-08-15)
 
 
