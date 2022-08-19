@@ -187,7 +187,7 @@ describe('GitHub', () => {
   });
 
   describe('getFileContents', () => {
-    it('should support Github Data API in case of a big file', async () => {
+    beforeEach(() => {
       const dataAPITreesResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -198,6 +198,11 @@ describe('GitHub', () => {
           'utf8'
         )
       );
+      req = req
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
+        .reply(200, dataAPITreesResponse);
+    })
+    it('should support Github Data API in case of a big file', async () => {
       const dataAPIBlobResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -209,9 +214,7 @@ describe('GitHub', () => {
         )
       );
 
-      req
-        .get('/repos/fake/fake/git/trees/main?recursive=true')
-        .reply(200, dataAPITreesResponse)
+      req = req
         .get(
           '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
         )
@@ -225,6 +228,12 @@ describe('GitHub', () => {
         .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
       snapshot(fileContents);
       req.done();
+    });
+
+    it('should throw a missing file error', async () => {
+      await assert.rejects(async () => {
+        await github.getFileContents('non-existent-file');
+      }, FileNotFoundError);
     });
   });
 
