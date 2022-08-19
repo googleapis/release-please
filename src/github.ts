@@ -43,6 +43,7 @@ import {
   RepositoryFileCache,
   GitHubFileContents,
   DEFAULT_FILE_MODE,
+  FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
 
 // Extract some types from the `request` package.
@@ -809,7 +810,14 @@ export class GitHub {
     branch: string
   ): Promise<GitHubFileContents> {
     logger.debug(`Fetching ${path} from branch ${branch}`);
-    return await this.fileCache.getFileContents(path, branch);
+    try {
+      return await this.fileCache.getFileContents(path, branch);
+    } catch (e) {
+      if (e instanceof MissingFileError) {
+        throw new FileNotFoundError(path);
+      }
+      throw e;
+    }
   }
 
   async getFileJson<T>(path: string, branch: string): Promise<T> {
