@@ -1227,3 +1227,32 @@ exports['GitHub pullRequestIterator handles merged pull requests without files 1
     ]
   }
 ]
+
+exports['GitHub pullRequestIterator uses REST API if files are not needed 1'] = [
+  {
+    "headBranchName": "feature-branch",
+    "baseBranchName": "main",
+    "number": 123,
+    "title": "some title",
+    "body": "some body",
+    "labels": [
+      "label 1",
+      "label 2"
+    ],
+    "files": [],
+    "sha": "abc123"
+  },
+  {
+    "headBranchName": "feature-branch",
+    "baseBranchName": "main",
+    "number": 124,
+    "title": "merged title 2 ",
+    "body": "merged body 2",
+    "labels": [
+      "label 1",
+      "label 2"
+    ],
+    "files": [],
+    "sha": "abc123"
+  }
+]

@@ -273,6 +273,56 @@ describe('GitHub', () => {
       snapshot(pullRequests!);
       req.done();
     });
+    it('uses REST API if files are not needed', async () => {
+      req.get('/repos/fake/fake/pulls?base=main&state=closed').reply(200, [
+        {
+          head: {
+            ref: 'feature-branch',
+          },
+          base: {
+            ref: 'main',
+          },
+          number: 123,
+          title: 'some title',
+          body: 'some body',
+          labels: [{name: 'label 1'}, {name: 'label 2'}],
+          merge_commit_sha: 'abc123',
+        },
+        {
+          head: {
+            ref: 'feature-branch',
+          },
+          base: {
+            ref: 'main',
+          },
+          number: 124,
+          title: 'merged title 2 ',
+          body: 'merged body 2',
+          labels: [{name: 'label 1'}, {name: 'label 2'}],
+          merge_commit_sha: 'abc123',
+        },
+        {
+          head: {
+            ref: 'feature-branch',
+          },
+          base: {
+            ref: 'main',
+          },
+          number: 125,
+          title: 'closed title',
+          body: 'closed body',
+          labels: [{name: 'label 1'}, {name: 'label 2'}],
+        },
+      ]);
+      const generator = github.pullRequestIterator('main', 'MERGED', 30, false);
+      const pullRequests: PullRequest[] = [];
+      for await (const pullRequest of generator) {
+        pullRequests.push(pullRequest);
+      }
+      expect(pullRequests).lengthOf(2);
+      snapshot(pullRequests!);
+      req.done();
+    });
   });
 
   describe('commitsSince', () => {
