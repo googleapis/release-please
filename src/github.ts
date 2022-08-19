@@ -870,32 +870,7 @@ export class GitHub {
       logger.debug(
         `finding files by filename: ${filename}, ref: ${ref}, prefix: ${prefix}`
       );
-      const response = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: ref,
-        recursive: 'true',
-      });
-      return response.data.tree
-        .filter(file => {
-          const path = file.path;
-          return (
-            path &&
-            // match the filename
-            path.endsWith(filename) &&
-            // match the prefix if provided
-            (!prefix || path.startsWith(`${prefix}/`))
-          );
-        })
-        .map(file => {
-          let path = file.path!;
-          // strip the prefix if provided
-          if (prefix) {
-            const pfix = new RegExp(`^${prefix}[/\\\\]`);
-            path = path.replace(pfix, '');
-          }
-          return path;
-        });
+      return await this.fileCache.findFilesByFilename(filename, ref, prefix);
     }
   );
 
@@ -1134,32 +1109,7 @@ export class GitHub {
       if (prefix) {
         prefix = normalizePrefix(prefix);
       }
-      const response = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: ref,
-        recursive: 'true',
-      });
-      return response.data.tree
-        .filter(file => {
-          const path = file.path;
-          return (
-            path &&
-            // match the file extension
-            path.endsWith(`.${extension}`) &&
-            // match the prefix if provided
-            (!prefix || path.startsWith(`${prefix}/`))
-          );
-        })
-        .map(file => {
-          let path = file.path!;
-          // strip the prefix if provided
-          if (prefix) {
-            const pfix = new RegExp(`^${prefix}[/\\\\]`);
-            path = path.replace(pfix, '');
-          }
-          return path;
-        });
+      return this.fileCache.findFilesByExtension(extension, ref, prefix);
     }
   );
 

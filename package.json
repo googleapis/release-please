@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
-    "@google-automations/git-file-utils": "^1.0.0",
+    "@google-automations/git-file-utils": "^1.1.0",
     "@iarna/toml": "^2.2.5",
     "@lerna/collect-updates": "^4.0.0",
     "@lerna/package": "^4.0.0",
