@@ -201,7 +201,7 @@ describe('GitHub', () => {
       req = req
         .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, dataAPITreesResponse);
-    })
+    });
     it('should support Github Data API in case of a big file', async () => {
       const dataAPIBlobResponse = JSON.parse(
         readFileSync(
