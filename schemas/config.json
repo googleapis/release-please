@@ -196,7 +196,7 @@
         "$schema": {
           "description": "Path to the release-please manifest config schema",
           "type": "string",
-          "format": "uri"
+          "format": "uri-reference"
         },
         "packages": {
           "description": "Per-path component configuration.",
@@ -306,6 +306,7 @@
     }
   ],
   "properties": {
+    "$schema": true,
     "packages": true,
     "bootstrap-sha": true,
     "last-release-sha": true,
