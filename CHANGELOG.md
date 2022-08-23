@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.1.2](https://github.com/googleapis/release-please/compare/v14.1.1...v14.1.2) (2022-08-23)
+
+
+### Bug Fixes
+
+* remove pip install statements ([#1546](https://github.com/googleapis/release-please/issues/1546)) ([#1595](https://github.com/googleapis/release-please/issues/1595)) ([cf7a8ed](https://github.com/googleapis/release-please/commit/cf7a8edbfb6ac1be7189ba2cba0de840d4dc48c8))
+
 ## [14.1.1](https://github.com/googleapis/release-please/compare/v14.1.0...v14.1.1) (2022-08-23)
 
 
