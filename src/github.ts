@@ -546,16 +546,42 @@ export class GitHub {
   /**
    * Iterate through merged pull requests with a max number of results scanned.
    *
-   * @param {number} maxResults maxResults - Limit the number of results searched.
-   *   Defaults to unlimited.
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched. Defaults to
+   *   unlimited.
+   * @param {boolean} includeFiles Whether to fetch the list of files included in
+   *   the pull request. Defaults to `true`.
    * @yields {PullRequest}
    * @throws {GitHubAPIError} on an API error
    */
   async *pullRequestIterator(
     targetBranch: string,
     status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
+    maxResults: number = Number.MAX_SAFE_INTEGER,
+    includeFiles = true
+  ): AsyncGenerator<PullRequest, void, void> {
+    const generator = includeFiles
+      ? this.pullRequestIteratorWithFiles(targetBranch, status, maxResults)
+      : this.pullRequestIteratorWithoutFiles(targetBranch, status, maxResults);
+    for await (const pullRequest of generator) {
+      yield pullRequest;
+    }
+  }
+
+  /**
+   * Helper implementation of pullRequestIterator that includes files via
+   * the graphQL API.
+   *
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched
+   */
+  private async *pullRequestIteratorWithFiles(
+    targetBranch: string,
+    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
     maxResults: number = Number.MAX_SAFE_INTEGER
-  ) {
+  ): AsyncGenerator<PullRequest, void, void> {
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
@@ -573,6 +599,61 @@ export class GitHub {
         break;
       }
       cursor = response.pageInfo.endCursor;
+    }
+  }
+
+  /**
+   * Helper implementation of pullRequestIterator that excludes files
+   * via the REST API.
+   *
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched
+   */
+  private async *pullRequestIteratorWithoutFiles(
+    targetBranch: string,
+    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
+    maxResults: number = Number.MAX_SAFE_INTEGER
+  ): AsyncGenerator<PullRequest, void, void> {
+    const statusMap: Record<string, 'open' | 'closed'> = {
+      OPEN: 'open',
+      CLOSED: 'closed',
+      MERGED: 'closed',
+    };
+    let results = 0;
+    for await (const {data: pulls} of this.octokit.paginate.iterator(
+      this.octokit.rest.pulls.list,
+      {
+        state: statusMap[status],
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        base: targetBranch,
+      }
+    )) {
+      for (const pull of pulls) {
+        // The REST API does not have an option for "merged"
+        // pull requests - they are closed with a `merge_commit_sha`
+        if (status !== 'MERGED' || pull.merge_commit_sha) {
+          results += 1;
+          yield {
+            headBranchName: pull.head.ref,
+            baseBranchName: pull.base.ref,
+            number: pull.number,
+            title: pull.title,
+            body: pull.body || '',
+            labels: pull.labels.map(label => label.name),
+            files: [],
+            sha: pull.merge_commit_sha || undefined,
+          };
+          if (results >= maxResults) {
+            break;
+          }
+        }
+      }
+
+      if (results >= maxResults) {
+        break;
+      }
     }
   }
 

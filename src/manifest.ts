@@ -810,7 +810,9 @@ export class Manifest {
     const openPullRequests: PullRequest[] = [];
     const generator = this.github.pullRequestIterator(
       this.targetBranch,
-      'OPEN'
+      'OPEN',
+      Number.MAX_SAFE_INTEGER,
+      false
     );
     for await (const openPullRequest of generator) {
       if (
@@ -831,7 +833,9 @@ export class Manifest {
     const snoozedPullRequests: PullRequest[] = [];
     const closedGenerator = this.github.pullRequestIterator(
       this.targetBranch,
-      'CLOSED'
+      'CLOSED',
+      200,
+      false
     );
     for await (const closedPullRequest of closedGenerator) {
       if (
@@ -938,7 +942,8 @@ export class Manifest {
     const pullRequestGenerator = this.github.pullRequestIterator(
       this.targetBranch,
       'MERGED',
-      200
+      200,
+      false
     );
     for await (const pullRequest of pullRequestGenerator) {
       if (!hasAllLabels(this.labels, pullRequest.labels)) {
