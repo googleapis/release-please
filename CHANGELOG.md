@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.1.1](https://github.com/googleapis/release-please/compare/v14.1.0...v14.1.1) (2022-08-23)
+
+
+### Bug Fixes
+
+* add REST API call to fetch pull requests without files ([#1591](https://github.com/googleapis/release-please/issues/1591)) ([b875a1f](https://github.com/googleapis/release-please/commit/b875a1f437889a46f8cb6e86648073b51401ab9e))
+
 ## [14.1.0](https://github.com/googleapis/release-please/compare/v14.0.0...v14.1.0) (2022-08-19)
 
 
