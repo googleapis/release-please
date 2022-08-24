@@ -339,20 +339,11 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
 }
 
 // If someone wishes to aggregate multiple, complex commit messages into a
-// single commit, they can include one or more `BEGIN_NESTED_COMMIT`/`END_NESTED_COMMIT`
-// blocks into the body of the commit
+// single commit, they can use a markdown horizontal rule (`---`, 3 or more
+// dashes on an empty line) to split the messages
+const COMMIT_SEPARATOR = /^-{3,}$/m;
 function splitMessages(message: string): string[] {
-  const parts = message.split('BEGIN_NESTED_COMMIT');
-  const messages = [parts.shift()!];
-  for (const part of parts) {
-    const [newMessage, ...rest] = part.split('END_NESTED_COMMIT');
-    messages.push(newMessage);
-    // anthing outside of the BEGIN/END annotations are added to the original
-    // commit
-    messages[0] = messages[0] + rest.join();
-  }
-
-  return messages;
+  return message.split(COMMIT_SEPARATOR).map(part => part.trim());
 }
 
 /**
