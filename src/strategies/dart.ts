@@ -19,7 +19,7 @@ import * as yaml from 'js-yaml';
 // pubspec
 import {PubspecYaml} from '../updaters/dart/pubspec-yaml';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
-import {GitHubFileContents} from '../util/file-cache';
+import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {Update} from '../update';
 
 export class Dart extends BaseStrategy {

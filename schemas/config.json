@@ -20,6 +20,10 @@
           "description": "Feature changes only bump semver patch if version < 1.0.0",
           "type": "boolean"
         },
+        "versioning": {
+          "description": "Versioning strategy. Defaults to `default`",
+          "type": "string"
+        },
         "changelog-sections": {
           "description": "Override the Changelog configuration sections",
           "type": "array",
@@ -47,7 +51,7 @@
           "type": "string"
         },
         "skip-github-release": {
-          "description": "Skip tagging GitHub releases for this package. Defaults to `false`.",
+          "description": "Skip tagging GitHub releases for this package. Release-Please still requires releases to be tagged, so this option should only be used if you have existing infrastructure to tag these releases.Defaults to `false`.",
           "type": "boolean"
         },
         "draft": {
@@ -89,6 +93,10 @@
         },
         "pull-request-title-pattern": {
           "description": "Customize the release pull request title.",
+          "type": "string"
+        },
+        "pull-request-header": {
+          "description": "Customize the release pull request header.",
           "type": "string"
         },
         "separate-pull-requests": {
@@ -185,6 +193,11 @@
     },
     {
       "properties": {
+        "$schema": {
+          "description": "Path to the release-please manifest config schema",
+          "type": "string",
+          "format": "uri-reference"
+        },
         "packages": {
           "description": "Per-path component configuration.",
           "type": "object",
@@ -293,6 +306,7 @@
     }
   ],
   "properties": {
+    "$schema": true,
     "packages": true,
     "bootstrap-sha": true,
     "last-release-sha": true,
@@ -305,6 +319,7 @@
     "release-type": true,
     "bump-minor-pre-major": true,
     "bump-patch-for-minor-pre-major": true,
+    "versioning": true,
     "changelog-sections": true,
     "release-as": true,
     "skip-github-release": true,
@@ -318,6 +333,7 @@
     "changelog-type": true,
     "changelog-host": true,
     "pull-request-title-pattern": true,
+    "pull-request-header": true,
     "separate-pull-requests": true,
     "tag-separator": true,
     "extra-files": true,

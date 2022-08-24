@@ -27,6 +27,7 @@ import {
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
+const MAX_SLEEP_SECONDS = 20;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
@@ -42,7 +43,8 @@ import {
   RepositoryFileCache,
   GitHubFileContents,
   DEFAULT_FILE_MODE,
-} from './util/file-cache';
+  FileNotFoundError as MissingFileError,
+} from '@google-automations/git-file-utils';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -506,8 +508,11 @@ export class GitHub {
       opts: {
         [key: string]: string | number | null | undefined;
       },
-      maxRetries = 1
+      options?: {
+        maxRetries?: number;
+      }
     ) => {
+      let maxRetries = options?.maxRetries ?? 5;
       let seconds = 1;
       while (maxRetries >= 0) {
         try {
@@ -520,13 +525,17 @@ export class GitHub {
           if ((err as GitHubAPIError).status !== 502) {
             throw err;
           }
-          logger.trace('received 502 error, retrying');
+          if (maxRetries === 0) {
+            logger.warn('ran out of retries and response is required');
+            throw err;
+          }
+          logger.info(`received 502 error, ${maxRetries} attempts remaining`);
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {
           logger.trace(`sleeping ${seconds} seconds`);
           await sleepInMs(1000 * seconds);
-          seconds *= 2;
+          seconds = Math.min(seconds * 2, MAX_SLEEP_SECONDS);
         }
       }
       logger.trace('ran out of retries');
@@ -537,16 +546,42 @@ export class GitHub {
   /**
    * Iterate through merged pull requests with a max number of results scanned.
    *
-   * @param {number} maxResults maxResults - Limit the number of results searched.
-   *   Defaults to unlimited.
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched. Defaults to
+   *   unlimited.
+   * @param {boolean} includeFiles Whether to fetch the list of files included in
+   *   the pull request. Defaults to `true`.
    * @yields {PullRequest}
    * @throws {GitHubAPIError} on an API error
    */
   async *pullRequestIterator(
     targetBranch: string,
     status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
+    maxResults: number = Number.MAX_SAFE_INTEGER,
+    includeFiles = true
+  ): AsyncGenerator<PullRequest, void, void> {
+    const generator = includeFiles
+      ? this.pullRequestIteratorWithFiles(targetBranch, status, maxResults)
+      : this.pullRequestIteratorWithoutFiles(targetBranch, status, maxResults);
+    for await (const pullRequest of generator) {
+      yield pullRequest;
+    }
+  }
+
+  /**
+   * Helper implementation of pullRequestIterator that includes files via
+   * the graphQL API.
+   *
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched
+   */
+  private async *pullRequestIteratorWithFiles(
+    targetBranch: string,
+    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
     maxResults: number = Number.MAX_SAFE_INTEGER
-  ) {
+  ): AsyncGenerator<PullRequest, void, void> {
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
@@ -564,6 +599,61 @@ export class GitHub {
         break;
       }
       cursor = response.pageInfo.endCursor;
+    }
+  }
+
+  /**
+   * Helper implementation of pullRequestIterator that excludes files
+   * via the REST API.
+   *
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched
+   */
+  private async *pullRequestIteratorWithoutFiles(
+    targetBranch: string,
+    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
+    maxResults: number = Number.MAX_SAFE_INTEGER
+  ): AsyncGenerator<PullRequest, void, void> {
+    const statusMap: Record<string, 'open' | 'closed'> = {
+      OPEN: 'open',
+      CLOSED: 'closed',
+      MERGED: 'closed',
+    };
+    let results = 0;
+    for await (const {data: pulls} of this.octokit.paginate.iterator(
+      this.octokit.rest.pulls.list,
+      {
+        state: statusMap[status],
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        base: targetBranch,
+      }
+    )) {
+      for (const pull of pulls) {
+        // The REST API does not have an option for "merged"
+        // pull requests - they are closed with a `merge_commit_sha`
+        if (status !== 'MERGED' || pull.merge_commit_sha) {
+          results += 1;
+          yield {
+            headBranchName: pull.head.ref,
+            baseBranchName: pull.base.ref,
+            number: pull.number,
+            title: pull.title,
+            body: pull.body || '',
+            labels: pull.labels.map(label => label.name),
+            files: [],
+            sha: pull.merge_commit_sha || undefined,
+          };
+          if (results >= maxResults) {
+            break;
+          }
+        }
+      }
+
+      if (results >= maxResults) {
+        break;
+      }
     }
   }
 
@@ -586,9 +676,8 @@ export class GitHub {
     logger.debug(
       `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
     );
-    const response = await this.graphqlRequest(
-      {
-        query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
+    const response = await this.graphqlRequest({
+      query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
         repository(owner: $owner, name: $repo) {
           pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
             nodes {
@@ -622,16 +711,14 @@ export class GitHub {
           }
         }
       }`,
-        cursor,
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        num: 25,
-        targetBranch,
-        states,
-        maxFilesChanged: 64,
-      },
-      3
-    );
+      cursor,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      num: 25,
+      targetBranch,
+      states,
+      maxFilesChanged: 64,
+    });
     if (!response?.repository?.pullRequests) {
       logger.warn(
         `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
@@ -804,7 +891,14 @@ export class GitHub {
     branch: string
   ): Promise<GitHubFileContents> {
     logger.debug(`Fetching ${path} from branch ${branch}`);
-    return await this.fileCache.getFileContents(path, branch);
+    try {
+      return await this.fileCache.getFileContents(path, branch);
+    } catch (e) {
+      if (e instanceof MissingFileError) {
+        throw new FileNotFoundError(path);
+      }
+      throw e;
+    }
   }
 
   async getFileJson<T>(path: string, branch: string): Promise<T> {
@@ -857,32 +951,7 @@ export class GitHub {
       logger.debug(
         `finding files by filename: ${filename}, ref: ${ref}, prefix: ${prefix}`
       );
-      const response = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: ref,
-        recursive: 'true',
-      });
-      return response.data.tree
-        .filter(file => {
-          const path = file.path;
-          return (
-            path &&
-            // match the filename
-            path.endsWith(filename) &&
-            // match the prefix if provided
-            (!prefix || path.startsWith(`${prefix}/`))
-          );
-        })
-        .map(file => {
-          let path = file.path!;
-          // strip the prefix if provided
-          if (prefix) {
-            const pfix = new RegExp(`^${prefix}[/\\\\]`);
-            path = path.replace(pfix, '');
-          }
-          return path;
-        });
+      return await this.fileCache.findFilesByFilename(filename, ref, prefix);
     }
   );
 
@@ -1121,32 +1190,7 @@ export class GitHub {
       if (prefix) {
         prefix = normalizePrefix(prefix);
       }
-      const response = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: ref,
-        recursive: 'true',
-      });
-      return response.data.tree
-        .filter(file => {
-          const path = file.path;
-          return (
-            path &&
-            // match the file extension
-            path.endsWith(`.${extension}`) &&
-            // match the prefix if provided
-            (!prefix || path.startsWith(`${prefix}/`))
-          );
-        })
-        .map(file => {
-          let path = file.path!;
-          // strip the prefix if provided
-          if (prefix) {
-            const pfix = new RegExp(`^${prefix}[/\\\\]`);
-            path = path.replace(pfix, '');
-          }
-          return path;
-        });
+      return this.fileCache.findFilesByExtension(extension, ref, prefix);
     }
   );
 
@@ -1355,5 +1399,5 @@ const wrapAsync = <T extends Array<any>, V>(
   };
 };
 
-const sleepInMs = (ms: number) =>
+export const sleepInMs = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms));

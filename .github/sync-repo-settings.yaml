@@ -11,7 +11,6 @@ branchProtectionRules:
       - cla/google
       - docs
       - lint
-      - test (12)
       - test (14)
       - test (16)
       - windows

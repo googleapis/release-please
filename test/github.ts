@@ -187,7 +187,7 @@ describe('GitHub', () => {
   });
 
   describe('getFileContents', () => {
-    it('should support Github Data API in case of a big file', async () => {
+    beforeEach(() => {
       const dataAPITreesResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -198,6 +198,11 @@ describe('GitHub', () => {
           'utf8'
         )
       );
+      req = req
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
+        .reply(200, dataAPITreesResponse);
+    });
+    it('should support Github Data API in case of a big file', async () => {
       const dataAPIBlobResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -209,9 +214,7 @@ describe('GitHub', () => {
         )
       );
 
-      req
-        .get('/repos/fake/fake/git/trees/main?recursive=true')
-        .reply(200, dataAPITreesResponse)
+      req = req
         .get(
           '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
         )
@@ -225,6 +228,12 @@ describe('GitHub', () => {
         .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
       snapshot(fileContents);
       req.done();
+    });
+
+    it('should throw a missing file error', async () => {
+      await assert.rejects(async () => {
+        await github.getFileContents('non-existent-file');
+      }, FileNotFoundError);
     });
   });
 
@@ -261,6 +270,56 @@ describe('GitHub', () => {
         pullRequests.push(pullRequest);
       }
       expect(pullRequests).lengthOf(25);
+      snapshot(pullRequests!);
+      req.done();
+    });
+    it('uses REST API if files are not needed', async () => {
+      req.get('/repos/fake/fake/pulls?base=main&state=closed').reply(200, [
+        {
+          head: {
+            ref: 'feature-branch',
+          },
+          base: {
+            ref: 'main',
+          },
+          number: 123,
+          title: 'some title',
+          body: 'some body',
+          labels: [{name: 'label 1'}, {name: 'label 2'}],
+          merge_commit_sha: 'abc123',
+        },
+        {
+          head: {
+            ref: 'feature-branch',
+          },
+          base: {
+            ref: 'main',
+          },
+          number: 124,
+          title: 'merged title 2 ',
+          body: 'merged body 2',
+          labels: [{name: 'label 1'}, {name: 'label 2'}],
+          merge_commit_sha: 'abc123',
+        },
+        {
+          head: {
+            ref: 'feature-branch',
+          },
+          base: {
+            ref: 'main',
+          },
+          number: 125,
+          title: 'closed title',
+          body: 'closed body',
+          labels: [{name: 'label 1'}, {name: 'label 2'}],
+        },
+      ]);
+      const generator = github.pullRequestIterator('main', 'MERGED', 30, false);
+      const pullRequests: PullRequest[] = [];
+      for await (const pullRequest of generator) {
+        pullRequests.push(pullRequest);
+      }
+      expect(pullRequests).lengthOf(2);
       snapshot(pullRequests!);
       req.done();
     });

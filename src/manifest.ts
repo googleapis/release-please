@@ -89,6 +89,7 @@ export interface ReleaserConfig {
   includeComponentInTag?: boolean;
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
+  pullRequestHeader?: string;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
@@ -123,6 +124,7 @@ export interface CandidateRelease extends Release {
 
 interface ReleaserConfigJson {
   'release-type'?: ReleaseType;
+  versioning?: VersioningStrategyType;
   'bump-minor-pre-major'?: boolean;
   'bump-patch-for-minor-pre-major'?: boolean;
   'changelog-sections'?: ChangelogSection[];
@@ -138,6 +140,7 @@ interface ReleaserConfigJson {
   'changelog-type'?: ChangelogNotesType;
   'changelog-host'?: string;
   'pull-request-title-pattern'?: string;
+  'pull-request-header'?: string;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -807,7 +810,9 @@ export class Manifest {
     const openPullRequests: PullRequest[] = [];
     const generator = this.github.pullRequestIterator(
       this.targetBranch,
-      'OPEN'
+      'OPEN',
+      Number.MAX_SAFE_INTEGER,
+      false
     );
     for await (const openPullRequest of generator) {
       if (
@@ -828,7 +833,9 @@ export class Manifest {
     const snoozedPullRequests: PullRequest[] = [];
     const closedGenerator = this.github.pullRequestIterator(
       this.targetBranch,
-      'CLOSED'
+      'CLOSED',
+      200,
+      false
     );
     for await (const closedPullRequest of closedGenerator) {
       if (
@@ -935,7 +942,8 @@ export class Manifest {
     const pullRequestGenerator = this.github.pullRequestIterator(
       this.targetBranch,
       'MERGED',
-      200
+      200,
+      false
     );
     for await (const pullRequest of pullRequestGenerator) {
       if (!hasAllLabels(this.labels, pullRequest.labels)) {
@@ -1161,6 +1169,7 @@ function extractReleaserConfig(
     releaseType: config['release-type'],
     bumpMinorPreMajor: config['bump-minor-pre-major'],
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
+    versioning: config['versioning'],
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
@@ -1177,6 +1186,7 @@ function extractReleaserConfig(
     includeVInTag: config['include-v-in-tag'],
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
+    pullRequestHeader: config['pull-request-header'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1371,7 +1381,9 @@ async function latestReleaseVersion(
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
-  const generator = github.mergeCommitIterator(targetBranch, {maxResults: 250});
+  const generator = github.mergeCommitIterator(targetBranch, {
+    maxResults: 250,
+  });
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
@@ -1478,6 +1490,7 @@ function mergeReleaserConfig(
     bumpPatchForMinorPreMajor:
       pathConfig.bumpPatchForMinorPreMajor ??
       defaultConfig.bumpPatchForMinorPreMajor,
+    versioning: pathConfig.versioning ?? defaultConfig.versioning,
     changelogSections:
       pathConfig.changelogSections ?? defaultConfig.changelogSections,
     changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,
@@ -1499,6 +1512,8 @@ function mergeReleaserConfig(
     pullRequestTitlePattern:
       pathConfig.pullRequestTitlePattern ??
       defaultConfig.pullRequestTitlePattern,
+    pullRequestHeader:
+      pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
