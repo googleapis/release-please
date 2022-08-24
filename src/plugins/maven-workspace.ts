@@ -25,7 +25,6 @@ import {CandidateReleasePullRequest} from '../manifest';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import * as dom from '@xmldom/xmldom';
 import * as xpath from 'xpath';
-import {logger} from '../util/logger';
 import {dirname} from 'path';
 import {PomXml, parseDependencyNode} from '../updaters/java/pom-xml';
 import {Changelog} from '../updaters/changelog';
@@ -68,7 +67,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
 
     const groupNodes = xpath.select(XPATH_PROJECT_GROUP, document) as Node[];
     if (groupNodes.length === 0) {
-      logger.warn(`Missing project.groupId in ${path}`);
+      this.logger.warn(`Missing project.groupId in ${path}`);
       return;
     }
     const artifactNodes = xpath.select(
@@ -76,7 +75,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       document
     ) as Node[];
     if (artifactNodes.length === 0) {
-      logger.warn(`Missing project.artifactId in ${path}`);
+      this.logger.warn(`Missing project.artifactId in ${path}`);
       return;
     }
     const versionNodes = xpath.select(
@@ -84,7 +83,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       document
     ) as Node[];
     if (versionNodes.length === 0) {
-      logger.warn(`Missing project.version in ${path}`);
+      this.logger.warn(`Missing project.version in ${path}`);
       return;
     }
     const dependencies: Gav[] = [];
@@ -139,7 +138,9 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       const path = dirname(pomFile);
       const config = this.repositoryConfig[path];
       if (!config) {
-        logger.info(`path '${path}' not configured, ignoring '${pomFile}'`);
+        this.logger.info(
+          `path '${path}' not configured, ignoring '${pomFile}'`
+        );
         continue;
       }
       const mavenArtifact = await this.fetchPom(pomFile);
@@ -152,7 +153,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         candidatesByPackage[this.packageNameFromPackage(mavenArtifact)] =
           candidate;
       } else {
-        logger.warn(
+        this.logger.warn(
           `found ${pomFile} in path ${path}, but did not find an associated candidate PR`
         );
       }
@@ -221,7 +222,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
             update.updater.changelogEntry =
               appendDependenciesSectionToChangelog(
                 update.updater.changelogEntry,
-                dependencyNotes
+                dependencyNotes,
+                this.logger
               );
           }
         }
@@ -234,13 +236,18 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         existingCandidate.pullRequest.body.releaseData[0].notes =
           appendDependenciesSectionToChangelog(
             existingCandidate.pullRequest.body.releaseData[0].notes,
-            dependencyNotes
+            dependencyNotes,
+            this.logger
           );
       } else {
         existingCandidate.pullRequest.body.releaseData.push({
           component: artifact.name,
           version: existingCandidate.pullRequest.version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         });
       }
     }
@@ -266,7 +273,11 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         {
           component: artifact.name,
           version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         },
       ]),
       updates: [
@@ -334,7 +345,7 @@ function getChangelogDepsNotes(
     depUpdateNotes.push(
       `\n    * ${dependencyUpdate.name} bumped to ${dependencyUpdate.version}`
     );
-    logger.info(
+    this.logger.info(
       `bumped ${dependencyUpdate.name} to ${dependencyUpdate.version}`
     );
   }

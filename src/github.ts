@@ -32,7 +32,7 @@ export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
 
-import {logger} from './util/logger';
+import {logger as defaultLogger} from './util/logger';
 import {Repository} from './repository';
 import {ReleasePullRequest} from './release-pull-request';
 import {Update} from './update';
@@ -45,6 +45,7 @@ import {
   DEFAULT_FILE_MODE,
   FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
+import {Logger} from 'code-suggester/build/src/types';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -59,6 +60,7 @@ export interface OctokitAPIs {
 export interface GitHubOptions {
   repository: Repository;
   octokitAPIs: OctokitAPIs;
+  logger?: Logger;
 }
 
 interface GitHubCreateOptions {
@@ -188,6 +190,7 @@ export class GitHub {
   private request: RequestFunctionType;
   private graphql: Function;
   private fileCache: RepositoryFileCache;
+  private logger: Logger;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
@@ -195,6 +198,7 @@ export class GitHub {
     this.request = options.octokitAPIs.request;
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
+    this.logger = options.logger ?? defaultLogger;
   }
 
   /**
@@ -349,7 +353,7 @@ export class GitHub {
     cursor?: string,
     options: CommitIteratorOptions = {}
   ): Promise<CommitHistory | null> {
-    logger.debug(
+    this.logger.debug(
       `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
     );
     const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
@@ -412,13 +416,16 @@ export class GitHub {
     });
 
     if (!response) {
-      logger.warn(`Did not receive a response for query: ${query}`, params);
+      this.logger.warn(
+        `Did not receive a response for query: ${query}`,
+        params
+      );
       return null;
     }
 
     // if the branch does exist, return null
     if (!response.repository?.ref) {
-      logger.warn(
+      this.logger.warn(
         `Could not find commits for branch ${targetBranch} - it likely does not exist.`
       );
       return null;
@@ -447,7 +454,9 @@ export class GitHub {
           files,
         };
         if (pullRequest.files.pageInfo?.hasNextPage && options.backfillFiles) {
-          logger.info(`PR #${pullRequest.number} has many files, backfilling`);
+          this.logger.info(
+            `PR #${pullRequest.number} has many files, backfilling`
+          );
           commit.files = await this.getCommitFiles(graphCommit.sha);
         } else {
           // We cannot directly fetch files on commits via graphql, only provide file
@@ -477,7 +486,7 @@ export class GitHub {
    * @throws {GitHubAPIError} on an API error
    */
   getCommitFiles = wrapAsync(async (sha: string): Promise<string[]> => {
-    logger.debug(`Backfilling file list for commit: ${sha}`);
+    this.logger.debug(`Backfilling file list for commit: ${sha}`);
     const files: string[] = [];
     for await (const resp of this.octokit.paginate.iterator(
       this.octokit.repos.getCommit,
@@ -494,11 +503,11 @@ export class GitHub {
       }
     }
     if (files.length >= 3000) {
-      logger.warn(
+      this.logger.warn(
         `Found ${files.length} files. This may not include all the files.`
       );
     } else {
-      logger.debug(`Found ${files.length} files`);
+      this.logger.debug(`Found ${files.length} files`);
     }
     return files;
   });
@@ -520,25 +529,27 @@ export class GitHub {
           if (response) {
             return response;
           }
-          logger.trace('no GraphQL response, retrying');
+          this.logger.trace('no GraphQL response, retrying');
         } catch (err) {
           if ((err as GitHubAPIError).status !== 502) {
             throw err;
           }
           if (maxRetries === 0) {
-            logger.warn('ran out of retries and response is required');
+            this.logger.warn('ran out of retries and response is required');
             throw err;
           }
-          logger.info(`received 502 error, ${maxRetries} attempts remaining`);
+          this.logger.info(
+            `received 502 error, ${maxRetries} attempts remaining`
+          );
         }
         maxRetries -= 1;
         if (maxRetries >= 0) {
-          logger.trace(`sleeping ${seconds} seconds`);
+          this.logger.trace(`sleeping ${seconds} seconds`);
           await sleepInMs(1000 * seconds);
           seconds = Math.min(seconds * 2, MAX_SLEEP_SECONDS);
         }
       }
-      logger.trace('ran out of retries');
+      this.logger.trace('ran out of retries');
       return undefined;
     }
   );
@@ -673,7 +684,7 @@ export class GitHub {
     states: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
     cursor?: string
   ): Promise<PullRequestHistory | null> {
-    logger.debug(
+    this.logger.debug(
       `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
     );
     const response = await this.graphqlRequest({
@@ -720,7 +731,7 @@ export class GitHub {
       maxFilesChanged: 64,
     });
     if (!response?.repository?.pullRequests) {
-      logger.warn(
+      this.logger.warn(
         `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
       );
       return null;
@@ -778,7 +789,7 @@ export class GitHub {
   private async releaseGraphQL(
     cursor?: string
   ): Promise<ReleaseHistory | null> {
-    logger.debug(`Fetching releases with cursor ${cursor}`);
+    this.logger.debug(`Fetching releases with cursor ${cursor}`);
     const response = await this.graphqlRequest({
       query: `query releases($owner: String!, $repo: String!, $num: Int!, $cursor: String) {
         repository(owner: $owner, name: $repo) {
@@ -808,7 +819,7 @@ export class GitHub {
       num: 25,
     });
     if (!response.repository.releases.nodes.length) {
-      logger.warn('Could not find releases.');
+      this.logger.warn('Could not find releases.');
       return null;
     }
     const releases = response.repository.releases.nodes as GraphQLRelease[];
@@ -818,7 +829,7 @@ export class GitHub {
         .filter(release => !!release.tagCommit)
         .map(release => {
           if (!release.tag || !release.tagCommit) {
-            logger.debug(release);
+            this.logger.debug(release);
           }
           return {
             name: release.name || undefined,
@@ -890,7 +901,7 @@ export class GitHub {
     path: string,
     branch: string
   ): Promise<GitHubFileContents> {
-    logger.debug(`Fetching ${path} from branch ${branch}`);
+    this.logger.debug(`Fetching ${path} from branch ${branch}`);
     try {
       return await this.fileCache.getFileContents(path, branch);
     } catch (e) {
@@ -948,7 +959,7 @@ export class GitHub {
       if (prefix) {
         prefix = normalizePrefix(prefix);
       }
-      logger.debug(
+      this.logger.debug(
         `finding files by filename: ${filename}, ref: ${ref}, prefix: ${prefix}`
       );
       return await this.fileCache.findFilesByFilename(filename, ref, prefix);
@@ -1022,7 +1033,7 @@ export class GitHub {
         force: true,
         fork: !!options?.fork,
         message,
-        logger: logger,
+        logger: this.logger,
         draft: !!options?.draft,
         labels: pullRequest.labels,
       });
@@ -1093,11 +1104,11 @@ export class GitHub {
         force: true,
         fork: options?.fork === false ? false : true,
         message,
-        logger: logger,
+        logger: this.logger,
         draft: releasePullRequest.draft,
       });
       if (prNumber !== number) {
-        logger.warn(
+        this.logger.warn(
           `updated code for ${prNumber}, but update requested for ${number}`
         );
       }
@@ -1148,7 +1159,7 @@ export class GitHub {
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
         if (!update.createIfMissing) {
-          logger.warn(`file ${update.path} did not exist`);
+          this.logger.warn(`file ${update.path} did not exist`);
           continue;
         }
       }
@@ -1278,7 +1289,7 @@ export class GitHub {
    */
   commentOnIssue = wrapAsync(
     async (comment: string, number: number): Promise<string> => {
-      logger.debug(
+      this.logger.debug(
         `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issue/${number}`
       );
       const resp = await this.octokit.issues.createComment({
@@ -1302,7 +1313,7 @@ export class GitHub {
       if (labels.length === 0) {
         return;
       }
-      logger.debug(`removing labels: ${labels} from issue/pull ${number}`);
+      this.logger.debug(`removing labels: ${labels} from issue/pull ${number}`);
       await Promise.all(
         labels.map(label =>
           this.octokit.issues.removeLabel({
@@ -1327,7 +1338,7 @@ export class GitHub {
       if (labels.length === 0) {
         return;
       }
-      logger.debug(`adding labels: ${labels} from issue/pull ${number}`);
+      this.logger.debug(`adding labels: ${labels} from issue/pull ${number}`);
       await this.octokit.issues.addLabels({
         owner: this.repository.owner,
         repo: this.repository.repo,

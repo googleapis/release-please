@@ -17,7 +17,7 @@ import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit} from './commit';
 import {PullRequest} from './pull-request';
-import {logger} from './util/logger';
+import {logger as defaultLogger, Logger} from './util/logger';
 import {CommitSplit} from './util/commit-split';
 import {TagName} from './util/tag-name';
 import {Repository} from './repository';
@@ -169,6 +169,7 @@ export interface ManifestOptions {
   groupPullRequestTitlePattern?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
+  logger?: Logger;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -262,6 +263,7 @@ export class Manifest {
   private groupPullRequestTitlePattern?: string;
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
+  readonly logger: Logger;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -325,6 +327,7 @@ export class Manifest {
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =
       manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
+    this.logger = manifestOptions?.logger ?? defaultLogger;
   }
 
   /**
@@ -437,12 +440,12 @@ export class Manifest {
    * @returns {ReleasePullRequest[]} The candidate pull requests to open or update.
    */
   async buildPullRequests(): Promise<ReleasePullRequest[]> {
-    logger.info('Building pull requests');
+    this.logger.info('Building pull requests');
     const pathsByComponent = await this.getPathsByComponent();
     const strategiesByPath = await this.getStrategiesByPath();
 
     // Collect all the SHAs of the latest release packages
-    logger.info('Collecting release commit SHAs');
+    this.logger.info('Collecting release commit SHAs');
     let releasesFound = 0;
     const expectedReleases = Object.keys(strategiesByPath).length;
 
@@ -451,32 +454,32 @@ export class Manifest {
 
     // Releases by path
     const releasesByPath: Record<string, Release> = {};
-    logger.debug(`release search depth: ${this.releaseSearchDepth}`);
+    this.logger.debug(`release search depth: ${this.releaseSearchDepth}`);
     for await (const release of this.github.releaseIterator({
       maxResults: this.releaseSearchDepth,
     })) {
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
-        logger.warn(`Unable to parse release name: ${release.name}`);
+        this.logger.warn(`Unable to parse release name: ${release.name}`);
         continue;
       }
       const component = tagName.component || DEFAULT_COMPONENT_NAME;
       const path = pathsByComponent[component];
       if (!path) {
-        logger.warn(
+        this.logger.warn(
           `Found release tag with component '${component}', but not configured in manifest`
         );
         continue;
       }
       const expectedVersion = this.releasedVersions[path];
       if (!expectedVersion) {
-        logger.warn(
+        this.logger.warn(
           `Unable to find expected version for path '${path}' in manifest`
         );
         continue;
       }
       if (expectedVersion.toString() === tagName.version.toString()) {
-        logger.debug(`Found release for path ${path}, ${release.tagName}`);
+        this.logger.debug(`Found release for path ${path}, ${release.tagName}`);
         releaseShasByPath[path] = release.sha;
         releasesByPath[path] = {
           name: release.name,
@@ -494,14 +497,14 @@ export class Manifest {
 
     const needsBootstrap = releasesFound < expectedReleases;
     if (releasesFound < expectedReleases) {
-      logger.warn(
+      this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
       );
       // Fall back to looking for missing releases using expected tags
       const missingPaths = Object.keys(strategiesByPath).filter(
         path => !releasesByPath[path]
       );
-      logger.warn(`Missing ${missingPaths.length} paths: ${missingPaths}`);
+      this.logger.warn(`Missing ${missingPaths.length} paths: ${missingPaths}`);
       const missingReleases = await this.backfillReleasesFromTags(
         missingPaths,
         strategiesByPath
@@ -513,13 +516,13 @@ export class Manifest {
       }
     }
     if (releasesFound < expectedReleases) {
-      logger.warn(
+      this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
       );
     }
     for (const path in releasesByPath) {
       const release = releasesByPath[path];
-      logger.debug(
+      this.logger.debug(
         `release for path: ${path}, version: ${release.tag.version.toString()}, sha: ${
           release.sha
         }`
@@ -528,15 +531,15 @@ export class Manifest {
 
     // iterate through commits and collect commits until we have
     // seen all release commits
-    logger.info('Collecting commits since all latest releases');
+    this.logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
-    logger.debug(`commit search depth: ${this.commitSearchDepth}`);
+    this.logger.debug(`commit search depth: ${this.commitSearchDepth}`);
     const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
       maxResults: this.commitSearchDepth,
       backfillFiles: true,
     });
     const releaseShas = new Set(Object.values(releaseShasByPath));
-    logger.debug(releaseShas);
+    this.logger.debug(releaseShas);
     const expectedShas = releaseShas.size;
 
     // sha => release pull request
@@ -547,19 +550,19 @@ export class Manifest {
         if (commit.pullRequest) {
           releasePullRequestsBySha[commit.sha] = commit.pullRequest;
         } else {
-          logger.warn(
+          this.logger.warn(
             `Release SHA ${commit.sha} did not have an associated pull request`
           );
         }
         releaseCommitsFound += 1;
       }
       if (this.lastReleaseSha && this.lastReleaseSha === commit.sha) {
-        logger.info(
+        this.logger.info(
           `Using configured lastReleaseSha ${this.lastReleaseSha} as last commit.`
         );
         break;
       } else if (needsBootstrap && commit.sha === this.bootstrapSha) {
-        logger.info(
+        this.logger.info(
           `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
         );
         break;
@@ -576,13 +579,13 @@ export class Manifest {
     }
 
     if (releaseCommitsFound < expectedShas) {
-      logger.warn(
+      this.logger.warn(
         `Expected ${expectedShas} commits, only found ${releaseCommitsFound}`
       );
     }
 
     // split commits by path
-    logger.info(`Splitting ${commits.length} commits by path`);
+    this.logger.info(`Splitting ${commits.length} commits by path`);
     const cs = new CommitSplit({
       includeEmpty: true,
       packagePaths: Object.keys(this.repositoryConfig),
@@ -609,7 +612,7 @@ export class Manifest {
         const version = this.releasedVersions[path];
         const strategy = strategiesByPath[path];
         const component = await strategy.getComponent();
-        logger.info(
+        this.logger.info(
           `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
         );
         releasesByPath[path] = {
@@ -643,15 +646,17 @@ export class Manifest {
     let newReleasePullRequests: CandidateReleasePullRequest[] = [];
     for (const path in this.repositoryConfig) {
       const config = this.repositoryConfig[path];
-      logger.info(`Building candidate release pull request for path: ${path}`);
-      logger.debug(`type: ${config.releaseType}`);
-      logger.debug(`targetBranch: ${this.targetBranch}`);
+      this.logger.info(
+        `Building candidate release pull request for path: ${path}`
+      );
+      this.logger.debug(`type: ${config.releaseType}`);
+      this.logger.debug(`targetBranch: ${this.targetBranch}`);
       const pathCommits = commitsPerPath[path];
-      logger.debug(`commits: ${pathCommits.length}`);
+      this.logger.debug(`commits: ${pathCommits.length}`);
       const latestReleasePullRequest =
         releasePullRequestsBySha[releaseShasByPath[path]];
       if (!latestReleasePullRequest) {
-        logger.warn('No latest release pull request found.');
+        this.logger.warn('No latest release pull request found.');
       }
 
       const strategy = strategies[path];
@@ -701,7 +706,7 @@ export class Manifest {
     }
 
     for (const plugin of plugins) {
-      logger.debug(`running plugin: ${plugin.constructor.name}`);
+      this.logger.debug(`running plugin: ${plugin.constructor.name}`);
       newReleasePullRequests = await plugin.run(newReleasePullRequests);
     }
 
@@ -719,7 +724,7 @@ export class Manifest {
     for (const path of missingPaths) {
       const expectedVersion = this.releasedVersions[path];
       if (!expectedVersion) {
-        logger.warn(`No version for path ${path}`);
+        this.logger.warn(`No version for path ${path}`);
         continue;
       }
       const component = await strategiesByPath[path].getComponent();
@@ -729,10 +734,10 @@ export class Manifest {
         this.repositoryConfig[path].tagSeparator,
         this.repositoryConfig[path].includeVInTag
       );
-      logger.debug(`looking for tagName: ${expectedTag.toString()}`);
+      this.logger.debug(`looking for tagName: ${expectedTag.toString()}`);
       const foundTag = allTags[expectedTag.toString()];
       if (foundTag) {
-        logger.debug(`found: ${foundTag.name} ${foundTag.sha}`);
+        this.logger.debug(`found: ${foundTag.name} ${foundTag.sha}`);
         releasesByPath[path] = {
           name: foundTag.name,
           tag: expectedTag,
@@ -767,7 +772,7 @@ export class Manifest {
     // any new release PRs
     const mergedPullRequestsGenerator = this.findMergedReleasePullRequests();
     for await (const _ of mergedPullRequestsGenerator) {
-      logger.warn(
+      this.logger.warn(
         'There are untagged, merged release PRs outstanding - aborting'
       );
       return [];
@@ -806,7 +811,7 @@ export class Manifest {
   }
 
   private async findOpenReleasePullRequests(): Promise<PullRequest[]> {
-    logger.info('Looking for open release pull requests');
+    this.logger.info('Looking for open release pull requests');
     const openPullRequests: PullRequest[] = [];
     const generator = this.github.pullRequestIterator(
       this.targetBranch,
@@ -824,12 +829,14 @@ export class Manifest {
         openPullRequests.push(openPullRequest);
       }
     }
-    logger.info(`found ${openPullRequests.length} open release pull requests.`);
+    this.logger.info(
+      `found ${openPullRequests.length} open release pull requests.`
+    );
     return openPullRequests;
   }
 
   private async findSnoozedReleasePullRequests(): Promise<PullRequest[]> {
-    logger.info('Looking for snoozed release pull requests');
+    this.logger.info('Looking for snoozed release pull requests');
     const snoozedPullRequests: PullRequest[] = [];
     const closedGenerator = this.github.pullRequestIterator(
       this.targetBranch,
@@ -846,7 +853,7 @@ export class Manifest {
         snoozedPullRequests.push(closedPullRequest);
       }
     }
-    logger.info(
+    this.logger.info(
       `found ${snoozedPullRequests.length} snoozed release pull requests.`
     );
     return snoozedPullRequests;
@@ -894,7 +901,7 @@ export class Manifest {
   ): Promise<PullRequest | undefined> {
     // If unchanged, no need to push updates
     if (existing.body === pullRequest.body.toString()) {
-      logger.info(
+      this.logger.info(
         `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
       );
       return undefined;
@@ -918,7 +925,7 @@ export class Manifest {
   ): Promise<PullRequest | undefined> {
     // If unchanged, no need to push updates
     if (snoozed.body === pullRequest.body.toString()) {
-      logger.info(
+      this.logger.info(
         `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
       );
       return undefined;
@@ -949,13 +956,13 @@ export class Manifest {
       if (!hasAllLabels(this.labels, pullRequest.labels)) {
         continue;
       }
-      logger.debug(
+      this.logger.debug(
         `Found pull request #${pullRequest.number}: '${pullRequest.title}'`
       );
 
       const pullRequestBody = PullRequestBody.parse(pullRequest.body);
       if (!pullRequestBody) {
-        logger.debug('could not parse pull request body as a release PR');
+        this.logger.debug('could not parse pull request body as a release PR');
         continue;
       }
       yield pullRequest;
@@ -968,7 +975,7 @@ export class Manifest {
    * @returns {CandidateRelease[]} List of release candidates
    */
   async buildReleases(): Promise<CandidateRelease[]> {
-    logger.info('Building releases');
+    this.logger.info('Building releases');
     const strategiesByPath = await this.getStrategiesByPath();
 
     // Find merged release pull requests
@@ -977,9 +984,9 @@ export class Manifest {
     for await (const pullRequest of generator) {
       for (const path in this.repositoryConfig) {
         const config = this.repositoryConfig[path];
-        logger.info(`Building release for path: ${path}`);
-        logger.debug(`type: ${config.releaseType}`);
-        logger.debug(`targetBranch: ${this.targetBranch}`);
+        this.logger.info(`Building release for path: ${path}`);
+        this.logger.debug(`type: ${config.releaseType}`);
+        this.logger.debug(`targetBranch: ${this.targetBranch}`);
         const strategy = strategiesByPath[path];
         const release = await strategy.buildRelease(pullRequest);
         if (release) {
@@ -994,7 +1001,7 @@ export class Manifest {
                 release.tag.version.major === 0),
           });
         } else {
-          logger.info(`No release necessary for path: ${path}`);
+          this.logger.info(`No release necessary for path: ${path}`);
         }
       }
     }
@@ -1050,7 +1057,7 @@ export class Manifest {
     releases: CandidateRelease[],
     pullRequest: PullRequest
   ): Promise<CreatedRelease[]> {
-    logger.info(
+    this.logger.info(
       `Creating ${releases.length} releases for pull #${pullRequest.number}`
     );
     const duplicateReleases: DuplicateReleaseError[] = [];
@@ -1060,7 +1067,7 @@ export class Manifest {
         githubReleases.push(await this.createRelease(release));
       } catch (err) {
         if (err instanceof DuplicateReleaseError) {
-          logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
+          this.logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
           duplicateReleases.push(err);
         } else {
           throw err;
@@ -1119,11 +1126,11 @@ export class Manifest {
 
   private async getStrategiesByPath(): Promise<Record<string, Strategy>> {
     if (!this._strategiesByPath) {
-      logger.info('Building strategies by path');
+      this.logger.info('Building strategies by path');
       this._strategiesByPath = {};
       for (const path in this.repositoryConfig) {
         const config = this.repositoryConfig[path];
-        logger.debug(`${path}: ${config.releaseType}`);
+        this.logger.debug(`${path}: ${config.releaseType}`);
         const strategy = await buildStrategy({
           ...config,
           github: this.github,
@@ -1144,7 +1151,7 @@ export class Manifest {
         const strategy = strategiesByPath[path];
         const component = (await strategy.getComponent()) || '';
         if (this._pathsByComponent[component]) {
-          logger.warn(
+          this.logger.warn(
             `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`
           );
         }
@@ -1361,7 +1368,8 @@ async function latestReleaseVersion(
   targetBranch: string,
   releaseFilter: (version: Version) => boolean,
   config: ReleaserConfig,
-  prefix?: string
+  prefix?: string,
+  logger: Logger = defaultLogger
 ): Promise<Version | undefined> {
   const branchPrefix = prefix
     ? prefix.endsWith('-')

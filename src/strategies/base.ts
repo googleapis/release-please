@@ -30,7 +30,7 @@ import {Version, VersionsMap} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
-import {logger} from '../util/logger';
+import {logger as defaultLogger, Logger} from '../util/logger';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
@@ -77,6 +77,7 @@ export interface BaseStrategyOptions {
   versionFile?: string;
   snapshotLabels?: string[]; // Java-only
   skipSnapshot?: boolean; // Java-only
+  logger?: Logger;
 }
 
 /**
@@ -86,6 +87,7 @@ export interface BaseStrategyOptions {
 export abstract class BaseStrategy implements Strategy {
   readonly path: string;
   protected github: GitHub;
+  protected logger: Logger;
   protected component?: string;
   private packageName?: string;
   readonly versioningStrategy: VersioningStrategy;
@@ -130,6 +132,7 @@ export abstract class BaseStrategy implements Strategy {
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
     this.extraFiles = options.extraFiles || [];
+    this.logger = options.logger ?? defaultLogger;
   }
 
   /**
@@ -245,11 +248,11 @@ export abstract class BaseStrategy implements Strategy {
     labels: string[] = []
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
-      parseConventionalCommits(commits)
+      parseConventionalCommits(commits, this.logger)
     );
-    logger.info(`Considering: ${conventionalCommits.length} commits`);
+    this.logger.info(`Considering: ${conventionalCommits.length} commits`);
     if (conventionalCommits.length === 0) {
-      logger.info(`No commits for path: ${this.path}, skipping`);
+      this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }
 
@@ -263,7 +266,7 @@ export abstract class BaseStrategy implements Strategy {
       newVersion
     );
     const component = await this.getComponent();
-    logger.debug('component:', component);
+    this.logger.debug('component:', component);
 
     const newVersionTag = new TagName(
       newVersion,
@@ -271,7 +274,10 @@ export abstract class BaseStrategy implements Strategy {
       this.tagSeparator,
       this.includeVInTag
     );
-    logger.debug('pull request title pattern:', this.pullRequestTitlePattern);
+    this.logger.debug(
+      'pull request title pattern:',
+      this.pullRequestTitlePattern
+    );
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
@@ -290,7 +296,7 @@ export abstract class BaseStrategy implements Strategy {
       commits
     );
     if (this.changelogEmpty(releaseNotesBody)) {
-      logger.info(
+      this.logger.info(
         `No user facing commits found since ${
           latestRelease ? latestRelease.sha : 'beginning of time'
         } - skipping`
@@ -396,7 +402,7 @@ export abstract class BaseStrategy implements Strategy {
     latestRelease?: Release
   ): Promise<Version> {
     if (this.releaseAs) {
-      logger.warn(
+      this.logger.warn(
         `Setting version for ${this.path} from release-as configuration`
       );
       return Version.parse(this.releaseAs);
@@ -445,11 +451,11 @@ export abstract class BaseStrategy implements Strategy {
     mergedPullRequest: PullRequest
   ): Promise<Release | undefined> {
     if (this.skipGitHubRelease) {
-      logger.info('Release skipped from strategy config');
+      this.logger.info('Release skipped from strategy config');
       return;
     }
     if (!mergedPullRequest.sha) {
-      logger.error('Pull request should have been merged');
+      this.logger.error('Pull request should have been merged');
       return;
     }
 
@@ -463,19 +469,19 @@ export abstract class BaseStrategy implements Strategy {
         MANIFEST_PULL_REQUEST_TITLE_PATTERN
       );
     if (!pullRequestTitle) {
-      logger.error(`Bad pull request title: '${mergedPullRequest.title}'`);
+      this.logger.error(`Bad pull request title: '${mergedPullRequest.title}'`);
       return;
     }
     const branchName = BranchName.parse(mergedPullRequest.headBranchName);
     if (!branchName) {
-      logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
+      this.logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
       return;
     }
     const pullRequestBody = await this.parsePullRequestBody(
       mergedPullRequest.body
     );
     if (!pullRequestBody) {
-      logger.error('Could not parse pull request body as a release PR');
+      this.logger.error('Could not parse pull request body as a release PR');
       return;
     }
     const component = await this.getComponent();
@@ -490,7 +496,7 @@ export abstract class BaseStrategy implements Strategy {
         this.normalizeComponent(branchName.component) !==
         this.normalizeComponent(branchComponent)
       ) {
-        logger.warn(
+        this.logger.warn(
           `PR component: ${branchName.component} does not match configured component: ${branchComponent}`
         );
         return;
@@ -508,7 +514,7 @@ export abstract class BaseStrategy implements Strategy {
       });
 
       if (!releaseData && pullRequestBody.releaseData.length > 0) {
-        logger.info(
+        this.logger.info(
           `Pull request contains releases, but not for component: ${component}`
         );
         return;
@@ -517,11 +523,11 @@ export abstract class BaseStrategy implements Strategy {
 
     const notes = releaseData?.notes;
     if (notes === undefined) {
-      logger.warn('Failed to find release notes');
+      this.logger.warn('Failed to find release notes');
     }
     const version = pullRequestTitle.getVersion() || releaseData?.version;
     if (!version) {
-      logger.error('Pull request should have included version');
+      this.logger.error('Pull request should have included version');
       return;
     }
 

@@ -24,7 +24,6 @@ import {CommitSplit} from '../util/commit-split';
 import {DefaultUpdater} from '../updaters/default';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
-import {logger} from '../util/logger';
 import {TagName} from '../util/tag-name';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
@@ -72,10 +71,10 @@ export class PHPYoshi extends BaseStrategy {
     labels: string[] = []
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
-      parseConventionalCommits(commits)
+      parseConventionalCommits(commits, this.logger)
     );
     if (conventionalCommits.length === 0) {
-      logger.info(`No commits for path: ${this.path}, skipping`);
+      this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }
 
@@ -159,7 +158,7 @@ export class PHPYoshi extends BaseStrategy {
       const componentInfo = directoryVersionContents[directory];
       const version = versionsMap.get(componentInfo.composer.name);
       if (!version) {
-        logger.warn(`No version found for ${componentInfo.composer.name}`);
+        this.logger.warn(`No version found for ${componentInfo.composer.name}`);
         continue;
       }
       updates.push({

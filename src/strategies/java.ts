@@ -20,7 +20,6 @@ import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
 import {Commit} from '../commit';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
-import {logger} from '../util/logger';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
@@ -79,14 +78,14 @@ export class Java extends BaseStrategy {
     labels: string[] = []
   ): Promise<ReleasePullRequest | undefined> {
     if (await this.needsSnapshot(commits, latestRelease)) {
-      logger.info('Repository needs a snapshot bump.');
+      this.logger.info('Repository needs a snapshot bump.');
       return await this.buildSnapshotPullRequest(
         latestRelease,
         draft,
         this.snapshotLabels
       );
     }
-    logger.info('No Java snapshot needed');
+    this.logger.info('No Java snapshot needed');
     return await super.buildReleasePullRequest(
       commits,
       latestRelease,
@@ -162,7 +161,7 @@ export class Java extends BaseStrategy {
     }
 
     const component = await this.getComponent();
-    logger.debug('component:', component);
+    this.logger.debug('component:', component);
 
     const version = latestRelease?.tag?.version;
     if (!version) {

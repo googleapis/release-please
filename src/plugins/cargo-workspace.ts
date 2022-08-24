@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import {CandidateReleasePullRequest, ROOT_PROJECT_PATH} from '../manifest';
-import {logger} from '../util/logger';
 import {
   WorkspacePlugin,
   DependencyGraph,
@@ -92,7 +91,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       cargoManifestContent.parsedContent
     );
     if (!cargoManifest.workspace?.members) {
-      logger.warn(
+      this.logger.warn(
         "cargo-workspace plugin used, but top-level Cargo.toml isn't a cargo workspace"
       );
       return {allPackages: [], candidatesByPackage: {}};
@@ -104,7 +103,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     members.push(ROOT_PROJECT_PATH);
     for (const path of members) {
       const manifestPath = addPath(path, 'Cargo.toml');
-      logger.info(`looking for candidate with path: ${path}`);
+      this.logger.info(`looking for candidate with path: ${path}`);
       const candidate = candidates.find(c => c.path === path);
       // get original content of the crate
       const manifestContent =
@@ -118,7 +117,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       const manifest = parseCargoManifest(manifestContent.parsedContent);
       const packageName = manifest.package?.name;
       if (!packageName) {
-        logger.warn(
+        this.logger.warn(
           `package manifest at ${manifestPath} is missing [package.name]`
         );
         continue;
@@ -181,7 +180,8 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         } else if (update.updater instanceof Changelog && dependencyNotes) {
           update.updater.changelogEntry = appendDependenciesSectionToChangelog(
             update.updater.changelogEntry,
-            dependencyNotes
+            dependencyNotes,
+            this.logger
           );
         } else if (
           update.path === addPath(existingCandidate.path, 'Cargo.lock')
@@ -197,13 +197,18 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         existingCandidate.pullRequest.body.releaseData[0].notes =
           appendDependenciesSectionToChangelog(
             existingCandidate.pullRequest.body.releaseData[0].notes,
-            dependencyNotes
+            dependencyNotes,
+            this.logger
           );
       } else {
         existingCandidate.pullRequest.body.releaseData.push({
           component: pkg.name,
           version: existingCandidate.pullRequest.version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         });
       }
     }
@@ -235,7 +240,11 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         {
           component: pkg.name,
           version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         },
       ]),
       updates: [
@@ -273,11 +282,11 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
   ): CandidateReleasePullRequest[] {
     let rootCandidate = candidates.find(c => c.path === ROOT_PROJECT_PATH);
     if (!rootCandidate) {
-      logger.warn('Unable to find root candidate pull request');
+      this.logger.warn('Unable to find root candidate pull request');
       rootCandidate = candidates.find(c => c.config.releaseType === 'rust');
     }
     if (!rootCandidate) {
-      logger.warn('Unable to find a rust candidate pull request');
+      this.logger.warn('Unable to find a rust candidate pull request');
       return candidates;
     }
 

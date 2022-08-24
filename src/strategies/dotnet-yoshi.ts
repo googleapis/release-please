@@ -16,7 +16,6 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {Apis} from '../updaters/dotnet/apis';
-import {logger} from '../util/logger';
 import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
 import {TagName} from '../util/tag-name';
@@ -120,7 +119,7 @@ export class DotnetYoshi extends BaseStrategy {
 
     const api = await this.getApi();
     if (api?.noVersionHistory) {
-      logger.info(
+      this.logger.info(
         `Skipping changelog for ${component} via noVersionHistory configuration`
       );
     } else {
@@ -136,7 +135,7 @@ export class DotnetYoshi extends BaseStrategy {
     }
 
     if (!component) {
-      logger.warn(
+      this.logger.warn(
         'Dotnet strategy expects to use components, could not update all files'
       );
       return updates;

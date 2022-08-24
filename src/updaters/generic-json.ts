@@ -16,7 +16,6 @@ import {Updater} from '../update';
 import {Version} from '../version';
 import * as jp from 'jsonpath';
 import {jsonStringify} from '../util/json-stringify';
-import {logger} from '../util/logger';
 
 export class GenericJson implements Updater {
   readonly jsonpath: string;

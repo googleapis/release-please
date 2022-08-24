@@ -15,7 +15,7 @@
 import {ManifestPlugin} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 import {GitHub} from '../github';
-import {logger} from '../util/logger';
+import {Logger} from '../util/logger';
 import {Strategy} from '../strategy';
 import {Commit} from '../commit';
 import {Release} from '../release';
@@ -25,6 +25,7 @@ import {Merge} from './merge';
 
 interface LinkedVersionsPluginOptions {
   merge?: boolean;
+  logger?: Logger;
 }
 
 /**
@@ -46,7 +47,7 @@ export class LinkedVersions extends ManifestPlugin {
     components: string[],
     options: LinkedVersionsPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(github, targetBranch, repositoryConfig, options.logger);
     this.groupName = groupName;
     this.components = new Set(components);
     this.merge = options.merge ?? true;
@@ -74,7 +75,7 @@ export class LinkedVersions extends ManifestPlugin {
         groupStrategies[path] = strategy;
       }
     }
-    logger.info(
+    this.logger.info(
       `Found ${Object.keys(groupStrategies).length} group components for ${
         this.groupName
       }`
@@ -110,7 +111,7 @@ export class LinkedVersions extends ManifestPlugin {
     for (const path in strategiesByPath) {
       if (path in groupStrategies) {
         const component = await strategiesByPath[path].getComponent();
-        logger.info(
+        this.logger.info(
           `Replacing strategy for path ${path} with forced version: ${primaryVersion}`
         );
         newStrategies[path] = await buildStrategy({
@@ -121,7 +122,7 @@ export class LinkedVersions extends ManifestPlugin {
           releaseAs: primaryVersion.toString(),
         });
         if (missingReleasePaths.has(path)) {
-          logger.debug(`Appending fake commit for path: ${path}`);
+          this.logger.debug(`Appending fake commit for path: ${path}`);
           commitsByPath[path].push({
             sha: '',
             message: `chore(${component}): Synchronize ${
@@ -152,7 +153,7 @@ export class LinkedVersions extends ManifestPlugin {
     const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce(
       (collection, candidate) => {
         if (!candidate.pullRequest.version) {
-          logger.warn('pull request missing version', candidate);
+          this.logger.warn('pull request missing version', candidate);
           return collection;
         }
         if (this.components.has(candidate.config.component || '')) {
