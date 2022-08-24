@@ -297,6 +297,10 @@
           "description": "When considering commit history, only look this many commits deep.",
           "type": "number"
         },
+        "pr-creation-delay-ms": {
+          "description": "Delay this many milliseconds between issuing pull request creation calls.",
+          "type": "number"
+        },
         "sequential-calls": {
           "description": "Whether to open pull requests/releases sequentially rather than concurrently. If you have many components, you may want to set this to avoid secondary rate limits.",
           "type": "boolean"

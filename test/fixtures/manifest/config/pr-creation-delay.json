@@ -1,0 +1,8 @@
+{
+  "pr-creation-delay-ms": 5000,
+  "packages": {
+    ".": {
+      "release-type": "simple"
+    }
+  }
+}

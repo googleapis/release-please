@@ -240,6 +240,11 @@ defaults (those are documented in comments)
   // absence defaults to false, causing calls to be issued concurrently.
   "sequential-calls": false,
   
+  // sets a delay (in milliseconds) between pull request create calls. This may
+  // help avoid hitting secondary rate limits on pull request creation when a
+  // large number of pull requests are opened in a monorepo.
+  // Absence defaults to 0.
+  "pr-creation-delay-ms": 2000,
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains

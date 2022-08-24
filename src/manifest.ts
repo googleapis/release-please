@@ -169,6 +169,7 @@ export interface ManifestOptions {
   groupPullRequestTitlePattern?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
+  prCreationDelayMs?: number;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -208,6 +209,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
+  'pr-creation-delay-ms'?: number;
   'sequential-calls'?: boolean;
 }
 // path => version
@@ -225,6 +227,7 @@ export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
 const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
 const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
+const DEFAULT_PR_CREATION_DELAY_MS = 0;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
@@ -262,6 +265,7 @@ export class Manifest {
   private groupPullRequestTitlePattern?: string;
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
+  readonly prCreationDelayMs: number;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -325,6 +329,8 @@ export class Manifest {
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =
       manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
+    this.prCreationDelayMs =
+      manifestOptions?.prCreationDelayMs || DEFAULT_PR_CREATION_DELAY_MS;
   }
 
   /**
@@ -884,6 +890,8 @@ export class Manifest {
         skipLabeling: this.skipLabeling,
       }
     );
+
+    await sleepInMs(this.prCreationDelayMs);
     return newPullRequest;
   }
 
@@ -1241,6 +1249,7 @@ async function parseConfig(
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
     sequentialCalls: config['sequential-calls'],
+    prCreationDelayMs: config['pr-creation-delay-ms'],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
@@ -1561,3 +1570,6 @@ function tagMatchesConfig(
     (!includeComponentInTag && !tag.component)
   );
 }
+
+const sleepInMs = (ms: number) =>
+  new Promise(resolve => setTimeout(resolve, ms));
