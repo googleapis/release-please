@@ -78,6 +78,22 @@ The above commit message will contain:
 
 > :warning: **Important:** The additional messages must be added to the bottom of the commit.
 
+You can alternatively use a markdown horizonal rule (`---`) as a separator between
+commit messages. This is useful if you have multiple BREAKING CHANGE secions. Note
+that this feature is not part of the conventional commits specification.
+
+```txt
+feat: adds v4 UUID to crypto
+
+This adds support for v4 UUIDs to the library.
+---
+fix: another fix
+---
+fix!: some breaking change
+
+BREAKING CHANGE: This is a breaking change because of something.
+```
+
 ## How do I change the version number?
 
 When a commit to the main branch has `Release-As: x.x.x` (case insensitive) in the **commit body**, Release Please will open a new pull request for the specified version.
