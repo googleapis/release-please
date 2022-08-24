@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {GitHubFileContents} from '@google-automations/git-file-utils';
+import {Logger} from './util/logger';
 
 /**
  * An update is a collection of data that represents changes to
@@ -43,5 +44,5 @@ export interface Updater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string | undefined): string;
+  updateContent(content: string | undefined, logger?: Logger): string;
 }

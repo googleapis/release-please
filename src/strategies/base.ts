@@ -110,13 +110,15 @@ export abstract class BaseStrategy implements Strategy {
   protected changelogSections?: ChangelogSection[];
 
   constructor(options: BaseStrategyOptions) {
+    this.logger = options.logger ?? defaultLogger;
     this.path = options.path || ROOT_PROJECT_PATH;
     this.github = options.github;
     this.packageName = options.packageName;
     this.component =
       options.component || this.normalizeComponent(this.packageName);
     this.versioningStrategy =
-      options.versioningStrategy || new DefaultVersioningStrategy({});
+      options.versioningStrategy ||
+      new DefaultVersioningStrategy({logger: this.logger});
     this.targetBranch = options.targetBranch;
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
@@ -132,7 +134,6 @@ export abstract class BaseStrategy implements Strategy {
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
     this.extraFiles = options.extraFiles || [];
-    this.logger = options.logger ?? defaultLogger;
   }
 
   /**
@@ -439,7 +440,7 @@ export abstract class BaseStrategy implements Strategy {
   protected async parsePullRequestBody(
     pullRequestBody: string
   ): Promise<PullRequestBody | undefined> {
-    return PullRequestBody.parse(pullRequestBody);
+    return PullRequestBody.parse(pullRequestBody, this.logger);
   }
 
   /**
@@ -462,17 +463,22 @@ export abstract class BaseStrategy implements Strategy {
     const pullRequestTitle =
       PullRequestTitle.parse(
         mergedPullRequest.title,
-        this.pullRequestTitlePattern
+        this.pullRequestTitlePattern,
+        this.logger
       ) ||
       PullRequestTitle.parse(
         mergedPullRequest.title,
-        MANIFEST_PULL_REQUEST_TITLE_PATTERN
+        MANIFEST_PULL_REQUEST_TITLE_PATTERN,
+        this.logger
       );
     if (!pullRequestTitle) {
       this.logger.error(`Bad pull request title: '${mergedPullRequest.title}'`);
       return;
     }
-    const branchName = BranchName.parse(mergedPullRequest.headBranchName);
+    const branchName = BranchName.parse(
+      mergedPullRequest.headBranchName,
+      this.logger
+    );
     if (!branchName) {
       this.logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
       return;

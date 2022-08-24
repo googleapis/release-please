@@ -29,6 +29,7 @@ import {JavaAddSnapshot} from '../versioning-strategies/java-add-snapshot';
 import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
 import {JavaReleased} from '../updaters/java/java-released';
 import {mergeUpdates} from '../updaters/composite';
+import {logger as defaultLogger} from '../util/logger';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -63,7 +64,8 @@ export class Java extends BaseStrategy {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     // wrap the configured versioning strategy with snapshotting
     const parentVersioningStrategy =
-      options.versioningStrategy || new DefaultVersioningStrategy();
+      options.versioningStrategy ||
+      new DefaultVersioningStrategy({logger: options.logger ?? defaultLogger});
     options.versioningStrategy = new JavaSnapshot(parentVersioningStrategy);
     super(options);
     this.snapshotVersioning = new JavaAddSnapshot(parentVersioningStrategy);
@@ -179,7 +181,8 @@ export class Java extends BaseStrategy {
       .map(commit =>
         PullRequestTitle.parse(
           commit.pullRequest?.title || commit.message,
-          this.pullRequestTitlePattern
+          this.pullRequestTitlePattern,
+          this.logger
         )
       )
       .filter(pullRequest => pullRequest);

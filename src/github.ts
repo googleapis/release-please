@@ -1166,7 +1166,10 @@ export class GitHub {
       const contentText = content
         ? Buffer.from(content.content, 'base64').toString('utf8')
         : undefined;
-      const updatedContent = update.updater.updateContent(contentText);
+      const updatedContent = update.updater.updateContent(
+        contentText,
+        this.logger
+      );
       if (updatedContent) {
         changes.set(update.path, {
           content: updatedContent,

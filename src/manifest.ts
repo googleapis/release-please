@@ -414,7 +414,8 @@ export class Manifest {
       targetBranch,
       version => isPublishedVersion(strategy, version),
       config,
-      component
+      component,
+      manifestOptions?.logger
     );
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
@@ -823,8 +824,8 @@ export class Manifest {
       if (
         (hasAllLabels(this.labels, openPullRequest.labels) ||
           hasAllLabels(this.snapshotLabels, openPullRequest.labels)) &&
-        BranchName.parse(openPullRequest.headBranchName) &&
-        PullRequestBody.parse(openPullRequest.body)
+        BranchName.parse(openPullRequest.headBranchName, this.logger) &&
+        PullRequestBody.parse(openPullRequest.body, this.logger)
       ) {
         openPullRequests.push(openPullRequest);
       }
@@ -847,8 +848,8 @@ export class Manifest {
     for await (const closedPullRequest of closedGenerator) {
       if (
         hasAllLabels([SNOOZE_LABEL], closedPullRequest.labels) &&
-        BranchName.parse(closedPullRequest.headBranchName) &&
-        PullRequestBody.parse(closedPullRequest.body)
+        BranchName.parse(closedPullRequest.headBranchName, this.logger) &&
+        PullRequestBody.parse(closedPullRequest.body, this.logger)
       ) {
         snoozedPullRequests.push(closedPullRequest);
       }
@@ -960,7 +961,10 @@ export class Manifest {
         `Found pull request #${pullRequest.number}: '${pullRequest.title}'`
       );
 
-      const pullRequestBody = PullRequestBody.parse(pullRequest.body);
+      const pullRequestBody = PullRequestBody.parse(
+        pullRequest.body,
+        this.logger
+      );
       if (!pullRequestBody) {
         this.logger.debug('could not parse pull request body as a release PR');
         continue;
@@ -1399,7 +1403,10 @@ async function latestReleaseVersion(
       continue;
     }
 
-    const branchName = BranchName.parse(mergedPullRequest.headBranchName);
+    const branchName = BranchName.parse(
+      mergedPullRequest.headBranchName,
+      logger
+    );
     if (!branchName) {
       continue;
     }
@@ -1412,7 +1419,8 @@ async function latestReleaseVersion(
 
     const pullRequestTitle = PullRequestTitle.parse(
       mergedPullRequest.title,
-      config.pullRequestTitlePattern
+      config.pullRequestTitlePattern,
+      logger
     );
     if (!pullRequestTitle) {
       continue;

@@ -32,6 +32,7 @@ import {ReleasePullRequest} from '../release-pull-request';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
+import {logger as defaultLogger, Logger} from '../util/logger';
 
 interface Gav {
   groupId: string;
@@ -210,7 +211,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     const dependencyNotes = getChangelogDepsNotes(
       artifact,
       updater,
-      updatedVersions
+      updatedVersions,
+      this.logger
     );
 
     existingCandidate.pullRequest.updates =
@@ -265,7 +267,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     const dependencyNotes = getChangelogDepsNotes(
       artifact,
       updater,
-      updatedVersions
+      updatedVersions,
+      this.logger
     );
     const pullRequest: ReleasePullRequest = {
       title: PullRequestTitle.ofTargetBranch(this.targetBranch),
@@ -333,7 +336,8 @@ function packageNameFromGav(gav: Gav): string {
 function getChangelogDepsNotes(
   artifact: MavenArtifact,
   updater: PomXml,
-  updatedVersions: VersionsMap
+  updatedVersions: VersionsMap,
+  logger: Logger = defaultLogger
 ): string {
   const document = new dom.DOMParser().parseFromString(artifact.pomContent);
   const dependencyUpdates = updater.dependencyUpdates(
@@ -345,7 +349,7 @@ function getChangelogDepsNotes(
     depUpdateNotes.push(
       `\n    * ${dependencyUpdate.name} bumped to ${dependencyUpdate.version}`
     );
-    this.logger.info(
+    logger.info(
       `bumped ${dependencyUpdate.name} to ${dependencyUpdate.version}`
     );
   }

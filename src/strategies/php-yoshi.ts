@@ -204,7 +204,7 @@ export class PHPYoshi extends BaseStrategy {
   protected async parsePullRequestBody(
     pullRequestBody: string
   ): Promise<PullRequestBody | undefined> {
-    const body = PullRequestBody.parse(pullRequestBody);
+    const body = PullRequestBody.parse(pullRequestBody, this.logger);
     if (!body) {
       return undefined;
     }

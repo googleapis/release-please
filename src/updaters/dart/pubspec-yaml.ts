@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 /**
@@ -25,7 +25,7 @@ export class PubspecYaml extends DefaultUpdater {
    * @returns {string} The updated content
    */
 
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     const oldVersion = content.match(/^version: ([0-9.]+)\+?(.*$)/m);
     let buildNumber = '';
 

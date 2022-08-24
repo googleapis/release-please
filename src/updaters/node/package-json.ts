@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {jsonStringify} from '../../util/json-stringify';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 type LockFile = {version: string};
@@ -27,7 +27,7 @@ export class PackageJson extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     const parsed = JSON.parse(content) as LockFile;
     logger.info(`updating from ${parsed.version} to ${this.version}`);
     parsed.version = this.version.toString();
