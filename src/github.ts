@@ -71,6 +71,7 @@ interface GitHubCreateOptions {
   graphqlUrl?: string;
   octokitAPIs?: OctokitAPIs;
   token?: string;
+  logger?: Logger;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -253,6 +254,7 @@ export class GitHub {
           )),
       },
       octokitAPIs: apis,
+      logger: options.logger,
     };
     return new GitHub(opts);
   }
