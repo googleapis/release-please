@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.1.2](https://github.com/googleapis/release-please/compare/v14.1.1...v14.1.2) (2022-08-25)
+
+
+### Bug Fixes
+
+* **deps:** update code-suggester to 4.1.0 ([#1600](https://github.com/googleapis/release-please/issues/1600)) ([e123a39](https://github.com/googleapis/release-please/commit/e123a392798e30ce75808f3b74e9b9836832725f))
+
 ## [14.1.1](https://github.com/googleapis/release-please/compare/v14.1.0...v14.1.1) (2022-08-23)
 
 
