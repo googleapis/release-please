@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.2.1](https://github.com/googleapis/release-please/compare/v14.2.0...v14.2.1) (2022-08-25)
+
+
+### Bug Fixes
+
+* allow providing logger to GitHub.create ([#1603](https://github.com/googleapis/release-please/issues/1603)) ([a14e906](https://github.com/googleapis/release-please/commit/a14e906991e0120d0a85d1c4d739999cd6c9f1e4))
+
 ## [14.2.0](https://github.com/googleapis/release-please/compare/v14.1.2...v14.2.0) (2022-08-25)
 
 
