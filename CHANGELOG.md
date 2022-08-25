@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.2.0](https://github.com/googleapis/release-please/compare/v14.1.2...v14.2.0) (2022-08-25)
+
+
+### Features
+
+* maintain an instance logger ([#1599](https://github.com/googleapis/release-please/issues/1599)) ([adb8053](https://github.com/googleapis/release-please/commit/adb805357d6344f1737bb3541ec7354e76f45cdc))
+
 ## [14.1.2](https://github.com/googleapis/release-please/compare/v14.1.1...v14.1.2) (2022-08-25)
 
 
