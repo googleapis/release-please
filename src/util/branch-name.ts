@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Version} from '../version';
-import {logger} from './logger';
+import {logger as defaultLogger, Logger} from './logger';
 
 // cannot import from '..' - transpiled code references to RELEASE_PLEASE
 // at the script level are undefined, they are only defined inside function
@@ -39,7 +39,10 @@ export class BranchName {
   targetBranch?: string;
   version?: Version;
 
-  static parse(branchName: string): BranchName | undefined {
+  static parse(
+    branchName: string,
+    logger: Logger = defaultLogger
+  ): BranchName | undefined {
     try {
       const branchNameClass = getAllResourceNames().find(clazz => {
         return clazz.matches(branchName);

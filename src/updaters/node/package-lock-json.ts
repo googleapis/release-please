@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {jsonStringify} from '../../util/json-stringify';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 type LockFileV2 = {
@@ -27,7 +27,7 @@ type LockFileV2 = {
  * version (for a v2 lock file).
  */
 export class PackageLockJson extends DefaultUpdater {
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     const parsed = JSON.parse(content) as LockFileV2;
     logger.info(`updating from ${parsed.version} to ${this.version}`);
     parsed.version = this.version.toString();

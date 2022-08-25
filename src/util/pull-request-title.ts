@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {logger} from './logger';
+import {logger as defaultLogger, Logger} from './logger';
 import {Version} from '../version';
 
 // cannot import from '..' - transpiled code references to RELEASE_PLEASE
@@ -21,7 +21,10 @@ import {Version} from '../version';
 
 const DEFAULT_PR_TITLE_PATTERN =
   'chore${scope}: release${component} ${version}';
-export function generateMatchPattern(pullRequestTitlePattern?: string): RegExp {
+export function generateMatchPattern(
+  pullRequestTitlePattern?: string,
+  logger: Logger = defaultLogger
+): RegExp {
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{scope\}/) === -1
@@ -60,20 +63,25 @@ export class PullRequestTitle {
     component?: string;
     targetBranch?: string;
     pullRequestTitlePattern?: string;
+    logger?: Logger;
   }) {
     this.version = opts.version;
     this.component = opts.component;
     this.targetBranch = opts.targetBranch;
     this.pullRequestTitlePattern =
       opts.pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN;
-    this.matchPattern = generateMatchPattern(this.pullRequestTitlePattern);
+    this.matchPattern = generateMatchPattern(
+      this.pullRequestTitlePattern,
+      opts.logger
+    );
   }
 
   static parse(
     title: string,
-    pullRequestTitlePattern?: string
+    pullRequestTitlePattern?: string,
+    logger: Logger = defaultLogger
   ): PullRequestTitle | undefined {
-    const matchPattern = generateMatchPattern(pullRequestTitlePattern);
+    const matchPattern = generateMatchPattern(pullRequestTitlePattern, logger);
     const match = title.match(matchPattern);
     if (match?.groups) {
       return new PullRequestTitle({
@@ -83,6 +91,7 @@ export class PullRequestTitle {
         component: match.groups['component'],
         targetBranch: match.groups['branch'],
         pullRequestTitlePattern,
+        logger,
       });
     }
     return undefined;

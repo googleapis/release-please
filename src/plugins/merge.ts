@@ -25,7 +25,6 @@ import {BranchName} from '../util/branch-name';
 import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
 import {GitHub} from '../github';
-import {logger} from '../util/logger';
 
 /**
  * This plugin merges multiple pull requests into a single
@@ -56,7 +55,7 @@ export class Merge extends ManifestPlugin {
     if (candidates.length < 1) {
       return candidates;
     }
-    logger.info(`Merging ${candidates.length} pull requests`);
+    this.logger.info(`Merging ${candidates.length} pull requests`);
 
     const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce<
       Array<Array<CandidateReleasePullRequest>>

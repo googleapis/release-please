@@ -16,7 +16,7 @@ import {Updater} from '../update';
 import {Version} from '../version';
 import * as jp from 'jsonpath';
 import * as yaml from 'js-yaml';
-import {logger} from '../util/logger';
+import {logger as defaultLogger, Logger} from '../util/logger';
 
 const DOCUMENT_SEPARATOR = '---\n';
 
@@ -42,7 +42,7 @@ export class GenericYaml implements Updater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     // Parse possibly multi-document file
     let docs: unknown[];
     try {

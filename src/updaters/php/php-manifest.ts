@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {jsonStringify} from '../../util/json-stringify';
 import {DefaultUpdater} from '../default';
 
@@ -31,7 +31,7 @@ export class PHPManifest extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     if (!this.versionsMap || this.versionsMap.size === 0) {
       logger.info('no updates necessary');
       return content;

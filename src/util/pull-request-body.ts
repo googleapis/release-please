@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {logger} from './logger';
+import {logger as defaultLogger, Logger} from './logger';
 import {parse} from 'node-html-parser';
 import {Version} from '../version';
 
@@ -41,15 +41,18 @@ export class PullRequestBody {
     this.releaseData = releaseData;
     this.useComponents = options?.useComponents ?? this.releaseData.length > 1;
   }
-  static parse(body: string): PullRequestBody | undefined {
+  static parse(
+    body: string,
+    logger: Logger = defaultLogger
+  ): PullRequestBody | undefined {
     const parts = splitBody(body);
     if (!parts) {
       logger.error('Pull request body did not match');
       return undefined;
     }
-    let data = extractMultipleReleases(parts.content);
+    let data = extractMultipleReleases(parts.content, logger);
     if (data.length === 0) {
-      data = extractSingleRelease(parts.content);
+      data = extractSingleRelease(parts.content, logger);
       if (data.length === 0) {
         logger.warn('Failed to parse releases.');
       }
@@ -115,7 +118,7 @@ export interface ReleaseData {
   version?: Version;
   notes: string;
 }
-function extractMultipleReleases(notes: string): ReleaseData[] {
+function extractMultipleReleases(notes: string, logger: Logger): ReleaseData[] {
   const data: ReleaseData[] = [];
   const root = parse(notes);
   for (const detail of root.getElementsByTagName('details')) {
@@ -147,7 +150,7 @@ function extractMultipleReleases(notes: string): ReleaseData[] {
   return data;
 }
 const COMPARE_REGEX = /^#{2,} \[?(?<version>\d+\.\d+\.\d+.*)\]?/;
-function extractSingleRelease(body: string): ReleaseData[] {
+function extractSingleRelease(body: string, logger: Logger): ReleaseData[] {
   body = body.trim();
   const match = body.match(COMPARE_REGEX);
   const versionString = match?.groups?.version;

@@ -22,11 +22,12 @@ import {
 } from '../versioning-strategy';
 import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
-import {logger} from '../util/logger';
+import {logger as defaultLogger, Logger} from '../util/logger';
 
 interface DefaultVersioningStrategyOptions {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  logger?: Logger;
 }
 
 /**
@@ -37,6 +38,7 @@ interface DefaultVersioningStrategyOptions {
 export class DefaultVersioningStrategy implements VersioningStrategy {
   readonly bumpMinorPreMajor: boolean;
   readonly bumpPatchForMinorPreMajor: boolean;
+  protected logger: Logger;
   /**
    * Create a new DefaultVersioningStrategy
    * @param {DefaultVersioningStrategyOptions} options Configuration options
@@ -48,6 +50,7 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
   constructor(options: DefaultVersioningStrategyOptions = {}) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
     this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
+    this.logger = options.logger ?? defaultLogger;
   }
 
   /**
@@ -71,7 +74,9 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
       const releaseAs = commit.notes.find(note => note.title === 'RELEASE AS');
       if (releaseAs) {
         // commits are handled newest to oldest, so take the first one (newest) found
-        logger.debug(`found Release-As: ${releaseAs.text}, forcing version`);
+        this.logger.debug(
+          `found Release-As: ${releaseAs.text}, forcing version`
+        );
         return new CustomVersionUpdate(
           Version.parse(releaseAs.text).toString()
         );

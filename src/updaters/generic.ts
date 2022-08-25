@@ -14,7 +14,7 @@
 
 import {DefaultUpdater, UpdateOptions} from './default';
 import {Version} from '../version';
-import {logger} from '../util/logger';
+import {logger as defaultLogger, Logger} from '../util/logger';
 
 const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[\w.]+))?(\+(?<build>[-\w.]+))?/;
@@ -77,7 +77,10 @@ export class Generic extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string | undefined): string {
+  updateContent(
+    content: string | undefined,
+    logger: Logger = defaultLogger
+  ): string {
     if (!content) {
       return '';
     }

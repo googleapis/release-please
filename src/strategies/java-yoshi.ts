@@ -19,7 +19,6 @@ import {Changelog} from '../updaters/changelog';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
 import {ConventionalCommit} from '../commit';
-import {logger} from '../util/logger';
 import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
 
@@ -205,7 +204,7 @@ export class JavaYoshi extends Java {
     for (const versionKey of versionsMap.keys()) {
       const version = versionsMap.get(versionKey);
       if (!version) {
-        logger.warn(`didn't find version for ${versionKey}`);
+        this.logger.warn(`didn't find version for ${versionKey}`);
         continue;
       }
       if (isPromotion && isStableArtifact(versionKey)) {
