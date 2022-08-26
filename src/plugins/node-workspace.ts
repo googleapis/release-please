@@ -18,11 +18,7 @@ import {
   RawManifest as PackageJson,
 } from '@lerna/package';
 import {GitHub} from '../github';
-import {
-  CandidateReleasePullRequest,
-  RepositoryConfig,
-  ROOT_PROJECT_PATH,
-} from '../manifest';
+import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import {Version, VersionsMap} from '../version';
 import {RawContent} from '../updaters/raw-content';
 import {PullRequestTitle} from '../util/pull-request-title';
@@ -337,10 +333,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   }
 
   protected inScope(candidate: CandidateReleasePullRequest): boolean {
-    return (
-      candidate.config.releaseType === 'node' &&
-      candidate.path !== ROOT_PROJECT_PATH
-    );
+    return candidate.config.releaseType === 'node';
   }
 
   protected packageNameFromPackage(pkg: Package): string {
