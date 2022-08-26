@@ -59,7 +59,6 @@ export class SentenceCase extends ManifestPlugin {
         const match = /\s|$/.exec(suffix);
         if (match) {
           const endFirstWord = match.index;
-          if (endFirstWord === -1) continue; // There are now spaces in the string.
           const firstWord = suffix.slice(0, endFirstWord);
           suffix = suffix.slice(endFirstWord);
           // Put the string back together again:
