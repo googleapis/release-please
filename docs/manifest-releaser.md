@@ -520,3 +520,7 @@ Example:
   ]
 }
 ```
+
+### sentence-case
+
+Capitalize the leading word in a commit message, taking into account common exceptions, e.g., gRPC.

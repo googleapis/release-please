@@ -43,6 +43,15 @@ export abstract class ManifestPlugin {
   }
 
   /**
+   * Perform post-processing on commits, e.g, sentence casing them.
+   * @param {Commit[]} commits The set of commits that will feed into release pull request.
+   * @returns {Commit[]} The modified commit objects.
+   */
+  processCommits(commits: Commit[]): Commit[] {
+    return commits;
+  }
+
+  /**
    * Post-process candidate pull requests.
    * @param {CandidateReleasePullRequest[]} pullRequests Candidate pull requests
    * @returns {CandidateReleasePullRequest[]} Updated pull requests
