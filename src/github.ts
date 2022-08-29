@@ -645,7 +645,7 @@ export class GitHub {
     )) {
       for (const pull of pulls) {
         // The REST API does not have an option for "merged"
-        // pull requests - they are closed with a `merge_commit_sha`
+        // pull requests - they are closed with a `merged_at` timestamp
         if (status !== 'MERGED' || pull.merged_at) {
           results += 1;
           yield {
