@@ -91,6 +91,10 @@
           "description": "Generate changelog links to this GitHub host. Useful for running against GitHub Enterprise.",
           "type": "string"
         },
+        "changelog-path": {
+          "description": "Path to the file that tracks release note changes. Defaults to `CHANGELOG.md`.",
+          "type": "string"
+        },
         "pull-request-title-pattern": {
           "description": "Customize the release pull request title.",
           "type": "string"
@@ -332,6 +336,7 @@
     "include-v-in-tag": true,
     "changelog-type": true,
     "changelog-host": true,
+    "changelog-path": true,
     "pull-request-title-pattern": true,
     "pull-request-header": true,
     "separate-pull-requests": true,
