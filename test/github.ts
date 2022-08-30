@@ -287,6 +287,7 @@ describe('GitHub', () => {
           body: 'some body',
           labels: [{name: 'label 1'}, {name: 'label 2'}],
           merge_commit_sha: 'abc123',
+          merged_at: '2022-08-08T19:07:20Z',
         },
         {
           head: {
@@ -300,6 +301,7 @@ describe('GitHub', () => {
           body: 'merged body 2',
           labels: [{name: 'label 1'}, {name: 'label 2'}],
           merge_commit_sha: 'abc123',
+          merged_at: '2022-08-08T19:07:20Z',
         },
         {
           head: {
@@ -312,6 +314,7 @@ describe('GitHub', () => {
           title: 'closed title',
           body: 'closed body',
           labels: [{name: 'label 1'}, {name: 'label 2'}],
+          merge_commit_sha: 'def234',
         },
       ]);
       const generator = github.pullRequestIterator('main', 'MERGED', 30, false);
