@@ -627,6 +627,38 @@ describe('Manifest', () => {
       ).to.eql('default');
     });
 
+    it('should read changelog path from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/changelog-path.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].changelogPath).to.eql(
+        'docs/foo.md'
+      );
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].changelogPath
+      ).to.eql('docs/bar.md');
+    });
+
     it('should read versioning type from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
