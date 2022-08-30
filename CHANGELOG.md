@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.2.3](https://github.com/googleapis/release-please/compare/v14.2.2...v14.2.3) (2022-08-30)
+
+
+### Bug Fixes
+
+* dont filter out root package in node workspace candidate filtering ([#1606](https://github.com/googleapis/release-please/issues/1606)) ([c8560d5](https://github.com/googleapis/release-please/commit/c8560d519db50690ac6dd3409dd2b3560f4c12a5))
+
 ## [14.2.2](https://github.com/googleapis/release-please/compare/v14.2.1...v14.2.2) (2022-08-30)
 
 
