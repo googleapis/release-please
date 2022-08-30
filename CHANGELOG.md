@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.2.2](https://github.com/googleapis/release-please/compare/v14.2.1...v14.2.2) (2022-08-30)
+
+
+### Bug Fixes
+
+* look at merged_at field to determine merge status ([#1609](https://github.com/googleapis/release-please/issues/1609)) ([1c9beac](https://github.com/googleapis/release-please/commit/1c9beacb49d82f2aa594ef0511fa8d9cfd743b11))
+
 ## [14.2.1](https://github.com/googleapis/release-please/compare/v14.2.0...v14.2.1) (2022-08-25)
 
 
