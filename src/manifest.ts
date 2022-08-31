@@ -188,6 +188,9 @@ export interface LinkedVersionPluginConfig extends ConfigurablePluginType {
   components: string[];
   merge?: boolean;
 }
+export interface SentenceCasePluginConfig extends ConfigurablePluginType {
+  specialWords?: string[];
+}
 export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
 }
@@ -195,6 +198,7 @@ export type PluginType =
   | DirectPluginType
   | ConfigurablePluginType
   | LinkedVersionPluginConfig
+  | SentenceCasePluginConfig
   | WorkspacePluginConfig;
 
 /**

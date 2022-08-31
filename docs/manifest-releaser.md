@@ -524,3 +524,15 @@ Example:
 ### sentence-case
 
 Capitalize the leading word in a commit message, taking into account common exceptions, e.g., gRPC.
+
+As an example:
+
+`fix: patch issues in OpenSSL`
+
+Will be output in the CHANGELOG thusly:
+
+```
+Bug Fixes:
+
+* Patch issues in OpenSSL`
+```

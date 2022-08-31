@@ -13,34 +13,31 @@
 // limitations under the License.
 
 import {ManifestPlugin} from '../plugin';
+import {GitHub} from '../github';
+import {RepositoryConfig} from '../manifest';
 import {Commit} from '../commit';
 
 // A list of words that should not be converted to uppercase:
-const SpecialWords: Set<string> = new Set(['gRPC', 'npm']);
-
-/*
- * Convert a string to upper case, taking into account a dictionary of
- * common lowercase words, e.g., gRPC, npm.
- *
- * @param {string} word The original word.
- * @returns {string} The word, now upper case.
- */
-function toUpperCase(word: string): string {
-  if (SpecialWords.has(word)) {
-    return word;
-  }
-  if (word.match(/^[a-z]/)) {
-    return word.charAt(0).toUpperCase() + word.slice(1);
-  } else {
-    return word;
-  }
-}
+const SPECIAL_WORDS = ['gRPC', 'npm'];
 
 /**
  * This plugin converts commit messages to sentence case, for the benefit
  * of the generated CHANGELOG.
  */
 export class SentenceCase extends ManifestPlugin {
+  specialWords: Set<string>;
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    specialWords?: Array<string>
+  ) {
+    super(github, targetBranch, repositoryConfig);
+    this.specialWords = new Set(
+      specialWords ? [...specialWords] : SPECIAL_WORDS
+    );
+  }
+
   /**
    * Perform post-processing on commits, e.g, sentence casing them.
    * @param {Commit[]} commits The set of commits that will feed into release pull request.
@@ -62,10 +59,28 @@ export class SentenceCase extends ManifestPlugin {
           const firstWord = suffix.slice(0, endFirstWord);
           suffix = suffix.slice(endFirstWord);
           // Put the string back together again:
-          commit.message = `${prefix}${toUpperCase(firstWord)}${suffix}`;
+          commit.message = `${prefix}${this.toUpperCase(firstWord)}${suffix}`;
         }
       }
     }
     return commits;
+  }
+
+  /*
+   * Convert a string to upper case, taking into account a dictionary of
+   * common lowercase words, e.g., gRPC, npm.
+   *
+   * @param {string} word The original word.
+   * @returns {string} The word, now upper case.
+   */
+  toUpperCase(word: string): string {
+    if (this.specialWords.has(word)) {
+      return word;
+    }
+    if (word.match(/^[a-z]/)) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    } else {
+      return word;
+    }
   }
 }

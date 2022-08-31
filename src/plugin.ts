@@ -47,6 +47,8 @@ export abstract class ManifestPlugin {
    * @param {Commit[]} commits The set of commits that will feed into release pull request.
    * @returns {Commit[]} The modified commit objects.
    */
+  // TODO: for next major version, let's run the default conventional commit parser earlier
+  // (outside of the strategy classes) and pass in the ConventionalCommit[] objects in.
   processCommits(commits: Commit[]): Commit[] {
     return commits;
   }

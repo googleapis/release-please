@@ -73,4 +73,19 @@ describe('SentenceCase Plugin', () => {
       expect(commits[1].message).to.equal('fix: Log4j.foo.bar');
     });
   });
+  it('allows a custom list of specialWords to be provided', async () => {
+    const plugin = new SentenceCase(github, 'main', {}, ['hello']);
+    const commits = await plugin.processCommits([
+      {
+        sha: 'abc123',
+        message: 'fix: hello world',
+      },
+      {
+        sha: 'abc123',
+        message: 'fix: Goodnight moon',
+      },
+    ]);
+    expect(commits[0].message).to.equal('fix: hello world');
+    expect(commits[1].message).to.equal('fix: Goodnight moon');
+  });
 });

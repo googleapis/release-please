@@ -16,6 +16,7 @@ import {
   LinkedVersionPluginConfig,
   PluginType,
   RepositoryConfig,
+  SentenceCasePluginConfig,
 } from '../manifest';
 import {GitHub} from '../github';
 import {ManifestPlugin} from '../plugin';
@@ -77,7 +78,8 @@ const pluginFactories: Record<string, PluginBuilder> = {
     new SentenceCase(
       options.github,
       options.targetBranch,
-      options.repositoryConfig
+      options.repositoryConfig,
+      (options.type as SentenceCasePluginConfig).specialWords
     ),
 };
 
