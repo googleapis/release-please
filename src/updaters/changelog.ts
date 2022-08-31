@@ -39,7 +39,13 @@ export class Changelog extends DefaultUpdater {
     // Handle both H2 (features/BREAKING CHANGES) and H3 (fixes).
     const lastEntryIndex = content.search(this.versionHeaderRegex);
     if (lastEntryIndex === -1) {
-      return `${this.header()}\n${this.changelogEntry}\n`;
+      if (content) {
+        return `${this.header()}\n${this.changelogEntry}\n\n${adjustHeaders(
+          content
+        ).trim()}\n`;
+      } else {
+        return `${this.header()}\n${this.changelogEntry}\n`;
+      }
     } else {
       const before = content.slice(0, lastEntryIndex);
       const after = content.slice(lastEntryIndex);
@@ -51,4 +57,9 @@ export class Changelog extends DefaultUpdater {
 # Changelog
 `;
   }
+}
+
+// Helper to increase markdown H1 headers to H2
+function adjustHeaders(content: string): string {
+  return content.replace(/^#(\s)/gm, '##$1');
 }

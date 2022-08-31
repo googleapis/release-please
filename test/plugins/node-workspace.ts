@@ -142,6 +142,9 @@ describe('NodeWorkspace plugin', () => {
     });
     it('combines node packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('.', 'node', '5.5.6', '@here/root', [
+          buildMockPackageUpdate('package.json', 'package.json'),
+        ]),
         buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
           buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
         ]),
@@ -149,7 +152,18 @@ describe('NodeWorkspace plugin', () => {
           buildMockPackageUpdate('node4/package.json', 'node4/package.json'),
         ]),
       ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['package.json', 'node1/package.json', 'node4/package.json'],
+        flatten: false,
+        targetBranch: 'main',
+      });
       plugin = new NodeWorkspace(github, 'main', {
+        '.': {
+          releaseType: 'node',
+        },
         node1: {
           releaseType: 'node',
         },
@@ -164,6 +178,7 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'package.json');
       assertHasUpdate(updates, 'node1/package.json');
       assertHasUpdate(updates, 'node4/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
