@@ -1,0 +1,13 @@
+{
+  "release-type": "simple",
+  "changelog-path": "docs/foo.md",
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils",
+      "changelog-path": "docs/bar.md"
+    }
+  }
+}
