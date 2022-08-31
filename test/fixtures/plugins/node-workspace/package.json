@@ -1,0 +1,8 @@
+{
+  "name": "@here/root",
+  "version": "5.5.5",
+  "dependencies": {
+    "@here/pkgA": "^3.3.3",
+    "@here/pkgD": "^4.4.4"
+  }
+}

@@ -188,6 +188,9 @@ export interface LinkedVersionPluginConfig extends ConfigurablePluginType {
   components: string[];
   merge?: boolean;
 }
+export interface SentenceCasePluginConfig extends ConfigurablePluginType {
+  specialWords?: string[];
+}
 export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
 }
@@ -195,6 +198,7 @@ export type PluginType =
   | DirectPluginType
   | ConfigurablePluginType
   | LinkedVersionPluginConfig
+  | SentenceCasePluginConfig
   | WorkspacePluginConfig;
 
 /**
@@ -652,7 +656,13 @@ export class Manifest {
       );
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
-      const pathCommits = commitsPerPath[path];
+      let pathCommits = commitsPerPath[path];
+      // The processCommits hook can be implemented by plugins to
+      // post-process commits. This can be used to perform cleanup, e.g,, sentence
+      // casing all commit messages:
+      for (const plugin of plugins) {
+        pathCommits = plugin.processCommits(pathCommits);
+      }
       this.logger.debug(`commits: ${pathCommits.length}`);
       const latestReleasePullRequest =
         releasePullRequestsBySha[releaseShasByPath[path]];
