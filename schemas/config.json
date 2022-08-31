@@ -249,6 +249,13 @@
                   "merge": {
                     "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
                     "type": "boolean"
+                  },
+                  "specialWords": {
+                    "description": "Words that sentence casing logic will not be applied to",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": ["type", "groupName", "components"]
