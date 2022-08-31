@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.3.0](https://github.com/googleapis/release-please/compare/v14.2.4...v14.3.0) (2022-08-31)
+
+
+### Features
+
+* introduce `sentence-case` plugin that capitalizes commit messages ([414eb5f](https://github.com/googleapis/release-please/commit/414eb5f716662569c72ff4cae2b1d1c95c0441ea))
+* introduce processCommits hook for plugins ([#1607](https://github.com/googleapis/release-please/issues/1607)) ([414eb5f](https://github.com/googleapis/release-please/commit/414eb5f716662569c72ff4cae2b1d1c95c0441ea))
+
+
+### Bug Fixes
+
+* add changelog-path to valid config schema ([#1612](https://github.com/googleapis/release-please/issues/1612)) ([c2937ba](https://github.com/googleapis/release-please/commit/c2937ba9f96e7d7c78332ceba94d1ebcee35768b))
+
 ## [14.2.4](https://github.com/googleapis/release-please/compare/v14.2.3...v14.2.4) (2022-08-30)
 
 
