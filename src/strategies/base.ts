@@ -352,6 +352,12 @@ export abstract class BaseStrategy implements Strategy {
           this.targetBranch
         )
       ).map(file => `/${file}`);
+    } else if (this.path === ROOT_PROJECT_PATH) {
+      // root component, ignore path prefix
+      return this.github.findFilesByGlobAndRef(
+        extraFile.path,
+        this.targetBranch
+      );
     } else {
       // glob is relative to current path
       return this.github.findFilesByGlobAndRef(
