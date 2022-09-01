@@ -133,7 +133,7 @@
                     "type": "string"
                   },
                   "glob": {
-                    "description": "Whether tp treat the path as a glob. Defaults to `false`.",
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
                     "type": "boolean"
                   },
                   "jsonpath": {
@@ -156,7 +156,7 @@
                     "type": "string"
                   },
                   "glob": {
-                    "description": "Whether tp treat the path as a glob. Defaults to `false`.",
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
                     "type": "boolean"
                   },
                   "xpath": {
@@ -179,7 +179,7 @@
                     "type": "string"
                   },
                   "glob": {
-                    "description": "Whether tp treat the path as a glob. Defaults to `false`.",
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
                     "type": "boolean"
                   }
                 },
