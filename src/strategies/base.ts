@@ -333,6 +333,35 @@ export abstract class BaseStrategy implements Strategy {
     };
   }
 
+  // Helper to convert extra files with globs to the file paths to add
+  private async extraFilePaths(extraFile: ExtraFile): Promise<string[]> {
+    if (typeof extraFile !== 'object') {
+      return [extraFile];
+    }
+
+    if (!extraFile.glob) {
+      return [extraFile.path];
+    }
+
+    if (extraFile.path.startsWith('/')) {
+      // glob is relative to root, strip the leading `/` for glob matching
+      // and re-add the leading `/` to make the file relative to the root
+      return (
+        await this.github.findFilesByGlobAndRef(
+          extraFile.path.slice(1),
+          this.targetBranch
+        )
+      ).map(file => `/${file}`);
+    } else {
+      // glob is relative to current path
+      return this.github.findFilesByGlobAndRef(
+        extraFile.path,
+        this.targetBranch,
+        this.path
+      );
+    }
+  }
+
   protected async extraFileUpdates(
     version: Version,
     versionsMap: VersionsMap
@@ -340,12 +369,7 @@ export abstract class BaseStrategy implements Strategy {
     const extraFileUpdates: Update[] = [];
     for (const extraFile of this.extraFiles) {
       if (typeof extraFile === 'object') {
-        const paths = extraFile.glob
-          ? await this.github.findFilesByGlobAndRef(
-              extraFile.path,
-              this.targetBranch
-            )
-          : [extraFile.path];
+        const paths = await this.extraFilePaths(extraFile);
         for (const path of paths) {
           switch (extraFile.type) {
             case 'json':
