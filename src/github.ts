@@ -969,6 +969,47 @@ export class GitHub {
   );
 
   /**
+   * Returns a list of paths to all files matching a glob pattern.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param glob The glob to match
+   * @param prefix Optional path prefix used to filter results
+   * @returns {string[]} List of file paths
+   * @throws {GitHubAPIError} on an API error
+   */
+  async findFilesByGlob(glob: string, prefix?: string): Promise<string[]> {
+    return this.findFilesByGlobAndRef(
+      glob,
+      this.repository.defaultBranch,
+      prefix
+    );
+  }
+  /**
+   * Returns a list of paths to all files matching a glob pattern.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param glob The glob to match
+   * @param ref Git reference to search files in
+   * @param prefix Optional path prefix used to filter results
+   * @throws {GitHubAPIError} on an API error
+   */
+  findFilesByGlobAndRef = wrapAsync(
+    async (glob: string, ref: string, prefix?: string): Promise<string[]> => {
+      if (prefix) {
+        prefix = normalizePrefix(prefix);
+      }
+      this.logger.debug(
+        `finding files by glob: ${glob}, ref: ${ref}, prefix: ${prefix}`
+      );
+      return await this.fileCache.findFilesByGlob(glob, ref, prefix);
+    }
+  );
+
+  /**
    * Open a pull request
    *
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update

@@ -137,7 +137,7 @@ export class Java extends BaseStrategy {
       isSnapshot: true,
     });
     const updatesWithExtras = mergeUpdates(
-      updates.concat(...this.extraFileUpdates(newVersion, versionsMap))
+      updates.concat(...(await this.extraFileUpdates(newVersion, versionsMap)))
     );
     return {
       title: pullRequestTitle,

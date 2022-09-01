@@ -311,7 +311,7 @@ export abstract class BaseStrategy implements Strategy {
       latestVersion: latestRelease?.tag.version,
     });
     const updatesWithExtras = mergeUpdates(
-      updates.concat(...this.extraFileUpdates(newVersion, versionsMap))
+      updates.concat(...(await this.extraFileUpdates(newVersion, versionsMap)))
     );
     const pullRequestBody = await this.buildPullRequestBody(
       component,
@@ -333,51 +333,66 @@ export abstract class BaseStrategy implements Strategy {
     };
   }
 
-  protected extraFileUpdates(
+  protected async extraFileUpdates(
     version: Version,
     versionsMap: VersionsMap
-  ): Update[] {
-    return this.extraFiles.map(extraFile => {
+  ): Promise<Update[]> {
+    const extraFileUpdates: Update[] = [];
+    for (const extraFile of this.extraFiles) {
       if (typeof extraFile === 'object') {
-        switch (extraFile.type) {
-          case 'json':
-            return {
-              path: this.addPath(extraFile.path),
-              createIfMissing: false,
-              updater: new GenericJson(extraFile.jsonpath, version),
-            };
-          case 'yaml':
-            return {
-              path: this.addPath(extraFile.path),
-              createIfMissing: false,
-              updater: new GenericYaml(extraFile.jsonpath, version),
-            };
-          case 'xml':
-            return {
-              path: this.addPath(extraFile.path),
-              createIfMissing: false,
-              updater: new GenericXml(extraFile.xpath, version),
-            };
-          case 'pom':
-            return {
-              path: this.addPath(extraFile.path),
-              createIfMissing: false,
-              updater: new PomXml(version),
-            };
-          default:
-            throw new Error(
-              `unsupported extraFile type: ${
-                (extraFile as {type: string}).type
-              }`
-            );
+        const paths = extraFile.glob
+          ? await this.github.findFilesByGlobAndRef(
+              extraFile.path,
+              this.targetBranch
+            )
+          : [extraFile.path];
+        for (const path of paths) {
+          switch (extraFile.type) {
+            case 'json':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new GenericJson(extraFile.jsonpath, version),
+              });
+              break;
+            case 'yaml':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new GenericYaml(extraFile.jsonpath, version),
+              });
+              break;
+            case 'xml':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new GenericXml(extraFile.xpath, version),
+              });
+              break;
+            case 'pom':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new PomXml(version),
+              });
+              break;
+            default:
+              throw new Error(
+                `unsupported extraFile type: ${
+                  (extraFile as {type: string}).type
+                }`
+              );
+          }
         }
+      } else {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new Generic({version, versionsMap}),
+        });
       }
-      return {
-        path: this.addPath(extraFile),
-        createIfMissing: false,
-        updater: new Generic({version, versionsMap}),
-      };
-    });
+    }
+    return extraFileUpdates;
   }
 
   protected changelogEmpty(changelogEntry: string): boolean {
