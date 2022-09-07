@@ -224,15 +224,15 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
 
     it('parses a complex title and pattern', () => {
       const pullRequestTitle = PullRequestTitle.parse(
-        '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1',
-        '[HOTFIX] - chore${scope}: release${component} ${version}'
+        '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1 (storage)',
+        '[HOTFIX] - chore${scope}: release ${version} (${component})'
       );
       expect(pullRequestTitle).to.not.be.undefined;
       expect(pullRequestTitle?.getTargetBranch()).to.eql('hotfix/v3.1.0-bug');
       expect(pullRequestTitle?.getVersion()?.toString()).to.eql(
         '3.1.0-hotfix1'
       );
-      expect(pullRequestTitle?.getComponent()).to.be.undefined;
+      expect(pullRequestTitle?.getComponent()).to.eql('storage');
     });
   });
   describe('ofVersion', () => {

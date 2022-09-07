@@ -44,6 +44,8 @@ export function generateMatchPattern(
     `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
       .replace('[', '\\[') // TODO: handle all regex escaping
       .replace(']', '\\]')
+      .replace('(', '\\(')
+      .replace(')', '\\)')
       .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
       .replace('${component}', ' ?(?<component>[\\w-./]*)?')
       .replace('${version}', 'v?(?<version>[0-9].*)')
