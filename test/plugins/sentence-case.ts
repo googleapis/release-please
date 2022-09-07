@@ -88,4 +88,27 @@ describe('SentenceCase Plugin', () => {
     expect(commits[0].message).to.equal('fix: hello world');
     expect(commits[1].message).to.equal('fix: Goodnight moon');
   });
+  it('handles subject with multiple : characters', async () => {
+    const plugin = new SentenceCase(github, 'main', {}, []);
+    const commits = await plugin.processCommits([
+      {
+        sha: 'abc123',
+        message: 'fix: hello world:goodnight moon',
+      },
+    ]);
+    expect(commits[0].message).to.equal('fix: Hello world:goodnight moon');
+  });
+  it('handles commit with no :', async () => {
+    const plugin = new SentenceCase(github, 'main', {}, []);
+    const commits = await plugin.processCommits([
+      {
+        sha: 'abc123',
+        message: 'hello world goodnight moon',
+      },
+    ]);
+    // Ensure there's no exception, a commit without a <type> is not
+    // a conventional commit, and will not show up in CHANGELOG. We
+    // Do not bother sentence-casing:
+    expect(commits[0].message).to.equal('hello world goodnight moon');
+  });
 });

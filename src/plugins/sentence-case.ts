@@ -49,9 +49,10 @@ export class SentenceCase extends ManifestPlugin {
       // Check whether commit is in conventional commit format, if it is
       // we'll split the string by type and description:
       if (commit.message.includes(':')) {
-        let [prefix, suffix] = commit.message.split(':');
+        const splitMessage = commit.message.split(':');
+        let prefix = splitMessage[0];
         prefix += ': ';
-        suffix = suffix.trim();
+        let suffix = splitMessage.slice(1).join(':').trim();
         // Extract the first word from the rest of the string:
         const match = /\s|$/.exec(suffix);
         if (match) {
