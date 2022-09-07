@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.5.0](https://github.com/googleapis/release-please/compare/v14.4.0...v14.5.0) (2022-09-07)
+
+
+### Features
+
+* Allow specifying glob option for extra-files ([#1621](https://github.com/googleapis/release-please/issues/1621)) ([d0fbd90](https://github.com/googleapis/release-please/commit/d0fbd90659f14b975ba56570712b8a4b1ed59e25)), closes [#1619](https://github.com/googleapis/release-please/issues/1619)
+
 ## [14.4.0](https://github.com/googleapis/release-please/compare/v14.3.1...v14.4.0) (2022-09-07)
 
 
