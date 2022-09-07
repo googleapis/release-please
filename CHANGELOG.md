@@ -4,6 +4,25 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.4.0](https://github.com/googleapis/release-please/compare/v14.3.1...v14.4.0) (2022-09-07)
+
+
+### Features
+
+* Update elixir version in module attribute ([#1630](https://github.com/googleapis/release-please/issues/1630)) ([1af59a1](https://github.com/googleapis/release-please/commit/1af59a162bc6b858c696a3cb4eee1ed9a47f4256))
+
+
+### Bug Fixes
+
+* Allow parentheses in `pull-request-title-pattern` ([#1627](https://github.com/googleapis/release-please/issues/1627)) ([20f8684](https://github.com/googleapis/release-please/commit/20f8684740151ebcb7f902026c250a0e20515746))
+
+## [14.3.1](https://github.com/googleapis/release-please/compare/v14.3.0...v14.3.1) (2022-09-06)
+
+
+### Bug Fixes
+
+* **sentence-case:** handle multiple colons in subject ([0564594](https://github.com/googleapis/release-please/commit/05645949c771a3898a8521520322dd952c9aa6ff))
+
 ## [14.3.0](https://github.com/googleapis/release-please/compare/v14.2.4...v14.3.0) (2022-08-31)
 
 
