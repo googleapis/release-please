@@ -25,9 +25,24 @@ export class ElixirMixExs extends DefaultUpdater {
    * @returns {string} The updated content
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    const oldVersion = content.match(/version: "([A-Za-z0-9_\-+.~]+)",/);
-    if (oldVersion) {
-      logger.info(`updating from ${oldVersion[1]} to ${this.version}`);
+    const oldModuleAttributeVersion = content.match(
+      /@version "([A-Za-z0-9_\-+.~]+)"/
+    );
+    if (oldModuleAttributeVersion) {
+      logger.info(
+        `updating module attribute version from ${oldModuleAttributeVersion[1]} to ${this.version}`
+      );
+      return content.replace(
+        /@version "[A-Za-z0-9_\-+.~]+"/,
+        `@version "${this.version}"`
+      );
+    }
+
+    const oldInlineVersion = content.match(/version: "([A-Za-z0-9_\-+.~]+)"/);
+    if (oldInlineVersion) {
+      logger.info(
+        `updating inline version from ${oldInlineVersion[1]} to ${this.version}`
+      );
     }
     return content.replace(
       /version: "[A-Za-z0-9_\-+.~]+",/,

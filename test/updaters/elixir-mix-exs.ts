@@ -23,7 +23,19 @@ const fixturesPath = './test/updaters/fixtures';
 
 describe('Elixir', () => {
   describe('updateContent', () => {
-    it('updates version in mix.exs file', async () => {
+    it('updates module attribute version in mix.exs file', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './mix-attribute.exs'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new ElixirMixExs({
+        version: Version.parse('0.6.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
+    it('updates inline version in mix.exs file', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './mix.exs'),
         'utf8'
