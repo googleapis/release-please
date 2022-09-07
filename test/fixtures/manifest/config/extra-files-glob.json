@@ -1,0 +1,30 @@
+{
+  "release-type": "simple",
+  "tag-separator": "/",
+  "extra-files": [
+    "default.txt",
+    {
+      "type": "json",
+      "path": "path/default.json",
+      "jsonpath": "$.version"
+    }
+  ],
+  "packages": {
+    ".": {
+      "component": "root",
+      "tag-separator": "-"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils",
+      "extra-files": [
+        "foo.txt",
+        {
+          "type": "json",
+          "path": "**/*.json",
+          "glob": true,
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}

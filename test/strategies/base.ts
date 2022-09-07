@@ -165,6 +165,35 @@ describe('Strategy', () => {
       assertHasUpdate(updates!, '0', Generic);
       assertHasUpdate(updates!, '3.xml', PomXml);
     });
+    it('updates extra glob files', async () => {
+      const findFilesStub = sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .resolves(['3.xml']);
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: [
+          '0',
+          {
+            type: 'xml',
+            path: '**/*.xml',
+            xpath: '//project/version',
+            glob: true,
+          },
+        ],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, '3.xml', GenericXml);
+      sinon.assert.calledOnceWithExactly(findFilesStub, '**/*.xml', 'main');
+    });
     it('should pass changelogHost to default buildNotes', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',

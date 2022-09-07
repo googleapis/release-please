@@ -132,6 +132,10 @@
                     "description": "The path to the file.",
                     "type": "string"
                   },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  },
                   "jsonpath": {
                     "description": "The jsonpath to the version entry in the file.",
                     "type": "string"
@@ -151,6 +155,10 @@
                     "description": "The path to the file.",
                     "type": "string"
                   },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  },
                   "xpath": {
                     "description": "The xpath to the version entry in the file.",
                     "type": "string"
@@ -169,6 +177,10 @@
                   "path": {
                     "description": "The path to the file.",
                     "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
                   }
                 },
                 "required": ["type", "path"]

@@ -46,20 +46,24 @@ type ExtraJsonFile = {
   type: 'json';
   path: string;
   jsonpath: string;
+  glob?: boolean;
 };
 type ExtraYamlFile = {
   type: 'yaml';
   path: string;
   jsonpath: string;
+  glob?: boolean;
 };
 type ExtraXmlFile = {
   type: 'xml';
   path: string;
   xpath: string;
+  glob?: boolean;
 };
 type ExtraPomFile = {
   type: 'pom';
   path: string;
+  glob?: boolean;
 };
 export type ExtraFile =
   | string
