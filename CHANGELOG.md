@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.6.0](https://github.com/googleapis/release-please/compare/v14.5.0...v14.6.0) (2022-09-15)
+
+
+### Features
+
+* Allow nesting multiple commits that are parsed independently ([#1566](https://github.com/googleapis/release-please/issues/1566)) ([21ed59a](https://github.com/googleapis/release-please/commit/21ed59a1db32c6b9593931519bfa3b1eb456a4a7))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency node-html-parser to v6 ([#1633](https://github.com/googleapis/release-please/issues/1633)) ([af213c4](https://github.com/googleapis/release-please/commit/af213c404a87754747bc3becab6b5759320d7508))
+
 ## [14.5.0](https://github.com/googleapis/release-please/compare/v14.4.0...v14.5.0) (2022-09-07)
 
 
