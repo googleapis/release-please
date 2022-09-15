@@ -14,7 +14,7 @@
 
 import {replaceTomlValue} from '../../util/toml-edit';
 import {parseCargoLockfile} from './common';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {Updater} from '../../update';
 import {VersionsMap} from '../../version';
 
@@ -31,7 +31,7 @@ export class CargoLock implements Updater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     let payload = content;
 
     const parsed = parseCargoLockfile(payload);

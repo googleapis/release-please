@@ -23,7 +23,6 @@ import {
   parsePyProject,
   PyProjectToml,
 } from '../updaters/python/pyproject-toml';
-import {logger} from '../util/logger';
 import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
 
 const CHANGELOG_SECTIONS = [
@@ -93,7 +92,7 @@ export class Python extends BaseStrategy {
       });
       projectName = pyProject.name;
     } else {
-      logger.warn(
+      this.logger.warn(
         parsedPyProject
           ? 'invalid pyproject.toml'
           : `file ${this.addPath('pyproject.toml')} did not exist`
@@ -101,7 +100,7 @@ export class Python extends BaseStrategy {
     }
 
     if (!projectName) {
-      logger.warn('No project/component found.');
+      this.logger.warn('No project/component found.');
     } else {
       [projectName, projectName.replace(/-/g, '_')]
         .flatMap(packageName => [

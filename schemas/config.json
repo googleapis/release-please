@@ -91,6 +91,10 @@
           "description": "Generate changelog links to this GitHub host. Useful for running against GitHub Enterprise.",
           "type": "string"
         },
+        "changelog-path": {
+          "description": "Path to the file that tracks release note changes. Defaults to `CHANGELOG.md`.",
+          "type": "string"
+        },
         "pull-request-title-pattern": {
           "description": "Customize the release pull request title.",
           "type": "string"
@@ -128,6 +132,10 @@
                     "description": "The path to the file.",
                     "type": "string"
                   },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  },
                   "jsonpath": {
                     "description": "The jsonpath to the version entry in the file.",
                     "type": "string"
@@ -147,6 +155,10 @@
                     "description": "The path to the file.",
                     "type": "string"
                   },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  },
                   "xpath": {
                     "description": "The xpath to the version entry in the file.",
                     "type": "string"
@@ -165,6 +177,10 @@
                   "path": {
                     "description": "The path to the file.",
                     "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
                   }
                 },
                 "required": ["type", "path"]
@@ -249,6 +265,13 @@
                   "merge": {
                     "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
                     "type": "boolean"
+                  },
+                  "specialWords": {
+                    "description": "Words that sentence casing logic will not be applied to",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": ["type", "groupName", "components"]
@@ -332,6 +355,7 @@
     "include-v-in-tag": true,
     "changelog-type": true,
     "changelog-host": true,
+    "changelog-path": true,
     "pull-request-title-pattern": true,
     "pull-request-header": true,
     "separate-pull-requests": true,

@@ -18,12 +18,7 @@ import {
   RawManifest as PackageJson,
 } from '@lerna/package';
 import {GitHub} from '../github';
-import {logger} from '../util/logger';
-import {
-  CandidateReleasePullRequest,
-  RepositoryConfig,
-  ROOT_PROJECT_PATH,
-} from '../manifest';
+import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import {Version, VersionsMap} from '../version';
 import {RawContent} from '../updaters/raw-content';
 import {PullRequestTitle} from '../util/pull-request-title';
@@ -99,7 +94,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       }
       const candidate = candidatesByPath.get(path);
       if (candidate) {
-        logger.debug(
+        this.logger.debug(
           `Found candidate pull request for path: ${candidate.path}`
         );
         const packagePath = addPath(candidate.path, 'package.json');
@@ -124,7 +119,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         }
       } else {
         const packagePath = addPath(path, 'package.json');
-        logger.debug(
+        this.logger.debug(
           `No candidate pull request for path: ${path} - inspect package from ${packagePath}`
         );
         const contents = await this.github.getFileContentsOnBranch(
@@ -165,7 +160,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     // Update version of the package
     const newVersion = updatedVersions.get(updatedPackage.name);
     if (newVersion) {
-      logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
+      this.logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
       updatedPackage.version = newVersion.toString();
     }
     // Update dependency versions
@@ -177,7 +172,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           depVersion.toString(),
           '^'
         );
-        logger.info(
+        this.logger.info(
           `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
         );
       }
@@ -194,7 +189,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
             update.updater.changelogEntry =
               appendDependenciesSectionToChangelog(
                 update.updater.changelogEntry,
-                dependencyNotes
+                dependencyNotes,
+                this.logger
               );
           }
         }
@@ -207,13 +203,18 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         existingCandidate.pullRequest.body.releaseData[0].notes =
           appendDependenciesSectionToChangelog(
             existingCandidate.pullRequest.body.releaseData[0].notes,
-            dependencyNotes
+            dependencyNotes,
+            this.logger
           );
       } else {
         existingCandidate.pullRequest.body.releaseData.push({
           component: updatedPackage.name,
           version: existingCandidate.pullRequest.version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         });
       }
     }
@@ -231,7 +232,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     // Update version of the package
     const newVersion = updatedVersions.get(updatedPackage.name);
     if (newVersion) {
-      logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
+      this.logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
       updatedPackage.version = newVersion.toString();
     }
     for (const [depName, resolved] of graphPackage.localDependencies) {
@@ -242,7 +243,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           depVersion.toString(),
           '^'
         );
-        logger.info(
+        this.logger.info(
           `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
         );
       }
@@ -256,7 +257,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         {
           component: updatedPackage.name,
           version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         },
       ]),
       updates: [
@@ -274,7 +279,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
             version,
             changelogEntry: appendDependenciesSectionToChangelog(
               '',
-              dependencyNotes
+              dependencyNotes,
+              this.logger
             ),
           }),
         },
@@ -327,10 +333,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   }
 
   protected inScope(candidate: CandidateReleasePullRequest): boolean {
-    return (
-      candidate.config.releaseType === 'node' &&
-      candidate.path !== ROOT_PROJECT_PATH
-    );
+    return candidate.config.releaseType === 'node';
   }
 
   protected packageNameFromPackage(pkg: Package): string {

@@ -16,6 +16,7 @@ import {
   LinkedVersionPluginConfig,
   PluginType,
   RepositoryConfig,
+  SentenceCasePluginConfig,
 } from '../manifest';
 import {GitHub} from '../github';
 import {ManifestPlugin} from '../plugin';
@@ -25,6 +26,7 @@ import {NodeWorkspace} from '../plugins/node-workspace';
 import {VersioningStrategyType} from './versioning-strategy-factory';
 import {MavenWorkspace} from '../plugins/maven-workspace';
 import {ConfigurationError} from '../errors';
+import {SentenceCase} from '../plugins/sentence-case';
 
 export interface PluginFactoryOptions {
   type: PluginType;
@@ -71,6 +73,13 @@ const pluginFactories: Record<string, PluginBuilder> = {
       options.targetBranch,
       options.repositoryConfig,
       options
+    ),
+  'sentence-case': options =>
+    new SentenceCase(
+      options.github,
+      options.targetBranch,
+      options.repositoryConfig,
+      (options.type as SentenceCasePluginConfig).specialWords
     ),
 };
 

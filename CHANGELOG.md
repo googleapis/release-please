@@ -4,6 +4,87 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.5.0](https://github.com/googleapis/release-please/compare/v14.4.0...v14.5.0) (2022-09-07)
+
+
+### Features
+
+* Allow specifying glob option for extra-files ([#1621](https://github.com/googleapis/release-please/issues/1621)) ([d0fbd90](https://github.com/googleapis/release-please/commit/d0fbd90659f14b975ba56570712b8a4b1ed59e25)), closes [#1619](https://github.com/googleapis/release-please/issues/1619)
+
+## [14.4.0](https://github.com/googleapis/release-please/compare/v14.3.1...v14.4.0) (2022-09-07)
+
+
+### Features
+
+* Update elixir version in module attribute ([#1630](https://github.com/googleapis/release-please/issues/1630)) ([1af59a1](https://github.com/googleapis/release-please/commit/1af59a162bc6b858c696a3cb4eee1ed9a47f4256))
+
+
+### Bug Fixes
+
+* Allow parentheses in `pull-request-title-pattern` ([#1627](https://github.com/googleapis/release-please/issues/1627)) ([20f8684](https://github.com/googleapis/release-please/commit/20f8684740151ebcb7f902026c250a0e20515746))
+
+## [14.3.1](https://github.com/googleapis/release-please/compare/v14.3.0...v14.3.1) (2022-09-06)
+
+
+### Bug Fixes
+
+* **sentence-case:** handle multiple colons in subject ([0564594](https://github.com/googleapis/release-please/commit/05645949c771a3898a8521520322dd952c9aa6ff))
+
+## [14.3.0](https://github.com/googleapis/release-please/compare/v14.2.4...v14.3.0) (2022-08-31)
+
+
+### Features
+
+* introduce `sentence-case` plugin that capitalizes commit messages ([414eb5f](https://github.com/googleapis/release-please/commit/414eb5f716662569c72ff4cae2b1d1c95c0441ea))
+* introduce processCommits hook for plugins ([#1607](https://github.com/googleapis/release-please/issues/1607)) ([414eb5f](https://github.com/googleapis/release-please/commit/414eb5f716662569c72ff4cae2b1d1c95c0441ea))
+
+
+### Bug Fixes
+
+* add changelog-path to valid config schema ([#1612](https://github.com/googleapis/release-please/issues/1612)) ([c2937ba](https://github.com/googleapis/release-please/commit/c2937ba9f96e7d7c78332ceba94d1ebcee35768b))
+
+## [14.2.4](https://github.com/googleapis/release-please/compare/v14.2.3...v14.2.4) (2022-08-30)
+
+
+### Bug Fixes
+
+* prepend release notes to non-conforming changelog ([#1615](https://github.com/googleapis/release-please/issues/1615)) ([7d6c4c5](https://github.com/googleapis/release-please/commit/7d6c4c5aabd39436762253b019e17a5922ffa560))
+
+## [14.2.3](https://github.com/googleapis/release-please/compare/v14.2.2...v14.2.3) (2022-08-30)
+
+
+### Bug Fixes
+
+* dont filter out root package in node workspace candidate filtering ([#1606](https://github.com/googleapis/release-please/issues/1606)) ([c8560d5](https://github.com/googleapis/release-please/commit/c8560d519db50690ac6dd3409dd2b3560f4c12a5))
+
+## [14.2.2](https://github.com/googleapis/release-please/compare/v14.2.1...v14.2.2) (2022-08-30)
+
+
+### Bug Fixes
+
+* look at merged_at field to determine merge status ([#1609](https://github.com/googleapis/release-please/issues/1609)) ([1c9beac](https://github.com/googleapis/release-please/commit/1c9beacb49d82f2aa594ef0511fa8d9cfd743b11))
+
+## [14.2.1](https://github.com/googleapis/release-please/compare/v14.2.0...v14.2.1) (2022-08-25)
+
+
+### Bug Fixes
+
+* allow providing logger to GitHub.create ([#1603](https://github.com/googleapis/release-please/issues/1603)) ([a14e906](https://github.com/googleapis/release-please/commit/a14e906991e0120d0a85d1c4d739999cd6c9f1e4))
+
+## [14.2.0](https://github.com/googleapis/release-please/compare/v14.1.2...v14.2.0) (2022-08-25)
+
+
+### Features
+
+* maintain an instance logger ([#1599](https://github.com/googleapis/release-please/issues/1599)) ([adb8053](https://github.com/googleapis/release-please/commit/adb805357d6344f1737bb3541ec7354e76f45cdc))
+
+## [14.1.2](https://github.com/googleapis/release-please/compare/v14.1.1...v14.1.2) (2022-08-25)
+
+
+### Bug Fixes
+
+* **deps:** update code-suggester to 4.1.0 ([#1600](https://github.com/googleapis/release-please/issues/1600)) ([e123a39](https://github.com/googleapis/release-please/commit/e123a392798e30ce75808f3b74e9b9836832725f))
+
 ## [14.1.1](https://github.com/googleapis/release-please/compare/v14.1.0...v14.1.1) (2022-08-23)
 
 

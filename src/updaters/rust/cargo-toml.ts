@@ -14,7 +14,7 @@
 
 import {replaceTomlValue} from '../../util/toml-edit';
 import {DEP_KINDS, parseCargoManifest} from './common';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 /**
@@ -26,7 +26,7 @@ export class CargoToml extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     let payload = content;
 
     if (!this.versionsMap) {

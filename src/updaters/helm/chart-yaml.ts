@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as yaml from 'js-yaml';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 /**
@@ -25,7 +25,7 @@ export class ChartYaml extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     const data = yaml.load(content, {json: true});
     if (data === null || data === undefined) {
       return '';

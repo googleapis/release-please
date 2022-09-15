@@ -25,7 +25,6 @@ import {CandidateReleasePullRequest} from '../manifest';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import * as dom from '@xmldom/xmldom';
 import * as xpath from 'xpath';
-import {logger} from '../util/logger';
 import {dirname} from 'path';
 import {PomXml, parseDependencyNode} from '../updaters/java/pom-xml';
 import {Changelog} from '../updaters/changelog';
@@ -33,6 +32,7 @@ import {ReleasePullRequest} from '../release-pull-request';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
+import {logger as defaultLogger, Logger} from '../util/logger';
 
 interface Gav {
   groupId: string;
@@ -68,7 +68,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
 
     const groupNodes = xpath.select(XPATH_PROJECT_GROUP, document) as Node[];
     if (groupNodes.length === 0) {
-      logger.warn(`Missing project.groupId in ${path}`);
+      this.logger.warn(`Missing project.groupId in ${path}`);
       return;
     }
     const artifactNodes = xpath.select(
@@ -76,7 +76,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       document
     ) as Node[];
     if (artifactNodes.length === 0) {
-      logger.warn(`Missing project.artifactId in ${path}`);
+      this.logger.warn(`Missing project.artifactId in ${path}`);
       return;
     }
     const versionNodes = xpath.select(
@@ -84,7 +84,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       document
     ) as Node[];
     if (versionNodes.length === 0) {
-      logger.warn(`Missing project.version in ${path}`);
+      this.logger.warn(`Missing project.version in ${path}`);
       return;
     }
     const dependencies: Gav[] = [];
@@ -139,7 +139,9 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       const path = dirname(pomFile);
       const config = this.repositoryConfig[path];
       if (!config) {
-        logger.info(`path '${path}' not configured, ignoring '${pomFile}'`);
+        this.logger.info(
+          `path '${path}' not configured, ignoring '${pomFile}'`
+        );
         continue;
       }
       const mavenArtifact = await this.fetchPom(pomFile);
@@ -152,7 +154,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         candidatesByPackage[this.packageNameFromPackage(mavenArtifact)] =
           candidate;
       } else {
-        logger.warn(
+        this.logger.warn(
           `found ${pomFile} in path ${path}, but did not find an associated candidate PR`
         );
       }
@@ -209,7 +211,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     const dependencyNotes = getChangelogDepsNotes(
       artifact,
       updater,
-      updatedVersions
+      updatedVersions,
+      this.logger
     );
 
     existingCandidate.pullRequest.updates =
@@ -221,7 +224,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
             update.updater.changelogEntry =
               appendDependenciesSectionToChangelog(
                 update.updater.changelogEntry,
-                dependencyNotes
+                dependencyNotes,
+                this.logger
               );
           }
         }
@@ -234,13 +238,18 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         existingCandidate.pullRequest.body.releaseData[0].notes =
           appendDependenciesSectionToChangelog(
             existingCandidate.pullRequest.body.releaseData[0].notes,
-            dependencyNotes
+            dependencyNotes,
+            this.logger
           );
       } else {
         existingCandidate.pullRequest.body.releaseData.push({
           component: artifact.name,
           version: existingCandidate.pullRequest.version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         });
       }
     }
@@ -258,7 +267,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     const dependencyNotes = getChangelogDepsNotes(
       artifact,
       updater,
-      updatedVersions
+      updatedVersions,
+      this.logger
     );
     const pullRequest: ReleasePullRequest = {
       title: PullRequestTitle.ofTargetBranch(this.targetBranch),
@@ -266,7 +276,11 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         {
           component: artifact.name,
           version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         },
       ]),
       updates: [
@@ -322,7 +336,8 @@ function packageNameFromGav(gav: Gav): string {
 function getChangelogDepsNotes(
   artifact: MavenArtifact,
   updater: PomXml,
-  updatedVersions: VersionsMap
+  updatedVersions: VersionsMap,
+  logger: Logger = defaultLogger
 ): string {
   const document = new dom.DOMParser().parseFromString(artifact.pomContent);
   const dependencyUpdates = updater.dependencyUpdates(

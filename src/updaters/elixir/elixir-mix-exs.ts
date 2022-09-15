@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 /**
@@ -24,10 +24,25 @@ export class ElixirMixExs extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
-    const oldVersion = content.match(/version: "([A-Za-z0-9_\-+.~]+)",/);
-    if (oldVersion) {
-      logger.info(`updating from ${oldVersion[1]} to ${this.version}`);
+  updateContent(content: string, logger: Logger = defaultLogger): string {
+    const oldModuleAttributeVersion = content.match(
+      /@version "([A-Za-z0-9_\-+.~]+)"/
+    );
+    if (oldModuleAttributeVersion) {
+      logger.info(
+        `updating module attribute version from ${oldModuleAttributeVersion[1]} to ${this.version}`
+      );
+      return content.replace(
+        /@version "[A-Za-z0-9_\-+.~]+"/,
+        `@version "${this.version}"`
+      );
+    }
+
+    const oldInlineVersion = content.match(/version: "([A-Za-z0-9_\-+.~]+)"/);
+    if (oldInlineVersion) {
+      logger.info(
+        `updating inline version from ${oldInlineVersion[1]} to ${this.version}`
+      );
     }
     return content.replace(
       /version: "[A-Za-z0-9_\-+.~]+",/,

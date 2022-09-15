@@ -19,7 +19,7 @@ import {
   DEFAULT_RELEASE_PLEASE_MANIFEST,
   ROOT_PROJECT_PATH,
 } from '../manifest';
-import {logger} from '../util/logger';
+import {logger as defaultLogger, Logger} from '../util/logger';
 import {VersionsMap, Version} from '../version';
 import {Merge} from './merge';
 import {GitHub} from '../github';
@@ -35,6 +35,7 @@ export interface WorkspacePluginOptions {
   manifestPath?: string;
   updateAllPackages?: boolean;
   merge?: boolean;
+  logger?: Logger;
 }
 
 export interface AllPackages<T> {
@@ -63,7 +64,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     repositoryConfig: RepositoryConfig,
     options: WorkspacePluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(github, targetBranch, repositoryConfig, options.logger);
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;
@@ -71,12 +72,12 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   async run(
     candidates: CandidateReleasePullRequest[]
   ): Promise<CandidateReleasePullRequest[]> {
-    logger.info('Running workspace plugin');
+    this.logger.info('Running workspace plugin');
 
     const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce(
       (collection, candidate) => {
         if (!candidate.pullRequest.version) {
-          logger.warn('pull request missing version', candidate);
+          this.logger.warn('pull request missing version', candidate);
           return collection;
         }
         if (this.inScope(candidate)) {
@@ -89,37 +90,39 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       [[], []] as CandidateReleasePullRequest[][]
     );
 
-    logger.info(`Found ${inScopeCandidates.length} in-scope releases`);
+    this.logger.info(`Found ${inScopeCandidates.length} in-scope releases`);
     if (inScopeCandidates.length === 0) {
       return outOfScopeCandidates;
     }
 
-    logger.info('Building list of all packages');
+    this.logger.info('Building list of all packages');
     const {allPackages, candidatesByPackage} = await this.buildAllPackages(
       inScopeCandidates
     );
-    logger.info(`Building dependency graph for ${allPackages.length} packages`);
+    this.logger.info(
+      `Building dependency graph for ${allPackages.length} packages`
+    );
     const graph = await this.buildGraph(allPackages);
 
     const packageNamesToUpdate = this.updateAllPackages
       ? allPackages.map(this.packageNameFromPackage)
       : Object.keys(candidatesByPackage);
     const orderedPackages = this.buildGraphOrder(graph, packageNamesToUpdate);
-    logger.info(`Updating ${orderedPackages.length} packages`);
+    this.logger.info(`Updating ${orderedPackages.length} packages`);
 
     const updatedVersions: VersionsMap = new Map();
     const updatedPathVersions: VersionsMap = new Map();
     for (const pkg of orderedPackages) {
       const packageName = this.packageNameFromPackage(pkg);
-      logger.debug(`package: ${packageName}`);
+      this.logger.debug(`package: ${packageName}`);
       const existingCandidate = candidatesByPackage[packageName];
       if (existingCandidate) {
         const version = existingCandidate.pullRequest.version!;
-        logger.debug(`version: ${version} from release-please`);
+        this.logger.debug(`version: ${version} from release-please`);
         updatedVersions.set(packageName, version);
       } else {
         const version = this.bumpVersion(pkg);
-        logger.debug(`version: ${version} forced bump`);
+        this.logger.debug(`version: ${version} forced bump`);
         updatedVersions.set(packageName, version);
         updatedPathVersions.set(this.pathFromPackage(pkg), version);
       }
@@ -131,7 +134,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       const existingCandidate = candidatesByPackage[packageName];
       if (existingCandidate) {
         // if already has an pull request, update the changelog and update
-        logger.info(
+        this.logger.info(
           `Updating exising candidate pull request for ${this.packageNameFromPackage(
             pkg
           )}`
@@ -144,7 +147,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         newCandidates.push(newCandidate);
       } else {
         // otherwise, build a new pull request with changelog and entry update
-        logger.info(
+        this.logger.info(
           `Creating new candidate pull request for ${this.packageNameFromPackage(
             pkg
           )}`
@@ -155,7 +158,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     }
 
     if (this.merge) {
-      logger.info(`Merging ${newCandidates.length} in-scope candidates`);
+      this.logger.info(`Merging ${newCandidates.length} in-scope candidates`);
       const mergePlugin = new Merge(
         this.github,
         this.targetBranch,
@@ -174,7 +177,9 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       }),
     });
 
-    logger.info(`Post-processing ${newCandidates.length} in-scope candidates`);
+    this.logger.info(
+      `Post-processing ${newCandidates.length} in-scope candidates`
+    );
     newCandidates = this.postProcessCandidates(newCandidates, updatedVersions);
 
     return [...outOfScopeCandidates, ...newCandidates];
@@ -310,7 +315,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     graph: DependencyGraph<T>,
     packageNamesToUpdate: string[]
   ): T[] {
-    logger.info(
+    this.logger.info(
       `building graph order, existing package names: ${packageNamesToUpdate}`
     );
 
@@ -346,7 +351,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     }
     const node = graph.get(name);
     if (!node) {
-      logger.warn(`Didn't find node: ${name} in graph`);
+      this.logger.warn(`Didn't find node: ${name} in graph`);
       return;
     }
 
@@ -355,7 +360,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     for (const depName of node.deps) {
       const dep = graph.get(depName);
       if (!dep) {
-        logger.warn(`dependency not found in graph: ${depName}`);
+        this.logger.warn(`dependency not found in graph: ${depName}`);
         return;
       }
 
@@ -363,7 +368,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     }
 
     if (!visited.has(node.value)) {
-      logger.debug(
+      this.logger.debug(
         `marking ${name} as visited and adding ${this.packageNameFromPackage(
           node.value
         )} to order`
@@ -376,7 +381,8 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
 const DEPENDENCY_HEADER = new RegExp('### Dependencies');
 export function appendDependenciesSectionToChangelog(
   changelog: string,
-  notes: string
+  notes: string,
+  logger: Logger = defaultLogger
 ): string {
   if (!changelog) {
     return `### Dependencies\n\n${notes}`;

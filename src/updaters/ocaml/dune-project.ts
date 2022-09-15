@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 /**
@@ -24,7 +24,7 @@ export class DuneProject extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     const oldVersion = content.match(/^\(version ([A-Za-z0-9_\-+.~]+)\)$/m);
     if (oldVersion) {
       logger.info(`updating from ${oldVersion[1]} to ${this.version}`);

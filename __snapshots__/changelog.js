@@ -152,3 +152,20 @@ exports['ChangelogUpdater updateContent populates a new CHANGELOG if none exists
 * added a new foo to bar.
 
 `
+
+exports['ChangelogUpdater updateContent prepends CHANGELOG entries if a different style is found 1'] = `
+# Changelog
+
+## 1.0.0
+
+* added a new foo to bar.
+
+## Version 1.0.0-alpha01, released 2022-06-25
+
+Second alpha release.
+
+## Version 1.0.0-alpha00, released 2022-06-24
+
+Initial release.
+
+`

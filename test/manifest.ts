@@ -36,6 +36,7 @@ import {PullRequest} from '../src/pull-request';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as pluginFactory from '../src/factories/plugin-factory';
+import {SentenceCase} from '../src/plugins/sentence-case';
 import {NodeWorkspace} from '../src/plugins/node-workspace';
 import {CargoWorkspace} from '../src/plugins/cargo-workspace';
 import {PullRequestTitle} from '../src/util/pull-request-title';
@@ -625,6 +626,38 @@ describe('Manifest', () => {
       expect(
         manifest.repositoryConfig['packages/bot-config-utils'].changelogType
       ).to.eql('default');
+    });
+
+    it('should read changelog path from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/changelog-path.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].changelogPath).to.eql(
+        'docs/foo.md'
+      );
+      expect(
+        manifest.repositoryConfig['packages/bot-config-utils'].changelogPath
+      ).to.eql('docs/bar.md');
     });
 
     it('should read versioning type from manifest', async () => {
@@ -2678,6 +2711,7 @@ describe('Manifest', () => {
         const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
         mockPlugin.run.returnsArg(0);
         mockPlugin.preconfigure.returnsArg(0);
+        mockPlugin.processCommits.returnsArg(0);
         sandbox
           .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
@@ -2715,9 +2749,11 @@ describe('Manifest', () => {
         const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
         mockPlugin.run.returnsArg(0);
         mockPlugin.preconfigure.returnsArg(0);
+        mockPlugin.processCommits.returnsArg(0);
         const mockPlugin2 = sandbox.createStubInstance(CargoWorkspace);
         mockPlugin2.run.returnsArg(0);
         mockPlugin2.preconfigure.returnsArg(0);
+        mockPlugin2.processCommits.returnsArg(0);
         sandbox
           .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
@@ -2728,6 +2764,37 @@ describe('Manifest', () => {
         expect(pullRequests).not.empty;
         sinon.assert.calledOnce(mockPlugin.run);
         sinon.assert.calledOnce(mockPlugin2.run);
+      });
+
+      it('should apply plugin hook "processCommits"', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'node',
+              component: 'pkg1',
+              packageName: 'pkg1',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+          },
+          {
+            plugins: ['sentence-case'],
+          }
+        );
+        const mockPlugin = sandbox.createStubInstance(SentenceCase);
+        mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
+        mockPlugin.processCommits.returnsArg(0);
+        sandbox
+          .stub(pluginFactory, 'buildPlugin')
+          .withArgs(sinon.match.has('type', 'sentence-case'))
+          .returns(mockPlugin);
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).not.empty;
+        sinon.assert.calledOnce(mockPlugin.processCommits);
       });
     });
 

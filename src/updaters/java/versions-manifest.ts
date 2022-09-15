@@ -14,7 +14,7 @@
 
 import {JavaUpdate} from './java-update';
 import {VersionsMap, Version} from '../../version';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 
 /**
  * Updates a versions.txt file which contains current versions of
@@ -27,7 +27,7 @@ export class VersionsManifest extends JavaUpdate {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     if (!this.versionsMap) {
       logger.warn('missing versions map');
       return content;

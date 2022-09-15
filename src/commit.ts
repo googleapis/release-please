@@ -18,7 +18,7 @@ const visit = require('unist-util-visit');
 const visitWithAncestors = require('unist-util-visit-parents');
 const NUMBER_REGEX = /^[0-9]+$/;
 import {PullRequest} from './pull-request';
-import {logger} from './util/logger';
+import {logger as defaultLogger, Logger} from './util/logger';
 
 import * as parser from '@conventional-commits/parser';
 
@@ -365,7 +365,8 @@ function splitMessages(message: string): string[] {
  *   messages.
  */
 export function parseConventionalCommits(
-  commits: Commit[]
+  commits: Commit[],
+  logger: Logger = defaultLogger
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 

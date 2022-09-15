@@ -67,6 +67,19 @@ Release notes for path: node1, releaseType: node
 Release notes for path: node4, releaseType: node
 </details>
 
+<details><summary>@here/root: 5.5.6</summary>
+
+Release notes for path: ., releaseType: node
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped from ^3.3.3 to ^3.3.4
+    * @here/pkgD bumped from ^4.4.4 to ^4.4.5
+</details>
+
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
