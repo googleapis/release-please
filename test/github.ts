@@ -22,7 +22,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
 
-import {GitHub, GitHubRelease} from '../src/github';
+import {GH_API_URL, GitHub, GitHubRelease} from '../src/github';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
@@ -37,6 +37,8 @@ import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import * as codeSuggester from 'code-suggester';
 import {RawContent} from '../src/updaters/raw-content';
+import {HttpsProxyAgent} from 'https-proxy-agent';
+import {HttpProxyAgent} from 'http-proxy-agent';
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -88,7 +90,39 @@ describe('GitHub', () => {
         owner: 'some-owner',
         repo: 'some-repo',
       });
+
       expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
+    });
+
+    it('default agent is undefined when no proxy option passed ', () => {
+      expect(GitHub.getDefaultAgent('test_url')).eq(undefined);
+    });
+
+    it('should return a https agent', () => {
+      expect(
+        GitHub.getDefaultAgent(GH_API_URL, {
+          host: 'http://proxy.com',
+          port: 3000,
+        })
+      ).instanceof(HttpsProxyAgent);
+    });
+
+    it('should throw error when baseUrl is an invalid url', () => {
+      expect(() => {
+        GitHub.getDefaultAgent('invalid_url', {
+          host: 'http://proxy.com',
+          port: 3000,
+        });
+      }).to.throw('Invalid URL');
+    });
+
+    it('should return a http agent', () => {
+      expect(
+        GitHub.getDefaultAgent('http://www.github.com', {
+          host: 'http://proxy.com',
+          port: 3000,
+        })
+      ).instanceof(HttpProxyAgent);
     });
   });
 
