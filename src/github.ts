@@ -79,7 +79,7 @@ interface GitHubCreateOptions {
   octokitAPIs?: OctokitAPIs;
   token?: string;
   logger?: Logger;
-  defaultProxy?: ProxyOption;
+  proxy?: ProxyOption;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -210,7 +210,7 @@ export class GitHub {
     this.logger = options.logger ?? defaultLogger;
   }
 
-  static getDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
+  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
     if (!defaultProxy) {
       return undefined;
     }
@@ -251,7 +251,7 @@ export class GitHub {
         baseUrl: apiUrl,
         auth: options.token,
         request: {
-          agent: this.getDefaultAgent(apiUrl, options.defaultProxy),
+          agent: this.createDefaultAgent(apiUrl, options.proxy),
         },
       }),
       request: request.defaults({
