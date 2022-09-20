@@ -39,11 +39,20 @@ export class TerraformModule extends BaseStrategy {
 
     // Update version in README to current candidate version.
     // A module may have submodules, so find all submodules.
-    const readmeFiles = await this.github.findFilesByFilenameAndRef(
-      'readme.md',
-      this.targetBranch,
-      this.path
-    );
+    const readmeFiles = await Promise.all([
+      this.github.findFilesByFilenameAndRef(
+        'readme.md',
+        this.targetBranch,
+        this.path
+      ),
+      this.github.findFilesByFilenameAndRef(
+        'README.md',
+        this.targetBranch,
+        this.path
+      ),
+    ]).then(([v, vt]) => {
+      return v.concat(vt);
+    });
     readmeFiles.forEach(path => {
       updates.push({
         path: this.addPath(path),
