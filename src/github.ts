@@ -46,6 +46,8 @@ import {
   FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
 import {Logger} from 'code-suggester/build/src/types';
+import {HttpsProxyAgent} from 'https-proxy-agent';
+import {HttpProxyAgent} from 'http-proxy-agent';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -63,6 +65,11 @@ export interface GitHubOptions {
   logger?: Logger;
 }
 
+interface ProxyOption {
+  host: string;
+  port: number;
+}
+
 interface GitHubCreateOptions {
   owner: string;
   repo: string;
@@ -72,6 +79,7 @@ interface GitHubCreateOptions {
   octokitAPIs?: OctokitAPIs;
   token?: string;
   logger?: Logger;
+  proxy?: ProxyOption;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -202,6 +210,24 @@ export class GitHub {
     this.logger = options.logger ?? defaultLogger;
   }
 
+  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
+    if (!defaultProxy) {
+      return undefined;
+    }
+
+    const {host, port} = defaultProxy;
+
+    return new URL(baseUrl).protocol.replace(':', '') === 'http'
+      ? new HttpProxyAgent({
+          host,
+          port,
+        })
+      : new HttpsProxyAgent({
+          host,
+          port,
+        });
+  }
+
   /**
    * Build a new GitHub client with auto-detected default branch.
    *
@@ -224,6 +250,9 @@ export class GitHub {
       octokit: new Octokit({
         baseUrl: apiUrl,
         auth: options.token,
+        request: {
+          agent: this.createDefaultAgent(apiUrl, options.proxy),
+        },
       }),
       request: request.defaults({
         baseUrl: apiUrl,
