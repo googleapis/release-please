@@ -112,6 +112,9 @@ describe('TerraformModule', () => {
         .withArgs('readme.md', 'main', '.')
         .resolves(['path1/readme.md', 'path2/readme.md']);
       findFilesStub
+        .withArgs('README.md', 'main', '.')
+        .resolves(['README.md', 'path3/README.md']);
+      findFilesStub
         .withArgs('versions.tf', 'main', '.')
         .resolves(['path1/versions.tf', 'path2/versions.tf']);
       findFilesStub
@@ -125,6 +128,8 @@ describe('TerraformModule', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'path1/readme.md', ReadMe);
       assertHasUpdate(updates, 'path2/readme.md', ReadMe);
+      assertHasUpdate(updates, 'README.md', ReadMe);
+      assertHasUpdate(updates, 'path3/README.md', ReadMe);
       assertHasUpdate(updates, 'path1/versions.tf', ModuleVersion);
       assertHasUpdate(updates, 'path2/versions.tf', ModuleVersion);
       assertHasUpdate(updates, 'path1/versions.tf.tmpl', ModuleVersion);

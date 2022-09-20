@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.6.1](https://github.com/googleapis/release-please/compare/v14.6.0...v14.6.1) (2022-09-20)
+
+
+### Bug Fixes
+
+* Detect uppercase readme.md files ([#1644](https://github.com/googleapis/release-please/issues/1644)) ([d3b68b2](https://github.com/googleapis/release-please/commit/d3b68b2afe622b0a9f83c77da33bfcf1bc4c77b4))
+
 ## [14.6.0](https://github.com/googleapis/release-please/compare/v14.5.0...v14.6.0) (2022-09-15)
 
 
