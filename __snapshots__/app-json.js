@@ -41,3 +41,5 @@ exports['AppJson updateContent updates the app versions 1'] = `
     }
   }
 }
+
+`

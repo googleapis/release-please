@@ -16,6 +16,7 @@ import {BuildUpdatesOptions} from './base';
 import {Node} from './node';
 import {Update} from '../update';
 import {AppJson} from '../updaters/expo/app-json';
+import {Version} from '../version';
 
 /**
  * Strategy for building Expo based React Native projects. This strategy extends
@@ -41,15 +42,15 @@ export class Expo extends Node {
   /**
    * Determine the Expo SDK version by parsing the package.json dependencies.
    */
-  async getExpoSDKVersion(): Promise<string> {
+  async getExpoSDKVersion(): Promise<Version> {
     const pkgJsonContents = await this.getPkgJsonContents();
     const pkg = JSON.parse(pkgJsonContents.parsedContent);
-    return (
+    return Version.parse(
       pkg.dependencies?.expo ||
-      pkg.devDependencies?.expo ||
-      pkg.peerDependencies?.expo ||
-      pkg.optionalDependencies?.expo ||
-      '0.0.0'
+        pkg.devDependencies?.expo ||
+        pkg.peerDependencies?.expo ||
+        pkg.optionalDependencies?.expo ||
+        '0.0.0'
     );
   }
 }

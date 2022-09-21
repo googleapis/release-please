@@ -30,6 +30,7 @@ import {Helm} from './strategies/helm';
 import {Elixir} from './strategies/elixir';
 import {Dart} from './strategies/dart';
 import {Node} from './strategies/node';
+import {Expo} from './strategies/expo';
 import {GitHub} from './github';
 import {ReleaserConfig} from './manifest';
 import {AlwaysBumpPatch} from './versioning-strategies/always-bump-patch';
@@ -88,6 +89,7 @@ const releasers: Record<string, ReleaseBuilder> = {
     }),
   'krm-blueprint': options => new KRMBlueprint(options),
   node: options => new Node(options),
+  expo: options => new Expo(options),
   ocaml: options => new OCaml(options),
   php: options => new PHP(options),
   'php-yoshi': options => new PHPYoshi(options),

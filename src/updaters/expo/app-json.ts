@@ -30,7 +30,7 @@ export interface AppJson {
 }
 
 export interface AppJsonOptions extends UpdateOptions {
-  expoSDKVersion: string;
+  expoSDKVersion: Version;
 }
 
 /**
@@ -40,7 +40,7 @@ export interface AppJsonOptions extends UpdateOptions {
  * the basis for the `versionCode`.
  */
 export class AppJson extends DefaultUpdater {
-  expoSDKVersion: string;
+  expoSDKVersion: Version;
   constructor(options: AppJsonOptions) {
     super(options);
     this.expoSDKVersion = options.expoSDKVersion;
@@ -65,8 +65,7 @@ export class AppJson extends DefaultUpdater {
     // https://developer.android.com/studio/publish/versioning#appversioning
     let expoMajorVersion = 0;
     try {
-      const expoVersion = Version.parse(this.expoSDKVersion);
-      expoMajorVersion = expoVersion.major;
+      expoMajorVersion = this.expoSDKVersion.major;
     } catch (e) {
       // Rethrow with a nice error message.
       throw new Error(
