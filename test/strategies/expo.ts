@@ -213,7 +213,10 @@ describe('Expo', () => {
       assertHasUpdate(updates, 'package.json', PackageJson);
 
       const appUpdate = assertHasUpdate(updates, 'app.json', AppJson);
-      expect((appUpdate.updater as AppJson).expoSDKVersion).to.equal('44.0.0');
+      const expoSDKVersion = (appUpdate.updater as AppJson).expoSDKVersion;
+      expect(expoSDKVersion.major).to.equal(44);
+      expect(expoSDKVersion.minor).to.equal(0);
+      expect(expoSDKVersion.patch).to.equal(0);
     });
   });
 });
