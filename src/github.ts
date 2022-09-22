@@ -484,7 +484,7 @@ export class GitHub {
           labels: pullRequest.labels.nodes.map(node => node.name),
           files,
         };
-        if (pullRequest.files.pageInfo?.hasNextPage && options.backfillFiles) {
+        if (pullRequest.files?.pageInfo?.hasNextPage && options.backfillFiles) {
           this.logger.info(
             `PR #${pullRequest.number} has many files, backfilling`
           );

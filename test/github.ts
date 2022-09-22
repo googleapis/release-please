@@ -559,7 +559,7 @@ describe('GitHub', () => {
       for await (const commit of generator) {
         commits.push(commit);
       }
-      expect(commits).lengthOf(25);
+      expect(commits).lengthOf(2);
       snapshot(commits!);
       req.done();
     });
