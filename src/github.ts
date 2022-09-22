@@ -473,7 +473,7 @@ export class GitHub {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
       if (pullRequest) {
-        const files = pullRequest.files.nodes.map(node => node.path);
+        const files = (pullRequest.files?.nodes || []).map(node => node.path);
         commit.pullRequest = {
           sha: commit.sha,
           number: pullRequest.number,
