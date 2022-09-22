@@ -29,6 +29,8 @@ import {PackageLockJson} from '../../src/updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../../src/updaters/node/samples-package-json';
 import {Changelog} from '../../src/updaters/changelog';
 import {PackageJson} from '../../src/updaters/node/package-json';
+import * as assert from 'assert';
+import {MissingRequiredFileError, FileNotFoundError} from '../../src/errors';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
@@ -144,6 +146,21 @@ describe('Node', () => {
         latestRelease
       );
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
+    });
+    it('handles missing package.json', async () => {
+      sandbox.stub(github, 'getFileContentsOnBranch').rejects(new FileNotFoundError('stub/path'));
+      const strategy = new Node({
+        targetBranch: 'main',
+        github,
+      });
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'some-node-package'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      assert.rejects(async () => {
+        await strategy.buildReleasePullRequest(commits, latestRelease);
+      }, MissingRequiredFileError);
     });
   });
   describe('buildUpdates', () => {
