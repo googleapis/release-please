@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.7.1](https://github.com/googleapis/release-please/compare/v14.7.0...v14.7.1) (2022-09-22)
+
+
+### Bug Fixes
+
+* Handle pull request files returned as null ([#1651](https://github.com/googleapis/release-please/issues/1651)) ([4cea3dd](https://github.com/googleapis/release-please/commit/4cea3dd1b17ee31e27c1d246e83fcf39f28f0677))
+* **node:** Rethrow missing file error for package.json as a configuration error ([#1652](https://github.com/googleapis/release-please/issues/1652)) ([65ee57b](https://github.com/googleapis/release-please/commit/65ee57b433f67d87db3c2530dad4207218dae6d2))
+
 ## [14.7.0](https://github.com/googleapis/release-please/compare/v14.6.1...v14.7.0) (2022-09-20)
 
 
