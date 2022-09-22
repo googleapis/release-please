@@ -39,6 +39,7 @@ import * as codeSuggester from 'code-suggester';
 import {RawContent} from '../src/updaters/raw-content';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
+import {Commit} from '../src/commit';
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -538,6 +539,28 @@ describe('GitHub', () => {
       );
       expect(commitsSinceSha.length).to.eql(1);
       snapshot(commitsSinceSha);
+      req.done();
+    });
+  });
+
+  describe('mergeCommitIterator', () => {
+    it('handles merged pull requests without files', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-since-no-files.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const generator = github.mergeCommitIterator('main');
+      const commits: Commit[] = [];
+      for await (const commit of generator) {
+        commits.push(commit);
+      }
+      expect(commits).lengthOf(25);
+      snapshot(commits!);
       req.done();
     });
   });
