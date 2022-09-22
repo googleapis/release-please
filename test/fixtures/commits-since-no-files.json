@@ -1,0 +1,61 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "nodes": [
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 7,
+                    "title": "feat: feature that will be plain merged",
+                    "baseRefName": "main",
+                    "headRefName": "feature-branch-plain-merge",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "e6daec403626c9987c7af0d97b34f324cd84320a"
+                    },
+                    "files": null
+                  }
+                ]
+              },
+              "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
+              "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 7,
+                    "title": "feat: feature that will be plain merged",
+                    "baseRefName": "main",
+                    "headRefName": "feature-branch-plain-merge",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "b29149f890e6f76ee31ed128585744d4c598924c"
+                    },
+                    "files": {
+                      "nodes": []
+                    }
+                  }
+                ]
+              },
+              "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+              "message": "feat: feature-branch-plain-merge commit 2"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      }
+    }
+  }
+}
