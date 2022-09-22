@@ -473,7 +473,7 @@ export class GitHub {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
       if (pullRequest) {
-        const files = pullRequest.files.nodes.map(node => node.path);
+        const files = (pullRequest.files?.nodes || []).map(node => node.path);
         commit.pullRequest = {
           sha: commit.sha,
           number: pullRequest.number,
@@ -484,7 +484,7 @@ export class GitHub {
           labels: pullRequest.labels.nodes.map(node => node.name),
           files,
         };
-        if (pullRequest.files.pageInfo?.hasNextPage && options.backfillFiles) {
+        if (pullRequest.files?.pageInfo?.hasNextPage && options.backfillFiles) {
           this.logger.info(
             `PR #${pullRequest.number} has many files, backfilling`
           );
