@@ -148,7 +148,9 @@ describe('Node', () => {
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
     it('handles missing package.json', async () => {
-      sandbox.stub(github, 'getFileContentsOnBranch').rejects(new FileNotFoundError('stub/path'));
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .rejects(new FileNotFoundError('stub/path'));
       const strategy = new Node({
         targetBranch: 'main',
         github,
