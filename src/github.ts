@@ -263,6 +263,9 @@ export class GitHub {
       }),
       graphql: graphql.defaults({
         baseUrl: graphqlUrl,
+        request: {
+          agent: this.createDefaultAgent(graphqlUrl, options.proxy),
+        },
         headers: {
           'user-agent': `release-please/${releasePleaseVersion}`,
           Authorization: `token ${options.token}`,
