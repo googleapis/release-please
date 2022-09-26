@@ -301,7 +301,8 @@ export function buildMockCandidatePullRequest(
   updates: Update[] = [],
   notes?: string,
   draft?: boolean,
-  labels: string[] = []
+  labels: string[] = [],
+  group?: string
 ): CandidateReleasePullRequest {
   const version = Version.parse(versionString);
   return {
@@ -322,6 +323,7 @@ export function buildMockCandidatePullRequest(
       headRefName: BranchName.ofTargetBranch('main').toString(),
       version,
       draft: draft ?? false,
+      group,
     },
     config: {
       releaseType,

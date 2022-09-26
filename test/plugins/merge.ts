@@ -201,5 +201,83 @@ describe('Merge plugin', () => {
       ]);
       snapshot(dateSafe(candidate.pullRequest.body.toString()));
     });
+
+    it('separates pull requests by scope', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest(
+          'python',
+          'python',
+          '1.0.0',
+          'python-pkg',
+          [
+            {
+              path: 'path1/foo',
+              createIfMissing: false,
+              updater: new RawContent('foo'),
+            },
+          ]
+        ),
+        buildMockCandidatePullRequest(
+          'node',
+          'node',
+          '3.3.4',
+          '@here/pkgA',
+          [
+            {
+              path: 'path1/foo',
+              createIfMissing: false,
+              updater: new RawContent('bar'),
+            },
+            {
+              path: 'path2/foo',
+              createIfMissing: false,
+              updater: new RawContent('asdf'),
+            },
+          ],
+          undefined,
+          undefined,
+          undefined,
+          'snapshot'
+        ),
+
+        buildMockCandidatePullRequest(
+          'node',
+          'node',
+          '4.4.5',
+          '@here/pkgB',
+          [
+            {
+              path: 'path3/foo',
+              createIfMissing: false,
+              updater: new RawContent('bar'),
+            },
+            {
+              path: 'path4/foo',
+              createIfMissing: false,
+              updater: new RawContent('asdf'),
+            },
+          ],
+          undefined,
+          undefined,
+          undefined,
+          'snapshot'
+        ),
+      ];
+      const plugin = new Merge(github, 'main', {});
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(2);
+
+      const snapshotCandidate = newCandidates[0];
+      expect(snapshotCandidate!.pullRequest.headRefName).to.eql(
+        'release-please--branches--main--group--snapshot'
+      );
+      snapshot(dateSafe(snapshotCandidate!.pullRequest.body.toString()));
+
+      const candidate = newCandidates[1];
+      expect(candidate!.pullRequest.headRefName).to.eql(
+        'release-please--branches--main'
+      );
+      snapshot(dateSafe(candidate!.pullRequest.body.toString()));
+    });
   });
 });

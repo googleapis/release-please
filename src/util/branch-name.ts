@@ -29,6 +29,7 @@ function getAllResourceNames(): BranchNameType[] {
     AutoreleaseBranchName,
     ComponentBranchName,
     DefaultBranchName,
+    GroupedBranchName,
     V12ComponentBranchName,
     V12DefaultBranchName,
   ];
@@ -76,6 +77,14 @@ export class BranchName {
   ): BranchName {
     return new ComponentBranchName(
       `${RELEASE_PLEASE}--branches--${targetBranch}--components--${component}`
+    );
+  }
+  static ofGroupedTargetBranch(
+    targetBranch: string,
+    group: string
+  ): BranchName {
+    return new GroupedBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}--group--${group}`
     );
   }
   constructor(_branchName: string) {}
@@ -209,5 +218,24 @@ class ComponentBranchName extends BranchName {
   }
   toString(): string {
     return `${RELEASE_PLEASE}--branches--${this.targetBranch}--components--${this.component}`;
+  }
+}
+
+const GROUPED_SCOPE_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--group--(?<group>.+)$`;
+class GroupedBranchName extends BranchName {
+  group?: string;
+  static matches(branchName: string): boolean {
+    return !!branchName.match(GROUPED_SCOPE_PATTERN);
+  }
+  constructor(branchName: string) {
+    super(branchName);
+    const match = branchName.match(GROUPED_SCOPE_PATTERN);
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+      this.group = match.groups['group'];
+    }
+  }
+  toString(): string {
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--group--${this.group}`;
   }
 }

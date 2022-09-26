@@ -70,7 +70,20 @@ export class Merge extends ManifestPlugin {
       },
       [[], []]
     );
+    const groupedInScopeCandidates =
+      this.groupCandidatesByType(inScopeCandidates);
+    const newCandidates = [...outOfScopeCandidates];
+    groupedInScopeCandidates.forEach((groupedCandidates, group) => {
+      console.log('merging', group);
+      newCandidates.unshift(this.mergeCandidates(groupedCandidates, group));
+    });
+    return newCandidates;
+  }
 
+  mergeCandidates(
+    inScopeCandidates: CandidateReleasePullRequest[],
+    group?: string
+  ): CandidateReleasePullRequest {
     const releaseData: ReleaseData[] = [];
     const labels = new Set<string>();
     let rawUpdates: Update[] = [];
@@ -87,6 +100,9 @@ export class Merge extends ManifestPlugin {
       }
     }
     const updates = mergeUpdates(rawUpdates);
+    const headRefName = group
+      ? BranchName.ofGroupedTargetBranch(this.targetBranch, group).toString()
+      : BranchName.ofTargetBranch(this.targetBranch).toString();
 
     const pullRequest = {
       title: PullRequestTitle.ofComponentTargetBranchVersion(
@@ -101,24 +117,43 @@ export class Merge extends ManifestPlugin {
       }),
       updates,
       labels: Array.from(labels),
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
-      draft: !candidates.some(candidate => !candidate.pullRequest.draft),
+      headRefName,
+      draft: !inScopeCandidates.some(candidate => !candidate.pullRequest.draft),
     };
 
     const releaseTypes = new Set(
-      candidates.map(candidate => candidate.config.releaseType)
+      inScopeCandidates.map(candidate => candidate.config.releaseType)
     );
     const releaseType =
       releaseTypes.size === 1 ? releaseTypes.values().next().value : 'simple';
-    return [
-      {
-        path: ROOT_PROJECT_PATH,
-        pullRequest,
-        config: {
-          releaseType,
-        },
+    return {
+      path: ROOT_PROJECT_PATH,
+      pullRequest,
+      config: {
+        releaseType,
       },
-      ...outOfScopeCandidates,
-    ];
+    };
+  }
+
+  groupCandidatesByType(
+    inScopeCandidates: CandidateReleasePullRequest[]
+  ): Map<string | undefined, CandidateReleasePullRequest[]> {
+    const groupedCandidates: Map<
+      string | undefined,
+      CandidateReleasePullRequest[]
+    > = new Map();
+    for (const candidatePullRequest of inScopeCandidates) {
+      const candidates = groupedCandidates.get(
+        candidatePullRequest.pullRequest.group
+      );
+      if (candidates) {
+        candidates.push(candidatePullRequest);
+      } else {
+        groupedCandidates.set(candidatePullRequest.pullRequest.group, [
+          candidatePullRequest,
+        ]);
+      }
+    }
+    return groupedCandidates;
   }
 }
