@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.7.2](https://github.com/googleapis/release-please/compare/v14.7.1...v14.7.2) (2022-09-26)
+
+
+### Bug Fixes
+
+* Graphql should also configure proxy agent ([#1655](https://github.com/googleapis/release-please/issues/1655)) ([c68f057](https://github.com/googleapis/release-please/commit/c68f05717148061a1f4365a2323474a72c567a08))
+
 ## [14.7.1](https://github.com/googleapis/release-please/compare/v14.7.0...v14.7.1) (2022-09-22)
 
 
