@@ -299,6 +299,7 @@ interface MockCandidatePullRequestOptions {
   notes?: string;
   draft?: boolean;
   labels?: string[];
+  group?: string;
 }
 export function buildMockCandidatePullRequest(
   path: string,
@@ -325,6 +326,7 @@ export function buildMockCandidatePullRequest(
       headRefName: BranchName.ofTargetBranch('main').toString(),
       version,
       draft: options.draft ?? false,
+      group: options.group,
     },
     config: {
       releaseType,
