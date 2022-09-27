@@ -17,6 +17,7 @@ import {
   PluginType,
   RepositoryConfig,
   SentenceCasePluginConfig,
+  GroupPriorityPluginConfig,
 } from '../manifest';
 import {GitHub} from '../github';
 import {ManifestPlugin} from '../plugin';
@@ -27,6 +28,7 @@ import {VersioningStrategyType} from './versioning-strategy-factory';
 import {MavenWorkspace} from '../plugins/maven-workspace';
 import {ConfigurationError} from '../errors';
 import {SentenceCase} from '../plugins/sentence-case';
+import {GroupPriority} from '../plugins/group-priority';
 
 export interface PluginFactoryOptions {
   type: PluginType;
@@ -80,6 +82,13 @@ const pluginFactories: Record<string, PluginBuilder> = {
       options.targetBranch,
       options.repositoryConfig,
       (options.type as SentenceCasePluginConfig).specialWords
+    ),
+  'group-priority': options =>
+    new GroupPriority(
+      options.github,
+      options.targetBranch,
+      options.repositoryConfig,
+      (options.type as GroupPriorityPluginConfig).groups
     ),
 };
 

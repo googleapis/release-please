@@ -198,9 +198,13 @@ export interface SentenceCasePluginConfig extends ConfigurablePluginType {
 export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
 }
+export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
+  groups: string[];
+}
 export type PluginType =
   | DirectPluginType
   | ConfigurablePluginType
+  | GroupPriorityPluginConfig
   | LinkedVersionPluginConfig
   | SentenceCasePluginConfig
   | WorkspacePluginConfig;
