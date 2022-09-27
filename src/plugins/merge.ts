@@ -119,6 +119,7 @@ export class Merge extends ManifestPlugin {
       labels: Array.from(labels),
       headRefName,
       draft: !inScopeCandidates.some(candidate => !candidate.pullRequest.draft),
+      group,
     };
 
     const releaseTypes = new Set(
