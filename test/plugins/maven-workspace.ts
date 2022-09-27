@@ -62,9 +62,12 @@ describe('MavenWorkspace plugin', () => {
   describe('run', () => {
     it('handles a single maven package', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('maven4', 'maven', '4.4.5', 'maven4', [
-          buildMockPackageUpdate('maven4/pom.xml', 'maven4/pom.xml', '4.4.5'),
-        ]),
+        buildMockCandidatePullRequest('maven4', 'maven', '4.4.5', {
+          component: 'maven4',
+          updates: [
+            buildMockPackageUpdate('maven4/pom.xml', 'maven4/pom.xml', '4.4.5'),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -95,17 +98,19 @@ describe('MavenWorkspace plugin', () => {
     });
     it('appends to existing candidate', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('maven3', 'maven', '3.3.4', 'maven3', [
-          buildMockPackageUpdate('maven3/pom.xml', 'maven3/pom.xml', '3.3.4'),
-        ]),
-        buildMockCandidatePullRequest(
-          'maven4',
-          'maven',
-          '4.4.5',
-          'maven4',
-          [buildMockPackageUpdate('maven4/pom.xml', 'maven4/pom.xml', '4.4.5')],
-          '### Dependencies\n\n* Updated foo to v3'
-        ),
+        buildMockCandidatePullRequest('maven3', 'maven', '3.3.4', {
+          component: 'maven3',
+          updates: [
+            buildMockPackageUpdate('maven3/pom.xml', 'maven3/pom.xml', '3.3.4'),
+          ],
+        }),
+        buildMockCandidatePullRequest('maven4', 'maven', '4.4.5', {
+          component: 'maven4',
+          updates: [
+            buildMockPackageUpdate('maven4/pom.xml', 'maven4/pom.xml', '4.4.5'),
+          ],
+          notes: '### Dependencies\n\n* Updated foo to v3',
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -136,9 +141,12 @@ describe('MavenWorkspace plugin', () => {
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('maven1', 'maven', '1.1.2', 'maven1', [
-          buildMockPackageUpdate('maven1/pom.xml', 'maven1/pom.xml', '1.1.2'),
-        ]),
+        buildMockCandidatePullRequest('maven1', 'maven', '1.1.2', {
+          component: 'maven1',
+          updates: [
+            buildMockPackageUpdate('maven1/pom.xml', 'maven1/pom.xml', '1.1.2'),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -179,9 +187,12 @@ describe('MavenWorkspace plugin', () => {
           'extra/pom.xml',
         ]);
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('maven1', 'maven', '1.1.2', 'maven1', [
-          buildMockPackageUpdate('maven1/pom.xml', 'maven1/pom.xml', '1.1.2'),
-        ]),
+        buildMockCandidatePullRequest('maven1', 'maven', '1.1.2', {
+          component: 'maven1',
+          updates: [
+            buildMockPackageUpdate('maven1/pom.xml', 'maven1/pom.xml', '1.1.2'),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,

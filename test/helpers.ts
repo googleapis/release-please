@@ -293,15 +293,18 @@ export function buildCommitFromFixture(name: string): Commit {
   return buildMockCommit(message);
 }
 
+interface MockCandidatePullRequestOptions {
+  component?: string;
+  updates?: Update[];
+  notes?: string;
+  draft?: boolean;
+  labels?: string[];
+}
 export function buildMockCandidatePullRequest(
   path: string,
   releaseType: ReleaseType,
   versionString: string,
-  component?: string,
-  updates: Update[] = [],
-  notes?: string,
-  draft?: boolean,
-  labels: string[] = []
+  options: MockCandidatePullRequestOptions = {}
 ): CandidateReleasePullRequest {
   const version = Version.parse(versionString);
   return {
@@ -310,18 +313,18 @@ export function buildMockCandidatePullRequest(
       title: PullRequestTitle.ofTargetBranch('main'),
       body: new PullRequestBody([
         {
-          component,
+          component: options.component,
           version,
           notes:
-            notes ??
+            options.notes ??
             `Release notes for path: ${path}, releaseType: ${releaseType}`,
         },
       ]),
-      updates,
-      labels,
+      updates: options.updates ?? [],
+      labels: options.labels ?? [],
       headRefName: BranchName.ofTargetBranch('main').toString(),
       version,
-      draft: draft ?? false,
+      draft: options.draft ?? false,
     },
     config: {
       releaseType,

@@ -91,18 +91,15 @@ describe('CargoWorkspace plugin', () => {
     it('handles a single rust package', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
-        buildMockCandidatePullRequest(
-          'packages/rustA',
-          'rust',
-          '1.1.2',
-          'pkgA',
-          [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: 'pkgA',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustA/Cargo.toml',
               'packages/rustA/Cargo.toml'
             ),
-          ]
-        ),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -136,30 +133,24 @@ describe('CargoWorkspace plugin', () => {
     });
     it('combines rust packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'packages/rustA',
-          'rust',
-          '1.1.2',
-          '@here/pkgA',
-          [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: '@here/pkgA',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustA/Cargo.toml',
               'packages/rustA/Cargo.toml'
             ),
-          ]
-        ),
-        buildMockCandidatePullRequest(
-          'packages/rustD',
-          'rust',
-          '4.4.5',
-          '@here/pkgD',
-          [
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/rustD', 'rust', '4.4.5', {
+          component: '@here/pkgD',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustD/Cargo.toml',
               'packages/rustD/Cargo.toml'
             ),
-          ]
-        ),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -196,30 +187,24 @@ describe('CargoWorkspace plugin', () => {
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'packages/rustA',
-          'rust',
-          '1.1.2',
-          '@here/pkgA',
-          [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: '@here/pkgA',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustA/Cargo.toml',
               'packages/rustA/Cargo.toml'
             ),
-          ]
-        ),
-        buildMockCandidatePullRequest(
-          'packages/rustD',
-          'rust',
-          '4.4.5',
-          '@here/pkgD',
-          [
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/rustD', 'rust', '4.4.5', {
+          component: '@here/pkgD',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustD/Cargo.toml',
               'packages/rustD/Cargo.toml'
             ),
-          ]
-        ),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -251,30 +236,24 @@ describe('CargoWorkspace plugin', () => {
     it('can skip merging rust packages', async () => {
       // This is the same setup as 'walks dependency tree and updates previously untouched packages'
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'packages/rustA',
-          'rust',
-          '1.1.2',
-          '@here/pkgA',
-          [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: '@here/pkgA',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustA/Cargo.toml',
               'packages/rustA/Cargo.toml'
             ),
-          ]
-        ),
-        buildMockCandidatePullRequest(
-          'packages/rustD',
-          'rust',
-          '4.4.5',
-          '@here/pkgD',
-          [
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/rustD', 'rust', '4.4.5', {
+          component: '@here/pkgD',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustD/Cargo.toml',
               'packages/rustD/Cargo.toml'
             ),
-          ]
-        ),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -315,31 +294,25 @@ describe('CargoWorkspace plugin', () => {
       const existingNotes =
         '### Dependencies\n\n* update dependency foo/bar to 1.2.3';
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'packages/rustA',
-          'rust',
-          '1.1.2',
-          '@here/pkgA',
-          [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: '@here/pkgA',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustA/Cargo.toml',
               'packages/rustA/Cargo.toml'
             ),
-          ]
-        ),
-        buildMockCandidatePullRequest(
-          'packages/rustB',
-          'rust',
-          '2.2.3',
-          '@here/pkgB',
-          [
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/rustB', 'rust', '2.2.3', {
+          component: '@here/pkgB',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustB/Cargo.toml',
               'packages/rustB/Cargo.toml'
             ),
           ],
-          existingNotes
-        ),
+          notes: existingNotes,
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -369,18 +342,15 @@ describe('CargoWorkspace plugin', () => {
     });
     it('skips component if not touched', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'packages/rustB',
-          'rust',
-          '2.3.0',
-          'pkgB',
-          [
+        buildMockCandidatePullRequest('packages/rustB', 'rust', '2.3.0', {
+          component: 'pkgB',
+          updates: [
             buildMockPackageUpdate(
               'packages/rustB/Cargo.toml',
               'packages/rustB/Cargo.toml'
             ),
-          ]
-        ),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,

@@ -62,31 +62,31 @@ describe('Merge plugin', () => {
 
     it('merges multiple pull requests into an aggregate', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'python',
-          'python',
-          '1.0.0',
-          'python-pkg',
-          [
+        buildMockCandidatePullRequest('python', 'python', '1.0.0', {
+          component: 'python-pkg',
+          updates: [
             {
               path: 'path1/foo',
               createIfMissing: false,
               updater: new RawContent('foo'),
             },
-          ]
-        ),
-        buildMockCandidatePullRequest('node', 'node', '3.3.4', '@here/pkgA', [
-          {
-            path: 'path1/foo',
-            createIfMissing: false,
-            updater: new RawContent('bar'),
-          },
-          {
-            path: 'path2/foo',
-            createIfMissing: false,
-            updater: new RawContent('asdf'),
-          },
-        ]),
+          ],
+        }),
+        buildMockCandidatePullRequest('node', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            {
+              path: 'path1/foo',
+              createIfMissing: false,
+              updater: new RawContent('bar'),
+            },
+            {
+              path: 'path2/foo',
+              createIfMissing: false,
+              updater: new RawContent('asdf'),
+            },
+          ],
+        }),
       ];
       const plugin = new Merge(github, 'main', {});
       const newCandidates = await plugin.run(candidates);
@@ -101,27 +101,21 @@ describe('Merge plugin', () => {
 
     it('merges multiple pull requests as a draft', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'python',
-          'python',
-          '1.0.0',
-          'python-pkg',
-          [
+        buildMockCandidatePullRequest('python', 'python', '1.0.0', {
+          component: 'python-pkg',
+          updates: [
             {
               path: 'path1/foo',
               createIfMissing: false,
               updater: new RawContent('foo'),
             },
           ],
-          'python notes',
-          true
-        ),
-        buildMockCandidatePullRequest(
-          'node',
-          'node',
-          '3.3.4',
-          '@here/pkgA',
-          [
+          notes: 'python notes',
+          draft: true,
+        }),
+        buildMockCandidatePullRequest('node', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
             {
               path: 'path1/foo',
               createIfMissing: false,
@@ -133,9 +127,9 @@ describe('Merge plugin', () => {
               updater: new RawContent('asdf'),
             },
           ],
-          'some notes',
-          true
-        ),
+          notes: 'some notes',
+          draft: true,
+        }),
       ];
       const plugin = new Merge(github, 'main', {});
       const newCandidates = await plugin.run(candidates);
@@ -151,28 +145,20 @@ describe('Merge plugin', () => {
 
     it('merges all labels for pull requests', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest(
-          'python',
-          'python',
-          '1.0.0',
-          'python-pkg',
-          [
+        buildMockCandidatePullRequest('python', 'python', '1.0.0', {
+          component: 'python-pkg',
+          updates: [
             {
               path: 'path1/foo',
               createIfMissing: false,
               updater: new RawContent('foo'),
             },
           ],
-          undefined,
-          undefined,
-          ['label-a', 'label-b']
-        ),
-        buildMockCandidatePullRequest(
-          'node',
-          'node',
-          '3.3.4',
-          '@here/pkgA',
-          [
+          labels: ['label-a', 'label-b'],
+        }),
+        buildMockCandidatePullRequest('node', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
             {
               path: 'path1/foo',
               createIfMissing: false,
@@ -184,10 +170,8 @@ describe('Merge plugin', () => {
               updater: new RawContent('asdf'),
             },
           ],
-          undefined,
-          undefined,
-          ['label-a', 'label-c']
-        ),
+          labels: ['label-a', 'label-c'],
+        }),
       ];
       const plugin = new Merge(github, 'main', {});
       const newCandidates = await plugin.run(candidates);
