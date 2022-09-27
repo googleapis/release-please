@@ -137,7 +137,7 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle html
 
 ### Features
 
-* render all imagesets as &lt;picture&gt; ([ca4cdbd](https://github.com/googleapis/java-asset/commit/ca4cdbd75e4a93688c9c239802cf05dd))
+* render all imagesets as &lt;picture&gt; ([383fb14](https://github.com/googleapis/java-asset/commit/383fb14708ae91f7bb7e64bf0bacab38))
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle meta commits 1'] = `
