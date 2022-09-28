@@ -536,3 +536,39 @@ Bug Fixes:
 
 * Patch issues in OpenSSL`
 ```
+
+### group-priority
+
+This plugin allows you to configure pull request by priority. If enabled and if a pull request of a
+prioritized group is found, `release-please` will limit the proposed release pull requests to the
+prioritized group only.
+
+
+Example:
+
+```json
+{
+  "release-type": "java",
+  "packages": {
+    "packages/rustA": {
+      "component": "pkgA"
+    },
+    "packages/rustB": {
+      "component": "pkgB"
+    }
+  },
+  "plugins": [
+    {
+      "type": "group-priority",
+      "groups": ["snapshot"]
+    }
+  ]
+}
+```
+
+In the above example, java snapshot PRs are now marked as part of the snapshot group. If you
+configure the `group-priority` plugin with the group set to ['snapshot'], then `release-please`
+will only open pull requests for snapshot pull requests if there are any. This would avoid a
+mix/match of snapshot and non-snapshot version bumps.
+
+The `groups` option is a list of group names sorted with the highest priority first.

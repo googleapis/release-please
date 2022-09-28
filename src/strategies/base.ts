@@ -582,6 +582,11 @@ export abstract class BaseStrategy implements Strategy {
       return;
     }
 
+    if (!this.isPublishedVersion(version)) {
+      this.logger.warn(`Skipping non-published version: ${version.toString()}`);
+      return;
+    }
+
     const tag = new TagName(
       version,
       this.includeComponentInTag ? component : undefined,
@@ -598,6 +603,10 @@ export abstract class BaseStrategy implements Strategy {
       notes: notes || '',
       sha: mergedPullRequest.sha,
     };
+  }
+
+  isPublishedVersion(_version: Version): boolean {
+    return true;
   }
 
   /**

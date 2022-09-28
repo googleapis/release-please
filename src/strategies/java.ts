@@ -147,6 +147,7 @@ export class Java extends BaseStrategy {
       headRefName: branchName.toString(),
       version: newVersion,
       draft: draft ?? false,
+      group: 'snapshot',
     };
   }
 
