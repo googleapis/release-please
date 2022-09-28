@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.8.0](https://github.com/googleapis/release-please/compare/v14.7.2...v14.8.0) (2022-09-28)
+
+
+### Features
+
+* Add `group-priority` plugin ([#1660](https://github.com/googleapis/release-please/issues/1660)) ([3ca750a](https://github.com/googleapis/release-please/commit/3ca750af3be8af06f9b6d0ed835524d53eab09c5))
+
+
+### Bug Fixes
+
+* Escape html tags in release notes ([#1661](https://github.com/googleapis/release-please/issues/1661)) ([891fdcb](https://github.com/googleapis/release-please/commit/891fdcb0776abd8b3518bb60c44873f55fd616a3))
+
 ## [14.7.2](https://github.com/googleapis/release-please/compare/v14.7.1...v14.7.2) (2022-09-26)
 
 
