@@ -72,7 +72,7 @@ export class DefaultChangelogNotes implements ChangelogNotes {
     const changelogCommits = commits.map(commit => {
       return {
         body: '', // commit.body,
-        subject: commit.bareMessage,
+        subject: htmlEscape(commit.bareMessage),
         type: commit.type,
         scope: commit.scope,
         notes: commit.notes.filter(note => note.title === 'BREAKING CHANGE'),
@@ -93,4 +93,8 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       .parseArray(changelogCommits, context, preset.writerOpts)
       .trim();
   }
+}
+
+function htmlEscape(message: string): string {
+  return message.replace('<', '&lt;').replace('>', '&gt;');
 }
