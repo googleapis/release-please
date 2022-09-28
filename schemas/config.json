@@ -305,7 +305,7 @@
                     "enum": ["group-priority"]
                   },
                   "groups": {
-                    "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
+                    "description": "Group names ordered with highest priority first.",
                     "type": "array",
                     "items": {
                       "type": "string"

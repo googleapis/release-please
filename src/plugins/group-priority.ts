@@ -22,6 +22,16 @@ import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
  */
 export class GroupPriority extends ManifestPlugin {
   readonly groups: string[];
+
+  /**
+   * Instantiate a new GroupPriority plugin.
+   *
+   * @param {GitHub} github GitHub client
+   * @param {string} targetBranch Release branch
+   * @param {RepositoryConfig} repositoryConfig Parsed configuration for the entire
+   *   repository. This allows plugins to know how components interact.
+   * @param {string[]} groups List of group names ordered with highest priority first
+   */
   constructor(
     github: GitHub,
     targetBranch: string,
