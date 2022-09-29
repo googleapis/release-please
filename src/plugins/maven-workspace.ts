@@ -199,11 +199,11 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
    * @returns A map of all updated versions (package name => Version) and a
    *   map of all updated versions (component path => Version).
    */
-  protected buildUpdatedVersions(
+  protected async buildUpdatedVersions(
     graph: DependencyGraph<MavenArtifact>,
     orderedPackages: MavenArtifact[],
     candidatesByPackage: Record<string, CandidateReleasePullRequest>
-  ): {updatedVersions: VersionsMap; updatedPathVersions: VersionsMap} {
+  ): Promise<{updatedVersions: VersionsMap; updatedPathVersions: VersionsMap}> {
     const updatedVersions: VersionsMap = new Map();
     const updatedPathVersions: VersionsMap = new Map();
 
@@ -213,6 +213,11 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         update.path.endsWith('pom.xml')
       );
       for (const pomUpdate of pomUpdates) {
+        if (!pomUpdate.cachedFileContents) {
+          pomUpdate.cachedFileContents = await this.github.getFileContentsOnBranch(
+            pomUpdate.path, this.targetBranch
+          );
+        }
         if (pomUpdate.cachedFileContents) {
           // pre-run the version updater on this artifact and extract the
           // new version

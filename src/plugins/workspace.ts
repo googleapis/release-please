@@ -111,7 +111,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     const orderedPackages = this.buildGraphOrder(graph, packageNamesToUpdate);
     this.logger.info(`Updating ${orderedPackages.length} packages`);
 
-    const {updatedVersions, updatedPathVersions} = this.buildUpdatedVersions(
+    const {updatedVersions, updatedPathVersions} = await this.buildUpdatedVersions(
       graph,
       orderedPackages,
       candidatesByPackage
@@ -246,11 +246,11 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
    * @returns A map of all updated versions (package name => Version) and a
    *   map of all updated versions (component path => Version).
    */
-  protected buildUpdatedVersions(
+  protected async buildUpdatedVersions(
     _graph: DependencyGraph<T>,
     orderedPackages: T[],
     candidatesByPackage: Record<string, CandidateReleasePullRequest>
-  ): {updatedVersions: VersionsMap; updatedPathVersions: VersionsMap} {
+  ): Promise<{updatedVersions: VersionsMap; updatedPathVersions: VersionsMap}> {
     const updatedVersions: VersionsMap = new Map();
     const updatedPathVersions: VersionsMap = new Map();
     for (const pkg of orderedPackages) {
