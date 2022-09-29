@@ -118,6 +118,8 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     );
 
     let newCandidates: CandidateReleasePullRequest[] = [];
+    // In some cases, there are multiple packages within a single candidate. We
+    // only want to process each candidate package once.
     const newCandidatePaths = new Set<string>();
     for (const pkg of orderedPackages) {
       const existingCandidate = this.findCandidateForPackage(
@@ -191,6 +193,16 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     return [...outOfScopeCandidates, ...newCandidates];
   }
 
+  /**
+   * Helper for finding a candidate release based on the package name.
+   * By default, we assume that the package name matches the release
+   * component.
+   * @param {T} pkg The package being released
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns {CandidateReleasePullRequest | undefined} The associated
+   *   candidate release or undefined if there is no existing release yet
+   */
   protected findCandidateForPackage(
     pkg: T,
     candidatesByPackage: Record<string, CandidateReleasePullRequest>
@@ -199,6 +211,18 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     return candidatesByPackage[packageName];
   }
 
+  /**
+   * Helper to determine which packages we will use to base our search
+   * for touched packages upon. These are usually the packages that
+   * have candidate pull requests open.
+   *
+   * If you configure `updateAllPackages`, we fill force update all
+   * packages as if they had a release.
+   * @param {DependencyGraph<T>} graph All the packages in the repository
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns {string[]} Package names to
+   */
   protected packageNamesToUpdate(
     graph: DependencyGraph<T>,
     candidatesByPackage: Record<string, CandidateReleasePullRequest>
@@ -211,6 +235,17 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     return Object.keys(candidatesByPackage);
   }
 
+  /**
+   * Helper to build up all the versions we are modifying in this
+   * repository.
+   * @param {DependencyGraph<T>} _graph All the packages in the repository
+   * @param {T[]} orderedPackages A list of packages that are currently
+   *   updated by the existing candidate pull requests
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns A map of all updated versions (package name => Version) and a
+   *   map of all updated versions (component path => Version).
+   */
   protected buildUpdatedVersions(
     _graph: DependencyGraph<T>,
     orderedPackages: T[],
