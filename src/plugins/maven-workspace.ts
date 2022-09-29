@@ -23,7 +23,6 @@ import {
 } from './workspace';
 import {Version, VersionsMap} from '../version';
 import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
-import {PatchVersionUpdate} from '../versioning-strategy';
 import * as dom from '@xmldom/xmldom';
 import * as xpath from 'xpath';
 import {dirname} from 'path';
@@ -35,6 +34,9 @@ import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {logger as defaultLogger, Logger} from '../util/logger';
 import {GitHub} from '../github';
+import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
+import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
+import {ConventionalCommit} from '../commit';
 
 interface Gav {
   groupId: string;
@@ -214,9 +216,11 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       );
       for (const pomUpdate of pomUpdates) {
         if (!pomUpdate.cachedFileContents) {
-          pomUpdate.cachedFileContents = await this.github.getFileContentsOnBranch(
-            pomUpdate.path, this.targetBranch
-          );
+          pomUpdate.cachedFileContents =
+            await this.github.getFileContentsOnBranch(
+              pomUpdate.path,
+              this.targetBranch
+            );
         }
         if (pomUpdate.cachedFileContents) {
           // pre-run the version updater on this artifact and extract the
@@ -267,15 +271,6 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       }
     }
 
-    // Set default with original values from complete graph
-    for (const [packageName, node] of graph) {
-      if (!updatedVersions.get(packageName)) {
-        this.logger.debug(
-          `setting default version for ${packageName} to ${node.value.version}`
-        );
-        updatedVersions.set(packageName, Version.parse(node.value.version));
-      }
-    }
     return {
       updatedVersions,
       updatedPathVersions,
@@ -314,8 +309,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
   }
 
   protected bumpVersion(artifact: MavenArtifact): Version {
-    const version = Version.parse(artifact.version);
-    return new PatchVersionUpdate().bump(version);
+    const strategy = new JavaSnapshot(new AlwaysBumpPatch());
+    return strategy.bump(Version.parse(artifact.version), [fakeCommit]);
   }
 
   protected updateCandidate(
@@ -566,3 +561,14 @@ function parseMavenArtifact(
     pomContent,
   };
 }
+const fakeCommit: ConventionalCommit = {
+  message: 'fix: fake fix',
+  type: 'fix',
+  scope: null,
+  notes: [],
+  references: [],
+  bareMessage: 'fake fix',
+  breaking: false,
+  sha: 'abc123',
+  files: [],
+};

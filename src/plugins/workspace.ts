@@ -111,11 +111,12 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     const orderedPackages = this.buildGraphOrder(graph, packageNamesToUpdate);
     this.logger.info(`Updating ${orderedPackages.length} packages`);
 
-    const {updatedVersions, updatedPathVersions} = await this.buildUpdatedVersions(
-      graph,
-      orderedPackages,
-      candidatesByPackage
-    );
+    const {updatedVersions, updatedPathVersions} =
+      await this.buildUpdatedVersions(
+        graph,
+        orderedPackages,
+        candidatesByPackage
+      );
 
     let newCandidates: CandidateReleasePullRequest[] = [];
     // In some cases, there are multiple packages within a single candidate. We
@@ -410,7 +411,6 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
 
     // invert the graph so it's dependency name => packages that depend on it
     const dependentGraph = this.invertGraph(graph);
-    this.logger.debug('dependent graph', dependentGraph);
     const visited: Set<T> = new Set();
 
     // we're iterating the `Map` in insertion order (as per ECMA262), but
@@ -420,7 +420,6 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     for (const name of packageNamesToUpdate) {
       this.visitPostOrder(dependentGraph, name, visited, []);
     }
-    this.logger.debug('visited', visited);
 
     return Array.from(visited).sort((a, b) =>
       this.packageNameFromPackage(a).localeCompare(
