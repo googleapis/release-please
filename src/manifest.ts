@@ -41,7 +41,6 @@ import {
   FileNotFoundError,
   ConfigurationError,
 } from './errors';
-import path from 'path';
 
 type ExtraJsonFile = {
   type: 'json';
