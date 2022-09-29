@@ -98,6 +98,7 @@ export interface ReleaserConfig {
   separatePullRequests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
+  alternateInitialVersion?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
