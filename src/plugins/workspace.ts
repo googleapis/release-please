@@ -104,47 +104,46 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     );
     const graph = await this.buildGraph(allPackages);
 
-    const packageNamesToUpdate = this.updateAllPackages
-      ? allPackages.map(this.packageNameFromPackage)
-      : Object.keys(candidatesByPackage);
+    const packageNamesToUpdate = this.packageNamesToUpdate(
+      graph,
+      candidatesByPackage
+    );
     const orderedPackages = this.buildGraphOrder(graph, packageNamesToUpdate);
     this.logger.info(`Updating ${orderedPackages.length} packages`);
 
-    const updatedVersions: VersionsMap = new Map();
-    const updatedPathVersions: VersionsMap = new Map();
-    for (const pkg of orderedPackages) {
-      const packageName = this.packageNameFromPackage(pkg);
-      this.logger.debug(`package: ${packageName}`);
-      const existingCandidate = candidatesByPackage[packageName];
-      if (existingCandidate) {
-        const version = existingCandidate.pullRequest.version!;
-        this.logger.debug(`version: ${version} from release-please`);
-        updatedVersions.set(packageName, version);
-      } else {
-        const version = this.bumpVersion(pkg);
-        this.logger.debug(`version: ${version} forced bump`);
-        updatedVersions.set(packageName, version);
-        updatedPathVersions.set(this.pathFromPackage(pkg), version);
-      }
-    }
+    const {updatedVersions, updatedPathVersions} = this.buildUpdatedVersions(
+      graph,
+      orderedPackages,
+      candidatesByPackage
+    );
 
     let newCandidates: CandidateReleasePullRequest[] = [];
+    const newCandidatePaths = new Set<string>();
     for (const pkg of orderedPackages) {
-      const packageName = this.packageNameFromPackage(pkg);
-      const existingCandidate = candidatesByPackage[packageName];
+      const existingCandidate = this.findCandidateForPackage(
+        pkg,
+        candidatesByPackage
+      );
       if (existingCandidate) {
         // if already has an pull request, update the changelog and update
         this.logger.info(
           `Updating exising candidate pull request for ${this.packageNameFromPackage(
             pkg
-          )}`
+          )}, path: ${existingCandidate.path}`
         );
-        const newCandidate = this.updateCandidate(
-          existingCandidate,
-          pkg,
-          updatedVersions
-        );
-        newCandidates.push(newCandidate);
+        if (newCandidatePaths.has(existingCandidate.path)) {
+          this.logger.info(
+            `Already updated candidate for path: ${existingCandidate.path}`
+          );
+        } else {
+          const newCandidate = this.updateCandidate(
+            existingCandidate,
+            pkg,
+            updatedVersions
+          );
+          newCandidatePaths.add(newCandidate.path);
+          newCandidates.push(newCandidate);
+        }
       } else {
         // otherwise, build a new pull request with changelog and entry update
         this.logger.info(
@@ -153,7 +152,14 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
           )}`
         );
         const newCandidate = this.newCandidate(pkg, updatedVersions);
-        newCandidates.push(newCandidate);
+        if (newCandidatePaths.has(newCandidate.path)) {
+          this.logger.info(
+            `Already created new candidate for path: ${newCandidate.path}`
+          );
+        } else {
+          newCandidatePaths.add(newCandidate.path);
+          newCandidates.push(newCandidate);
+        }
       }
     }
 
@@ -183,6 +189,54 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     newCandidates = this.postProcessCandidates(newCandidates, updatedVersions);
 
     return [...outOfScopeCandidates, ...newCandidates];
+  }
+
+  protected findCandidateForPackage(
+    pkg: T,
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): CandidateReleasePullRequest | undefined {
+    const packageName = this.packageNameFromPackage(pkg);
+    return candidatesByPackage[packageName];
+  }
+
+  protected packageNamesToUpdate(
+    graph: DependencyGraph<T>,
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): string[] {
+    if (this.updateAllPackages) {
+      return Array.from(graph.values()).map(({value}) =>
+        this.packageNameFromPackage(value)
+      );
+    }
+    return Object.keys(candidatesByPackage);
+  }
+
+  protected buildUpdatedVersions(
+    _graph: DependencyGraph<T>,
+    orderedPackages: T[],
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): {updatedVersions: VersionsMap; updatedPathVersions: VersionsMap} {
+    const updatedVersions: VersionsMap = new Map();
+    const updatedPathVersions: VersionsMap = new Map();
+    for (const pkg of orderedPackages) {
+      const packageName = this.packageNameFromPackage(pkg);
+      this.logger.debug(`package: ${packageName}`);
+      const existingCandidate = candidatesByPackage[packageName];
+      if (existingCandidate) {
+        const version = existingCandidate.pullRequest.version!;
+        this.logger.debug(`version: ${version} from release-please`);
+        updatedVersions.set(packageName, version);
+      } else {
+        const version = this.bumpVersion(pkg);
+        this.logger.debug(`version: ${version} forced bump`);
+        updatedVersions.set(packageName, version);
+        updatedPathVersions.set(this.pathFromPackage(pkg), version);
+      }
+    }
+    return {
+      updatedVersions,
+      updatedPathVersions,
+    };
   }
 
   /**
@@ -321,6 +375,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
 
     // invert the graph so it's dependency name => packages that depend on it
     const dependentGraph = this.invertGraph(graph);
+    this.logger.debug('dependent graph', dependentGraph);
     const visited: Set<T> = new Set();
 
     // we're iterating the `Map` in insertion order (as per ECMA262), but
@@ -330,6 +385,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     for (const name of packageNamesToUpdate) {
       this.visitPostOrder(dependentGraph, name, visited, []);
     }
+    this.logger.debug('visited', visited);
 
     return Array.from(visited).sort((a, b) =>
       this.packageNameFromPackage(a).localeCompare(
@@ -344,6 +400,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     visited: Set<T>,
     path: string[]
   ) {
+    this.logger.debug(`visiting ${name}, path: ${path}`);
     if (path.indexOf(name) !== -1) {
       throw new Error(
         `found cycle in dependency graph: ${path.join(' -> ')} -> ${name}`
@@ -363,6 +420,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         this.logger.warn(`dependency not found in graph: ${depName}`);
         return;
       }
+      this.logger.info(`visiting ${depName} next`);
 
       this.visitPostOrder(graph, depName, visited, nextPath);
     }
@@ -374,6 +432,8 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         )} to order`
       );
       visited.add(node.value);
+    } else {
+      this.logger.debug(`${node.value} already visited`);
     }
   }
 }

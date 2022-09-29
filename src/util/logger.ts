@@ -60,7 +60,7 @@ export class CheckpointLogger implements Logger {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export let logger: Logger = new CheckpointLogger();
+export let logger: Logger = new CheckpointLogger(true);
 
 export function setLogger(userLogger: Logger) {
   logger = userLogger;
