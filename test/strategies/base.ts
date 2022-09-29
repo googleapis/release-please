@@ -79,7 +79,7 @@ describe('Strategy', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
-        alternateInitialVersion: '0.1.0',
+        initialVersion: '0.1.0',
       });
       const commits = [
         {
