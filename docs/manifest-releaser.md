@@ -481,6 +481,11 @@ but on a multi-artifact Maven workspace. It builds a dependency graph of all
 discovered `pom.xml` files that are configured in the manifest config and updates
 any packages that were directly bumped by release-please.
 
+If you have additional maven artifacts to consider for cross-component version
+bumping, you can set the `considerAllArtifacts` option to `true`. If you do so,
+the plugin will look at all `pom.xml` files and attempt to version bump
+artifacts within the repository.
+
 ### linked-versions
 
 The `linked-versions` plugin allows you to "link" the versions of multiple

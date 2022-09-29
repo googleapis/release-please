@@ -197,6 +197,7 @@ export interface SentenceCasePluginConfig extends ConfigurablePluginType {
 }
 export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
+  considerAllArtifacts?: boolean;
 }
 export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
   groups: string[];
@@ -644,6 +645,7 @@ export class Manifest {
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
+        logger: this.logger,
       })
     );
 

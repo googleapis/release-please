@@ -538,6 +538,37 @@ describe('Manifest', () => {
         },
       ]);
     });
+    it('should build maven-workspace from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/maven-workspace-plugins.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['plugins']).to.deep.equal([
+        {
+          type: 'maven-workspace',
+          considerAllArtifacts: true,
+        },
+      ]);
+    });
     it('should configure search depth from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,

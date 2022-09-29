@@ -292,6 +292,10 @@
                   "merge": {
                     "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
                     "type": "boolean"
+                  },
+                  "considerAllArtifacts": {
+                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin.",
+                    "type": "boolean"
                   }
                 }
               },
