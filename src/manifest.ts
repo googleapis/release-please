@@ -41,6 +41,7 @@ import {
   FileNotFoundError,
   ConfigurationError,
 } from './errors';
+import {ManifestPlugin} from './plugin';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -98,6 +99,7 @@ export interface ReleaserConfig {
   separatePullRequests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
+  extraLabels?: string[];
   initialVersion?: string;
 
   // Changelog options
@@ -140,6 +142,7 @@ interface ReleaserConfigJson {
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
+  'extra-label'?: string;
   'include-component-in-tag'?: boolean;
   'include-v-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
@@ -266,7 +269,7 @@ export class Manifest {
   private sequentialCalls?: boolean;
   private releaseLabels: string[];
   private snapshotLabels: string[];
-  private plugins: PluginType[];
+  readonly plugins: ManifestPlugin[];
   private _strategiesByPath?: Record<string, Strategy>;
   private _pathsByComponent?: Record<string, string>;
   private manifestPath: string;
@@ -322,7 +325,6 @@ export class Manifest {
     this.separatePullRequests =
       manifestOptions?.separatePullRequests ??
       Object.keys(repositoryConfig).length === 1;
-    this.plugins = manifestOptions?.plugins || [];
     this.fork = manifestOptions?.fork || false;
     this.signoffUser = manifestOptions?.signoff;
     this.releaseLabels =
@@ -343,6 +345,15 @@ export class Manifest {
     this.commitSearchDepth =
       manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
     this.logger = manifestOptions?.logger ?? defaultLogger;
+    this.plugins = (manifestOptions?.plugins || []).map(pluginType =>
+      buildPlugin({
+        type: pluginType,
+        github: this.github,
+        targetBranch: this.targetBranch,
+        repositoryConfig: this.repositoryConfig,
+        manifestPath: this.manifestPath,
+      })
+    );
   }
 
   /**
@@ -652,7 +663,7 @@ export class Manifest {
     );
 
     let strategies = strategiesByPath;
-    for (const plugin of plugins) {
+    for (const plugin of this.plugins) {
       strategies = await plugin.preconfigure(
         strategies,
         commitsPerPath,
@@ -672,7 +683,7 @@ export class Manifest {
       // The processCommits hook can be implemented by plugins to
       // post-process commits. This can be used to perform cleanup, e.g,, sentence
       // casing all commit messages:
-      for (const plugin of plugins) {
+      for (const plugin of this.plugins) {
         pathCommits = plugin.processCommits(pathCommits);
       }
       this.logger.debug(`commits: ${pathCommits.length}`);
@@ -718,7 +729,7 @@ export class Manifest {
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
-      plugins.push(
+      this.plugins.push(
         new Merge(
           this.github,
           this.targetBranch,
@@ -728,7 +739,7 @@ export class Manifest {
       );
     }
 
-    for (const plugin of plugins) {
+    for (const plugin of this.plugins) {
       this.logger.debug(`running plugin: ${plugin.constructor.name}`);
       newReleasePullRequests = await plugin.run(newReleasePullRequests);
     }
@@ -1224,6 +1235,7 @@ function extractReleaserConfig(
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
     releaseLabels: config['release-label']?.split(','),
+    extraLabels: config['extra-label']?.split(','),
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
   };
@@ -1262,6 +1274,7 @@ async function parseConfig(
   const configLabel = config['label'];
   const configReleaseLabel = config['release-label'];
   const configSnapshotLabel = config['snapshot-label'];
+  const configExtraLabel = config['extra-label'];
   const manifestOptions = {
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
@@ -1272,6 +1285,7 @@ async function parseConfig(
     labels: configLabel?.split(','),
     releaseLabels: configReleaseLabel?.split(','),
     snapshotLabels: configSnapshotLabel?.split(','),
+    extraLabels: configExtraLabel?.split(','),
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
     sequentialCalls: config['sequential-calls'],
@@ -1557,6 +1571,7 @@ function mergeReleaserConfig(
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
+    extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
   };
 }
 
