@@ -41,6 +41,7 @@ import {
   FileNotFoundError,
   ConfigurationError,
 } from './errors';
+import {ManifestPlugin} from './plugin';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -267,7 +268,7 @@ export class Manifest {
   private sequentialCalls?: boolean;
   private releaseLabels: string[];
   private snapshotLabels: string[];
-  private plugins: PluginType[];
+  readonly plugins: ManifestPlugin[];
   private _strategiesByPath?: Record<string, Strategy>;
   private _pathsByComponent?: Record<string, string>;
   private manifestPath: string;
@@ -323,7 +324,6 @@ export class Manifest {
     this.separatePullRequests =
       manifestOptions?.separatePullRequests ??
       Object.keys(repositoryConfig).length === 1;
-    this.plugins = manifestOptions?.plugins || [];
     this.fork = manifestOptions?.fork || false;
     this.signoffUser = manifestOptions?.signoff;
     this.releaseLabels =
@@ -344,6 +344,15 @@ export class Manifest {
     this.commitSearchDepth =
       manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
     this.logger = manifestOptions?.logger ?? defaultLogger;
+    this.plugins = (manifestOptions?.plugins || []).map(pluginType =>
+      buildPlugin({
+        type: pluginType,
+        github: this.github,
+        targetBranch: this.targetBranch,
+        repositoryConfig: this.repositoryConfig,
+        manifestPath: this.manifestPath,
+      })
+    );
   }
 
   /**
@@ -640,19 +649,8 @@ export class Manifest {
       }
     }
 
-    // Build plugins
-    const plugins = this.plugins.map(pluginType =>
-      buildPlugin({
-        type: pluginType,
-        github: this.github,
-        targetBranch: this.targetBranch,
-        repositoryConfig: this.repositoryConfig,
-        manifestPath: this.manifestPath,
-      })
-    );
-
     let strategies = strategiesByPath;
-    for (const plugin of plugins) {
+    for (const plugin of this.plugins) {
       strategies = await plugin.preconfigure(
         strategies,
         commitsPerPath,
@@ -672,7 +670,7 @@ export class Manifest {
       // The processCommits hook can be implemented by plugins to
       // post-process commits. This can be used to perform cleanup, e.g,, sentence
       // casing all commit messages:
-      for (const plugin of plugins) {
+      for (const plugin of this.plugins) {
         pathCommits = plugin.processCommits(pathCommits);
       }
       this.logger.debug(`commits: ${pathCommits.length}`);
@@ -718,7 +716,7 @@ export class Manifest {
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
-      plugins.push(
+      this.plugins.push(
         new Merge(
           this.github,
           this.targetBranch,
@@ -728,7 +726,7 @@ export class Manifest {
       );
     }
 
-    for (const plugin of plugins) {
+    for (const plugin of this.plugins) {
       this.logger.debug(`running plugin: ${plugin.constructor.name}`);
       newReleasePullRequests = await plugin.run(newReleasePullRequests);
     }
