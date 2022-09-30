@@ -25,6 +25,10 @@ import {Update} from './update';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {ReleasePleaseConfig} from './updaters/release-please-config';
 
+interface BootstrapPullRequest extends PullRequest {
+  updates: Update[];
+}
+
 export class Bootstrapper {
   private github: GitHub;
   private targetBranch: string;
@@ -46,17 +50,22 @@ export class Bootstrapper {
   }
 
   async bootstrap(path: string, config: ReleaserConfig): Promise<PullRequest> {
+    const pullRequest = await this.buildPullRequest(path, config);
+    return await this.github.createPullRequest(
+      pullRequest,
+      this.targetBranch,
+      pullRequest.title,
+      pullRequest.updates,
+      {}
+    );
+  }
+
+  async buildPullRequest(
+    path: string,
+    config: ReleaserConfig
+  ): Promise<BootstrapPullRequest> {
     const message = `chore: bootstrap releases for path: ${path}`;
     const branchName = path === ROOT_PROJECT_PATH ? 'default' : path;
-    const pullRequest = {
-      headBranchName: `release-please/bootstrap/${branchName}`,
-      baseBranchName: this.targetBranch,
-      number: -1,
-      title: message,
-      body: `Configuring release-please for path: ${path}`,
-      labels: [],
-      files: [],
-    };
     const version = this.initialVersion;
     const versionsMap: VersionsMap = new Map();
     versionsMap.set(path, version);
@@ -72,12 +81,15 @@ export class Bootstrapper {
         updater: new ReleasePleaseConfig(path, config),
       },
     ];
-    return await this.github.createPullRequest(
-      pullRequest,
-      this.targetBranch,
-      message,
+    return {
+      title: message,
+      body: `Configuring release-please for path: ${path}`,
+      baseBranchName: this.targetBranch,
+      headBranchName: `release-please/bootstrap/${branchName}`,
       updates,
-      {}
-    );
+      number: -1,
+      labels: [],
+      files: [],
+    };
   }
 }
