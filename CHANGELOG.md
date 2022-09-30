@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.9.0](https://github.com/googleapis/release-please/compare/v14.8.0...v14.9.0) (2022-09-30)
+
+
+### Features
+
+* Add initial version to base strategy ([#1665](https://github.com/googleapis/release-please/issues/1665)) ([c867403](https://github.com/googleapis/release-please/commit/c867403e50cacbb88ddf545b2c0888f2c500edcc))
+
 ## [14.8.0](https://github.com/googleapis/release-please/compare/v14.7.2...v14.8.0) (2022-09-28)
 
 

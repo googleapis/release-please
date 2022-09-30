@@ -78,6 +78,7 @@ export interface BaseStrategyOptions {
   snapshotLabels?: string[]; // Java-only
   skipSnapshot?: boolean; // Java-only
   logger?: Logger;
+  initialVersion?: string;
 }
 
 /**
@@ -100,6 +101,7 @@ export abstract class BaseStrategy implements Strategy {
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
   protected includeVInTag: boolean;
+  protected initialVersion?: string;
   readonly pullRequestTitlePattern?: string;
   readonly pullRequestHeader?: string;
   readonly extraFiles: ExtraFile[];
@@ -134,6 +136,7 @@ export abstract class BaseStrategy implements Strategy {
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
     this.extraFiles = options.extraFiles || [];
+    this.initialVersion = options.initialVersion;
   }
 
   /**
@@ -613,6 +616,10 @@ export abstract class BaseStrategy implements Strategy {
    * Override this to handle the initial version of a new library.
    */
   protected initialReleaseVersion(): Version {
+    if (this.initialVersion) {
+      return Version.parse(this.initialVersion);
+    }
+
     return Version.parse('1.0.0');
   }
 

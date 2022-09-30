@@ -199,6 +199,10 @@
         "skip-snapshot": {
           "description": "If set, do not propose snapshot pull requests. Used by `java` strategies.",
           "type": "boolean"
+        },
+        "initial-version": {
+          "description": "Releases the initial library with a specified version",
+          "type": "string"
         }
       }
     }
