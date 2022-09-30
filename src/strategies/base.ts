@@ -79,6 +79,7 @@ export interface BaseStrategyOptions {
   skipSnapshot?: boolean; // Java-only
   logger?: Logger;
   initialVersion?: string;
+  extraLabels?: string[];
 }
 
 /**
@@ -105,6 +106,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly pullRequestTitlePattern?: string;
   readonly pullRequestHeader?: string;
   readonly extraFiles: ExtraFile[];
+  readonly extraLabels: string[];
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -137,6 +139,7 @@ export abstract class BaseStrategy implements Strategy {
     this.pullRequestHeader = options.pullRequestHeader;
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
+    this.extraLabels = options.extraLabels || [];
   }
 
   /**
@@ -329,7 +332,7 @@ export abstract class BaseStrategy implements Strategy {
       title: pullRequestTitle,
       body: pullRequestBody,
       updates: updatesWithExtras,
-      labels,
+      labels: [...labels, ...this.extraLabels],
       headRefName: branchName.toString(),
       version: newVersion,
       draft: draft ?? false,

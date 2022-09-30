@@ -461,10 +461,25 @@ describe('Manifest', () => {
             'manifest/versions/versions.json'
           )
         );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['labels']).to.deep.equal(['custom: pending']);
+      expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+    });
+    it('should read extra labels from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
       getFileContentsStub
         .withArgs('release-please-config.json', 'main')
         .resolves(
-          buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/extra-labels.json'
+          )
         )
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(
@@ -477,8 +492,12 @@ describe('Manifest', () => {
         github,
         github.repository.defaultBranch
       );
-      expect(manifest['labels']).to.deep.equal(['custom: pending']);
-      expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+      expect(manifest.repositoryConfig['.'].extraLabels).to.deep.equal([
+        'lang: java',
+      ]);
+      expect(manifest.repositoryConfig['node-lib'].extraLabels).to.deep.equal([
+        'lang: nodejs',
+      ]);
     });
     it('should build simple plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(

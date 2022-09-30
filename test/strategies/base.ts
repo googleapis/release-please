@@ -265,6 +265,20 @@ describe('Strategy', () => {
         }
       }
     });
+    it('handles extra labels', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraLabels: ['foo', 'bar'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      expect(pullRequest?.labels).to.eql(['foo', 'bar']);
+    });
   });
   describe('buildRelease', () => {
     it('builds a release tag', async () => {

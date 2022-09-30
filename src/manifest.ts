@@ -98,6 +98,7 @@ export interface ReleaserConfig {
   separatePullRequests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
+  extraLabels?: string[];
   initialVersion?: string;
 
   // Changelog options
@@ -140,6 +141,7 @@ interface ReleaserConfigJson {
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
+  'extra-label'?: string;
   'include-component-in-tag'?: boolean;
   'include-v-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
@@ -1222,6 +1224,7 @@ function extractReleaserConfig(
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
     releaseLabels: config['release-label']?.split(','),
+    extraLabels: config['extra-label']?.split(','),
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
   };
@@ -1260,6 +1263,7 @@ async function parseConfig(
   const configLabel = config['label'];
   const configReleaseLabel = config['release-label'];
   const configSnapshotLabel = config['snapshot-label'];
+  const configExtraLabel = config['extra-label'];
   const manifestOptions = {
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
@@ -1270,6 +1274,7 @@ async function parseConfig(
     labels: configLabel?.split(','),
     releaseLabels: configReleaseLabel?.split(','),
     snapshotLabels: configSnapshotLabel?.split(','),
+    extraLabels: configExtraLabel?.split(','),
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
     sequentialCalls: config['sequential-calls'],
@@ -1555,6 +1560,7 @@ function mergeReleaserConfig(
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
+    extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
   };
 }
 
