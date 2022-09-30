@@ -35,9 +35,9 @@ interface LinkedVersionsPluginOptions {
  * Release notes are broken up using `<summary>`/`<details>` blocks.
  */
 export class LinkedVersions extends ManifestPlugin {
-  private groupName: string;
-  private components: Set<string>;
-  private merge: boolean;
+  readonly groupName: string;
+  readonly components: Set<string>;
+  readonly merge: boolean;
 
   constructor(
     github: GitHub,
