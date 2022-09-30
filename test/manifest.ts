@@ -53,6 +53,7 @@ import {
 import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
+import {MavenWorkspace} from '../src/plugins/maven-workspace';
 
 nock.disableNetConnect();
 
@@ -579,12 +580,10 @@ describe('Manifest', () => {
         github,
         github.repository.defaultBranch
       );
-      expect(manifest['plugins']).to.deep.equal([
-        {
-          type: 'maven-workspace',
-          considerAllArtifacts: true,
-        },
-      ]);
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(MavenWorkspace);
+      const plugin = manifest.plugins[0] as MavenWorkspace;
+      expect(plugin.considerAllArtifacts).to.be.true;
     });
     it('should configure search depth from manifest', async () => {
       const getFileContentsStub = sandbox.stub(

@@ -650,18 +650,6 @@ export class Manifest {
       }
     }
 
-    // Build plugins
-    const plugins = this.plugins.map(pluginType =>
-      buildPlugin({
-        type: pluginType,
-        github: this.github,
-        targetBranch: this.targetBranch,
-        repositoryConfig: this.repositoryConfig,
-        manifestPath: this.manifestPath,
-        logger: this.logger,
-      })
-    );
-
     let strategies = strategiesByPath;
     for (const plugin of this.plugins) {
       strategies = await plugin.preconfigure(

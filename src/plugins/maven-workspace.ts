@@ -70,7 +70,7 @@ const XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES =
   '/*[local-name()="project"]/*[local-name()="dependencyManagement"]/*[local-name()="dependencies"]/*[local-name()="dependency"]';
 
 export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
-  private considerAllArtifacts: boolean;
+  readonly considerAllArtifacts: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,
