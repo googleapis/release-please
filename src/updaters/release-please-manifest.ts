@@ -15,7 +15,8 @@
 import {jsonStringify} from '../util/json-stringify';
 import {DefaultUpdater} from './default';
 
-const SCHEMA_URL = 'https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json;'
+const SCHEMA_URL =
+  'https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json;';
 
 export class ReleasePleaseManifest extends DefaultUpdater {
   updateContent(content: string): string {
