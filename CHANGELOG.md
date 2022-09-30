@@ -4,6 +4,21 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.10.0](https://github.com/googleapis/release-please/compare/v14.9.0...v14.10.0) (2022-09-30)
+
+
+### Features
+
+* Add ability to set extra labels on components ([#1669](https://github.com/googleapis/release-please/issues/1669)) ([e05d43e](https://github.com/googleapis/release-please/commit/e05d43e0e9eb35ea7d9b47d7e0b13effc4c1422a)), closes [#1624](https://github.com/googleapis/release-please/issues/1624)
+* **cli:** Add debug command for loading a manifest config ([#1671](https://github.com/googleapis/release-please/issues/1671)) ([98078a3](https://github.com/googleapis/release-please/commit/98078a3d3fab0eeaf456fbcbe1827dc0185d0424))
+
+
+### Bug Fixes
+
+* **cli:** bootstrap command respects --dry-run argument ([67fcb19](https://github.com/googleapis/release-please/commit/67fcb19cf3a7334092c08b65ae7b2c83b16db5d6))
+* fix schema definition for label and release-label ([e05d43e](https://github.com/googleapis/release-please/commit/e05d43e0e9eb35ea7d9b47d7e0b13effc4c1422a))
+* Manifest config bootstrapper should include schema field ([#1670](https://github.com/googleapis/release-please/issues/1670)) ([67fcb19](https://github.com/googleapis/release-please/commit/67fcb19cf3a7334092c08b65ae7b2c83b16db5d6))
+
 ## [14.9.0](https://github.com/googleapis/release-please/compare/v14.8.0...v14.9.0) (2022-09-30)
 
 
