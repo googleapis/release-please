@@ -701,7 +701,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       argv.initialVersion
     );
     const path = argv.path || ROOT_PROJECT_PATH;
-    const pullRequest = await bootstrapper.bootstrap(path, {
+    const releaserConfig = {
       releaseType: argv.releaseType!,
       component: argv.component,
       packageName: argv.packageName,
@@ -717,8 +717,45 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       versioning: argv.versioningStrategy,
       extraFiles: argv.extraFiles,
       versionFile: argv.versionFile,
-    });
-    console.log(pullRequest);
+    };
+    if (argv.dryRun) {
+      const pullRequest = await await bootstrapper.buildPullRequest(
+        path,
+        releaserConfig
+      );
+      console.log('Would open 1 pull request');
+      console.log('title:', pullRequest.title);
+      console.log('branch:', pullRequest.headBranchName);
+      console.log('body:', pullRequest.body);
+      console.log('updates:', pullRequest.updates.length);
+      const changes = await github.buildChangeSet(
+        pullRequest.updates,
+        targetBranch
+      );
+      for (const update of pullRequest.updates) {
+        console.log(
+          `  ${update.path}: `,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (update.updater as any).constructor
+        );
+        if (argv.trace) {
+          const change = changes.get(update.path);
+          if (change) {
+            const patch = createPatch(
+              update.path,
+              change.originalContent || '',
+              change.content || ''
+            );
+            console.log(patch);
+          } else {
+            console.warn(`no change found for ${update.path}`);
+          }
+        }
+      }
+    } else {
+      const pullRequest = await bootstrapper.bootstrap(path, releaserConfig);
+      console.log(pullRequest);
+    }
   },
 };
 
