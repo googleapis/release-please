@@ -150,6 +150,7 @@ interface BootstrapArgs
     ReleaseArgs {
   initialVersion?: string;
 }
+interface DebugConfigArgs extends GitHubArgs, ManifestArgs {}
 
 function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
   return yargs
@@ -722,6 +723,30 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
   },
 };
 
+const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
+  command: 'debug-config',
+  describe: 'debug manifest config',
+  builder(yargs) {
+    return manifestConfigOptions(manifestOptions(gitHubOptions(yargs)));
+  },
+  async handler(argv) {
+    const github = await buildGitHub(argv);
+    const manifestOptions = extractManifestOptions(argv);
+    const targetBranch =
+      argv.targetBranch ||
+      argv.defaultBranch ||
+      github.repository.defaultBranch;
+    const manifest = await Manifest.fromManifest(
+      github,
+      targetBranch,
+      argv.configFile,
+      argv.manifestFile,
+      manifestOptions
+    );
+    console.log(manifest);
+  },
+};
+
 async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
   const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
   const github = await GitHub.create({
@@ -740,6 +765,7 @@ export const parser = yargs
   .command(createManifestPullRequestCommand)
   .command(createManifestReleaseCommand)
   .command(bootstrapCommand)
+  .command(debugConfigCommand)
   .option('debug', {
     describe: 'print verbose errors (use only for local debugging).',
     default: false,
