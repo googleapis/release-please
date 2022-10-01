@@ -209,10 +209,10 @@ This CLI command is deprecated in favor of `github-release` which handles this p
 same options. This command is preserved for backward compatibility and will be removed in the
 next major version.
 
-This command should run some time after a release PR has been merged and before
+This command should run sometime after a release PR has been merged and before
 the next release PR is merged. It will create GitHub Releases based on the
 last merged release PR it finds (which is why you don't want to let two release
-PRs merge w/out running it). If successful it will remove the
+PRs merge without running it). If successful it will remove the
 `"autorelease: pending"` label and adds the `"autorelease: tagged"` label.
 Creating all the releases is not transactional. If any fail to create the
 command can be re-run safely to finish creating releases.

@@ -134,7 +134,7 @@ using the [Generic](/src/updaters/generic.ts) updater. You can specify
 a comma separated list of file paths with the `--extra-files` CLI option
 or the `extra-files` option in the manifest configuration.
 
-To mark versions needing update in those files, you will add annotations
+To mark versions needing an update in those files, you will add annotations
 (usually in comments).
 
 You can annotate a line (inline) via:
