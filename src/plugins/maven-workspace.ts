@@ -310,7 +310,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
 
   protected bumpVersion(artifact: MavenArtifact): Version {
     const strategy = new JavaSnapshot(new AlwaysBumpPatch());
-    return strategy.bump(Version.parse(artifact.version), [fakeCommit]);
+    return strategy.bump(Version.parse(artifact.version), [FAKE_COMMIT]);
   }
 
   protected updateCandidate(
@@ -561,7 +561,11 @@ function parseMavenArtifact(
     pomContent,
   };
 }
-const fakeCommit: ConventionalCommit = {
+
+// We use a fake commit to leverage the Java versioning strategy
+// (it should be a patch version bump and potentially remove the
+// -SNAPSHOT portion of the version)
+const FAKE_COMMIT: ConventionalCommit = {
   message: 'fix: fake fix',
   type: 'fix',
   scope: null,
