@@ -21,10 +21,10 @@ import {
 } from '../manifest';
 
 const SCHEMA_URL =
-  'https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json;';
+  'https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json';
 
 interface ManifestConfigFile extends ManifestConfig {
-  '$schema'?: string;
+  $schema?: string;
 }
 
 export class ReleasePleaseConfig implements Updater {
