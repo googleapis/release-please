@@ -15,16 +15,12 @@
 import {jsonStringify} from '../util/json-stringify';
 import {DefaultUpdater} from './default';
 
-const SCHEMA_URL =
-  'https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json;';
-
 export class ReleasePleaseManifest extends DefaultUpdater {
   updateContent(content: string): string {
     const parsed: Record<string, string> = content ? JSON.parse(content) : {};
     for (const [path, version] of this.versionsMap!) {
       parsed[path] = version.toString();
     }
-    parsed['$schema'] = SCHEMA_URL;
     if (content) {
       return jsonStringify(parsed, content);
     } else {
