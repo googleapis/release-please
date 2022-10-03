@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.10.1](https://github.com/googleapis/release-please/compare/v14.10.0...v14.10.1) (2022-10-03)
+
+
+### Bug Fixes
+
+* Put config schema on correct file ([#1678](https://github.com/googleapis/release-please/issues/1678)) ([6edc50b](https://github.com/googleapis/release-please/commit/6edc50b5599180b7ffa83a623559d328527e9274))
+
 ## [14.10.0](https://github.com/googleapis/release-please/compare/v14.9.0...v14.10.0) (2022-09-30)
 
 
