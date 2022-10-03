@@ -1,6 +1,6 @@
 # Manifest Driven release-please
 
-release-please can be setup to use source controlled files containing releaser
+release-please can be setup to use source-controlled files containing releaser
 specific configuration (the `release-please-config.json`) as well package
 version tracking (the `.release-please-manifest.json`).
 
@@ -84,7 +84,7 @@ this config value will be ignored for all subsequent runs and can be removed.
 The simplest way to tell release-please the current version for a package
 it has never released before is to manually add an entry into
 `.release-please-manifest.json`. This change should be made directly on the
-default/configured branch or on a separate, user created branch/PR which is then
+default/configured branch or on a separate, user-created branch/PR which is then
 merged into the default/configured branch.
 
 ```js
@@ -447,14 +447,14 @@ It looks at what packages were updated by release-please and updates their
 reference in other packages' dependencies lists. Even when a particular package
 was not updated by release-please, if a dependency did have an update, it will
 be patch bump the package, create a changelog entry, and add it to the list of
-PR changes. Under the hood this plugin adapts specific dependency graph building
+PR changes. Under the hood, this plugin adapts specific dependency graph building
 and updating functionality from the popular
 [lerna](https://github.com/lerna/lerna) tool.
 
 #### Breaking versions
 
 When using the `node-workspace` tool, breaking versions bumps will be included in
-your update pull request. If you don't agree this behavior and would only like
+your update pull request. If you don't agree with this behavior and would only like
 your local dependencies bumped if they are within the SemVer range, you can set the
 `"always-link-local"` option to `false` in your manifest config.
 
