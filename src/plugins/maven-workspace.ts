@@ -33,6 +33,7 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {logger as defaultLogger, Logger} from '../util/logger';
+import {CompositeUpdater} from '../updaters/composite';
 
 interface Gav {
   groupId: string;
@@ -218,7 +219,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     existingCandidate.pullRequest.updates =
       existingCandidate.pullRequest.updates.map(update => {
         if (update.path === addPath(existingCandidate.path, 'pom.xml')) {
-          update.updater = updater;
+          update.updater = new CompositeUpdater(update.updater, updater);
         } else if (update.updater instanceof Changelog) {
           if (dependencyNotes) {
             update.updater.changelogEntry =
