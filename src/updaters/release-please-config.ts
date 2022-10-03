@@ -20,6 +20,13 @@ import {
   ReleaserPackageConfig,
 } from '../manifest';
 
+const SCHEMA_URL =
+  'https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json;';
+
+interface ManifestConfigFile extends ManifestConfig {
+  '$schema'?: string;
+}
+
 export class ReleasePleaseConfig implements Updater {
   path: string;
   config: ReleaserConfig;
@@ -28,12 +35,13 @@ export class ReleasePleaseConfig implements Updater {
     this.config = config;
   }
   updateContent(content: string): string {
-    let parsed: ManifestConfig;
+    let parsed: ManifestConfigFile;
     if (content) {
       parsed = JSON.parse(content);
     } else {
       parsed = {packages: {}};
     }
+    parsed['$schema'] = parsed['$schema'] ?? SCHEMA_URL;
     parsed.packages[this.path] = releaserConfigToJsonConfig(this.config);
     if (content) {
       return jsonStringify(parsed, content);
