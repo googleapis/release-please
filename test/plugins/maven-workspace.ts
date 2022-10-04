@@ -246,6 +246,30 @@ describe('MavenWorkspace plugin', () => {
       expect(newCandidates[0].pullRequest.body.releaseData).length(4);
     });
     it('skips pom files not configured for release', async () => {
+      plugin = new MavenWorkspace(
+        github,
+        'main',
+        {
+          bom: {
+            releaseType: 'maven',
+          },
+          maven1: {
+            releaseType: 'maven',
+          },
+          maven2: {
+            releaseType: 'maven',
+          },
+          maven3: {
+            releaseType: 'maven',
+          },
+          maven4: {
+            releaseType: 'maven',
+          },
+        },
+        {
+          considerAllArtifacts: false,
+        }
+      );
       sandbox
         .stub(github, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')

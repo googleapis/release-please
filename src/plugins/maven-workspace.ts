@@ -79,7 +79,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     options: MavenWorkspacePluginOptions = {}
   ) {
     super(github, targetBranch, repositoryConfig, options);
-    this.considerAllArtifacts = options.considerAllArtifacts ?? false;
+    this.considerAllArtifacts = options.considerAllArtifacts ?? true;
   }
   private async fetchPom(path: string): Promise<MavenArtifact | undefined> {
     const content = await this.github.getFileContentsOnBranch(
@@ -184,7 +184,9 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       // Find artifacts that are in an existing candidate release
       return Array.from(graph.values())
         .filter(({value}) =>
-          candidatePaths.find(path => value.path.startsWith(`${path}/`))
+          candidatePaths.find(
+            path => value.path === path || value.path.startsWith(`${path}/`)
+          )
         )
         .map(({value}) => this.packageNameFromPackage(value));
     }
@@ -203,7 +205,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
    *   map of all updated versions (component path => Version).
    */
   protected async buildUpdatedVersions(
-    graph: DependencyGraph<MavenArtifact>,
+    _graph: DependencyGraph<MavenArtifact>,
     orderedPackages: MavenArtifact[],
     candidatesByPackage: Record<string, CandidateReleasePullRequest>
   ): Promise<{updatedVersions: VersionsMap; updatedPathVersions: VersionsMap}> {
@@ -305,7 +307,6 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         value: mavenArtifact,
       });
     }
-    this.logger.debug('graph', graph);
     return graph;
   }
 

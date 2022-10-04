@@ -294,7 +294,7 @@
                     "type": "boolean"
                   },
                   "considerAllArtifacts": {
-                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin.",
+                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
                     "type": "boolean"
                   }
                 }
