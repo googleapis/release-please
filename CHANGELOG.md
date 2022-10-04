@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.10.2](https://github.com/googleapis/release-please/compare/v14.10.1...v14.10.2) (2022-10-04)
+
+
+### Bug Fixes
+
+* **maven-workspace:** Preserve original pom.xml updater when bumping dependencies ([#1680](https://github.com/googleapis/release-please/issues/1680)) ([5d955c6](https://github.com/googleapis/release-please/commit/5d955c6e0c5896d2aedea08c5c0f12ac35972757))
+
 ## [14.10.1](https://github.com/googleapis/release-please/compare/v14.10.0...v14.10.1) (2022-10-03)
 
 
