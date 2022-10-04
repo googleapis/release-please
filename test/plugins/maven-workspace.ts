@@ -24,11 +24,13 @@ import {
   stubFilesFromFixtures,
   safeSnapshot,
   assertHasUpdate,
+  assertHasUpdates,
 } from '../helpers';
 import {expect} from 'chai';
 import {Update} from '../../src/update';
 import {Version} from '../../src/version';
 import {PomXml} from '../../src/updaters/java/pom-xml';
+import {RawContent} from '../../src/updaters/raw-content';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/maven-workspace';
@@ -142,6 +144,70 @@ describe('MavenWorkspace plugin', () => {
       expect(newCandidates).length(1);
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
       expect(newCandidates[0].pullRequest.body.releaseData).length(2);
+    });
+    it('appends to existing candidate with special updater', async () => {
+      const customUpdater = new RawContent('some content');
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('maven3', 'maven', '3.3.4', {
+          component: 'maven3',
+          updates: [
+            buildMockPackageUpdate('maven3/pom.xml', 'maven3/pom.xml', '3.3.4'),
+          ],
+        }),
+        buildMockCandidatePullRequest('maven4', 'maven', '4.4.5', {
+          component: 'maven4',
+          updates: [
+            {
+              path: 'maven4/pom.xml',
+              createIfMissing: false,
+              cachedFileContents: buildGitHubFileContent(
+                fixturesPath,
+                'maven4/pom.xml'
+              ),
+              updater: customUpdater,
+            },
+          ],
+          notes: '### Dependencies\n\n* Updated foo to v3',
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves([
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ]);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).length(1);
+      safeSnapshot(newCandidates[0].pullRequest.body.toString());
+      expect(newCandidates[0].pullRequest.body.releaseData).length(2);
+      assertHasUpdates(
+        newCandidates[0].pullRequest.updates,
+        'maven4/pom.xml',
+        RawContent,
+        PomXml
+      );
+      assertHasUpdates(
+        newCandidates[0].pullRequest.updates,
+        'maven3/pom.xml',
+        PomXml,
+        PomXml
+      );
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [

@@ -37,6 +37,7 @@ import {GitHub} from '../github';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
 import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
 import {ConventionalCommit} from '../commit';
+import {CompositeUpdater} from '../updaters/composite';
 
 interface Gav {
   groupId: string;
@@ -334,7 +335,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     existingCandidate.pullRequest.updates =
       existingCandidate.pullRequest.updates.map(update => {
         if (update.path === addPath(existingCandidate.path, 'pom.xml')) {
-          update.updater = updater;
+          update.updater = new CompositeUpdater(update.updater, updater);
         } else if (update.updater instanceof Changelog) {
           if (dependencyNotes) {
             update.updater.changelogEntry =

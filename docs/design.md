@@ -47,7 +47,7 @@ For more information, see https://semver.org
 
 ### Conventional commits
 
-Conventional commits is a specification for making commit messages machine readable and
+Conventional commits is a specification for making commit messages machine-readable and
 informing automation tools (like `release-please`) about the context of the commit.
 
 For more information, see https://conventionalcommits.org
@@ -134,7 +134,7 @@ for fetching file contents/data from the GitHub API.
 
 ### Version
 
-We have a concrete, core class [`Version`][version] which is encapsulates a semantic
+We have a concrete, core class [`Version`][version] which encapsulates a semantic
 version.
 
 A [`Version`][version] instance contains:
@@ -147,7 +147,7 @@ A [`Version`][version] instance contains:
 
 ### Versioning strategy
 
-We define a [`VersioningStrategy`][versioning-strategy] interface which abstracts the
+We define a [`VersioningStrategy`][versioning-strategy] interface that abstracts the
 notion of how to increment a `Version` given a list of commits.
 
 In the default case ([`DefaultVersioningStrategy`][default-versioning-strategy]):
@@ -172,7 +172,7 @@ update when proposing the next release version. In the most basic case
 ([`Simple`][simple-strategy]), we do not update any source files except the `CHANGELOG.md`.
 
 **Contributor note**: Implementation-wise, most strategies inherit from the
-[`BaseStrategy`](base-strategy). This is not necessary, but it handles most of the common
+[`BaseStrategy`][base-strategy]. This is not necessary, but it handles most of the common
 behavior. If you choose to extend `BaseStrategy`, you only need to implement a single
 `buildUpdates()` method (which files need to be updated).
 
@@ -181,7 +181,7 @@ test to ensure we don't break it in the future.
 
 ### Updating file contents
 
-The most common customation a `Strategy` makes is determining which standard files need to be
+The most common customization a `Strategy` makes is determining which standard files need to be
 updated. For example, in a `nodejs` library, you will want to update the `version` entry in
 your library's `package.json` (and `package-lock.json` if it exists).
 
@@ -200,7 +200,7 @@ test to ensure we don't break it in the future.
 We define a [`ChangelogNotes`][changelog-notes] interface which abstracts the notion of how
 to build a `CHANGELOG.md` entry given a list of commits. The default implementation
 ([`DefaultChangelogNotes`][default-changelog-notes]), uses the
-`conventional-changelog-writer` library to generate a standardized release notes based on
+`conventional-changelog-writer` library to generate standardized release notes based on
 the conventionalcommits.org specification.
 
 We also have a second implementation that uses the GitHub changelog generator API.
