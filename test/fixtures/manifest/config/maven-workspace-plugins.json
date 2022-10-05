@@ -1,0 +1,20 @@
+{
+  "release-type": "simple",
+  "plugins": [
+    {
+      "type": "maven-workspace",
+      "considerAllArtifacts": true
+    }
+  ],
+  "packages": {
+    "pkg1": {
+      "component": "pkg1"
+    },
+    "pkg2": {
+      "component": "pkg2"
+    },
+    "pkg3": {
+      "component": "pkg3"
+    }
+  }
+}

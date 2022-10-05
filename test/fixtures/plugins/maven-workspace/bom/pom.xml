@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <groupId>com.google.example</groupId>
+  <artifactId>my-bom</artifactId>
+  <version>1.2.3</version>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.example</groupId>
+        <artifactId>multi1-bom</artifactId>
+        <version>1.1.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.example</groupId>
+        <artifactId>multi1-sub1</artifactId>
+        <version>2.2.2</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.example</groupId>
+        <artifactId>multi1-sub2</artifactId>
+        <version>3.3.3</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.example</groupId>
+        <artifactId>multi2-sub1</artifactId>
+        <version>5.5.5</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.example</groupId>
+        <artifactId>multi2-sub2</artifactId>
+        <version>6.6.6</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>

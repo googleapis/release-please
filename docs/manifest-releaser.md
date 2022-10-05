@@ -478,8 +478,13 @@ way of managing a Rust monorepo with release-please.
 
 The `maven-workspace` plugin operates similarly to the `node-workspace` plugin,
 but on a multi-artifact Maven workspace. It builds a dependency graph of all
-discovered `pom.xml` files that are configured in the manifest config and updates
-any packages that were directly bumped by release-please.
+discovered `pom.xml` files and updates any packages that were directly bumped
+by release-please.
+
+If you have additional `pom.xml` files that are not directly configured in your
+manifest and you want to skip updating them, then you can set the
+`considerAllArtifacts` option to `false`. If you do so, the plugin will only
+look at the `pom.xml` files configured in the manifest.
 
 ### linked-versions
 

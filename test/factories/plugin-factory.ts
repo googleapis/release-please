@@ -39,6 +39,7 @@ describe('PluginFactory', () => {
   describe('buildPlugin', () => {
     const simplePluginTypes: PluginType[] = [
       'cargo-workspace',
+      'maven-workspace',
       'node-workspace',
     ];
     const repositoryConfig: RepositoryConfig = {
