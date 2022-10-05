@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.11.0](https://github.com/googleapis/release-please/compare/v14.10.2...v14.11.0) (2022-10-05)
+
+
+### Features
+
+* **maven-workspace:** Update all discovered pom.xml within the components ([#1667](https://github.com/googleapis/release-please/issues/1667)) ([ace68d3](https://github.com/googleapis/release-please/commit/ace68d346291db6b591b9b3e1735d12f0a2b2bbc))
+
 ## [14.10.2](https://github.com/googleapis/release-please/compare/v14.10.1...v14.10.2) (2022-10-04)
 
 
