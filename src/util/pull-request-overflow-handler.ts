@@ -22,10 +22,10 @@ import {ReleasePullRequest} from '../release-pull-request';
 const MAX_ISSUE_BODY_SIZE = 65536;
 const OVERFLOW_MESSAGE =
   'This release is too large to preview in the pull request body. View the full release notes here:';
-const OVERFLOW_MESSAGE_REGEX = new RegExp(`${OVERFLOW_MESSAGE} (<?url>.*)`);
+const OVERFLOW_MESSAGE_REGEX = new RegExp(`${OVERFLOW_MESSAGE} (?<url>.*)`);
 const RELEASE_NOTES_FILENAME = 'release-notes.md';
 const FILE_PATH_REGEX = new RegExp(
-  `blob/(<?branchName>.*)/${RELEASE_NOTES_FILENAME}`
+  `blob/(?<branchName>.*)/${RELEASE_NOTES_FILENAME}`
 );
 
 /**
@@ -40,7 +40,10 @@ export interface PullRequestOverflowHandler {
    * @returns {string} The new pull request body which may contain a link to
    *   the full content.
    */
-  handleOverflow(pullRequest: ReleasePullRequest): Promise<string>;
+  handleOverflow(
+    pullRequest: ReleasePullRequest,
+    maxSize?: number
+  ): Promise<string>;
 
   /**
    * Given a pull request, parse the pull request body from the pull request
@@ -76,9 +79,12 @@ export class FilePullRequestOverflowHandler
    * @returns {string} The new pull request body which contains a link to
    *   the full content.
    */
-  async handleOverflow(pullRequest: ReleasePullRequest): Promise<string> {
+  async handleOverflow(
+    pullRequest: ReleasePullRequest,
+    maxSize: number = MAX_ISSUE_BODY_SIZE
+  ): Promise<string> {
     const notes = pullRequest.body.toString();
-    if (notes.length > MAX_ISSUE_BODY_SIZE) {
+    if (notes.length > maxSize) {
       const notesBranchName = `${pullRequest.headRefName}--release-notes`;
       const url = await this.github.createFileOnNewBranch(
         RELEASE_NOTES_FILENAME,
