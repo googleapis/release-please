@@ -194,6 +194,11 @@ interface FileDiff {
 }
 export type ChangeSet = Map<string, FileDiff>;
 
+interface CreatePullRequestOptions {
+  fork?: boolean;
+  draft?: boolean;
+}
+
 export class GitHub {
   readonly repository: Repository;
   private octokit: OctokitType;
@@ -930,6 +935,7 @@ export class GitHub {
    * @param {string} path The path to the file in the repository
    * @param {string} branch The branch to fetch from
    * @returns {GitHubFileContents}
+   * @throws {FileNotFoundError} if the file cannot be found
    * @throws {GitHubAPIError} on other API errors
    */
   async getFileContentsOnBranch(
@@ -1045,6 +1051,8 @@ export class GitHub {
   /**
    * Open a pull request
    *
+   * @deprecated This logic is handled by the Manifest class now as it
+   *   can be more complicated if the release notes are too big
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
    * @param {string} targetBranch The base branch of the pull request
    * @param {GitHubPR} options The pull request options
@@ -1086,16 +1094,23 @@ export class GitHub {
     );
   }
 
+  /**
+   * Open a pull request
+   *
+   * @param {PullRequest} pullRequest Pull request data to update
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} message The commit message for the commit
+   * @param {Update[]} updates The files to update
+   * @param {CreatePullRequestOptions} options The pull request options
+   * @throws {GitHubAPIError} on an API error
+   */
   createPullRequest = wrapAsync(
     async (
       pullRequest: PullRequest,
       targetBranch: string,
       message: string,
       updates: Update[],
-      options?: {
-        fork?: boolean;
-        draft?: boolean;
-      }
+      options?: CreatePullRequestOptions
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
       const changes = await this.buildChangeSet(updates, targetBranch);

@@ -3401,10 +3401,13 @@ describe('Manifest', () => {
           files: [],
         });
       sandbox
-        .stub(github, 'createReleasePullRequest')
+        .stub(github, 'createPullRequest')
         .withArgs(
-          sinon.match.has('headRefName', 'release-please/branches/main'),
-          'main'
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
         )
         .resolves({
           number: 123,
@@ -3416,8 +3419,11 @@ describe('Manifest', () => {
           files: [],
         })
         .withArgs(
-          sinon.match.has('headRefName', 'release-please/branches/main2'),
-          'main'
+          sinon.match.has('headBranchName', 'release-please/branches/main2'),
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
         )
         .resolves({
           number: 124,
@@ -3930,7 +3936,7 @@ describe('Manifest', () => {
     it('ignores snoozed, closed pull request if there are no changes', async () => {
       const body = new PullRequestBody([
         {
-          notes: 'Some release notes',
+          notes: '## 1.1.0\n\nSome release notes',
         },
       ]);
       sandbox
