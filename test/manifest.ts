@@ -53,6 +53,7 @@ import {
 import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
+import {MavenWorkspace} from '../src/plugins/maven-workspace';
 
 nock.disableNetConnect();
 
@@ -554,6 +555,35 @@ describe('Manifest', () => {
       const plugin = manifest.plugins[0] as LinkedVersions;
       expect(plugin.groupName).to.eql('grouped components');
       expect(plugin.components).to.eql(new Set(['pkg2', 'pkg3']));
+    });
+    it('should build maven-workspace from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/maven-workspace-plugins.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(MavenWorkspace);
+      const plugin = manifest.plugins[0] as MavenWorkspace;
+      expect(plugin.considerAllArtifacts).to.be.true;
     });
     it('should configure search depth from manifest', async () => {
       const getFileContentsStub = sandbox.stub(

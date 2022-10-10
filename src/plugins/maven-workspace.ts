@@ -19,10 +19,10 @@ import {
   DependencyNode,
   appendDependenciesSectionToChangelog,
   addPath,
+  WorkspacePluginOptions,
 } from './workspace';
 import {Version, VersionsMap} from '../version';
-import {CandidateReleasePullRequest} from '../manifest';
-import {PatchVersionUpdate} from '../versioning-strategy';
+import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import * as dom from '@xmldom/xmldom';
 import * as xpath from 'xpath';
 import {dirname} from 'path';
@@ -33,6 +33,10 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {logger as defaultLogger, Logger} from '../util/logger';
+import {GitHub} from '../github';
+import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
+import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
+import {ConventionalCommit} from '../commit';
 import {CompositeUpdater} from '../updaters/composite';
 
 interface Gav {
@@ -46,7 +50,12 @@ interface MavenArtifact extends Gav {
   name: string;
   dependencies: Gav[];
   testDependencies: Gav[];
+  managedDependencies: Gav[];
   pomContent: string;
+}
+
+interface MavenWorkspacePluginOptions extends WorkspacePluginOptions {
+  considerAllArtifacts?: boolean;
 }
 
 const JAVA_RELEASE_TYPES = new Set(['java', 'java-bom', 'java-yoshi', 'maven']);
@@ -58,72 +67,26 @@ const XPATH_PROJECT_VERSION =
   '/*[local-name()="project"]/*[local-name()="version"]';
 const XPATH_PROJECT_DEPENDENCIES =
   '/*[local-name()="project"]/*[local-name()="dependencies"]/*[local-name()="dependency"]';
+const XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES =
+  '/*[local-name()="project"]/*[local-name()="dependencyManagement"]/*[local-name()="dependencies"]/*[local-name()="dependency"]';
 
 export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
+  readonly considerAllArtifacts: boolean;
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    options: MavenWorkspacePluginOptions = {}
+  ) {
+    super(github, targetBranch, repositoryConfig, options);
+    this.considerAllArtifacts = options.considerAllArtifacts ?? true;
+  }
   private async fetchPom(path: string): Promise<MavenArtifact | undefined> {
     const content = await this.github.getFileContentsOnBranch(
       path,
       this.targetBranch
     );
-    const document = new dom.DOMParser().parseFromString(content.parsedContent);
-
-    const groupNodes = xpath.select(XPATH_PROJECT_GROUP, document) as Node[];
-    if (groupNodes.length === 0) {
-      this.logger.warn(`Missing project.groupId in ${path}`);
-      return;
-    }
-    const artifactNodes = xpath.select(
-      XPATH_PROJECT_ARTIFACT,
-      document
-    ) as Node[];
-    if (artifactNodes.length === 0) {
-      this.logger.warn(`Missing project.artifactId in ${path}`);
-      return;
-    }
-    const versionNodes = xpath.select(
-      XPATH_PROJECT_VERSION,
-      document
-    ) as Node[];
-    if (versionNodes.length === 0) {
-      this.logger.warn(`Missing project.version in ${path}`);
-      return;
-    }
-    const dependencies: Gav[] = [];
-    const testDependencies: Gav[] = [];
-    for (const dependencyNode of xpath.select(
-      XPATH_PROJECT_DEPENDENCIES,
-      document
-    ) as Node[]) {
-      const parsedNode = parseDependencyNode(dependencyNode);
-      if (!parsedNode.version) {
-        continue;
-      }
-      if (parsedNode.scope === 'test') {
-        testDependencies.push({
-          groupId: parsedNode.groupId,
-          artifactId: parsedNode.artifactId,
-          version: parsedNode.version,
-        });
-      } else {
-        dependencies.push({
-          groupId: parsedNode.groupId,
-          artifactId: parsedNode.artifactId,
-          version: parsedNode.version,
-        });
-      }
-    }
-    const groupId = groupNodes[0].firstChild!.textContent!;
-    const artifactId = artifactNodes[0].firstChild!.textContent!;
-    return {
-      path,
-      groupId,
-      artifactId,
-      name: `${groupId}:${artifactId}`,
-      version: versionNodes[0].firstChild!.textContent!,
-      dependencies,
-      testDependencies,
-      pomContent: content.parsedContent,
-    };
+    return parseMavenArtifact(content.parsedContent, path, this.logger);
   }
 
   protected async buildAllPackages(
@@ -140,10 +103,15 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       const path = dirname(pomFile);
       const config = this.repositoryConfig[path];
       if (!config) {
+        if (!this.considerAllArtifacts) {
+          this.logger.info(
+            `path '${path}' not configured, ignoring '${pomFile}'`
+          );
+          continue;
+        }
         this.logger.info(
-          `path '${path}' not configured, ignoring '${pomFile}'`
+          `path '${path}' not configured, but 'considerAllArtifacts' option enabled`
         );
-        continue;
       }
       const mavenArtifact = await this.fetchPom(pomFile);
       if (!mavenArtifact) {
@@ -166,9 +134,156 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     };
   }
 
+  /**
+   * Our maven components can have multiple artifacts if using
+   * `considerAllArtifacts`. Find the candidate release for the component
+   * that contains that maven artifact.
+   * @param {MavenArtifact} pkg The artifact to search for
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns {CandidateReleasePullRequest | undefined} The associated
+   *   candidate release or undefined if there is no existing release yet
+   */
+  protected findCandidateForPackage(
+    pkg: MavenArtifact,
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): CandidateReleasePullRequest | undefined {
+    this.logger.debug(`Looking for existing candidate for ${pkg.name}`);
+    const packageName = this.packageNameFromPackage(pkg);
+    const existingCandidate = candidatesByPackage[packageName];
+    if (existingCandidate) {
+      return existingCandidate;
+    }
+
+    // fall back to finding the nearest candidate for that artifact
+    return Object.values(candidatesByPackage).find(candidate =>
+      pkg.path.startsWith(`${candidate.path}/`)
+    );
+  }
+
+  /**
+   * Helper to determine which packages we will use to base our search
+   * for touched packages upon. These are usually the packages that
+   * have candidate pull requests open.
+   *
+   * If you configure `updateAllPackages`, we fill force update all
+   * packages as if they had a release.
+   * @param {DependencyGraph<T>} graph All the packages in the repository
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns {string[]} Package names to
+   */
+  protected packageNamesToUpdate(
+    graph: DependencyGraph<MavenArtifact>,
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): string[] {
+    if (this.considerAllArtifacts) {
+      const candidatePaths = Object.values(candidatesByPackage).map(
+        candidate => candidate.path
+      );
+      // Find artifacts that are in an existing candidate release
+      return Array.from(graph.values())
+        .filter(({value}) =>
+          candidatePaths.find(
+            path => value.path === path || value.path.startsWith(`${path}/`)
+          )
+        )
+        .map(({value}) => this.packageNameFromPackage(value));
+    }
+    return super.packageNamesToUpdate(graph, candidatesByPackage);
+  }
+
+  /**
+   * Helper to build up all the versions we are modifying in this
+   * repository.
+   * @param {DependencyGraph<T>} graph All the packages in the repository
+   * @param {T[]} orderedPackages A list of packages that are currently
+   *   updated by the existing candidate pull requests
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns A map of all updated versions (package name => Version) and a
+   *   map of all updated versions (component path => Version).
+   */
+  protected async buildUpdatedVersions(
+    _graph: DependencyGraph<MavenArtifact>,
+    orderedPackages: MavenArtifact[],
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): Promise<{updatedVersions: VersionsMap; updatedPathVersions: VersionsMap}> {
+    const updatedVersions: VersionsMap = new Map();
+    const updatedPathVersions: VersionsMap = new Map();
+
+    // Look for updated pom.xml files
+    for (const [_, candidate] of Object.entries(candidatesByPackage)) {
+      const pomUpdates = candidate.pullRequest.updates.filter(update =>
+        update.path.endsWith('pom.xml')
+      );
+      for (const pomUpdate of pomUpdates) {
+        if (!pomUpdate.cachedFileContents) {
+          pomUpdate.cachedFileContents =
+            await this.github.getFileContentsOnBranch(
+              pomUpdate.path,
+              this.targetBranch
+            );
+        }
+        if (pomUpdate.cachedFileContents) {
+          // pre-run the version updater on this artifact and extract the
+          // new version
+          const updatedArtifact = parseMavenArtifact(
+            pomUpdate.updater.updateContent(
+              pomUpdate.cachedFileContents.parsedContent
+            ),
+            pomUpdate.path,
+            this.logger
+          );
+          if (updatedArtifact) {
+            this.logger.debug(
+              `updating ${updatedArtifact.name} to ${updatedArtifact.version}`
+            );
+            updatedVersions.set(
+              updatedArtifact.name,
+              Version.parse(updatedArtifact.version)
+            );
+          }
+        } else {
+          this.logger.warn(`${pomUpdate.path} does not have cached contents`);
+        }
+      }
+      if (candidate.pullRequest.version) {
+        updatedPathVersions.set(candidate.path, candidate.pullRequest.version);
+      }
+    }
+
+    for (const pkg of orderedPackages) {
+      const packageName = this.packageNameFromPackage(pkg);
+      this.logger.debug(`Looking for next version for: ${packageName}`);
+
+      const existingCandidate = candidatesByPackage[packageName];
+      if (existingCandidate) {
+        const version = existingCandidate.pullRequest.version!;
+        this.logger.debug(`version: ${version} from release-please`);
+        updatedVersions.set(packageName, version);
+      } else {
+        const version = this.bumpVersion(pkg);
+        if (updatedVersions.get(packageName)) {
+          this.logger.debug('version already set');
+        } else {
+          this.logger.debug(`version: ${version} forced bump`);
+          updatedVersions.set(packageName, version);
+          updatedPathVersions.set(this.pathFromPackage(pkg), version);
+        }
+      }
+    }
+
+    return {
+      updatedVersions,
+      updatedPathVersions,
+    };
+  }
+
   protected async buildGraph(
     allPackages: MavenArtifact[]
   ): Promise<DependencyGraph<MavenArtifact>> {
+    this.logger.trace('building graph', allPackages);
     const artifactsByName = allPackages.reduce<Record<string, MavenArtifact>>(
       (collection, mavenArtifact) => {
         collection[mavenArtifact.name] = mavenArtifact;
@@ -176,11 +291,13 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       },
       {}
     );
+    this.logger.trace('artifacts by name', artifactsByName);
     const graph = new Map<string, DependencyNode<MavenArtifact>>();
     for (const mavenArtifact of allPackages) {
       const allDeps = [
         ...mavenArtifact.dependencies,
         ...mavenArtifact.testDependencies,
+        ...mavenArtifact.managedDependencies,
       ];
       const workspaceDeps = allDeps.filter(
         dep => artifactsByName[packageNameFromGav(dep)]
@@ -194,8 +311,8 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
   }
 
   protected bumpVersion(artifact: MavenArtifact): Version {
-    const version = Version.parse(artifact.version);
-    return new PatchVersionUpdate().bump(version);
+    const strategy = new JavaSnapshot(new AlwaysBumpPatch());
+    return strategy.bump(Version.parse(artifact.version), [FAKE_COMMIT]);
   }
 
   protected updateCandidate(
@@ -359,3 +476,105 @@ function getChangelogDepsNotes(
   }
   return '';
 }
+
+/**
+ * Helper to parse a pom.xml file and extract important fields
+ * @param {string} pomContent The XML contents as a string
+ * @param {string} path The path to the file in the repository including the filename.
+ * @param {Logger} logger Context logger
+ * @returns {MavenArtifact | undefined} Returns undefined if we are missing key
+ *   attributes. We log a warning in these cases.
+ */
+function parseMavenArtifact(
+  pomContent: string,
+  path: string,
+  logger: Logger
+): MavenArtifact | undefined {
+  const document = new dom.DOMParser().parseFromString(pomContent);
+
+  const groupNodes = xpath.select(XPATH_PROJECT_GROUP, document) as Node[];
+  if (groupNodes.length === 0) {
+    logger.warn(`Missing project.groupId in ${path}`);
+    return;
+  }
+  const artifactNodes = xpath.select(
+    XPATH_PROJECT_ARTIFACT,
+    document
+  ) as Node[];
+  if (artifactNodes.length === 0) {
+    logger.warn(`Missing project.artifactId in ${path}`);
+    return;
+  }
+  const versionNodes = xpath.select(XPATH_PROJECT_VERSION, document) as Node[];
+  if (versionNodes.length === 0) {
+    logger.warn(`Missing project.version in ${path}`);
+    return;
+  }
+  const dependencies: Gav[] = [];
+  const testDependencies: Gav[] = [];
+  for (const dependencyNode of xpath.select(
+    XPATH_PROJECT_DEPENDENCIES,
+    document
+  ) as Node[]) {
+    const parsedNode = parseDependencyNode(dependencyNode);
+    if (!parsedNode.version) {
+      continue;
+    }
+    if (parsedNode.scope === 'test') {
+      testDependencies.push({
+        groupId: parsedNode.groupId,
+        artifactId: parsedNode.artifactId,
+        version: parsedNode.version,
+      });
+    } else {
+      dependencies.push({
+        groupId: parsedNode.groupId,
+        artifactId: parsedNode.artifactId,
+        version: parsedNode.version,
+      });
+    }
+  }
+  const managedDependencies: Gav[] = [];
+  for (const dependencyNode of xpath.select(
+    XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES,
+    document
+  ) as Node[]) {
+    const parsedNode = parseDependencyNode(dependencyNode);
+    if (!parsedNode.version) {
+      continue;
+    }
+    managedDependencies.push({
+      groupId: parsedNode.groupId,
+      artifactId: parsedNode.artifactId,
+      version: parsedNode.version,
+    });
+  }
+  const groupId = groupNodes[0].firstChild!.textContent!;
+  const artifactId = artifactNodes[0].firstChild!.textContent!;
+  return {
+    path: dirname(path),
+    groupId,
+    artifactId,
+    name: `${groupId}:${artifactId}`,
+    version: versionNodes[0].firstChild!.textContent!,
+    dependencies,
+    testDependencies,
+    managedDependencies,
+    pomContent,
+  };
+}
+
+// We use a fake commit to leverage the Java versioning strategy
+// (it should be a patch version bump and potentially remove the
+// -SNAPSHOT portion of the version)
+const FAKE_COMMIT: ConventionalCommit = {
+  message: 'fix: fake fix',
+  type: 'fix',
+  scope: null,
+  notes: [],
+  references: [],
+  bareMessage: 'fake fix',
+  breaking: false,
+  sha: 'abc123',
+  files: [],
+};
