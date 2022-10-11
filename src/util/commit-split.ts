@@ -72,7 +72,7 @@ export class CommitSplit {
         for (let exPath of paths) {
           exPath = exPath.replace(/$/, '/');
           exPath = exPath.replace(/^/, '/');
-          if (newPath.indexOf(exPath) >= 0 || exPath.indexOf(newPath) >= 0) {
+          if (newPath.startsWith(exPath) || exPath.startsWith(newPath)) {
             throw new Error(
               `Path prefixes must be unique: ${newPath}, ${exPath}`
             );

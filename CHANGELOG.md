@@ -4,6 +4,25 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.7.0](https://github.com/googleapis/release-please/compare/v14.6.1...v14.7.0) (2022-09-20)
+
+
+### Features
+
+* Easy proxy configuration ([#1639](https://github.com/googleapis/release-please/issues/1639)) ([4bb4c65](https://github.com/googleapis/release-please/commit/4bb4c658e3c30150432802b5ccc2aa5a96332f1e))
+
+
+### Bug Fixes
+
+* **commit-split:** Detect overlapping prefixes ([#1638](https://github.com/googleapis/release-please/issues/1638)) ([db51b29](https://github.com/googleapis/release-please/commit/db51b295d711e657ee5928bc32a3dbb88c793969)), closes [#1637](https://github.com/googleapis/release-please/issues/1637)
+
+## [14.6.1](https://github.com/googleapis/release-please/compare/v14.6.0...v14.6.1) (2022-09-20)
+
+
+### Bug Fixes
+
+* Detect uppercase readme.md files ([#1644](https://github.com/googleapis/release-please/issues/1644)) ([d3b68b2](https://github.com/googleapis/release-please/commit/d3b68b2afe622b0a9f83c77da33bfcf1bc4c77b4))
+
 ## [14.6.0](https://github.com/googleapis/release-please/compare/v14.5.0...v14.6.0) (2022-09-15)
 
 
