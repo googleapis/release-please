@@ -1,0 +1,7 @@
+{
+  "packages": {
+    "packages/foo": {}
+  },
+  "release-type": "node",
+  "initial-version": "0.1.0"
+}
