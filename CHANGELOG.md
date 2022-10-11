@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.11.2](https://github.com/googleapis/release-please/compare/v14.11.1...v14.11.2) (2022-10-11)
+
+
+### Bug Fixes
+
+* Add initial-version to allowed properties in manifest schema ([#1691](https://github.com/googleapis/release-please/issues/1691)) ([408ddac](https://github.com/googleapis/release-please/commit/408ddac5dd4e1bc2c9b992365fa864e80298cee5))
+
 ## [14.11.1](https://github.com/googleapis/release-please/compare/v14.11.0...v14.11.1) (2022-10-10)
 
 
