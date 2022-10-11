@@ -66,12 +66,8 @@
           "description": "Open the release pull request in draft mode. Defaults to `false`.",
           "type": "boolean"
         },
-        "label": {
-          "description": "Comma-separated list of labels to add to newly opened pull request",
-          "type": "string"
-        },
-        "release-label": {
-          "description": "Comma-separated list of labels to add to a pull request that has been released/tagged",
+        "extra-label": {
+          "description": "Comma-separated list of labels to add to a newly opened pull request",
           "type": "string"
         },
         "include-component-in-tag": {
@@ -199,6 +195,10 @@
         "skip-snapshot": {
           "description": "If set, do not propose snapshot pull requests. Used by `java` strategies.",
           "type": "boolean"
+        },
+        "initial-version": {
+          "description": "Releases the initial library with a specified version",
+          "type": "string"
         }
       }
     }
@@ -292,6 +292,28 @@
                   "merge": {
                     "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
                     "type": "boolean"
+                  },
+                  "considerAllArtifacts": {
+                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "description": "Configuration for various `group-priority` plugin",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": ["group-priority"]
+                  },
+                  "groups": {
+                    "description": "Group names ordered with highest priority first.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 }
               },
@@ -323,6 +345,14 @@
         "sequential-calls": {
           "description": "Whether to open pull requests/releases sequentially rather than concurrently. If you have many components, you may want to set this to avoid secondary rate limits.",
           "type": "boolean"
+        },
+        "label": {
+          "description": "Comma-separated list of labels to add to newly opened pull request. These are used to identify release pull requests.",
+          "type": "string"
+        },
+        "release-label": {
+          "description": "Comma-separated list of labels to add to a pull request that has been released/tagged",
+          "type": "string"
         }
       },
       "required": ["packages"]
@@ -351,6 +381,7 @@
     "draft-pull-request": true,
     "label": true,
     "release-label": true,
+    "extra-label": true,
     "include-component-in-tag": true,
     "include-v-in-tag": true,
     "changelog-type": true,
@@ -362,6 +393,7 @@
     "tag-separator": true,
     "extra-files": true,
     "version-file": true,
-    "snapshot-label": true
+    "snapshot-label": true,
+    "initial-version": true
   }
 }

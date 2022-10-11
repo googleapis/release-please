@@ -118,9 +118,12 @@ describe('NodeWorkspace plugin', () => {
     it('handles a single node package', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
-        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
-          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
-        ]),
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
       ];
       plugin = new NodeWorkspace(github, 'main', {
         python: {
@@ -142,15 +145,22 @@ describe('NodeWorkspace plugin', () => {
     });
     it('combines node packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('.', 'node', '5.5.6', '@here/root', [
-          buildMockPackageUpdate('package.json', 'package.json'),
-        ]),
-        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
-          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
-        ]),
-        buildMockCandidatePullRequest('node4', 'node', '4.4.5', '@here/pkgD', [
-          buildMockPackageUpdate('node4/package.json', 'node4/package.json'),
-        ]),
+        buildMockCandidatePullRequest('.', 'node', '5.5.6', {
+          component: '@here/root',
+          updates: [buildMockPackageUpdate('package.json', 'package.json')],
+        }),
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+        buildMockCandidatePullRequest('node4', 'node', '4.4.5', {
+          component: '@here/pkgD',
+          updates: [
+            buildMockPackageUpdate('node4/package.json', 'node4/package.json'),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -185,12 +195,18 @@ describe('NodeWorkspace plugin', () => {
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
-          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
-        ]),
-        buildMockCandidatePullRequest('node4', 'node', '4.4.5', '@here/pkgD', [
-          buildMockPackageUpdate('node4/package.json', 'node4/package.json'),
-        ]),
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+        buildMockCandidatePullRequest('node4', 'node', '4.4.5', {
+          component: '@here/pkgD',
+          updates: [
+            buildMockPackageUpdate('node4/package.json', 'node4/package.json'),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -241,20 +257,20 @@ describe('NodeWorkspace plugin', () => {
       const existingNotes =
         '### Dependencies\n\n* update dependency foo/bar to 1.2.3';
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
-          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
-          buildMockChangelogUpdate(
-            'node1/CHANGELOG.md',
-            '3.3.4',
-            'other notes'
-          ),
-        ]),
-        buildMockCandidatePullRequest(
-          'node2',
-          'node',
-          '2.2.3',
-          '@here/pkgB',
-          [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+            buildMockChangelogUpdate(
+              'node1/CHANGELOG.md',
+              '3.3.4',
+              'other notes'
+            ),
+          ],
+        }),
+        buildMockCandidatePullRequest('node2', 'node', '2.2.3', {
+          component: '@here/pkgB',
+          updates: [
             buildMockPackageUpdate('node2/package.json', 'node2/package.json'),
             buildMockChangelogUpdate(
               'node2/CHANGELOG.md',
@@ -262,8 +278,8 @@ describe('NodeWorkspace plugin', () => {
               existingNotes
             ),
           ],
-          existingNotes
-        ),
+          notes: existingNotes,
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,
@@ -308,9 +324,12 @@ describe('NodeWorkspace plugin', () => {
     });
     it('should ignore peer dependencies', async () => {
       const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('node1', 'node', '3.3.4', '@here/pkgA', [
-          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
-        ]),
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
       ];
       stubFilesFromFixtures({
         sandbox,

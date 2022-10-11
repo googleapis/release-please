@@ -1,0 +1,15 @@
+{
+  "release-type": "simple",
+  "label": "custom: pending",
+  "release-label": "custom: tagged",
+  "extra-label": "lang: java",
+  "packages": {
+    ".": {
+      "component": "root"
+    },
+    "node-lib": {
+      "component": "node-lib",
+      "extra-label": "lang: nodejs"
+    }
+  }
+}
