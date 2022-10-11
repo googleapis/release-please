@@ -20,11 +20,11 @@ import {Version} from '../../version';
 export interface AppJson {
   expo: {
     version: string;
-    ios: {
-      buildNumber: string;
+    ios?: {
+      buildNumber?: string;
     };
-    android: {
-      versionCode: string;
+    android?: {
+      versionCode?: string;
     };
   };
 }
@@ -56,34 +56,38 @@ export class AppJson extends DefaultUpdater {
     );
     parsed.expo.version = this.version.toString();
 
-    logger.info(
-      `updating iOS version from ${parsed.expo.ios.buildNumber} to ${this.version}`
-    );
-    parsed.expo.ios.buildNumber = this.version.toString();
-
-    // Android versionCode
-    // https://developer.android.com/studio/publish/versioning#appversioning
-    let expoMajorVersion = 0;
-    try {
-      expoMajorVersion = this.expoSDKVersion.major;
-    } catch (e) {
-      // Rethrow with a nice error message.
-      throw new Error(
-        'Unable to determine the Expo SDK version for this project. Make sure that the expo package is installed for your project.'
+    if (parsed.expo.ios?.buildNumber) {
+      logger.info(
+        `updating iOS version from ${parsed.expo.ios.buildNumber} to ${this.version}`
       );
+      parsed.expo.ios.buildNumber = this.version.toString();
     }
 
-    // Implements the `versionCode` strategy described by Maxi Rosson
-    // @see https://medium.com/@maxirosson/versioning-android-apps-d6ec171cfd82
-    const versionCode =
-      expoMajorVersion * 10000000 +
-      this.version.major * 10000 +
-      this.version.minor * 100 +
-      this.version.patch;
-    logger.info(
-      `updating Android version from ${parsed.expo.android.versionCode} to ${versionCode}`
-    );
-    parsed.expo.android.versionCode = versionCode.toString();
+    if (parsed.expo.android?.versionCode) {
+      // Android versionCode
+      // https://developer.android.com/studio/publish/versioning#appversioning
+      let expoMajorVersion = 0;
+      try {
+        expoMajorVersion = this.expoSDKVersion.major;
+      } catch (e) {
+        // Rethrow with a nice error message.
+        throw new Error(
+          'Unable to determine the Expo SDK version for this project. Make sure that the expo package is installed for your project.'
+        );
+      }
+
+      // Implements the `versionCode` strategy described by Maxi Rosson
+      // @see https://medium.com/@maxirosson/versioning-android-apps-d6ec171cfd82
+      const versionCode =
+        expoMajorVersion * 10000000 +
+        this.version.major * 10000 +
+        this.version.minor * 100 +
+        this.version.patch;
+      logger.info(
+        `updating Android version from ${parsed.expo.android.versionCode} to ${versionCode}`
+      );
+      parsed.expo.android.versionCode = versionCode.toString();
+    }
 
     return jsonStringify(parsed, content);
   }
