@@ -78,6 +78,8 @@ export interface BaseStrategyOptions {
   snapshotLabels?: string[]; // Java-only
   skipSnapshot?: boolean; // Java-only
   logger?: Logger;
+  initialVersion?: string;
+  extraLabels?: string[];
 }
 
 /**
@@ -100,9 +102,11 @@ export abstract class BaseStrategy implements Strategy {
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
   protected includeVInTag: boolean;
+  protected initialVersion?: string;
   readonly pullRequestTitlePattern?: string;
   readonly pullRequestHeader?: string;
   readonly extraFiles: ExtraFile[];
+  readonly extraLabels: string[];
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -134,6 +138,8 @@ export abstract class BaseStrategy implements Strategy {
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
     this.extraFiles = options.extraFiles || [];
+    this.initialVersion = options.initialVersion;
+    this.extraLabels = options.extraLabels || [];
   }
 
   /**
@@ -326,7 +332,7 @@ export abstract class BaseStrategy implements Strategy {
       title: pullRequestTitle,
       body: pullRequestBody,
       updates: updatesWithExtras,
-      labels,
+      labels: [...labels, ...this.extraLabels],
       headRefName: branchName.toString(),
       version: newVersion,
       draft: draft ?? false,
@@ -582,6 +588,11 @@ export abstract class BaseStrategy implements Strategy {
       return;
     }
 
+    if (!this.isPublishedVersion(version)) {
+      this.logger.warn(`Skipping non-published version: ${version.toString()}`);
+      return;
+    }
+
     const tag = new TagName(
       version,
       this.includeComponentInTag ? component : undefined,
@@ -600,10 +611,18 @@ export abstract class BaseStrategy implements Strategy {
     };
   }
 
+  isPublishedVersion(_version: Version): boolean {
+    return true;
+  }
+
   /**
    * Override this to handle the initial version of a new library.
    */
   protected initialReleaseVersion(): Version {
+    if (this.initialVersion) {
+      return Version.parse(this.initialVersion);
+    }
+
     return Version.parse('1.0.0');
   }
 

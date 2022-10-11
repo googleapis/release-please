@@ -1,0 +1,18 @@
+{
+  "release-type": "java",
+  "packages": {
+    ".": {
+      "component": "root",
+      "tag-separator": "-"
+    },
+    "packages/bot-config-utils": {
+      "component": "bot-config-utils"
+    }
+  },
+  "plugins": [
+    {
+      "type": "group-priority",
+      "groups": ["snapshot"]
+    }
+  ]
+}

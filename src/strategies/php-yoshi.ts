@@ -194,7 +194,7 @@ export class PHPYoshi extends BaseStrategy {
       title: pullRequestTitle,
       body: pullRequestBody,
       updates,
-      labels,
+      labels: [...labels, ...this.extraLabels],
       headRefName: branchName.toString(),
       version: newVersion,
       draft: draft ?? false,

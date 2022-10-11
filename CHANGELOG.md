@@ -4,6 +4,90 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.11.2](https://github.com/googleapis/release-please/compare/v14.11.1...v14.11.2) (2022-10-11)
+
+
+### Bug Fixes
+
+* Add initial-version to allowed properties in manifest schema ([#1691](https://github.com/googleapis/release-please/issues/1691)) ([408ddac](https://github.com/googleapis/release-please/commit/408ddac5dd4e1bc2c9b992365fa864e80298cee5))
+
+## [14.11.1](https://github.com/googleapis/release-please/compare/v14.11.0...v14.11.1) (2022-10-10)
+
+
+### Bug Fixes
+
+* Explicitly sort PRs by updated desc ([#1685](https://github.com/googleapis/release-please/issues/1685)) ([807bda0](https://github.com/googleapis/release-please/commit/807bda0ab3e09e6116b43cd670bab1115bfdbff2))
+
+## [14.11.0](https://github.com/googleapis/release-please/compare/v14.10.2...v14.11.0) (2022-10-05)
+
+
+### Features
+
+* **maven-workspace:** Update all discovered pom.xml within the components ([#1667](https://github.com/googleapis/release-please/issues/1667)) ([ace68d3](https://github.com/googleapis/release-please/commit/ace68d346291db6b591b9b3e1735d12f0a2b2bbc))
+
+## [14.10.2](https://github.com/googleapis/release-please/compare/v14.10.1...v14.10.2) (2022-10-04)
+
+
+### Bug Fixes
+
+* **maven-workspace:** Preserve original pom.xml updater when bumping dependencies ([#1680](https://github.com/googleapis/release-please/issues/1680)) ([5d955c6](https://github.com/googleapis/release-please/commit/5d955c6e0c5896d2aedea08c5c0f12ac35972757))
+
+## [14.10.1](https://github.com/googleapis/release-please/compare/v14.10.0...v14.10.1) (2022-10-03)
+
+
+### Bug Fixes
+
+* Put config schema on correct file ([#1678](https://github.com/googleapis/release-please/issues/1678)) ([6edc50b](https://github.com/googleapis/release-please/commit/6edc50b5599180b7ffa83a623559d328527e9274))
+
+## [14.10.0](https://github.com/googleapis/release-please/compare/v14.9.0...v14.10.0) (2022-09-30)
+
+
+### Features
+
+* Add ability to set extra labels on components ([#1669](https://github.com/googleapis/release-please/issues/1669)) ([e05d43e](https://github.com/googleapis/release-please/commit/e05d43e0e9eb35ea7d9b47d7e0b13effc4c1422a)), closes [#1624](https://github.com/googleapis/release-please/issues/1624)
+* **cli:** Add debug command for loading a manifest config ([#1671](https://github.com/googleapis/release-please/issues/1671)) ([98078a3](https://github.com/googleapis/release-please/commit/98078a3d3fab0eeaf456fbcbe1827dc0185d0424))
+
+
+### Bug Fixes
+
+* **cli:** bootstrap command respects --dry-run argument ([67fcb19](https://github.com/googleapis/release-please/commit/67fcb19cf3a7334092c08b65ae7b2c83b16db5d6))
+* fix schema definition for label and release-label ([e05d43e](https://github.com/googleapis/release-please/commit/e05d43e0e9eb35ea7d9b47d7e0b13effc4c1422a))
+* Manifest config bootstrapper should include schema field ([#1670](https://github.com/googleapis/release-please/issues/1670)) ([67fcb19](https://github.com/googleapis/release-please/commit/67fcb19cf3a7334092c08b65ae7b2c83b16db5d6))
+
+## [14.9.0](https://github.com/googleapis/release-please/compare/v14.8.0...v14.9.0) (2022-09-30)
+
+
+### Features
+
+* Add initial version to base strategy ([#1665](https://github.com/googleapis/release-please/issues/1665)) ([c867403](https://github.com/googleapis/release-please/commit/c867403e50cacbb88ddf545b2c0888f2c500edcc))
+
+## [14.8.0](https://github.com/googleapis/release-please/compare/v14.7.2...v14.8.0) (2022-09-28)
+
+
+### Features
+
+* Add `group-priority` plugin ([#1660](https://github.com/googleapis/release-please/issues/1660)) ([3ca750a](https://github.com/googleapis/release-please/commit/3ca750af3be8af06f9b6d0ed835524d53eab09c5))
+
+
+### Bug Fixes
+
+* Escape html tags in release notes ([#1661](https://github.com/googleapis/release-please/issues/1661)) ([891fdcb](https://github.com/googleapis/release-please/commit/891fdcb0776abd8b3518bb60c44873f55fd616a3))
+
+## [14.7.2](https://github.com/googleapis/release-please/compare/v14.7.1...v14.7.2) (2022-09-26)
+
+
+### Bug Fixes
+
+* Graphql should also configure proxy agent ([#1655](https://github.com/googleapis/release-please/issues/1655)) ([c68f057](https://github.com/googleapis/release-please/commit/c68f05717148061a1f4365a2323474a72c567a08))
+
+## [14.7.1](https://github.com/googleapis/release-please/compare/v14.7.0...v14.7.1) (2022-09-22)
+
+
+### Bug Fixes
+
+* Handle pull request files returned as null ([#1651](https://github.com/googleapis/release-please/issues/1651)) ([4cea3dd](https://github.com/googleapis/release-please/commit/4cea3dd1b17ee31e27c1d246e83fcf39f28f0677))
+* **node:** Rethrow missing file error for package.json as a configuration error ([#1652](https://github.com/googleapis/release-please/issues/1652)) ([65ee57b](https://github.com/googleapis/release-please/commit/65ee57b433f67d87db3c2530dad4207218dae6d2))
+
 ## [14.7.0](https://github.com/googleapis/release-please/compare/v14.6.1...v14.7.0) (2022-09-20)
 
 

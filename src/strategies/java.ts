@@ -143,10 +143,11 @@ export class Java extends BaseStrategy {
       title: pullRequestTitle,
       body: pullRequestBody,
       updates: updatesWithExtras,
-      labels: labels,
+      labels: [...labels, ...this.extraLabels],
       headRefName: branchName.toString(),
       version: newVersion,
       draft: draft ?? false,
+      group: 'snapshot',
     };
   }
 

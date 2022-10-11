@@ -24,6 +24,7 @@ import {expect} from 'chai';
 import {LinkedVersions} from '../../src/plugins/linked-versions';
 import {ManifestPlugin} from '../../src/plugin';
 import {GitHub} from '../../src';
+import {GroupPriority} from '../../src/plugins/group-priority';
 
 describe('PluginFactory', () => {
   let github: GitHub;
@@ -38,6 +39,7 @@ describe('PluginFactory', () => {
   describe('buildPlugin', () => {
     const simplePluginTypes: PluginType[] = [
       'cargo-workspace',
+      'maven-workspace',
       'node-workspace',
     ];
     const repositoryConfig: RepositoryConfig = {
@@ -80,6 +82,20 @@ describe('PluginFactory', () => {
       });
       expect(plugin).to.not.be.undefined;
       expect(plugin).instanceof(LinkedVersions);
+    });
+    it('should build a group-priority config', () => {
+      const plugin = buildPlugin({
+        github,
+        type: {
+          type: 'group-priority',
+          groups: ['snapshot'],
+        },
+        targetBranch: 'target-branch',
+        repositoryConfig,
+        manifestPath: '.manifest.json',
+      });
+      expect(plugin).to.not.be.undefined;
+      expect(plugin).instanceof(GroupPriority);
     });
   });
   describe('getPluginTypes', () => {

@@ -52,6 +52,8 @@ import {
 } from '../src/errors';
 import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
+import {LinkedVersions} from '../src/plugins/linked-versions';
+import {MavenWorkspace} from '../src/plugins/maven-workspace';
 
 nock.disableNetConnect();
 
@@ -461,10 +463,25 @@ describe('Manifest', () => {
             'manifest/versions/versions.json'
           )
         );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest['labels']).to.deep.equal(['custom: pending']);
+      expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+    });
+    it('should read extra labels from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
       getFileContentsStub
         .withArgs('release-please-config.json', 'main')
         .resolves(
-          buildGitHubFileContent(fixturesPath, 'manifest/config/labels.json')
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/extra-labels.json'
+          )
         )
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(
@@ -477,8 +494,12 @@ describe('Manifest', () => {
         github,
         github.repository.defaultBranch
       );
-      expect(manifest['labels']).to.deep.equal(['custom: pending']);
-      expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+      expect(manifest.repositoryConfig['.'].extraLabels).to.deep.equal([
+        'lang: java',
+      ]);
+      expect(manifest.repositoryConfig['node-lib'].extraLabels).to.deep.equal([
+        'lang: nodejs',
+      ]);
     });
     it('should build simple plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
@@ -501,10 +522,9 @@ describe('Manifest', () => {
         github,
         github.repository.defaultBranch
       );
-      expect(manifest['plugins']).to.deep.equal([
-        'node-workspace',
-        'cargo-workspace',
-      ]);
+      expect(manifest.plugins).lengthOf(2);
+      expect(manifest.plugins[0]).instanceOf(NodeWorkspace);
+      expect(manifest.plugins[1]).instanceOf(CargoWorkspace);
     });
     it('should build complex plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
@@ -530,13 +550,40 @@ describe('Manifest', () => {
         github,
         github.repository.defaultBranch
       );
-      expect(manifest['plugins']).to.deep.equal([
-        {
-          type: 'linked-versions',
-          groupName: 'grouped components',
-          components: ['pkg2', 'pkg3'],
-        },
-      ]);
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(LinkedVersions);
+      const plugin = manifest.plugins[0] as LinkedVersions;
+      expect(plugin.groupName).to.eql('grouped components');
+      expect(plugin.components).to.eql(new Set(['pkg2', 'pkg3']));
+    });
+    it('should build maven-workspace from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/maven-workspace-plugins.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(MavenWorkspace);
+      const plugin = manifest.plugins[0] as MavenWorkspace;
+      expect(plugin.considerAllArtifacts).to.be.true;
     });
     it('should configure search depth from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
@@ -2684,6 +2731,14 @@ describe('Manifest', () => {
       });
 
       it('should load and run a single plugins', async () => {
+        const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
+        mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
+        mockPlugin.processCommits.returnsArg(0);
+        sandbox
+          .stub(pluginFactory, 'buildPlugin')
+          .withArgs(sinon.match.has('type', 'node-workspace'))
+          .returns(mockPlugin);
         const manifest = new Manifest(
           github,
           'main',
@@ -2708,20 +2763,26 @@ describe('Manifest', () => {
             plugins: ['node-workspace'],
           }
         );
-        const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
-        mockPlugin.run.returnsArg(0);
-        mockPlugin.preconfigure.returnsArg(0);
-        mockPlugin.processCommits.returnsArg(0);
-        sandbox
-          .stub(pluginFactory, 'buildPlugin')
-          .withArgs(sinon.match.has('type', 'node-workspace'))
-          .returns(mockPlugin);
         const pullRequests = await manifest.buildPullRequests();
         expect(pullRequests).not.empty;
         sinon.assert.calledOnce(mockPlugin.run);
       });
 
       it('should load and run multiple plugins', async () => {
+        const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
+        mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
+        mockPlugin.processCommits.returnsArg(0);
+        const mockPlugin2 = sandbox.createStubInstance(CargoWorkspace);
+        mockPlugin2.run.returnsArg(0);
+        mockPlugin2.preconfigure.returnsArg(0);
+        mockPlugin2.processCommits.returnsArg(0);
+        sandbox
+          .stub(pluginFactory, 'buildPlugin')
+          .withArgs(sinon.match.has('type', 'node-workspace'))
+          .returns(mockPlugin)
+          .withArgs(sinon.match.has('type', 'cargo-workspace'))
+          .returns(mockPlugin2);
         const manifest = new Manifest(
           github,
           'main',
@@ -2746,20 +2807,6 @@ describe('Manifest', () => {
             plugins: ['node-workspace', 'cargo-workspace'],
           }
         );
-        const mockPlugin = sandbox.createStubInstance(NodeWorkspace);
-        mockPlugin.run.returnsArg(0);
-        mockPlugin.preconfigure.returnsArg(0);
-        mockPlugin.processCommits.returnsArg(0);
-        const mockPlugin2 = sandbox.createStubInstance(CargoWorkspace);
-        mockPlugin2.run.returnsArg(0);
-        mockPlugin2.preconfigure.returnsArg(0);
-        mockPlugin2.processCommits.returnsArg(0);
-        sandbox
-          .stub(pluginFactory, 'buildPlugin')
-          .withArgs(sinon.match.has('type', 'node-workspace'))
-          .returns(mockPlugin)
-          .withArgs(sinon.match.has('type', 'cargo-workspace'))
-          .returns(mockPlugin2);
         const pullRequests = await manifest.buildPullRequests();
         expect(pullRequests).not.empty;
         sinon.assert.calledOnce(mockPlugin.run);
@@ -2767,6 +2814,14 @@ describe('Manifest', () => {
       });
 
       it('should apply plugin hook "processCommits"', async () => {
+        const mockPlugin = sandbox.createStubInstance(SentenceCase);
+        mockPlugin.run.returnsArg(0);
+        mockPlugin.preconfigure.returnsArg(0);
+        mockPlugin.processCommits.returnsArg(0);
+        sandbox
+          .stub(pluginFactory, 'buildPlugin')
+          .withArgs(sinon.match.has('type', 'sentence-case'))
+          .returns(mockPlugin);
         const manifest = new Manifest(
           github,
           'main',
@@ -2784,14 +2839,6 @@ describe('Manifest', () => {
             plugins: ['sentence-case'],
           }
         );
-        const mockPlugin = sandbox.createStubInstance(SentenceCase);
-        mockPlugin.run.returnsArg(0);
-        mockPlugin.preconfigure.returnsArg(0);
-        mockPlugin.processCommits.returnsArg(0);
-        sandbox
-          .stub(pluginFactory, 'buildPlugin')
-          .withArgs(sinon.match.has('type', 'sentence-case'))
-          .returns(mockPlugin);
         const pullRequests = await manifest.buildPullRequests();
         expect(pullRequests).not.empty;
         sinon.assert.calledOnce(mockPlugin.processCommits);
