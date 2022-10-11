@@ -393,6 +393,7 @@
     "tag-separator": true,
     "extra-files": true,
     "version-file": true,
-    "snapshot-label": true
+    "snapshot-label": true,
+    "initial-version": true,
   }
 }
