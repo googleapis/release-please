@@ -33,7 +33,6 @@ import {
 } from './factory';
 import {Release} from './release';
 import {Strategy} from './strategy';
-import {PullRequestBody} from './util/pull-request-body';
 import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
@@ -1022,15 +1021,17 @@ export class Manifest {
         `Found pull request #${pullRequest.number}: '${pullRequest.title}'`
       );
 
-      const pullRequestBody = PullRequestBody.parse(
-        pullRequest.body,
-        this.logger
-      );
+      const pullRequestBody =
+        await this.pullRequestOverflowHandler.parseOverflow(pullRequest);
       if (!pullRequestBody) {
         this.logger.debug('could not parse pull request body as a release PR');
         continue;
       }
-      yield pullRequest;
+      // maybe replace with the complete fetched body
+      yield {
+        ...pullRequest,
+        body: pullRequestBody.toString(),
+      };
     }
   }
 
