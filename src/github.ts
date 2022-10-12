@@ -1479,10 +1479,8 @@ export class GitHub {
     newBranchName: string,
     baseBranchName: string
   ): Promise<string> {
-    const branchSha = await this.forkBranch(newBranchName, baseBranchName);
-    this.logger.debug(
-      `Forked ${newBranchName} from ${baseBranchName} at ${branchSha}`
-    );
+    // create or update new branch to match base branch
+    await this.forkBranch(newBranchName, baseBranchName);
 
     // create/force update target branch name
     const {
@@ -1562,10 +1560,24 @@ export class GitHub {
     // see if newBranchName exists
     if (await this.getBranchSha(targetBranchName)) {
       // branch already exists, update it to the match the base branch
-      return await this.updateBranchSha(targetBranchName, baseBranchSha);
+      const branchSha = await this.updateBranchSha(
+        targetBranchName,
+        baseBranchSha
+      );
+      this.logger.debug(
+        `Updated ${targetBranchName} to match ${baseBranchName} at ${branchSha}`
+      );
+      return branchSha;
     } else {
       // branch does not exist, create a new branch from the base branch
-      return await this.createNewBranch(targetBranchName, baseBranchSha);
+      const branchSha = await this.createNewBranch(
+        targetBranchName,
+        baseBranchSha
+      );
+      this.logger.debug(
+        `Forked ${targetBranchName} from ${baseBranchName} at ${branchSha}`
+      );
+      return branchSha;
     }
   }
 

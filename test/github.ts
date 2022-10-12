@@ -1052,4 +1052,79 @@ describe('GitHub', () => {
       expect(changes!.get('missing-file')).to.not.be.undefined;
     });
   });
+
+  describe('createFileOnNewBranch', () => {
+    it('forks a new branch if the branch does not exist', async () => {
+      req = req
+        .get('/repos/fake/fake/git/ref/heads%2Fbase-branch')
+        .reply(200, {
+          object: {
+            sha: 'abc123',
+          },
+        })
+        .get('/repos/fake/fake/git/ref/heads%2Fnew-branch')
+        .reply(404)
+        .post('/repos/fake/fake/git/refs', body => {
+          snapshot(body);
+          return body;
+        })
+        .reply(201, {
+          object: {sha: 'abc123'},
+        })
+        .put('/repos/fake/fake/contents/new-file.txt', body => {
+          snapshot(body);
+          return body;
+        })
+        .reply(201, {
+          content: {
+            html_url: 'https://github.com/fake/fake/blob/new-file.txt',
+          },
+        });
+      const url = await github.createFileOnNewBranch(
+        'new-file.txt',
+        'some contents',
+        'new-branch',
+        'base-branch'
+      );
+      expect(url).to.eql('https://github.com/fake/fake/blob/new-file.txt');
+    });
+    it('reuses an existing branch', async () => {
+      req = req
+        .get('/repos/fake/fake/git/ref/heads%2Fbase-branch')
+        .reply(200, {
+          object: {
+            sha: 'abc123',
+          },
+        })
+        .get('/repos/fake/fake/git/ref/heads%2Fnew-branch')
+        .reply(200, {
+          object: {
+            sha: 'def234',
+          },
+        })
+        .patch('/repos/fake/fake/git/refs/heads%2Fnew-branch', body => {
+          snapshot(body);
+          return body;
+        })
+        .reply(200, {
+          object: {sha: 'abc123'},
+        })
+        .put('/repos/fake/fake/contents/new-file.txt', body => {
+          snapshot(body);
+          return body;
+        })
+        .reply(201, {
+          content: {
+            html_url: 'https://github.com/fake/fake/blob/new-file.txt',
+          },
+        });
+      const url = await github.createFileOnNewBranch(
+        'new-file.txt',
+        'some contents',
+        'new-branch',
+        'base-branch'
+      );
+      expect(url).to.eql('https://github.com/fake/fake/blob/new-file.txt');
+    });
+  });
 });
