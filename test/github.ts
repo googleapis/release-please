@@ -309,49 +309,53 @@ describe('GitHub', () => {
       req.done();
     });
     it('uses REST API if files are not needed', async () => {
-      req.get('/repos/fake/fake/pulls?base=main&state=closed').reply(200, [
-        {
-          head: {
-            ref: 'feature-branch',
+      req
+        .get(
+          '/repos/fake/fake/pulls?base=main&state=closed&sort=updated&direction=desc'
+        )
+        .reply(200, [
+          {
+            head: {
+              ref: 'feature-branch',
+            },
+            base: {
+              ref: 'main',
+            },
+            number: 123,
+            title: 'some title',
+            body: 'some body',
+            labels: [{name: 'label 1'}, {name: 'label 2'}],
+            merge_commit_sha: 'abc123',
+            merged_at: '2022-08-08T19:07:20Z',
           },
-          base: {
-            ref: 'main',
+          {
+            head: {
+              ref: 'feature-branch',
+            },
+            base: {
+              ref: 'main',
+            },
+            number: 124,
+            title: 'merged title 2 ',
+            body: 'merged body 2',
+            labels: [{name: 'label 1'}, {name: 'label 2'}],
+            merge_commit_sha: 'abc123',
+            merged_at: '2022-08-08T19:07:20Z',
           },
-          number: 123,
-          title: 'some title',
-          body: 'some body',
-          labels: [{name: 'label 1'}, {name: 'label 2'}],
-          merge_commit_sha: 'abc123',
-          merged_at: '2022-08-08T19:07:20Z',
-        },
-        {
-          head: {
-            ref: 'feature-branch',
+          {
+            head: {
+              ref: 'feature-branch',
+            },
+            base: {
+              ref: 'main',
+            },
+            number: 125,
+            title: 'closed title',
+            body: 'closed body',
+            labels: [{name: 'label 1'}, {name: 'label 2'}],
+            merge_commit_sha: 'def234',
           },
-          base: {
-            ref: 'main',
-          },
-          number: 124,
-          title: 'merged title 2 ',
-          body: 'merged body 2',
-          labels: [{name: 'label 1'}, {name: 'label 2'}],
-          merge_commit_sha: 'abc123',
-          merged_at: '2022-08-08T19:07:20Z',
-        },
-        {
-          head: {
-            ref: 'feature-branch',
-          },
-          base: {
-            ref: 'main',
-          },
-          number: 125,
-          title: 'closed title',
-          body: 'closed body',
-          labels: [{name: 'label 1'}, {name: 'label 2'}],
-          merge_commit_sha: 'def234',
-        },
-      ]);
+        ]);
       const generator = github.pullRequestIterator('main', 'MERGED', 30, false);
       const pullRequests: PullRequest[] = [];
       for await (const pullRequest of generator) {

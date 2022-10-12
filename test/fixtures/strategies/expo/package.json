@@ -1,0 +1,10 @@
+{
+  "name": "node-test-repo",
+  "version": "0.123.4",
+  "repository": {
+    "url": "git@github.com:samples/node-test-repo.git"
+  },
+  "dependencies": {
+    "expo": "44.0.0"
+  }
+}

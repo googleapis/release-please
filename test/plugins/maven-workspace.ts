@@ -23,6 +23,7 @@ import {
   buildGitHubFileContent,
   stubFilesFromFixtures,
   safeSnapshot,
+  assertHasUpdate,
   assertHasUpdates,
 } from '../helpers';
 import {expect} from 'chai';
@@ -44,6 +45,9 @@ describe('MavenWorkspace plugin', () => {
       defaultBranch: 'main',
     });
     plugin = new MavenWorkspace(github, 'main', {
+      bom: {
+        releaseType: 'maven',
+      },
       maven1: {
         releaseType: 'maven',
       },
@@ -242,6 +246,30 @@ describe('MavenWorkspace plugin', () => {
       expect(newCandidates[0].pullRequest.body.releaseData).length(4);
     });
     it('skips pom files not configured for release', async () => {
+      plugin = new MavenWorkspace(
+        github,
+        'main',
+        {
+          bom: {
+            releaseType: 'maven',
+          },
+          maven1: {
+            releaseType: 'maven',
+          },
+          maven2: {
+            releaseType: 'maven',
+          },
+          maven3: {
+            releaseType: 'maven',
+          },
+          maven4: {
+            releaseType: 'maven',
+          },
+        },
+        {
+          considerAllArtifacts: false,
+        }
+      );
       sandbox
         .stub(github, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')
@@ -278,6 +306,103 @@ describe('MavenWorkspace plugin', () => {
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
       expect(newCandidates[0].pullRequest.body.releaseData).length(4);
     });
+    it('can consider all artifacts', async () => {
+      plugin = new MavenWorkspace(
+        github,
+        'main',
+        {
+          bom: {
+            component: 'my-bom',
+            releaseType: 'java-yoshi',
+          },
+          multi1: {
+            component: 'multi1',
+            releaseType: 'java-yoshi',
+          },
+          multi2: {
+            component: 'multi2',
+            releaseType: 'java-yoshi',
+          },
+        },
+        {
+          considerAllArtifacts: true,
+        }
+      );
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('multi1', 'java-yoshi', '1.1.2', {
+          component: 'multi1',
+          updates: [
+            buildMockPackageUpdate('multi1/pom.xml', 'multi1/pom.xml', '1.1.2'),
+            buildMockPackageUpdate(
+              'multi1/bom/pom.xml',
+              'multi1/bom/pom.xml',
+              '1.1.2'
+            ),
+            buildMockPackageUpdate(
+              'multi1/primary/pom.xml',
+              'multi1/primary/pom.xml',
+              '1.1.2'
+            ),
+            buildMockPackageUpdate(
+              'multi1/sub1/pom.xml',
+              'multi1/sub1/pom.xml',
+              '2.2.3'
+            ),
+            buildMockPackageUpdate(
+              'multi1/sub2/pom.xml',
+              'multi1/sub2/pom.xml',
+              '3.3.4'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'bom/pom.xml',
+          'multi1/pom.xml',
+          'multi1/bom/pom.xml',
+          'multi1/primary/pom.xml',
+          'multi1/sub1/pom.xml',
+          'multi1/sub2/pom.xml',
+          'multi2/pom.xml',
+          'multi2/bom/pom.xml',
+          'multi2/primary/pom.xml',
+          'multi2/sub1/pom.xml',
+          'multi2/sub2/pom.xml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves([
+          'bom/pom.xml',
+          'multi1/pom.xml',
+          'multi1/bom/pom.xml',
+          'multi1/primary/pom.xml',
+          'multi1/sub1/pom.xml',
+          'multi1/sub2/pom.xml',
+          'multi2/pom.xml',
+          'multi2/bom/pom.xml',
+          'multi2/primary/pom.xml',
+          'multi2/sub1/pom.xml',
+          'multi2/sub2/pom.xml',
+        ]);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).length(1);
+      expect(newCandidates[0].pullRequest.body.releaseData).length(2);
+      safeSnapshot(newCandidates[0].pullRequest.body.toString());
+      const bomUpdate = assertHasUpdate(
+        newCandidates[0].pullRequest.updates,
+        'bom/pom.xml',
+        PomXml
+      );
+      safeSnapshot(await renderUpdate(github, bomUpdate));
+    });
   });
 });
 
@@ -293,4 +418,10 @@ function buildMockPackageUpdate(
     cachedFileContents,
     updater: new PomXml(Version.parse(newVersionString)),
   };
+}
+
+async function renderUpdate(github: GitHub, update: Update): Promise<string> {
+  const fileContents =
+    update.cachedFileContents || (await github.getFileContents(update.path));
+  return update.updater.updateContent(fileContents.parsedContent);
 }

@@ -84,7 +84,7 @@ export class Node extends BaseStrategy {
     return component.match(/^@[\w-]+\//) ? component.split('/')[1] : component;
   }
 
-  private async getPkgJsonContents(): Promise<GitHubFileContents> {
+  protected async getPkgJsonContents(): Promise<GitHubFileContents> {
     if (!this.pkgJsonContents) {
       try {
         this.pkgJsonContents = await this.github.getFileContentsOnBranch(

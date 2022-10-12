@@ -4,6 +4,34 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.12.0](https://github.com/googleapis/release-please/compare/v14.11.2...v14.12.0) (2022-10-12)
+
+
+### Features
+
+* Added expo strategy and updater ([#1646](https://github.com/googleapis/release-please/issues/1646)) ([9cb84cb](https://github.com/googleapis/release-please/commit/9cb84cb18211c61ed94d856b936fff30036b0988))
+
+## [14.11.2](https://github.com/googleapis/release-please/compare/v14.11.1...v14.11.2) (2022-10-11)
+
+
+### Bug Fixes
+
+* Add initial-version to allowed properties in manifest schema ([#1691](https://github.com/googleapis/release-please/issues/1691)) ([408ddac](https://github.com/googleapis/release-please/commit/408ddac5dd4e1bc2c9b992365fa864e80298cee5))
+
+## [14.11.1](https://github.com/googleapis/release-please/compare/v14.11.0...v14.11.1) (2022-10-10)
+
+
+### Bug Fixes
+
+* Explicitly sort PRs by updated desc ([#1685](https://github.com/googleapis/release-please/issues/1685)) ([807bda0](https://github.com/googleapis/release-please/commit/807bda0ab3e09e6116b43cd670bab1115bfdbff2))
+
+## [14.11.0](https://github.com/googleapis/release-please/compare/v14.10.2...v14.11.0) (2022-10-05)
+
+
+### Features
+
+* **maven-workspace:** Update all discovered pom.xml within the components ([#1667](https://github.com/googleapis/release-please/issues/1667)) ([ace68d3](https://github.com/googleapis/release-please/commit/ace68d346291db6b591b9b3e1735d12f0a2b2bbc))
+
 ## [14.10.2](https://github.com/googleapis/release-please/compare/v14.10.1...v14.10.2) (2022-10-04)
 
 

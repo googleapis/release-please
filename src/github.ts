@@ -679,6 +679,8 @@ export class GitHub {
         owner: this.repository.owner,
         repo: this.repository.repo,
         base: targetBranch,
+        sort: 'updated',
+        direction: 'desc',
       }
     )) {
       for (const pull of pulls) {

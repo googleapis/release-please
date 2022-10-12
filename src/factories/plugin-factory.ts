@@ -29,6 +29,8 @@ import {MavenWorkspace} from '../plugins/maven-workspace';
 import {ConfigurationError} from '../errors';
 import {SentenceCase} from '../plugins/sentence-case';
 import {GroupPriority} from '../plugins/group-priority';
+import {Logger} from '../util/logger';
+import {WorkspacePluginOptions} from '../plugins/workspace';
 
 export interface PluginFactoryOptions {
   type: PluginType;
@@ -42,6 +44,9 @@ export interface PluginFactoryOptions {
 
   // workspace options
   updateAllPackages?: boolean;
+  considerAllArtifacts?: boolean;
+
+  logger?: Logger;
 }
 
 export type PluginBuilder = (options: PluginFactoryOptions) => ManifestPlugin;
@@ -60,21 +65,30 @@ const pluginFactories: Record<string, PluginBuilder> = {
       options.github,
       options.targetBranch,
       options.repositoryConfig,
-      options
+      {
+        ...options,
+        ...(options.type as WorkspacePluginOptions),
+      }
     ),
   'node-workspace': options =>
     new NodeWorkspace(
       options.github,
       options.targetBranch,
       options.repositoryConfig,
-      options
+      {
+        ...options,
+        ...(options.type as WorkspacePluginOptions),
+      }
     ),
   'maven-workspace': options =>
     new MavenWorkspace(
       options.github,
       options.targetBranch,
       options.repositoryConfig,
-      options
+      {
+        ...options,
+        ...(options.type as WorkspacePluginOptions),
+      }
     ),
   'sentence-case': options =>
     new SentenceCase(
