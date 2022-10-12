@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.12.0](https://github.com/googleapis/release-please/compare/v14.11.2...v14.12.0) (2022-10-12)
+
+
+### Features
+
+* Added expo strategy and updater ([#1646](https://github.com/googleapis/release-please/issues/1646)) ([9cb84cb](https://github.com/googleapis/release-please/commit/9cb84cb18211c61ed94d856b936fff30036b0988))
+
 ## [14.11.2](https://github.com/googleapis/release-please/compare/v14.11.1...v14.11.2) (2022-10-11)
 
 
