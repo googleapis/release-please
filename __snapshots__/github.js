@@ -411,28 +411,6 @@ exports['GitHub commitsSince paginates through commits 1'] = [
   }
 ]
 
-exports['GitHub createFileOnNewBranch forks a new branch if the branch does not exist 1'] = {
-  "ref": "refs/heads/new-branch",
-  "sha": "abc123"
-}
-
-exports['GitHub createFileOnNewBranch forks a new branch if the branch does not exist 2'] = {
-  "content": "c29tZSBjb250ZW50cw==",
-  "message": "Saving release notes",
-  "branch": "new-branch"
-}
-
-exports['GitHub createFileOnNewBranch reuses an existing branch 1'] = {
-  "sha": "abc123",
-  "force": true
-}
-
-exports['GitHub createFileOnNewBranch reuses an existing branch 2'] = {
-  "content": "c29tZSBjb250ZW50cw==",
-  "message": "Saving release notes",
-  "branch": "new-branch"
-}
-
 exports['GitHub createRelease should create a draft release 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",

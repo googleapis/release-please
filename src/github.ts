@@ -1484,7 +1484,7 @@ export class GitHub {
     // create or update new branch to match base branch
     await this.forkBranch(newBranchName, baseBranchName);
 
-    // create/force update target branch name
+    // use the single file upload API
     const {
       data: {content},
     } = await this.octokit.repos.createOrUpdateFileContents({

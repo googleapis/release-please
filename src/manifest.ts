@@ -1022,13 +1022,14 @@ export class Manifest {
         `Found pull request #${pullRequest.number}: '${pullRequest.title}'`
       );
 
+      // if the pull request body overflows, handle it
       const pullRequestBody =
         await this.pullRequestOverflowHandler.parseOverflow(pullRequest);
       if (!pullRequestBody) {
         this.logger.debug('could not parse pull request body as a release PR');
         continue;
       }
-      // maybe replace with the complete fetched body
+      // replace with the complete fetched body
       yield {
         ...pullRequest,
         body: pullRequestBody.toString(),

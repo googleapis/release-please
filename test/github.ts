@@ -1069,14 +1069,19 @@ describe('GitHub', () => {
         .get('/repos/fake/fake/git/ref/heads%2Fnew-branch')
         .reply(404)
         .post('/repos/fake/fake/git/refs', body => {
-          snapshot(body);
+          expect(body.ref).to.eql('refs/heads/new-branch');
+          expect(body.sha).to.eql('abc123');
           return body;
         })
         .reply(201, {
           object: {sha: 'abc123'},
         })
         .put('/repos/fake/fake/contents/new-file.txt', body => {
-          snapshot(body);
+          expect(body.message).to.eql('Saving release notes');
+          expect(body.branch).to.eql('new-branch');
+          expect(Buffer.from(body.content, 'base64').toString('utf-8')).to.eql(
+            'some contents'
+          );
           return body;
         })
         .reply(201, {
@@ -1107,14 +1112,19 @@ describe('GitHub', () => {
           },
         })
         .patch('/repos/fake/fake/git/refs/heads%2Fnew-branch', body => {
-          snapshot(body);
+          expect(body.force).to.be.true;
+          expect(body.sha).to.eql('abc123');
           return body;
         })
         .reply(200, {
           object: {sha: 'abc123'},
         })
         .put('/repos/fake/fake/contents/new-file.txt', body => {
-          snapshot(body);
+          expect(body.message).to.eql('Saving release notes');
+          expect(body.branch).to.eql('new-branch');
+          expect(Buffer.from(body.content, 'base64').toString('utf-8')).to.eql(
+            'some contents'
+          );
           return body;
         })
         .reply(201, {
