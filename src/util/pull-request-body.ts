@@ -51,8 +51,10 @@ export class PullRequestBody {
       return undefined;
     }
     let data = extractMultipleReleases(parts.content, logger);
+    let useComponents = true;
     if (data.length === 0) {
       data = extractSingleRelease(parts.content, logger);
+      useComponents = false;
       if (data.length === 0) {
         logger.warn('Failed to parse releases.');
       }
@@ -60,6 +62,7 @@ export class PullRequestBody {
     return new PullRequestBody(data, {
       header: parts.header,
       footer: parts.footer,
+      useComponents,
     });
   }
   notes(): string {

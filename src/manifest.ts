@@ -33,7 +33,6 @@ import {
 } from './factory';
 import {Release} from './release';
 import {Strategy} from './strategy';
-import {PullRequestBody} from './util/pull-request-body';
 import {Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
@@ -42,6 +41,11 @@ import {
   ConfigurationError,
 } from './errors';
 import {ManifestPlugin} from './plugin';
+import {
+  PullRequestOverflowHandler,
+  FilePullRequestOverflowHandler,
+} from './util/pull-request-overflow-handler';
+import {signoffCommitMessage} from './util/signoff-commit-message';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -282,6 +286,7 @@ export class Manifest {
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
   readonly logger: Logger;
+  private pullRequestOverflowHandler: PullRequestOverflowHandler;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -353,6 +358,10 @@ export class Manifest {
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
       })
+    );
+    this.pullRequestOverflowHandler = new FilePullRequestOverflowHandler(
+      this.github,
+      this.logger
     );
   }
 
@@ -843,12 +852,19 @@ export class Manifest {
     );
     for await (const openPullRequest of generator) {
       if (
-        (hasAllLabels(this.labels, openPullRequest.labels) ||
-          hasAllLabels(this.snapshotLabels, openPullRequest.labels)) &&
-        BranchName.parse(openPullRequest.headBranchName, this.logger) &&
-        PullRequestBody.parse(openPullRequest.body, this.logger)
+        hasAllLabels(this.labels, openPullRequest.labels) ||
+        hasAllLabels(this.snapshotLabels, openPullRequest.labels)
       ) {
-        openPullRequests.push(openPullRequest);
+        const body = await this.pullRequestOverflowHandler.parseOverflow(
+          openPullRequest
+        );
+        if (body) {
+          // maybe replace with overflow body
+          openPullRequests.push({
+            ...openPullRequest,
+            body: body.toString(),
+          });
+        }
       }
     }
     this.logger.info(
@@ -869,10 +885,18 @@ export class Manifest {
     for await (const closedPullRequest of closedGenerator) {
       if (
         hasAllLabels([SNOOZE_LABEL], closedPullRequest.labels) &&
-        BranchName.parse(closedPullRequest.headBranchName, this.logger) &&
-        PullRequestBody.parse(closedPullRequest.body, this.logger)
+        BranchName.parse(closedPullRequest.headBranchName, this.logger)
       ) {
-        snoozedPullRequests.push(closedPullRequest);
+        const body = await this.pullRequestOverflowHandler.parseOverflow(
+          closedPullRequest
+        );
+        if (body) {
+          // maybe replace with overflow body
+          snoozedPullRequests.push({
+            ...closedPullRequest,
+            body: body.toString(),
+          });
+        }
       }
     }
     this.logger.info(
@@ -904,15 +928,31 @@ export class Manifest {
       return await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
     }
 
-    const newPullRequest = await this.github.createReleasePullRequest(
-      pullRequest,
+    const body = await this.pullRequestOverflowHandler.handleOverflow(
+      pullRequest
+    );
+    const message = this.signoffUser
+      ? signoffCommitMessage(pullRequest.title.toString(), this.signoffUser)
+      : pullRequest.title.toString();
+    const newPullRequest = await this.github.createPullRequest(
+      {
+        headBranchName: pullRequest.headRefName,
+        baseBranchName: this.targetBranch,
+        number: -1,
+        title: pullRequest.title.toString(),
+        body,
+        labels: this.skipLabeling ? [] : pullRequest.labels,
+        files: [],
+      },
       this.targetBranch,
+      message,
+      pullRequest.updates,
       {
         fork: this.fork,
-        signoffUser: this.signoffUser,
-        skipLabeling: this.skipLabeling,
+        draft: pullRequest.draft,
       }
     );
+
     return newPullRequest;
   }
 
@@ -982,15 +1022,18 @@ export class Manifest {
         `Found pull request #${pullRequest.number}: '${pullRequest.title}'`
       );
 
-      const pullRequestBody = PullRequestBody.parse(
-        pullRequest.body,
-        this.logger
-      );
+      // if the pull request body overflows, handle it
+      const pullRequestBody =
+        await this.pullRequestOverflowHandler.parseOverflow(pullRequest);
       if (!pullRequestBody) {
         this.logger.debug('could not parse pull request body as a release PR');
         continue;
       }
-      yield pullRequest;
+      // replace with the complete fetched body
+      yield {
+        ...pullRequest,
+        body: pullRequestBody.toString(),
+      };
     }
   }
 
