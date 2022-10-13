@@ -24,6 +24,7 @@ import {
   GitHubAPIError,
   DuplicateReleaseError,
   FileNotFoundError,
+  ConfigurationError,
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
@@ -192,6 +193,11 @@ interface FileDiff {
   readonly originalContent: string | null;
 }
 export type ChangeSet = Map<string, FileDiff>;
+
+interface CreatePullRequestOptions {
+  fork?: boolean;
+  draft?: boolean;
+}
 
 export class GitHub {
   readonly repository: Repository;
@@ -931,6 +937,7 @@ export class GitHub {
    * @param {string} path The path to the file in the repository
    * @param {string} branch The branch to fetch from
    * @returns {GitHubFileContents}
+   * @throws {FileNotFoundError} if the file cannot be found
    * @throws {GitHubAPIError} on other API errors
    */
   async getFileContentsOnBranch(
@@ -1046,6 +1053,8 @@ export class GitHub {
   /**
    * Open a pull request
    *
+   * @deprecated This logic is handled by the Manifest class now as it
+   *   can be more complicated if the release notes are too big
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
    * @param {string} targetBranch The base branch of the pull request
    * @param {GitHubPR} options The pull request options
@@ -1087,16 +1096,23 @@ export class GitHub {
     );
   }
 
+  /**
+   * Open a pull request
+   *
+   * @param {PullRequest} pullRequest Pull request data to update
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} message The commit message for the commit
+   * @param {Update[]} updates The files to update
+   * @param {CreatePullRequestOptions} options The pull request options
+   * @throws {GitHubAPIError} on an API error
+   */
   createPullRequest = wrapAsync(
     async (
       pullRequest: PullRequest,
       targetBranch: string,
       message: string,
       updates: Update[],
-      options?: {
-        fork?: boolean;
-        draft?: boolean;
-      }
+      options?: CreatePullRequestOptions
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
       const changes = await this.buildChangeSet(updates, targetBranch);
@@ -1447,6 +1463,169 @@ export class GitHub {
       target_commitish: targetCommitish,
     });
     return resp.data.body;
+  }
+
+  /**
+   * Create a single file on a new branch based on an existing
+   * branch. This will force-push to that branch.
+   * @param {string} filename Filename with path in the repository
+   * @param {string} contents Contents of the file
+   * @param {string} newBranchName Name of the new branch
+   * @param {string} baseBranchName Name of the base branch (where
+   *   new branch is forked from)
+   * @returns {string} HTML URL of the new file
+   */
+  async createFileOnNewBranch(
+    filename: string,
+    contents: string,
+    newBranchName: string,
+    baseBranchName: string
+  ): Promise<string> {
+    // create or update new branch to match base branch
+    await this.forkBranch(newBranchName, baseBranchName);
+
+    // use the single file upload API
+    const {
+      data: {content},
+    } = await this.octokit.repos.createOrUpdateFileContents({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      path: filename,
+      // contents need to be base64 encoded
+      content: Buffer.from(contents, 'binary').toString('base64'),
+      message: 'Saving release notes',
+      branch: newBranchName,
+    });
+
+    if (!content?.html_url) {
+      throw new Error(
+        `Failed to write to file: ${filename} on branch: ${newBranchName}`
+      );
+    }
+
+    return content.html_url;
+  }
+
+  /**
+   * Helper to fetch the SHA of a branch
+   * @param {string} branchName The name of the branch
+   * @return {string | undefined} Returns the SHA of the branch
+   *   or undefined if it can't be found.
+   */
+  private async getBranchSha(branchName: string): Promise<string | undefined> {
+    this.logger.debug(`Looking up SHA for branch: ${branchName}`);
+    try {
+      const {
+        data: {
+          object: {sha},
+        },
+      } = await this.octokit.git.getRef({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        ref: `heads/${branchName}`,
+      });
+      this.logger.debug(`SHA for branch: ${sha}`);
+      return sha;
+    } catch (e) {
+      if (e instanceof RequestError && e.status === 404) {
+        this.logger.debug(`Branch: ${branchName} does not exist`);
+        return undefined;
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * Helper to fork a branch from an existing branch. Uses `force` so
+   * it will overwrite the contents of `targetBranchName` to match
+   * the current contents of `baseBranchName`.
+   *
+   * @param {string} targetBranchName The name of the new forked branch
+   * @param {string} baseBranchName The base branch from which to fork.
+   * @returns {string} The branch SHA
+   * @throws {ConfigurationError} if the base branch cannot be found.
+   */
+  private async forkBranch(
+    targetBranchName: string,
+    baseBranchName: string
+  ): Promise<string> {
+    const baseBranchSha = await this.getBranchSha(baseBranchName);
+    if (!baseBranchSha) {
+      // this is highly unlikely to be thrown as we will have
+      // already attempted to read from the branch
+      throw new ConfigurationError(
+        `Unable to find base branch: ${baseBranchName}`,
+        'core',
+        `${this.repository.owner}/${this.repository.repo}`
+      );
+    }
+    // see if newBranchName exists
+    if (await this.getBranchSha(targetBranchName)) {
+      // branch already exists, update it to the match the base branch
+      const branchSha = await this.updateBranchSha(
+        targetBranchName,
+        baseBranchSha
+      );
+      this.logger.debug(
+        `Updated ${targetBranchName} to match ${baseBranchName} at ${branchSha}`
+      );
+      return branchSha;
+    } else {
+      // branch does not exist, create a new branch from the base branch
+      const branchSha = await this.createNewBranch(
+        targetBranchName,
+        baseBranchSha
+      );
+      this.logger.debug(
+        `Forked ${targetBranchName} from ${baseBranchName} at ${branchSha}`
+      );
+      return branchSha;
+    }
+  }
+
+  /**
+   * Helper to create a new branch from a given SHA.
+   * @param {string} branchName The new branch name
+   * @param {string} branchSha The SHA of the branch
+   * @returns {string} The SHA of the new branch
+   */
+  private async createNewBranch(
+    branchName: string,
+    branchSha: string
+  ): Promise<string> {
+    this.logger.debug(`Creating new branch: ${branchName} at ${branchSha}`);
+    const {
+      data: {
+        object: {sha},
+      },
+    } = await this.octokit.git.createRef({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: `refs/heads/${branchName}`,
+      sha: branchSha,
+    });
+    this.logger.debug(`New branch: ${branchName} at ${sha}`);
+    return sha;
+  }
+
+  private async updateBranchSha(
+    branchName: string,
+    branchSha: string
+  ): Promise<string> {
+    this.logger.debug(`Updating branch ${branchName} to ${branchSha}`);
+    const {
+      data: {
+        object: {sha},
+      },
+    } = await this.octokit.git.updateRef({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: `heads/${branchName}`,
+      sha: branchSha,
+      force: true,
+    });
+    this.logger.debug(`Updated branch: ${branchName} to ${sha}`);
+    return sha;
   }
 }
 
