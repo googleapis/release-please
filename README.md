@@ -12,6 +12,9 @@ It does so by parsing your
 git history, looking for [Conventional Commit messages](https://www.conventionalcommits.org/),
 and creating release PRs.
 
+It does not handle publication to package managers or handle complex branch
+management.
+
 ## What's a Release PR?
 
 Rather than continuously releasing what's landed to your default branch,
