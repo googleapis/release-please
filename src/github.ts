@@ -49,6 +49,7 @@ import {
 import {Logger} from 'code-suggester/build/src/types';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
+import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -1162,7 +1163,12 @@ export class GitHub {
    * Update a pull request's title and body.
    * @param {number} number The pull request number
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
-   * @param {}
+   * @param {string} targetBranch The target branch of the pull request
+   * @param {string} options.signoffUser Optional. Commit signoff message
+   * @param {boolean} options.fork Optional. Whether to open the pull request from
+   *   a fork or not. Defaults to `false`
+   * @param {PullRequestOverflowHandler} options.pullRequestOverflowHandler Optional.
+   *   Handles extra large pull request body messages.
    */
   updatePullRequest = wrapAsync(
     async (
@@ -1172,6 +1178,7 @@ export class GitHub {
       options?: {
         signoffUser?: string;
         fork?: boolean;
+        pullRequestOverflowHandler?: PullRequestOverflowHandler;
       }
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
@@ -1184,7 +1191,13 @@ export class GitHub {
         message = signoffCommitMessage(message, options.signoffUser);
       }
       const title = releasePullRequest.title.toString();
-      const body = releasePullRequest.body
+      const body = (
+        options?.pullRequestOverflowHandler
+          ? await options.pullRequestOverflowHandler.handleOverflow(
+              releasePullRequest
+            )
+          : releasePullRequest.body
+      )
         .toString()
         .slice(0, MAX_ISSUE_BODY_SIZE);
       const prNumber = await createPullRequest(this.octokit, changes, {
