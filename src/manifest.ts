@@ -975,6 +975,7 @@ export class Manifest {
       {
         fork: this.fork,
         signoffUser: this.signoffUser,
+        pullRequestOverflowHandler: this.pullRequestOverflowHandler,
       }
     );
     return updatedPullRequest;
@@ -999,6 +1000,7 @@ export class Manifest {
       {
         fork: this.fork,
         signoffUser: this.signoffUser,
+        pullRequestOverflowHandler: this.pullRequestOverflowHandler,
       }
     );
     // TODO: consider leaving the snooze label

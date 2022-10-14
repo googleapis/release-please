@@ -27,7 +27,7 @@ import {expect} from 'chai';
 import {CandidateReleasePullRequest} from '../src/manifest';
 import {Version} from '../src/version';
 import {PullRequestTitle} from '../src/util/pull-request-title';
-import {PullRequestBody} from '../src/util/pull-request-body';
+import {PullRequestBody, ReleaseData} from '../src/util/pull-request-body';
 import {BranchName} from '../src/util/branch-name';
 import {ReleaseType} from '../src/factory';
 import {
@@ -35,6 +35,9 @@ import {
   DEFAULT_FILE_MODE,
 } from '@google-automations/git-file-utils';
 import {CompositeUpdater} from '../src/updaters/composite';
+import {PullRequestOverflowHandler} from '../src/util/pull-request-overflow-handler';
+import {ReleasePullRequest} from '../src/release-pull-request';
+import {PullRequest} from '../src/pull-request';
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -371,4 +374,33 @@ export function mockTags(
     }
   }
   return sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
+}
+
+export function mockReleaseData(count: number): ReleaseData[] {
+  const releaseData: ReleaseData[] = [];
+  const version = Version.parse('1.2.3');
+  for (let i = 0; i < count; i++) {
+    releaseData.push({
+      component: `component${i}`,
+      version,
+      notes: `release notes for component${i}`,
+    });
+  }
+  return releaseData;
+}
+
+export class MockPullRequestOverflowHandler
+  implements PullRequestOverflowHandler
+{
+  async handleOverflow(
+    pullRequest: ReleasePullRequest,
+    _maxSize?: number | undefined
+  ): Promise<string> {
+    return pullRequest.body.toString();
+  }
+  async parseOverflow(
+    pullRequest: PullRequest
+  ): Promise<PullRequestBody | undefined> {
+    return PullRequestBody.parse(pullRequest.body);
+  }
 }

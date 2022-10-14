@@ -40,6 +40,7 @@ import {RawContent} from '../src/updaters/raw-content';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {Commit} from '../src/commit';
+import {mockReleaseData, MockPullRequestOverflowHandler} from './helpers';
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -1139,6 +1140,40 @@ describe('GitHub', () => {
         'base-branch'
       );
       expect(url).to.eql('https://github.com/fake/fake/blob/new-file.txt');
+    });
+  });
+
+  describe('updatePullRequest', () => {
+    it('handles a PR body that is too big', async () => {
+      req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
+        number: 123,
+        title: 'updated-title',
+        body: 'updated body',
+        labels: [],
+        head: {
+          ref: 'abc123',
+        },
+        base: {
+          ref: 'def234',
+        },
+      });
+      const pullRequest = {
+        title: PullRequestTitle.ofTargetBranch('main'),
+        body: new PullRequestBody(mockReleaseData(1000), {useComponents: true}),
+        labels: [],
+        headRefName: 'release-please--branches--main',
+        draft: false,
+        updates: [],
+      };
+      const pullRequestOverflowHandler = new MockPullRequestOverflowHandler();
+      const handleOverflowStub = sandbox
+        .stub(pullRequestOverflowHandler, 'handleOverflow')
+        .resolves('overflow message');
+      await github.updatePullRequest(123, pullRequest, 'main', {
+        pullRequestOverflowHandler,
+      });
+      sinon.assert.calledOnce(handleOverflowStub);
+      req.done();
     });
   });
 });
