@@ -28,6 +28,7 @@ import {
   mockReleases,
   mockTags,
   assertNoHasUpdate,
+  mockReleaseData,
 } from './helpers';
 import {expect} from 'chai';
 import * as assert from 'assert';
@@ -40,7 +41,7 @@ import {SentenceCase} from '../src/plugins/sentence-case';
 import {NodeWorkspace} from '../src/plugins/node-workspace';
 import {CargoWorkspace} from '../src/plugins/cargo-workspace';
 import {PullRequestTitle} from '../src/util/pull-request-title';
-import {PullRequestBody, ReleaseData} from '../src/util/pull-request-body';
+import {PullRequestBody} from '../src/util/pull-request-body';
 import {RawContent} from '../src/updaters/raw-content';
 import {TagName} from '../src/util/tag-name';
 import snapshot = require('snap-shot-it');
@@ -146,21 +147,6 @@ function pullRequestBody(path: string): string {
     /\r\n/g,
     '\n'
   );
-}
-
-const overflowingReleaseData = mockReleaseData(1000);
-
-function mockReleaseData(count: number): ReleaseData[] {
-  const releaseData: ReleaseData[] = [];
-  const version = Version.parse('1.2.3');
-  for (let i = 0; i < count; i++) {
-    releaseData.push({
-      component: `component${i}`,
-      version,
-      notes: `release notes for component${i}`,
-    });
-  }
-  return releaseData;
 }
 
 describe('Manifest', () => {
@@ -3751,7 +3737,7 @@ describe('Manifest', () => {
     });
 
     describe('with an overflowing body', () => {
-      const body = new PullRequestBody(overflowingReleaseData, {
+      const body = new PullRequestBody(mockReleaseData(1000), {
         useComponents: true,
       });
 
