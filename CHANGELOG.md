@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.13.2](https://github.com/googleapis/release-please/compare/v14.13.1...v14.13.2) (2022-10-18)
+
+
+### Bug Fixes
+
+* **python:** Version updater updates patch versions &gt;= 10 ([#1708](https://github.com/googleapis/release-please/issues/1708)) ([80b3d4f](https://github.com/googleapis/release-please/commit/80b3d4fce7d494575b4f136e68bad1c508600ea0))
+
 ## [14.13.1](https://github.com/googleapis/release-please/compare/v14.13.0...v14.13.1) (2022-10-14)
 
 
