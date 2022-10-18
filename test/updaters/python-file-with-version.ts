@@ -37,6 +37,22 @@ describe('version.py', () => {
   });
 });
 
+describe('someprefix_version.py', () => {
+  describe('updateContent', () => {
+    it('updates version in someprefix_version.py', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './someprefix_version.py'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new PythonFileWithVersion({
+        version: Version.parse('0.8.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+  });
+});
+
 describe('project/__init__.py', () => {
   describe('updateContent', () => {
     it('updates version in project/__init__.py', async () => {
