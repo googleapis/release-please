@@ -86,11 +86,19 @@ interface GitHubCreateOptions {
 
 type CommitFilter = (commit: Commit) => boolean;
 
+interface GraphQLAuthor {
+  name: string;
+  email: string;
+}
+
 interface GraphQLCommit {
   sha: string;
   message: string;
   associatedPullRequests: {
     nodes: GraphQLPullRequest[];
+  };
+  authors: {
+    nodes: GraphQLAuthor[];
   };
 }
 
@@ -107,6 +115,9 @@ interface GraphQLPullRequest {
   };
   mergeCommit?: {
     oid: string;
+  };
+  commits: {
+    nodes: GraphQLCommit[];
   };
   files: {
     nodes: {
@@ -429,6 +440,24 @@ export class GitHub {
                           hasNextPage
                         }
                       }
+                      commits(first: 100) {
+                        nodes {
+                          commit {
+                            authors(first: 10) {
+                              nodes {
+                                email
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  authors(first: 10) {
+                    nodes {
+                      email
+                      name
                     }
                   }
                   sha: oid
@@ -479,7 +508,27 @@ export class GitHub {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
+        pullRequestNumbers: graphCommit.associatedPullRequests.nodes.map(
+          pr => pr.number
+        ),
       };
+
+      const authors = new Set<string>();
+
+      graphCommit.authors.nodes
+        .map(author => author.name)
+        .forEach(authors.add, authors);
+
+      graphCommit.associatedPullRequests.nodes.forEach(pr => {
+        pr.commits.nodes.forEach(prCommit => {
+          prCommit.authors.nodes
+            .map(author => author.name)
+            .forEach(authors.add, authors);
+        });
+      });
+
+      commit.authors = Array.from(authors);
+
       const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
