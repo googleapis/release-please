@@ -117,7 +117,9 @@ interface GraphQLPullRequest {
     oid: string;
   };
   commits: {
-    nodes: GraphQLCommit[];
+    nodes: {
+      commit: GraphQLCommit;
+    }[];
   };
   files: {
     nodes: {
@@ -507,28 +509,34 @@ export class GitHub {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
-        pullRequestNumbers: graphCommit.associatedPullRequests.nodes.map(
-          pr => pr.number
-        ),
       };
 
       const authors = new Set<string>();
+      const associatedPRs = graphCommit.associatedPullRequests.nodes;
 
-      graphCommit.authors.nodes
-        .map(author => author.name)
-        .forEach(authors.add, authors);
-
-      graphCommit.associatedPullRequests.nodes.forEach(pr => {
-        pr.commits.nodes.forEach(prCommit => {
-          prCommit.authors.nodes
-            .map(author => author.name)
-            .forEach(authors.add, authors);
+      if (associatedPRs.length > 0) {
+        // Add authors from commits of associated PRs
+        associatedPRs.forEach(pr => {
+          pr.commits.nodes.forEach(node => {
+            node.commit.authors.nodes
+              .map(author => author.name)
+              .forEach(authors.add, authors);
+          });
         });
-      });
+      } else {
+        graphCommit.authors.nodes
+          .map(author => author.name)
+          .forEach(authors.add, authors);
+      }
 
       commit.authors = Array.from(authors);
 
-      const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
+      if (associatedPRs.length > 0) {
+        commit.pullRequestNumbers =
+          graphCommit.associatedPullRequests.nodes.map(pr => pr.number);
+      }
+
+      const pullRequest = associatedPRs.find(pr => {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
       if (pullRequest) {
