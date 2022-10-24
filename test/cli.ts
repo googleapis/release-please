@@ -358,6 +358,7 @@ describe('CLI', () => {
         .stub(fakeManifest, 'createReleases')
         .resolves([
           {
+            id: 123456,
             tagName: 'v1.2.3',
             sha: 'abc123',
             notes: 'some release notes',
@@ -1141,6 +1142,7 @@ describe('CLI', () => {
           .stub(fakeManifest, 'createReleases')
           .resolves([
             {
+              id: 123456,
               tagName: 'v1.2.3',
               sha: 'abc123',
               notes: 'some release notes',
@@ -1314,6 +1316,7 @@ describe('CLI', () => {
           .stub(fakeManifest, 'createReleases')
           .resolves([
             {
+              id: 123456,
               tagName: 'v1.2.3',
               sha: 'abc123',
               notes: 'some release notes',

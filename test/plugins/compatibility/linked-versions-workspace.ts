@@ -74,11 +74,13 @@ describe('Plugin compatibility', () => {
       //   - package a and b should both use a minor version bump
       mockReleases(sandbox, github, [
         {
+          id: 123456,
           sha: 'abc123',
           tagName: 'pkgA-v1.0.0',
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkgA-v1.0.0',
         },
         {
+          id: 654321,
           sha: 'abc123',
           tagName: 'pkgB-v1.0.0',
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkgB-v1.0.0',

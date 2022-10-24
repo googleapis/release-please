@@ -684,6 +684,7 @@ describe('GitHub', () => {
           return true;
         })
         .reply(200, {
+          id: 123456,
           tag_name: 'v1.2.3',
           draft: false,
           html_url: 'https://github.com/fake/fake/releases/v1.2.3',
@@ -709,6 +710,7 @@ describe('GitHub', () => {
         prerelease: false,
       });
       expect(release).to.not.be.undefined;
+      expect(release.id).to.eql(123456);
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
@@ -825,6 +827,7 @@ describe('GitHub', () => {
           return true;
         })
         .reply(200, {
+          id: 123456,
           tag_name: 'v1.2.3',
           draft: false,
           html_url: 'https://github.com/fake/fake/releases/v1.2.3',
@@ -851,6 +854,7 @@ describe('GitHub', () => {
         draft: false,
         prerelease: true,
       });
+      expect(release.id).to.eql(123456);
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
