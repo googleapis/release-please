@@ -174,6 +174,7 @@ export interface ReleaseOptions {
 }
 
 export interface GitHubRelease {
+  id: number;
   name?: string;
   tagName: string;
   sha: string;
@@ -1362,6 +1363,7 @@ export class GitHub {
         target_commitish: release.sha,
       });
       return {
+        id: resp.data.id,
         name: resp.data.name || undefined,
         tagName: resp.data.tag_name,
         sha: resp.data.target_commitish,
