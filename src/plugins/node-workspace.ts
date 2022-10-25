@@ -167,13 +167,17 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     for (const [depName, resolved] of graphPackage.localDependencies) {
       const depVersion = updatedVersions.get(depName);
       if (depVersion && resolved.type !== 'directory') {
+        const currentVersion = this.combineDeps(pkg)?.[depName];
+        const prefix = currentVersion?.length
+          ? this.detectRangePrefix(currentVersion)
+          : '';
         updatedPackage.updateLocalDependency(
           resolved,
           depVersion.toString(),
-          '^'
+          prefix
         );
         this.logger.info(
-          `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
+          `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
         );
       }
     }
@@ -315,11 +319,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       allPackages.map(packageJson => packageJson.name)
     );
     for (const packageJson of allPackages) {
-      const allDeps = Object.keys({
-        ...(packageJson.dependencies ?? {}),
-        ...(packageJson.devDependencies ?? {}),
-        ...(packageJson.optionalDependencies ?? {}),
-      });
+      const allDeps = Object.keys(this.combineDeps(packageJson));
       const workspaceDeps = allDeps.filter(dep =>
         workspacePackageNames.has(dep)
       );
@@ -342,6 +342,22 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
   protected pathFromPackage(pkg: Package): string {
     return pkg.location;
+  }
+
+  private detectRangePrefix(version: string): string {
+    return (
+      ['^', '~'].find(
+        supportedRangePrefix => version[0] === supportedRangePrefix
+      ) || ''
+    );
+  }
+
+  private combineDeps(packageJson: Package): Record<string, string> {
+    return {
+      ...(packageJson.dependencies ?? {}),
+      ...(packageJson.devDependencies ?? {}),
+      ...(packageJson.optionalDependencies ?? {}),
+    };
   }
 }
 
