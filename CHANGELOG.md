@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.14.0](https://github.com/googleapis/release-please/compare/v14.13.2...v14.14.0) (2022-10-25)
+
+
+### Features
+
+* Extract and return the created release id ([#1719](https://github.com/googleapis/release-please/issues/1719)) ([ef1c156](https://github.com/googleapis/release-please/commit/ef1c156ab1d44969548b4cb30b412b2066568aa4))
+
 ## [14.13.2](https://github.com/googleapis/release-please/compare/v14.13.1...v14.13.2) (2022-10-18)
 
 
