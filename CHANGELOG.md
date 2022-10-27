@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.15.0](https://github.com/googleapis/release-please/compare/v14.14.0...v14.15.0) (2022-10-27)
+
+
+### Features
+
+* **php-yoshi:** Add "misc" as trigger, hide "chore" ([#1725](https://github.com/googleapis/release-please/issues/1725)) ([f7a9d09](https://github.com/googleapis/release-please/commit/f7a9d091670f0a70a13a1b641fbc6d07ec000da2))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency type-fest to v3 ([#1649](https://github.com/googleapis/release-please/issues/1649)) ([d3c3a3e](https://github.com/googleapis/release-please/commit/d3c3a3eae6557994ad244c0bdd79e1782971d2c1))
+
 ## [14.14.0](https://github.com/googleapis/release-please/compare/v14.13.2...v14.14.0) (2022-10-25)
 
 
