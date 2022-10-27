@@ -31,6 +31,7 @@ import {Update} from '../../src/update';
 import {Version} from '../../src/version';
 import {PomXml} from '../../src/updaters/java/pom-xml';
 import {RawContent} from '../../src/updaters/raw-content';
+import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/maven-workspace';
@@ -402,6 +403,100 @@ describe('MavenWorkspace plugin', () => {
         PomXml
       );
       safeSnapshot(await renderUpdate(github, bomUpdate));
+    });
+    it('skips updating manifest with snapshot versions', async () => {
+      plugin = new MavenWorkspace(github, 'main', {
+        bom: {
+          releaseType: 'maven',
+        },
+        maven1: {
+          releaseType: 'maven',
+        },
+        maven2: {
+          releaseType: 'maven',
+        },
+        maven3: {
+          releaseType: 'maven',
+        },
+        maven4: {
+          releaseType: 'maven',
+        },
+      });
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves([
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ]);
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('maven1', 'maven', '1.1.2-SNAPSHOT', {
+          component: 'maven1',
+          updates: [
+            buildMockPackageUpdate(
+              'maven1/pom.xml',
+              'maven1/pom.xml',
+              '1.1.2-SNAPSHOT'
+            ),
+          ],
+        }),
+        buildMockCandidatePullRequest('maven2', 'maven', '2.2.3-SNAPSHOT', {
+          component: 'maven2',
+          updates: [
+            buildMockPackageUpdate(
+              'maven2/pom.xml',
+              'maven2/pom.xml',
+              '2.2.3-SNAPSHOT'
+            ),
+          ],
+        }),
+        buildMockCandidatePullRequest('maven3', 'maven', '3.3.4-SNAPSHOT', {
+          component: 'maven3',
+          updates: [
+            buildMockPackageUpdate(
+              'maven3/pom.xml',
+              'maven3/pom.xml',
+              '3.3.4-SNAPSHOT'
+            ),
+          ],
+        }),
+        buildMockCandidatePullRequest('maven4', 'maven', '4.4.5-SNAPSHOT', {
+          component: 'maven4',
+          updates: [
+            buildMockPackageUpdate(
+              'maven4/pom.xml',
+              'maven4/pom.xml',
+              '4.4.5-SNAPSHOT'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'maven1/pom.xml',
+          'maven2/pom.xml',
+          'maven3/pom.xml',
+          'maven4/pom.xml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).length(1);
+      const update = assertHasUpdate(
+        newCandidates[0].pullRequest.updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      );
+      const updater = update.updater as ReleasePleaseManifest;
+      for (const [_, version] of updater.versionsMap!) {
+        expect(version.toString()).to.not.include('SNAPSHOT');
+      }
     });
   });
 });
