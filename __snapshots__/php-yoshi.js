@@ -734,7 +734,7 @@ exports['PHPYoshi buildRelease parses the release notes 1'] = `
 </details>
 `
 
-exports['PHPYoshi buildReleasePullRequest includes chore commits 1'] = `
+exports['PHPYoshi buildReleasePullRequest includes misc commits 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
 
@@ -745,7 +745,7 @@ exports['PHPYoshi buildReleasePullRequest includes chore commits 1'] = `
 
 
 
-### Miscellaneous Chores
+### Miscellaneous
 
 * some miscellaneous task ([def234](https://github.com/googleapis/php-yoshi-test-repo/commit/def234))
 
