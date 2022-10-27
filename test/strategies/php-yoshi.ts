@@ -113,7 +113,7 @@ describe('PHPYoshi', () => {
       expect(release!.version?.toString()).to.eql(expectedVersion);
       snapshot(dateSafe(release!.body.toString()));
     });
-    it('includes chore commits', async () => {
+    it('includes misc commits and does not include chore commits', async () => {
       const expectedVersion = '0.123.5';
       const strategy = new PHPYoshi({
         targetBranch: 'main',
@@ -128,7 +128,12 @@ describe('PHPYoshi', () => {
         [
           {
             sha: 'def234',
-            message: 'chore: some miscellaneous task',
+            message: 'misc: some miscellaneous task',
+            files: ['Client3/README.md'],
+          },
+          {
+            sha: 'def2345',
+            message: 'chore: some arduous chore',
             files: ['Client3/README.md'],
           },
         ],

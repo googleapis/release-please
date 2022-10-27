@@ -745,7 +745,7 @@ exports['PHPYoshi buildReleasePullRequest includes chore commits 1'] = `
 
 
 
-### Miscellaneous Chores
+### Miscellaneous
 
 * some miscellaneous task ([def234](https://github.com/googleapis/php-yoshi-test-repo/commit/def234))
 
