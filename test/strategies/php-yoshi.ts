@@ -45,7 +45,7 @@ describe('PHPYoshi', () => {
       'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
       ['Client2/foo.php', 'Client3/bar.php']
     ),
-    buildMockCommit('chore: update common templates'),
+    buildMockCommit('misc: update common templates'),
   ];
   beforeEach(async () => {
     github = await GitHub.create({
@@ -113,7 +113,7 @@ describe('PHPYoshi', () => {
       expect(release!.version?.toString()).to.eql(expectedVersion);
       snapshot(dateSafe(release!.body.toString()));
     });
-    it('includes chore commits', async () => {
+    it('includes misc commits', async () => {
       const expectedVersion = '0.123.5';
       const strategy = new PHPYoshi({
         targetBranch: 'main',
@@ -128,7 +128,7 @@ describe('PHPYoshi', () => {
         [
           {
             sha: 'def234',
-            message: 'chore: some miscellaneous task',
+            message: 'misc: some miscellaneous task',
             files: ['Client3/README.md'],
           },
         ],
@@ -187,7 +187,7 @@ describe('PHPYoshi', () => {
           'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
           ['Client2/foo.php', 'Client3/bar.php']
         ),
-        buildMockCommit('chore: update common templates'),
+        buildMockCommit('misc: update common templates'),
       ];
       getFileStub
         .withArgs('.git/VERSION', 'main')
