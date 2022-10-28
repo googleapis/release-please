@@ -248,7 +248,10 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
           this.logger.warn(`${pomUpdate.path} does not have cached contents`);
         }
       }
-      if (candidate.pullRequest.version) {
+      if (
+        candidate.pullRequest.version &&
+        this.isReleaseVersion(candidate.pullRequest.version)
+      ) {
         updatedPathVersions.set(candidate.path, candidate.pullRequest.version);
       }
     }
@@ -269,7 +272,9 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         } else {
           this.logger.debug(`version: ${version} forced bump`);
           updatedVersions.set(packageName, version);
-          updatedPathVersions.set(this.pathFromPackage(pkg), version);
+          if (this.isReleaseVersion(version)) {
+            updatedPathVersions.set(this.pathFromPackage(pkg), version);
+          }
         }
       }
     }
@@ -308,6 +313,16 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       });
     }
     return graph;
+  }
+
+  /**
+   * Given a release version, determine if we should bump the manifest
+   * version as well. For maven artifacts, SNAPSHOT versions are not
+   * considered releases.
+   * @param {Version} version The release version
+   */
+  protected isReleaseVersion(version: Version): boolean {
+    return !version.preRelease?.includes('SNAPSHOT');
   }
 
   protected bumpVersion(artifact: MavenArtifact): Version {

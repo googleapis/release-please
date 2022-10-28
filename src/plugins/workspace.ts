@@ -266,13 +266,24 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         const version = this.bumpVersion(pkg);
         this.logger.debug(`version: ${version} forced bump`);
         updatedVersions.set(packageName, version);
-        updatedPathVersions.set(this.pathFromPackage(pkg), version);
+        if (this.isReleaseVersion(version)) {
+          updatedPathVersions.set(this.pathFromPackage(pkg), version);
+        }
       }
     }
     return {
       updatedVersions,
       updatedPathVersions,
     };
+  }
+
+  /**
+   * Given a release version, determine if we should bump the manifest
+   * version as well.
+   * @param {Version} _version The release version
+   */
+  protected isReleaseVersion(_version: Version): boolean {
+    return true;
   }
 
   /**
