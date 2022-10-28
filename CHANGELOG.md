@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.15.1](https://github.com/googleapis/release-please/compare/v14.15.0...v14.15.1) (2022-10-28)
+
+
+### Bug Fixes
+
+* **maven-workspace:** SNAPSHOT versions should not be included in the manifest ([#1727](https://github.com/googleapis/release-please/issues/1727)) ([d926c84](https://github.com/googleapis/release-please/commit/d926c840ec99de013a0b5cb198f9fb2700930cf7))
+
 ## [14.15.0](https://github.com/googleapis/release-please/compare/v14.14.0...v14.15.0) (2022-10-27)
 
 
