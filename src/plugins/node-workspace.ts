@@ -346,8 +346,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
   private detectRangePrefix(version: string): string {
     return (
-      ['^', '~'].find(
-        supportedRangePrefix => version[0] === supportedRangePrefix
+      ['^', '~', '>', '<', '<=', '>='].find(supportedRangePrefix =>
+        version.startsWith(supportedRangePrefix)
       ) || ''
     );
   }
