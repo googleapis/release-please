@@ -168,7 +168,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       const depVersion = updatedVersions.get(depName);
       if (depVersion && resolved.type !== 'directory') {
         const currentVersion = this.combineDeps(pkg)?.[depName];
-        const prefix = currentVersion?.length
+        const prefix = currentVersion
           ? this.detectRangePrefix(currentVersion)
           : '';
         updatedPackage.updateLocalDependency(
