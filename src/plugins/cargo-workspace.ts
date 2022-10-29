@@ -25,6 +25,7 @@ import {
   parseCargoManifest,
   CargoDependencies,
   CargoDependency,
+  TargetDependencies,
 } from '../updaters/rust/common';
 import {VersionsMap, Version} from '../version';
 import {CargoToml} from '../updaters/rust/cargo-toml';
@@ -313,6 +314,22 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         ...(crateInfo.manifest['dev-dependencies'] ?? {}),
         ...(crateInfo.manifest['build-dependencies'] ?? {}),
       });
+
+      const targets = crateInfo.manifest.target;
+      if (targets) {
+        for (const targetName in targets) {
+          const target = targets[targetName];
+
+          allDeps.push(
+            ...Object.keys({
+              ...(target.dependencies ?? {}),
+              ...(target['dev-dependencies'] ?? {}),
+              ...(target['build-dependencies'] ?? {}),
+            })
+          );
+        }
+      }
+
       const workspaceDeps = allDeps.filter(dep => workspaceCrateNames.has(dep));
       graph.set(crateInfo.name, {
         deps: workspaceDeps,
@@ -370,27 +387,50 @@ function getChangelogDepsNotes(
     return result;
   };
 
-  const updates: Map<DT, string[]> = new Map();
-  for (const depType of depTypes) {
-    const depUpdates = [];
-    const pkgDepTypes = updatedManifest[depType];
-    if (pkgDepTypes === undefined) {
-      continue;
-    }
-    for (const [depName, currentDepVer] of Object.entries(
-      getDepMap(pkgDepTypes)
-    )) {
-      const origDepVer = depVer(originalManifest[depType]?.[depName]);
-      if (currentDepVer !== origDepVer) {
-        depUpdates.push(
-          `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
-        );
+  type DepUpdates = Map<DT, string[]>;
+
+  const populateUpdates = (
+    originalScope: CargoManifest | TargetDependencies[string],
+    updatedScope: CargoManifest | TargetDependencies[string],
+    updates: DepUpdates
+  ) => {
+    for (const depType of depTypes) {
+      const depUpdates = [];
+      const pkgDepTypes = updatedScope[depType];
+
+      if (pkgDepTypes === undefined) {
+        continue;
+      }
+      for (const [depName, currentDepVer] of Object.entries(
+        getDepMap(pkgDepTypes)
+      )) {
+        const origDepVer = depVer(originalScope[depType]?.[depName]);
+        if (currentDepVer !== origDepVer) {
+          depUpdates.push(
+            `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
+          );
+        }
+      }
+      if (depUpdates.length > 0) {
+        updates.set(depType, depUpdates);
       }
     }
-    if (depUpdates.length > 0) {
-      updates.set(depType, depUpdates);
+  };
+
+  const updates: DepUpdates = new Map();
+
+  populateUpdates(originalManifest, updatedManifest, updates);
+
+  if (updatedManifest.target && originalManifest.target) {
+    for (const targetName in updatedManifest.target) {
+      populateUpdates(
+        originalManifest.target[targetName],
+        updatedManifest.target[targetName],
+        updates
+      );
     }
   }
+
   for (const [dt, notes] of updates) {
     depUpdateNotes += `\n  * ${dt}`;
     for (const note of notes) {
