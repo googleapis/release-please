@@ -387,7 +387,7 @@ function getChangelogDepsNotes(
     return result;
   };
 
-  type DepUpdates = Map<DT, string[]>;
+  type DepUpdates = Map<DT, Set<string>>;
 
   const populateUpdates = (
     originalScope: CargoManifest | TargetDependencies[string],
@@ -412,7 +412,9 @@ function getChangelogDepsNotes(
         }
       }
       if (depUpdates.length > 0) {
-        updates.set(depType, depUpdates);
+        const updatesForType = updates.get(depType) || new Set();
+        depUpdates.forEach(update => updatesForType.add(update));
+        updates.set(depType, updatesForType);
       }
     }
   };
