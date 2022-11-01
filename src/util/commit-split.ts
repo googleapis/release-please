@@ -14,7 +14,6 @@
 
 import {Commit} from '../commit';
 import {ROOT_PROJECT_PATH} from '../manifest';
-import {Logger, logger as defaultLogger} from './logger';
 
 export interface CommitSplitOptions {
   // Include empty git commits: each empty commit is included
@@ -40,9 +39,6 @@ export interface CommitSplitOptions {
   // NOTE: GitHub API always returns paths using the `/` separator, regardless
   // of what platform the client code is running on
   packagePaths?: string[];
-
-  // Optional logger
-  logger?: Logger;
 }
 
 /**
@@ -54,10 +50,8 @@ export interface CommitSplitOptions {
 export class CommitSplit {
   includeEmpty: boolean;
   packagePaths?: string[];
-  logger: Logger;
   constructor(opts?: CommitSplitOptions) {
     opts = opts || {};
-    this.logger = opts.logger ?? defaultLogger;
     this.includeEmpty = !!opts.includeEmpty;
     if (opts.packagePaths) {
       const paths: string[] = [];
@@ -75,15 +69,6 @@ export class CommitSplit {
         newPath = newPath.replace(/^\//, '');
         newPath = newPath.replace(/$/, '/');
         newPath = newPath.replace(/^/, '/');
-        for (let exPath of paths) {
-          exPath = exPath.replace(/$/, '/');
-          exPath = exPath.replace(/^/, '/');
-          if (newPath.startsWith(exPath) || exPath.startsWith(newPath)) {
-            this.logger.warn(
-              `Path prefixes should be unique: ${newPath}, ${exPath}`
-            );
-          }
-        }
         // store them with leading and trailing slashes removed.
         newPath = newPath.replace(/\/$/, '');
         newPath = newPath.replace(/^\//, '');
