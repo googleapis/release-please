@@ -69,21 +69,14 @@ export class CommitSplit {
         newPath = newPath.replace(/^\//, '');
         newPath = newPath.replace(/$/, '/');
         newPath = newPath.replace(/^/, '/');
-        for (let exPath of paths) {
-          exPath = exPath.replace(/$/, '/');
-          exPath = exPath.replace(/^/, '/');
-          if (newPath.startsWith(exPath) || exPath.startsWith(newPath)) {
-            throw new Error(
-              `Path prefixes must be unique: ${newPath}, ${exPath}`
-            );
-          }
-        }
         // store them with leading and trailing slashes removed.
         newPath = newPath.replace(/\/$/, '');
         newPath = newPath.replace(/^\//, '');
         paths.push(newPath);
       }
-      this.packagePaths = paths;
+
+      // sort by longest paths first
+      this.packagePaths = paths.sort((a, b) => b.length - a.length);
     }
   }
 

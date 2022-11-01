@@ -56,6 +56,26 @@ describe('CommitSplit', () => {
     expect(splitCommits['pkg5']).lengthOf(1);
     expect(splitCommits['pkg6/pkg5']).lengthOf(1);
   });
+  it('handles nested folders', () => {
+    const commits: Commit[] = [
+      {
+        sha: 'abc123',
+        message: 'commit abc123',
+        files: ['core/foo.txt', 'pkg2/bar.txt'],
+      },
+      {
+        sha: 'def234',
+        message: 'commit def234',
+        files: ['core/subpackage/foo2.txt', 'pkg3/asdf.txt'],
+      },
+    ];
+    const commitSplit = new CommitSplit({
+      packagePaths: ['core', 'core/subpackage'],
+    });
+    const splitCommits = commitSplit.split(commits);
+    expect(splitCommits['core']).lengthOf(1);
+    expect(splitCommits['core/subpackage']).lengthOf(1);
+  });
   describe('including empty commits', () => {
     it('should separate commits', () => {
       const commitSplit = new CommitSplit({
