@@ -1,0 +1,8 @@
+[package]
+name = "pkgE"
+version = "3.3.3"
+
+[dependencies]
+
+[target.'cfg(foobar)'.dependencies]
+pkgA = { version = "1.1.1", path = "../pkgA" }

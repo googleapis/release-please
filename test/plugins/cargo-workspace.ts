@@ -216,6 +216,7 @@ describe('CargoWorkspace plugin', () => {
           'packages/rustB/Cargo.toml',
           'packages/rustC/Cargo.toml',
           'packages/rustD/Cargo.toml',
+          'packages/rustE/Cargo.toml',
         ],
         flatten: false,
         targetBranch: 'main',
@@ -231,6 +232,7 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustB/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustC/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustD/Cargo.toml', RawContent);
+      assertHasUpdate(updates, 'packages/rustE/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
     it('can skip merging rust packages', async () => {
@@ -265,6 +267,7 @@ describe('CargoWorkspace plugin', () => {
           'packages/rustB/Cargo.toml',
           'packages/rustC/Cargo.toml',
           'packages/rustD/Cargo.toml',
+          'packages/rustE/Cargo.toml',
         ],
         flatten: false,
         targetBranch: 'main',
@@ -285,7 +288,7 @@ describe('CargoWorkspace plugin', () => {
         }
       );
       const newCandidates = await plugin.run(candidates);
-      expect(newCandidates).lengthOf(4);
+      expect(newCandidates).lengthOf(5);
       for (const newCandidate of newCandidates) {
         safeSnapshot(newCandidate.pullRequest.body.toString());
       }
@@ -324,6 +327,7 @@ describe('CargoWorkspace plugin', () => {
           'packages/rustB/Cargo.toml',
           'packages/rustC/Cargo.toml',
           'packages/rustD/Cargo.toml',
+          'packages/rustE/Cargo.toml',
         ],
         flatten: false,
         targetBranch: 'main',
@@ -338,6 +342,7 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustA/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustB/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustC/Cargo.toml', RawContent);
+      assertHasUpdate(updates, 'packages/rustE/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
     it('skips component if not touched', async () => {
@@ -362,6 +367,7 @@ describe('CargoWorkspace plugin', () => {
           'packages/rustB/Cargo.toml',
           'packages/rustC/Cargo.toml',
           'packages/rustD/Cargo.toml',
+          'packages/rustE/Cargo.toml',
         ],
         flatten: false,
         targetBranch: 'main',
@@ -375,6 +381,7 @@ describe('CargoWorkspace plugin', () => {
       const updates = rustCandidate!.pullRequest.updates;
       // pkgA is not touched and does not have a dependency on pkgB
       assertNoHasUpdate(updates, 'packages/rustA/Cargo.toml');
+      assertNoHasUpdate(updates, 'packages/rustE/Cargo.toml');
       assertHasUpdate(updates, 'packages/rustB/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
