@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.15.2](https://github.com/googleapis/release-please/compare/v14.15.1...v14.15.2) (2022-11-01)
+
+
+### Bug Fixes
+
+* Allow overlapping paths when splitting commits ([#1733](https://github.com/googleapis/release-please/issues/1733)) ([adcb99a](https://github.com/googleapis/release-please/commit/adcb99acdbff9ddeea527b673bc8820edff68f2a))
+* **cargo-workspace:** Update target dependencies in Cargo workspace packages ([#1730](https://github.com/googleapis/release-please/issues/1730)) ([3ca3bbc](https://github.com/googleapis/release-please/commit/3ca3bbcef729a359805473fdc798b5af5ab22861))
+
 ## [14.15.1](https://github.com/googleapis/release-please/compare/v14.15.0...v14.15.1) (2022-10-28)
 
 
