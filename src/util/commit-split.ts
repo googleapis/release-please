@@ -14,6 +14,7 @@
 
 import {Commit} from '../commit';
 import {ROOT_PROJECT_PATH} from '../manifest';
+import {Logger, logger as defaultLogger} from './logger';
 
 export interface CommitSplitOptions {
   // Include empty git commits: each empty commit is included
@@ -39,6 +40,9 @@ export interface CommitSplitOptions {
   // NOTE: GitHub API always returns paths using the `/` separator, regardless
   // of what platform the client code is running on
   packagePaths?: string[];
+
+  // Optional logger
+  logger?: Logger;
 }
 
 /**
@@ -50,8 +54,10 @@ export interface CommitSplitOptions {
 export class CommitSplit {
   includeEmpty: boolean;
   packagePaths?: string[];
+  logger: Logger;
   constructor(opts?: CommitSplitOptions) {
     opts = opts || {};
+    this.logger = opts.logger ?? defaultLogger;
     this.includeEmpty = !!opts.includeEmpty;
     if (opts.packagePaths) {
       const paths: string[] = [];
@@ -73,8 +79,8 @@ export class CommitSplit {
           exPath = exPath.replace(/$/, '/');
           exPath = exPath.replace(/^/, '/');
           if (newPath.startsWith(exPath) || exPath.startsWith(newPath)) {
-            throw new Error(
-              `Path prefixes must be unique: ${newPath}, ${exPath}`
+            this.logger.warn(
+              `Path prefixes should be unique: ${newPath}, ${exPath}`
             );
           }
         }
@@ -83,7 +89,9 @@ export class CommitSplit {
         newPath = newPath.replace(/^\//, '');
         paths.push(newPath);
       }
-      this.packagePaths = paths;
+
+      // sort by longest paths first
+      this.packagePaths = paths.sort((a, b) => b.length - a.length);
     }
   }
 

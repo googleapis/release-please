@@ -85,7 +85,7 @@ export class PHPYoshi extends BaseStrategy {
           conventionalCommits
         )
       : this.initialReleaseVersion();
-    const cs = new CommitSplit();
+    const cs = new CommitSplit({logger: this.logger});
     const splitCommits = cs.split(conventionalCommits);
     const topLevelDirectories = Object.keys(splitCommits).sort();
     const versionsMap: VersionsMap = new Map();

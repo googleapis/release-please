@@ -626,6 +626,7 @@ export class Manifest {
     const cs = new CommitSplit({
       includeEmpty: true,
       packagePaths: Object.keys(this.repositoryConfig),
+      logger: this.logger,
     });
     const splitCommits = cs.split(commits);
 
