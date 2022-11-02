@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.15.3](https://github.com/googleapis/release-please/compare/v14.15.2...v14.15.3) (2022-11-02)
+
+
+### Bug Fixes
+
+* **deps:** Bump minimum required xmldom to 0.8.4 ([#1736](https://github.com/googleapis/release-please/issues/1736)) ([11bbc85](https://github.com/googleapis/release-please/commit/11bbc85d8f7cc20e132979d129c1dfc11a269292))
+
 ## [14.15.2](https://github.com/googleapis/release-please/compare/v14.15.1...v14.15.2) (2022-11-01)
 
 
