@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.16.0](https://github.com/googleapis/release-please/compare/v14.15.3...v14.16.0) (2022-11-03)
+
+
+### Features
+
+* **node-workspace:** Maintain current version range prefix ([#1723](https://github.com/googleapis/release-please/issues/1723)) ([53e2599](https://github.com/googleapis/release-please/commit/53e25997fc9fd06fe83735ab5f9aef0f12639b16))
+
 ## [14.15.3](https://github.com/googleapis/release-please/compare/v14.15.2...v14.15.3) (2022-11-02)
 
 
