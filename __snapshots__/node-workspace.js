@@ -15,7 +15,7 @@ Release notes for path: node1, releaseType: node
 * update dependency foo/bar to 1.2.3
 * The following workspace dependencies were updated
   * dependencies
-    * @here/pkgA bumped from 3.3.3 to ^3.3.4
+    * @here/pkgA bumped from 3.3.3 to 3.3.4
 </details>
 
 <details><summary>@here/pkgC: 1.1.2</summary>
@@ -41,7 +41,7 @@ exports['NodeWorkspace plugin run appends dependency notes to an updated module 
 * update dependency foo/bar to 1.2.3
 * The following workspace dependencies were updated
   * dependencies
-    * @here/pkgA bumped from 3.3.3 to ^3.3.4
+    * @here/pkgA bumped from 3.3.3 to 3.3.4
 `
 
 exports['NodeWorkspace plugin run appends dependency notes to an updated module 4'] = `
@@ -96,6 +96,16 @@ Release notes for path: node1, releaseType: node
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['NodeWorkspace plugin run respects version prefix 1'] = `
+{
+  "name": "@here/plugin1",
+  "version": "4.4.4",
+  "peerDependencies": {
+    "@here/pkgA": "^3.3.3"
+  }
+}
 `
 
 exports['NodeWorkspace plugin run should ignore peer dependencies 1'] = `
