@@ -346,7 +346,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
   private detectRangePrefix(version: string): string {
     return (
-      ['^', '~', '>', '<', '<=', '>='].find(supportedRangePrefix =>
+      Object.values(SUPPORTED_RANGE_PREFIXES).find(supportedRangePrefix =>
         version.startsWith(supportedRangePrefix)
       ) || ''
     );
@@ -359,6 +359,15 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       ...(packageJson.optionalDependencies ?? {}),
     };
   }
+}
+
+enum SUPPORTED_RANGE_PREFIXES {
+  CARET = '^',
+  TILDE = '~',
+  GREATER_THAN = '>',
+  LESS_THAN = '<',
+  EQUAL_OR_GREATER_THAN = '>=',
+  EQUAL_OR_LESS_THAN = '<=',
 }
 
 function getChangelogDepsNotes(original: Package, updated: Package): string {

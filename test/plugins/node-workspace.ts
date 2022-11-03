@@ -172,11 +172,14 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'plugin1/package.json');
       assertHasUpdate(updates, 'node1/package.json');
 
-      expect(updates[1].updater).instanceof(RawContent);
-      const updater = updates[1].updater as RawContent;
+      const update = assertHasUpdate(
+        updates,
+        'plugin1/package.json',
+        RawContent
+      );
+      const updater = update.updater as RawContent;
       snapshot(updater.rawContent);
     });
     it('combines node packages', async () => {
