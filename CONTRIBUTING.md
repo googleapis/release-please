@@ -61,7 +61,7 @@ accept your pull requests.
    
    For example, the CLI command:
    
-   `release-please release-pr 
+   `release-please release-pr \
    --token=$GITHUB_TOKEN \
    --repo-url=<owner>/<repo> [extra options]`
    
