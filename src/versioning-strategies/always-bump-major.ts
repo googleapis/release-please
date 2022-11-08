@@ -18,8 +18,7 @@ import {DefaultVersioningStrategy} from './default';
 import {VersionUpdater, MajorVersionUpdate} from '../versioning-strategy';
 
 /**
- * This VersioningStrategy always bumps the patch version. This
- * strategy is useful for backport branches.
+ * This VersioningStrategy always bumps the major version.
  */
 export class AlwaysBumpMajor extends DefaultVersioningStrategy {
   determineReleaseType(

@@ -36,11 +36,13 @@ as a starting point.
 A versioning strategy's job is to determine how to increment a SemVer
 version given a list of parsed commits.
 
-| Versioning Strategy | Description |
-| ------------------- | ----------- |
-| `default` | Breaking changes bump the major version, features bump the minor version, bugfixes bump the patch version |
+| Versioning Strategy | Description                                                                                                 |
+|---------------------|-------------------------------------------------------------------------------------------------------------|
+| `default`           | Breaking changes bump the major version, features bump the minor version, bugfixes bump the patch version   |
 | `always-bump-patch` | Always bump patch version. This is useful for backporting bugfixes to previous major/minor release branches |
-| `service-pack` | Designed for Java backport fixes. Uses Maven's specification for service pack versions (e.g. 1.2.3-sp.1) |
+| `always-bump-minor` | Always bump minor version |                                                                                                                                                                    |
+| `always-bump-major` | Always bump major version |                                                                                  
+| `service-pack`      | Designed for Java backport fixes. Uses Maven's specification for service pack versions (e.g. 1.2.3-sp.1)    |
 
 ### Adding additional versioning strategy types
 
