@@ -34,6 +34,8 @@ import {Expo} from './strategies/expo';
 import {GitHub} from './github';
 import {ReleaserConfig} from './manifest';
 import {AlwaysBumpPatch} from './versioning-strategies/always-bump-patch';
+import {AlwaysBumpMinor} from './versioning-strategies/always-bump-minor';
+import {AlwaysBumpMajor} from './versioning-strategies/always-bump-major';
 import {ServicePackVersioningStrategy} from './versioning-strategies/service-pack';
 import {DependencyManifest} from './versioning-strategies/dependency-manifest';
 import {BaseStrategyOptions} from './strategies/base';

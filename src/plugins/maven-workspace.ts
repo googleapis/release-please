@@ -36,6 +36,8 @@ import {logger as defaultLogger, Logger} from '../util/logger';
 import {GitHub} from '../github';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
 import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
+import {AlwaysBumpMinor} from '../versioning-strategies/always-bump-minor';
+import {AlwaysBumpMajor} from '../versioning-strategies/always-bump-major';
 import {ConventionalCommit} from '../commit';
 import {CompositeUpdater} from '../updaters/composite';
 
