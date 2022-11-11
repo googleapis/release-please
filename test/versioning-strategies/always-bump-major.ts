@@ -18,7 +18,7 @@ import {expect} from 'chai';
 import {AlwaysBumpMajor} from '../../src/versioning-strategies/always-bump-major';
 import {Version} from '../../src/version';
 
-describe('MajorVersioningStrategy', () => {
+describe('AlwaysBumpMajorStrategy', () => {
   describe('with breaking change', () => {
     const commits = [
       {

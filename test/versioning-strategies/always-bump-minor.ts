@@ -18,7 +18,7 @@ import {expect} from 'chai';
 import {AlwaysBumpMinor} from '../../src/versioning-strategies/always-bump-minor';
 import {Version} from '../../src/version';
 
-describe('MinorVersioningStrategy', () => {
+describe('AlwaysBumpMinorStrategy', () => {
   describe('with breaking change', () => {
     const commits = [
       {
