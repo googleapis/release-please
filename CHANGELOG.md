@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.17.0](https://github.com/googleapis/release-please/compare/v14.16.0...v14.17.0) (2022-11-11)
+
+
+### Features
+
+* add always-bump-major versioning strategy ([7526ca8](https://github.com/googleapis/release-please/commit/7526ca8be4fec4d785b44bfb8c8c70078ad7fc73))
+* Add always-bump-minor versioning strategy ([#1744](https://github.com/googleapis/release-please/issues/1744)) ([7526ca8](https://github.com/googleapis/release-please/commit/7526ca8be4fec4d785b44bfb8c8c70078ad7fc73))
+
 ## [14.16.0](https://github.com/googleapis/release-please/compare/v14.15.3...v14.16.0) (2022-11-03)
 
 
