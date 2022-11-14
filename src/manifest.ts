@@ -501,7 +501,8 @@ export class Manifest {
         continue;
       }
       const component = tagName.component || DEFAULT_COMPONENT_NAME;
-      const path = pathsByComponent[component];
+      const path =
+        pathsByComponent[component] || this.#getComponentlessPackage();
       if (!path) {
         this.logger.warn(
           `Found release tag with component '${component}', but not configured in manifest`
@@ -745,6 +746,15 @@ export class Manifest {
     return newReleasePullRequests.map(
       pullRequestWithConfig => pullRequestWithConfig.pullRequest
     );
+  }
+
+  #getComponentlessPackage(): string {
+    for (const path in this.repositoryConfig) {
+      if (!this.repositoryConfig[path].includeComponentInTag) {
+        return path;
+      }
+    }
+    return '';
   }
 
   private async backfillReleasesFromTags(

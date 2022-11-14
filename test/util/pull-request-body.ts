@@ -63,7 +63,9 @@ describe('PullRequestBody', () => {
       expect(pullRequestBody).to.not.be.undefined;
       const releaseData = pullRequestBody!.releaseData;
       expect(releaseData).lengthOf(2);
-      expect(releaseData[0].component).to.be.undefined;
+      expect(releaseData[0].component).to.eq(
+        '@google-automation/bot-config-utils'
+      );
       expect(releaseData[0].version?.toString()).to.eql('3.2.0');
       expect(releaseData[0].notes).matches(/^### Features/);
       expect(releaseData[1].component).to.eql(
