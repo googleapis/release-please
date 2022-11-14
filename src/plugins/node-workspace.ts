@@ -242,13 +242,17 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     for (const [depName, resolved] of graphPackage.localDependencies) {
       const depVersion = updatedVersions.get(depName);
       if (depVersion && resolved.type !== 'directory') {
+        const currentVersion = this.combineDeps(pkg)?.[depName];
+        const prefix = currentVersion
+          ? this.detectRangePrefix(currentVersion)
+          : '';
         updatedPackage.updateLocalDependency(
           resolved,
           depVersion.toString(),
-          '^'
+          prefix
         );
         this.logger.info(
-          `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
+          `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
         );
       }
     }
