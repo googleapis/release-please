@@ -24,7 +24,7 @@ Release notes for path: node1, releaseType: node
 
 * The following workspace dependencies were updated
   * dependencies
-    * @here/pkgB bumped from 2.2.2 to ^2.2.3
+    * @here/pkgB bumped from 2.2.2 to 2.2.3
 </details>
 
 ---
@@ -49,7 +49,7 @@ exports['NodeWorkspace plugin run appends dependency notes to an updated module 
 
 * The following workspace dependencies were updated
   * dependencies
-    * @here/pkgB bumped from 2.2.2 to ^2.2.3
+    * @here/pkgB bumped from 2.2.2 to 2.2.3
 `
 
 exports['NodeWorkspace plugin run combines node packages 1'] = `
@@ -138,7 +138,7 @@ Release notes for path: node1, releaseType: node
 
 * The following workspace dependencies were updated
   * dependencies
-    * @here/pkgA bumped from 3.3.3 to ^3.3.4
+    * @here/pkgA bumped from 3.3.3 to 3.3.4
 </details>
 
 <details><summary>@here/pkgC: 1.1.2</summary>
@@ -147,7 +147,7 @@ Release notes for path: node1, releaseType: node
 
 * The following workspace dependencies were updated
   * dependencies
-    * @here/pkgB bumped from 2.2.2 to ^2.2.3
+    * @here/pkgB bumped from 2.2.2 to 2.2.3
 </details>
 
 <details><summary>@here/pkgD: 4.4.5</summary>
