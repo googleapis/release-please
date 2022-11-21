@@ -5,7 +5,8 @@
 The easiest way to debug your `release-please` configuration is to use the bundled
 CLI. 
 
-To use the CLI, you will need to use a GitHub personal access token:
+To use the CLI, you will need to use a GitHub
+[personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token):
 
 ```bash
 export GITHUB_TOKEN="my-access-token"
