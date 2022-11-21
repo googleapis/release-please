@@ -9,6 +9,9 @@ To use the CLI, you will need to use a GitHub
 [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token):
 
 ```bash
+# install the release-please binary
+npm install -g release-please
+
 export GITHUB_TOKEN="my-access-token"
 release-please release-pr \
   --token=${GITHUB_TOKEN} \
