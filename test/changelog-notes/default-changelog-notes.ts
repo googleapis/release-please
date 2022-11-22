@@ -135,6 +135,16 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.is.string;
         safeSnapshot(notes);
       });
+      it('should handle a breaking change with reference', async () => {
+        const commits = [buildMockCommit('fix!: some bugfix (#1234)')];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
+          parseConventionalCommits(commits),
+          notesOptions
+        );
+        expect(notes).to.is.string;
+        safeSnapshot(notes);
+      });
       it('should parse multiple commit messages from a single commit', async () => {
         const commits = [buildCommitFromFixture('multiple-messages')];
         const changelogNotes = new DefaultChangelogNotes();
