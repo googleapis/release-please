@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.17.1](https://github.com/googleapis/release-please/compare/v14.17.0...v14.17.1) (2022-11-22)
+
+
+### Bug Fixes
+
+* **dart:** Throw MissingRequiredFileError if pubspec.yaml is missing ([#1756](https://github.com/googleapis/release-please/issues/1756)) ([ada9fd6](https://github.com/googleapis/release-please/commit/ada9fd6db42aa6db0db52b8a81aa7f70b064e914))
+* **helm:** throw MissingRequiredFileError if Chart.yaml is missing ([ada9fd6](https://github.com/googleapis/release-please/commit/ada9fd6db42aa6db0db52b8a81aa7f70b064e914))
+* **node-workspace:** Maintain the dependency version prefix in newCandidate ([#1748](https://github.com/googleapis/release-please/issues/1748)) ([909d310](https://github.com/googleapis/release-please/commit/909d310defdf24adfd4858bbe1604668c14ef77f))
+
 ## [14.17.0](https://github.com/googleapis/release-please/compare/v14.16.0...v14.17.0) (2022-11-11)
 
 
