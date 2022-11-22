@@ -21,6 +21,7 @@ import * as yaml from 'js-yaml';
 import {ChartYaml} from '../updaters/helm/chart-yaml';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
+import {FileNotFoundError, MissingRequiredFileError} from '../errors';
 
 export class Helm extends BaseStrategy {
   private chartYmlContents?: GitHubFileContents;
@@ -63,9 +64,20 @@ export class Helm extends BaseStrategy {
 
   private async getChartYmlContents(): Promise<GitHubFileContents> {
     if (!this.chartYmlContents) {
-      this.chartYmlContents = await this.github.getFileContents(
-        this.addPath('Chart.yaml')
-      );
+      try {
+        this.chartYmlContents = await this.github.getFileContents(
+          this.addPath('Chart.yaml')
+        );
+      } catch (e) {
+        if (e instanceof FileNotFoundError) {
+          throw new MissingRequiredFileError(
+            this.addPath('Chart.yaml'),
+            Helm.name,
+            `${this.repository.owner}/${this.repository.repo}`
+          );
+        }
+        throw e;
+      }
     }
     return this.chartYmlContents;
   }
