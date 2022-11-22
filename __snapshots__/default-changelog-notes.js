@@ -153,6 +153,15 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle html
 * render all imagesets as &lt;picture&gt; ([383fb14](https://github.com/googleapis/java-asset/commit/383fb14708ae91f7bb7e64bf0bacab38))
 `
 
+exports['DefaultChangelogNotes buildNotes with commit parsing should handle inline bug links 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Bug Fixes
+
+* some bugfix ([#1234](https://github.com/googleapis/java-asset/issues/1234)) ([6f2163b](https://github.com/googleapis/java-asset/commit/6f2163be093d8a8dd90232d06b45c07e))
+`
+
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle meta commits 1'] = `
 ## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
