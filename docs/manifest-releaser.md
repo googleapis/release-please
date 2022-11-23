@@ -263,6 +263,7 @@ defaults (those are documented in comments)
       // overrides release-type for node
       "release-type": "node",
     },
+    
     // path segment should be relative to repository root
     "path/to/myJSPkgA": {
       // overrides release-type for node
@@ -282,7 +283,7 @@ defaults (those are documented in comments)
     "path/to/my-rust-crate", {
       // override release-type for rust
       "release-type": "rust"
-    }
+    },
 
     "path/to/myPyPkgA": {
       // when a default release-as is set, this is how you revert to using
@@ -295,6 +296,7 @@ defaults (those are documented in comments)
       // our change log is located at path/to/myPyPkgA/docs/CHANGES.rst
       "changelog-path": "docs/CHANGES.rst"
     },
+    
     "path/to/github-enterprise-package", {
       // override changelog host for github enterprise package
       "changelog-host": "https://example.com"
