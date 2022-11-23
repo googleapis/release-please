@@ -1059,7 +1059,9 @@ export class Manifest {
         this.logger.debug(`type: ${config.releaseType}`);
         this.logger.debug(`targetBranch: ${this.targetBranch}`);
         const strategy = strategiesByPath[path];
-        const release = await strategy.buildRelease(pullRequest);
+        const release = await strategy.buildRelease(pullRequest, {
+          groupPullRequestTitlePattern: this.groupPullRequestTitlePattern,
+        });
         if (release) {
           releases.push({
             ...release,
