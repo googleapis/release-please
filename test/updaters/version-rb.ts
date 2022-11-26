@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {expect} from 'chai';
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
@@ -44,6 +45,18 @@ describe('version.rb', () => {
         .replace(/"/g, "'");
       const version = new VersionRB({
         version: Version.parse('0.6.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
+    it('updates long patch versions in version.rb', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './version-with-long-patch.rb'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new VersionRB({
+        version: Version.parse('0.6.11'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
