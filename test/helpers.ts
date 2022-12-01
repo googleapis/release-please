@@ -376,6 +376,19 @@ export function mockTags(
   return sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
 }
 
+export function mockPullRequests(
+  sandbox: sinon.SinonSandbox,
+  github: GitHub,
+  pullRequests: PullRequest[]
+): sinon.SinonStub {
+  async function* fakeGenerator() {
+    for (const pullRequest of pullRequests) {
+      yield pullRequest;
+    }
+  }
+  return sandbox.stub(github, 'pullRequestIterator').returns(fakeGenerator());
+}
+
 export function mockReleaseData(count: number): ReleaseData[] {
   const releaseData: ReleaseData[] = [];
   const version = Version.parse('1.2.3');

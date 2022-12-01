@@ -165,6 +165,9 @@ export class LinkedVersions extends ManifestPlugin {
       },
       [[], []] as CandidateReleasePullRequest[][]
     );
+    this.logger.info(
+      `found ${inScopeCandidates.length} linked-versions candidates`
+    );
 
     // delegate to the merge plugin and add merged pull request
     if (inScopeCandidates.length > 0) {
@@ -172,7 +175,7 @@ export class LinkedVersions extends ManifestPlugin {
         this.github,
         this.targetBranch,
         this.repositoryConfig,
-        `chore\${branch}: release ${this.groupName} libraries`
+        `chore\${scope}: release ${this.groupName} libraries`
       );
       const merged = await merge.run(inScopeCandidates);
       outOfScopeCandidates.push(...merged);

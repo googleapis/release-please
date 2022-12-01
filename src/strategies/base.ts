@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy} from '../strategy';
+import {Strategy, BuildReleaseOptions} from '../strategy';
 import {GitHub} from '../github';
 import {VersioningStrategy} from '../versioning-strategy';
 import {Repository} from '../repository';
@@ -500,7 +500,8 @@ export abstract class BaseStrategy implements Strategy {
    * @returns {Release} The candidate release.
    */
   async buildRelease(
-    mergedPullRequest: PullRequest
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
   ): Promise<Release | undefined> {
     if (this.skipGitHubRelease) {
       this.logger.info('Release skipped from strategy config');
@@ -510,6 +511,9 @@ export abstract class BaseStrategy implements Strategy {
       this.logger.error('Pull request should have been merged');
       return;
     }
+    const mergedTitlePattern =
+      options?.groupPullRequestTitlePattern ??
+      MANIFEST_PULL_REQUEST_TITLE_PATTERN;
 
     const pullRequestTitle =
       PullRequestTitle.parse(
@@ -519,7 +523,7 @@ export abstract class BaseStrategy implements Strategy {
       ) ||
       PullRequestTitle.parse(
         mergedPullRequest.title,
-        MANIFEST_PULL_REQUEST_TITLE_PATTERN,
+        mergedTitlePattern,
         this.logger
       );
     if (!pullRequestTitle) {
