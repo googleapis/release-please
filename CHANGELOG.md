@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.17.4](https://github.com/googleapis/release-please/compare/v14.17.3...v14.17.4) (2022-12-01)
+
+
+### Bug Fixes
+
+* Pass group-pull-request-title-pattern to strategies to parse releases ([#1760](https://github.com/googleapis/release-please/issues/1760)) ([f7601e4](https://github.com/googleapis/release-please/commit/f7601e423a267861fb86a441d1835ddf6da07a83))
+
 ## [14.17.3](https://github.com/googleapis/release-please/compare/v14.17.2...v14.17.3) (2022-11-26)
 
 
