@@ -25,7 +25,7 @@ export class VersionRB extends DefaultUpdater {
    */
   updateContent(content: string): string {
     return content.replace(
-      /(["'])[0-9]+\.[0-9]+\.[0-9](-\w+)?["']/,
+      /(["'])[0-9]+\.[0-9]+\.[0-9]+(-\w+)?["']/,
       `$1${this.version}$1`
     );
   }

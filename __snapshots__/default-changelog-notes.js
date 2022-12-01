@@ -109,6 +109,19 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle a br
 * some bugfix ([05670cf](https://github.com/googleapis/java-asset/commit/05670cf2e850beffe53bb2691f8701c7))
 `
 
+exports['DefaultChangelogNotes buildNotes with commit parsing should handle a breaking change with reference 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* some bugfix ([#1234](https://github.com/googleapis/java-asset/issues/1234))
+
+### Bug Fixes
+
+* some bugfix ([#1234](https://github.com/googleapis/java-asset/issues/1234)) ([749cd8b](https://github.com/googleapis/java-asset/commit/749cd8b9edc6103a2f40a34ca45c31c5))
+`
+
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle bug links 1'] = `
 ## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
@@ -138,6 +151,15 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle html
 ### Features
 
 * render all imagesets as &lt;picture&gt; ([383fb14](https://github.com/googleapis/java-asset/commit/383fb14708ae91f7bb7e64bf0bacab38))
+`
+
+exports['DefaultChangelogNotes buildNotes with commit parsing should handle inline bug links 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Bug Fixes
+
+* some bugfix ([#1234](https://github.com/googleapis/java-asset/issues/1234)) ([6f2163b](https://github.com/googleapis/java-asset/commit/6f2163be093d8a8dd90232d06b45c07e))
 `
 
 exports['DefaultChangelogNotes buildNotes with commit parsing should handle meta commits 1'] = `

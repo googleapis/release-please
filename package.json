@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "14.17.1",
+  "version": "14.17.3",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -63,7 +63,7 @@
     "gts": "^3.1.0",
     "mocha": "^9.2.2",
     "nock": "^13.0.0",
-    "sinon": "14.0.2",
+    "sinon": "15.0.0",
     "snap-shot-it": "^7.0.0"
   },
   "dependencies": {

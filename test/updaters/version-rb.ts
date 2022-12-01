@@ -48,5 +48,17 @@ describe('version.rb', () => {
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('updates long patch versions in version.rb', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './version-with-long-patch.rb'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new VersionRB({
+        version: Version.parse('0.6.11'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
