@@ -18,7 +18,7 @@ import {GitHub} from '../../src/github';
 import {GoYoshi} from '../../src/strategies/go-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, dateSafe} from '../helpers';
-import {buildMockCommit} from '../helpers';
+import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -28,11 +28,11 @@ import {VersionGo} from '../../src/updaters/go/version-go';
 const sandbox = sinon.createSandbox();
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(iam): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
     ['iam/foo.go']
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('GoYoshi', () => {
@@ -110,10 +110,10 @@ describe('GoYoshi', () => {
         includeComponentInTag: false,
       });
       const commits = [
-        buildMockCommit('fix: some generic fix'),
-        buildMockCommit('fix(translate): some translate fix'),
-        buildMockCommit('fix(logging): some logging fix'),
-        buildMockCommit('feat: some generic feature'),
+        ...buildMockConventionalCommit('fix: some generic fix'),
+        ...buildMockConventionalCommit('fix(translate): some translate fix'),
+        ...buildMockConventionalCommit('fix(logging): some logging fix'),
+        ...buildMockConventionalCommit('feat: some generic feature'),
       ];
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       const pullRequestBody = pullRequest!.body.toString();
@@ -131,12 +131,12 @@ describe('GoYoshi', () => {
         includeComponentInTag: false,
       });
       const commits = [
-        buildMockCommit('fix: some generic fix'),
-        buildMockCommit('fix(iam/apiv1): some firestore fix', [
+        ...buildMockConventionalCommit('fix: some generic fix'),
+        ...buildMockConventionalCommit('fix(iam/apiv1): some firestore fix', [
           'accessapproval/apiv1/access_approval_client.go',
           'iam/apiv1/admin/firestore_admin_client.go',
         ]),
-        buildMockCommit('feat: some generic feature'),
+        ...buildMockConventionalCommit('feat: some generic feature'),
       ];
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       const pullRequestBody = pullRequest!.body.toString();
@@ -156,10 +156,18 @@ describe('GoYoshi', () => {
         github,
       });
       const commits = [
-        buildMockCommit('feat(all): auto-regenerate discovery clients (#1281)'),
-        buildMockCommit('feat(all): auto-regenerate discovery clients (#1280)'),
-        buildMockCommit('feat(all): auto-regenerate discovery clients (#1279)'),
-        buildMockCommit('feat(all): auto-regenerate discovery clients (#1278)'),
+        ...buildMockConventionalCommit(
+          'feat(all): auto-regenerate discovery clients (#1281)'
+        ),
+        ...buildMockConventionalCommit(
+          'feat(all): auto-regenerate discovery clients (#1280)'
+        ),
+        ...buildMockConventionalCommit(
+          'feat(all): auto-regenerate discovery clients (#1279)'
+        ),
+        ...buildMockConventionalCommit(
+          'feat(all): auto-regenerate discovery clients (#1278)'
+        ),
       ];
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       const pullRequestBody = pullRequest!.body.toString();

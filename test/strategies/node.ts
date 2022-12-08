@@ -15,7 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {Node} from '../../src/strategies/node';
 import {
-  buildMockCommit,
+  buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
 } from '../helpers';
@@ -39,7 +39,7 @@ const fixturesPath = './test/fixtures/strategies/node';
 describe('Node', () => {
   let github: GitHub;
   const commits = [
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];
@@ -95,7 +95,7 @@ describe('Node', () => {
         github,
       });
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
         ),
       ];
@@ -125,7 +125,7 @@ describe('Node', () => {
         component: 'abc-123',
       });
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
         ),
       ];

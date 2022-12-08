@@ -22,7 +22,7 @@ import {
   assertHasUpdate,
   assertNoHasUpdate,
 } from '../helpers';
-import {buildMockCommit} from '../helpers';
+import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -34,13 +34,13 @@ const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/java-yoshi';
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
   ),
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('JavaYoshi', () => {
@@ -134,7 +134,9 @@ describe('JavaYoshi', () => {
     });
     it('handles promotion to 1.0.0', async () => {
       const commits = [
-        buildMockCommit('feat: promote to 1.0.0\n\nRelease-As: 1.0.0'),
+        ...buildMockConventionalCommit(
+          'feat: promote to 1.0.0\n\nRelease-As: 1.0.0'
+        ),
       ];
       const expectedVersion = '1.0.0';
       const strategy = new JavaYoshi({

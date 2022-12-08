@@ -2724,7 +2724,7 @@ describe('Manifest', () => {
         mockCommits(sandbox, github, [
           {
             sha: 'aaaaaa',
-            message: 'fix: some bugfix',
+            message: 'fix: some bugfix\nfix:another fix',
             files: ['path/a/foo'],
           },
           {
@@ -2854,14 +2854,13 @@ describe('Manifest', () => {
       });
 
       it('should apply plugin hook "processCommits"', async () => {
-        const mockPlugin = sandbox.createStubInstance(SentenceCase);
-        mockPlugin.run.returnsArg(0);
-        mockPlugin.preconfigure.returnsArg(0);
-        mockPlugin.processCommits.returnsArg(0);
+        const spyPlugin = sinon.spy(new SentenceCase(github, 'main', {}));
         sandbox
           .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'sentence-case'))
-          .returns(mockPlugin);
+          // TS compiler is having issues with sinon.spy.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .returns(spyPlugin as any as InstanceType<typeof SentenceCase>);
         const manifest = new Manifest(
           github,
           'main',
@@ -2881,7 +2880,32 @@ describe('Manifest', () => {
         );
         const pullRequests = await manifest.buildPullRequests();
         expect(pullRequests).not.empty;
-        sinon.assert.calledOnce(mockPlugin.processCommits);
+        sinon.assert.calledWith(spyPlugin.processCommits, [
+          {
+            sha: 'aaaaaa',
+            message: 'fix: Another fix',
+            files: ['path/a/foo'],
+            pullRequest: undefined,
+            type: 'fix',
+            scope: null,
+            bareMessage: 'Another fix',
+            notes: [],
+            references: [],
+            breaking: false,
+          },
+          {
+            sha: 'aaaaaa',
+            message: 'fix: Some bugfix',
+            files: ['path/a/foo'],
+            pullRequest: undefined,
+            type: 'fix',
+            scope: null,
+            bareMessage: 'Some bugfix',
+            notes: [],
+            references: [],
+            breaking: false,
+          },
+        ]);
       });
     });
 

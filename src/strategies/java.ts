@@ -17,7 +17,7 @@ import {Version} from '../version';
 import {BaseStrategy, BaseStrategyOptions, BuildUpdatesOptions} from './base';
 import {Changelog} from '../updaters/changelog';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
-import {Commit} from '../commit';
+import {ConventionalCommit} from '../commit';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
 import {PullRequestTitle} from '../util/pull-request-title';
@@ -74,7 +74,7 @@ export class Java extends BaseStrategy {
   }
 
   async buildReleasePullRequest(
-    commits: Commit[],
+    commits: ConventionalCommit[],
     latestRelease?: Release,
     draft?: boolean,
     labels: string[] = []
@@ -156,7 +156,7 @@ export class Java extends BaseStrategy {
   }
 
   protected async needsSnapshot(
-    commits: Commit[],
+    commits: ConventionalCommit[],
     latestRelease?: Release
   ): Promise<boolean> {
     if (this.skipSnapshot) {
