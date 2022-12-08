@@ -2880,6 +2880,8 @@ describe('Manifest', () => {
         );
         const pullRequests = await manifest.buildPullRequests();
         expect(pullRequests).not.empty;
+        // This assertion verifies that conventional commit parsing
+        // was applied before calling the processCommits plugin hook:
         sinon.assert.calledWith(spyPlugin.processCommits, [
           {
             sha: 'aaaaaa',
