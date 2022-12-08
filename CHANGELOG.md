@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [14.17.5](https://github.com/googleapis/release-please/compare/v14.17.4...v14.17.5) (2022-12-08)
+
+
+### Bug Fixes
+
+* **expo:** Android version now correctly builds as a number ([#1770](https://github.com/googleapis/release-please/issues/1770)) ([d54483b](https://github.com/googleapis/release-please/commit/d54483be6d307aea75797f6a5bcfa6679b64088f))
+
 ## [14.17.4](https://github.com/googleapis/release-please/compare/v14.17.3...v14.17.4) (2022-12-01)
 
 
