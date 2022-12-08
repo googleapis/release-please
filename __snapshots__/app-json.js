@@ -30,7 +30,7 @@ exports['AppJson updateContent updates the app versions 1'] = `
     },
     "android": {
       "package": "com.somedomain",
-      "versionCode": "440030201",
+      "versionCode": 440030201,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon-inverse.png",
         "backgroundColor": "#FFFFFF"
