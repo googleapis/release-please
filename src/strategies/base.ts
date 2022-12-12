@@ -625,7 +625,7 @@ export abstract class BaseStrategy implements Strategy {
   ): Promise<Release[]> {
     const release = await this.buildRelease(mergedPullRequest, options);
     if (release) {
-      return [release]
+      return [release];
     }
     return [];
   }
