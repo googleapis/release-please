@@ -25,7 +25,7 @@ import {
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
 import {Update} from '../update';
-import {ConventionalCommit, Commit, parseConventionalCommits} from '../commit';
+import {ConventionalCommit, Commit} from '../commit';
 import {Version, VersionsMap} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
@@ -249,14 +249,12 @@ export abstract class BaseStrategy implements Strategy {
    *   open a pull request.
    */
   async buildReleasePullRequest(
-    commits: Commit[],
+    commits: ConventionalCommit[],
     latestRelease?: Release,
     draft?: boolean,
     labels: string[] = []
   ): Promise<ReleasePullRequest | undefined> {
-    const conventionalCommits = await this.postProcessCommits(
-      parseConventionalCommits(commits, this.logger)
-    );
+    const conventionalCommits = await this.postProcessCommits(commits);
     this.logger.info(`Considering: ${conventionalCommits.length} commits`);
     if (conventionalCommits.length === 0) {
       this.logger.info(`No commits for path: ${this.path}, skipping`);

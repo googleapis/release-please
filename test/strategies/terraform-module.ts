@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {TerraformModule} from '../../src/strategies/terraform-module';
 import * as sinon from 'sinon';
-import {assertHasUpdate, buildMockCommit} from '../helpers';
+import {assertHasUpdate, buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -27,13 +27,13 @@ import {ModuleVersion} from '../../src/updaters/terraform/module-version';
 const sandbox = sinon.createSandbox();
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
   ),
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('TerraformModule', () => {

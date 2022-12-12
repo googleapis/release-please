@@ -8,7 +8,7 @@ exports['Strategy buildReleasePullRequest allows overriding initial version 1'] 
 
 ### Miscellaneous Chores
 
-* initial commit ([abc123](https://github.com/googleapis/base-test-repo/commit/abc123))
+* initial commit ([16d3754](https://github.com/googleapis/base-test-repo/commit/16d3754a2134a6d19ee19d2e5ba4dfbc))
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -24,7 +24,7 @@ exports['Strategy buildReleasePullRequest allows overriding initial version in b
 
 ### Features
 
-* initial commit ([abc123](https://github.com/googleapis/base-test-repo/commit/abc123))
+* initial commit ([a90fc00](https://github.com/googleapis/base-test-repo/commit/a90fc00ca62382346da72dd8f51078a7))
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -40,7 +40,7 @@ exports['Strategy buildReleasePullRequest should pass changelogHost to default b
 
 ### Bug Fixes
 
-* a bugfix ([abc5566](https://example.com/googleapis/base-test-repo/commit/abc5566))
+* a bugfix ([6c1715c](https://example.com/googleapis/base-test-repo/commit/6c1715c07438036db68bb939cf36fe6f))
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

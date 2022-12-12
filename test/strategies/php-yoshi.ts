@@ -18,7 +18,7 @@ import {GitHub} from '../../src/github';
 import {PHPYoshi} from '../../src/strategies/php-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, buildGitHubFileRaw, dateSafe} from '../helpers';
-import {buildMockCommit} from '../helpers';
+import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -37,15 +37,15 @@ describe('PHPYoshi', () => {
   let github: GitHub;
   let getFileStub: sinon.SinonStub;
   const commits = [
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
       ['Client1/foo.php']
     ),
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
       ['Client2/foo.php', 'Client3/bar.php']
     ),
-    buildMockCommit('misc: update common templates'),
+    ...buildMockConventionalCommit('misc: update common templates'),
   ];
   beforeEach(async () => {
     github = await GitHub.create({
@@ -179,15 +179,15 @@ describe('PHPYoshi', () => {
       });
       const latestRelease = undefined;
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
           ['Client1/foo.php', '.git/release-please.yml']
         ),
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
           ['Client2/foo.php', 'Client3/bar.php']
         ),
-        buildMockCommit('misc: update common templates'),
+        ...buildMockConventionalCommit('misc: update common templates'),
       ];
       getFileStub
         .withArgs('.git/VERSION', 'main')

@@ -20,7 +20,11 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {Octokit} from '@octokit/rest';
-import {Commit} from '../src/commit';
+import {
+  Commit,
+  ConventionalCommit,
+  parseConventionalCommits,
+} from '../src/commit';
 import {GitHub, GitHubTag, GitHubRelease} from '../src/github';
 import {Update} from '../src/update';
 import {expect} from 'chai';
@@ -110,6 +114,23 @@ export function readPOJO(name: string): object {
   return JSON.parse(content);
 }
 
+export function buildMockConventionalCommit(
+  message: string,
+  files: string[] = []
+): ConventionalCommit[] {
+  return parseConventionalCommits([
+    {
+      // Ensure SHA is same on Windows with replace:
+      sha: crypto
+        .createHash('md5')
+        .update(message.replace(/\r\n/g, '\n'))
+        .digest('hex'),
+      message,
+      files: files,
+    },
+  ]);
+}
+
 export function buildMockCommit(message: string, files: string[] = []): Commit {
   return {
     // Ensure SHA is same on Windows with replace:
@@ -121,6 +142,7 @@ export function buildMockCommit(message: string, files: string[] = []): Commit {
     files: files,
   };
 }
+
 export function buildGitHubFileContent(
   fixturesPath: string,
   fixture: string

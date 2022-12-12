@@ -15,7 +15,11 @@
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import {GitHub} from '../../src';
 import * as sinon from 'sinon';
-import {assertHasUpdate, assertHasUpdates, buildMockCommit} from '../helpers';
+import {
+  assertHasUpdate,
+  assertHasUpdates,
+  buildMockConventionalCommit,
+} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {Generic} from '../../src/updaters/generic';
 import {JavaReleased} from '../../src/updaters/java/java-released';
@@ -28,8 +32,8 @@ import {expect} from 'chai';
 const sandbox = sinon.createSandbox();
 
 const COMMITS = [
-  buildMockCommit('fix(deps): update dependency'),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('fix(deps): update dependency'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('Maven', () => {

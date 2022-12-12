@@ -17,7 +17,7 @@ import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 import {GitHub} from '../github';
 import {Logger} from '../util/logger';
 import {Strategy} from '../strategy';
-import {Commit} from '../commit';
+import {Commit, parseConventionalCommits} from '../commit';
 import {Release} from '../release';
 import {Version} from '../version';
 import {buildStrategy} from '../factory';
@@ -87,7 +87,7 @@ export class LinkedVersions extends ManifestPlugin {
       const strategy = groupStrategies[path];
       const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
-        commitsByPath[path],
+        parseConventionalCommits(commitsByPath[path], this.logger),
         latestRelease
       );
       if (releasePullRequest?.version) {
