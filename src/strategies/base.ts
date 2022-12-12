@@ -496,6 +496,7 @@ export abstract class BaseStrategy implements Strategy {
    * Given a merged pull request, build the candidate release.
    * @param {PullRequest} mergedPullRequest The merged release pull request.
    * @returns {Release} The candidate release.
+   * @deprecated Use buildReleases() instead.
    */
   async buildRelease(
     mergedPullRequest: PullRequest,
