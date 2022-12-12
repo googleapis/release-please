@@ -61,6 +61,16 @@ export interface Strategy {
   ): Promise<Release | undefined>;
 
   /**
+   * Given a merged pull request, build the candidate releases.
+   * @param {PullRequest} mergedPullRequest The merged release pull request.
+   * @returns {Release} The candidate release.
+   */
+  buildReleases(
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
+  ): Promise<Release[]>;
+
+  /**
    * Return the component for this strategy. This may be a computed field.
    * @returns {string}
    */

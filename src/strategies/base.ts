@@ -613,6 +613,22 @@ export abstract class BaseStrategy implements Strategy {
     };
   }
 
+  /**
+   * Given a merged pull request, build the candidate releases.
+   * @param {PullRequest} mergedPullRequest The merged release pull request.
+   * @returns {Release} The candidate release.
+   */
+  async buildReleases(
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
+  ): Promise<Release[]> {
+    const release = await this.buildRelease(mergedPullRequest, options);
+    if (release) {
+      return [release]
+    }
+    return [];
+  }
+
   isPublishedVersion(_version: Version): boolean {
     return true;
   }

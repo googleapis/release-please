@@ -1054,7 +1054,7 @@ export class Manifest {
 
     // Find merged release pull requests
     const generator = await this.findMergedReleasePullRequests();
-    const releases: CandidateRelease[] = [];
+    const candidateReleases: CandidateRelease[] = [];
     for await (const pullRequest of generator) {
       for (const path in this.repositoryConfig) {
         const config = this.repositoryConfig[path];
@@ -1062,11 +1062,11 @@ export class Manifest {
         this.logger.debug(`type: ${config.releaseType}`);
         this.logger.debug(`targetBranch: ${this.targetBranch}`);
         const strategy = strategiesByPath[path];
-        const release = await strategy.buildRelease(pullRequest, {
+        const releases = await strategy.buildReleases(pullRequest, {
           groupPullRequestTitlePattern: this.groupPullRequestTitlePattern,
         });
-        if (release) {
-          releases.push({
+        for (const release of releases) {
+          candidateReleases.push({
             ...release,
             path,
             pullRequest,
@@ -1076,13 +1076,11 @@ export class Manifest {
               (!!release.tag.version.preRelease ||
                 release.tag.version.major === 0),
           });
-        } else {
-          this.logger.info(`No release necessary for path: ${path}`);
         }
       }
     }
 
-    return releases;
+    return candidateReleases;
   }
 
   /**
