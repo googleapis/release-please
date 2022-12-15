@@ -37,12 +37,17 @@ import {parseCargoManifest} from '../../src/updaters/rust/common';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/cargo-workspace';
+const circularFixturesPath = './test/fixtures/plugins/cargo-workspace-circular';
 
 export function buildMockPackageUpdate(
   path: string,
-  fixtureName: string
+  fixtureName: string,
+  baseFixturesPath: string = fixturesPath
 ): Update {
-  const cachedFileContents = buildGitHubFileContent(fixturesPath, fixtureName);
+  const cachedFileContents = buildGitHubFileContent(
+    baseFixturesPath,
+    fixtureName
+  );
   const manifest = parseCargoManifest(cachedFileContents.parsedContent);
   return {
     path,
@@ -383,6 +388,49 @@ describe('CargoWorkspace plugin', () => {
       assertNoHasUpdate(updates, 'packages/rustA/Cargo.toml');
       assertNoHasUpdate(updates, 'packages/rustE/Cargo.toml');
       assertHasUpdate(updates, 'packages/rustB/Cargo.toml', RawContent);
+      snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+    });
+    it('handles a circular dependency', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/rustB', 'rust', '2.2.3', {
+          component: '@here/pkgB',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustB/Cargo.toml',
+              'packages/rustB/Cargo.toml'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: circularFixturesPath,
+        files: [
+          'Cargo.toml',
+          'packages/rustA/Cargo.toml',
+          'packages/rustB/Cargo.toml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new CargoWorkspace(github, 'main', {
+        'packages/rustA': {
+          releaseType: 'rust',
+        },
+        'packages/rustB': {
+          releaseType: 'rust',
+        },
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const rustCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'rust'
+      );
+      expect(rustCandidate).to.not.be.undefined;
+      const updates = rustCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'packages/rustA/Cargo.toml');
+      assertHasUpdate(updates, 'packages/rustB/Cargo.toml');
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
   });
