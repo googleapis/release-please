@@ -14,7 +14,7 @@
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {Elixir} from '../../src/strategies/elixir';
-import {buildMockCommit, assertHasUpdate} from '../helpers';
+import {buildMockConventionalCommit, assertHasUpdate} from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
@@ -30,7 +30,7 @@ const sandbox = sinon.createSandbox();
 describe('Elixir', () => {
   let github: GitHub;
   const commits = [
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];

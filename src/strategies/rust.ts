@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHubFileContents} from '../util/file-cache';
+import {GitHubFileContents} from '@google-automations/git-file-utils';
 
 // Generic
 import {Changelog} from '../updaters/changelog';
@@ -20,7 +20,6 @@ import {Changelog} from '../updaters/changelog';
 import {CargoToml} from '../updaters/rust/cargo-toml';
 import {CargoLock} from '../updaters/rust/cargo-lock';
 import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
-import {logger} from '../util/logger';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {VersionsMap, Version} from '../version';
 import {Update} from '../update';
@@ -52,10 +51,10 @@ export class Rust extends BaseStrategy {
       if (workspaceManifest.package?.name) {
         versionsMap.set(workspaceManifest.package.name, version);
       } else {
-        logger.warn('No workspace manifest package name found');
+        this.logger.warn('No workspace manifest package name found');
       }
 
-      logger.info(
+      this.logger.info(
         `found workspace with ${members.length} members, upgrading all`
       );
 
@@ -65,19 +64,21 @@ export class Rust extends BaseStrategy {
         const manifestPath = `${member}/Cargo.toml`;
         const manifestContent = await this.getContent(manifestPath);
         if (!manifestContent) {
-          logger.warn(`member ${member} declared but did not find Cargo.toml`);
+          this.logger.warn(
+            `member ${member} declared but did not find Cargo.toml`
+          );
           continue;
         }
         const manifest = parseCargoManifest(manifestContent.parsedContent);
         manifestsByPath.set(manifestPath, manifestContent);
         if (!manifest.package?.name) {
-          logger.warn(`member ${member} has no package name`);
+          this.logger.warn(`member ${member} has no package name`);
           continue;
         }
         versionsMap.set(manifest.package.name, version);
       }
-      logger.info(`updating ${manifestsByPath.size} submodules`);
-      logger.debug('versions map:', versionsMap);
+      this.logger.info(`updating ${manifestsByPath.size} submodules`);
+      this.logger.debug('versions map:', versionsMap);
 
       for (const [manifestPath, manifestContent] of manifestsByPath) {
         updates.push({
@@ -100,10 +101,17 @@ export class Rust extends BaseStrategy {
         }),
       });
     } else {
-      const manifestPath = this.addPath('Cargo.toml');
-      logger.info(`single crate found, updating ${manifestPath}`);
+      this.logger.info('single crate found, updating Cargo.toml');
+
+      const packageName = await this.getDefaultPackageName();
+      if (packageName) {
+        versionsMap.set(packageName, version);
+      } else {
+        this.logger.warn('No crate package name found');
+      }
+
       updates.push({
-        path: manifestPath,
+        path: this.addPath('Cargo.toml'),
         createIfMissing: false,
         updater: new CargoToml({
           version,

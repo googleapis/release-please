@@ -24,12 +24,11 @@ import {CommitSplit} from '../util/commit-split';
 import {DefaultUpdater} from '../updaters/default';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
-import {logger} from '../util/logger';
 import {TagName} from '../util/tag-name';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
-import {GitHubFileContents} from '../util/file-cache';
+import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError} from '../errors';
 
 const CHANGELOG_SECTIONS = [
@@ -38,7 +37,8 @@ const CHANGELOG_SECTIONS = [
   {type: 'perf', section: 'Performance Improvements'},
   {type: 'revert', section: 'Reverts'},
   {type: 'docs', section: 'Documentation'},
-  {type: 'chore', section: 'Miscellaneous Chores'},
+  {type: 'misc', section: 'Miscellaneous'},
+  {type: 'chore', section: 'Chores', hidden: true},
   {type: 'style', section: 'Styles', hidden: true},
   {type: 'refactor', section: 'Code Refactoring', hidden: true},
   {type: 'test', section: 'Tests', hidden: true},
@@ -72,10 +72,10 @@ export class PHPYoshi extends BaseStrategy {
     labels: string[] = []
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
-      parseConventionalCommits(commits)
+      parseConventionalCommits(commits, this.logger)
     );
     if (conventionalCommits.length === 0) {
-      logger.info(`No commits for path: ${this.path}, skipping`);
+      this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }
 
@@ -116,6 +116,7 @@ export class PHPYoshi extends BaseStrategy {
         const partialReleaseNotes = await this.changelogNotes.buildNotes(
           splitCommits[directory],
           {
+            host: this.changelogHost,
             owner: this.repository.owner,
             repository: this.repository.repo,
             version: newVersion.toString(),
@@ -158,7 +159,7 @@ export class PHPYoshi extends BaseStrategy {
       const componentInfo = directoryVersionContents[directory];
       const version = versionsMap.get(componentInfo.composer.name);
       if (!version) {
-        logger.warn(`No version found for ${componentInfo.composer.name}`);
+        this.logger.warn(`No version found for ${componentInfo.composer.name}`);
         continue;
       }
       updates.push({
@@ -181,6 +182,7 @@ export class PHPYoshi extends BaseStrategy {
         });
       }
     }
+    // TODO use pullrequest header here?
     const pullRequestBody = new PullRequestBody([
       {
         component,
@@ -193,7 +195,7 @@ export class PHPYoshi extends BaseStrategy {
       title: pullRequestTitle,
       body: pullRequestBody,
       updates,
-      labels,
+      labels: [...labels, ...this.extraLabels],
       headRefName: branchName.toString(),
       version: newVersion,
       draft: draft ?? false,
@@ -203,7 +205,7 @@ export class PHPYoshi extends BaseStrategy {
   protected async parsePullRequestBody(
     pullRequestBody: string
   ): Promise<PullRequestBody | undefined> {
-    const body = PullRequestBody.parse(pullRequestBody);
+    const body = PullRequestBody.parse(pullRequestBody, this.logger);
     if (!body) {
       return undefined;
     }

@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "owner": "some-owner",
+    "name": "Some Name",
+    "slug": "some-slug",
+    "version": "1.2.3",
+    "orientation": "portrait",
+    "icon": "./assets/icon-inverse.png",
+    "scheme": "someschema",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#FFFFFF"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "some-url-here"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.somedomain",
+      "buildNumber": "1.2.3",
+      "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.somedomain",
+      "versionCode": 440010203,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon-inverse.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

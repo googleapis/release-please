@@ -18,7 +18,7 @@ import {GitHub} from '../../src/github';
 import {Python} from '../../src/strategies/python';
 import * as sinon from 'sinon';
 import {buildGitHubFileContent, assertHasUpdate} from '../helpers';
-import {buildMockCommit} from '../helpers';
+import {buildMockConventionalCommit} from '../helpers';
 import {PythonFileWithVersion} from '../../src/updaters/python/python-file-with-version';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -30,13 +30,13 @@ import {Changelog} from '../../src/updaters/changelog';
 const sandbox = sinon.createSandbox();
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
   ),
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('Python', () => {
@@ -112,6 +112,16 @@ describe('Python', () => {
       assertHasUpdate(
         updates,
         'src/google-cloud-automl/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(
+        updates,
+        'google_cloud_automl/__init__.py',
+        PythonFileWithVersion
+      );
+      assertHasUpdate(
+        updates,
+        'src/google_cloud_automl/__init__.py',
         PythonFileWithVersion
       );
     });

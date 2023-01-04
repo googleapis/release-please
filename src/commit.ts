@@ -18,7 +18,7 @@ const visit = require('unist-util-visit');
 const visitWithAncestors = require('unist-util-visit-parents');
 const NUMBER_REGEX = /^[0-9]+$/;
 import {PullRequest} from './pull-request';
-import {logger} from './util/logger';
+import {logger as defaultLogger, Logger} from './util/logger';
 
 import * as parser from '@conventional-commits/parser';
 
@@ -131,6 +131,7 @@ function toConventionalChangelogFormat(
     ast,
     ['breaking-change'],
     (node: parser.BreakingChange, ancestors: parser.Node[]) => {
+      let hitBreakingMarker = false;
       let parent = ancestors.pop();
       if (!parent) {
         return;
@@ -145,8 +146,13 @@ function toConventionalChangelogFormat(
           // the breaking change notes:
           visit(
             parent,
-            ['text', 'newline'],
-            (node: parser.Text | parser.BreakingChange) => {
+            ['breaking-change', 'text', 'newline'],
+            (node: SummaryNodes) => {
+              if (node.type === 'breaking-change') {
+                hitBreakingMarker = true;
+                return;
+              }
+              if (!hitBreakingMarker) return;
               breaking.text += node.value;
             }
           );
@@ -332,6 +338,23 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
   ).map(postProcessCommits);
 }
 
+// If someone wishes to aggregate multiple, complex commit messages into a
+// single commit, they can include one or more `BEGIN_NESTED_COMMIT`/`END_NESTED_COMMIT`
+// blocks into the body of the commit
+function splitMessages(message: string): string[] {
+  const parts = message.split('BEGIN_NESTED_COMMIT');
+  const messages = [parts.shift()!];
+  for (const part of parts) {
+    const [newMessage, ...rest] = part.split('END_NESTED_COMMIT');
+    messages.push(newMessage);
+    // anthing outside of the BEGIN/END annotations are added to the original
+    // commit
+    messages[0] = messages[0] + rest.join();
+  }
+
+  return messages;
+}
+
 /**
  * Given a list of raw commits, parse and expand into conventional commits.
  *
@@ -342,36 +365,40 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
  *   messages.
  */
 export function parseConventionalCommits(
-  commits: Commit[]
+  commits: Commit[],
+  logger: Logger = defaultLogger
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 
   for (const commit of commits) {
-    const commitMessage = preprocessCommitMessage(commit);
-    try {
-      for (const parsedCommit of parseCommits(commitMessage)) {
-        const breaking =
-          parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
-            .length > 0;
-        conventionalCommits.push({
-          sha: commit.sha,
-          message: parsedCommit.header,
-          files: commit.files,
-          pullRequest: commit.pullRequest,
-          type: parsedCommit.type,
-          scope: parsedCommit.scope,
-          bareMessage: parsedCommit.subject,
-          notes: parsedCommit.notes,
-          references: parsedCommit.references,
-          breaking,
-        });
+    for (const commitMessage of splitMessages(
+      preprocessCommitMessage(commit)
+    )) {
+      try {
+        for (const parsedCommit of parseCommits(commitMessage)) {
+          const breaking =
+            parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
+              .length > 0;
+          conventionalCommits.push({
+            sha: commit.sha,
+            message: parsedCommit.header,
+            files: commit.files,
+            pullRequest: commit.pullRequest,
+            type: parsedCommit.type,
+            scope: parsedCommit.scope,
+            bareMessage: parsedCommit.subject,
+            notes: parsedCommit.notes,
+            references: parsedCommit.references,
+            breaking,
+          });
+        }
+      } catch (_err) {
+        logger.debug(
+          `commit could not be parsed: ${commit.sha} ${
+            commit.message.split('\n')[0]
+          }`
+        );
       }
-    } catch (_err) {
-      logger.debug(
-        `commit could not be parsed: ${commit.sha} ${
-          commit.message.split('\n')[0]
-        }`
-      );
     }
   }
 

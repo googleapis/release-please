@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {describe, it, beforeEach} from 'mocha';
-import {buildStrategy, getReleaserTypes, buildPlugin} from '../src/factory';
+import {beforeEach, describe, it} from 'mocha';
+import {
+  buildStrategy,
+  getReleaserTypes,
+  registerReleaseType,
+  unregisterReleaseType,
+} from '../src/factory';
 import {GitHub} from '../src/github';
 import {expect} from 'chai';
 import {Simple} from '../src/strategies/simple';
@@ -26,8 +31,7 @@ import {ServicePackVersioningStrategy} from '../src/versioning-strategies/servic
 import {DependencyManifest} from '../src/versioning-strategies/dependency-manifest';
 import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {DefaultChangelogNotes} from '../src/changelog-notes/default';
-import {PluginType, RepositoryConfig} from '../src/manifest';
-import {LinkedVersions} from '../src/plugins/linked-versions';
+import {Java} from '../src/strategies/java';
 
 describe('factory', () => {
   let github: GitHub;
@@ -69,6 +73,18 @@ describe('factory', () => {
         strategy.versioningStrategy as DefaultVersioningStrategy;
       expect(versioningStrategy.bumpMinorPreMajor).to.be.true;
       expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
+    });
+    it('should throw for unknown type', async () => {
+      try {
+        await buildStrategy({
+          github,
+          releaseType: 'non-existent',
+        });
+      } catch (err) {
+        expect(err).to.be.instanceof(Error);
+        return;
+      }
+      expect.fail();
     });
     it('should build with a configured versioning strategy', async () => {
       const strategy = await buildStrategy({
@@ -182,6 +198,23 @@ describe('factory', () => {
       expect(innerVersioningStrategy.bumpMinorPreMajor).to.be.true;
       expect(innerVersioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
     });
+    it('should handle skipping snapshots', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'java',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        extraFiles: ['path1/foo1.java', 'path2/foo2.java'],
+        skipSnapshot: true,
+      });
+      expect(strategy).instanceof(Java);
+      const javaStrategy = strategy as Java;
+      expect(javaStrategy.extraFiles).to.eql([
+        'path1/foo1.java',
+        'path2/foo2.java',
+      ]);
+      expect(javaStrategy.skipSnapshot).to.be.true;
+    });
     it('should handle extra-files', async () => {
       const strategy = await buildStrategy({
         github,
@@ -210,38 +243,26 @@ describe('factory', () => {
       expect((strategy as Simple).versionFile).to.eql('foo/bar');
     });
   });
-  describe('buildPlugin', () => {
-    const simplePluginTypes: PluginType[] = [
-      'cargo-workspace',
-      'node-workspace',
-    ];
-    const repositoryConfig: RepositoryConfig = {
-      '.': {releaseType: 'simple'},
-    };
-    for (const pluginType of simplePluginTypes) {
-      it(`should build a simple ${pluginType}`, () => {
-        const plugin = buildPlugin({
-          github,
-          type: pluginType,
-          targetBranch: 'target-branch',
-          repositoryConfig,
-        });
-        expect(plugin).to.not.be.undefined;
-      });
-    }
-    it('should build a linked-versions config', () => {
-      const plugin = buildPlugin({
-        github,
-        type: {
-          type: 'linked-versions',
-          groupName: 'group-name',
-          components: ['pkg1', 'pkg2'],
-        },
-        targetBranch: 'target-branch',
-        repositoryConfig,
-      });
-      expect(plugin).to.not.be.undefined;
-      expect(plugin).instanceof(LinkedVersions);
+  describe('registerReleaseType', () => {
+    const releaseType = 'custom-test';
+
+    class CustomTest extends Simple {}
+
+    afterEach(() => {
+      unregisterReleaseType(releaseType);
+    });
+
+    it('should register new releaser', async () => {
+      registerReleaseType(releaseType, options => new CustomTest(options));
+
+      const strategy = await buildStrategy({github, releaseType: releaseType});
+      expect(strategy).to.be.instanceof(CustomTest);
+    });
+    it('should return custom types', () => {
+      registerReleaseType(releaseType, options => new Simple(options));
+
+      const allTypes = getReleaserTypes();
+      expect(allTypes).to.contain(releaseType);
     });
   });
 });

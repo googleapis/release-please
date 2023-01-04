@@ -15,13 +15,18 @@
 import {ManifestPlugin} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 import {GitHub} from '../github';
-import {logger} from '../util/logger';
+import {Logger} from '../util/logger';
 import {Strategy} from '../strategy';
-import {Commit} from '../commit';
+import {Commit, parseConventionalCommits} from '../commit';
 import {Release} from '../release';
 import {Version} from '../version';
 import {buildStrategy} from '../factory';
 import {Merge} from './merge';
+
+interface LinkedVersionsPluginOptions {
+  merge?: boolean;
+  logger?: Logger;
+}
 
 /**
  * This plugin reconfigures strategies by linking multiple components
@@ -30,19 +35,22 @@ import {Merge} from './merge';
  * Release notes are broken up using `<summary>`/`<details>` blocks.
  */
 export class LinkedVersions extends ManifestPlugin {
-  private groupName: string;
-  private components: Set<string>;
+  readonly groupName: string;
+  readonly components: Set<string>;
+  readonly merge: boolean;
 
   constructor(
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     groupName: string,
-    components: string[]
+    components: string[],
+    options: LinkedVersionsPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(github, targetBranch, repositoryConfig, options.logger);
     this.groupName = groupName;
     this.components = new Set(components);
+    this.merge = options.merge ?? true;
   }
 
   /**
@@ -67,7 +75,7 @@ export class LinkedVersions extends ManifestPlugin {
         groupStrategies[path] = strategy;
       }
     }
-    logger.info(
+    this.logger.info(
       `Found ${Object.keys(groupStrategies).length} group components for ${
         this.groupName
       }`
@@ -79,7 +87,7 @@ export class LinkedVersions extends ManifestPlugin {
       const strategy = groupStrategies[path];
       const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
-        commitsByPath[path],
+        parseConventionalCommits(commitsByPath[path], this.logger),
         latestRelease
       );
       if (releasePullRequest?.version) {
@@ -103,7 +111,7 @@ export class LinkedVersions extends ManifestPlugin {
     for (const path in strategiesByPath) {
       if (path in groupStrategies) {
         const component = await strategiesByPath[path].getComponent();
-        logger.info(
+        this.logger.info(
           `Replacing strategy for path ${path} with forced version: ${primaryVersion}`
         );
         newStrategies[path] = await buildStrategy({
@@ -114,7 +122,7 @@ export class LinkedVersions extends ManifestPlugin {
           releaseAs: primaryVersion.toString(),
         });
         if (missingReleasePaths.has(path)) {
-          logger.debug(`Appending fake commit for path: ${path}`);
+          this.logger.debug(`Appending fake commit for path: ${path}`);
           commitsByPath[path].push({
             sha: '',
             message: `chore(${component}): Synchronize ${
@@ -138,10 +146,14 @@ export class LinkedVersions extends ManifestPlugin {
   async run(
     candidates: CandidateReleasePullRequest[]
   ): Promise<CandidateReleasePullRequest[]> {
+    if (!this.merge) {
+      return candidates;
+    }
+
     const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce(
       (collection, candidate) => {
         if (!candidate.pullRequest.version) {
-          logger.warn('pull request missing version', candidate);
+          this.logger.warn('pull request missing version', candidate);
           return collection;
         }
         if (this.components.has(candidate.config.component || '')) {
@@ -153,6 +165,9 @@ export class LinkedVersions extends ManifestPlugin {
       },
       [[], []] as CandidateReleasePullRequest[][]
     );
+    this.logger.info(
+      `found ${inScopeCandidates.length} linked-versions candidates`
+    );
 
     // delegate to the merge plugin and add merged pull request
     if (inScopeCandidates.length > 0) {
@@ -160,7 +175,7 @@ export class LinkedVersions extends ManifestPlugin {
         this.github,
         this.targetBranch,
         this.repositoryConfig,
-        `chore\${branch}: release ${this.groupName} libraries`
+        `chore\${scope}: release ${this.groupName} libraries`
       );
       const merged = await merge.run(inScopeCandidates);
       outOfScopeCandidates.push(...merged);

@@ -28,6 +28,7 @@ Options:
   --monorepo-tags               include library name in tags and release
                                 branches              [boolean] [default: false]
   --pull-request-title-pattern  Title pattern to make release PR        [string]
+  --pull-request-header         Header for release PR                   [string]
   --path                        release from path other than root directory
                                                                         [string]
   --component                   name of component release is being minted for
@@ -36,10 +37,10 @@ Options:
                                                                         [string]
   --release-type                what type of repo is a release being created
                                 for?
-           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
-         "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
-    "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
-                                                   "simple", "terraform-module"]
+   [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
+                  "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
+        "krm-blueprint", "maven", "node", "ocaml", "php", "php-yoshi", "python",
+                     "ruby", "ruby-yoshi", "rust", "simple", "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
   --manifest-file               where can the manifest file be found in the
@@ -57,6 +58,9 @@ Options:
   --release-label               set a pull request label other than
                                 "autorelease: tagged"
                                        [string] [default: "autorelease: tagged"]
+  --snapshot-label              set a java snapshot pull request label other
+                                than "autorelease: snapshot"
+                                     [string] [default: "autorelease: snapshot"]
 `
 
 exports['CLI --help manifest-pr 1'] = `
@@ -84,6 +88,8 @@ Options:
   --dry-run             Prepare but do not take action[boolean] [default: false]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
+  --skip-labeling       skip application of labels to pull requests
+                                                      [boolean] [default: false]
   --fork                should the PR be created from a fork
                                                       [boolean] [default: false]
   --draft-pull-request  mark pull request as a draft  [boolean] [default: false]
@@ -129,6 +135,9 @@ Options:
                                                [default: "autorelease: pending"]
   --release-label   set a pull request label other than "autorelease: tagged"
                                        [string] [default: "autorelease: tagged"]
+  --snapshot-label  set a java snapshot pull request label other than
+                    "autorelease: snapshot"
+                                     [string] [default: "autorelease: snapshot"]
   --config-file     where can the config file be found in the project?
                                          [default: "release-please-config.json"]
   --manifest-file   where can the manifest file be found in the project?
@@ -176,13 +185,15 @@ Options:
   --snapshot                        is it a snapshot (or pre-release) being
                                     generated?        [boolean] [default: false]
   --versioning-strategy             strategy used for bumping versions
-  [choices: "default", "always-bump-patch", "service-pack"] [default: "default"]
+        [choices: "always-bump-major", "always-bump-minor", "always-bump-patch",
+                                 "default", "service-pack"] [default: "default"]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?  [string] [default: "CHANGELOG.md"]
   --changelog-type                  type of changelog to build
                                                   [choices: "default", "github"]
   --changelog-sections              comma-separated list of scopes to include in
                                     the changelog                       [string]
+  --changelog-host                  host for hyperlinks in the changelog[string]
   --last-package-version            last version # that package was released as
                          [deprecated: use --latest-tag-version instead] [string]
   --latest-tag-version              Override the detected latest tag version
@@ -193,6 +204,8 @@ Options:
   --label                           comma-separated list of labels to add to
                                     from release PR
                                                [default: "autorelease: pending"]
+  --skip-labeling                   skip application of labels to pull requests
+                                                      [boolean] [default: false]
   --fork                            should the PR be created from a fork
                                                       [boolean] [default: false]
   --draft-pull-request              mark pull request as a draft
@@ -206,6 +219,7 @@ Options:
   --monorepo-tags                   include library name in tags and release
                                     branches          [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]
+  --pull-request-header             Header for release PR               [string]
   --path                            release from path other than root directory
                                                                         [string]
   --component                       name of component release is being minted
@@ -214,10 +228,10 @@ Options:
                                                                         [string]
   --release-type                    what type of repo is a release being created
                                     for?
-           [choices: "dart", "dotnet-yoshi", "elixir", "go", "go-yoshi", "helm",
-         "java-backport", "java-bom", "java-lts", "java-yoshi", "krm-blueprint",
-    "node", "ocaml", "php", "php-yoshi", "python", "ruby", "ruby-yoshi", "rust",
-                                                   "simple", "terraform-module"]
+   [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
+                  "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
+        "krm-blueprint", "maven", "node", "ocaml", "php", "php-yoshi", "python",
+                     "ruby", "ruby-yoshi", "rust", "simple", "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?
                                          [default: "release-please-config.json"]

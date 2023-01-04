@@ -20,8 +20,21 @@ import {Version} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
 import {VersionGo} from '../updaters/go/version-go';
-import {logger} from '../util/logger';
 import {dirname} from 'path';
+
+const CHANGELOG_SECTIONS = [
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'revert', section: 'Reverts'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'style', section: 'Styles', hidden: true},
+  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
+];
 
 const REGEN_PR_REGEX = /.*auto-regenerate.*/;
 const REGEN_ISSUE_REGEX = /(?<prefix>.*)\(#(?<pr>.*)\)(\n|$)/;
@@ -29,8 +42,12 @@ const REGEN_ISSUE_REGEX = /(?<prefix>.*)\(#(?<pr>.*)\)(\n|$)/;
 export class GoYoshi extends BaseStrategy {
   constructor(options: BaseStrategyOptions) {
     options.changelogPath = options.changelogPath ?? 'CHANGES.md';
-    super(options);
+    super({
+      ...options,
+      changelogSections: CHANGELOG_SECTIONS,
+    });
   }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
@@ -61,7 +78,7 @@ export class GoYoshi extends BaseStrategy {
   ): Promise<ConventionalCommit[]> {
     let regenCommit: ConventionalCommit;
     const component = await this.getComponent();
-    logger.debug('Filtering commits');
+    this.logger.debug('Filtering commits');
     const ignoredSubmodules = await this.getIgnoredSubModules();
     return commits.filter(commit => {
       // Only have a single entry of the nightly regen listed in the changelog.
@@ -106,7 +123,7 @@ export class GoYoshi extends BaseStrategy {
         // Skip commits that don't have a scope as we don't know where to
         // put them
         if (!commit.scope) {
-          logger.debug(`Skipping commit without scope: ${commit.message}`);
+          this.logger.debug(`Skipping commit without scope: ${commit.message}`);
           return false;
         }
 
@@ -116,7 +133,7 @@ export class GoYoshi extends BaseStrategy {
           // This is a submodule release, so only include commits in this
           // scope
           if (!commitMatchesScope(commit.scope, component!)) {
-            logger.debug(
+            this.logger.debug(
               `Skipping commit scope: ${commit.scope} != ${component}`
             );
             return false;
@@ -126,7 +143,9 @@ export class GoYoshi extends BaseStrategy {
           // are released independently
           for (const submodule of ignoredSubmodules) {
             if (commitMatchesScope(commit.scope, submodule)) {
-              logger.debug(`Skipping ignored commit scope: ${commit.scope}`);
+              this.logger.debug(
+                `Skipping ignored commit scope: ${commit.scope}`
+              );
               return false;
             }
           }
@@ -147,14 +166,14 @@ export class GoYoshi extends BaseStrategy {
       return new Set();
     }
 
-    logger.info('Looking for go.mod files');
+    this.logger.info('Looking for go.mod files');
     const paths = (
       await this.github.findFilesByFilenameAndRef('go.mod', this.targetBranch)
     )
       .filter(path => !path.includes('internal') && path !== 'go.mod')
       .map(path => dirname(path));
-    logger.info(`Found ${paths.length} submodules`);
-    logger.debug(JSON.stringify(paths));
+    this.logger.info(`Found ${paths.length} submodules`);
+    this.logger.debug(JSON.stringify(paths));
     return new Set(paths);
   }
 

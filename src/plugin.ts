@@ -15,8 +15,9 @@
 import {GitHub} from './github';
 import {CandidateReleasePullRequest, RepositoryConfig} from './manifest';
 import {Strategy} from './strategy';
-import {Commit} from './commit';
+import {Commit, ConventionalCommit} from './commit';
 import {Release} from './release';
+import {logger as defaultLogger, Logger} from './util/logger';
 
 /**
  * A plugin runs after a repository manifest has built candidate
@@ -28,14 +29,26 @@ export abstract class ManifestPlugin {
   readonly github: GitHub;
   readonly targetBranch: string;
   readonly repositoryConfig: RepositoryConfig;
+  protected logger: Logger;
   constructor(
     github: GitHub,
     targetBranch: string,
-    repositoryConfig: RepositoryConfig
+    repositoryConfig: RepositoryConfig,
+    logger: Logger = defaultLogger
   ) {
     this.github = github;
     this.targetBranch = targetBranch;
     this.repositoryConfig = repositoryConfig;
+    this.logger = logger;
+  }
+
+  /**
+   * Perform post-processing on commits, e.g, sentence casing them.
+   * @param {Commit[]} commits The set of commits that will feed into release pull request.
+   * @returns {Commit[]} The modified commit objects.
+   */
+  processCommits(commits: ConventionalCommit[]): ConventionalCommit[] {
+    return commits;
   }
 
   /**

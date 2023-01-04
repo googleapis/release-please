@@ -20,17 +20,28 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {Octokit} from '@octokit/rest';
-import {Commit} from '../src/commit';
+import {
+  Commit,
+  ConventionalCommit,
+  parseConventionalCommits,
+} from '../src/commit';
 import {GitHub, GitHubTag, GitHubRelease} from '../src/github';
 import {Update} from '../src/update';
 import {expect} from 'chai';
 import {CandidateReleasePullRequest} from '../src/manifest';
 import {Version} from '../src/version';
 import {PullRequestTitle} from '../src/util/pull-request-title';
-import {PullRequestBody} from '../src/util/pull-request-body';
+import {PullRequestBody, ReleaseData} from '../src/util/pull-request-body';
 import {BranchName} from '../src/util/branch-name';
 import {ReleaseType} from '../src/factory';
-import {GitHubFileContents, DEFAULT_FILE_MODE} from '../src/util/file-cache';
+import {
+  GitHubFileContents,
+  DEFAULT_FILE_MODE,
+} from '@google-automations/git-file-utils';
+import {CompositeUpdater} from '../src/updaters/composite';
+import {PullRequestOverflowHandler} from '../src/util/pull-request-overflow-handler';
+import {ReleasePullRequest} from '../src/release-pull-request';
+import {PullRequest} from '../src/pull-request';
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -103,6 +114,23 @@ export function readPOJO(name: string): object {
   return JSON.parse(content);
 }
 
+export function buildMockConventionalCommit(
+  message: string,
+  files: string[] = []
+): ConventionalCommit[] {
+  return parseConventionalCommits([
+    {
+      // Ensure SHA is same on Windows with replace:
+      sha: crypto
+        .createHash('md5')
+        .update(message.replace(/\r\n/g, '\n'))
+        .digest('hex'),
+      message,
+      files: files,
+    },
+  ]);
+}
+
 export function buildMockCommit(message: string, files: string[] = []): Commit {
   return {
     // Ensure SHA is same on Windows with replace:
@@ -114,6 +142,7 @@ export function buildMockCommit(message: string, files: string[] = []): Commit {
     files: files,
   };
 }
+
 export function buildGitHubFileContent(
   fixturesPath: string,
   fixture: string
@@ -242,6 +271,30 @@ export function assertHasUpdate(
   return found!;
 }
 
+export function assertHasUpdates(
+  updates: Update[],
+  path: string,
+  ...clazz: any
+) {
+  if (clazz.length <= 1) {
+    return assertHasUpdate(updates, path, clazz[0]);
+  }
+
+  const composite = assertHasUpdate(updates, path, CompositeUpdater)
+    .updater as CompositeUpdater;
+  expect(composite.updaters).to.be.lengthOf(
+    clazz.length,
+    `expected to find exactly ${clazz.length} updaters`
+  );
+  for (let i = 0; i < clazz.length; i++) {
+    expect(composite.updaters[i]).to.be.instanceof(
+      clazz[i],
+      `expected updaters[${i}] to be of class ${clazz[i]}`
+    );
+  }
+  return composite;
+}
+
 export function assertNoHasUpdate(updates: Update[], path: string) {
   const found = updates.find(update => {
     return update.path === path;
@@ -265,15 +318,19 @@ export function buildCommitFromFixture(name: string): Commit {
   return buildMockCommit(message);
 }
 
+interface MockCandidatePullRequestOptions {
+  component?: string;
+  updates?: Update[];
+  notes?: string;
+  draft?: boolean;
+  labels?: string[];
+  group?: string;
+}
 export function buildMockCandidatePullRequest(
   path: string,
   releaseType: ReleaseType,
   versionString: string,
-  component?: string,
-  updates: Update[] = [],
-  notes?: string,
-  draft?: boolean,
-  labels: string[] = []
+  options: MockCandidatePullRequestOptions = {}
 ): CandidateReleasePullRequest {
   const version = Version.parse(versionString);
   return {
@@ -282,18 +339,19 @@ export function buildMockCandidatePullRequest(
       title: PullRequestTitle.ofTargetBranch('main'),
       body: new PullRequestBody([
         {
-          component,
+          component: options.component,
           version,
           notes:
-            notes ??
+            options.notes ??
             `Release notes for path: ${path}, releaseType: ${releaseType}`,
         },
       ]),
-      updates,
-      labels,
+      updates: options.updates ?? [],
+      labels: options.labels ?? [],
       headRefName: BranchName.ofTargetBranch('main').toString(),
       version,
-      draft: draft ?? false,
+      draft: options.draft ?? false,
+      group: options.group,
     },
     config: {
       releaseType,
@@ -305,37 +363,79 @@ export function mockCommits(
   sandbox: sinon.SinonSandbox,
   github: GitHub,
   commits: Commit[]
-) {
+): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const commit of commits) {
       yield commit;
     }
   }
-  sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
+  return sandbox.stub(github, 'mergeCommitIterator').returns(fakeGenerator());
 }
 
 export function mockReleases(
   sandbox: sinon.SinonSandbox,
   github: GitHub,
   releases: GitHubRelease[]
-) {
+): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const release of releases) {
       yield release;
     }
   }
-  sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
+  return sandbox.stub(github, 'releaseIterator').returns(fakeGenerator());
 }
 
 export function mockTags(
   sandbox: sinon.SinonSandbox,
   github: GitHub,
   tags: GitHubTag[]
-) {
+): sinon.SinonStub {
   async function* fakeGenerator() {
     for (const tag of tags) {
       yield tag;
     }
   }
-  sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
+  return sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
+}
+
+export function mockPullRequests(
+  sandbox: sinon.SinonSandbox,
+  github: GitHub,
+  pullRequests: PullRequest[]
+): sinon.SinonStub {
+  async function* fakeGenerator() {
+    for (const pullRequest of pullRequests) {
+      yield pullRequest;
+    }
+  }
+  return sandbox.stub(github, 'pullRequestIterator').returns(fakeGenerator());
+}
+
+export function mockReleaseData(count: number): ReleaseData[] {
+  const releaseData: ReleaseData[] = [];
+  const version = Version.parse('1.2.3');
+  for (let i = 0; i < count; i++) {
+    releaseData.push({
+      component: `component${i}`,
+      version,
+      notes: `release notes for component${i}`,
+    });
+  }
+  return releaseData;
+}
+
+export class MockPullRequestOverflowHandler
+  implements PullRequestOverflowHandler
+{
+  async handleOverflow(
+    pullRequest: ReleasePullRequest,
+    _maxSize?: number | undefined
+  ): Promise<string> {
+    return pullRequest.body.toString();
+  }
+  async parseOverflow(
+    pullRequest: PullRequest
+  ): Promise<PullRequestBody | undefined> {
+    return PullRequestBody.parse(pullRequest.body);
+  }
 }

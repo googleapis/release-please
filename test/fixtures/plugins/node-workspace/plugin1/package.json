@@ -1,0 +1,7 @@
+{
+  "name": "@here/plugin1",
+  "version": "4.4.4",
+  "peerDependencies": {
+    "@here/pkgA": "^3.3.3"
+  }
+}

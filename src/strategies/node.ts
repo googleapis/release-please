@@ -18,7 +18,8 @@ import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../updaters/node/samples-package-json';
 import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
-import {GitHubFileContents} from '../util/file-cache';
+import {GitHubFileContents} from '@google-automations/git-file-utils';
+import {FileNotFoundError, MissingRequiredFileError} from '../errors';
 
 export class Node extends BaseStrategy {
   private pkgJsonContents?: GitHubFileContents;
@@ -83,12 +84,23 @@ export class Node extends BaseStrategy {
     return component.match(/^@[\w-]+\//) ? component.split('/')[1] : component;
   }
 
-  private async getPkgJsonContents(): Promise<GitHubFileContents> {
+  protected async getPkgJsonContents(): Promise<GitHubFileContents> {
     if (!this.pkgJsonContents) {
-      this.pkgJsonContents = await this.github.getFileContentsOnBranch(
-        this.addPath('package.json'),
-        this.targetBranch
-      );
+      try {
+        this.pkgJsonContents = await this.github.getFileContentsOnBranch(
+          this.addPath('package.json'),
+          this.targetBranch
+        );
+      } catch (e) {
+        if (e instanceof FileNotFoundError) {
+          throw new MissingRequiredFileError(
+            this.addPath('package.json'),
+            'node',
+            `${this.repository.owner}/${this.repository.repo}`
+          );
+        }
+        throw e;
+      }
     }
     return this.pkgJsonContents;
   }

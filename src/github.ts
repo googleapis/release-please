@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createPullRequest, Changes} from 'code-suggester';
+import {createPullRequest} from 'code-suggester';
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 
@@ -24,14 +24,16 @@ import {
   GitHubAPIError,
   DuplicateReleaseError,
   FileNotFoundError,
+  ConfigurationError,
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
+const MAX_SLEEP_SECONDS = 20;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
 
-import {logger} from './util/logger';
+import {logger as defaultLogger} from './util/logger';
 import {Repository} from './repository';
 import {ReleasePullRequest} from './release-pull-request';
 import {Update} from './update';
@@ -42,7 +44,12 @@ import {
   RepositoryFileCache,
   GitHubFileContents,
   DEFAULT_FILE_MODE,
-} from './util/file-cache';
+  FileNotFoundError as MissingFileError,
+} from '@google-automations/git-file-utils';
+import {Logger} from 'code-suggester/build/src/types';
+import {HttpsProxyAgent} from 'https-proxy-agent';
+import {HttpProxyAgent} from 'http-proxy-agent';
+import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -57,6 +64,12 @@ export interface OctokitAPIs {
 export interface GitHubOptions {
   repository: Repository;
   octokitAPIs: OctokitAPIs;
+  logger?: Logger;
+}
+
+interface ProxyOption {
+  host: string;
+  port: number;
 }
 
 interface GitHubCreateOptions {
@@ -67,6 +80,8 @@ interface GitHubCreateOptions {
   graphqlUrl?: string;
   octokitAPIs?: OctokitAPIs;
   token?: string;
+  logger?: Logger;
+  proxy?: ProxyOption;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -159,6 +174,7 @@ export interface ReleaseOptions {
 }
 
 export interface GitHubRelease {
+  id: number;
   name?: string;
   tagName: string;
   sha: string;
@@ -173,12 +189,25 @@ export interface GitHubTag {
   sha: string;
 }
 
+interface FileDiff {
+  readonly mode: '100644' | '100755' | '040000' | '160000' | '120000';
+  readonly content: string | null;
+  readonly originalContent: string | null;
+}
+export type ChangeSet = Map<string, FileDiff>;
+
+interface CreatePullRequestOptions {
+  fork?: boolean;
+  draft?: boolean;
+}
+
 export class GitHub {
   readonly repository: Repository;
   private octokit: OctokitType;
   private request: RequestFunctionType;
   private graphql: Function;
   private fileCache: RepositoryFileCache;
+  private logger: Logger;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
@@ -186,6 +215,25 @@ export class GitHub {
     this.request = options.octokitAPIs.request;
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
+    this.logger = options.logger ?? defaultLogger;
+  }
+
+  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
+    if (!defaultProxy) {
+      return undefined;
+    }
+
+    const {host, port} = defaultProxy;
+
+    return new URL(baseUrl).protocol.replace(':', '') === 'http'
+      ? new HttpProxyAgent({
+          host,
+          port,
+        })
+      : new HttpsProxyAgent({
+          host,
+          port,
+        });
   }
 
   /**
@@ -210,6 +258,9 @@ export class GitHub {
       octokit: new Octokit({
         baseUrl: apiUrl,
         auth: options.token,
+        request: {
+          agent: this.createDefaultAgent(apiUrl, options.proxy),
+        },
       }),
       request: request.defaults({
         baseUrl: apiUrl,
@@ -220,6 +271,9 @@ export class GitHub {
       }),
       graphql: graphql.defaults({
         baseUrl: graphqlUrl,
+        request: {
+          agent: this.createDefaultAgent(graphqlUrl, options.proxy),
+        },
         headers: {
           'user-agent': `release-please/${releasePleaseVersion}`,
           Authorization: `token ${options.token}`,
@@ -240,6 +294,7 @@ export class GitHub {
           )),
       },
       octokitAPIs: apis,
+      logger: options.logger,
     };
     return new GitHub(opts);
   }
@@ -340,67 +395,79 @@ export class GitHub {
     cursor?: string,
     options: CommitIteratorOptions = {}
   ): Promise<CommitHistory | null> {
-    logger.debug(
+    this.logger.debug(
       `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
     );
-    const response = await this.graphqlRequest({
-      query: `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
-        repository(owner: $owner, name: $repo) {
-          ref(qualifiedName: $targetBranch) {
-            target {
-              ... on Commit {
-                history(first: $num, after: $cursor) {
-                  nodes {
-                    associatedPullRequests(first: 10) {
-                      nodes {
-                        number
-                        title
-                        baseRefName
-                        headRefName
-                        labels(first: 10) {
-                          nodes {
-                            name
-                          }
+    const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
+      repository(owner: $owner, name: $repo) {
+        ref(qualifiedName: $targetBranch) {
+          target {
+            ... on Commit {
+              history(first: $num, after: $cursor) {
+                nodes {
+                  associatedPullRequests(first: 10) {
+                    nodes {
+                      number
+                      title
+                      baseRefName
+                      headRefName
+                      labels(first: 10) {
+                        nodes {
+                          name
                         }
-                        body
-                        mergeCommit {
-                          oid
+                      }
+                      body
+                      mergeCommit {
+                        oid
+                      }
+                      files(first: $maxFilesChanged) {
+                        nodes {
+                          path
                         }
-                        files(first: $maxFilesChanged) {
-                          nodes {
-                            path
-                          }
-                          pageInfo {
-                            endCursor
-                            hasNextPage
-                          }
+                        pageInfo {
+                          endCursor
+                          hasNextPage
                         }
                       }
                     }
-                    sha: oid
-                    message
                   }
-                  pageInfo {
-                    hasNextPage
-                    endCursor
-                  }
+                  sha: oid
+                  message
+                }
+                pageInfo {
+                  hasNextPage
+                  endCursor
                 }
               }
             }
           }
         }
-      }`,
+      }
+    }`;
+    const params = {
       cursor,
       owner: this.repository.owner,
       repo: this.repository.repo,
       num: 25,
       targetBranch,
       maxFilesChanged: 100, // max is 100
+    };
+    const response = await this.graphqlRequest({
+      query,
+      ...params,
     });
 
+    if (!response) {
+      this.logger.warn(
+        `Did not receive a response for query: ${query}`,
+        params
+      );
+      return null;
+    }
+
     // if the branch does exist, return null
-    if (!response.repository.ref) {
-      logger.warn(
+    if (!response.repository?.ref) {
+      this.logger.warn(
         `Could not find commits for branch ${targetBranch} - it likely does not exist.`
       );
       return null;
@@ -417,7 +484,7 @@ export class GitHub {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
       if (pullRequest) {
-        const files = pullRequest.files.nodes.map(node => node.path);
+        const files = (pullRequest.files?.nodes || []).map(node => node.path);
         commit.pullRequest = {
           sha: commit.sha,
           number: pullRequest.number,
@@ -428,8 +495,10 @@ export class GitHub {
           labels: pullRequest.labels.nodes.map(node => node.name),
           files,
         };
-        if (pullRequest.files.pageInfo?.hasNextPage && options.backfillFiles) {
-          logger.info(`PR #${pullRequest.number} has many files, backfilling`);
+        if (pullRequest.files?.pageInfo?.hasNextPage && options.backfillFiles) {
+          this.logger.info(
+            `PR #${pullRequest.number} has many files, backfilling`
+          );
           commit.files = await this.getCommitFiles(graphCommit.sha);
         } else {
           // We cannot directly fetch files on commits via graphql, only provide file
@@ -459,7 +528,7 @@ export class GitHub {
    * @throws {GitHubAPIError} on an API error
    */
   getCommitFiles = wrapAsync(async (sha: string): Promise<string[]> => {
-    logger.debug(`Backfilling file list for commit: ${sha}`);
+    this.logger.debug(`Backfilling file list for commit: ${sha}`);
     const files: string[] = [];
     for await (const resp of this.octokit.paginate.iterator(
       this.octokit.repos.getCommit,
@@ -476,11 +545,11 @@ export class GitHub {
       }
     }
     if (files.length >= 3000) {
-      logger.warn(
+      this.logger.warn(
         `Found ${files.length} files. This may not include all the files.`
       );
     } else {
-      logger.debug(`Found ${files.length} files`);
+      this.logger.debug(`Found ${files.length} files`);
     }
     return files;
   });
@@ -490,34 +559,82 @@ export class GitHub {
       opts: {
         [key: string]: string | number | null | undefined;
       },
-      maxRetries = 1
+      options?: {
+        maxRetries?: number;
+      }
     ) => {
+      let maxRetries = options?.maxRetries ?? 5;
+      let seconds = 1;
       while (maxRetries >= 0) {
         try {
-          return await this.graphql(opts);
+          const response = await this.graphql(opts);
+          if (response) {
+            return response;
+          }
+          this.logger.trace('no GraphQL response, retrying');
         } catch (err) {
-          if (err.status !== 502) {
+          if ((err as GitHubAPIError).status !== 502) {
             throw err;
           }
+          if (maxRetries === 0) {
+            this.logger.warn('ran out of retries and response is required');
+            throw err;
+          }
+          this.logger.info(
+            `received 502 error, ${maxRetries} attempts remaining`
+          );
         }
         maxRetries -= 1;
+        if (maxRetries >= 0) {
+          this.logger.trace(`sleeping ${seconds} seconds`);
+          await sleepInMs(1000 * seconds);
+          seconds = Math.min(seconds * 2, MAX_SLEEP_SECONDS);
+        }
       }
+      this.logger.trace('ran out of retries');
+      return undefined;
     }
   );
 
   /**
    * Iterate through merged pull requests with a max number of results scanned.
    *
-   * @param {number} maxResults maxResults - Limit the number of results searched.
-   *   Defaults to unlimited.
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched. Defaults to
+   *   unlimited.
+   * @param {boolean} includeFiles Whether to fetch the list of files included in
+   *   the pull request. Defaults to `true`.
    * @yields {PullRequest}
    * @throws {GitHubAPIError} on an API error
    */
   async *pullRequestIterator(
     targetBranch: string,
     status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
+    maxResults: number = Number.MAX_SAFE_INTEGER,
+    includeFiles = true
+  ): AsyncGenerator<PullRequest, void, void> {
+    const generator = includeFiles
+      ? this.pullRequestIteratorWithFiles(targetBranch, status, maxResults)
+      : this.pullRequestIteratorWithoutFiles(targetBranch, status, maxResults);
+    for await (const pullRequest of generator) {
+      yield pullRequest;
+    }
+  }
+
+  /**
+   * Helper implementation of pullRequestIterator that includes files via
+   * the graphQL API.
+   *
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched
+   */
+  private async *pullRequestIteratorWithFiles(
+    targetBranch: string,
+    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
     maxResults: number = Number.MAX_SAFE_INTEGER
-  ) {
+  ): AsyncGenerator<PullRequest, void, void> {
     let cursor: string | undefined = undefined;
     let results = 0;
     while (results < maxResults) {
@@ -539,6 +656,63 @@ export class GitHub {
   }
 
   /**
+   * Helper implementation of pullRequestIterator that excludes files
+   * via the REST API.
+   *
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} status The status of the pull request
+   * @param {number} maxResults Limit the number of results searched
+   */
+  private async *pullRequestIteratorWithoutFiles(
+    targetBranch: string,
+    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
+    maxResults: number = Number.MAX_SAFE_INTEGER
+  ): AsyncGenerator<PullRequest, void, void> {
+    const statusMap: Record<string, 'open' | 'closed'> = {
+      OPEN: 'open',
+      CLOSED: 'closed',
+      MERGED: 'closed',
+    };
+    let results = 0;
+    for await (const {data: pulls} of this.octokit.paginate.iterator(
+      this.octokit.rest.pulls.list,
+      {
+        state: statusMap[status],
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        base: targetBranch,
+        sort: 'updated',
+        direction: 'desc',
+      }
+    )) {
+      for (const pull of pulls) {
+        // The REST API does not have an option for "merged"
+        // pull requests - they are closed with a `merged_at` timestamp
+        if (status !== 'MERGED' || pull.merged_at) {
+          results += 1;
+          yield {
+            headBranchName: pull.head.ref,
+            baseBranchName: pull.base.ref,
+            number: pull.number,
+            title: pull.title,
+            body: pull.body || '',
+            labels: pull.labels.map(label => label.name),
+            files: [],
+            sha: pull.merge_commit_sha || undefined,
+          };
+          if (results >= maxResults) {
+            break;
+          }
+        }
+      }
+
+      if (results >= maxResults) {
+        break;
+      }
+    }
+  }
+
+  /**
    * Return a list of merged pull requests. The list is not guaranteed to be sorted
    * by merged_at, but is generally most recent first.
    *
@@ -554,7 +728,7 @@ export class GitHub {
     states: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
     cursor?: string
   ): Promise<PullRequestHistory | null> {
-    logger.debug(
+    this.logger.debug(
       `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
     );
     const response = await this.graphqlRequest({
@@ -600,8 +774,8 @@ export class GitHub {
       states,
       maxFilesChanged: 64,
     });
-    if (!response.repository.pullRequests) {
-      logger.warn(
+    if (!response?.repository?.pullRequests) {
+      this.logger.warn(
         `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
       );
       return null;
@@ -616,10 +790,10 @@ export class GitHub {
           number: pullRequest.number,
           baseBranchName: pullRequest.baseRefName,
           headBranchName: pullRequest.headRefName,
-          labels: (pullRequest.labels.nodes || []).map(l => l.name),
+          labels: (pullRequest.labels?.nodes || []).map(l => l.name),
           title: pullRequest.title,
           body: pullRequest.body + '',
-          files: pullRequest.files.nodes.map(node => node.path),
+          files: (pullRequest.files?.nodes || []).map(node => node.path),
         };
       }),
     };
@@ -649,7 +823,7 @@ export class GitHub {
         }
         yield response.data[i];
       }
-      if (!response.pageInfo.hasNextPage) {
+      if (results > maxResults || !response.pageInfo.hasNextPage) {
         break;
       }
       cursor = response.pageInfo.endCursor;
@@ -659,7 +833,7 @@ export class GitHub {
   private async releaseGraphQL(
     cursor?: string
   ): Promise<ReleaseHistory | null> {
-    logger.debug(`Fetching releases with cursor ${cursor}`);
+    this.logger.debug(`Fetching releases with cursor ${cursor}`);
     const response = await this.graphqlRequest({
       query: `query releases($owner: String!, $repo: String!, $num: Int!, $cursor: String) {
         repository(owner: $owner, name: $repo) {
@@ -689,7 +863,7 @@ export class GitHub {
       num: 25,
     });
     if (!response.repository.releases.nodes.length) {
-      logger.warn('Could not find releases.');
+      this.logger.warn('Could not find releases.');
       return null;
     }
     const releases = response.repository.releases.nodes as GraphQLRelease[];
@@ -699,7 +873,7 @@ export class GitHub {
         .filter(release => !!release.tagCommit)
         .map(release => {
           if (!release.tag || !release.tagCommit) {
-            logger.debug(release);
+            this.logger.debug(release);
           }
           return {
             name: release.name || undefined,
@@ -741,6 +915,7 @@ export class GitHub {
           sha: tag.commit.sha,
         };
       }
+      if (results > maxResults) break;
     }
   }
 
@@ -764,14 +939,22 @@ export class GitHub {
    * @param {string} path The path to the file in the repository
    * @param {string} branch The branch to fetch from
    * @returns {GitHubFileContents}
+   * @throws {FileNotFoundError} if the file cannot be found
    * @throws {GitHubAPIError} on other API errors
    */
   async getFileContentsOnBranch(
     path: string,
     branch: string
   ): Promise<GitHubFileContents> {
-    logger.debug(`Fetching ${path} from branch ${branch}`);
-    return await this.fileCache.getFileContents(path, branch);
+    this.logger.debug(`Fetching ${path} from branch ${branch}`);
+    try {
+      return await this.fileCache.getFileContents(path, branch);
+    } catch (e) {
+      if (e instanceof MissingFileError) {
+        throw new FileNotFoundError(path);
+      }
+      throw e;
+    }
   }
 
   async getFileJson<T>(path: string, branch: string): Promise<T> {
@@ -821,41 +1004,59 @@ export class GitHub {
       if (prefix) {
         prefix = normalizePrefix(prefix);
       }
-      logger.debug(
+      this.logger.debug(
         `finding files by filename: ${filename}, ref: ${ref}, prefix: ${prefix}`
       );
-      const response = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: ref,
-        recursive: 'true',
-      });
-      return response.data.tree
-        .filter(file => {
-          const path = file.path;
-          return (
-            path &&
-            // match the filename
-            path.endsWith(filename) &&
-            // match the prefix if provided
-            (!prefix || path.startsWith(`${prefix}/`))
-          );
-        })
-        .map(file => {
-          let path = file.path!;
-          // strip the prefix if provided
-          if (prefix) {
-            const pfix = new RegExp(`^${prefix}[/\\\\]`);
-            path = path.replace(pfix, '');
-          }
-          return path;
-        });
+      return await this.fileCache.findFilesByFilename(filename, ref, prefix);
+    }
+  );
+
+  /**
+   * Returns a list of paths to all files matching a glob pattern.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param glob The glob to match
+   * @param prefix Optional path prefix used to filter results
+   * @returns {string[]} List of file paths
+   * @throws {GitHubAPIError} on an API error
+   */
+  async findFilesByGlob(glob: string, prefix?: string): Promise<string[]> {
+    return this.findFilesByGlobAndRef(
+      glob,
+      this.repository.defaultBranch,
+      prefix
+    );
+  }
+  /**
+   * Returns a list of paths to all files matching a glob pattern.
+   *
+   * If a prefix is specified, only return paths that match
+   * the provided prefix.
+   *
+   * @param glob The glob to match
+   * @param ref Git reference to search files in
+   * @param prefix Optional path prefix used to filter results
+   * @throws {GitHubAPIError} on an API error
+   */
+  findFilesByGlobAndRef = wrapAsync(
+    async (glob: string, ref: string, prefix?: string): Promise<string[]> => {
+      if (prefix) {
+        prefix = normalizePrefix(prefix);
+      }
+      this.logger.debug(
+        `finding files by glob: ${glob}, ref: ${ref}, prefix: ${prefix}`
+      );
+      return await this.fileCache.findFilesByGlob(glob, ref, prefix);
     }
   );
 
   /**
    * Open a pull request
    *
+   * @deprecated This logic is handled by the Manifest class now as it
+   *   can be more complicated if the release notes are too big
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
    * @param {string} targetBranch The base branch of the pull request
    * @param {GitHubPR} options The pull request options
@@ -867,12 +1068,16 @@ export class GitHub {
     options?: {
       signoffUser?: string;
       fork?: boolean;
+      skipLabeling?: boolean;
     }
   ): Promise<PullRequest> {
     let message = releasePullRequest.title.toString();
     if (options?.signoffUser) {
       message = signoffCommitMessage(message, options.signoffUser);
     }
+    const pullRequestLabels: string[] = options?.skipLabeling
+      ? []
+      : releasePullRequest.labels;
     return await this.createPullRequest(
       {
         headBranchName: releasePullRequest.headRefName,
@@ -880,7 +1085,7 @@ export class GitHub {
         number: -1,
         title: releasePullRequest.title.toString(),
         body: releasePullRequest.body.toString().slice(0, MAX_ISSUE_BODY_SIZE),
-        labels: releasePullRequest.labels,
+        labels: pullRequestLabels,
         files: [],
       },
       targetBranch,
@@ -893,19 +1098,26 @@ export class GitHub {
     );
   }
 
+  /**
+   * Open a pull request
+   *
+   * @param {PullRequest} pullRequest Pull request data to update
+   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} message The commit message for the commit
+   * @param {Update[]} updates The files to update
+   * @param {CreatePullRequestOptions} options The pull request options
+   * @throws {GitHubAPIError} on an API error
+   */
   createPullRequest = wrapAsync(
     async (
       pullRequest: PullRequest,
       targetBranch: string,
       message: string,
       updates: Update[],
-      options?: {
-        fork?: boolean;
-        draft?: boolean;
-      }
+      options?: CreatePullRequestOptions
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
-      const changes = await this.getChangeSet(updates, targetBranch);
+      const changes = await this.buildChangeSet(updates, targetBranch);
       const prNumber = await createPullRequest(this.octokit, changes, {
         upstreamOwner: this.repository.owner,
         upstreamRepo: this.repository.repo,
@@ -916,7 +1128,7 @@ export class GitHub {
         force: true,
         fork: !!options?.fork,
         message,
-        logger: logger,
+        logger: this.logger,
         draft: !!options?.draft,
         labels: pullRequest.labels,
       });
@@ -952,7 +1164,12 @@ export class GitHub {
    * Update a pull request's title and body.
    * @param {number} number The pull request number
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
-   * @param {}
+   * @param {string} targetBranch The target branch of the pull request
+   * @param {string} options.signoffUser Optional. Commit signoff message
+   * @param {boolean} options.fork Optional. Whether to open the pull request from
+   *   a fork or not. Defaults to `false`
+   * @param {PullRequestOverflowHandler} options.pullRequestOverflowHandler Optional.
+   *   Handles extra large pull request body messages.
    */
   updatePullRequest = wrapAsync(
     async (
@@ -962,10 +1179,11 @@ export class GitHub {
       options?: {
         signoffUser?: string;
         fork?: boolean;
+        pullRequestOverflowHandler?: PullRequestOverflowHandler;
       }
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
-      const changes = await this.getChangeSet(
+      const changes = await this.buildChangeSet(
         releasePullRequest.updates,
         targetBranch
       );
@@ -974,7 +1192,13 @@ export class GitHub {
         message = signoffCommitMessage(message, options.signoffUser);
       }
       const title = releasePullRequest.title.toString();
-      const body = releasePullRequest.body
+      const body = (
+        options?.pullRequestOverflowHandler
+          ? await options.pullRequestOverflowHandler.handleOverflow(
+              releasePullRequest
+            )
+          : releasePullRequest.body
+      )
         .toString()
         .slice(0, MAX_ISSUE_BODY_SIZE);
       const prNumber = await createPullRequest(this.octokit, changes, {
@@ -987,11 +1211,11 @@ export class GitHub {
         force: true,
         fork: options?.fork === false ? false : true,
         message,
-        logger: logger,
+        logger: this.logger,
         draft: releasePullRequest.draft,
       });
       if (prNumber !== number) {
-        logger.warn(
+        this.logger.warn(
           `updated code for ${prNumber}, but update requested for ${number}`
         );
       }
@@ -1025,10 +1249,10 @@ export class GitHub {
    * @return {Changes} The changeset to suggest.
    * @throws {GitHubAPIError} on an API error
    */
-  private async getChangeSet(
+  async buildChangeSet(
     updates: Update[],
     defaultBranch: string
-  ): Promise<Changes> {
+  ): Promise<ChangeSet> {
     const changes = new Map();
     for (const update of updates) {
       let content: GitHubFileContents | undefined;
@@ -1042,17 +1266,21 @@ export class GitHub {
         // if the file is missing and create = false, just continue
         // to the next update, otherwise create the file.
         if (!update.createIfMissing) {
-          logger.warn(`file ${update.path} did not exist`);
+          this.logger.warn(`file ${update.path} did not exist`);
           continue;
         }
       }
       const contentText = content
         ? Buffer.from(content.content, 'base64').toString('utf8')
         : undefined;
-      const updatedContent = update.updater.updateContent(contentText);
+      const updatedContent = update.updater.updateContent(
+        contentText,
+        this.logger
+      );
       if (updatedContent) {
         changes.set(update.path, {
           content: updatedContent,
+          originalContent: content?.parsedContent || null,
           mode: content?.mode || DEFAULT_FILE_MODE,
         });
       }
@@ -1083,32 +1311,7 @@ export class GitHub {
       if (prefix) {
         prefix = normalizePrefix(prefix);
       }
-      const response = await this.octokit.git.getTree({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tree_sha: ref,
-        recursive: 'true',
-      });
-      return response.data.tree
-        .filter(file => {
-          const path = file.path;
-          return (
-            path &&
-            // match the file extension
-            path.endsWith(`.${extension}`) &&
-            // match the prefix if provided
-            (!prefix || path.startsWith(`${prefix}/`))
-          );
-        })
-        .map(file => {
-          let path = file.path!;
-          // strip the prefix if provided
-          if (prefix) {
-            const pfix = new RegExp(`^${prefix}[/\\\\]`);
-            path = path.replace(pfix, '');
-          }
-          return path;
-        });
+      return this.fileCache.findFilesByExtension(extension, ref, prefix);
     }
   );
 
@@ -1160,6 +1363,7 @@ export class GitHub {
         target_commitish: release.sha,
       });
       return {
+        id: resp.data.id,
         name: resp.data.name || undefined,
         tagName: resp.data.tag_name,
         sha: resp.data.target_commitish,
@@ -1196,7 +1400,7 @@ export class GitHub {
    */
   commentOnIssue = wrapAsync(
     async (comment: string, number: number): Promise<string> => {
-      logger.debug(
+      this.logger.debug(
         `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issue/${number}`
       );
       const resp = await this.octokit.issues.createComment({
@@ -1220,7 +1424,7 @@ export class GitHub {
       if (labels.length === 0) {
         return;
       }
-      logger.debug(`removing labels: ${labels} from issue/pull ${number}`);
+      this.logger.debug(`removing labels: ${labels} from issue/pull ${number}`);
       await Promise.all(
         labels.map(label =>
           this.octokit.issues.removeLabel({
@@ -1245,7 +1449,7 @@ export class GitHub {
       if (labels.length === 0) {
         return;
       }
-      logger.debug(`adding labels: ${labels} from issue/pull ${number}`);
+      this.logger.debug(`adding labels: ${labels} from issue/pull ${number}`);
       await this.octokit.issues.addLabels({
         owner: this.repository.owner,
         repo: this.repository.repo,
@@ -1274,6 +1478,169 @@ export class GitHub {
       target_commitish: targetCommitish,
     });
     return resp.data.body;
+  }
+
+  /**
+   * Create a single file on a new branch based on an existing
+   * branch. This will force-push to that branch.
+   * @param {string} filename Filename with path in the repository
+   * @param {string} contents Contents of the file
+   * @param {string} newBranchName Name of the new branch
+   * @param {string} baseBranchName Name of the base branch (where
+   *   new branch is forked from)
+   * @returns {string} HTML URL of the new file
+   */
+  async createFileOnNewBranch(
+    filename: string,
+    contents: string,
+    newBranchName: string,
+    baseBranchName: string
+  ): Promise<string> {
+    // create or update new branch to match base branch
+    await this.forkBranch(newBranchName, baseBranchName);
+
+    // use the single file upload API
+    const {
+      data: {content},
+    } = await this.octokit.repos.createOrUpdateFileContents({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      path: filename,
+      // contents need to be base64 encoded
+      content: Buffer.from(contents, 'binary').toString('base64'),
+      message: 'Saving release notes',
+      branch: newBranchName,
+    });
+
+    if (!content?.html_url) {
+      throw new Error(
+        `Failed to write to file: ${filename} on branch: ${newBranchName}`
+      );
+    }
+
+    return content.html_url;
+  }
+
+  /**
+   * Helper to fetch the SHA of a branch
+   * @param {string} branchName The name of the branch
+   * @return {string | undefined} Returns the SHA of the branch
+   *   or undefined if it can't be found.
+   */
+  private async getBranchSha(branchName: string): Promise<string | undefined> {
+    this.logger.debug(`Looking up SHA for branch: ${branchName}`);
+    try {
+      const {
+        data: {
+          object: {sha},
+        },
+      } = await this.octokit.git.getRef({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        ref: `heads/${branchName}`,
+      });
+      this.logger.debug(`SHA for branch: ${sha}`);
+      return sha;
+    } catch (e) {
+      if (e instanceof RequestError && e.status === 404) {
+        this.logger.debug(`Branch: ${branchName} does not exist`);
+        return undefined;
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * Helper to fork a branch from an existing branch. Uses `force` so
+   * it will overwrite the contents of `targetBranchName` to match
+   * the current contents of `baseBranchName`.
+   *
+   * @param {string} targetBranchName The name of the new forked branch
+   * @param {string} baseBranchName The base branch from which to fork.
+   * @returns {string} The branch SHA
+   * @throws {ConfigurationError} if the base branch cannot be found.
+   */
+  private async forkBranch(
+    targetBranchName: string,
+    baseBranchName: string
+  ): Promise<string> {
+    const baseBranchSha = await this.getBranchSha(baseBranchName);
+    if (!baseBranchSha) {
+      // this is highly unlikely to be thrown as we will have
+      // already attempted to read from the branch
+      throw new ConfigurationError(
+        `Unable to find base branch: ${baseBranchName}`,
+        'core',
+        `${this.repository.owner}/${this.repository.repo}`
+      );
+    }
+    // see if newBranchName exists
+    if (await this.getBranchSha(targetBranchName)) {
+      // branch already exists, update it to the match the base branch
+      const branchSha = await this.updateBranchSha(
+        targetBranchName,
+        baseBranchSha
+      );
+      this.logger.debug(
+        `Updated ${targetBranchName} to match ${baseBranchName} at ${branchSha}`
+      );
+      return branchSha;
+    } else {
+      // branch does not exist, create a new branch from the base branch
+      const branchSha = await this.createNewBranch(
+        targetBranchName,
+        baseBranchSha
+      );
+      this.logger.debug(
+        `Forked ${targetBranchName} from ${baseBranchName} at ${branchSha}`
+      );
+      return branchSha;
+    }
+  }
+
+  /**
+   * Helper to create a new branch from a given SHA.
+   * @param {string} branchName The new branch name
+   * @param {string} branchSha The SHA of the branch
+   * @returns {string} The SHA of the new branch
+   */
+  private async createNewBranch(
+    branchName: string,
+    branchSha: string
+  ): Promise<string> {
+    this.logger.debug(`Creating new branch: ${branchName} at ${branchSha}`);
+    const {
+      data: {
+        object: {sha},
+      },
+    } = await this.octokit.git.createRef({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: `refs/heads/${branchName}`,
+      sha: branchSha,
+    });
+    this.logger.debug(`New branch: ${branchName} at ${sha}`);
+    return sha;
+  }
+
+  private async updateBranchSha(
+    branchName: string,
+    branchSha: string
+  ): Promise<string> {
+    this.logger.debug(`Updating branch ${branchName} to ${branchSha}`);
+    const {
+      data: {
+        object: {sha},
+      },
+    } = await this.octokit.git.updateRef({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: `heads/${branchName}`,
+      sha: branchSha,
+      force: true,
+    });
+    this.logger.debug(`Updated branch: ${branchName} to ${sha}`);
+    return sha;
   }
 }
 
@@ -1307,7 +1674,7 @@ const wrapAsync = <T extends Array<any>, V>(
       return await fn(...args);
     } catch (e) {
       if (errorHandler) {
-        errorHandler(e);
+        errorHandler(e as GitHubAPIError);
       }
       if (e instanceof RequestError) {
         throw new GitHubAPIError(e);
@@ -1316,3 +1683,6 @@ const wrapAsync = <T extends Array<any>, V>(
     }
   };
 };
+
+export const sleepInMs = (ms: number) =>
+  new Promise(resolve => setTimeout(resolve, ms));

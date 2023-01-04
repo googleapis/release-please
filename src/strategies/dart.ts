@@ -19,8 +19,9 @@ import * as yaml from 'js-yaml';
 // pubspec
 import {PubspecYaml} from '../updaters/dart/pubspec-yaml';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
-import {GitHubFileContents} from '../util/file-cache';
+import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {Update} from '../update';
+import {FileNotFoundError, MissingRequiredFileError} from '../errors';
 
 export class Dart extends BaseStrategy {
   private pubspecYmlContents?: GitHubFileContents;
@@ -64,10 +65,21 @@ export class Dart extends BaseStrategy {
 
   private async getPubspecYmlContents(): Promise<GitHubFileContents> {
     if (!this.pubspecYmlContents) {
-      this.pubspecYmlContents = await this.github.getFileContentsOnBranch(
-        this.addPath('pubspec.yaml'),
-        this.targetBranch
-      );
+      try {
+        this.pubspecYmlContents = await this.github.getFileContentsOnBranch(
+          this.addPath('pubspec.yaml'),
+          this.targetBranch
+        );
+      } catch (e) {
+        if (e instanceof FileNotFoundError) {
+          throw new MissingRequiredFileError(
+            this.addPath('pubspec.yaml'),
+            Dart.name,
+            `${this.repository.owner}/${this.repository.repo}`
+          );
+        }
+        throw e;
+      }
     }
     return this.pubspecYmlContents;
   }

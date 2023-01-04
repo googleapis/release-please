@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {TerraformModule} from '../../src/strategies/terraform-module';
 import * as sinon from 'sinon';
-import {assertHasUpdate, buildMockCommit} from '../helpers';
+import {assertHasUpdate, buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -27,13 +27,13 @@ import {ModuleVersion} from '../../src/updaters/terraform/module-version';
 const sandbox = sinon.createSandbox();
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
   ),
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('TerraformModule', () => {
@@ -112,6 +112,9 @@ describe('TerraformModule', () => {
         .withArgs('readme.md', 'main', '.')
         .resolves(['path1/readme.md', 'path2/readme.md']);
       findFilesStub
+        .withArgs('README.md', 'main', '.')
+        .resolves(['README.md', 'path3/README.md']);
+      findFilesStub
         .withArgs('versions.tf', 'main', '.')
         .resolves(['path1/versions.tf', 'path2/versions.tf']);
       findFilesStub
@@ -125,6 +128,8 @@ describe('TerraformModule', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'path1/readme.md', ReadMe);
       assertHasUpdate(updates, 'path2/readme.md', ReadMe);
+      assertHasUpdate(updates, 'README.md', ReadMe);
+      assertHasUpdate(updates, 'path3/README.md', ReadMe);
       assertHasUpdate(updates, 'path1/versions.tf', ModuleVersion);
       assertHasUpdate(updates, 'path2/versions.tf', ModuleVersion);
       assertHasUpdate(updates, 'path1/versions.tf.tmpl', ModuleVersion);

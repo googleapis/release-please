@@ -1,0 +1,26 @@
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>1.0.1</summary>
+
+## [1.0.1](https://github.com/testOwner/testRepo/compare/v1.0.0...v1.0.1) (2022-07-16)
+
+
+### Bug Fixes
+
+* **chat:** add missing ellipsis to start log message ([00a2995](https://github.com/testOwner/testRepo/commit/00a299552dcee16479b987043beadbf846097126))
+</details>
+
+<details><summary>chat: 1.0.1</summary>
+
+## [1.0.1](https://github.com/testOwner/testRepo/compare/chat-v1.0.0...chat-v1.0.1) (2022-07-16)
+
+
+### Bug Fixes
+
+* **chat:** add missing ellipsis to start log message ([00a2995](https://github.com/testOwner/testRepo/commit/00a299552dcee16479b987043beadbf846097126))
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

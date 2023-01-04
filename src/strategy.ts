@@ -18,6 +18,11 @@ import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 import {VersioningStrategy} from './versioning-strategy';
 import {ChangelogNotes} from './changelog-notes';
+import {Version} from './version';
+
+export interface BuildReleaseOptions {
+  groupPullRequestTitlePattern?: string;
+}
 
 /**
  * A strategy is responsible for determining which files are
@@ -49,12 +54,40 @@ export interface Strategy {
    * Given a merged pull request, build the candidate release.
    * @param {PullRequest} mergedPullRequest The merged release pull request.
    * @returns {Release} The candidate release.
+   * @deprecated Use buildReleases() instead.
    */
-  buildRelease(mergedPullRequest: PullRequest): Promise<Release | undefined>;
+  buildRelease(
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
+  ): Promise<Release | undefined>;
+
+  /**
+   * Given a merged pull request, build the candidate releases.
+   * @param {PullRequest} mergedPullRequest The merged release pull request.
+   * @returns {Release} The candidate release.
+   */
+  buildReleases(
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
+  ): Promise<Release[]>;
 
   /**
    * Return the component for this strategy. This may be a computed field.
    * @returns {string}
    */
   getComponent(): Promise<string | undefined>;
+
+  /**
+   * Return the component for this strategy used in the branch name.
+   * This may be a computed field.
+   * @returns {string}
+   */
+  getBranchComponent(): Promise<string | undefined>;
+
+  /**
+   * Validate whether version is a valid release.
+   * @param version Released version.
+   * @returns true of release is valid, false if it should be skipped.
+   */
+  isPublishedVersion?(version: Version): boolean;
 }

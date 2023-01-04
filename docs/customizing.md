@@ -7,14 +7,17 @@ your release process.
 
 Release Please automates releases for the following flavors of repositories:
 
-| release type            | description
-|-------------------|---------------------------------------------------------|
+| release type        | description |
+|---------------------|---------------------------------------------------------|
 | `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
 | `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
 | `go`                | A repository with a CHANGELOG.md |
 | `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
+| `java`              | [A strategy that generates SNAPSHOT version after each release](java.md) |
 | `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
+| `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](java.md) |
 | `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
+| `expo`              | [An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md](https://github.com/yargs/yargs) |
 | `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | `php`               | A repository with a composer.json and a CHANGELOG.md |
 | `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
@@ -33,11 +36,13 @@ as a starting point.
 A versioning strategy's job is to determine how to increment a SemVer
 version given a list of parsed commits.
 
-| Versioning Strategy | Description |
-| ------------------- | ----------- |
-| `default` | Breaking changes bump the major version, features bump the minor version, bugfixes bump the patch version |
+| Versioning Strategy | Description                                                                                                 |
+|---------------------|-------------------------------------------------------------------------------------------------------------|
+| `default`           | Breaking changes bump the major version, features bump the minor version, bugfixes bump the patch version   |
 | `always-bump-patch` | Always bump patch version. This is useful for backporting bugfixes to previous major/minor release branches |
-| `service-pack` | Designed for Java backport fixes. Uses Maven's specification for service pack versions (e.g. 1.2.3-sp.1) |
+| `always-bump-minor` | Always bump minor version |                                                                                                                                                                    |
+| `always-bump-major` | Always bump major version |                                                                                  
+| `service-pack`      | Designed for Java backport fixes. Uses Maven's specification for service pack versions (e.g. 1.2.3-sp.1)    |
 
 ### Adding additional versioning strategy types
 
@@ -52,7 +57,7 @@ Release Please will only consider commits that touch files on that path. The for
 relative to the repository root.
 
 To configure multiple components on different paths, configure a
-[manifest release](/docs/manifest-releaser).
+[manifest release](/docs/manifest-releaser.md).
 
 ## Changelog Types
 
@@ -99,6 +104,15 @@ request title would be `chore(main): release foo-bar v1.2.3`.
 | `${version}` | The version of the component being released |
 | `${branch?}` | The target branch of the pull request. If you have multiple release branches, this helps identify which release branch we are working on |
 
+### Pull Request Header
+
+If you would like to customize the pull request header, you can use the
+`--pull-request-header` CLI option or the `pull-request-header`
+option in the manifest configuration.
+
+By default, the pull request header is:
+`:robot: I have created a release *beep* *boop*`.
+
 ## Release Lifecycle Labels
 
 By default, we open release pull requests with the `autorelease: pending`
@@ -123,7 +137,7 @@ using the [Generic](/src/updaters/generic.ts) updater. You can specify
 a comma separated list of file paths with the `--extra-files` CLI option
 or the `extra-files` option in the manifest configuration.
 
-To mark versions needing update in those files, you will add annotations
+To mark versions needing an update in those files, you will add annotations
 (usually in comments).
 
 You can annotate a line (inline) via:

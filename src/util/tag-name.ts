@@ -15,7 +15,7 @@
 import {Version} from '../version';
 
 const TAG_PATTERN =
-  /^((?<component>.*)(?<separator>[^a-zA-Z]))?(?<v>v)?(?<version>\d+\.\d+\.\d+.*)$/;
+  /^((?<component>.*)(?<separator>[^a-zA-Z0-9]))?(?<v>v)?(?<version>\d+\.\d+\.\d+.*)$/;
 const DEFAULT_SEPARATOR = '-';
 
 export class TagName {

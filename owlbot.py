@@ -28,6 +28,8 @@ node.owlbot_main(templates_excludes=[
   '.kokoro/continuous/node10/system-test.cfg',
   '.kokoro/system-test.sh',
   '.mocharc.js',
+  '.github/generated-files-bot.yml',
   '.github/release-please.yml',
+  '.github/sync-repo-settings.yaml',
   '.github/workflows/ci.yaml',
 ])

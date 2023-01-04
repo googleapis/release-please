@@ -70,5 +70,32 @@ describe('ChangelogUpdater', () => {
       const newContent = changelog.updateContent(undefined);
       snapshot(newContent);
     });
+
+    it('inserts content at appropriate location in yoshi-dotnet style CHANGELOG', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './CHANGELOG-dotnet.md'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const changelog = new Changelog({
+        changelogEntry: '## 1.0.0\n\n* added a new foo to bar.',
+        version: Version.parse('1.0.0'),
+        versionHeaderRegex: '\n## Version [0-9[]+',
+      });
+      const newContent = changelog.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
+    it('prepends CHANGELOG entries if a different style is found', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './CHANGELOG-non-conforming.md'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const changelog = new Changelog({
+        changelogEntry: '## 1.0.0\n\n* added a new foo to bar.',
+        version: Version.parse('1.0.0'),
+      });
+      const newContent = changelog.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });

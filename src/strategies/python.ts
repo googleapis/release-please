@@ -23,7 +23,6 @@ import {
   parsePyProject,
   PyProjectToml,
 } from '../updaters/python/pyproject-toml';
-import {logger} from '../util/logger';
 import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
 
 const CHANGELOG_SECTIONS = [
@@ -93,7 +92,7 @@ export class Python extends BaseStrategy {
       });
       projectName = pyProject.name;
     } else {
-      logger.warn(
+      this.logger.warn(
         parsedPyProject
           ? 'invalid pyproject.toml'
           : `file ${this.addPath('pyproject.toml')} did not exist`
@@ -101,22 +100,20 @@ export class Python extends BaseStrategy {
     }
 
     if (!projectName) {
-      logger.warn('No project/component found.');
+      this.logger.warn('No project/component found.');
     } else {
-      updates.push({
-        path: this.addPath(`${projectName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
-      });
-      updates.push({
-        path: this.addPath(`src/${projectName}/__init__.py`),
-        createIfMissing: false,
-        updater: new PythonFileWithVersion({
-          version,
-        }),
-      });
+      [projectName, projectName.replace(/-/g, '_')]
+        .flatMap(packageName => [
+          `${packageName}/__init__.py`,
+          `src/${packageName}/__init__.py`,
+        ])
+        .forEach(packagePath =>
+          updates.push({
+            path: this.addPath(packagePath),
+            createIfMissing: false,
+            updater: new PythonFileWithVersion({version}),
+          })
+        );
     }
 
     // There should be only one version.py, but foreach in case that is incorrect

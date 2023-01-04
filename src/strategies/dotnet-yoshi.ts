@@ -16,7 +16,6 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {Apis} from '../updaters/dotnet/apis';
-import {logger} from '../util/logger';
 import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
 import {TagName} from '../util/tag-name';
@@ -39,6 +38,8 @@ const CHANGELOG_SECTIONS = [
 const DEFAULT_CHANGELOG_PATH = 'docs/history.md';
 const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
   'Release${component} version ${version}';
+const DEFAULT_PULL_REQUEST_HEADER =
+  ':robot: I have created a release *beep* *boop*';
 const RELEASE_NOTES_HEADER_PATTERN =
   /#{2,3} \[?(\d+\.\d+\.\d+-?[^\]]*)\]?.* \((\d{4}-\d{2}-\d{2})\)/;
 
@@ -58,6 +59,8 @@ export class DotnetYoshi extends BaseStrategy {
     options.changelogPath = options.changelogPath ?? DEFAULT_CHANGELOG_PATH;
     options.pullRequestTitlePattern =
       options.pullRequestTitlePattern ?? DEFAULT_PULL_REQUEST_TITLE_PATTERN;
+    options.pullRequestHeader =
+      options.pullRequestHeader ?? DEFAULT_PULL_REQUEST_HEADER;
     options.includeVInTag = options.includeVInTag ?? false;
     super(options);
   }
@@ -101,6 +104,12 @@ export class DotnetYoshi extends BaseStrategy {
     }
   }
 
+  async getDefaultComponent(): Promise<string | undefined> {
+    // default component is based on the path
+    const pathParts = this.path.split('/');
+    return pathParts[pathParts.length - 1];
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {
@@ -110,7 +119,7 @@ export class DotnetYoshi extends BaseStrategy {
 
     const api = await this.getApi();
     if (api?.noVersionHistory) {
-      logger.info(
+      this.logger.info(
         `Skipping changelog for ${component} via noVersionHistory configuration`
       );
     } else {
@@ -120,12 +129,13 @@ export class DotnetYoshi extends BaseStrategy {
         updater: new Changelog({
           version,
           changelogEntry: options.changelogEntry,
+          versionHeaderRegex: '\n## Version [0-9[]+',
         }),
       });
     }
 
-    if (!this.component) {
-      logger.warn(
+    if (!component) {
+      this.logger.warn(
         'Dotnet strategy expects to use components, could not update all files'
       );
       return updates;
@@ -134,7 +144,7 @@ export class DotnetYoshi extends BaseStrategy {
     updates.push({
       path: 'apis/apis.json',
       createIfMissing: false,
-      updater: new Apis(this.component, version),
+      updater: new Apis(component, version),
     });
 
     return updates;

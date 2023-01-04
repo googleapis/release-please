@@ -29,6 +29,7 @@ import {
   getChangelogTypes,
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
+import {createPatch} from 'diff';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -42,6 +43,7 @@ interface ErrorObject {
 
 interface GitHubArgs {
   dryRun?: boolean;
+  trace?: boolean;
   repoUrl?: string;
   token?: string;
   apiUrl?: string;
@@ -83,12 +85,14 @@ interface ReleaseArgs {
   draft?: boolean;
   prerelease?: boolean;
   releaseLabel?: string;
+  snapshotLabel?: string;
   label?: string;
 }
 
 interface PullRequestArgs {
   draftPullRequest?: boolean;
   label?: string;
+  skipLabeling?: boolean;
   signoff?: string;
 }
 
@@ -96,6 +100,7 @@ interface PullRequestStrategyArgs {
   snapshot?: boolean;
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
+  changelogHost?: string;
   versioningStrategy?: VersioningStrategyType;
 
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
@@ -108,6 +113,7 @@ interface TaggingArgs {
   includeVInTags?: boolean;
   monorepoTags?: boolean;
   pullRequestTitlePattern?: string;
+  pullRequestHeader?: string;
 }
 
 interface CreatePullRequestArgs
@@ -144,6 +150,7 @@ interface BootstrapArgs
     ReleaseArgs {
   initialVersion?: string;
 }
+interface DebugConfigArgs extends GitHubArgs, ManifestArgs {}
 
 function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
   return yargs
@@ -211,6 +218,12 @@ function releaseOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'set a pull request label other than "autorelease: tagged"',
       default: 'autorelease: tagged',
       type: 'string',
+    })
+    .option('snapshot-label', {
+      describe:
+        'set a java snapshot pull request label other than "autorelease: snapshot"',
+      default: 'autorelease: snapshot',
+      type: 'string',
     });
 }
 
@@ -220,6 +233,11 @@ function pullRequestOptions(yargs: yargs.Argv): yargs.Argv {
     .option('label', {
       default: 'autorelease: pending',
       describe: 'comma-separated list of labels to add to from release PR',
+    })
+    .option('skip-labeling', {
+      describe: 'skip application of labels to pull requests',
+      type: 'boolean',
+      default: false,
     })
     .option('fork', {
       describe: 'should the PR be created from a fork',
@@ -299,6 +317,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
         }
         return arg;
       },
+    })
+    .option('changelog-host', {
+      describe: 'host for hyperlinks in the changelog',
+      type: 'string',
     })
     .option('last-package-version', {
       describe: 'last version # that package was released as',
@@ -388,6 +410,10 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
     .option('pull-request-title-pattern', {
       describe: 'Title pattern to make release PR',
       type: 'string',
+    })
+    .option('pull-request-header', {
+      describe: 'Header for release PR',
+      type: 'string',
     });
 }
 
@@ -423,7 +449,9 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
+          changelogHost: argv.changelogHost,
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
+          pullRequestHeader: argv.pullRequestHeader,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,
@@ -442,7 +470,9 @@ const createReleasePullRequestCommand: yargs.CommandModule<
         targetBranch,
         argv.configFile,
         argv.manifestFile,
-        manifestOptions
+        manifestOptions,
+        argv.path,
+        argv.releaseAs
       );
     }
 
@@ -456,12 +486,29 @@ const createReleasePullRequestCommand: yargs.CommandModule<
         console.log('draft:', pullRequest.draft);
         console.log('body:', pullRequest.body.toString());
         console.log('updates:', pullRequest.updates.length);
+        const changes = await github.buildChangeSet(
+          pullRequest.updates,
+          targetBranch
+        );
         for (const update of pullRequest.updates) {
           console.log(
             `  ${update.path}: `,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (update.updater as any).constructor
           );
+          if (argv.trace) {
+            const change = changes.get(update.path);
+            if (change) {
+              const patch = createPatch(
+                update.path,
+                change.originalContent || '',
+                change.content || ''
+              );
+              console.log(patch);
+            } else {
+              console.warn(`no change found for ${update.path}`);
+            }
+          }
         }
       }
     } else {
@@ -654,7 +701,8 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       argv.configFile,
       argv.initialVersion
     );
-    const pullRequest = await bootstrapper.bootstrap(argv.path!, {
+    const path = argv.path || ROOT_PROJECT_PATH;
+    const releaserConfig = {
       releaseType: argv.releaseType!,
       component: argv.component,
       packageName: argv.packageName,
@@ -664,13 +712,75 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       bumpMinorPreMajor: argv.bumpMinorPreMajor,
       bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
       changelogPath: argv.changelogPath,
+      changelogHost: argv.changelogHost,
       changelogSections: argv.changelogSections,
       releaseAs: argv.releaseAs,
       versioning: argv.versioningStrategy,
       extraFiles: argv.extraFiles,
       versionFile: argv.versionFile,
-    });
-    console.log(pullRequest);
+    };
+    if (argv.dryRun) {
+      const pullRequest = await await bootstrapper.buildPullRequest(
+        path,
+        releaserConfig
+      );
+      console.log('Would open 1 pull request');
+      console.log('title:', pullRequest.title);
+      console.log('branch:', pullRequest.headBranchName);
+      console.log('body:', pullRequest.body);
+      console.log('updates:', pullRequest.updates.length);
+      const changes = await github.buildChangeSet(
+        pullRequest.updates,
+        targetBranch
+      );
+      for (const update of pullRequest.updates) {
+        console.log(
+          `  ${update.path}: `,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (update.updater as any).constructor
+        );
+        if (argv.trace) {
+          const change = changes.get(update.path);
+          if (change) {
+            const patch = createPatch(
+              update.path,
+              change.originalContent || '',
+              change.content || ''
+            );
+            console.log(patch);
+          } else {
+            console.warn(`no change found for ${update.path}`);
+          }
+        }
+      }
+    } else {
+      const pullRequest = await bootstrapper.bootstrap(path, releaserConfig);
+      console.log(pullRequest);
+    }
+  },
+};
+
+const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
+  command: 'debug-config',
+  describe: 'debug manifest config',
+  builder(yargs) {
+    return manifestConfigOptions(manifestOptions(gitHubOptions(yargs)));
+  },
+  async handler(argv) {
+    const github = await buildGitHub(argv);
+    const manifestOptions = extractManifestOptions(argv);
+    const targetBranch =
+      argv.targetBranch ||
+      argv.defaultBranch ||
+      github.repository.defaultBranch;
+    const manifest = await Manifest.fromManifest(
+      github,
+      targetBranch,
+      argv.configFile,
+      argv.manifestFile,
+      manifestOptions
+    );
+    console.log(manifest);
   },
 };
 
@@ -680,6 +790,8 @@ async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
     owner,
     repo,
     token: argv.token!,
+    apiUrl: argv.apiUrl,
+    graphqlUrl: argv.graphqlUrl,
   });
   return github;
 }
@@ -690,6 +802,7 @@ export const parser = yargs
   .command(createManifestPullRequestCommand)
   .command(createManifestReleaseCommand)
   .command(bootstrapCommand)
+  .command(debugConfigCommand)
   .option('debug', {
     describe: 'print verbose errors (use only for local debugging).',
     default: false,
@@ -724,11 +837,19 @@ function extractManifestOptions(
   if ('fork' in argv && argv.fork !== undefined) {
     manifestOptions.fork = argv.fork;
   }
-  if (argv.label) {
-    manifestOptions.labels = argv.label.split(',');
+  if (argv.label !== undefined) {
+    let labels: string[] = argv.label.split(',');
+    if (labels.length === 1 && labels[0] === '') labels = [];
+    manifestOptions.labels = labels;
+  }
+  if ('skipLabeling' in argv && argv.skipLabeling !== undefined) {
+    manifestOptions.skipLabeling = argv.skipLabeling;
   }
   if ('releaseLabel' in argv && argv.releaseLabel) {
     manifestOptions.releaseLabels = argv.releaseLabel.split(',');
+  }
+  if ('snapshotLabel' in argv && argv.snapshotLabel) {
+    manifestOptions.snapshotLabels = argv.snapshotLabel.split(',');
   }
   if ('signoff' in argv && argv.signoff) {
     manifestOptions.signoff = argv.signoff;

@@ -58,16 +58,19 @@ describe('LinkedVersions plugin', () => {
 
     mockReleases(sandbox, github, [
       {
+        id: 1,
         sha: 'abc123',
         tagName: 'pkg1-v1.0.0',
         url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
       },
       {
+        id: 2,
         sha: 'def234',
         tagName: 'pkg2-v0.2.3',
         url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
       },
       {
+        id: 3,
         sha: 'def234',
         tagName: 'pkg3-v0.2.3',
         url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg3-v0.2.3',
@@ -221,5 +224,45 @@ describe('LinkedVersions plugin', () => {
     expect(packageData3).to.not.be.undefined;
     expect(packageData2?.version).to.eql(packageData3?.version);
     safeSnapshot(pullRequest.body.toString());
+  });
+  it('can skip grouping pull requests', async () => {
+    const manifest = new Manifest(
+      github,
+      'target-branch',
+      {
+        'path/a': {
+          releaseType: 'simple',
+          component: 'pkg1',
+        },
+        'path/b': {
+          releaseType: 'simple',
+          component: 'pkg2',
+        },
+        'path/c': {
+          releaseType: 'simple',
+          component: 'pkg3',
+        },
+      },
+      {
+        'path/a': Version.parse('1.0.0'),
+        'path/b': Version.parse('0.2.3'),
+        'path/c': Version.parse('0.2.3'),
+      },
+      {
+        separatePullRequests: true,
+        plugins: [
+          {
+            type: 'linked-versions',
+            groupName: 'group name',
+            components: ['pkg2', 'pkg3'],
+            merge: false,
+          },
+        ],
+      }
+    );
+    const pullRequests = await manifest.buildPullRequests();
+    for (const pullRequest of pullRequests) {
+      safeSnapshot(pullRequest.body.toString());
+    }
   });
 });

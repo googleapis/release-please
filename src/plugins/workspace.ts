@@ -13,11 +13,17 @@
 // limitations under the License.
 
 import {ManifestPlugin} from '../plugin';
-import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
-import {logger} from '../util/logger';
+import {
+  CandidateReleasePullRequest,
+  RepositoryConfig,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+  ROOT_PROJECT_PATH,
+} from '../manifest';
+import {logger as defaultLogger, Logger} from '../util/logger';
 import {VersionsMap, Version} from '../version';
 import {Merge} from './merge';
 import {GitHub} from '../github';
+import {ReleasePleaseManifest} from '../updaters/release-please-manifest';
 
 export type DependencyGraph<T> = Map<string, DependencyNode<T>>;
 export interface DependencyNode<T> {
@@ -26,10 +32,13 @@ export interface DependencyNode<T> {
 }
 
 export interface WorkspacePluginOptions {
+  manifestPath?: string;
   updateAllPackages?: boolean;
+  merge?: boolean;
+  logger?: Logger;
 }
 
-interface AllPackages<T> {
+export interface AllPackages<T> {
   allPackages: T[];
   candidatesByPackage: Record<string, CandidateReleasePullRequest>;
 }
@@ -47,24 +56,28 @@ interface AllPackages<T> {
  */
 export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
+  private manifestPath: string;
+  private merge: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     options: WorkspacePluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(github, targetBranch, repositoryConfig, options.logger);
+    this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
+    this.merge = options.merge ?? true;
   }
   async run(
     candidates: CandidateReleasePullRequest[]
   ): Promise<CandidateReleasePullRequest[]> {
-    logger.info('Running workspace plugin');
+    this.logger.info('Running workspace plugin');
 
     const [inScopeCandidates, outOfScopeCandidates] = candidates.reduce(
       (collection, candidate) => {
         if (!candidate.pullRequest.version) {
-          logger.warn('pull request missing version', candidate);
+          this.logger.warn('pull request missing version', candidate);
           return collection;
         }
         if (this.inScope(candidate)) {
@@ -77,81 +90,200 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       [[], []] as CandidateReleasePullRequest[][]
     );
 
-    logger.info(`Found ${inScopeCandidates.length} in-scope releases`);
+    this.logger.info(`Found ${inScopeCandidates.length} in-scope releases`);
     if (inScopeCandidates.length === 0) {
       return outOfScopeCandidates;
     }
 
-    logger.info('Building list of all packages');
+    this.logger.info('Building list of all packages');
     const {allPackages, candidatesByPackage} = await this.buildAllPackages(
       inScopeCandidates
     );
-    logger.info(`Building dependency graph for ${allPackages.length} packages`);
+    this.logger.info(
+      `Building dependency graph for ${allPackages.length} packages`
+    );
     const graph = await this.buildGraph(allPackages);
 
-    const packageNamesToUpdate = this.updateAllPackages
-      ? allPackages.map(this.packageNameFromPackage)
-      : Object.keys(candidatesByPackage);
+    const packageNamesToUpdate = this.packageNamesToUpdate(
+      graph,
+      candidatesByPackage
+    );
     const orderedPackages = this.buildGraphOrder(graph, packageNamesToUpdate);
-    logger.info(`Updating ${orderedPackages.length} packages`);
+    this.logger.info(`Updating ${orderedPackages.length} packages`);
 
-    const updatedVersions: VersionsMap = new Map();
-    for (const pkg of orderedPackages) {
-      const packageName = this.packageNameFromPackage(pkg);
-      logger.debug(`package: ${packageName}`);
-      const existingCandidate = candidatesByPackage[packageName];
-      if (existingCandidate) {
-        const version = existingCandidate.pullRequest.version!;
-        logger.debug(`version: ${version} from release-please`);
-        updatedVersions.set(packageName, version);
-      } else {
-        const version = this.bumpVersion(pkg);
-        logger.debug(`version: ${version} forced bump`);
-        updatedVersions.set(packageName, version);
-      }
-    }
+    const {updatedVersions, updatedPathVersions} =
+      await this.buildUpdatedVersions(
+        graph,
+        orderedPackages,
+        candidatesByPackage
+      );
 
     let newCandidates: CandidateReleasePullRequest[] = [];
+    // In some cases, there are multiple packages within a single candidate. We
+    // only want to process each candidate package once.
+    const newCandidatePaths = new Set<string>();
     for (const pkg of orderedPackages) {
-      const packageName = this.packageNameFromPackage(pkg);
-      const existingCandidate = candidatesByPackage[packageName];
+      const existingCandidate = this.findCandidateForPackage(
+        pkg,
+        candidatesByPackage
+      );
       if (existingCandidate) {
         // if already has an pull request, update the changelog and update
-        logger.info(
+        this.logger.info(
           `Updating exising candidate pull request for ${this.packageNameFromPackage(
             pkg
-          )}`
+          )}, path: ${existingCandidate.path}`
         );
-        const newCandidate = this.updateCandidate(
-          existingCandidate,
-          pkg,
-          updatedVersions
-        );
-        newCandidates.push(newCandidate);
+        if (newCandidatePaths.has(existingCandidate.path)) {
+          this.logger.info(
+            `Already updated candidate for path: ${existingCandidate.path}`
+          );
+        } else {
+          const newCandidate = this.updateCandidate(
+            existingCandidate,
+            pkg,
+            updatedVersions
+          );
+          newCandidatePaths.add(newCandidate.path);
+          newCandidates.push(newCandidate);
+        }
       } else {
         // otherwise, build a new pull request with changelog and entry update
-        logger.info(
+        this.logger.info(
           `Creating new candidate pull request for ${this.packageNameFromPackage(
             pkg
           )}`
         );
         const newCandidate = this.newCandidate(pkg, updatedVersions);
-        newCandidates.push(newCandidate);
+        if (newCandidatePaths.has(newCandidate.path)) {
+          this.logger.info(
+            `Already created new candidate for path: ${newCandidate.path}`
+          );
+        } else {
+          newCandidatePaths.add(newCandidate.path);
+          newCandidates.push(newCandidate);
+        }
       }
     }
 
-    logger.info(`Merging ${newCandidates.length} in-scope candidates`);
-    const mergePlugin = new Merge(
-      this.github,
-      this.targetBranch,
-      this.repositoryConfig
-    );
-    newCandidates = await mergePlugin.run(newCandidates);
+    if (this.merge) {
+      this.logger.info(`Merging ${newCandidates.length} in-scope candidates`);
+      const mergePlugin = new Merge(
+        this.github,
+        this.targetBranch,
+        this.repositoryConfig
+      );
+      newCandidates = await mergePlugin.run(newCandidates);
+    }
 
-    logger.info(`Post-processing ${newCandidates.length} in-scope candidates`);
+    const newUpdates = newCandidates[0].pullRequest.updates;
+    newUpdates.push({
+      path: this.manifestPath,
+      createIfMissing: false,
+      updater: new ReleasePleaseManifest({
+        version: newCandidates[0].pullRequest.version!,
+        versionsMap: updatedPathVersions,
+      }),
+    });
+
+    this.logger.info(
+      `Post-processing ${newCandidates.length} in-scope candidates`
+    );
     newCandidates = this.postProcessCandidates(newCandidates, updatedVersions);
 
     return [...outOfScopeCandidates, ...newCandidates];
+  }
+
+  /**
+   * Helper for finding a candidate release based on the package name.
+   * By default, we assume that the package name matches the release
+   * component.
+   * @param {T} pkg The package being released
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns {CandidateReleasePullRequest | undefined} The associated
+   *   candidate release or undefined if there is no existing release yet
+   */
+  protected findCandidateForPackage(
+    pkg: T,
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): CandidateReleasePullRequest | undefined {
+    const packageName = this.packageNameFromPackage(pkg);
+    return candidatesByPackage[packageName];
+  }
+
+  /**
+   * Helper to determine which packages we will use to base our search
+   * for touched packages upon. These are usually the packages that
+   * have candidate pull requests open.
+   *
+   * If you configure `updateAllPackages`, we fill force update all
+   * packages as if they had a release.
+   * @param {DependencyGraph<T>} graph All the packages in the repository
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns {string[]} Package names to
+   */
+  protected packageNamesToUpdate(
+    graph: DependencyGraph<T>,
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): string[] {
+    if (this.updateAllPackages) {
+      return Array.from(graph.values()).map(({value}) =>
+        this.packageNameFromPackage(value)
+      );
+    }
+    return Object.keys(candidatesByPackage);
+  }
+
+  /**
+   * Helper to build up all the versions we are modifying in this
+   * repository.
+   * @param {DependencyGraph<T>} _graph All the packages in the repository
+   * @param {T[]} orderedPackages A list of packages that are currently
+   *   updated by the existing candidate pull requests
+   * @param {Record<string, CandidateReleasePullRequest} candidatesByPackage
+   *   The candidate pull requests indexed by the package name.
+   * @returns A map of all updated versions (package name => Version) and a
+   *   map of all updated versions (component path => Version).
+   */
+  protected async buildUpdatedVersions(
+    _graph: DependencyGraph<T>,
+    orderedPackages: T[],
+    candidatesByPackage: Record<string, CandidateReleasePullRequest>
+  ): Promise<{updatedVersions: VersionsMap; updatedPathVersions: VersionsMap}> {
+    const updatedVersions: VersionsMap = new Map();
+    const updatedPathVersions: VersionsMap = new Map();
+    for (const pkg of orderedPackages) {
+      const packageName = this.packageNameFromPackage(pkg);
+      this.logger.debug(`package: ${packageName}`);
+      const existingCandidate = candidatesByPackage[packageName];
+      if (existingCandidate) {
+        const version = existingCandidate.pullRequest.version!;
+        this.logger.debug(`version: ${version} from release-please`);
+        updatedVersions.set(packageName, version);
+      } else {
+        const version = this.bumpVersion(pkg);
+        this.logger.debug(`version: ${version} forced bump`);
+        updatedVersions.set(packageName, version);
+        if (this.isReleaseVersion(version)) {
+          updatedPathVersions.set(this.pathFromPackage(pkg), version);
+        }
+      }
+    }
+    return {
+      updatedVersions,
+      updatedPathVersions,
+    };
+  }
+
+  /**
+   * Given a release version, determine if we should bump the manifest
+   * version as well.
+   * @param {Version} _version The release version
+   */
+  protected isReleaseVersion(_version: Version): boolean {
+    return true;
   }
 
   /**
@@ -225,6 +357,13 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   protected abstract packageNameFromPackage(pkg: T): string;
 
   /**
+   * Given a package, return the path in the repo to the package.
+   * @param {T} pkg The package definition.
+   * @returns {string} The package path.
+   */
+  protected abstract pathFromPackage(pkg: T): string;
+
+  /**
    * Amend any or all in-scope candidates once all other processing has occured.
    *
    * This gives the workspace plugin once last chance to tweak the pull-requests
@@ -277,6 +416,10 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     graph: DependencyGraph<T>,
     packageNamesToUpdate: string[]
   ): T[] {
+    this.logger.info(
+      `building graph order, existing package names: ${packageNamesToUpdate}`
+    );
+
     // invert the graph so it's dependency name => packages that depend on it
     const dependentGraph = this.invertGraph(graph);
     const visited: Set<T> = new Set();
@@ -302,6 +445,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     visited: Set<T>,
     path: string[]
   ) {
+    this.logger.debug(`visiting ${name}, path: ${path}`);
     if (path.indexOf(name) !== -1) {
       throw new Error(
         `found cycle in dependency graph: ${path.join(' -> ')} -> ${name}`
@@ -309,7 +453,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     }
     const node = graph.get(name);
     if (!node) {
-      logger.warn(`Didn't find node: ${name} in graph`);
+      this.logger.warn(`Didn't find node: ${name} in graph`);
       return;
     }
 
@@ -318,20 +462,73 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     for (const depName of node.deps) {
       const dep = graph.get(depName);
       if (!dep) {
-        logger.warn(`dependency not found in graph: ${depName}`);
+        this.logger.warn(`dependency not found in graph: ${depName}`);
         return;
       }
+      this.logger.info(`visiting ${depName} next`);
 
       this.visitPostOrder(graph, depName, visited, nextPath);
     }
 
     if (!visited.has(node.value)) {
-      logger.debug(
+      this.logger.debug(
         `marking ${name} as visited and adding ${this.packageNameFromPackage(
           node.value
         )} to order`
       );
       visited.add(node.value);
+    } else {
+      this.logger.debug(`${node.value} already visited`);
     }
   }
+}
+
+const DEPENDENCY_HEADER = new RegExp('### Dependencies');
+export function appendDependenciesSectionToChangelog(
+  changelog: string,
+  notes: string,
+  logger: Logger = defaultLogger
+): string {
+  if (!changelog) {
+    return `### Dependencies\n\n${notes}`;
+  }
+  logger.info('appending dependency notes to changelog');
+
+  const newLines: string[] = [];
+  let seenDependenciesSection = false;
+  let seenDependencySectionSpacer = false;
+  let injected = false;
+  for (const line of changelog.split('\n')) {
+    if (seenDependenciesSection) {
+      const trimmedLine = line.trim();
+      if (
+        seenDependencySectionSpacer &&
+        !injected &&
+        !trimmedLine.startsWith('*')
+      ) {
+        newLines.push(changelog);
+        injected = true;
+      }
+      if (trimmedLine === '') {
+        seenDependencySectionSpacer = true;
+      }
+    }
+    if (line.match(DEPENDENCY_HEADER)) {
+      seenDependenciesSection = true;
+    }
+    newLines.push(line);
+  }
+
+  if (injected) {
+    return newLines.join('\n');
+  }
+  if (seenDependenciesSection) {
+    return `${changelog}\n${notes}`;
+  }
+
+  return `${changelog}\n\n\n### Dependencies\n\n${notes}`;
+}
+
+export function addPath(path: string, file: string): string {
+  return path === ROOT_PROJECT_PATH ? file : `${path}/${file}`;
 }

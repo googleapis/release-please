@@ -30,82 +30,31 @@ import {Helm} from './strategies/helm';
 import {Elixir} from './strategies/elixir';
 import {Dart} from './strategies/dart';
 import {Node} from './strategies/node';
+import {Expo} from './strategies/expo';
 import {GitHub} from './github';
-import {ReleaserConfig, PluginType, RepositoryConfig} from './manifest';
-import {DefaultVersioningStrategy} from './versioning-strategies/default';
-import {VersioningStrategy} from './versioning-strategy';
+import {ReleaserConfig} from './manifest';
 import {AlwaysBumpPatch} from './versioning-strategies/always-bump-patch';
 import {ServicePackVersioningStrategy} from './versioning-strategies/service-pack';
 import {DependencyManifest} from './versioning-strategies/dependency-manifest';
-import {ManifestPlugin} from './plugin';
-import {NodeWorkspace} from './plugins/node-workspace';
-import {CargoWorkspace} from './plugins/cargo-workspace';
-import {ChangelogNotes, ChangelogSection} from './changelog-notes';
-import {GitHubChangelogNotes} from './changelog-notes/github';
-import {DefaultChangelogNotes} from './changelog-notes/default';
 import {BaseStrategyOptions} from './strategies/base';
-import {LinkedVersions} from './plugins/linked-versions';
 import {DotnetYoshi} from './strategies/dotnet-yoshi';
+import {Java} from './strategies/java';
+import {Maven} from './strategies/maven';
+import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
+import {buildChangelogNotes} from './factories/changelog-notes-factory';
+import {ConfigurationError} from './errors';
+
+export * from './factories/changelog-notes-factory';
+export * from './factories/plugin-factory';
+export * from './factories/versioning-strategy-factory';
 
 // Factory shared by GitHub Action and CLI for creating Release PRs
 // and GitHub Releases:
 // add any new releasers you create to this type as well as the `releasers`
 // object below.
-const allReleaseTypes = [
-  'dart',
-  'dotnet-yoshi',
-  'elixir',
-  'go',
-  'go-yoshi',
-  'helm',
-  'java-backport',
-  'java-bom',
-  'java-lts',
-  'java-yoshi',
-  'krm-blueprint',
-  'node',
-  'ocaml',
-  'php',
-  'php-yoshi',
-  'python',
-  'ruby',
-  'ruby-yoshi',
-  'rust',
-  'simple',
-  'terraform-module',
-] as const;
-export type ReleaseType = typeof allReleaseTypes[number];
-type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
-type Releasers = Record<string, ReleaseBuilder>;
-const releasers: Releasers = {
-  'dotnet-yoshi': options => new DotnetYoshi(options),
-  go: options => new Go(options),
-  'go-yoshi': options => new GoYoshi(options),
-  'java-yoshi': options => new JavaYoshi(options),
-  'krm-blueprint': options => new KRMBlueprint(options),
-  node: options => new Node(options),
-  ocaml: options => new OCaml(options),
-  php: options => new PHP(options),
-  'php-yoshi': options => new PHPYoshi(options),
-  python: options => new Python(options),
-  rust: options => new Rust(options),
-  'terraform-module': options => new TerraformModule(options),
-  helm: options => new Helm(options),
-  elixir: options => new Elixir(options),
-  dart: options => new Dart(options),
-};
 
-export function getReleaserTypes(): readonly ReleaseType[] {
-  return allReleaseTypes;
-}
-
-export function getVersioningStrategyTypes(): readonly VersioningStrategyType[] {
-  return allVersioningTypes;
-}
-
-export function getChangelogTypes(): readonly ChangelogNotesType[] {
-  return allChangelogNotesTypes;
-}
+export type ReleaseType = string;
+export type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 
 export interface StrategyFactoryOptions extends ReleaserConfig {
   github: GitHub;
@@ -113,12 +62,55 @@ export interface StrategyFactoryOptions extends ReleaserConfig {
   targetBranch?: string;
 }
 
+const releasers: Record<string, ReleaseBuilder> = {
+  'dotnet-yoshi': options => new DotnetYoshi(options),
+  go: options => new Go(options),
+  'go-yoshi': options => new GoYoshi(options),
+  java: options => new Java(options),
+  maven: options => new Maven(options),
+  'java-yoshi': options => new JavaYoshi(options),
+  'java-backport': options =>
+    new JavaYoshi({
+      ...options,
+      versioningStrategy: new AlwaysBumpPatch(),
+    }),
+  'java-bom': options =>
+    new JavaYoshi({
+      ...options,
+      versioningStrategy: new DependencyManifest({
+        bumpMinorPreMajor: options.bumpMinorPreMajor,
+        bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
+      }),
+    }),
+  'java-lts': options =>
+    new JavaYoshi({
+      ...options,
+      versioningStrategy: new ServicePackVersioningStrategy(),
+    }),
+  'krm-blueprint': options => new KRMBlueprint(options),
+  node: options => new Node(options),
+  expo: options => new Expo(options),
+  ocaml: options => new OCaml(options),
+  php: options => new PHP(options),
+  'php-yoshi': options => new PHPYoshi(options),
+  python: options => new Python(options),
+  ruby: options => new Ruby(options),
+  'ruby-yoshi': options => new RubyYoshi(options),
+  rust: options => new Rust(options),
+  simple: options => new Simple(options),
+  'terraform-module': options => new TerraformModule(options),
+  helm: options => new Helm(options),
+  elixir: options => new Elixir(options),
+  dart: options => new Dart(options),
+};
+
 export async function buildStrategy(
   options: StrategyFactoryOptions
 ): Promise<Strategy> {
   const targetBranch =
     options.targetBranch ?? options.github.repository.defaultBranch;
   const versioningStrategy = buildVersioningStrategy({
+    github: options.github,
     type: options.versioning,
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
@@ -128,167 +120,36 @@ export async function buildStrategy(
     github: options.github,
     changelogSections: options.changelogSections,
   });
-  const strategyOptions = {
-    github: options.github,
+  const strategyOptions: BaseStrategyOptions = {
+    skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
+    ...options,
     targetBranch,
-    path: options.path,
-    bumpMinorPreMajor: options.bumpMinorPreMajor,
-    bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
-    component: options.component,
-    packageName: options.packageName,
-    changelogPath: options.changelogPath,
-    changelogSections: options.changelogSections,
     versioningStrategy,
-    skipGitHubRelease: options.skipGithubRelease,
-    releaseAs: options.releaseAs,
-    includeComponentInTag: options.includeComponentInTag,
     changelogNotes,
-    pullRequestTitlePattern: options.pullRequestTitlePattern,
-    extraFiles: options.extraFiles,
-    tagSeparator: options.tagSeparator,
   };
-  switch (options.releaseType) {
-    case 'ruby': {
-      return new Ruby({
-        ...strategyOptions,
-        versionFile: options.versionFile,
-      });
-    }
-    case 'ruby-yoshi': {
-      return new RubyYoshi({
-        ...strategyOptions,
-        versionFile: options.versionFile,
-      });
-    }
-    case 'java-backport': {
-      return new JavaYoshi({
-        ...strategyOptions,
-        versioningStrategy: new AlwaysBumpPatch(),
-      });
-    }
-    case 'java-bom': {
-      return new JavaYoshi({
-        ...strategyOptions,
-        versioningStrategy: new DependencyManifest({
-          bumpMinorPreMajor: options.bumpMinorPreMajor,
-          bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
-        }),
-      });
-    }
-    case 'java-lts': {
-      return new JavaYoshi({
-        ...strategyOptions,
-        versioningStrategy: new ServicePackVersioningStrategy(),
-      });
-    }
-    case 'simple': {
-      return new Simple({
-        ...strategyOptions,
-        versionFile: options.versionFile,
-      });
-    }
-    default: {
-      const builder = releasers[options.releaseType];
-      if (builder) {
-        return builder(strategyOptions);
-      }
-      throw new Error(`Unknown release type: ${options.releaseType}`);
-    }
+
+  const builder = releasers[options.releaseType];
+  if (builder) {
+    return builder(strategyOptions);
   }
+  throw new ConfigurationError(
+    `Unknown release type: ${options.releaseType}`,
+    'core',
+    `${options.github.repository.owner}/${options.github.repository.repo}`
+  );
 }
 
-const allVersioningTypes = [
-  'default',
-  'always-bump-patch',
-  'service-pack',
-] as const;
-export type VersioningStrategyType = typeof allVersioningTypes[number];
-interface VersioningStrategyFactoryOptions {
-  type?: VersioningStrategyType;
-  bumpMinorPreMajor?: boolean;
-  bumpPatchForMinorPreMajor?: boolean;
-}
-function buildVersioningStrategy(
-  options: VersioningStrategyFactoryOptions
-): VersioningStrategy {
-  switch (options.type) {
-    case 'always-bump-patch':
-      return new AlwaysBumpPatch(options);
-    case 'service-pack':
-      return new ServicePackVersioningStrategy(options);
-    default:
-      return new DefaultVersioningStrategy(options);
-  }
+export function registerReleaseType(
+  name: string,
+  strategyBuilder: ReleaseBuilder
+) {
+  releasers[name] = strategyBuilder;
 }
 
-interface PluginFactoryOptions {
-  type: PluginType;
-  github: GitHub;
-  targetBranch: string;
-  repositoryConfig: RepositoryConfig;
-
-  // node options
-  alwaysLinkLocal?: boolean;
-
-  // workspace options
-  updateAllPackages?: boolean;
+export function unregisterReleaseType(name: string) {
+  delete releasers[name];
 }
 
-export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
-  if (typeof options.type === 'object') {
-    switch (options.type.type) {
-      case 'linked-versions':
-        return new LinkedVersions(
-          options.github,
-          options.targetBranch,
-          options.repositoryConfig,
-          options.type.groupName,
-          options.type.components
-        );
-      default:
-        throw new Error(`Unknown plugin type: ${options.type}`);
-    }
-  }
-  switch (options.type) {
-    case 'cargo-workspace':
-      return new CargoWorkspace(
-        options.github,
-        options.targetBranch,
-        options.repositoryConfig,
-        options
-      );
-    case 'node-workspace':
-      return new NodeWorkspace(
-        options.github,
-        options.targetBranch,
-        options.repositoryConfig,
-        options
-      );
-    default:
-      throw new Error(`Unknown plugin type: ${options.type}`);
-  }
-}
-
-const allChangelogNotesTypes = ['default', 'github'] as const;
-export type ChangelogNotesType = typeof allChangelogNotesTypes[number];
-interface ChangelogNotesFactoryOptions {
-  type: ChangelogNotesType;
-  github: GitHub;
-  changelogSections?: ChangelogSection[];
-  commitPartial?: string;
-  headerPartial?: string;
-  mainTemplate?: string;
-}
-
-export function buildChangelogNotes(
-  options: ChangelogNotesFactoryOptions
-): ChangelogNotes {
-  switch (options.type) {
-    case 'github':
-      return new GitHubChangelogNotes(options.github);
-    case 'default':
-      return new DefaultChangelogNotes(options);
-    default:
-      throw new Error(`Unknown changelog type: ${options.type}`);
-  }
+export function getReleaserTypes(): readonly ReleaseType[] {
+  return Object.keys(releasers).sort();
 }

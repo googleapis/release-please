@@ -31,6 +31,11 @@ interface DefaultChangelogNotesOptions {
   mainTemplate?: string;
 }
 
+interface Note {
+  title: string;
+  text: string;
+}
+
 export class DefaultChangelogNotes implements ChangelogNotes {
   // allow for customized commit template.
   private commitPartial?: string;
@@ -68,14 +73,23 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       this.headerPartial || preset.writerOpts.headerPartial;
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
-
     const changelogCommits = commits.map(commit => {
+      const notes = commit.notes
+        .filter(note => note.title === 'BREAKING CHANGE')
+        .map(note =>
+          replaceIssueLink(
+            note,
+            context.host,
+            context.owner,
+            context.repository
+          )
+        );
       return {
         body: '', // commit.body,
-        subject: commit.bareMessage,
+        subject: htmlEscape(commit.bareMessage),
         type: commit.type,
         scope: commit.scope,
-        notes: commit.notes.filter(note => note.title === 'BREAKING CHANGE'),
+        notes,
         references: commit.references,
         mentions: [],
         merge: null,
@@ -93,4 +107,21 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       .parseArray(changelogCommits, context, preset.writerOpts)
       .trim();
   }
+}
+
+function replaceIssueLink(
+  note: Note,
+  host: string,
+  owner: string,
+  repo: string
+): Note {
+  note.text = note.text.replace(
+    /\(#(\d+)\)/,
+    `([#$1](${host}/${owner}/${repo}/issues/$1))`
+  );
+  return note;
+}
+
+function htmlEscape(message: string): string {
+  return message.replace('<', '&lt;').replace('>', '&gt;');
 }

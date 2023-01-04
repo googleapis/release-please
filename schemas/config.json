@@ -1,0 +1,399 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "release-please manifest config schema",
+  "description": "Schema for defining manifest config file",
+  "type": "object",
+  "additionalProperties": false,
+  "definitions": {
+    "ReleaserConfigOptions": {
+      "type": "object",
+      "properties": {
+        "release-type": {
+          "description": "The strategy to use for this component.",
+          "type": "string"
+        },
+        "bump-minor-pre-major": {
+          "description": "Breaking changes only bump semver minor if version < 1.0.0",
+          "type": "boolean"
+        },
+        "bump-patch-for-minor-pre-major": {
+          "description": "Feature changes only bump semver patch if version < 1.0.0",
+          "type": "boolean"
+        },
+        "versioning": {
+          "description": "Versioning strategy. Defaults to `default`",
+          "type": "string"
+        },
+        "changelog-sections": {
+          "description": "Override the Changelog configuration sections",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "Semantic commit type (e.g. `feat`, `chore`)",
+                "type": "string"
+              },
+              "section": {
+                "description": "Changelog section title",
+                "type": "string"
+              },
+              "hidden": {
+                "description": "Skip displaying this type of commit. Defaults to `false`.",
+                "type": "boolean"
+              }
+            },
+            "required": ["type", "section"]
+          }
+        },
+        "release-as": {
+          "description": "[DEPRECATED] Override the next version of this package. Consider using a `Release-As` commit instead.",
+          "type": "string"
+        },
+        "skip-github-release": {
+          "description": "Skip tagging GitHub releases for this package. Release-Please still requires releases to be tagged, so this option should only be used if you have existing infrastructure to tag these releases.Defaults to `false`.",
+          "type": "boolean"
+        },
+        "draft": {
+          "description": "Create the GitHub release in draft mode. Defaults to `false`.",
+          "type": "boolean"
+        },
+        "prerelease": {
+          "description": "Create the GitHub release as prerelease. Defaults to `false`.",
+          "type": "boolean"
+        },
+        "draft-pull-request": {
+          "description": "Open the release pull request in draft mode. Defaults to `false`.",
+          "type": "boolean"
+        },
+        "extra-label": {
+          "description": "Comma-separated list of labels to add to a newly opened pull request",
+          "type": "string"
+        },
+        "include-component-in-tag": {
+          "description": "When tagging a release, include the component name as part of the tag. Defaults to `true`.",
+          "type": "boolean"
+        },
+        "include-v-in-tag": {
+          "description": "When tagging a release, include `v` in the tag. Defaults to `false`.",
+          "type": "boolean"
+        },
+        "changelog-type": {
+          "description": "The type of changelog to use. Defaults to `default`.",
+          "type": "string",
+          "enum": ["default", "github"]
+        },
+        "changelog-host": {
+          "description": "Generate changelog links to this GitHub host. Useful for running against GitHub Enterprise.",
+          "type": "string"
+        },
+        "changelog-path": {
+          "description": "Path to the file that tracks release note changes. Defaults to `CHANGELOG.md`.",
+          "type": "string"
+        },
+        "pull-request-title-pattern": {
+          "description": "Customize the release pull request title.",
+          "type": "string"
+        },
+        "pull-request-header": {
+          "description": "Customize the release pull request header.",
+          "type": "string"
+        },
+        "separate-pull-requests": {
+          "description": "Open a separate release pull request for each component. Defaults to `false`.",
+          "type": "boolean"
+        },
+        "tag-separator": {
+          "description": "Customize the separator between the component and version in the GitHub tag.",
+          "type": "string"
+        },
+        "extra-files": {
+          "description": "Specify extra generic files to replace versions.",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "description": "The path to the file. The `Generic` updater uses annotations to replace versions.",
+                "type": "string"
+              },
+              {
+                "description": "An extra JSON on YAML file with a targeted update via jsonpath.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["json", "yaml"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  },
+                  "jsonpath": {
+                    "description": "The jsonpath to the version entry in the file.",
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "path", "jsonpath"]
+              },
+              {
+                "description": "An extra XML file with a targeted update via xpath.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["xml"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  },
+                  "xpath": {
+                    "description": "The xpath to the version entry in the file.",
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "path", "xpath"]
+              },
+              {
+                "description": "An extra pom.xml file.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["pom"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  }
+                },
+                "required": ["type", "path"]
+              }
+            ]
+          }
+        },
+        "version-file": {
+          "description": "Path to the specialize version file. Used by `ruby` and `simple` strategies.",
+          "type": "string"
+        },
+        "snapshot-label": {
+          "description": "Label to add to snapshot pull request. Used by `java` strategies.",
+          "type": "string"
+        },
+        "skip-snapshot": {
+          "description": "If set, do not propose snapshot pull requests. Used by `java` strategies.",
+          "type": "boolean"
+        },
+        "initial-version": {
+          "description": "Releases the initial library with a specified version",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/ReleaserConfigOptions"
+    },
+    {
+      "properties": {
+        "$schema": {
+          "description": "Path to the release-please manifest config schema",
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "packages": {
+          "description": "Per-path component configuration.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ReleaserConfigOptions"
+          }
+        },
+        "bootstrap-sha": {
+          "description": "For the initial release of a library, only consider as far back as this commit SHA. This is an uncommon use case and should generally be avoided.",
+          "type": "string"
+        },
+        "last-release-sha": {
+          "description": "For any release, only consider as far back as this commit SHA. This is an uncommon use case and should generally be avoided.",
+          "type": "string"
+        },
+        "always-link-local": {
+          "description": "When using the `node-workspace` plugin, force all local dependencies to be linked.",
+          "type": "boolean"
+        },
+        "plugins": {
+          "description": "Plugins to apply to pull requests. Plugins can be added to perform extra release processing that cannot be achieved by an individual release strategy.",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "description": "The plugin name for plugins that do not require other options.",
+                "type": "string"
+              },
+              {
+                "description": "Configuration for the `linked-versions` plugin.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": ["linked-versions"]
+                  },
+                  "groupName": {
+                    "description": "The name of the group of components.",
+                    "type": "string"
+                  },
+                  "components": {
+                    "description": "List of component names that are part of this group.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "merge": {
+                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "specialWords": {
+                    "description": "Words that sentence casing logic will not be applied to",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["type", "groupName", "components"]
+              },
+              {
+                "description": "Configuration for various `workspace` plugins.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": ["cargo-workspace", "maven-workspace", "node-workspace"]
+                  },
+                  "updateAllPackages": {
+                    "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
+                    "type": "boolean"
+                  },
+                  "merge": {
+                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "considerAllArtifacts": {
+                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "description": "Configuration for various `group-priority` plugin",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": ["group-priority"]
+                  },
+                  "groups": {
+                    "description": "Group names ordered with highest priority first.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "description": "Other plugins",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "group-pull-request-title-pattern": {
+          "description": "When grouping multiple release pull requests use this pattern for the title.",
+          "type": "string"
+        },
+        "release-search-depth": {
+          "description": "When considering previously releases, only look this deep.",
+          "type": "number"
+        },
+        "commit-search-depth": {
+          "description": "When considering commit history, only look this many commits deep.",
+          "type": "number"
+        },
+        "sequential-calls": {
+          "description": "Whether to open pull requests/releases sequentially rather than concurrently. If you have many components, you may want to set this to avoid secondary rate limits.",
+          "type": "boolean"
+        },
+        "label": {
+          "description": "Comma-separated list of labels to add to newly opened pull request. These are used to identify release pull requests.",
+          "type": "string"
+        },
+        "release-label": {
+          "description": "Comma-separated list of labels to add to a pull request that has been released/tagged",
+          "type": "string"
+        }
+      },
+      "required": ["packages"]
+    }
+  ],
+  "properties": {
+    "$schema": true,
+    "packages": true,
+    "bootstrap-sha": true,
+    "last-release-sha": true,
+    "always-link-local": true,
+    "plugins": true,
+    "group-pull-request-title-pattern": true,
+    "release-search-depth": true,
+    "commit-search-depth": true,
+    "sequential-calls": true,
+    "release-type": true,
+    "bump-minor-pre-major": true,
+    "bump-patch-for-minor-pre-major": true,
+    "versioning": true,
+    "changelog-sections": true,
+    "release-as": true,
+    "skip-github-release": true,
+    "draft": true,
+    "prerelease": true,
+    "draft-pull-request": true,
+    "label": true,
+    "release-label": true,
+    "extra-label": true,
+    "include-component-in-tag": true,
+    "include-v-in-tag": true,
+    "changelog-type": true,
+    "changelog-host": true,
+    "changelog-path": true,
+    "pull-request-title-pattern": true,
+    "pull-request-header": true,
+    "separate-pull-requests": true,
+    "tag-separator": true,
+    "extra-files": true,
+    "version-file": true,
+    "snapshot-label": true,
+    "initial-version": true
+  }
+}

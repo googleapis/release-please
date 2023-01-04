@@ -23,13 +23,9 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {ConventionalCommit} from '../commit';
 import {Update} from '../update';
 
-interface RubyStrategyOptions extends BaseStrategyOptions {
-  versionFile?: string;
-}
-
 export class Ruby extends BaseStrategy {
   readonly versionFile: string;
-  constructor(options: RubyStrategyOptions) {
+  constructor(options: BaseStrategyOptions) {
     super(options);
     this.versionFile = options.versionFile ?? '';
     this.tagSeparator = '/';

@@ -22,7 +22,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
 
-import {GitHub, GitHubRelease} from '../src/github';
+import {GH_API_URL, GitHub, GitHubRelease} from '../src/github';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
@@ -37,6 +37,10 @@ import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import * as codeSuggester from 'code-suggester';
 import {RawContent} from '../src/updaters/raw-content';
+import {HttpsProxyAgent} from 'https-proxy-agent';
+import {HttpProxyAgent} from 'http-proxy-agent';
+import {Commit} from '../src/commit';
+import {mockReleaseData, MockPullRequestOverflowHandler} from './helpers';
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -88,7 +92,39 @@ describe('GitHub', () => {
         owner: 'some-owner',
         repo: 'some-repo',
       });
+
       expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
+    });
+
+    it('default agent is undefined when no proxy option passed ', () => {
+      expect(GitHub.createDefaultAgent('test_url')).eq(undefined);
+    });
+
+    it('should return a https agent', () => {
+      expect(
+        GitHub.createDefaultAgent(GH_API_URL, {
+          host: 'http://proxy.com',
+          port: 3000,
+        })
+      ).instanceof(HttpsProxyAgent);
+    });
+
+    it('should throw error when baseUrl is an invalid url', () => {
+      expect(() => {
+        GitHub.createDefaultAgent('invalid_url', {
+          host: 'http://proxy.com',
+          port: 3000,
+        });
+      }).to.throw('Invalid URL');
+    });
+
+    it('should return a http agent', () => {
+      expect(
+        GitHub.createDefaultAgent('http://www.github.com', {
+          host: 'http://proxy.com',
+          port: 3000,
+        })
+      ).instanceof(HttpProxyAgent);
     });
   });
 
@@ -187,7 +223,7 @@ describe('GitHub', () => {
   });
 
   describe('getFileContents', () => {
-    it('should support Github Data API in case of a big file', async () => {
+    beforeEach(() => {
       const dataAPITreesResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -198,6 +234,11 @@ describe('GitHub', () => {
           'utf8'
         )
       );
+      req = req
+        .get('/repos/fake/fake/git/trees/main?recursive=true')
+        .reply(200, dataAPITreesResponse);
+    });
+    it('should support Github Data API in case of a big file', async () => {
       const dataAPIBlobResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -209,9 +250,7 @@ describe('GitHub', () => {
         )
       );
 
-      req
-        .get('/repos/fake/fake/git/trees/main?recursive=true')
-        .reply(200, dataAPITreesResponse)
+      req = req
         .get(
           '/repos/fake/fake/git/blobs/2f3d2c47bf49f81aca0df9ffc49524a213a2dc33'
         )
@@ -225,6 +264,12 @@ describe('GitHub', () => {
         .equal('2f3d2c47bf49f81aca0df9ffc49524a213a2dc33');
       snapshot(fileContents);
       req.done();
+    });
+
+    it('should throw a missing file error', async () => {
+      await assert.rejects(async () => {
+        await github.getFileContents('non-existent-file');
+      }, FileNotFoundError);
     });
   });
 
@@ -242,6 +287,82 @@ describe('GitHub', () => {
         pullRequests.push(pullRequest);
       }
       expect(pullRequests).lengthOf(25);
+      snapshot(pullRequests!);
+      req.done();
+    });
+    it('handles merged pull requests without files', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'merged-pull-requests-no-files.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const generator = github.pullRequestIterator('main');
+      const pullRequests: PullRequest[] = [];
+      for await (const pullRequest of generator) {
+        pullRequests.push(pullRequest);
+      }
+      expect(pullRequests).lengthOf(25);
+      snapshot(pullRequests!);
+      req.done();
+    });
+    it('uses REST API if files are not needed', async () => {
+      req
+        .get(
+          '/repos/fake/fake/pulls?base=main&state=closed&sort=updated&direction=desc'
+        )
+        .reply(200, [
+          {
+            head: {
+              ref: 'feature-branch',
+            },
+            base: {
+              ref: 'main',
+            },
+            number: 123,
+            title: 'some title',
+            body: 'some body',
+            labels: [{name: 'label 1'}, {name: 'label 2'}],
+            merge_commit_sha: 'abc123',
+            merged_at: '2022-08-08T19:07:20Z',
+          },
+          {
+            head: {
+              ref: 'feature-branch',
+            },
+            base: {
+              ref: 'main',
+            },
+            number: 124,
+            title: 'merged title 2 ',
+            body: 'merged body 2',
+            labels: [{name: 'label 1'}, {name: 'label 2'}],
+            merge_commit_sha: 'abc123',
+            merged_at: '2022-08-08T19:07:20Z',
+          },
+          {
+            head: {
+              ref: 'feature-branch',
+            },
+            base: {
+              ref: 'main',
+            },
+            number: 125,
+            title: 'closed title',
+            body: 'closed body',
+            labels: [{name: 'label 1'}, {name: 'label 2'}],
+            merge_commit_sha: 'def234',
+          },
+        ]);
+      const generator = github.pullRequestIterator('main', 'MERGED', 30, false);
+      const pullRequests: PullRequest[] = [];
+      for await (const pullRequest of generator) {
+        pullRequests.push(pullRequest);
+      }
+      expect(pullRequests).lengthOf(2);
       snapshot(pullRequests!);
       req.done();
     });
@@ -427,6 +548,28 @@ describe('GitHub', () => {
     });
   });
 
+  describe('mergeCommitIterator', () => {
+    it('handles merged pull requests without files', async () => {
+      const graphql = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'commits-since-no-files.json'),
+          'utf8'
+        )
+      );
+      req.post('/graphql').reply(200, {
+        data: graphql,
+      });
+      const generator = github.mergeCommitIterator('main');
+      const commits: Commit[] = [];
+      for await (const commit of generator) {
+        commits.push(commit);
+      }
+      expect(commits).lengthOf(2);
+      snapshot(commits!);
+      req.done();
+    });
+  });
+
   describe('getCommitFiles', () => {
     it('fetches the list of files', async () => {
       req
@@ -541,6 +684,7 @@ describe('GitHub', () => {
           return true;
         })
         .reply(200, {
+          id: 123456,
           tag_name: 'v1.2.3',
           draft: false,
           html_url: 'https://github.com/fake/fake/releases/v1.2.3',
@@ -566,6 +710,7 @@ describe('GitHub', () => {
         prerelease: false,
       });
       expect(release).to.not.be.undefined;
+      expect(release.id).to.eql(123456);
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
@@ -682,6 +827,7 @@ describe('GitHub', () => {
           return true;
         })
         .reply(200, {
+          id: 123456,
           tag_name: 'v1.2.3',
           draft: false,
           html_url: 'https://github.com/fake/fake/releases/v1.2.3',
@@ -708,6 +854,7 @@ describe('GitHub', () => {
         draft: false,
         prerelease: true,
       });
+      expect(release.id).to.eql(123456);
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
       expect(release.draft).to.be.false;
@@ -742,7 +889,7 @@ describe('GitHub', () => {
         fail('should have thrown');
       } catch (err) {
         thrown = true;
-        expect(err.status).to.eql(410);
+        expect((err as GitHubAPIError).status).to.eql(410);
       }
       expect(thrown).to.be.true;
     });
@@ -912,6 +1059,125 @@ describe('GitHub', () => {
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(1);
       expect(changes!.get('missing-file')).to.not.be.undefined;
+    });
+  });
+
+  describe('createFileOnNewBranch', () => {
+    it('forks a new branch if the branch does not exist', async () => {
+      req = req
+        .get('/repos/fake/fake/git/ref/heads%2Fbase-branch')
+        .reply(200, {
+          object: {
+            sha: 'abc123',
+          },
+        })
+        .get('/repos/fake/fake/git/ref/heads%2Fnew-branch')
+        .reply(404)
+        .post('/repos/fake/fake/git/refs', body => {
+          expect(body.ref).to.eql('refs/heads/new-branch');
+          expect(body.sha).to.eql('abc123');
+          return body;
+        })
+        .reply(201, {
+          object: {sha: 'abc123'},
+        })
+        .put('/repos/fake/fake/contents/new-file.txt', body => {
+          expect(body.message).to.eql('Saving release notes');
+          expect(body.branch).to.eql('new-branch');
+          expect(Buffer.from(body.content, 'base64').toString('utf-8')).to.eql(
+            'some contents'
+          );
+          return body;
+        })
+        .reply(201, {
+          content: {
+            html_url: 'https://github.com/fake/fake/blob/new-file.txt',
+          },
+        });
+      const url = await github.createFileOnNewBranch(
+        'new-file.txt',
+        'some contents',
+        'new-branch',
+        'base-branch'
+      );
+      expect(url).to.eql('https://github.com/fake/fake/blob/new-file.txt');
+    });
+    it('reuses an existing branch', async () => {
+      req = req
+        .get('/repos/fake/fake/git/ref/heads%2Fbase-branch')
+        .reply(200, {
+          object: {
+            sha: 'abc123',
+          },
+        })
+        .get('/repos/fake/fake/git/ref/heads%2Fnew-branch')
+        .reply(200, {
+          object: {
+            sha: 'def234',
+          },
+        })
+        .patch('/repos/fake/fake/git/refs/heads%2Fnew-branch', body => {
+          expect(body.force).to.be.true;
+          expect(body.sha).to.eql('abc123');
+          return body;
+        })
+        .reply(200, {
+          object: {sha: 'abc123'},
+        })
+        .put('/repos/fake/fake/contents/new-file.txt', body => {
+          expect(body.message).to.eql('Saving release notes');
+          expect(body.branch).to.eql('new-branch');
+          expect(Buffer.from(body.content, 'base64').toString('utf-8')).to.eql(
+            'some contents'
+          );
+          return body;
+        })
+        .reply(201, {
+          content: {
+            html_url: 'https://github.com/fake/fake/blob/new-file.txt',
+          },
+        });
+      const url = await github.createFileOnNewBranch(
+        'new-file.txt',
+        'some contents',
+        'new-branch',
+        'base-branch'
+      );
+      expect(url).to.eql('https://github.com/fake/fake/blob/new-file.txt');
+    });
+  });
+
+  describe('updatePullRequest', () => {
+    it('handles a PR body that is too big', async () => {
+      req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
+        number: 123,
+        title: 'updated-title',
+        body: 'updated body',
+        labels: [],
+        head: {
+          ref: 'abc123',
+        },
+        base: {
+          ref: 'def234',
+        },
+      });
+      const pullRequest = {
+        title: PullRequestTitle.ofTargetBranch('main'),
+        body: new PullRequestBody(mockReleaseData(1000), {useComponents: true}),
+        labels: [],
+        headRefName: 'release-please--branches--main',
+        draft: false,
+        updates: [],
+      };
+      const pullRequestOverflowHandler = new MockPullRequestOverflowHandler();
+      const handleOverflowStub = sandbox
+        .stub(pullRequestOverflowHandler, 'handleOverflow')
+        .resolves('overflow message');
+      await github.updatePullRequest(123, pullRequest, 'main', {
+        pullRequestOverflowHandler,
+      });
+      sinon.assert.calledOnce(handleOverflowStub);
+      req.done();
     });
   });
 });

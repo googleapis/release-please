@@ -59,7 +59,9 @@ Extra options:
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
 | `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
 | `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
+| `--changelog-host` | `string` | Host for commit hyperlinks in the changelog. Defaults to `https://github.com` |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
+| `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
 
@@ -82,6 +84,7 @@ Extra options:
 | ------ | ---- | ----------- |
 | `--config-file` | string | Override the path to the release-please config file. Defaults to `release-please-config.json` |
 | `--manifest-file` | string | Override the path to the release-please manifest file. Defaults to `.release-please-manifest.json` |
+| `--skip-labeling` | `boolean` | If set, labels will not be applied to pull requests |
 
 ### Without a manifest config
 
@@ -103,11 +106,15 @@ need to specify your release options:
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
 | `--changelog-type` | [`ChangelogType`](/docs/customizing.md#changelog-types) | Strategy for building the changelog contents. Defaults to `default` |
 | `--changelog-sections` | `string` | Comma-separated list of commit scopes to show in changelog headings |
+| `--changelog-host` | `string` | Host for commit hyperlinks in the changelog. Defaults to `https://github.com` |
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
+| `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--signoff` | string | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
+| `--skip-labeling` | `boolean` | If set, labels will not be applied to pull requests |
+| `--include-v-in-tags` | `boolean` | Include "v" in tag versions. Defaults to `true`. |
 
 ## Creating a release on GitHub
 
@@ -142,10 +149,12 @@ need to specify your release options:
 | `--release-type` | ReleaseType | Language strategy that determines which files to update |
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
+| `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--draft` | `boolean` | If set, create releases as drafts |
 | `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |
 | `--release-label` | `string` | Comma-separated list of labels to apply to the pull request after the release has been tagged. Defaults to `autorelease: tagged` |
+| `--include-v-in-tags` | `boolean` | Include "v" in tag versions. Defaults to `true`. |
 
 ## Create a manifest pull request [deprecated]
 
@@ -200,10 +209,10 @@ This CLI command is deprecated in favor of `github-release` which handles this p
 same options. This command is preserved for backward compatibility and will be removed in the
 next major version.
 
-This command should run some time after a release PR has been merged and before
+This command should run sometime after a release PR has been merged and before
 the next release PR is merged. It will create GitHub Releases based on the
 last merged release PR it finds (which is why you don't want to let two release
-PRs merge w/out running it). If successful it will remove the
+PRs merge without running it). If successful it will remove the
 `"autorelease: pending"` label and adds the `"autorelease: tagged"` label.
 Creating all the releases is not transactional. If any fail to create the
 command can be re-run safely to finish creating releases.

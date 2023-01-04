@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {DefaultUpdater, UpdateOptions} from '../default';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 
 const INLINE_UPDATE_REGEX = /{x-version-update:([\w\-_]+):(current|released)}/;
 const BLOCK_START_REGEX =
@@ -41,7 +41,7 @@ export class JavaUpdate extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     if (!this.versionsMap) {
       logger.warn('missing versions map');
       return content;

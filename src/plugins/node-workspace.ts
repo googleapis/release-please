@@ -18,12 +18,7 @@ import {
   RawManifest as PackageJson,
 } from '@lerna/package';
 import {GitHub} from '../github';
-import {logger} from '../util/logger';
-import {
-  CandidateReleasePullRequest,
-  RepositoryConfig,
-  ROOT_PROJECT_PATH,
-} from '../manifest';
+import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import {Version, VersionsMap} from '../version';
 import {RawContent} from '../updaters/raw-content';
 import {PullRequestTitle} from '../util/pull-request-title';
@@ -37,6 +32,8 @@ import {
   DependencyGraph,
   DependencyNode,
   WorkspacePluginOptions,
+  appendDependenciesSectionToChangelog,
+  addPath,
 } from './workspace';
 import {PatchVersionUpdate} from '../versioning-strategy';
 
@@ -97,7 +94,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       }
       const candidate = candidatesByPath.get(path);
       if (candidate) {
-        logger.debug(
+        this.logger.debug(
           `Found candidate pull request for path: ${candidate.path}`
         );
         const packagePath = addPath(candidate.path, 'package.json');
@@ -122,7 +119,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         }
       } else {
         const packagePath = addPath(path, 'package.json');
-        logger.debug(
+        this.logger.debug(
           `No candidate pull request for path: ${path} - inspect package from ${packagePath}`
         );
         const contents = await this.github.getFileContentsOnBranch(
@@ -163,20 +160,24 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     // Update version of the package
     const newVersion = updatedVersions.get(updatedPackage.name);
     if (newVersion) {
-      logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
+      this.logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
       updatedPackage.version = newVersion.toString();
     }
     // Update dependency versions
     for (const [depName, resolved] of graphPackage.localDependencies) {
       const depVersion = updatedVersions.get(depName);
       if (depVersion && resolved.type !== 'directory') {
+        const currentVersion = this.combineDeps(pkg)?.[depName];
+        const prefix = currentVersion
+          ? this.detectRangePrefix(currentVersion)
+          : '';
         updatedPackage.updateLocalDependency(
           resolved,
           depVersion.toString(),
-          '^'
+          prefix
         );
-        logger.info(
-          `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
+        this.logger.info(
+          `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
         );
       }
     }
@@ -192,7 +193,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
             update.updater.changelogEntry =
               appendDependenciesSectionToChangelog(
                 update.updater.changelogEntry,
-                dependencyNotes
+                dependencyNotes,
+                this.logger
               );
           }
         }
@@ -205,13 +207,18 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         existingCandidate.pullRequest.body.releaseData[0].notes =
           appendDependenciesSectionToChangelog(
             existingCandidate.pullRequest.body.releaseData[0].notes,
-            dependencyNotes
+            dependencyNotes,
+            this.logger
           );
       } else {
         existingCandidate.pullRequest.body.releaseData.push({
           component: updatedPackage.name,
           version: existingCandidate.pullRequest.version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         });
       }
     }
@@ -229,19 +236,23 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     // Update version of the package
     const newVersion = updatedVersions.get(updatedPackage.name);
     if (newVersion) {
-      logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
+      this.logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
       updatedPackage.version = newVersion.toString();
     }
     for (const [depName, resolved] of graphPackage.localDependencies) {
       const depVersion = updatedVersions.get(depName);
       if (depVersion && resolved.type !== 'directory') {
+        const currentVersion = this.combineDeps(pkg)?.[depName];
+        const prefix = currentVersion
+          ? this.detectRangePrefix(currentVersion)
+          : '';
         updatedPackage.updateLocalDependency(
           resolved,
           depVersion.toString(),
-          '^'
+          prefix
         );
-        logger.info(
-          `${pkg.name}.${depName} updated to ^${depVersion.toString()}`
+        this.logger.info(
+          `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
         );
       }
     }
@@ -254,7 +265,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         {
           component: updatedPackage.name,
           version,
-          notes: appendDependenciesSectionToChangelog('', dependencyNotes),
+          notes: appendDependenciesSectionToChangelog(
+            '',
+            dependencyNotes,
+            this.logger
+          ),
         },
       ]),
       updates: [
@@ -272,7 +287,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
             version,
             changelogEntry: appendDependenciesSectionToChangelog(
               '',
-              dependencyNotes
+              dependencyNotes,
+              this.logger
             ),
           }),
         },
@@ -307,12 +323,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       allPackages.map(packageJson => packageJson.name)
     );
     for (const packageJson of allPackages) {
-      const allDeps = Object.keys({
-        ...(packageJson.dependencies ?? {}),
-        ...(packageJson.devDependencies ?? {}),
-        ...(packageJson.optionalDependencies ?? {}),
-        ...(packageJson.peerDependencies ?? {}),
-      });
+      const allDeps = Object.keys(this.combineDeps(packageJson));
       const workspaceDeps = allDeps.filter(dep =>
         workspacePackageNames.has(dep)
       );
@@ -326,15 +337,41 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   }
 
   protected inScope(candidate: CandidateReleasePullRequest): boolean {
-    return (
-      candidate.config.releaseType === 'node' &&
-      candidate.path !== ROOT_PROJECT_PATH
-    );
+    return candidate.config.releaseType === 'node';
   }
 
   protected packageNameFromPackage(pkg: Package): string {
     return pkg.name;
   }
+
+  protected pathFromPackage(pkg: Package): string {
+    return pkg.location;
+  }
+
+  private detectRangePrefix(version: string): string {
+    return (
+      Object.values(SUPPORTED_RANGE_PREFIXES).find(supportedRangePrefix =>
+        version.startsWith(supportedRangePrefix)
+      ) || ''
+    );
+  }
+
+  private combineDeps(packageJson: Package): Record<string, string> {
+    return {
+      ...(packageJson.dependencies ?? {}),
+      ...(packageJson.devDependencies ?? {}),
+      ...(packageJson.optionalDependencies ?? {}),
+    };
+  }
+}
+
+enum SUPPORTED_RANGE_PREFIXES {
+  CARET = '^',
+  TILDE = '~',
+  GREATER_THAN = '>',
+  LESS_THAN = '<',
+  EQUAL_OR_GREATER_THAN = '>=',
+  EQUAL_OR_LESS_THAN = '<=',
 }
 
 function getChangelogDepsNotes(original: Package, updated: Package): string {
@@ -379,52 +416,4 @@ function getChangelogDepsNotes(original: Package, updated: Package): string {
     return `* The following workspace dependencies were updated${depUpdateNotes}`;
   }
   return '';
-}
-
-const DEPENDENCY_HEADER = new RegExp('### Dependencies');
-function appendDependenciesSectionToChangelog(
-  changelog: string,
-  notes: string
-): string {
-  if (!changelog) {
-    return `### Dependencies\n\n${notes}`;
-  }
-
-  const newLines: string[] = [];
-  let seenDependenciesSection = false;
-  let seenDependencySectionSpacer = false;
-  let injected = false;
-  for (const line of changelog.split('\n')) {
-    if (seenDependenciesSection) {
-      const trimmedLine = line.trim();
-      if (
-        seenDependencySectionSpacer &&
-        !injected &&
-        !trimmedLine.startsWith('*')
-      ) {
-        newLines.push(changelog);
-        injected = true;
-      }
-      if (trimmedLine === '') {
-        seenDependencySectionSpacer = true;
-      }
-    }
-    if (line.match(DEPENDENCY_HEADER)) {
-      seenDependenciesSection = true;
-    }
-    newLines.push(line);
-  }
-
-  if (injected) {
-    return newLines.join('\n');
-  }
-  if (seenDependenciesSection) {
-    return `${changelog}\n${notes}`;
-  }
-
-  return `${changelog}\n\n\n### Dependencies\n\n${notes}`;
-}
-
-function addPath(path: string, file: string): string {
-  return path === ROOT_PROJECT_PATH ? file : `${path}/${file}`;
 }

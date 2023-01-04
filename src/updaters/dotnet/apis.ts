@@ -14,7 +14,7 @@
 
 import {Updater} from '../../update';
 import {Version} from '../../version';
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {jsonStringify} from '../../util/json-stringify';
 
 interface ApiDefinition {
@@ -44,7 +44,7 @@ export class Apis implements Updater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     const data = JSON.parse(content) as ApisDoc;
     const api = data.apis.find(api => api.id === this.component);
     if (!api) {

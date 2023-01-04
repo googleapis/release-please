@@ -15,7 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {Dart} from '../../src/strategies/dart';
 import {
-  buildMockCommit,
+  buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
 } from '../helpers';
@@ -46,7 +46,7 @@ describe('Dart', () => {
   });
   describe('buildReleasePullRequest', () => {
     const commits = [
-      buildMockCommit(
+      ...buildMockConventionalCommit(
         'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
       ),
     ];
@@ -92,7 +92,7 @@ describe('Dart', () => {
         github,
       });
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
         ),
       ];
@@ -124,7 +124,7 @@ describe('Dart', () => {
         packageName: 'some-dart-package',
       });
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
         ),
       ];

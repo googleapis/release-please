@@ -16,7 +16,7 @@ import {Updater} from '../update';
 import {Version} from '../version';
 import * as jp from 'jsonpath';
 import {jsonStringify} from '../util/json-stringify';
-import {logger} from '../util/logger';
+import {logger as defaultLogger, Logger} from '../util/logger';
 
 export class GenericJson implements Updater {
   readonly jsonpath: string;
@@ -31,7 +31,7 @@ export class GenericJson implements Updater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     const data = JSON.parse(content);
     const nodes = jp.apply(data, this.jsonpath, _val => {
       return this.version.toString();

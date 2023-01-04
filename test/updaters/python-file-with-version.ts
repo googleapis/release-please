@@ -34,6 +34,17 @@ describe('version.py', () => {
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
     });
+    it('updates long patch versions in version.py', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './version-with-long-patch.py'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new PythonFileWithVersion({
+        version: Version.parse('0.5.11'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
 

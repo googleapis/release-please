@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../../util/logger';
 import {jsonStringify} from '../../util/json-stringify';
 import {DefaultUpdater} from '../default';
 
@@ -25,20 +25,26 @@ export class RootComposerUpdatePackages extends DefaultUpdater {
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string): string {
+  updateContent(content: string, logger: Logger = defaultLogger): string {
     if (!this.versionsMap || this.versionsMap.size === 0) {
       logger.info('no updates necessary');
       return content;
     }
     const parsed = JSON.parse(content);
     if (this.versionsMap) {
-      // eslint-disable-next-line prefer-const
-      for (let [key, version] of this.versionsMap.entries()) {
-        version = version || '1.0.0';
-        logger.info(
-          `updating ${key} from ${parsed.replace[key]} to ${version}`
-        );
-        parsed.replace[key] = version.toString();
+      for (const [key, version] of this.versionsMap.entries()) {
+        const toVersion = version.toString() || '1.0.0';
+        let fromVersion: string | undefined;
+        if (parsed.replace) {
+          fromVersion = parsed.replace[key];
+          parsed.replace[key] = toVersion;
+        }
+        if (parsed[key]) {
+          fromVersion ??= parsed[key];
+          parsed[key] = toVersion;
+        }
+
+        logger.info(`updating ${key} from ${fromVersion} to ${toVersion}`);
       }
     }
     return jsonStringify(parsed, content);
