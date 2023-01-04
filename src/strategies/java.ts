@@ -135,6 +135,7 @@ export class Java extends BaseStrategy {
       versionsMap,
       changelogEntry: notes,
       isSnapshot: true,
+      commits: [],
     });
     const updatesWithExtras = mergeUpdates(
       updates.concat(...(await this.extraFileUpdates(newVersion, versionsMap)))
