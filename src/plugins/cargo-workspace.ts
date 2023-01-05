@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {CandidateReleasePullRequest, ROOT_PROJECT_PATH} from '../manifest';
+import {
+  CandidateReleasePullRequest,
+  ROOT_PROJECT_PATH,
+  RepositoryConfig,
+} from '../manifest';
 import {
   WorkspacePlugin,
   DependencyGraph,
   DependencyNode,
   addPath,
   appendDependenciesSectionToChangelog,
+  WorkspacePluginOptions,
 } from './workspace';
 import {
   CargoManifest,
@@ -37,6 +42,7 @@ import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import {CargoLock} from '../updaters/rust/cargo-lock';
+import {GitHub} from '../github';
 
 interface CrateInfo {
   /**
@@ -78,6 +84,16 @@ interface CrateInfo {
  * into a single rust package.
  */
 export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    options: WorkspacePluginOptions = {}
+  ) {
+    options.allowCircularDependencies =
+      options.allowCircularDependencies ?? true;
+    super(github, targetBranch, repositoryConfig, options);
+  }
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
   ): Promise<{

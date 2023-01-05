@@ -36,6 +36,7 @@ export interface WorkspacePluginOptions {
   updateAllPackages?: boolean;
   merge?: boolean;
   logger?: Logger;
+  allowCircularDependencies?: boolean;
 }
 
 export interface AllPackages<T> {
@@ -58,6 +59,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
   private manifestPath: string;
   private merge: boolean;
+  protected allowCircularDependencies: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -68,6 +70,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;
+    this.allowCircularDependencies = options.allowCircularDependencies ?? false;
   }
   async run(
     candidates: CandidateReleasePullRequest[]
@@ -447,9 +450,15 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   ) {
     this.logger.debug(`visiting ${name}, path: ${path}`);
     if (path.indexOf(name) !== -1) {
-      throw new Error(
-        `found cycle in dependency graph: ${path.join(' -> ')} -> ${name}`
-      );
+      const message = `found cycle in dependency graph: ${path.join(
+        ' -> '
+      )} -> ${name}`;
+      if (this.allowCircularDependencies) {
+        this.logger.warn(message);
+        return;
+      } else {
+        throw new Error(message);
+      }
     }
     const node = graph.get(name);
     if (!node) {

@@ -45,6 +45,7 @@ export interface PluginFactoryOptions {
   // workspace options
   updateAllPackages?: boolean;
   considerAllArtifacts?: boolean;
+  allowCircularDependencies?: boolean;
 
   logger?: Logger;
 }
