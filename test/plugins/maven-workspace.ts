@@ -498,6 +498,52 @@ describe('MavenWorkspace plugin', () => {
         expect(version.toString()).to.not.include('SNAPSHOT');
       }
     });
+    it('respects strategy versioning strategy', async () => {
+      // In this test, the BOM component is configured to use the dependency-manifest
+      // versioning strategy - when a dependency update commit is detected, it
+      // tries to match the semver bump type. The artifact that is part of the BOM
+      // is releasing a minor version bump, so the BOM should also take a minor
+      // version bump.
+      plugin = new MavenWorkspace(github, 'main', {
+        bom: {
+          component: 'my-bom',
+          releaseType: 'java-yoshi',
+          versioning: 'dependency-manifest',
+        },
+        'multi1/sub1': {
+          component: 'multi1-sub1',
+          releaseType: 'java-yoshi',
+        },
+      });
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('multi1/sub1', 'java-yoshi', '2.3.0', {
+          component: 'multi1-sub1',
+          updates: [
+            buildMockPackageUpdate('multi1/pom.xml', 'multi1/pom.xml', '2.3.0'),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['bom/pom.xml', 'multi1/sub1/pom.xml'],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('pom.xml', 'main')
+        .resolves(['bom/pom.xml', 'multi1/sub1/pom.xml']);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).length(1);
+      safeSnapshot(newCandidates[0].pullRequest.body.toString());
+      expect(newCandidates[0].pullRequest.body.releaseData).length(2);
+      const bomData = newCandidates[0].pullRequest.body.releaseData.find(
+        data => data.component === 'com.google.example:my-bom'
+      );
+      expect(bomData?.version?.toString()).to.eql('1.3.0');
+    });
   });
 });
 
