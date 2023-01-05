@@ -17,7 +17,7 @@ import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
 import {Changelog} from '../updaters/changelog';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
-import {GitHubAPIError, MissingRequiredFileError} from '../errors';
+import {MissingRequiredFileError, FileNotFoundError} from '../errors';
 import {ConventionalCommit} from '../commit';
 import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
@@ -70,7 +70,7 @@ export class JavaYoshi extends Java {
           this.targetBranch
         );
       } catch (err) {
-        if (err instanceof GitHubAPIError) {
+        if (err instanceof FileNotFoundError) {
           throw new MissingRequiredFileError(
             this.addPath('versions.txt'),
             JavaYoshi.name,
