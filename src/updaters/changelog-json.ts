@@ -67,6 +67,7 @@ export class ChangelogJson extends DefaultUpdater {
       });
     }
     const release = {
+      date: new Date().toISOString(),
       version: this.version.toString(),
       artifact_name: this.artifactName,
       id: randomUUID(),

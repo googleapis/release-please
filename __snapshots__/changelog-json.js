@@ -1,6 +1,7 @@
 exports['changelog.json adds latest release to front of list 1'] = `
 [
   {
+    "date": "2023-01-05T16:42:33.446Z",
     "version": "14.0.0",
     "artifact_name": "foo-artifact",
     "id": "abc-123-efd-qwerty",
@@ -34,6 +35,7 @@ exports['changelog.json adds latest release to front of list 1'] = `
 exports['changelog.json appends new release to empty changelog 1'] = `
 [
   {
+    "date": "2023-01-05T16:42:33.446Z",
     "version": "14.0.0",
     "artifact_name": "foo-artifact",
     "id": "abc-123-efd-qwerty",

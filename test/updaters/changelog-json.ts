@@ -19,6 +19,11 @@ import {Version} from '../../src/version';
 import {parseConventionalCommits} from '../../src/commit';
 import {buildMockCommit} from '../helpers';
 
+const UUID_REGEX =
+  /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g;
+const ISO_DATE_REGEX =
+  /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z/g; // 2023-01-05T16:42:33.446Z
+
 describe('changelog.json', () => {
   it('appends new release to empty changelog', async () => {
     const oldContent = '[]';
@@ -37,10 +42,8 @@ describe('changelog.json', () => {
     snapshot(
       newContent
         .replace(/\r\n/g, '\n') // make newline consistent regardless of OS.
-        .replace(
-          /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g,
-          'abc-123-efd-qwerty'
-        ) // rewrite UUIDs.
+        .replace(UUID_REGEX, 'abc-123-efd-qwerty')
+        .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
     );
   });
   it('adds latest release to front of list', async () => {
@@ -60,10 +63,8 @@ describe('changelog.json', () => {
     snapshot(
       newContent
         .replace(/\r\n/g, '\n') // make newline consistent regardless of OS.
-        .replace(
-          /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g,
-          'abc-123-efd-qwerty'
-        ) // rewrite UUIDs.
+        .replace(UUID_REGEX, 'abc-123-efd-qwerty')
+        .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
     );
   });
 });
