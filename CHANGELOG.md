@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.1.0](https://github.com/googleapis/release-please/compare/v15.0.0...v15.1.0) (2023-01-05)
+
+
+### Features
+
+* **ruby:** Add Gemfile.Lock updater ([#1790](https://github.com/googleapis/release-please/issues/1790)) ([9baf736](https://github.com/googleapis/release-please/commit/9baf736aa424bf3dcf0f05009e5cf8c9ef05fd69))
+
+
+### Bug Fixes
+
+* **java-yoshi:** Throw MissingRequiredFile error if no versions.txt found ([#1794](https://github.com/googleapis/release-please/issues/1794)) ([542d412](https://github.com/googleapis/release-please/commit/542d412307ea8d6350908aeb7efaf9db9e3d03f9))
+
 ## [15.0.0](https://github.com/googleapis/release-please/compare/v14.17.5...v15.0.0) (2022-12-12)
 
 
