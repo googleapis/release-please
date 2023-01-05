@@ -23,6 +23,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {VersionRB} from '../../src/updaters/ruby/version-rb';
+import {GemfileLock} from '../../src/updaters/ruby/gemfile-lock';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 
 const sandbox = sinon.createSandbox();
@@ -96,9 +97,10 @@ describe('Ruby', () => {
         latestRelease
       );
       const updates = release!.updates;
-      expect(updates).lengthOf(2);
+      expect(updates).lengthOf(3);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/google/cloud/automl/version.rb', VersionRB);
+      assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
     });
     it('allows overriding version file', async () => {
       const strategy = new Ruby({
@@ -113,9 +115,10 @@ describe('Ruby', () => {
         latestRelease
       );
       const updates = release!.updates;
-      expect(updates).lengthOf(2);
+      expect(updates).lengthOf(3);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/foo/version.rb', VersionRB);
+      assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
     });
     // TODO: add tests for tag separator
     // TODO: add tests for post-processing commit messages
