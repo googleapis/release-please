@@ -19,6 +19,7 @@ import {Changelog} from '../updaters/changelog';
 
 // Ruby
 import {VersionRB} from '../updaters/ruby/version-rb';
+import {GemfileLock} from '../updaters/ruby/gemfile-lock';
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {ConventionalCommit} from '../commit';
 import {Update} from '../update';
@@ -56,6 +57,16 @@ export class Ruby extends BaseStrategy {
         version,
       }),
     });
+
+    updates.push({
+      path: this.addPath('Gemfile.lock'),
+      createIfMissing: false,
+      updater: new GemfileLock({
+        version,
+        gemName: this.component || '',
+      }),
+    });
+
     return updates;
   }
 
