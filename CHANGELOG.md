@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.1.1](https://github.com/googleapis/release-please/compare/v15.1.0...v15.1.1) (2023-01-06)
+
+
+### Bug Fixes
+
+* **deps:** Update @google-automations/git-file-utils to 1.2.5 ([89f363e](https://github.com/googleapis/release-please/commit/89f363e015bb3a5a7e738232352db70e4d336d86))
+* **deps:** Update code-suggester to 4.2.0 ([#1799](https://github.com/googleapis/release-please/issues/1799)) ([89f363e](https://github.com/googleapis/release-please/commit/89f363e015bb3a5a7e738232352db70e4d336d86))
+
 ## [15.1.0](https://github.com/googleapis/release-please/compare/v15.0.0...v15.1.0) (2023-01-05)
 
 
