@@ -18,6 +18,7 @@ import {DefaultUpdater, UpdateOptions} from './default';
 import {randomUUID} from 'crypto';
 
 const BREAKING_CHANGE_TITLE = 'BREAKING CHANGE';
+const COMMIT_PREFIX = /^[^:]+: ?/;
 
 interface ChangelogJsonOptions extends UpdateOptions {
   artifactName: string;
@@ -66,10 +67,12 @@ export class ChangelogJson extends DefaultUpdater {
       // too quickly, as it would include the chore of creating the
       // previous release itself (so all paths would always be updated).
       if (commit.type === 'chore') continue;
+      // The commit.message field contains the type/scope prefix.
+      const message = commit.message.replace(COMMIT_PREFIX, '');
       const change: Change = {
         type: commit.type,
         sha: commit.sha,
-        message: commit.message,
+        message: message,
       };
       if (commit.scope) change.scope = commit.scope;
       for (const note of commit.notes) {
@@ -81,7 +84,7 @@ export class ChangelogJson extends DefaultUpdater {
     }
     // If all commits were ignored, simply return the original changelog.json.
     if (changes.length === 0) {
-      return JSON.stringify(parsed, null, 2);
+     return JSON.stringify(parsed, null, 2)
     }
     const time = new Date().toISOString();
     const release = {

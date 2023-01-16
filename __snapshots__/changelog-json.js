@@ -7,17 +7,17 @@ exports['changelog.json adds latest release to front of list 1'] = `
         {
           "type": "feat",
           "sha": "81228f3507ad6f742242474628ff58b2",
-          "message": "feat: some feature"
+          "message": "some feature"
         },
         {
           "type": "fix",
           "sha": "26fff5655027c8e7b799cb450acca568",
-          "message": "fix: some bugfix"
+          "message": "some bugfix"
         },
         {
           "type": "docs",
           "sha": "abbf5480ac552b33404be825a817df2a",
-          "message": "docs: some documentation"
+          "message": "some documentation"
         }
       ],
       "version": "14.0.0",
@@ -42,18 +42,18 @@ exports['changelog.json appends new release to empty changelog 1'] = `
         {
           "type": "feat",
           "sha": "81228f3507ad6f742242474628ff58b2",
-          "message": "feat: some feature"
+          "message": "some feature"
         },
         {
           "type": "fix",
           "sha": "05670cf2e850beffe53bb2691f8701c7",
-          "message": "fix!: some bugfix",
+          "message": "some bugfix",
           "breakingChangeNote": "some bugfix"
         },
         {
           "type": "docs",
           "sha": "e0a7c3eb307bdca5f9d4c991c82338da",
-          "message": "docs(perf)!: some documentation",
+          "message": "some documentation",
           "scope": "perf",
           "breakingChangeNote": "some documentation"
         }
