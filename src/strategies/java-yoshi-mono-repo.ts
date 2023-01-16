@@ -16,6 +16,11 @@ import {Update} from '../update';
 import {VersionsManifest} from '../updaters/java/versions-manifest';
 import {Version, VersionsMap} from '../version';
 import {Changelog} from '../updaters/changelog';
+import {ChangelogJson} from '../updaters/changelog-json';
+import {CommitSplit} from '../util/commit-split';
+import {CompositeUpdater} from '../updaters/composite';
+import {Updater} from '../update';
+
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {GitHubAPIError, MissingRequiredFileError} from '../errors';
 import {ConventionalCommit} from '../commit';
@@ -179,9 +184,52 @@ export class JavaYoshiMonoRepo extends Java {
           changelogEntry: options.changelogEntry,
         }),
       });
+
+      // The artifact map maps from directory paths in repo to artifact names on
+      // Maven, e.g, java-secretmanager to com.google.cloud/google-cloud-secretmanager.
+      const artifactMap = await this.getArtifactMap('artifact-map.json');
+      if (artifactMap) {
+        const changelogUpdates: Array<Updater> = [];
+        const cs = new CommitSplit({
+          includeEmpty: false,
+        });
+        const splitCommits = cs.split(options.commits);
+        for (const path of Object.keys(splitCommits)) {
+          if (artifactMap[path]) {
+            this.logger.info(`Found artifact ${artifactMap[path]} for ${path}`);
+            changelogUpdates.push(
+              new ChangelogJson({
+                artifactName: artifactMap[path],
+                version,
+                commits: splitCommits[path],
+                language: 'java',
+              })
+            );
+          }
+        }
+        updates.push({
+          path: 'changelog.json',
+          createIfMissing: false,
+          updater: new CompositeUpdater(...changelogUpdates),
+        });
+      }
     }
 
     return updates;
+  }
+
+  private async getArtifactMap(
+    path: string
+  ): Promise<Record<string, string> | null> {
+    try {
+      const content = await this.github.getFileContentsOnBranch(
+        path,
+        this.targetBranch
+      );
+      return JSON.parse(content.parsedContent);
+    } catch (e) {
+      return null;
+    }
   }
 
   protected async updateVersionsMap(

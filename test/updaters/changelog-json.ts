@@ -26,7 +26,7 @@ const ISO_DATE_REGEX =
 
 describe('changelog.json', () => {
   it('appends new release to empty changelog', async () => {
-    const oldContent = '[]';
+    const oldContent = '{"repository": "foo/bar", "entries": []}';
     const commits = [
       buildMockCommit('feat: some feature'),
       buildMockCommit('fix!: some bugfix'),
@@ -37,6 +37,7 @@ describe('changelog.json', () => {
       version: Version.parse('14.0.0'),
       artifactName: 'foo-artifact',
       commits: conventionalCommits,
+      language: 'java',
     });
     const newContent = changelogJson.updateContent(oldContent);
     snapshot(
@@ -47,7 +48,7 @@ describe('changelog.json', () => {
     );
   });
   it('adds latest release to front of list', async () => {
-    const oldContent = '[{}, {}]';
+    const oldContent = '{"repository": "foo/bar", "entries": [{}, {}]}';
     const commits = [
       buildMockCommit('feat: some feature'),
       buildMockCommit('fix: some bugfix'),
@@ -57,6 +58,7 @@ describe('changelog.json', () => {
     const changelogJson = new ChangelogJson({
       version: Version.parse('14.0.0'),
       artifactName: 'foo-artifact',
+      language: 'java',
       commits: conventionalCommits,
     });
     const newContent = changelogJson.updateContent(oldContent);
