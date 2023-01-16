@@ -63,10 +63,6 @@ export class ChangelogJson extends DefaultUpdater {
     logger.info(`adding release ${this.version} for ${this.artifactName}`);
     const changes = [];
     for (const commit of this.commits) {
-      // Including chores in changelog.json would cause the file to grow
-      // too quickly, as it would include the chore of creating the
-      // previous release itself (so all paths would always be updated).
-      if (commit.type === 'chore') continue;
       // The commit.message field contains the type/scope prefix.
       const message = commit.message.replace(COMMIT_PREFIX, '');
       const change: Change = {
@@ -80,11 +76,16 @@ export class ChangelogJson extends DefaultUpdater {
           change.breakingChangeNote = note.text;
         }
       }
+
+      // Including chores in changelog.json would cause the file to grow
+      // too quickly, as it would include the chore of creating the
+      // previous release itself (so all paths would always be updated).
+      if (commit.type === 'chore' && !change.breakingChangeNote) continue;
       changes.push(change);
     }
     // If all commits were ignored, simply return the original changelog.json.
     if (changes.length === 0) {
-     return JSON.stringify(parsed, null, 2)
+      return JSON.stringify(parsed, null, 2);
     }
     const time = new Date().toISOString();
     const release = {
