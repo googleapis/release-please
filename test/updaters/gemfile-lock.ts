@@ -40,6 +40,7 @@ describe('Gemfile.lock', () => {
       ['foo', '1.0.0', 'foo 1.0.0', 'foo 1.0.0', false, 'no parantheses around version'],
       ['foo', '1.0.0', 'barfoo (1.0.0)', 'barfoo (1.0.0)', false, 'prefixed gem name'],
       ['foo', '1.0.0', 'foobar (0.1.0)', 'foobar (0.1.0)', false, 'suffixed gem name'],
+      ['', '1.0.0', 'foobar (0.1.0)', 'foobar (0.1.0)', false, 'empty gem name'],
     ];
 
     testTable.forEach(
@@ -63,6 +64,19 @@ describe('Gemfile.lock', () => {
         });
       }
     );
+
+    it('does not update anything if gem name is not provided', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './Gemfile.lock'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new GemfileLock({
+        version: Version.parse('0.2.0'),
+        gemName: '',
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
 
     it('updates version in Gemfile.lock', async () => {
       const oldContent = readFileSync(

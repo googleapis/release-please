@@ -46,6 +46,10 @@ export class GemfileLock extends DefaultUpdater {
    * @returns {string} The updated content
    */
   updateContent(content: string): string {
+    if (!this.gemName) {
+      return content;
+    }
+
     // Bundler will convert 1.0.0-alpha1 to 1.0.0.pre.alpha1, so we need to
     // do the same here.
     const versionString = resolveRubyGemfileLockVersion(
