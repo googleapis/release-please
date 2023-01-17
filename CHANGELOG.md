@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.1.2](https://github.com/googleapis/release-please/compare/v15.1.1...v15.1.2) (2023-01-17)
+
+
+### Bug Fixes
+
+* **ruby:** Gemfile.lock should not update when gem name is empty ([#1805](https://github.com/googleapis/release-please/issues/1805)) ([b54d499](https://github.com/googleapis/release-please/commit/b54d499a6b38e13175402fbd7eb7be75094d5014))
+
 ## [15.1.1](https://github.com/googleapis/release-please/compare/v15.1.0...v15.1.1) (2023-01-06)
 
 
