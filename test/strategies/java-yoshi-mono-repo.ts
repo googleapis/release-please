@@ -357,7 +357,11 @@ describe('JavaYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
-      const update = assertHasUpdate(updates, 'changelog.json', CompositeUpdater);
+      const update = assertHasUpdate(
+        updates,
+        'changelog.json',
+        CompositeUpdater
+      );
       const newContent = update.updater.updateContent(
         JSON.stringify({entries: []})
       );
@@ -407,7 +411,11 @@ describe('JavaYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
-      const update = assertHasUpdate(updates, 'changelog.json', CompositeUpdater);
+      const update = assertHasUpdate(
+        updates,
+        'changelog.json',
+        CompositeUpdater
+      );
       const newContent = update.updater.updateContent(
         JSON.stringify({entries: []})
       );

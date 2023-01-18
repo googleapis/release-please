@@ -35,7 +35,8 @@ interface Change {
 }
 
 /**
- *
+ * Maintians a machine readable CHANGELOG in chnagelog.json.
+ * See: https://gist.github.com/bcoe/50ef0a0024bbf107cd5bc0adbdc04758
  */
 export class ChangelogJson extends DefaultUpdater {
   artifactName: string;
@@ -85,7 +86,7 @@ export class ChangelogJson extends DefaultUpdater {
     }
     // If all commits were ignored, simply return the original changelog.json.
     if (changes.length === 0) {
-      return JSON.stringify(parsed, null, 2);
+      return content;
     }
     const time = new Date().toISOString();
     const release = {
