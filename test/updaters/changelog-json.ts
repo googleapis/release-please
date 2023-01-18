@@ -47,7 +47,7 @@ describe('changelog.json', () => {
         .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
     );
   });
-  it('adds latest release to front of list', async () => {
+  it('prepends latest release to existing changelog', async () => {
     const oldContent = '{"repository": "foo/bar", "entries": [{}, {}]}';
     const commits = [
       buildMockCommit('feat: some feature'),
