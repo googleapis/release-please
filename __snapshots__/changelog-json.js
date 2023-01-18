@@ -21,7 +21,7 @@ exports['changelog.json adds latest release to front of list 1'] = `
         }
       ],
       "version": "14.0.0",
-      "language": "java",
+      "language": "JAVA",
       "artifactName": "foo-artifact",
       "id": "abc-123-efd-qwerty",
       "createTime": "2023-01-05T16:42:33.446Z"
@@ -59,11 +59,77 @@ exports['changelog.json appends new release to empty changelog 1'] = `
         }
       ],
       "version": "14.0.0",
-      "language": "java",
+      "language": "JAVA",
       "artifactName": "foo-artifact",
       "id": "abc-123-efd-qwerty",
       "createTime": "2023-01-05T16:42:33.446Z"
     }
+  ],
+  "updateTime": "2023-01-05T16:42:33.446Z"
+}
+`
+
+exports['changelog.json ignores non-breaking chores 1'] = `
+{
+  "repository": "foo/bar",
+  "entries": [
+    {
+      "changes": [
+        {
+          "type": "feat",
+          "sha": "81228f3507ad6f742242474628ff58b2",
+          "message": "some feature"
+        },
+        {
+          "type": "docs",
+          "sha": "abbf5480ac552b33404be825a817df2a",
+          "message": "some documentation"
+        }
+      ],
+      "version": "14.0.0",
+      "language": "JAVA",
+      "artifactName": "foo-artifact",
+      "id": "abc-123-efd-qwerty",
+      "createTime": "2023-01-05T16:42:33.446Z"
+    },
+    {},
+    {}
+  ],
+  "updateTime": "2023-01-05T16:42:33.446Z"
+}
+`
+
+exports['changelog.json includes breaking chores 1'] = `
+{
+  "repository": "foo/bar",
+  "entries": [
+    {
+      "changes": [
+        {
+          "type": "feat",
+          "sha": "81228f3507ad6f742242474628ff58b2",
+          "message": "some feature"
+        },
+        {
+          "type": "chore",
+          "sha": "7ae69f55cbe8af92adc431391eadea77",
+          "message": "some breaking dep update",
+          "breakingChangeNote": "some breaking dep update"
+        },
+        {
+          "type": "docs",
+          "sha": "abbf5480ac552b33404be825a817df2a",
+          "message": "some documentation"
+        }
+      ],
+      "version": "14.0.0",
+      "language": "JAVA",
+      "artifactName": "foo-artifact",
+      "id": "abc-123-efd-qwerty",
+      "createTime": "2023-01-05T16:42:33.446Z"
+    },
+    {},
+    {}
   ],
   "updateTime": "2023-01-05T16:42:33.446Z"
 }

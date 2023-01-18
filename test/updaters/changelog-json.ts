@@ -37,7 +37,7 @@ describe('changelog.json', () => {
       version: Version.parse('14.0.0'),
       artifactName: 'foo-artifact',
       commits: conventionalCommits,
-      language: 'java',
+      language: 'JAVA',
     });
     const newContent = changelogJson.updateContent(oldContent);
     snapshot(
@@ -58,7 +58,51 @@ describe('changelog.json', () => {
     const changelogJson = new ChangelogJson({
       version: Version.parse('14.0.0'),
       artifactName: 'foo-artifact',
-      language: 'java',
+      language: 'JAVA',
+      commits: conventionalCommits,
+    });
+    const newContent = changelogJson.updateContent(oldContent);
+    snapshot(
+      newContent
+        .replace(/\r\n/g, '\n') // make newline consistent regardless of OS.
+        .replace(UUID_REGEX, 'abc-123-efd-qwerty')
+        .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
+    );
+  });
+  it('ignores non-breaking chores', async () => {
+    const oldContent = '{"repository": "foo/bar", "entries": [{}, {}]}';
+    const commits = [
+      buildMockCommit('feat: some feature'),
+      buildMockCommit('chore: update some point release of dep'),
+      buildMockCommit('docs: some documentation'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    const changelogJson = new ChangelogJson({
+      version: Version.parse('14.0.0'),
+      artifactName: 'foo-artifact',
+      language: 'JAVA',
+      commits: conventionalCommits,
+    });
+    const newContent = changelogJson.updateContent(oldContent);
+    snapshot(
+      newContent
+        .replace(/\r\n/g, '\n') // make newline consistent regardless of OS.
+        .replace(UUID_REGEX, 'abc-123-efd-qwerty')
+        .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
+    );
+  });
+  it('includes breaking chores', async () => {
+    const oldContent = '{"repository": "foo/bar", "entries": [{}, {}]}';
+    const commits = [
+      buildMockCommit('feat: some feature'),
+      buildMockCommit('chore!: some breaking dep update'),
+      buildMockCommit('docs: some documentation'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    const changelogJson = new ChangelogJson({
+      version: Version.parse('14.0.0'),
+      artifactName: 'foo-artifact',
+      language: 'JAVA',
       commits: conventionalCommits,
     });
     const newContent = changelogJson.updateContent(oldContent);

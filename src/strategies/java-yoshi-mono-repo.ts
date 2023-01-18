@@ -194,6 +194,8 @@ export class JavaYoshiMonoRepo extends Java {
           includeEmpty: false,
         });
         const splitCommits = cs.split(options.commits);
+        console.info('split commits', JSON.stringify(splitCommits, null, 2));
+        console.info('artifact map', JSON.stringify(artifactMap, null, 2));
         for (const path of Object.keys(splitCommits)) {
           if (artifactMap[path]) {
             this.logger.info(`Found artifact ${artifactMap[path]} for ${path}`);
@@ -202,7 +204,7 @@ export class JavaYoshiMonoRepo extends Java {
                 artifactName: artifactMap[path],
                 version,
                 commits: splitCommits[path],
-                language: 'java',
+                language: 'JAVA',
               })
             );
           }
