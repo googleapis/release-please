@@ -77,11 +77,6 @@ export class ChangelogJson extends DefaultUpdater {
           change.breakingChangeNote = note.text;
         }
       }
-
-      // Including chores in changelog.json would cause the file to grow
-      // too quickly, as it would include the chore of creating the
-      // previous release itself (so all paths would always be updated).
-      if (commit.type === 'chore' && !change.breakingChangeNote) continue;
       changes.push(change);
     }
     // If all commits were ignored, simply return the original changelog.json.
