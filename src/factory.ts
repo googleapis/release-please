@@ -16,6 +16,7 @@ import {Strategy} from './strategy';
 import {Go} from './strategies/go';
 import {GoYoshi} from './strategies/go-yoshi';
 import {JavaYoshi} from './strategies/java-yoshi';
+import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
 import {KRMBlueprint} from './strategies/krm-blueprint';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
@@ -69,6 +70,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   java: options => new Java(options),
   maven: options => new Maven(options),
   'java-yoshi': options => new JavaYoshi(options),
+  'java-yoshi-mono-repo': options => new JavaYoshiMonoRepo(options),
   'java-backport': options =>
     new JavaYoshi({
       ...options,
