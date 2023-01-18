@@ -46,6 +46,7 @@ const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
 export interface BuildUpdatesOptions {
   changelogEntry: string;
+  commits?: ConventionalCommit[];
   newVersion: Version;
   versionsMap: VersionsMap;
   latestVersion?: Version;
@@ -313,6 +314,7 @@ export abstract class BaseStrategy implements Strategy {
       newVersion,
       versionsMap,
       latestVersion: latestRelease?.tag.version,
+      commits: conventionalCommits,
     });
     const updatesWithExtras = mergeUpdates(
       updates.concat(...(await this.extraFileUpdates(newVersion, versionsMap)))

@@ -154,6 +154,7 @@ export class PHPYoshi extends BaseStrategy {
       newVersion,
       versionsMap,
       latestVersion: latestRelease?.tag.version,
+      commits: conventionalCommits, // TODO(@bcoe): these commits will need to be divided into multiple changelog.json updates.
     });
     for (const directory in directoryVersionContents) {
       const componentInfo = directoryVersionContents[directory];
