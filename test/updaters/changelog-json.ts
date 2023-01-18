@@ -25,7 +25,7 @@ const ISO_DATE_REGEX =
   /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z/g; // 2023-01-05T16:42:33.446Z
 
 describe('changelog.json', () => {
-  it('appends new release to empty changelog', async () => {
+  it('prepends new release to empty changelog', async () => {
     const oldContent = '{"repository": "foo/bar", "entries": []}';
     const commits = [
       buildMockCommit('feat: some feature'),
