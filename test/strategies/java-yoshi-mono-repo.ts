@@ -19,7 +19,6 @@ import {JavaYoshiMonoRepo} from '../../src/strategies/java-yoshi-mono-repo';
 import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
-  getUpdate,
   assertHasUpdate,
   assertNoHasUpdate,
 } from '../helpers';
@@ -358,8 +357,7 @@ describe('JavaYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
-      assertHasUpdate(updates, 'changelog.json', CompositeUpdater);
-      const update = getUpdate(updates, 'changelog.json');
+      const update = assertHasUpdate(updates, 'changelog.json', CompositeUpdater);
       const newContent = update.updater.updateContent(
         JSON.stringify({entries: []})
       );
@@ -409,8 +407,7 @@ describe('JavaYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
-      assertHasUpdate(updates, 'changelog.json', CompositeUpdater);
-      const update = getUpdate(updates, 'changelog.json');
+      const update = assertHasUpdate(updates, 'changelog.json', CompositeUpdater);
       const newContent = update.updater.updateContent(
         JSON.stringify({entries: []})
       );

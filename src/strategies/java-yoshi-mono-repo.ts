@@ -193,9 +193,7 @@ export class JavaYoshiMonoRepo extends Java {
         const cs = new CommitSplit({
           includeEmpty: false,
         });
-        const splitCommits = cs.split(options.commits);
-        console.info('split commits', JSON.stringify(splitCommits, null, 2));
-        console.info('artifact map', JSON.stringify(artifactMap, null, 2));
+        const splitCommits = cs.split(options.commits ?? []);
         for (const path of Object.keys(splitCommits)) {
           if (artifactMap[path]) {
             this.logger.info(`Found artifact ${artifactMap[path]} for ${path}`);

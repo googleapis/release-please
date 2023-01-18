@@ -271,13 +271,6 @@ export function assertHasUpdate(
   return found!;
 }
 
-export function getUpdate(updates: Update[], path: string): Update {
-  const found = updates.find(update => {
-    return update.path === path;
-  });
-  return found!;
-}
-
 export function assertHasUpdates(
   updates: Update[],
   path: string,

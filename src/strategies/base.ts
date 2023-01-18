@@ -46,7 +46,7 @@ const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
 export interface BuildUpdatesOptions {
   changelogEntry: string;
-  commits: ConventionalCommit[];
+  commits?: ConventionalCommit[];
   newVersion: Version;
   versionsMap: VersionsMap;
   latestVersion?: Version;
