@@ -51,7 +51,7 @@ const UUID_REGEX =
 const ISO_DATE_REGEX =
   /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z/g; // 2023-01-05T16:42:33.446Z
 
-describe('JavaYoshi', () => {
+describe('JavaYoshiMonoRepo', () => {
   let github: GitHub;
   beforeEach(async () => {
     github = await GitHub.create({

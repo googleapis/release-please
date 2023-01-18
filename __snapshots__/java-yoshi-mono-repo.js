@@ -1,8 +1,8 @@
-exports['JavaYoshi buildUpdates does not update changelog.json if no artifacts matched in artifact-map.json 1'] = `
+exports['JavaYoshiMonoRepo buildUpdates does not update changelog.json if no artifacts matched in artifact-map.json 1'] = `
 {"entries":[]}
 `
 
-exports['JavaYoshi buildUpdates updates changelog.json 1'] = `
+exports['JavaYoshiMonoRepo buildUpdates updates changelog.json 1'] = `
 {
   "entries": [
     {
