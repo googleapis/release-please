@@ -833,7 +833,9 @@ export const parser = yargs
         if (plugin?.init) {
           console.log(`loading plugin: ${pluginName}`);
         } else {
-          console.warn(`plugin: ${pluginName} did not have an init() function.`);
+          console.warn(
+            `plugin: ${pluginName} did not have an init() function.`
+          );
         }
       } catch (e) {
         console.warn(`failed to require plugin: ${pluginName}:`, e);
