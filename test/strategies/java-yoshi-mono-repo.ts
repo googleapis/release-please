@@ -373,6 +373,66 @@ describe('JavaYoshiMonoRepo', () => {
       );
     });
 
+    it('ommits non-breaking chores from changelog.json', async () => {
+      const COMMITS = [
+        ...buildMockConventionalCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
+          ['foo/bar/pom.xml']
+        ),
+        ...buildMockConventionalCommit('chore: update deps', [
+          'foo/bar/pom.xml',
+        ]),
+        ...buildMockConventionalCommit('chore!: update a very important dep', [
+          'foo/bar/pom.xml',
+        ]),
+        ...buildMockConventionalCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
+        ),
+        ...buildMockConventionalCommit('chore: update common templates'),
+      ];
+      const strategy = new JavaYoshiMonoRepo({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
+      getFileContentsStub
+        .withArgs('artifact-map.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'artifact-map.json'));
+      getFileContentsStub
+        .withArgs('changelog.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'versions.txt', VersionsManifest);
+      const update = assertHasUpdate(
+        updates,
+        'changelog.json',
+        CompositeUpdater
+      );
+      const newContent = update.updater.updateContent(
+        JSON.stringify({entries: []})
+      );
+      snapshot(
+        newContent
+          .replace(/\r\n/g, '\n') // make newline consistent regardless of OS.
+          .replace(UUID_REGEX, 'abc-123-efd-qwerty')
+          .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
+      );
+    });
+
     it('does not update changelog.json if no artifacts matched in artifact-map.json', async () => {
       const COMMITS = [
         ...buildMockConventionalCommit(

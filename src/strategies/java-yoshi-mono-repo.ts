@@ -27,6 +27,8 @@ import {ConventionalCommit} from '../commit';
 import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
 
+const BREAKING_CHANGE_NOTE = 'BREAKING CHANGE';
+
 export class JavaYoshiMonoRepo extends Java {
   private versionsContent?: GitHubFileContents;
 
@@ -201,7 +203,15 @@ export class JavaYoshiMonoRepo extends Java {
               new ChangelogJson({
                 artifactName: artifactMap[path],
                 version,
-                commits: splitCommits[path],
+                // We filter out "chore:" commits, to reduce noise in the upstream
+                // release notes. We will only show a product release note entry
+                // if there has been a substantial change, such as a fix or feature.
+                commits: splitCommits[path].filter(commit => {
+                  const isBreaking = commit.notes.find(note => {
+                    return note.title === BREAKING_CHANGE_NOTE;
+                  });
+                  return commit.type !== 'chore' || isBreaking;
+                }),
                 language: 'JAVA',
               })
             );
