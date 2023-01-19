@@ -828,11 +828,15 @@ export const parser = yargs
   .middleware(argv => {
     for (const pluginName of argv.plugin) {
       console.log(`requiring plugin: ${pluginName}`);
-      const plugin = require(pluginName.toString());
-      if (plugin?.init) {
-        console.log(`loading plugin: ${pluginName}`);
-      } else {
-        console.warn(`plugin: ${pluginName} did not have an init() function.`);
+      try {
+        const plugin = require(pluginName.toString());
+        if (plugin?.init) {
+          console.log(`loading plugin: ${pluginName}`);
+        } else {
+          console.warn(`plugin: ${pluginName} did not have an init() function.`);
+        }
+      } catch (e) {
+        console.warn(`failed to require plugin: ${pluginName}:`, e);
       }
     }
   })
