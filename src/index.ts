@@ -20,6 +20,7 @@ export {
   PluginType,
 } from './manifest';
 export {Commit, ConventionalCommit} from './commit';
+export {Strategy} from './strategy';
 export {BaseStrategyOptions, BuildUpdatesOptions} from './strategies/base';
 export {
   ReleaseBuilder,

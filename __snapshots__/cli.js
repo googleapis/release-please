@@ -10,6 +10,8 @@ Options:
                                 debugging).           [boolean] [default: false]
   --trace                       print extra verbose errors (use only for local
                                 debugging).           [boolean] [default: false]
+  --plugin                      load plugin named release-please-<plugin-name>
+                                                           [array] [default: []]
   --token                       GitHub token with repo write permissions
   --api-url                     URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
@@ -75,6 +77,8 @@ Options:
                                                       [boolean] [default: false]
   --trace               print extra verbose errors (use only for local
                         debugging).                   [boolean] [default: false]
+  --plugin              load plugin named release-please-<plugin-name>
+                                                           [array] [default: []]
   --token               GitHub token with repo write permissions
   --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
@@ -114,6 +118,8 @@ Options:
                                                       [boolean] [default: false]
   --trace           print extra verbose errors (use only for local debugging).
                                                       [boolean] [default: false]
+  --plugin          load plugin named release-please-<plugin-name>
+                                                           [array] [default: []]
   --token           GitHub token with repo write permissions
   --api-url         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
@@ -156,6 +162,9 @@ Options:
                                     debugging).       [boolean] [default: false]
   --trace                           print extra verbose errors (use only for
                                     local debugging). [boolean] [default: false]
+  --plugin                          load plugin named
+                                    release-please-<plugin-name>
+                                                           [array] [default: []]
   --token                           GitHub token with repo write permissions
   --api-url                         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
