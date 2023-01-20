@@ -190,12 +190,19 @@ export class JavaYoshiMonoRepo extends Java {
       // The artifact map maps from directory paths in repo to artifact names on
       // Maven, e.g, java-secretmanager to com.google.cloud/google-cloud-secretmanager.
       const artifactMap = await this.getArtifactMap('artifact-map.json');
-      if (artifactMap) {
+      if (artifactMap && options.commits) {
         const changelogUpdates: Array<Updater> = [];
         const cs = new CommitSplit({
           includeEmpty: false,
         });
-        const splitCommits = cs.split(options.commits ?? []);
+        const splitCommits = cs.split(
+          options.commits.filter(commit => {
+            const isBreaking = commit.notes.find(note => {
+              return note.title === BREAKING_CHANGE_NOTE;
+            });
+            return commit.type !== 'chore' || isBreaking;
+          })
+        );
         for (const path of Object.keys(splitCommits)) {
           if (artifactMap[path]) {
             this.logger.info(`Found artifact ${artifactMap[path]} for ${path}`);
@@ -206,12 +213,7 @@ export class JavaYoshiMonoRepo extends Java {
                 // We filter out "chore:" commits, to reduce noise in the upstream
                 // release notes. We will only show a product release note entry
                 // if there has been a substantial change, such as a fix or feature.
-                commits: splitCommits[path].filter(commit => {
-                  const isBreaking = commit.notes.find(note => {
-                    return note.title === BREAKING_CHANGE_NOTE;
-                  });
-                  return commit.type !== 'chore' || isBreaking;
-                }),
+                commits: splitCommits[path],
                 language: 'JAVA',
               })
             );

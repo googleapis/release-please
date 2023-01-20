@@ -373,7 +373,7 @@ describe('JavaYoshiMonoRepo', () => {
       );
     });
 
-    it('ommits non-breaking chores from changelog.json', async () => {
+    it('omits non-breaking chores from changelog.json', async () => {
       const COMMITS = [
         ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',

@@ -2,7 +2,7 @@ exports['JavaYoshiMonoRepo buildUpdates does not update changelog.json if no art
 {"entries":[]}
 `
 
-exports['JavaYoshiMonoRepo buildUpdates ommits non-breaking chores from changelog.json 1'] = `
+exports['JavaYoshiMonoRepo buildUpdates omits non-breaking chores from changelog.json 1'] = `
 {
   "entries": [
     {
@@ -22,7 +22,7 @@ exports['JavaYoshiMonoRepo buildUpdates ommits non-breaking chores from changelo
       ],
       "version": "0.1.0",
       "language": "JAVA",
-      "artifactName": "cloud.google.com/foo",
+      "artifactName": "cloud.google.com:foo",
       "id": "abc-123-efd-qwerty",
       "createTime": "2023-01-05T16:42:33.446Z"
     }
@@ -45,7 +45,7 @@ exports['JavaYoshiMonoRepo buildUpdates updates changelog.json 1'] = `
       ],
       "version": "0.1.0",
       "language": "JAVA",
-      "artifactName": "cloud.google.com/foo",
+      "artifactName": "cloud.google.com:foo",
       "id": "abc-123-efd-qwerty",
       "createTime": "2023-01-05T16:42:33.446Z"
     }
