@@ -4,6 +4,16 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.2.0](https://github.com/googleapis/release-please/compare/v15.1.2...v15.2.0) (2023-01-23)
+
+
+### Features
+
+* **cli:** Add ability to dynamically load release-please plugin ([#1811](https://github.com/googleapis/release-please/issues/1811)) ([609383b](https://github.com/googleapis/release-please/commit/609383be5a05bb0107b489314b4bcd7615ddafd9))
+* Export Strategy interface so external packages can implement ([609383b](https://github.com/googleapis/release-please/commit/609383be5a05bb0107b489314b4bcd7615ddafd9))
+* Introduce ChangelogJson updater ([#1808](https://github.com/googleapis/release-please/issues/1808)) ([fe3a979](https://github.com/googleapis/release-please/commit/fe3a979a1c228610612aa2d6c303d408be956e2e))
+* Introduce JavaYoshiMonoRepo strategy ([#1810](https://github.com/googleapis/release-please/issues/1810)) ([2d14307](https://github.com/googleapis/release-please/commit/2d143077a545b92e1d9de923ab81ae1e12b7a468))
+
 ## [15.1.2](https://github.com/googleapis/release-please/compare/v15.1.1...v15.1.2) (2023-01-17)
 
 
