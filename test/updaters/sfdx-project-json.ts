@@ -21,7 +21,7 @@ import {SfdxProjectJson} from '../../src/updaters/salesforce/sfdx-project-json';
 
 const fixturesPath = './test/updaters/fixtures/';
 
-describe('Salesforce', () => {
+describe('SfdxProjectJson', () => {
   describe('updateContent', () => {
     it('updates version in sfdx-project.json', async () => {
       const oldContent = readFileSync(
