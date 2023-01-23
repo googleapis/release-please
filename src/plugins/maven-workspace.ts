@@ -58,7 +58,13 @@ interface MavenWorkspacePluginOptions extends WorkspacePluginOptions {
   considerAllArtifacts?: boolean;
 }
 
-const JAVA_RELEASE_TYPES = new Set(['java', 'java-bom', 'java-yoshi', 'maven']);
+const JAVA_RELEASE_TYPES = new Set([
+  'java',
+  'java-bom',
+  'java-yoshi',
+  'java-yoshi-mono-repo',
+  'maven',
+]);
 const XPATH_PROJECT_GROUP =
   '/*[local-name()="project"]/*[local-name()="groupId"]';
 const XPATH_PROJECT_ARTIFACT =
