@@ -17,7 +17,7 @@ import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 export type PackageDirectory = {
-  versioNumber: string;
+  versionNumber: string;
   default: boolean;
 };
 export type SfdxProjectFile = {
@@ -38,8 +38,10 @@ export class SfdxProjectJson extends DefaultUpdater {
     const parsed = JSON.parse(content) as SfdxProjectFile;
     for (const packDir of parsed.packageDirectories) {
       if (packDir.default) {
-        logger.info(`updating from ${packDir.versioNumber} to ${this.version}`);
-        packDir.versioNumber = `${this.version.toString()}.NEXT`;
+        logger.info(
+          `updating from ${packDir.versionNumber} to ${this.version}`
+        );
+        packDir.versionNumber = `${this.version.toString()}.NEXT`;
       }
     }
     return jsonStringify(parsed, content);
