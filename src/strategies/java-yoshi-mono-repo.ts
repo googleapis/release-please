@@ -22,7 +22,11 @@ import {CompositeUpdater} from '../updaters/composite';
 import {Updater} from '../update';
 
 import {GitHubFileContents} from '@google-automations/git-file-utils';
-import {GitHubAPIError, MissingRequiredFileError} from '../errors';
+import {
+  FileNotFoundError,
+  GitHubAPIError,
+  MissingRequiredFileError,
+} from '../errors';
 import {ConventionalCommit} from '../commit';
 import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
@@ -236,13 +240,14 @@ export class JavaYoshiMonoRepo extends Java {
 
   private async hasChangelogJson(): Promise<Boolean> {
     try {
-      await this.github.getFileContentsOnBranch(
+      const content = await this.github.getFileContentsOnBranch(
         'changelog.json',
         this.targetBranch
       );
-      return true;
+      return !!content;
     } catch (e) {
-      return false;
+      if (e instanceof FileNotFoundError) return false;
+      else throw e;
     }
   }
 
@@ -254,9 +259,10 @@ export class JavaYoshiMonoRepo extends Java {
         this.addPath(`${path}/.repo-metadata.json`),
         this.targetBranch
       );
-      return JSON.parse(content.parsedContent);
+      return content ? JSON.parse(content.parsedContent) : null;
     } catch (e) {
-      return null;
+      if (e instanceof FileNotFoundError) return null;
+      else throw e;
     }
   }
 
