@@ -181,7 +181,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         );
       }
     }
-    const dependencyNotes = getChangelogDepsNotes(pkg, updatedPackage);
+    const dependencyNotes = getChangelogDepsNotes(
+      pkg,
+      updatedPackage,
+      updatedVersions
+    );
     existingCandidate.pullRequest.updates =
       existingCandidate.pullRequest.updates.map(update => {
         if (update.path === addPath(existingCandidate.path, 'package.json')) {
@@ -256,7 +260,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         );
       }
     }
-    const dependencyNotes = getChangelogDepsNotes(pkg, updatedPackage);
+    const dependencyNotes = getChangelogDepsNotes(
+      pkg,
+      updatedPackage,
+      updatedVersions
+    );
     const packageJson = updatedPackage.toJSON() as PackageJson;
     const version = Version.parse(packageJson.version);
     const pullRequest: ReleasePullRequest = {
@@ -374,7 +382,11 @@ enum SUPPORTED_RANGE_PREFIXES {
   EQUAL_OR_LESS_THAN = '<=',
 }
 
-function getChangelogDepsNotes(original: Package, updated: Package): string {
+function getChangelogDepsNotes(
+  original: Package,
+  updated: Package,
+  updateVersions: VersionsMap
+): string {
   let depUpdateNotes = '';
   type DT =
     | 'dependencies'
@@ -399,6 +411,16 @@ function getChangelogDepsNotes(original: Package, updated: Package): string {
       if (currentDepVer !== origDepVer) {
         depUpdates.push(
           `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
+        );
+        //handle case when "workspace:" version is used
+      } else if (
+        currentDepVer.startsWith('workspace:') &&
+        updateVersions.get(depName) !== undefined
+      ) {
+        depUpdates.push(
+          `\n    * ${depName} bumped to ${updateVersions
+            .get(depName)
+            ?.toString()}`
         );
       }
     }
