@@ -14,12 +14,15 @@
 
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
+import {ChangelogJson} from '../updaters/changelog-json';
 import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../updaters/node/samples-package-json';
 import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError, MissingRequiredFileError} from '../errors';
+
+const BREAKING_CHANGE_NOTE = 'BREAKING CHANGE';
 
 export class Node extends BaseStrategy {
   private pkgJsonContents?: GitHubFileContents;
@@ -67,6 +70,29 @@ export class Node extends BaseStrategy {
         version,
       }),
     });
+
+    // If a machine readable changelog.json exists update it:
+    if (options.commits && this.pkgJsonContents?.parsedContent) {
+      const pkg = JSON.parse(this.pkgJsonContents.parsedContent);
+      if (pkg.name) {
+        const commits = options.commits.filter(commit => {
+          const isBreaking = commit.notes.find(note => {
+            return note.title === BREAKING_CHANGE_NOTE;
+          });
+          return commit.type !== 'chore' || isBreaking;
+        });
+        updates.push({
+          path: 'changelog.json',
+          createIfMissing: false,
+          updater: new ChangelogJson({
+            artifactName: pkg.name,
+            version,
+            commits,
+            language: 'JAVASCRIPT',
+          }),
+        });
+      }
+    }
 
     return updates;
   }
