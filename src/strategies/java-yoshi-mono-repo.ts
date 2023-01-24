@@ -189,7 +189,7 @@ export class JavaYoshiMonoRepo extends Java {
 
       // Bail early if the repository has no root changelog.json.
       // This file is used to opt into machine readable commits.
-      const hasChangelogJson = !!(await this.hasChangelogJson());
+      const hasChangelogJson = await this.hasChangelogJson();
       if (hasChangelogJson && options.commits) {
         const changelogUpdates: Array<Updater> = [];
         const cs = new CommitSplit({
