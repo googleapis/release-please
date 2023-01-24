@@ -412,10 +412,8 @@ function getChangelogDepsNotes(
         depUpdates.push(
           `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
         );
-      }
-      //handle case when "workspace:" version is used
-      if (
-        currentDepVer === origDepVer &&
+        //handle case when "workspace:" version is used
+      } else if (
         currentDepVer.startsWith('workspace:') &&
         updateVersions.get(depName) !== undefined
       ) {
