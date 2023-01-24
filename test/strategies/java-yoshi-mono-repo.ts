@@ -344,8 +344,8 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
       getFileContentsStub
-        .withArgs('artifact-map.json', 'main')
-        .resolves(buildGitHubFileContent(fixturesPath, 'artifact-map.json'));
+        .withArgs('foo/.repo-metadata.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, '.repo-metadata.json'));
       getFileContentsStub
         .withArgs('changelog.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));
@@ -404,8 +404,8 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
       getFileContentsStub
-        .withArgs('artifact-map.json', 'main')
-        .resolves(buildGitHubFileContent(fixturesPath, 'artifact-map.json'));
+        .withArgs('foo/.repo-metadata.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, '.repo-metadata.json'));
       getFileContentsStub
         .withArgs('changelog.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));
@@ -433,7 +433,7 @@ describe('JavaYoshiMonoRepo', () => {
       );
     });
 
-    it('does not update changelog.json if no artifacts matched in artifact-map.json', async () => {
+    it('does not update changelog.json if no .repo-metadata.json is found', async () => {
       const COMMITS = [
         ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
@@ -457,9 +457,6 @@ describe('JavaYoshiMonoRepo', () => {
       getFileContentsStub
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
-      getFileContentsStub
-        .withArgs('artifact-map.json', 'main')
-        .resolves(buildGitHubFileContent(fixturesPath, 'artifact-map.json'));
       getFileContentsStub
         .withArgs('changelog.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));

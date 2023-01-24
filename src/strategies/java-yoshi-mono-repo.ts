@@ -187,10 +187,10 @@ export class JavaYoshiMonoRepo extends Java {
         }),
       });
 
-      // The artifact map maps from directory paths in repo to artifact names on
-      // Maven, e.g, java-secretmanager to com.google.cloud/google-cloud-secretmanager.
-      const artifactMap = await this.getArtifactMap('artifact-map.json');
-      if (artifactMap && options.commits) {
+      // Bail early if the repository has no root changelog.json.
+      // This file is used to opt into machine readable commits.
+      const hasChangelogJson = !!(await this.hasChangelogJson());
+      if (hasChangelogJson && options.commits) {
         const changelogUpdates: Array<Updater> = [];
         const cs = new CommitSplit({
           includeEmpty: false,
@@ -204,11 +204,15 @@ export class JavaYoshiMonoRepo extends Java {
           })
         );
         for (const path of Object.keys(splitCommits)) {
-          if (artifactMap[path]) {
-            this.logger.info(`Found artifact ${artifactMap[path]} for ${path}`);
+          const repoMetadata = await this.getRepoMetadata(path);
+          const artifactName = repoMetadata
+            ? repoMetadata['distribution_name']
+            : null;
+          if (repoMetadata && artifactName) {
+            this.logger.info(`Found artifact ${artifactName} for ${path}`);
             changelogUpdates.push(
               new ChangelogJson({
-                artifactName: artifactMap[path],
+                artifactName,
                 version,
                 // We filter out "chore:" commits, to reduce noise in the upstream
                 // release notes. We will only show a product release note entry
@@ -230,12 +234,24 @@ export class JavaYoshiMonoRepo extends Java {
     return updates;
   }
 
-  private async getArtifactMap(
+  private async hasChangelogJson(): Promise<Boolean> {
+    try {
+      await this.github.getFileContentsOnBranch(
+        'changelog.json',
+        this.targetBranch
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  private async getRepoMetadata(
     path: string
   ): Promise<Record<string, string> | null> {
     try {
       const content = await this.github.getFileContentsOnBranch(
-        path,
+        this.addPath(`${path}/.repo-metadata.json`),
         this.targetBranch
       );
       return JSON.parse(content.parsedContent);

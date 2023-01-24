@@ -1,0 +1,17 @@
+{
+  "api_shortname": "appengine",
+  "name_pretty": "App Engine Admin API",
+  "product_documentation": "https://cloud.google.com/appengine/docs/admin-api/",
+  "api_description": "you to manage your App Engine applications.",
+  "client_documentation": "https://cloud.google.com/java/docs/reference/google-cloud-appengine-admin/latest/overview",
+  "release_level": "stable",
+  "transport": "grpc",
+  "language": "java",
+  "repo": "googleapis/google-cloud-java",
+  "repo_short": "java-appengine-admin",
+  "distribution_name": "cloud.google.com:foo",
+  "api_id": "appengine.googleapis.com",
+  "library_type": "GAPIC_AUTO",
+  "requires_billing": true,
+  "codeowner_team": "@googleapis/aap-dpes"
+}
