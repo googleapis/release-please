@@ -1,4 +1,4 @@
-exports['JavaYoshiMonoRepo buildUpdates does not update changelog.json if no artifacts matched in artifact-map.json 1'] = `
+exports['JavaYoshiMonoRepo buildUpdates does not update changelog.json if no .repo-metadata.json is found 1'] = `
 {"entries":[]}
 `
 
