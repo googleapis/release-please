@@ -4,6 +4,16 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.3.0](https://github.com/googleapis/release-please/compare/v15.2.0...v15.3.0) (2023-01-25)
+
+
+### Features
+
+* Add Salesforce strategy ([#1815](https://github.com/googleapis/release-please/issues/1815)) ([25b518f](https://github.com/googleapis/release-please/commit/25b518f4f34afcd749968d021f4eed99222a328a))
+* Add support for yarn workspace versions ([#1819](https://github.com/googleapis/release-please/issues/1819)) ([8b0cc7d](https://github.com/googleapis/release-please/commit/8b0cc7d7d203609c95e9e7cfbef4f0faedd3f46d))
+* **java-monorepo:** Switch to using .repo-metadata.json ([#1820](https://github.com/googleapis/release-please/issues/1820)) ([6cc85db](https://github.com/googleapis/release-please/commit/6cc85dbb95ade1c38c354a567a02b8a41d729a72))
+* **node:** Add support for changelog.json in Node ([#1823](https://github.com/googleapis/release-please/issues/1823)) ([d3e3bd3](https://github.com/googleapis/release-please/commit/d3e3bd3b102195befb051457f9a837ff47388157))
+
 ## [15.2.0](https://github.com/googleapis/release-please/compare/v15.1.2...v15.2.0) (2023-01-23)
 
 
