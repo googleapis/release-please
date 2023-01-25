@@ -150,6 +150,7 @@ Release Please automates releases for the following flavors of repositories:
 | `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
 | `ruby`              | A repository with a version.rb and a CHANGELOG.md |
 | `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
+| `salesforce`        | A repository with a sfdx-project.json and a CHANGELOG.md |
 | `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
 

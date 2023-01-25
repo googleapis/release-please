@@ -102,6 +102,9 @@ describe('NodeWorkspace plugin', () => {
       node4: {
         releaseType: 'node',
       },
+      node5: {
+        releaseType: 'node',
+      },
     });
   });
   afterEach(() => {
@@ -256,6 +259,7 @@ describe('NodeWorkspace plugin', () => {
           'node2/package.json',
           'node3/package.json',
           'node4/package.json',
+          'node5/package.json',
         ],
         flatten: false,
         targetBranch: 'main',
@@ -283,6 +287,10 @@ describe('NodeWorkspace plugin', () => {
         assertHasUpdate(updates, 'node4/package.json', RawContent),
         '4.4.5'
       );
+      assertHasVersionUpdate(
+        assertHasUpdate(updates, 'node5/package.json', RawContent),
+        '1.0.1'
+      );
       const updater = assertHasUpdate(
         updates,
         '.release-please-manifest.json',
@@ -290,6 +298,7 @@ describe('NodeWorkspace plugin', () => {
       ).updater as ReleasePleaseManifest;
       expect(updater.versionsMap?.get('node2')?.toString()).to.eql('2.2.3');
       expect(updater.versionsMap?.get('node3')?.toString()).to.eql('1.1.2');
+      expect(updater.versionsMap?.get('node5')?.toString()).to.eql('1.0.1');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
     it('appends dependency notes to an updated module', async () => {
@@ -329,6 +338,7 @@ describe('NodeWorkspace plugin', () => {
           'node2/package.json',
           'node3/package.json',
           'node4/package.json',
+          'node5/package.json',
         ],
         flatten: false,
         targetBranch: 'main',
