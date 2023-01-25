@@ -72,26 +72,23 @@ export class Node extends BaseStrategy {
     });
 
     // If a machine readable changelog.json exists update it:
-    if (options.commits && this.pkgJsonContents?.parsedContent) {
-      const pkg = JSON.parse(this.pkgJsonContents.parsedContent);
-      if (pkg.name) {
-        const commits = options.commits.filter(commit => {
-          const isBreaking = commit.notes.find(note => {
-            return note.title === BREAKING_CHANGE_NOTE;
-          });
-          return commit.type !== 'chore' || isBreaking;
+    if (options.commits && packageName) {
+      const commits = options.commits.filter(commit => {
+        const isBreaking = commit.notes.find(note => {
+          return note.title === BREAKING_CHANGE_NOTE;
         });
-        updates.push({
-          path: 'changelog.json',
-          createIfMissing: false,
-          updater: new ChangelogJson({
-            artifactName: pkg.name,
-            version,
-            commits,
-            language: 'JAVASCRIPT',
-          }),
-        });
-      }
+        return commit.type !== 'chore' || isBreaking;
+      });
+      updates.push({
+        path: 'changelog.json',
+        createIfMissing: false,
+        updater: new ChangelogJson({
+          artifactName: packageName,
+          version,
+          commits,
+          language: 'JAVASCRIPT',
+        }),
+      });
     }
 
     return updates;
