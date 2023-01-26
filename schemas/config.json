@@ -117,12 +117,12 @@
                 "type": "string"
               },
               {
-                "description": "An extra JSON on YAML file with a targeted update via jsonpath.",
+                "description": "An extra JSON, YAML, or TOML file with a targeted update via jsonpath.",
                 "type": "object",
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["json", "yaml"]
+                    "enum": ["json", "toml", "yaml"]
                   },
                   "path": {
                     "description": "The path to the file.",
