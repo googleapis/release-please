@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.4.0](https://github.com/googleapis/release-please/compare/v15.3.1...v15.4.0) (2023-01-26)
+
+
+### Features
+
+* **changelog.json:** Include referenced issues/prs ([#1830](https://github.com/googleapis/release-please/issues/1830)) ([bacbbb5](https://github.com/googleapis/release-please/commit/bacbbb52ad802d42af1ffb40e8c616cc6c6601a6))
+
 ## [15.3.1](https://github.com/googleapis/release-please/compare/v15.3.0...v15.3.1) (2023-01-26)
 
 
