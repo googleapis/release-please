@@ -86,7 +86,10 @@ class TaggedTOMLParser extends TOMLParser {
  * @param input A string
  * @param parserType The TOML parser to use (might be custom)
  */
-function parseWith(input: string, parserType: typeof TOMLParser): JsonMap {
+export function parseWith(
+  input: string,
+  parserType: typeof TOMLParser = TaggedTOMLParser
+): JsonMap {
   const parser = new parserType();
   parser.parse(input);
   return parser.finish();
@@ -114,7 +117,7 @@ function isTaggedValue(x: unknown): x is TaggedValue {
  */
 export function replaceTomlValue(
   input: string,
-  path: string[],
+  path: (string | number)[],
   newValue: string
 ) {
   // our pointer into the object "tree", initially points to the root.

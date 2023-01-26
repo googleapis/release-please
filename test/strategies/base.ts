@@ -30,6 +30,7 @@ import {Generic} from '../../src/updaters/generic';
 import {GenericXml} from '../../src/updaters/generic-xml';
 import {PomXml} from '../../src/updaters/java/pom-xml';
 import {GenericYaml} from '../../src/updaters/generic-yaml';
+import {GenericToml} from '../../src/updaters/generic-toml';
 
 const sandbox = sinon.createSandbox();
 
@@ -144,6 +145,23 @@ describe('Strategy', () => {
       expect(updates).to.be.an('array');
       assertHasUpdate(updates!, '0', Generic);
       assertHasUpdate(updates!, '3.yaml', GenericYaml);
+    });
+    it('updates extra TOML files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['0', {type: 'toml', path: '/3.toml', jsonpath: '$.foo'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, '3.toml', GenericToml);
     });
     it('updates extra Xml files', async () => {
       const strategy = new TestStrategy({
