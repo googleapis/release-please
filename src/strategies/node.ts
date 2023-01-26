@@ -21,8 +21,7 @@ import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError, MissingRequiredFileError} from '../errors';
-
-const BREAKING_CHANGE_NOTE = 'BREAKING CHANGE';
+import {filterCommits} from '../util/filter-commits';
 
 export class Node extends BaseStrategy {
   private pkgJsonContents?: GitHubFileContents;
@@ -73,12 +72,7 @@ export class Node extends BaseStrategy {
 
     // If a machine readable changelog.json exists update it:
     if (options.commits && packageName) {
-      const commits = options.commits.filter(commit => {
-        const isBreaking = commit.notes.find(note => {
-          return note.title === BREAKING_CHANGE_NOTE;
-        });
-        return commit.type !== 'chore' || isBreaking;
-      });
+      const commits = filterCommits(options.commits, this.changelogSections);
       updates.push({
         path: 'changelog.json',
         createIfMissing: false,

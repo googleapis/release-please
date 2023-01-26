@@ -30,8 +30,7 @@ import {
 import {ConventionalCommit} from '../commit';
 import {Java, JavaBuildUpdatesOption} from './java';
 import {JavaUpdate} from '../updaters/java/java-update';
-
-const BREAKING_CHANGE_NOTE = 'BREAKING CHANGE';
+import {filterCommits} from '../util/filter-commits';
 
 export class JavaYoshiMonoRepo extends Java {
   private versionsContent?: GitHubFileContents;
@@ -200,12 +199,7 @@ export class JavaYoshiMonoRepo extends Java {
           includeEmpty: false,
         });
         const splitCommits = cs.split(
-          options.commits.filter(commit => {
-            const isBreaking = commit.notes.find(note => {
-              return note.title === BREAKING_CHANGE_NOTE;
-            });
-            return commit.type !== 'chore' || isBreaking;
-          })
+          filterCommits(options.commits, this.changelogSections)
         );
         for (const path of Object.keys(splitCommits)) {
           const repoMetadata = await this.getRepoMetadata(path);
