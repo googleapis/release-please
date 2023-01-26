@@ -7,17 +7,20 @@ exports['changelog.json prepends latest release to existing changelog 1'] = `
         {
           "type": "feat",
           "sha": "81228f3507ad6f742242474628ff58b2",
-          "message": "some feature"
+          "message": "some feature",
+          "issues": []
         },
         {
           "type": "fix",
           "sha": "26fff5655027c8e7b799cb450acca568",
-          "message": "some bugfix"
+          "message": "some bugfix",
+          "issues": []
         },
         {
           "type": "docs",
           "sha": "abbf5480ac552b33404be825a817df2a",
-          "message": "some documentation"
+          "message": "some documentation",
+          "issues": []
         }
       ],
       "version": "14.0.0",
@@ -42,18 +45,21 @@ exports['changelog.json prepends new release to empty changelog 1'] = `
         {
           "type": "feat",
           "sha": "81228f3507ad6f742242474628ff58b2",
-          "message": "some feature"
+          "message": "some feature",
+          "issues": []
         },
         {
           "type": "fix",
           "sha": "05670cf2e850beffe53bb2691f8701c7",
           "message": "some bugfix",
+          "issues": [],
           "breakingChangeNote": "some bugfix"
         },
         {
           "type": "docs",
           "sha": "e0a7c3eb307bdca5f9d4c991c82338da",
           "message": "some documentation",
+          "issues": [],
           "scope": "perf",
           "breakingChangeNote": "some documentation"
         }

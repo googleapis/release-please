@@ -30,6 +30,7 @@ interface Change {
   type: string;
   scope?: string;
   sha: string;
+  issues: string[];
   message: string;
   breakingChangeNote?: string;
 }
@@ -70,6 +71,7 @@ export class ChangelogJson extends DefaultUpdater {
         type: commit.type,
         sha: commit.sha,
         message: message,
+        issues: commit.references.map(ref => ref.issue),
       };
       if (commit.scope) change.scope = commit.scope;
       for (const note of commit.notes) {
