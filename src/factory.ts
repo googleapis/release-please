@@ -25,7 +25,7 @@ import {Python} from './strategies/python';
 import {Ruby} from './strategies/ruby';
 import {RubyYoshi} from './strategies/ruby-yoshi';
 import {Rust} from './strategies/rust';
-import {Salesforce} from './strategies/salesforce';
+import {Sfdx} from './strategies/sfdx';
 import {Simple} from './strategies/simple';
 import {TerraformModule} from './strategies/terraform-module';
 import {Helm} from './strategies/helm';
@@ -100,7 +100,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   ruby: options => new Ruby(options),
   'ruby-yoshi': options => new RubyYoshi(options),
   rust: options => new Rust(options),
-  salesforce: options => new Salesforce(options),
+  sfdx: options => new Sfdx(options),
   simple: options => new Simple(options),
   'terraform-module': options => new TerraformModule(options),
   helm: options => new Helm(options),

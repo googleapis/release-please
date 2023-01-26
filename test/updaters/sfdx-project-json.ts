@@ -17,7 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
-import {SfdxProjectJson} from '../../src/updaters/salesforce/sfdx-project-json';
+import {SfdxProjectJson} from '../../src/updaters/sfdx/sfdx-project-json';
 
 const fixturesPath = './test/updaters/fixtures/';
 

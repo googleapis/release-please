@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {describe, it, afterEach, beforeEach} from 'mocha';
-import {Salesforce} from '../../src/strategies/salesforce';
+import {Sfdx} from '../../src/strategies/sfdx';
 import {
   buildMockConventionalCommit,
   buildGitHubFileContent,
@@ -26,15 +26,15 @@ import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
 import {Changelog} from '../../src/updaters/changelog';
-import {SfdxProjectJson} from '../../src/updaters/salesforce/sfdx-project-json';
+import {SfdxProjectJson} from '../../src/updaters/sfdx/sfdx-project-json';
 import * as assert from 'assert';
 import {MissingRequiredFileError, FileNotFoundError} from '../../src/errors';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
-const fixturesPath = './test/fixtures/strategies/salesforce';
+const fixturesPath = './test/fixtures/strategies/sfdx';
 
-describe('Salesforce', () => {
+describe('Sfdx', () => {
   let github: GitHub;
   const commits = [
     ...buildMockConventionalCommit(
@@ -44,7 +44,7 @@ describe('Salesforce', () => {
   beforeEach(async () => {
     github = await GitHub.create({
       owner: 'googleapis',
-      repo: 'salesforce-test-repo',
+      repo: 'sfdx-test-repo',
       defaultBranch: 'main',
     });
   });
@@ -54,7 +54,7 @@ describe('Salesforce', () => {
   describe('buildReleasePullRequest', () => {
     it('returns release PR changes with defaultInitialVersion', async () => {
       const expectedVersion = '1.0.0';
-      const strategy = new Salesforce({
+      const strategy = new Sfdx({
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
@@ -69,14 +69,14 @@ describe('Salesforce', () => {
     });
     it('builds a release pull request', async () => {
       const expectedVersion = '0.123.5';
-      const strategy = new Salesforce({
+      const strategy = new Sfdx({
         targetBranch: 'main',
         github,
-        component: 'some-salesforce-package',
-        packageName: 'some-salesforce-package',
+        component: 'some-sfdx-package',
+        packageName: 'some-sfdx-package',
       });
       const latestRelease = {
-        tag: new TagName(Version.parse('0.123.4'), 'some-salesforce-package'),
+        tag: new TagName(Version.parse('0.123.4'), 'some-sfdx-package'),
         sha: 'abc123',
         notes: 'some notes',
       };
@@ -88,7 +88,7 @@ describe('Salesforce', () => {
     });
     it('detects a default component', async () => {
       const expectedVersion = '0.123.5';
-      const strategy = new Salesforce({
+      const strategy = new Sfdx({
         targetBranch: 'main',
         github,
       });
@@ -98,7 +98,7 @@ describe('Salesforce', () => {
         ),
       ];
       const latestRelease = {
-        tag: new TagName(Version.parse('0.123.4'), 'salesforce-test-repo'),
+        tag: new TagName(Version.parse('0.123.4'), 'sfdx-test-repo'),
         sha: 'abc123',
         notes: 'some notes',
       };
@@ -117,7 +117,7 @@ describe('Salesforce', () => {
     });
     it('detects a default packageName', async () => {
       const expectedVersion = '0.123.5';
-      const strategy = new Salesforce({
+      const strategy = new Sfdx({
         targetBranch: 'main',
         github,
         component: 'abc-123',
@@ -128,7 +128,7 @@ describe('Salesforce', () => {
         ),
       ];
       const latestRelease = {
-        tag: new TagName(Version.parse('0.123.4'), 'salesforce-test-repo'),
+        tag: new TagName(Version.parse('0.123.4'), 'sfdx-test-repo'),
         sha: 'abc123',
         notes: 'some notes',
       };
@@ -149,12 +149,12 @@ describe('Salesforce', () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .rejects(new FileNotFoundError('stub/path'));
-      const strategy = new Salesforce({
+      const strategy = new Sfdx({
         targetBranch: 'main',
         github,
       });
       const latestRelease = {
-        tag: new TagName(Version.parse('0.123.4'), 'some-salesforce-package'),
+        tag: new TagName(Version.parse('0.123.4'), 'some-sfdx-package'),
         sha: 'abc123',
         notes: 'some notes',
       };
@@ -165,7 +165,7 @@ describe('Salesforce', () => {
   });
   describe('buildUpdates', () => {
     it('builds common files', async () => {
-      const strategy = new Salesforce({
+      const strategy = new Sfdx({
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',

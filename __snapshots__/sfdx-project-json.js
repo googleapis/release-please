@@ -6,7 +6,7 @@ exports['SfdxProjectJson updateContent updates version in sfdx-project.json 1'] 
       "versionNumber": "2.3.4.NEXT"
     }
   ],
-  "name": "salesfore-test-repo"
+  "name": "sfdx-test-repo"
 }
 
 `
