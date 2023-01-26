@@ -41,6 +41,7 @@ import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
+import {GenericToml} from '../updaters/generic-toml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -396,6 +397,13 @@ export abstract class BaseStrategy implements Strategy {
                 path: this.addPath(path),
                 createIfMissing: false,
                 updater: new GenericYaml(extraFile.jsonpath, version),
+              });
+              break;
+            case 'toml':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new GenericToml(extraFile.jsonpath, version),
               });
               break;
             case 'xml':

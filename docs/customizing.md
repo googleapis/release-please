@@ -201,3 +201,41 @@ configuration.
   ]
 }
 ```
+
+## Updating arbitrary YAML files
+
+For most release strategies, you can provide additional files to update
+using the [GenericYaml](/src/updaters/generic-yaml.ts) updater. You can
+specify a configuration object in the `extra-files` option in the manifest
+configuration.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "yaml",
+      "path": "path/to/file.yaml",
+      "jsonpath": "$.json.path.to.field"
+    }
+  ]
+}
+```
+
+## Updating arbitrary TOML files
+
+For most release strategies, you can provide additional files to update
+using the [GenericToml](/src/updaters/generic-toml.ts) updater. You can
+specify a configuration object in the `extra-files` option in the manifest
+configuration.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "toml",
+      "path": "path/to/file.toml",
+      "jsonpath": "$.json.path.to.field"
+    }
+  ]
+}
+```
