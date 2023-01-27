@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.5.0](https://github.com/googleapis/release-please/compare/v15.4.0...v15.5.0) (2023-01-27)
+
+
+### Features
+
+* Add generic TOML updater ([#1833](https://github.com/googleapis/release-please/issues/1833)) ([2768a4c](https://github.com/googleapis/release-please/commit/2768a4cfe131ac8493447a8c7512c623c200df34))
+* Add toml generic updater option to extra-files schema ([#1835](https://github.com/googleapis/release-please/issues/1835)) ([9240f71](https://github.com/googleapis/release-please/commit/9240f71c21f077b240d2ce186456fb23b50dfd89))
+
 ## [15.4.0](https://github.com/googleapis/release-please/compare/v15.3.1...v15.4.0) (2023-01-26)
 
 
