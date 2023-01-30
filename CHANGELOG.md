@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.5.1](https://github.com/googleapis/release-please/compare/v15.5.0...v15.5.1) (2023-01-30)
+
+
+### Bug Fixes
+
+* Support TOML up to v1.0.0-rc.1 spec. ([#1837](https://github.com/googleapis/release-please/issues/1837)) ([a3d94ee](https://github.com/googleapis/release-please/commit/a3d94eec209e00b6f513caa379096d082af7a72b))
+
 ## [15.5.0](https://github.com/googleapis/release-please/compare/v15.4.0...v15.5.0) (2023-01-27)
 
 
