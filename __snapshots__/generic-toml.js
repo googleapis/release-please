@@ -67,3 +67,25 @@ x86-64-dep = { version = "1.2.3", registry = "private", path = ".." }
 foobar-dep = "1.2.3"
 
 `
+
+exports['GenericToml updateContent updates matching entry with TOML v1.0.0 spec 1'] = `
+[package]
+version = "2.3.4"
+
+[v1spec]
+# taken from toml.io#Arrays examples
+integers = [ 1, 2, 3 ]
+colors = [ "red", "yellow", "green" ]
+nested_arrays_of_ints = [ [ 1, 2 ], [3, 4, 5] ]
+nested_mixed_array = [ [ 1, 2 ], ["a", "b", "c"] ]
+string_array = [ "all", 'strings', """are the same""", '''type''' ]
+
+[heterogenous]
+# Mixed-type arrays are allowed
+numbers = [ 0.1, 0.2, 0.5, 1, 2, 5 ]
+contributors = [
+  "Foo Bar <foo@example.com>",
+  { name = "Baz Qux", email = "bazqux@example.com", url = "https://example.com/bazqux" }
+]
+
+`
