@@ -76,5 +76,18 @@ describe('GenericToml', () => {
       const newContent = updater.updateContent(oldContent);
       expect(newContent).to.eql(oldContent);
     });
+    it('updates matching entry with TOML v1.0.0 spec', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './toml/v1.0.0.toml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new GenericToml(
+        '$.package.version',
+        Version.parse('v2.3.4')
+      );
+      const newContent = updater.updateContent(oldContent);
+      expect(newContent).not.to.eql(oldContent);
+      snapshot(newContent);
+    });
   });
 });
