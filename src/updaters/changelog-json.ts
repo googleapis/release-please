@@ -19,6 +19,7 @@ import {randomUUID} from 'crypto';
 
 const BREAKING_CHANGE_TITLE = 'BREAKING CHANGE';
 const COMMIT_PREFIX = /^[^:]+: ?/;
+const PR_SUFFIX_REGEX = / ?\(#(?<pr>[0-9]+)\)$/;
 
 interface ChangelogJsonOptions extends UpdateOptions {
   artifactName: string;
@@ -65,13 +66,28 @@ export class ChangelogJson extends DefaultUpdater {
     logger.info(`adding release ${this.version} for ${this.artifactName}`);
     const changes = [];
     for (const commit of this.commits) {
+      const issues = new Set<string>();
       // The commit.message field contains the type/scope prefix.
-      const message = commit.message.replace(COMMIT_PREFIX, '');
+      let message = commit.message.replace(COMMIT_PREFIX, '');
+      // When squashing commits, GitHub adds a suffix refrencing
+      // the # of the PR, e.g., chore(main): release 15.5.1 (#1838)
+      // this logic removes this suffix and prepends it to the
+      // issues array.
+      const match = message.match(PR_SUFFIX_REGEX);
+      if (match && match.groups?.pr) {
+        message = message.replace(match[0], '');
+        issues.add(match.groups.pr);
+      }
+      // Array.from(someSet) will maintain elements in insertion
+      // order, given this we add references after the pr suffix.
+      for (const ref of commit.references) {
+        issues.add(ref.issue);
+      }
       const change: Change = {
         type: commit.type,
         sha: commit.sha,
         message: message,
-        issues: commit.references.map(ref => ref.issue),
+        issues: Array.from(issues),
       };
       if (commit.scope) change.scope = commit.scope;
       for (const note of commit.notes) {
