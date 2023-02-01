@@ -66,7 +66,10 @@ export class ChangelogJson extends DefaultUpdater {
     logger.info(`adding release ${this.version} for ${this.artifactName}`);
     const changes = [];
     for (const commit of this.commits) {
-      const issues = commit.references.map(ref => ref.issue);
+      const issues = new Set<string>();
+      for (const ref of commit.references) {
+        issues.add(ref.issue);
+      }
       // The commit.message field contains the type/scope prefix.
       let message = commit.message.replace(COMMIT_PREFIX, '');
       // When squashing commits, GitHub adds a suffix refrencing
@@ -76,13 +79,13 @@ export class ChangelogJson extends DefaultUpdater {
       const match = message.match(PR_SUFFIX_REGEX);
       if (match && match.groups?.pr) {
         message = message.replace(match[0], '');
-        issues.unshift(match.groups.pr);
+        issues.add(match.groups.pr);
       }
       const change: Change = {
         type: commit.type,
         sha: commit.sha,
         message: message,
-        issues,
+        issues: Array.from(issues),
       };
       if (commit.scope) change.scope = commit.scope;
       for (const note of commit.notes) {
