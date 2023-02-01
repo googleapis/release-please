@@ -67,9 +67,6 @@ export class ChangelogJson extends DefaultUpdater {
     const changes = [];
     for (const commit of this.commits) {
       const issues = new Set<string>();
-      for (const ref of commit.references) {
-        issues.add(ref.issue);
-      }
       // The commit.message field contains the type/scope prefix.
       let message = commit.message.replace(COMMIT_PREFIX, '');
       // When squashing commits, GitHub adds a suffix refrencing
@@ -80,6 +77,11 @@ export class ChangelogJson extends DefaultUpdater {
       if (match && match.groups?.pr) {
         message = message.replace(match[0], '');
         issues.add(match.groups.pr);
+      }
+      // Array.from(someSet) will maintain elements in insertion
+      // order, given this we add references after the pr suffix.
+      for (const ref of commit.references) {
+        issues.add(ref.issue);
       }
       const change: Change = {
         type: commit.type,
