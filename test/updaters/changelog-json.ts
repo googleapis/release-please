@@ -69,4 +69,29 @@ describe('changelog.json', () => {
         .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
     );
   });
+  // In discussion with downstream implementers, we decideed that it would
+  // make it easier to customize the CHANGELOG generated if we pre-parsed
+  // the PR # suffix that GitHub adds to squashed commits.
+  it('adds PR # suffix to issues array', async () => {
+    const oldContent = '{"repository": "foo/bar", "entries": [{}, {}]}';
+    const commits = [
+      buildMockCommit('feat: some feature'),
+      buildMockCommit('fix: Support TOML up to v1.0.0-rc.1 spec. (#1837)'),
+      buildMockCommit('docs: some documentation'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    const changelogJson = new ChangelogJson({
+      version: Version.parse('14.0.0'),
+      artifactName: 'foo-artifact',
+      language: 'JAVA',
+      commits: conventionalCommits,
+    });
+    const newContent = changelogJson.updateContent(oldContent);
+    snapshot(
+      newContent
+        .replace(/\r\n/g, '\n') // make newline consistent regardless of OS.
+        .replace(UUID_REGEX, 'abc-123-efd-qwerty')
+        .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
+    );
+  });
 });
