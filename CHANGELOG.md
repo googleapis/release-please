@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.6.0](https://github.com/googleapis/release-please/compare/v15.5.1...v15.6.0) (2023-02-01)
+
+
+### Features
+
+* **changelog.json:** Add pr suffix to issues array ([#1839](https://github.com/googleapis/release-please/issues/1839)) ([fdd75ef](https://github.com/googleapis/release-please/commit/fdd75efbc276d432f1d9d54f1790f4852a4aa3f7))
+
 ## [15.5.1](https://github.com/googleapis/release-please/compare/v15.5.0...v15.5.1) (2023-01-30)
 
 
