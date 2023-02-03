@@ -137,7 +137,7 @@ export class Python extends BaseStrategy {
     });
 
     // If a machine readable changelog.json exists update it:
-    const artifactName = await this.getArtifactName();
+    const artifactName = projectName ?? await this.getArtifactName();
     if (options.commits && artifactName) {
       const commits = filterCommits(options.commits, this.changelogSections);
       updates.push({
