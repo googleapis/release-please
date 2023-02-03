@@ -137,7 +137,7 @@ export class Python extends BaseStrategy {
     });
 
     // If a machine readable changelog.json exists update it:
-    const artifactName = projectName ?? await this.getArtifactName();
+    const artifactName = projectName ?? (await this.getNameFromSetupPy());
     if (options.commits && artifactName) {
       const commits = filterCommits(options.commits, this.changelogSections);
       updates.push({
@@ -167,7 +167,7 @@ export class Python extends BaseStrategy {
     }
   }
 
-  protected async getArtifactName(): Promise<string | null> {
+  protected async getNameFromSetupPy(): Promise<string | null> {
     const ARTIFACT_NAME_REGEX = /name *= *['"](?<name>.*)['"](\r|\n|$)/;
     const setupPyContents = await this.getSetupPyContents();
     if (setupPyContents) {
