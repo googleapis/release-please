@@ -33,6 +33,9 @@ export class PackageLockJson extends DefaultUpdater {
     parsed.version = this.version.toString();
     if (parsed.lockfileVersion === 2) {
       parsed.packages[''].version = this.version.toString();
+      this.versionsMap?.forEach((version, linkedPackage) => {
+        parsed.packages[linkedPackage].version = version.toString();
+      });
     }
     return jsonStringify(parsed, content);
   }
