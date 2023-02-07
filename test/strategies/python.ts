@@ -26,8 +26,16 @@ import {PyProjectToml} from '../../src/updaters/python/pyproject-toml';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
 import {Changelog} from '../../src/updaters/changelog';
+import {ChangelogJson} from '../../src/updaters/changelog-json';
+import * as snapshot from 'snap-shot-it';
 
 const sandbox = sinon.createSandbox();
+const fixturesPath = './test/fixtures/strategies/python';
+
+const UUID_REGEX =
+  /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g;
+const ISO_DATE_REGEX =
+  /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z/g; // 2023-01-05T16:42:33.446Z
 
 const COMMITS = [
   ...buildMockConventionalCommit(
@@ -59,6 +67,9 @@ describe('Python', () => {
         github,
         component: 'google-cloud-automl',
       });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -74,6 +85,9 @@ describe('Python', () => {
         github,
         component: 'google-cloud-automl',
       });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
@@ -94,6 +108,9 @@ describe('Python', () => {
         github,
         component: 'google-cloud-automl',
       });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -154,6 +171,9 @@ describe('Python', () => {
         component: 'google-cloud-automl',
       });
       sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
+      sandbox
         .stub(github, 'findFilesByFilenameAndRef')
         .resolves(['src/version.py']);
       const latestRelease = undefined;
@@ -163,6 +183,53 @@ describe('Python', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'src/version.py', PythonFileWithVersion);
+    });
+
+    it('updates changelog.json if present', async () => {
+      const COMMITS = [
+        ...buildMockConventionalCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+        ),
+        ...buildMockConventionalCommit('chore: update deps'),
+        ...buildMockConventionalCommit('chore!: update a very important dep'),
+        ...buildMockConventionalCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
+        ),
+        ...buildMockConventionalCommit('chore: update common templates'),
+      ];
+      const strategy = new Python({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('changelog.json', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));
+      getFileContentsStub
+        .withArgs('setup.py', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      const update = assertHasUpdate(updates, 'changelog.json', ChangelogJson);
+      const newContent = update.updater.updateContent(
+        JSON.stringify({entries: []})
+      );
+      snapshot(
+        newContent
+          .replace(/\r\n/g, '\n') // make newline consistent regardless of OS.
+          .replace(UUID_REGEX, 'abc-123-efd-qwerty')
+          .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
+      );
     });
   });
 });
