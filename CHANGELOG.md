@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.7.0](https://github.com/googleapis/release-please/compare/v15.6.0...v15.7.0) (2023-02-07)
+
+
+### Features
+
+* **changelog.json:** Implement changelog.json for python ([#1841](https://github.com/googleapis/release-please/issues/1841)) ([52594b1](https://github.com/googleapis/release-please/commit/52594b194fdd0ae516776128e6511d5e4cd21518))
+
 ## [15.6.0](https://github.com/googleapis/release-please/compare/v15.5.1...v15.6.0) (2023-02-01)
 
 
