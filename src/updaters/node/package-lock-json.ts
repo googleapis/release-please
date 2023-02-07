@@ -19,7 +19,7 @@ import {DefaultUpdater} from '../default';
 type LockFileV2 = {
   version: string;
   lockfileVersion?: number;
-  packages: Record<string, {version: string}>;
+  packages: Record<string, {version: string; name: string}>;
 };
 
 /**
@@ -34,7 +34,17 @@ export class PackageLockJson extends DefaultUpdater {
     if (parsed.lockfileVersion === 2) {
       parsed.packages[''].version = this.version.toString();
       this.versionsMap?.forEach((version, linkedPackage) => {
-        parsed.packages[linkedPackage].version = version.toString();
+        logger.info(
+          `updating from ${
+            parsed.packages[linkedPackage].version
+          } to ${version.toString()}`
+        );
+        const packageKey = Object.keys(parsed.packages).find(
+          p => parsed.packages[p].name === linkedPackage
+        );
+        if (!packageKey)
+          throw Error(`${packageKey} not found in ${parsed.packages}`);
+        parsed.packages[packageKey].version = version.toString();
       });
     }
     return jsonStringify(parsed, content);

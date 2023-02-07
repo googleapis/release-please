@@ -28,14 +28,15 @@ import {BranchName} from '../util/branch-name';
 import {jsonStringify} from '../util/json-stringify';
 import {Changelog} from '../updaters/changelog';
 import {
-  WorkspacePlugin,
+  addPath,
+  appendDependenciesSectionToChangelog,
   DependencyGraph,
   DependencyNode,
+  WorkspacePlugin,
   WorkspacePluginOptions,
-  appendDependenciesSectionToChangelog,
-  addPath,
 } from './workspace';
 import {PatchVersionUpdate} from '../versioning-strategy';
+import {PackageLockJson} from '../updaters/node/package-lock-json';
 
 class Package extends LernaPackage {
   constructor(
@@ -65,6 +66,7 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
 export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
   private packageGraph?: PackageGraph;
+
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -74,6 +76,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     super(github, targetBranch, repositoryConfig, options);
     this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
   }
+
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
   ): Promise<{
@@ -201,6 +204,13 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
                 this.logger
               );
           }
+        } else if (
+          update.path === addPath(existingCandidate.path, 'package-lock.json')
+        ) {
+          update.updater = new PackageLockJson({
+            version: Version.parse(updatedPackage.version),
+            versionsMap: updatedVersions,
+          });
         }
         return update;
       });
@@ -228,6 +238,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     }
     return existingCandidate;
   }
+
   protected newCandidate(
     pkg: Package,
     updatedVersions: VersionsMap
@@ -300,6 +311,14 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
             ),
           }),
         },
+        {
+          path: addPath(updatedPackage.location, 'package-lock.json'),
+          createIfMissing: false,
+          updater: new PackageLockJson({
+            version: version,
+            versionsMap: updatedVersions,
+          }),
+        },
       ],
       labels: [],
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
@@ -320,6 +339,16 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     _updatedVersions: VersionsMap
   ): CandidateReleasePullRequest[] {
     // NOP for node workspaces
+    candidates.forEach(c => {
+      c.pullRequest.updates.push({
+        path: 'package-lock.json',
+        updater: new PackageLockJson({
+          version: c.pullRequest.version!,
+          versionsMap: _updatedVersions,
+        }),
+        createIfMissing: false,
+      });
+    });
     return candidates;
   }
 
