@@ -339,16 +339,18 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     _updatedVersions: VersionsMap
   ): CandidateReleasePullRequest[] {
     // NOP for node workspaces
-    candidates.forEach(c => {
-      c.pullRequest.updates.push({
-        path: 'package-lock.json',
-        updater: new PackageLockJson({
-          version: c.pullRequest.version!,
-          versionsMap: _updatedVersions,
-        }),
-        createIfMissing: false,
-      });
-    });
+
+    // not sure about this
+    // candidates.forEach(c => {
+    //   c.pullRequest.updates.push({
+    //     path: 'package-lock.json',
+    //     updater: new PackageLockJson({
+    //       version: c.pullRequest.version!,
+    //       versionsMap: _updatedVersions,
+    //     }),
+    //     createIfMissing: false,
+    //   });
+    // });
     return candidates;
   }
 
