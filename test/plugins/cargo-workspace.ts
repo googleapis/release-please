@@ -185,6 +185,55 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustD/Cargo.toml');
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
     });
+    it('handles glob paths', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustA/Cargo.toml',
+              'packages/rustA/Cargo.toml'
+            ),
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/rustD', 'rust', '4.4.5', {
+          component: '@here/pkgD',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustD/Cargo.toml',
+              'packages/rustD/Cargo.toml'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['packages/rustA/Cargo.toml', 'packages/rustD/Cargo.toml'],
+        flatten: false,
+        targetBranch: 'main',
+        inlineFiles: [['Cargo.toml', '[workspace]\nmembers = ["packages/*"]']],
+      });
+      plugin = new CargoWorkspace(github, 'main', {
+        'packages/rustA': {
+          releaseType: 'rust',
+        },
+        'packages/rustD': {
+          releaseType: 'rust',
+        },
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const rustCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'rust'
+      );
+      expect(rustCandidate).to.not.be.undefined;
+      const updates = rustCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'packages/rustA/Cargo.toml');
+      assertHasUpdate(updates, 'packages/rustD/Cargo.toml');
+      snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+    });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {

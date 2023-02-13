@@ -37,6 +37,7 @@ import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import {CargoLock} from '../updaters/rust/cargo-lock';
+import {glob} from 'glob';
 
 interface CrateInfo {
   /**
@@ -100,8 +101,21 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
     const allCrates: CrateInfo[] = [];
     const candidatesByPackage: Record<string, CandidateReleasePullRequest> = {};
-    const members = cargoManifest.workspace.members;
+
+    const expandGlobs: (member: string) => Promise<string[]> = member =>
+      new Promise((resolve, reject) =>
+        glob(member, {cwd: ROOT_PROJECT_PATH}, (err, paths) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(paths);
+        })
+      );
+    const members = (
+      await Promise.all(cargoManifest.workspace.members.map(expandGlobs))
+    ).flat();
     members.push(ROOT_PROJECT_PATH);
+
     for (const path of members) {
       const manifestPath = addPath(path, 'Cargo.toml');
       this.logger.info(`looking for candidate with path: ${path}`);
