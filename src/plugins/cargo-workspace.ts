@@ -37,7 +37,6 @@ import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import {CargoLock} from '../updaters/rust/cargo-lock';
-import {glob} from 'glob';
 
 interface CrateInfo {
   /**
@@ -102,17 +101,12 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     const allCrates: CrateInfo[] = [];
     const candidatesByPackage: Record<string, CandidateReleasePullRequest> = {};
 
-    const expandGlobs: (member: string) => Promise<string[]> = member =>
-      new Promise((resolve, reject) =>
-        glob(member, {cwd: ROOT_PROJECT_PATH}, (err, paths) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(paths);
-        })
-      );
     const members = (
-      await Promise.all(cargoManifest.workspace.members.map(expandGlobs))
+      await Promise.all(
+        cargoManifest.workspace.members.map(member =>
+          this.github.findFilesByGlob(member)
+        )
+      )
     ).flat();
     members.push(ROOT_PROJECT_PATH);
 

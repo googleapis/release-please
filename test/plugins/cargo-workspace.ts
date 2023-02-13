@@ -215,6 +215,9 @@ describe('CargoWorkspace plugin', () => {
         targetBranch: 'main',
         inlineFiles: [['Cargo.toml', '[workspace]\nmembers = ["packages/*"]']],
       });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .resolves(['path/to/file1.txt', 'path/to/file2.txt']);
       plugin = new CargoWorkspace(github, 'main', {
         'packages/rustA': {
           releaseType: 'rust',
