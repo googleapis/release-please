@@ -126,9 +126,9 @@ export class JavaYoshiMonoRepo extends Java {
       this.path
     );
     const readmeFilesSearch = this.github.findFilesByFilenameAndRef(
-          'README.md',
-          this.targetBranch,
-          this.path
+      'README.md',
+      this.targetBranch,
+      this.path
     );
 
     const pomFiles = await pomFilesSearch;
