@@ -230,9 +230,7 @@ describe('JavaYoshiMonoRepo', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'main', '.')
         .resolves(['dependencies.properties']);
-      findFilesStub
-         .withArgs('README.md', 'main', '.')
-         .resolves(['README.md']);
+      findFilesStub.withArgs('README.md', 'main', '.').resolves(['README.md']);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -303,9 +301,7 @@ describe('JavaYoshiMonoRepo', () => {
       findFilesStub
         .withArgs('dependencies.properties', 'main', '.')
         .resolves(['dependencies.properties']);
-      findFilesStub
-        .withArgs('README.md', 'main', '.')
-        .resolves(['README.md']);
+      findFilesStub.withArgs('README.md', 'main', '.').resolves(['README.md']);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
