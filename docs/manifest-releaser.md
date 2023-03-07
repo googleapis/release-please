@@ -239,7 +239,7 @@ defaults (those are documented in comments)
   // large numbers of packages at once.
   // absence defaults to false, causing calls to be issued concurrently.
   "sequential-calls": false,
-  
+
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
@@ -263,7 +263,7 @@ defaults (those are documented in comments)
       // overrides release-type for node
       "release-type": "node",
     },
-    
+
     // path segment should be relative to repository root
     "path/to/myJSPkgA": {
       // overrides release-type for node
@@ -296,7 +296,7 @@ defaults (those are documented in comments)
       // our change log is located at path/to/myPyPkgA/docs/CHANGES.rst
       "changelog-path": "docs/CHANGES.rst"
     },
-    
+
     "path/to/github-enterprise-package", {
       // override changelog host for github enterprise package
       "changelog-host": "https://example.com"
@@ -304,6 +304,31 @@ defaults (those are documented in comments)
   }
 
 }
+```
+
+## Subsequent Versions
+
+release-please tries to determine the next release based on the previous tagged
+release. The default search tag looks like:
+
+```sh
+<component-name>-v<release-version>
+```
+
+In your specific tagging scheme, your tags could like `v<release-version>`. And
+this will result in an error like:
+
+```sh
+❯ looking for tagName: <component>-v<release-version>
+⚠ Expected 1 releases, only found 0
+```
+
+To fix this, component can be removed from tagName being searched using the
+`include-component-in-tag` property. Setting this to `false` will change the
+tagName to:
+
+```sh
+v<release-version>
 ```
 
 ## Manifest
