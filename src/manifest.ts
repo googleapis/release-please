@@ -1116,7 +1116,7 @@ export class Manifest {
           releasesByPullRequest[pullNumber],
           pullRequestsByNumber[pullNumber]
         );
-        resultReleases.concat(releases);
+        resultReleases.push(...releases);
       }
       return resultReleases;
     } else {
