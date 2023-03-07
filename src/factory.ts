@@ -100,6 +100,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   ruby: options => new Ruby(options),
   'ruby-yoshi': options => new RubyYoshi(options),
   rust: options => new Rust(options),
+  salesforce: options => new Sfdx(options),
   sfdx: options => new Sfdx(options),
   simple: options => new Simple(options),
   'terraform-module': options => new TerraformModule(options),
