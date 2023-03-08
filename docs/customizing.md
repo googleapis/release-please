@@ -63,12 +63,16 @@ To configure multiple components on different paths, configure a
 ## Changelog Types
 
 A changelog type's job is to build the CHANGELOG notes given a list
-of parsed commits.
+of parsed commits. This generated content is used in the release pull request body
+and in release notes. By replacing the implementation, you can control how your
+release notes appear.
 
 | Changelog Type | Description |
 | -------------- | ----------- |
 | `default` | Default CHANGELOG notes builder. Groups by commit type and links to pull requests and commits |
-| `github` | Uses the GitHub API to generate notes |
+| `github` | Uses the [GitHub API][release-notes-api] to generate notes |
+
+[release-notes-api]: https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#generate-release-notes-content-for-a-release
 
 ### Adding additional changelog types
 
