@@ -126,6 +126,36 @@ Release notes for path: packages/rustD, releaseType: rust
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['CargoWorkspace plugin run handles a circular dependency 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>pkgA: 1.1.2</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dev-dependencies
+    * pkgB bumped from 2.2.2 to 2.2.3
+</details>
+
+<details><summary>@here/pkgB: 2.2.3</summary>
+
+Release notes for path: packages/rustB, releaseType: rust
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * pkgA bumped from 1.1.1 to 1.1.2
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['CargoWorkspace plugin run handles a single rust package 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
