@@ -170,6 +170,7 @@ interface ReleaserConfigJson {
   'snapshot-label'?: string; // Java-only
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
+  'exclude-paths'?:string[] // manifest-only
 }
 
 export interface ManifestOptions {
