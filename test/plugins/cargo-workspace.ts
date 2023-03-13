@@ -120,6 +120,10 @@ describe('CargoWorkspace plugin', () => {
           releaseType: 'rust',
         },
       });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA']);
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(2);
       const rustCandidate = newCandidates.find(
@@ -166,6 +170,12 @@ describe('CargoWorkspace plugin', () => {
           ],
         ],
       });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustD')
+        .resolves(['packages/rustD']);
       plugin = new CargoWorkspace(github, 'main', {
         'packages/rustA': {
           releaseType: 'rust',
@@ -217,7 +227,8 @@ describe('CargoWorkspace plugin', () => {
       });
       sandbox
         .stub(github, 'findFilesByGlob')
-        .resolves(['path/to/file1.txt', 'path/to/file2.txt']);
+        .withArgs('packages/*')
+        .resolves(['packages/rustA', 'packages/rustD']);
       plugin = new CargoWorkspace(github, 'main', {
         'packages/rustA': {
           releaseType: 'rust',
@@ -273,6 +284,18 @@ describe('CargoWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB')
+        .resolves(['packages/rustB'])
+        .withArgs('packages/rustC')
+        .resolves(['packages/rustC'])
+        .withArgs('packages/rustD')
+        .resolves(['packages/rustD'])
+        .withArgs('packages/rustE')
+        .resolves(['packages/rustE']);
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const rustCandidate = newCandidates.find(
@@ -324,6 +347,18 @@ describe('CargoWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB')
+        .resolves(['packages/rustB'])
+        .withArgs('packages/rustC')
+        .resolves(['packages/rustC'])
+        .withArgs('packages/rustD')
+        .resolves(['packages/rustD'])
+        .withArgs('packages/rustE')
+        .resolves(['packages/rustE']);
       plugin = new CargoWorkspace(
         github,
         'main',
@@ -384,6 +419,18 @@ describe('CargoWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB')
+        .resolves(['packages/rustB'])
+        .withArgs('packages/rustC')
+        .resolves(['packages/rustC'])
+        .withArgs('packages/rustD')
+        .resolves(['packages/rustD'])
+        .withArgs('packages/rustE')
+        .resolves(['packages/rustE']);
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const rustCandidate = newCandidates.find(
@@ -424,6 +471,18 @@ describe('CargoWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB')
+        .resolves(['packages/rustB'])
+        .withArgs('packages/rustC')
+        .resolves(['packages/rustC'])
+        .withArgs('packages/rustD')
+        .resolves(['packages/rustD'])
+        .withArgs('packages/rustE')
+        .resolves(['packages/rustE']);
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const rustCandidate = newCandidates.find(
