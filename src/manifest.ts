@@ -170,7 +170,7 @@ interface ReleaserConfigJson {
   'snapshot-label'?: string; // Java-only
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
-  'exclude-paths'?:string[] // manifest-only
+  'exclude-paths'?: string[]; // manifest-only
 }
 
 export interface ManifestOptions {
@@ -1288,6 +1288,7 @@ function extractReleaserConfig(
     extraLabels: config['extra-label']?.split(','),
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
+    excludePaths: config['exclude-paths'],
   };
 }
 
@@ -1622,6 +1623,7 @@ function mergeReleaserConfig(
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
+    excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
   };
 }
 
