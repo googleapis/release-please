@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.8.2](https://github.com/googleapis/release-please/compare/v15.8.1...v15.8.2) (2023-03-13)
+
+
+### Bug Fixes
+
+* **cargo-workspaces:** Expand globs in crate paths ([#1852](https://github.com/googleapis/release-please/issues/1852)) ([0179f25](https://github.com/googleapis/release-please/commit/0179f25bf3bed7bca71c3cbdae6cc5a892954fe7))
+
 ## [15.8.1](https://github.com/googleapis/release-please/compare/v15.8.0...v15.8.1) (2023-03-07)
 
 
