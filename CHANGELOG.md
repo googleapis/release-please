@@ -4,6 +4,25 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.8.1](https://github.com/googleapis/release-please/compare/v15.8.0...v15.8.1) (2023-03-07)
+
+
+### Bug Fixes
+
+* **sequential-calls:** Use push instead of concat when returning releases ([#1865](https://github.com/googleapis/release-please/issues/1865)) ([1026c73](https://github.com/googleapis/release-please/commit/1026c7366a94b4dbfa567580613bcf31a991a516))
+
+## [15.8.0](https://github.com/googleapis/release-please/compare/v15.7.0...v15.8.0) (2023-02-15)
+
+
+### Features
+
+* Scan readme files in java-yoshi-mono-repo strategy ([#1853](https://github.com/googleapis/release-please/issues/1853)) ([635cc7d](https://github.com/googleapis/release-please/commit/635cc7d03820d539f470c151db410dd2a8d29eae))
+
+
+### Bug Fixes
+
+* Github issues link ([#1849](https://github.com/googleapis/release-please/issues/1849)) ([68e6759](https://github.com/googleapis/release-please/commit/68e67591bbae5db51ce0ce7591898a2adf49be96))
+
 ## [15.7.0](https://github.com/googleapis/release-please/compare/v15.6.0...v15.7.0) (2023-02-07)
 
 
