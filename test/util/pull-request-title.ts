@@ -133,7 +133,7 @@ describe('PullRequestTitle', () => {
     it('return matchPattern with default Pattern', () => {
       const matchPattern = generateMatchPattern();
       expect(matchPattern).to.eql(
-        /^chore(\((?<branch>[\w-./]+)\))?: release ?(?<component>[\w-./]*)? v?(?<version>[0-9].*)$/
+        /^chore(\((?<branch>[\w-./]+)\))?: release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
       );
     });
   });
@@ -224,7 +224,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
 
     it('parses a complex title and pattern', () => {
       const pullRequestTitle = PullRequestTitle.parse(
-        '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1 (storage)',
+        '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1 (@example/storage)',
         '[HOTFIX] - chore${scope}: release ${version} (${component})'
       );
       expect(pullRequestTitle).to.not.be.undefined;
@@ -232,7 +232,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       expect(pullRequestTitle?.getVersion()?.toString()).to.eql(
         '3.1.0-hotfix1'
       );
-      expect(pullRequestTitle?.getComponent()).to.eql('storage');
+      expect(pullRequestTitle?.getComponent()).to.eql('@example/storage');
     });
   });
   describe('ofVersion', () => {
@@ -287,7 +287,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
         'chore${scope}: 🔖 release${component} ${version}'
       );
       expect(matchPattern).to.eql(
-        /^chore(\((?<branch>[\w-./]+)\))?: 🔖 release ?(?<component>[\w-./]*)? v?(?<version>[0-9].*)$/
+        /^chore(\((?<branch>[\w-./]+)\))?: 🔖 release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
       );
     });
 

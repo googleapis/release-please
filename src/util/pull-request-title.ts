@@ -47,7 +47,7 @@ export function generateMatchPattern(
       .replace('(', '\\(')
       .replace(')', '\\)')
       .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
-      .replace('${component}', ' ?(?<component>[\\w-./]*)?')
+      .replace('${component}', ' ?(?<component>@?[\\w-./]*)?')
       .replace('${version}', 'v?(?<version>[0-9].*)')
       .replace('${branch}', '(?<branch>[\\w-./]+)?')}$`
   );
