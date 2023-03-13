@@ -46,6 +46,7 @@ import {
   FilePullRequestOverflowHandler,
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
+import {CommitExclude} from './util/commit-exclude';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -125,6 +126,8 @@ export interface ReleaserConfig {
   extraFiles?: ExtraFile[];
   snapshotLabels?: string[];
   skipSnapshot?: boolean;
+  // Manifest only
+  excludePaths?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -637,13 +640,15 @@ export class Manifest {
     const splitCommits = cs.split(commits);
 
     // limit paths to ones since the last release
-    const commitsPerPath: Record<string, Commit[]> = {};
+    let commitsPerPath: Record<string, Commit[]> = {};
     for (const path in this.repositoryConfig) {
       commitsPerPath[path] = commitsAfterSha(
         path === ROOT_PROJECT_PATH ? commits : splitCommits[path],
         releaseShasByPath[path]
       );
     }
+    const commitExclude = new CommitExclude(this.repositoryConfig);
+    commitsPerPath = commitExclude.excludeCommits(commitsPerPath);
 
     // backfill latest release tags from manifest
     for (const path in this.repositoryConfig) {
