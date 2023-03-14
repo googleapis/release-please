@@ -202,6 +202,16 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
     });
 
+    it('parses a component with @ sign prefix', () => {
+      const name = 'chore(main): 🔖 release @example/storage v1.2.3';
+      const pullRequestTitle = PullRequestTitle.parse(
+        name,
+        'chore${scope}: 🔖 release${component} ${version}'
+      );
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getComponent()).to.eql('@example/storage');
+    });
+
     it('fails to parse', () => {
       const pullRequestTitle = PullRequestTitle.parse(
         'release-foo',
