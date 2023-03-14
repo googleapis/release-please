@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.9.1](https://github.com/googleapis/release-please/compare/v15.9.0...v15.9.1) (2023-03-14)
+
+
+### Bug Fixes
+
+* **cargo-workspace:** Validate Cargo.toml version field ([#1877](https://github.com/googleapis/release-please/issues/1877)) ([0303e2e](https://github.com/googleapis/release-please/commit/0303e2eb9fb082bd9657baa117961d8567eba7e6))
+
 ## [15.9.0](https://github.com/googleapis/release-please/compare/v15.8.2...v15.9.0) (2023-03-14)
 
 
