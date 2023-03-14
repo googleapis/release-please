@@ -26,7 +26,7 @@ export type SfdxProjectFile = {
 };
 
 /**
- * This updates a Salesfore sfdx-project.json file's main version.
+ * This updates a sfdx sfdx-project.json file's main version.
  */
 export class SfdxProjectJson extends DefaultUpdater {
   /**

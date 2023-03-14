@@ -17,7 +17,11 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
-import {SfdxProjectJson} from '../../src/updaters/salesforce/sfdx-project-json';
+import {
+  SfdxProjectJson,
+  SfdxProjectFile,
+} from '../../src/updaters/sfdx/sfdx-project-json';
+import {expect} from 'chai';
 
 const fixturesPath = './test/updaters/fixtures/';
 
@@ -35,6 +39,10 @@ describe('SfdxProjectJson', () => {
       });
       const newContent = pom.updateContent(oldContent);
       snapshot(newContent);
+      const parsedNewContent = JSON.parse(newContent) as SfdxProjectFile;
+      expect(parsedNewContent.packageDirectories[0].versionNumber).to.equal(
+        '2.3.4.NEXT'
+      );
     });
   });
 });
