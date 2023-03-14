@@ -10,6 +10,8 @@ Options:
                                 debugging).           [boolean] [default: false]
   --trace                       print extra verbose errors (use only for local
                                 debugging).           [boolean] [default: false]
+  --plugin                      load plugin named release-please-<plugin-name>
+                                                           [array] [default: []]
   --token                       GitHub token with repo write permissions
   --api-url                     URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
@@ -39,8 +41,9 @@ Options:
                                 for?
    [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
                   "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
-        "krm-blueprint", "maven", "node", "ocaml", "php", "php-yoshi", "python",
-                     "ruby", "ruby-yoshi", "rust", "simple", "terraform-module"]
+       "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
+    "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "simple",
+                                                             "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
   --manifest-file               where can the manifest file be found in the
@@ -75,6 +78,8 @@ Options:
                                                       [boolean] [default: false]
   --trace               print extra verbose errors (use only for local
                         debugging).                   [boolean] [default: false]
+  --plugin              load plugin named release-please-<plugin-name>
+                                                           [array] [default: []]
   --token               GitHub token with repo write permissions
   --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
@@ -114,6 +119,8 @@ Options:
                                                       [boolean] [default: false]
   --trace           print extra verbose errors (use only for local debugging).
                                                       [boolean] [default: false]
+  --plugin          load plugin named release-please-<plugin-name>
+                                                           [array] [default: []]
   --token           GitHub token with repo write permissions
   --api-url         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
@@ -156,6 +163,9 @@ Options:
                                     debugging).       [boolean] [default: false]
   --trace                           print extra verbose errors (use only for
                                     local debugging). [boolean] [default: false]
+  --plugin                          load plugin named
+                                    release-please-<plugin-name>
+                                                           [array] [default: []]
   --token                           GitHub token with repo write permissions
   --api-url                         URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
@@ -230,8 +240,9 @@ Options:
                                     for?
    [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
                   "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
-        "krm-blueprint", "maven", "node", "ocaml", "php", "php-yoshi", "python",
-                     "ruby", "ruby-yoshi", "rust", "simple", "terraform-module"]
+       "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
+    "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "simple",
+                                                             "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?
                                          [default: "release-please-config.json"]

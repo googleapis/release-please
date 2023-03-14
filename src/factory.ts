@@ -16,6 +16,7 @@ import {Strategy} from './strategy';
 import {Go} from './strategies/go';
 import {GoYoshi} from './strategies/go-yoshi';
 import {JavaYoshi} from './strategies/java-yoshi';
+import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
 import {KRMBlueprint} from './strategies/krm-blueprint';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
@@ -24,6 +25,7 @@ import {Python} from './strategies/python';
 import {Ruby} from './strategies/ruby';
 import {RubyYoshi} from './strategies/ruby-yoshi';
 import {Rust} from './strategies/rust';
+import {Salesforce} from './strategies/salesforce';
 import {Simple} from './strategies/simple';
 import {TerraformModule} from './strategies/terraform-module';
 import {Helm} from './strategies/helm';
@@ -69,6 +71,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   java: options => new Java(options),
   maven: options => new Maven(options),
   'java-yoshi': options => new JavaYoshi(options),
+  'java-yoshi-mono-repo': options => new JavaYoshiMonoRepo(options),
   'java-backport': options =>
     new JavaYoshi({
       ...options,
@@ -97,6 +100,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   ruby: options => new Ruby(options),
   'ruby-yoshi': options => new RubyYoshi(options),
   rust: options => new Rust(options),
+  salesforce: options => new Salesforce(options),
   simple: options => new Simple(options),
   'terraform-module': options => new TerraformModule(options),
   helm: options => new Helm(options),

@@ -70,12 +70,19 @@ type ExtraPomFile = {
   path: string;
   glob?: boolean;
 };
+type ExtraTomlFile = {
+  type: 'toml';
+  path: string;
+  jsonpath: string;
+  glob?: boolean;
+};
 export type ExtraFile =
   | string
   | ExtraJsonFile
   | ExtraYamlFile
   | ExtraXmlFile
-  | ExtraPomFile;
+  | ExtraPomFile
+  | ExtraTomlFile;
 /**
  * These are configurations provided to each strategy per-path.
  */
@@ -1109,7 +1116,7 @@ export class Manifest {
           releasesByPullRequest[pullNumber],
           pullRequestsByNumber[pullNumber]
         );
-        resultReleases.concat(releases);
+        resultReleases.push(...releases);
       }
       return resultReleases;
     } else {

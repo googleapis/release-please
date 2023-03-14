@@ -23,6 +23,7 @@ Release Please automates releases for the following flavors of repositories:
 | `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
 | `ruby`              | A repository with a version.rb and a CHANGELOG.md |
 | `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
+| `salesforce`        | A repository with a sfdx-project.json and a CHANGELOG.md |
 | `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
 
@@ -62,12 +63,16 @@ To configure multiple components on different paths, configure a
 ## Changelog Types
 
 A changelog type's job is to build the CHANGELOG notes given a list
-of parsed commits.
+of parsed commits. This generated content is used in the release pull request body
+and in release notes. By replacing the implementation, you can control how your
+release notes appear.
 
 | Changelog Type | Description |
 | -------------- | ----------- |
 | `default` | Default CHANGELOG notes builder. Groups by commit type and links to pull requests and commits |
-| `github` | Uses the GitHub API to generate notes |
+| `github` | Uses the [GitHub API][release-notes-api] to generate notes |
+
+[release-notes-api]: https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#generate-release-notes-content-for-a-release
 
 ### Adding additional changelog types
 
@@ -196,6 +201,44 @@ configuration.
       "type": "xml",
       "path": "path/to/file.xml",
       "xpath": "//xpath/to/field"
+    }
+  ]
+}
+```
+
+## Updating arbitrary YAML files
+
+For most release strategies, you can provide additional files to update
+using the [GenericYaml](/src/updaters/generic-yaml.ts) updater. You can
+specify a configuration object in the `extra-files` option in the manifest
+configuration.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "yaml",
+      "path": "path/to/file.yaml",
+      "jsonpath": "$.json.path.to.field"
+    }
+  ]
+}
+```
+
+## Updating arbitrary TOML files
+
+For most release strategies, you can provide additional files to update
+using the [GenericToml](/src/updaters/generic-toml.ts) updater. You can
+specify a configuration object in the `extra-files` option in the manifest
+configuration.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "toml",
+      "path": "path/to/file.toml",
+      "jsonpath": "$.json.path.to.field"
     }
   ]
 }

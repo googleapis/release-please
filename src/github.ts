@@ -1401,7 +1401,7 @@ export class GitHub {
   commentOnIssue = wrapAsync(
     async (comment: string, number: number): Promise<string> => {
       this.logger.debug(
-        `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issue/${number}`
+        `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issues/${number}`
       );
       const resp = await this.octokit.issues.createComment({
         owner: this.repository.owner,

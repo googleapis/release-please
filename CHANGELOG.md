@@ -4,6 +4,122 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.8.2](https://github.com/googleapis/release-please/compare/v15.8.1...v15.8.2) (2023-03-13)
+
+
+### Bug Fixes
+
+* **cargo-workspaces:** Expand globs in crate paths ([#1852](https://github.com/googleapis/release-please/issues/1852)) ([0179f25](https://github.com/googleapis/release-please/commit/0179f25bf3bed7bca71c3cbdae6cc5a892954fe7))
+
+## [15.8.1](https://github.com/googleapis/release-please/compare/v15.8.0...v15.8.1) (2023-03-07)
+
+
+### Bug Fixes
+
+* **sequential-calls:** Use push instead of concat when returning releases ([#1865](https://github.com/googleapis/release-please/issues/1865)) ([1026c73](https://github.com/googleapis/release-please/commit/1026c7366a94b4dbfa567580613bcf31a991a516))
+
+## [15.8.0](https://github.com/googleapis/release-please/compare/v15.7.0...v15.8.0) (2023-02-15)
+
+
+### Features
+
+* Scan readme files in java-yoshi-mono-repo strategy ([#1853](https://github.com/googleapis/release-please/issues/1853)) ([635cc7d](https://github.com/googleapis/release-please/commit/635cc7d03820d539f470c151db410dd2a8d29eae))
+
+
+### Bug Fixes
+
+* Github issues link ([#1849](https://github.com/googleapis/release-please/issues/1849)) ([68e6759](https://github.com/googleapis/release-please/commit/68e67591bbae5db51ce0ce7591898a2adf49be96))
+
+## [15.7.0](https://github.com/googleapis/release-please/compare/v15.6.0...v15.7.0) (2023-02-07)
+
+
+### Features
+
+* **changelog.json:** Implement changelog.json for python ([#1841](https://github.com/googleapis/release-please/issues/1841)) ([52594b1](https://github.com/googleapis/release-please/commit/52594b194fdd0ae516776128e6511d5e4cd21518))
+
+## [15.6.0](https://github.com/googleapis/release-please/compare/v15.5.1...v15.6.0) (2023-02-01)
+
+
+### Features
+
+* **changelog.json:** Add pr suffix to issues array ([#1839](https://github.com/googleapis/release-please/issues/1839)) ([fdd75ef](https://github.com/googleapis/release-please/commit/fdd75efbc276d432f1d9d54f1790f4852a4aa3f7))
+
+## [15.5.1](https://github.com/googleapis/release-please/compare/v15.5.0...v15.5.1) (2023-01-30)
+
+
+### Bug Fixes
+
+* Support TOML up to v1.0.0-rc.1 spec. ([#1837](https://github.com/googleapis/release-please/issues/1837)) ([a3d94ee](https://github.com/googleapis/release-please/commit/a3d94eec209e00b6f513caa379096d082af7a72b))
+
+## [15.5.0](https://github.com/googleapis/release-please/compare/v15.4.0...v15.5.0) (2023-01-27)
+
+
+### Features
+
+* Add generic TOML updater ([#1833](https://github.com/googleapis/release-please/issues/1833)) ([2768a4c](https://github.com/googleapis/release-please/commit/2768a4cfe131ac8493447a8c7512c623c200df34))
+* Add toml generic updater option to extra-files schema ([#1835](https://github.com/googleapis/release-please/issues/1835)) ([9240f71](https://github.com/googleapis/release-please/commit/9240f71c21f077b240d2ce186456fb23b50dfd89))
+
+## [15.4.0](https://github.com/googleapis/release-please/compare/v15.3.1...v15.4.0) (2023-01-26)
+
+
+### Features
+
+* **changelog.json:** Include referenced issues/prs ([#1830](https://github.com/googleapis/release-please/issues/1830)) ([bacbbb5](https://github.com/googleapis/release-please/commit/bacbbb52ad802d42af1ffb40e8c616cc6c6601a6))
+
+## [15.3.1](https://github.com/googleapis/release-please/compare/v15.3.0...v15.3.1) (2023-01-26)
+
+
+### Bug Fixes
+
+* Filter changelog.json commits based on changelog sections ([#1827](https://github.com/googleapis/release-please/issues/1827)) ([844aacd](https://github.com/googleapis/release-please/commit/844aacd76434ae288ee3ac9b2061dd9406e99bd8))
+
+## [15.3.0](https://github.com/googleapis/release-please/compare/v15.2.0...v15.3.0) (2023-01-25)
+
+
+### Features
+
+* Add Salesforce strategy ([#1815](https://github.com/googleapis/release-please/issues/1815)) ([25b518f](https://github.com/googleapis/release-please/commit/25b518f4f34afcd749968d021f4eed99222a328a))
+* Add support for yarn workspace versions ([#1819](https://github.com/googleapis/release-please/issues/1819)) ([8b0cc7d](https://github.com/googleapis/release-please/commit/8b0cc7d7d203609c95e9e7cfbef4f0faedd3f46d))
+* **java-monorepo:** Switch to using .repo-metadata.json ([#1820](https://github.com/googleapis/release-please/issues/1820)) ([6cc85db](https://github.com/googleapis/release-please/commit/6cc85dbb95ade1c38c354a567a02b8a41d729a72))
+* **node:** Add support for changelog.json in Node ([#1823](https://github.com/googleapis/release-please/issues/1823)) ([d3e3bd3](https://github.com/googleapis/release-please/commit/d3e3bd3b102195befb051457f9a837ff47388157))
+
+## [15.2.0](https://github.com/googleapis/release-please/compare/v15.1.2...v15.2.0) (2023-01-23)
+
+
+### Features
+
+* **cli:** Add ability to dynamically load release-please plugin ([#1811](https://github.com/googleapis/release-please/issues/1811)) ([609383b](https://github.com/googleapis/release-please/commit/609383be5a05bb0107b489314b4bcd7615ddafd9))
+* Export Strategy interface so external packages can implement ([609383b](https://github.com/googleapis/release-please/commit/609383be5a05bb0107b489314b4bcd7615ddafd9))
+* Introduce ChangelogJson updater ([#1808](https://github.com/googleapis/release-please/issues/1808)) ([fe3a979](https://github.com/googleapis/release-please/commit/fe3a979a1c228610612aa2d6c303d408be956e2e))
+* Introduce JavaYoshiMonoRepo strategy ([#1810](https://github.com/googleapis/release-please/issues/1810)) ([2d14307](https://github.com/googleapis/release-please/commit/2d143077a545b92e1d9de923ab81ae1e12b7a468))
+
+## [15.1.2](https://github.com/googleapis/release-please/compare/v15.1.1...v15.1.2) (2023-01-17)
+
+
+### Bug Fixes
+
+* **ruby:** Gemfile.lock should not update when gem name is empty ([#1805](https://github.com/googleapis/release-please/issues/1805)) ([b54d499](https://github.com/googleapis/release-please/commit/b54d499a6b38e13175402fbd7eb7be75094d5014))
+
+## [15.1.1](https://github.com/googleapis/release-please/compare/v15.1.0...v15.1.1) (2023-01-06)
+
+
+### Bug Fixes
+
+* **deps:** Update @google-automations/git-file-utils to 1.2.5 ([89f363e](https://github.com/googleapis/release-please/commit/89f363e015bb3a5a7e738232352db70e4d336d86))
+* **deps:** Update code-suggester to 4.2.0 ([#1799](https://github.com/googleapis/release-please/issues/1799)) ([89f363e](https://github.com/googleapis/release-please/commit/89f363e015bb3a5a7e738232352db70e4d336d86))
+
+## [15.1.0](https://github.com/googleapis/release-please/compare/v15.0.0...v15.1.0) (2023-01-05)
+
+
+### Features
+
+* **ruby:** Add Gemfile.Lock updater ([#1790](https://github.com/googleapis/release-please/issues/1790)) ([9baf736](https://github.com/googleapis/release-please/commit/9baf736aa424bf3dcf0f05009e5cf8c9ef05fd69))
+
+
+### Bug Fixes
+
+* **java-yoshi:** Throw MissingRequiredFile error if no versions.txt found ([#1794](https://github.com/googleapis/release-please/issues/1794)) ([542d412](https://github.com/googleapis/release-please/commit/542d412307ea8d6350908aeb7efaf9db9e3d03f9))
+
 ## [15.0.0](https://github.com/googleapis/release-please/compare/v14.17.5...v15.0.0) (2022-12-12)
 
 

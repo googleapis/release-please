@@ -27,6 +27,15 @@ Release notes for path: node1, releaseType: node
     * @here/pkgB bumped from 2.2.2 to 2.2.3
 </details>
 
+<details><summary>@here/pkgE: 1.0.1</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped to 3.3.4
+</details>
+
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
@@ -153,6 +162,15 @@ Release notes for path: node1, releaseType: node
 <details><summary>@here/pkgD: 4.4.5</summary>
 
 Release notes for path: node4, releaseType: node
+</details>
+
+<details><summary>@here/pkgE: 1.0.1</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped to 3.3.4
 </details>
 
 ---
