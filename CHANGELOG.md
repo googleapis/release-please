@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.9.0](https://github.com/googleapis/release-please/compare/v15.8.2...v15.9.0) (2023-03-14)
+
+
+### Features
+
+* Support for "@" sign in component name ([#1873](https://github.com/googleapis/release-please/issues/1873)) ([d3b2f2f](https://github.com/googleapis/release-please/commit/d3b2f2f72c5aada66d3297d38b26d4aa3661177c))
+
+
+### Bug Fixes
+
+* Allow linked-versions to skip merging pull requests ([#1779](https://github.com/googleapis/release-please/issues/1779)) ([dc48b55](https://github.com/googleapis/release-please/commit/dc48b55b459754493513da30f68dc2588d3e30d4))
+* **refactor:** Rename Salesforce to sfdx ([#1829](https://github.com/googleapis/release-please/issues/1829)) ([122820d](https://github.com/googleapis/release-please/commit/122820d5a38a401e1bbdc4878b02f94cf405ad0e))
+
 ## [15.8.2](https://github.com/googleapis/release-please/compare/v15.8.1...v15.8.2) (2023-03-13)
 
 
