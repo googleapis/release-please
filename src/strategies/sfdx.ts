@@ -17,11 +17,11 @@ import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError, MissingRequiredFileError} from '../errors';
-import {SfdxProjectJson} from '../updaters/salesforce/sfdx-project-json';
+import {SfdxProjectJson} from '../updaters/sfdx/sfdx-project-json';
 
 const sfdxProjectJsonFileName = 'sfdx-project.json';
 
-export class Salesforce extends BaseStrategy {
+export class Sfdx extends BaseStrategy {
   private sfdxProjectJsonContents?: GitHubFileContents;
 
   protected async buildUpdates(
@@ -69,7 +69,7 @@ export class Salesforce extends BaseStrategy {
         if (e instanceof FileNotFoundError) {
           throw new MissingRequiredFileError(
             this.addPath(sfdxProjectJsonFileName),
-            'salesforce',
+            'sfdx',
             `${this.repository.owner}/${this.repository.repo}`
           );
         }
