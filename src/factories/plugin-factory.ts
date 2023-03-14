@@ -58,7 +58,11 @@ const pluginFactories: Record<string, PluginBuilder> = {
       options.targetBranch,
       options.repositoryConfig,
       (options.type as LinkedVersionPluginConfig).groupName,
-      (options.type as LinkedVersionPluginConfig).components
+      (options.type as LinkedVersionPluginConfig).components,
+      {
+        ...options,
+        ...(options.type as WorkspacePluginOptions),
+      }
     ),
   'cargo-workspace': options =>
     new CargoWorkspace(
