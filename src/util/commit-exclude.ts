@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Commit} from '../commit';
-import {ReleaserConfig} from '../manifest';
+import {ReleaserConfig, ROOT_PROJECT_PATH} from '../manifest';
 import {normalizePaths} from './commit-utils';
 
 export type CommitExcludeConfig = Pick<ReleaserConfig, 'excludePaths'>;
@@ -36,7 +36,7 @@ export class CommitExclude {
     Object.entries(commitsPerPath).forEach(([path, commits]) => {
       if (this.excludePaths[path]) {
         commits = commits.filter(commit =>
-          this.shouldInclude(commit, this.excludePaths[path])
+          this.shouldInclude(commit, this.excludePaths[path], path)
         );
       }
       filteredCommitsPerPath[path] = commits;
@@ -44,12 +44,20 @@ export class CommitExclude {
     return filteredCommitsPerPath;
   }
 
-  private shouldInclude(commit: Commit, excludePaths: string[]): boolean {
+  private shouldInclude(
+    commit: Commit,
+    excludePaths: string[],
+    packagePath: string
+  ): boolean {
     return (
       !commit.files ||
-      !commit.files.every(file =>
-        excludePaths.some(path => file.indexOf(`${path}/`) === 0)
-      )
+      !commit.files
+        .filter(file => this.isRelevant(file, packagePath))
+        .every(file => excludePaths.some(path => this.isRelevant(file, path)))
     );
+  }
+
+  private isRelevant(file: string, path: string) {
+    return path === ROOT_PROJECT_PATH || file.indexOf(`${path}/`) === 0;
   }
 }

@@ -64,6 +64,18 @@ describe('commit-exclude', () => {
         files: ['pkg3/bar/foo.txt'],
       },
     ],
+    pkg4: [
+      {
+        sha: 'pack3',
+        message: 'commit pack3',
+        files: ['pkg3/foo.txt'],
+      },
+      {
+        sha: 'pack3sub',
+        message: 'commit pack3sub',
+        files: ['pkg3/bar/foo.txt'],
+      },
+    ],
   };
 
   it('should not exclude anything if paths are empty', () => {
@@ -99,5 +111,27 @@ describe('commit-exclude', () => {
     expect(newCommitsPerPath['pkg1'].length).to.equal(1);
     expect(newCommitsPerPath['pkg2'].length).to.equal(1);
     expect(newCommitsPerPath['pkg3'].length).to.equal(2);
+  });
+
+  it('should make decision only on relevant files', () => {
+    const createCommit = (files: string[]) => {
+      const first = files.at(0)!;
+      return {
+        sha: first.split('/').at(0)!,
+        message: `commit ${first}`,
+        files,
+      };
+    };
+    const commits: Record<string, Commit[]> = {
+      a: [createCommit(['a/b/c', 'd/e/f', 'd/e/g'])],
+      d: [createCommit(['a/b/c', 'd/e/f', 'd/e/g'])],
+    };
+    const config: Record<string, CommitExcludeConfig> = {
+      d: {excludePaths: ['d/e']},
+    };
+    const commitExclude = new CommitExclude(config);
+    const newCommitsPerPath = commitExclude.excludeCommits(commits);
+    expect(newCommitsPerPath['a'].length).to.equal(1);
+    expect(newCommitsPerPath['d'].length).to.equal(0);
   });
 });
