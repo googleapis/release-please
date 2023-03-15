@@ -19,17 +19,21 @@ exports['LinkedVersions plugin can skip grouping pull requests 2'] = `
 ---
 
 
-<details><summary>pkg2: 0.2.4</summary>
-
 ## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
 
 
 ### Bug Fixes
 
 * some bugfix ([bbbbbb](https://github.com/fake-owner/fake-repo/commit/bbbbbb))
-</details>
 
-<details><summary>pkg3: 0.2.4</summary>
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['LinkedVersions plugin can skip grouping pull requests 3'] = `
+:robot: I have created a release *beep* *boop*
+---
+
 
 ## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg3-v0.2.3...pkg3-v0.2.4) (1983-10-10)
 
@@ -37,7 +41,6 @@ exports['LinkedVersions plugin can skip grouping pull requests 2'] = `
 ### Miscellaneous Chores
 
 * **pkg3:** Synchronize group name versions
-</details>
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

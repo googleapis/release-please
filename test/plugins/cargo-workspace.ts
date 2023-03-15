@@ -34,6 +34,8 @@ import snapshot = require('snap-shot-it');
 import {RawContent} from '../../src/updaters/raw-content';
 import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import {parseCargoManifest} from '../../src/updaters/rust/common';
+import {ConfigurationError} from '../../src/errors';
+import assert = require('assert');
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/cargo-workspace';
@@ -495,6 +497,116 @@ describe('CargoWorkspace plugin', () => {
       assertNoHasUpdate(updates, 'packages/rustE/Cargo.toml');
       assertHasUpdate(updates, 'packages/rustB/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+    });
+    it('handles packages without version', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustA/Cargo.toml',
+              'packages/rustA/Cargo.toml'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['packages/rustA/Cargo.toml'],
+        flatten: false,
+        targetBranch: 'main',
+        inlineFiles: [
+          [
+            'Cargo.toml',
+            '[workspace]\nmembers = ["packages/rustA", "packages/rustB"]',
+          ],
+          [
+            'packages/rustB/Cargo.toml',
+            '[package]\nname = "pkgB"\n\n[dependencies]\npkgA = { version = "1.1.1", path = "../pkgA" }',
+          ],
+        ],
+      });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB')
+        .resolves(['packages/rustB']);
+      plugin = new CargoWorkspace(github, 'main', {
+        'packages/rustA': {
+          releaseType: 'rust',
+        },
+        'packages/rustB': {
+          releaseType: 'rust',
+        },
+      });
+      await assert.rejects(
+        async () => {
+          await plugin.run(candidates);
+        },
+        err => {
+          return (
+            err instanceof ConfigurationError && err.message.includes('missing')
+          );
+        }
+      );
+    });
+    it('handles packages with invalid version', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustA/Cargo.toml',
+              'packages/rustA/Cargo.toml'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['packages/rustA/Cargo.toml'],
+        flatten: false,
+        targetBranch: 'main',
+        inlineFiles: [
+          [
+            'Cargo.toml',
+            '[workspace]\nmembers = ["packages/rustA", "packages/rustB"]',
+          ],
+          [
+            'packages/rustB/Cargo.toml',
+            '[package]\nname = "pkgB"\nversion = { major = 1, minor = 2, patch = 3 }\n\n[dependencies]\npkgA = { version = "1.1.1", path = "../pkgA" }',
+          ],
+        ],
+      });
+      sandbox
+        .stub(github, 'findFilesByGlob')
+        .withArgs('packages/rustA')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB')
+        .resolves(['packages/rustB']);
+      plugin = new CargoWorkspace(github, 'main', {
+        'packages/rustA': {
+          releaseType: 'rust',
+        },
+        'packages/rustB': {
+          releaseType: 'rust',
+        },
+      });
+      await assert.rejects(
+        async () => {
+          await plugin.run(candidates);
+        },
+        err => {
+          return (
+            err instanceof ConfigurationError && err.message.includes('invalid')
+          );
+        }
+      );
     });
   });
 });
