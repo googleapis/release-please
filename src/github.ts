@@ -16,7 +16,8 @@ import {createPullRequest} from 'code-suggester';
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 
-import {Octokit} from '@octokit/rest';
+import {Octokit as OctokitCore} from '@octokit/rest';
+import {throttling} from '@octokit/plugin-throttling';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
 import {RequestError} from '@octokit/request-error';
@@ -31,7 +32,10 @@ const MAX_ISSUE_BODY_SIZE = 65536;
 const MAX_SLEEP_SECONDS = 20;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
+
+const Octokit = OctokitCore.plugin(throttling);
 type OctokitType = InstanceType<typeof Octokit>;
+type RateLimiterOptions = {request: {retryCount: number}};
 
 import {logger as defaultLogger} from './util/logger';
 import {Repository} from './repository';
@@ -280,6 +284,31 @@ export class GitHub {
           'content-type': 'application/vnd.github.v3+json',
         },
       }),
+      throttling: {
+        onRateLimit: (retryAfter: number, options: RateLimiterOptions) => {
+          // Retry twice after hitting a rate limit error, then give up
+          if (options.request.retryCount <= 2) {
+            console.log(
+              `Rate limit reached. Retrying after ${retryAfter} seconds!`
+            );
+            return true;
+          }
+          return false;
+        },
+        onSecondaryRateLimit: (
+          retryAfter: number,
+          options: RateLimiterOptions
+        ) => {
+          // Retry twice after hitting a rate limit error, then give up
+          if (options.request.retryCount <= 2) {
+            console.log(
+              `Secondary rate limit reached. Retrying after ${retryAfter} seconds!`
+            );
+            return true;
+          }
+          return false;
+        },
+      },
     };
     const opts = {
       repository: {
