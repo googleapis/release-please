@@ -23,20 +23,12 @@ export const RUBY_VERSION_REGEX = /((\d+).(\d)+.(\d+)(.\w+.*)?)/g;
  * Stringify a version to a ruby compatible version string
  *
  * @param version The version to stringify
- * @param useDotPrePreleaseSeperator Use a `.` seperator for prereleases rather then `-`
  * @returns a ruby compatible version string
  */
 export function stringifyRubyVersion(
   version: Version,
-  useDotPrePreleaseSeperator = false
 ) {
-  if (!useDotPrePreleaseSeperator) {
-    return version.toString();
-  }
-
-  return `${version.major}.${version.minor}.${version.patch}${
-    version.preRelease ? `.${version.preRelease}` : ''
-  }`;
+    return version.toString().replace(/-/g, '.');
 }
 
 /**
@@ -46,7 +38,16 @@ export function stringifyRubyVersion(
  * @returns A Gem::Version compatible version string
  */
 export function resolveRubyGemfileLockVersion(versionString: string) {
-  // Replace `-` with `.pre.` as per ruby gem parsing
+  const VERSION_REGEX = /(?<version>\w+\.\w+\.\w+)((?<preReleaseSeparator>[-\.])(?<preReleaseVersion>.*))?/g
+  // Replace pre-release separator with `.pre.` as per ruby gem parsing
   // See https://github.com/rubygems/rubygems/blob/master/lib/rubygems/version.rb#L229
-  return versionString.replace(/-/g, '.pre.');
+
+  // Not using a Version here because Ruby semver doesn't use `-` as the
+  // pre-release separator. With a versionString of '1.0.0.alpha.1', Version
+  // drops the '.alpha.1' which results in a semantically different version
+  // ('1.0.0' vs '1.0.0.alpha.1')
+  const splitVersion = VERSION_REGEX.exec(versionString)
+
+  return `${splitVersion?.groups?.version}${splitVersion?.groups?.preReleaseSeparator ? `.pre.${splitVersion?.groups?.preReleaseVersion}` : ''}`
+
 }

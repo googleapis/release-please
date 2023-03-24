@@ -48,9 +48,10 @@ describe('ruby-common', () => {
       ['1.2.3', '1.2.3'],
       ['1.2.10', '1.2.10'],
       ['15.10.22', '15.10.22'],
-      ['1.0.0-alpha', '1.0.0-alpha'],
-      ['1.0.0-alpha1', '1.0.0-alpha1'],
-      ['2.0.0-rc1', '2.0.0-rc1'],
+      ['1.0.0-alpha', '1.0.0.alpha'],
+      ['1.0.0-alpha1', '1.0.0.alpha1'],
+      ['1.0.0-alpha.1', '1.0.0.alpha.1'],
+      ['2.0.0-rc1', '2.0.0.rc1'],
     ];
 
     testTable.forEach(([input, expected]) => {
@@ -68,43 +69,13 @@ describe('ruby-common', () => {
         ['15.10.22', '15.10.22'],
         ['1.0.0-alpha', '1.0.0.pre.alpha'],
         ['1.0.0-alpha1', '1.0.0.pre.alpha1'],
+        ['1.0.0-alpha.1', '1.0.0.pre.alpha.1'],
         ['2.0.0-rc1', '2.0.0.pre.rc1'],
       ];
 
       testTable.forEach(([input, expected]) => {
         it(`${input} combined with resolveRubyGemfileLockVersion should equal ${expected}`, () => {
           const versionString = stringifyRubyVersion(Version.parse(input));
-          expect(resolveRubyGemfileLockVersion(versionString)).to.equal(
-            expected
-          );
-        });
-      });
-    });
-
-    describe('with dot prelease seperator', () => {
-      const testTable: [string, string][] = [
-        ['0.2.0', '0.2.0'],
-        ['1.2.3', '1.2.3'],
-        ['1.2.10', '1.2.10'],
-        ['15.10.22', '15.10.22'],
-        ['1.0.0-alpha', '1.0.0.alpha'],
-        ['1.0.0-alpha1', '1.0.0.alpha1'],
-        ['2.0.0-beta', '2.0.0.beta'],
-        ['2.0.0-rc1', '2.0.0.rc1'],
-      ];
-
-      testTable.forEach(([input, expected]) => {
-        it(`${input} should equal ${expected}`, () => {
-          expect(stringifyRubyVersion(Version.parse(input), true)).to.equal(
-            expected
-          );
-        });
-
-        it(`${input} combined with resolveRubyGemfileLockVersion should equal ${expected}`, () => {
-          const versionString = stringifyRubyVersion(
-            Version.parse(input),
-            true
-          );
           expect(resolveRubyGemfileLockVersion(versionString)).to.equal(
             expected
           );
