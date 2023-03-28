@@ -105,7 +105,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     const members = (
       await Promise.all(
         cargoManifest.workspace.members.map(member =>
-          this.github.findFilesByGlob(member)
+          this.github.findFilesByGlobAndRef(member, this.targetBranch)
         )
       )
     ).flat();
