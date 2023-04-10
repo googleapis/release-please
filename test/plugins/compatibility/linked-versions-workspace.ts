@@ -131,10 +131,10 @@ describe('Plugin compatibility', () => {
         ],
       });
       sandbox
-        .stub(github, 'findFilesByGlob')
-        .withArgs('packages/rustA')
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/rustA', 'main')
         .resolves(['packages/rustA'])
-        .withArgs('packages/rustB')
+        .withArgs('packages/rustB', 'main')
         .resolves(['packages/rustB']);
       const manifest = new Manifest(
         github,

@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.9.2](https://github.com/googleapis/release-please/compare/v15.9.1...v15.9.2) (2023-03-28)
+
+
+### Bug Fixes
+
+* **cargo-workspace:** Find workspace modules on the target branch ([#1889](https://github.com/googleapis/release-please/issues/1889)) ([9647941](https://github.com/googleapis/release-please/commit/96479413fd5fe9d1c546d829e70bfaf99b36661a))
+
 ## [15.9.1](https://github.com/googleapis/release-please/compare/v15.9.0...v15.9.1) (2023-03-14)
 
 
