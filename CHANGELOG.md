@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.10.0](https://github.com/googleapis/release-please/compare/v15.9.3...v15.10.0) (2023-04-10)
+
+
+### Features
+
+* Allow excluding file paths to filter out commits ([#1875](https://github.com/googleapis/release-please/issues/1875)) ([a9bed82](https://github.com/googleapis/release-please/commit/a9bed8232ccaa192fb004953e34c49279d3c779f))
+
 ## [15.9.3](https://github.com/googleapis/release-please/compare/v15.9.2...v15.9.3) (2023-04-10)
 
 
