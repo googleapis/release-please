@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.9.3](https://github.com/googleapis/release-please/compare/v15.9.2...v15.9.3) (2023-04-10)
+
+
+### Bug Fixes
+
+* **python:** Handle large version numbers in setup.cfg ([#1906](https://github.com/googleapis/release-please/issues/1906)) ([9a7b11f](https://github.com/googleapis/release-please/commit/9a7b11f4d0797222fd65e871d4ba9f488a72d1d9))
+
 ## [15.9.2](https://github.com/googleapis/release-please/compare/v15.9.1...v15.9.2) (2023-03-28)
 
 
