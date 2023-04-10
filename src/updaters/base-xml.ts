@@ -29,7 +29,11 @@ export abstract class BaseXml implements Updater {
     const updated = this.updateDocument(document);
 
     if (updated) {
-      return new dom.XMLSerializer().serializeToString(document);
+      const newContent = new dom.XMLSerializer().serializeToString(document);
+      if (content.endsWith('\n') && !newContent.endsWith('\n')) {
+        return `${newContent}\n`;
+      }
+      return newContent;
     } else {
       return content;
     }

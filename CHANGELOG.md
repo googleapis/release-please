@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.10.1](https://github.com/googleapis/release-please/compare/v15.10.0...v15.10.1) (2023-04-10)
+
+
+### Bug Fixes
+
+* **xml:** Preserve trailing newline if the xml file had one ([#1911](https://github.com/googleapis/release-please/issues/1911)) ([b899da6](https://github.com/googleapis/release-please/commit/b899da6637a5152fc13be5b89688c5f70c85563d))
+
 ## [15.10.0](https://github.com/googleapis/release-please/compare/v15.9.3...v15.10.0) (2023-04-10)
 
 
