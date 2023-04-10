@@ -115,9 +115,9 @@ describe('commit-exclude', () => {
 
   it('should make decision only on relevant files', () => {
     const createCommit = (files: string[]) => {
-      const first = files.at(0)!;
+      const first = files[0];
       return {
-        sha: first.split('/').at(0)!,
+        sha: first.split('/')[0],
         message: `commit ${first}`,
         files,
       };
