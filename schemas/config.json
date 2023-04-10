@@ -184,6 +184,13 @@
             ]
           }
         },
+        "exclude-paths": {
+          "description": "Path of commits to be excluded from parsing. If all files from commit belong to one of the paths it will be skipped",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "version-file": {
           "description": "Path to the specialize version file. Used by `ruby` and `simple` strategies.",
           "type": "string"
@@ -394,6 +401,7 @@
     "extra-files": true,
     "version-file": true,
     "snapshot-label": true,
-    "initial-version": true
+    "initial-version": true,
+    "exclude-paths": true
   }
 }

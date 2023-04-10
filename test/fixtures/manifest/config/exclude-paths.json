@@ -1,0 +1,15 @@
+{
+  "release-type": "simple",
+  "label": "custom: pending",
+  "release-label": "custom: tagged",
+  "exclude-paths": ["path-ignore"],
+  "packages": {
+    ".": {
+      "component": "root",
+      "exclude-paths": ["path-root-ignore"]
+    },
+    "node-lib": {
+      "component": "node-lib"
+    }
+  }
+}

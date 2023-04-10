@@ -504,6 +504,37 @@ describe('Manifest', () => {
         'lang: nodejs',
       ]);
     });
+    it('should read exclude paths from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/exclude-paths.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].excludePaths).to.deep.equal([
+        'path-root-ignore',
+      ]);
+      expect(manifest.repositoryConfig['node-lib'].excludePaths).to.deep.equal([
+        'path-ignore',
+      ]);
+    });
     it('should build simple plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
