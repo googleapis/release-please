@@ -262,6 +262,8 @@ defaults (those are documented in comments)
     ".": {
       // overrides release-type for node
       "release-type": "node",
+      // exclude commits from that path from processing
+      "exclude-paths": ["path/to/myPyPkgA"]
     },
 
     // path segment should be relative to repository root

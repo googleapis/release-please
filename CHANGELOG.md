@@ -4,6 +4,34 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.10.2](https://github.com/googleapis/release-please/compare/v15.10.1...v15.10.2) (2023-04-11)
+
+
+### Bug Fixes
+
+* **github-changelog-notes:** Prepend header to create parseable release notes ([#1912](https://github.com/googleapis/release-please/issues/1912)) ([3f53d40](https://github.com/googleapis/release-please/commit/3f53d40c8c3f927fffdf8973128e12450703a6e4))
+
+## [15.10.1](https://github.com/googleapis/release-please/compare/v15.10.0...v15.10.1) (2023-04-10)
+
+
+### Bug Fixes
+
+* **xml:** Preserve trailing newline if the xml file had one ([#1911](https://github.com/googleapis/release-please/issues/1911)) ([b899da6](https://github.com/googleapis/release-please/commit/b899da6637a5152fc13be5b89688c5f70c85563d))
+
+## [15.10.0](https://github.com/googleapis/release-please/compare/v15.9.3...v15.10.0) (2023-04-10)
+
+
+### Features
+
+* Allow excluding file paths to filter out commits ([#1875](https://github.com/googleapis/release-please/issues/1875)) ([a9bed82](https://github.com/googleapis/release-please/commit/a9bed8232ccaa192fb004953e34c49279d3c779f))
+
+## [15.9.3](https://github.com/googleapis/release-please/compare/v15.9.2...v15.9.3) (2023-04-10)
+
+
+### Bug Fixes
+
+* **python:** Handle large version numbers in setup.cfg ([#1906](https://github.com/googleapis/release-please/issues/1906)) ([9a7b11f](https://github.com/googleapis/release-please/commit/9a7b11f4d0797222fd65e871d4ba9f488a72d1d9))
+
 ## [15.9.2](https://github.com/googleapis/release-please/compare/v15.9.1...v15.9.2) (2023-03-28)
 
 
