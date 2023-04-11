@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.10.2](https://github.com/googleapis/release-please/compare/v15.10.1...v15.10.2) (2023-04-11)
+
+
+### Bug Fixes
+
+* **github-changelog-notes:** Prepend header to create parseable release notes ([#1912](https://github.com/googleapis/release-please/issues/1912)) ([3f53d40](https://github.com/googleapis/release-please/commit/3f53d40c8c3f927fffdf8973128e12450703a6e4))
+
 ## [15.10.1](https://github.com/googleapis/release-please/compare/v15.10.0...v15.10.1) (2023-04-10)
 
 
