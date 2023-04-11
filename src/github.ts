@@ -1477,7 +1477,13 @@ export class GitHub {
       previous_tag_name: previousTag,
       target_commitish: targetCommitish,
     });
-    return resp.data.body;
+
+    const versionWithoutV = resp.data.name.replace(/^v/, '');
+
+    return resp.data.body.replace(
+      /^## What's Changed/g,
+      `## ${versionWithoutV}`
+    );
   }
 
   /**
