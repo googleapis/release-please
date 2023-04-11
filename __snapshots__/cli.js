@@ -25,6 +25,9 @@ Options:
   --repo-url                    GitHub URL to generate release for    [required]
   --dry-run                     Prepare but do not take action
                                                       [boolean] [default: false]
+  --use-graphql                 Whether or not the GraphQL API should be used.
+                                If false, the REST API will be used instead.
+                                                       [boolean] [default: true]
   --include-v-in-tags           include "v" in tag versions
                                                        [boolean] [default: true]
   --monorepo-tags               include library name in tags and release
@@ -91,6 +94,9 @@ Options:
                         on                                              [string]
   --repo-url            GitHub URL to generate release for            [required]
   --dry-run             Prepare but do not take action[boolean] [default: false]
+  --use-graphql         Whether or not the GraphQL API should be used. If false,
+                        the REST API will be used instead.
+                                                       [boolean] [default: true]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
   --skip-labeling       skip application of labels to pull requests
@@ -132,6 +138,8 @@ Options:
                                                                         [string]
   --repo-url        GitHub URL to generate release for                [required]
   --dry-run         Prepare but do not take action    [boolean] [default: false]
+  --use-graphql     Whether or not the GraphQL API should be used. If false, the
+                    REST API will be used instead.     [boolean] [default: true]
   --draft           mark release as a draft. no tag is created but tag_name and
                     target_commitish are associated with the release for future
                     tag creation upon "un-drafting" the release.
@@ -179,6 +187,9 @@ Options:
   --repo-url                        GitHub URL to generate release for[required]
   --dry-run                         Prepare but do not take action
                                                       [boolean] [default: false]
+  --use-graphql                     Whether or not the GraphQL API should be
+                                    used. If false, the REST API will be used
+                                    instead.           [boolean] [default: true]
   --release-as                      override the semantically determined release
                                     version                             [string]
   --bump-minor-pre-major            should we bump the semver minor prior to the
