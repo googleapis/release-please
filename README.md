@@ -99,7 +99,7 @@ The above commit message will contain:
   that it's a breaking change.
 3. an entry for the feature **"update encode to support unicode"**.
 
-> :warning: **Important:** The additional messages must be added to the bottom of the commit.
+:warning: **Important:** The additional messages must be added to the bottom of the commit.
 
 ## How do I change the version number?
 
@@ -132,6 +132,10 @@ END_COMMIT_OVERRIDE
 
 The next time Release Please runs, it will use that override section as the
 commit message instead of the merged commit message.
+
+:warning: **Important:** This feature will not work with plain merges because
+release-please does not know which commit(s) to apply the override to. [We
+recommend using squash-merge instead](#linear-git-commit-history-use-squash-merge).
 
 ## Release Please bot does not create a release PR. Why?
 
