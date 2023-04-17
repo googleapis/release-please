@@ -115,6 +115,8 @@ export abstract class BaseStrategy implements Strategy {
   // CHANGELOG configuration
   protected changelogSections?: ChangelogSection[];
 
+  private overrideBranchName?: BranchName;
+
   constructor(options: BaseStrategyOptions) {
     this.logger = options.logger ?? defaultLogger;
     this.path = options.path || ROOT_PROJECT_PATH;
@@ -186,6 +188,10 @@ export abstract class BaseStrategy implements Strategy {
       return '';
     }
     return component;
+  }
+
+  async setOverrideBranchName(branchName: BranchName): Promise<void> {
+    this.overrideBranchName = branchName;
   }
 
   /**
@@ -291,10 +297,7 @@ export abstract class BaseStrategy implements Strategy {
       newVersion,
       this.pullRequestTitlePattern
     );
-    const branchComponent = await this.getBranchComponent();
-    const branchName = branchComponent
-      ? BranchName.ofComponentTargetBranch(branchComponent, this.targetBranch)
-      : BranchName.ofTargetBranch(this.targetBranch);
+    const branchName = await this.getBranchName();
     const releaseNotesBody = await this.buildReleaseNotes(
       conventionalCommits,
       newVersion,
@@ -338,6 +341,16 @@ export abstract class BaseStrategy implements Strategy {
       version: newVersion,
       draft: draft ?? false,
     };
+  }
+
+  private async getBranchName(): Promise<BranchName> {
+    if (this.overrideBranchName) {
+      return this.overrideBranchName;
+    }
+    const branchComponent = await this.getBranchComponent();
+    return branchComponent
+      ? BranchName.ofComponentTargetBranch(branchComponent, this.targetBranch)
+      : BranchName.ofTargetBranch(this.targetBranch);
   }
 
   // Helper to convert extra files with globs to the file paths to add

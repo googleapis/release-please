@@ -22,6 +22,7 @@ import {Release} from '../release';
 import {Version} from '../version';
 import {buildStrategy} from '../factory';
 import {Merge} from './merge';
+import {BranchName} from '../util/branch-name';
 
 interface LinkedVersionsPluginOptions {
   merge?: boolean;
@@ -53,6 +54,10 @@ export class LinkedVersions extends ManifestPlugin {
     this.merge = options.merge ?? true;
   }
 
+  private getBranchName(): BranchName {
+    return BranchName.ofGroupTargetBranch(this.groupName, this.targetBranch);
+  }
+
   /**
    * Pre-configure strategies.
    * @param {Record<string, Strategy>} strategiesByPath Strategies indexed by path
@@ -67,6 +72,9 @@ export class LinkedVersions extends ManifestPlugin {
     const groupStrategies: Record<string, Strategy> = {};
     for (const path in strategiesByPath) {
       const strategy = strategiesByPath[path];
+      if (this.groupName && this.targetBranch) {
+        strategy.setOverrideBranchName(this.getBranchName());
+      }
       const component = await strategy.getComponent();
       if (!component) {
         continue;
@@ -85,6 +93,9 @@ export class LinkedVersions extends ManifestPlugin {
     const missingReleasePaths = new Set<string>();
     for (const path in groupStrategies) {
       const strategy = groupStrategies[path];
+      // if (this.groupName && this.targetBranch) {
+      //   strategy.setOverrideBranchName(this.getBranchName());
+      // }
       const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
         parseConventionalCommits(commitsByPath[path], this.logger),
@@ -114,13 +125,14 @@ export class LinkedVersions extends ManifestPlugin {
         this.logger.info(
           `Replacing strategy for path ${path} with forced version: ${primaryVersion}`
         );
-        newStrategies[path] = await buildStrategy({
+        const groupStrategy = await buildStrategy({
           ...this.repositoryConfig[path],
           github: this.github,
           path,
           targetBranch: this.targetBranch,
           releaseAs: primaryVersion.toString(),
         });
+        newStrategies[path] = groupStrategy;
         if (missingReleasePaths.has(path)) {
           this.logger.debug(`Appending fake commit for path: ${path}`);
           commitsByPath[path].push({
