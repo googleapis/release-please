@@ -93,9 +93,6 @@ export class LinkedVersions extends ManifestPlugin {
     const missingReleasePaths = new Set<string>();
     for (const path in groupStrategies) {
       const strategy = groupStrategies[path];
-      // if (this.groupName && this.targetBranch) {
-      //   strategy.setOverrideBranchName(this.getBranchName());
-      // }
       const latestRelease = releasesByPath[path];
       const releasePullRequest = await strategy.buildReleasePullRequest(
         parseConventionalCommits(commitsByPath[path], this.logger),
@@ -188,8 +185,8 @@ export class LinkedVersions extends ManifestPlugin {
         this.targetBranch,
         this.repositoryConfig,
         `chore\${scope}: release ${this.groupName} libraries`,
-          undefined,
-          this.groupName,
+        undefined,
+        this.groupName
       );
       const merged = await merge.run(inScopeCandidates);
       outOfScopeCandidates.push(...merged);
