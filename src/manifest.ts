@@ -742,22 +742,22 @@ export class Manifest {
       }
     }
 
-    // Combine pull requests into 1 unless configured for separate
-    // pull requests
-    if (!this.separatePullRequests) {
-      this.plugins.push(
-        new Merge(
-          this.github,
-          this.targetBranch,
-          this.repositoryConfig,
-          this.groupPullRequestTitlePattern
-        )
-      );
-    }
-
     for (const plugin of this.plugins) {
       this.logger.debug(`running plugin: ${plugin.constructor.name}`);
       newReleasePullRequests = await plugin.run(newReleasePullRequests);
+    }
+
+    // Combine pull requests into 1 unless configured for separate
+    // pull requests. Don't merge pull requests if there are not multiple to merge.
+    if (!this.separatePullRequests && newReleasePullRequests.length > 1) {
+      const merge = new Merge(
+        this.github,
+        this.targetBranch,
+        this.repositoryConfig,
+        this.groupPullRequestTitlePattern
+      );
+      this.logger.debug('running plugin: Merge');
+      newReleasePullRequests = await merge.run(newReleasePullRequests);
     }
 
     return newReleasePullRequests.map(
