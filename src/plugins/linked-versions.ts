@@ -54,10 +54,6 @@ export class LinkedVersions extends ManifestPlugin {
     this.merge = options.merge ?? true;
   }
 
-  private getBranchName(): BranchName {
-    return BranchName.ofGroupTargetBranch(this.groupName, this.targetBranch);
-  }
-
   /**
    * Pre-configure strategies.
    * @param {Record<string, Strategy>} strategiesByPath Strategies indexed by path
@@ -73,7 +69,9 @@ export class LinkedVersions extends ManifestPlugin {
     for (const path in strategiesByPath) {
       const strategy = strategiesByPath[path];
       if (this.groupName && this.targetBranch) {
-        strategy.setOverrideBranchName(this.getBranchName());
+        strategy.setOverrideBranchName(
+          BranchName.ofGroupTargetBranch(this.groupName, this.targetBranch)
+        );
       }
       const component = await strategy.getComponent();
       if (!component) {

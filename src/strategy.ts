@@ -90,7 +90,7 @@ export interface Strategy {
    * the branch name convention.
    * @returns {void}
    */
-  setOverrideBranchName(branchName: BranchName): Promise<void>;
+  setOverrideBranchName(branchName: BranchName): void;
 
   /**
    * Validate whether version is a valid release.
