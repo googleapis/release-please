@@ -35,18 +35,21 @@ import {GitHub} from '../github';
 export class Merge extends ManifestPlugin {
   private pullRequestTitlePattern?: string;
   private pullRequestHeader?: string;
+  private groupName?: string;
 
   constructor(
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     pullRequestTitlePattern?: string,
-    pullRequestHeader?: string
+    pullRequestHeader?: string,
+    groupName?: string
   ) {
     super(github, targetBranch, repositoryConfig);
     this.pullRequestTitlePattern =
       pullRequestTitlePattern || MANIFEST_PULL_REQUEST_TITLE_PATTERN;
     this.pullRequestHeader = pullRequestHeader;
+    this.groupName = groupName;
   }
 
   async run(
@@ -101,7 +104,7 @@ export class Merge extends ManifestPlugin {
       }),
       updates,
       labels: Array.from(labels),
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName: this.groupName ? BranchName.ofGroupTargetBranch(this.groupName, this.targetBranch).toString() : BranchName.ofTargetBranch(this.targetBranch).toString(),
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
     };
 

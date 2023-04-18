@@ -187,7 +187,9 @@ export class LinkedVersions extends ManifestPlugin {
         this.github,
         this.targetBranch,
         this.repositoryConfig,
-        `chore\${scope}: release ${this.groupName} libraries`
+        `chore\${scope}: release ${this.groupName} libraries`,
+          undefined,
+          this.groupName,
       );
       const merged = await merge.run(inScopeCandidates);
       outOfScopeCandidates.push(...merged);
