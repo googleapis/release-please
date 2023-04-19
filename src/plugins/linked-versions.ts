@@ -68,11 +68,6 @@ export class LinkedVersions extends ManifestPlugin {
     const groupStrategies: Record<string, Strategy> = {};
     for (const path in strategiesByPath) {
       const strategy = strategiesByPath[path];
-      if (this.groupName && this.targetBranch) {
-        strategy.setOverrideBranchName(
-          BranchName.ofGroupTargetBranch(this.groupName, this.targetBranch)
-        );
-      }
       const component = await strategy.getComponent();
       if (!component) {
         continue;
@@ -182,9 +177,8 @@ export class LinkedVersions extends ManifestPlugin {
         this.github,
         this.targetBranch,
         this.repositoryConfig,
-        `chore\${scope}: release ${this.groupName} libraries`,
-        undefined,
-        this.groupName
+        BranchName.ofGroupTargetBranch(this.groupName, this.targetBranch),
+        `chore\${scope}: release ${this.groupName} libraries`
       );
       const merged = await merge.run(inScopeCandidates);
       outOfScopeCandidates.push(...merged);

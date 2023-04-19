@@ -290,7 +290,11 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["cargo-workspace", "maven-workspace", "node-workspace"]
+                    "enum": [
+                      "cargo-workspace",
+                      "maven-workspace",
+                      "node-workspace"
+                    ]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -341,6 +345,10 @@
           "description": "When grouping multiple release pull requests use this pattern for the title.",
           "type": "string"
         },
+        "group-branch-name-pattern": {
+          "description": "When grouping multiple release pull requests, use this pattern for the head branch name.",
+          "type": "string"
+        },
         "release-search-depth": {
           "description": "When considering previously releases, only look this deep.",
           "type": "number"
@@ -373,6 +381,7 @@
     "always-link-local": true,
     "plugins": true,
     "group-pull-request-title-pattern": true,
+    "group-branch-name-pattern": true,
     "release-search-depth": true,
     "commit-search-depth": true,
     "sequential-calls": true,

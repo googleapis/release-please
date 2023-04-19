@@ -191,6 +191,7 @@ export interface ManifestOptions {
   prerelease?: boolean;
   draftPullRequest?: boolean;
   groupPullRequestTitlePattern?: string;
+  groupBranchNamePattern?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   logger?: Logger;
@@ -240,6 +241,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'always-link-local'?: boolean;
   plugins?: PluginType[];
   'group-pull-request-title-pattern'?: string;
+  'group-branch-name-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
   'sequential-calls'?: boolean;
@@ -261,6 +263,7 @@ const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
 const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
+export const MANIFEST_BRANCH_NAME_PATTERN = '${branch}';
 
 interface CreatedRelease extends GitHubRelease {
   id: number;
@@ -295,6 +298,7 @@ export class Manifest {
   private prerelease?: boolean;
   private draftPullRequest?: boolean;
   private groupPullRequestTitlePattern?: string;
+  private groupBranchNamePattern?: string;
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
   readonly logger: Logger;
@@ -357,6 +361,7 @@ export class Manifest {
     this.draftPullRequest = manifestOptions?.draftPullRequest;
     this.groupPullRequestTitlePattern =
       manifestOptions?.groupPullRequestTitlePattern;
+    this.groupBranchNamePattern = manifestOptions?.groupBranchNamePattern;
     this.releaseSearchDepth =
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =
@@ -369,6 +374,8 @@ export class Manifest {
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
+        pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+        branchNamePattern: this.groupBranchNamePattern,
       })
     );
     this.pullRequestOverflowHandler = new FilePullRequestOverflowHandler(
@@ -754,6 +761,7 @@ export class Manifest {
         this.github,
         this.targetBranch,
         this.repositoryConfig,
+        this.groupBranchNamePattern,
         this.groupPullRequestTitlePattern
       );
       this.logger.debug('running plugin: Merge');
@@ -1334,6 +1342,7 @@ async function parseConfig(
     alwaysLinkLocal: config['always-link-local'],
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
+    groupBranchNamePattern: config['group-branch-name-pattern'],
     plugins: config['plugins'],
     labels: configLabel?.split(','),
     releaseLabels: configReleaseLabel?.split(','),

@@ -36,6 +36,8 @@ export interface WorkspacePluginOptions {
   updateAllPackages?: boolean;
   merge?: boolean;
   logger?: Logger;
+  pullRequestTitlePattern?: string;
+  branchNamePattern?: string;
 }
 
 export interface AllPackages<T> {
@@ -58,6 +60,10 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
   private manifestPath: string;
   private merge: boolean;
+
+  private pullRequestTitlePattern?: string;
+  private branchNamePattern?: string;
+
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -68,6 +74,8 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;
+    this.pullRequestTitlePattern = options.pullRequestTitlePattern;
+    this.branchNamePattern = options.branchNamePattern;
   }
   async run(
     candidates: CandidateReleasePullRequest[]
@@ -171,7 +179,9 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       const mergePlugin = new Merge(
         this.github,
         this.targetBranch,
-        this.repositoryConfig
+        this.repositoryConfig,
+        this.branchNamePattern,
+        this.pullRequestTitlePattern
       );
       newCandidates = await mergePlugin.run(newCandidates);
     }
