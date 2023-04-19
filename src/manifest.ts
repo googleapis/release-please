@@ -543,7 +543,6 @@ export class Manifest {
       }
     }
 
-    const needsBootstrap = releasesFound < expectedReleases;
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -563,6 +562,9 @@ export class Manifest {
         releasesFound++;
       }
     }
+
+    const needsBootstrap = releasesFound < expectedReleases;
+
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
