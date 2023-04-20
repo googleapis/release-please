@@ -368,6 +368,11 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
 name: Run Release Please
 jobs:
   release-please:
