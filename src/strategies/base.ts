@@ -115,8 +115,6 @@ export abstract class BaseStrategy implements Strategy {
   // CHANGELOG configuration
   protected changelogSections?: ChangelogSection[];
 
-  private overrideBranchName?: BranchName;
-
   constructor(options: BaseStrategyOptions) {
     this.logger = options.logger ?? defaultLogger;
     this.path = options.path || ROOT_PROJECT_PATH;
@@ -188,10 +186,6 @@ export abstract class BaseStrategy implements Strategy {
       return '';
     }
     return component;
-  }
-
-  async setOverrideBranchName(branchName: BranchName): Promise<void> {
-    this.overrideBranchName = branchName;
   }
 
   /**
@@ -344,9 +338,6 @@ export abstract class BaseStrategy implements Strategy {
   }
 
   private async getBranchName(): Promise<BranchName> {
-    if (this.overrideBranchName) {
-      return this.overrideBranchName;
-    }
     const branchComponent = await this.getBranchComponent();
     return branchComponent
       ? BranchName.ofComponentTargetBranch(branchComponent, this.targetBranch)

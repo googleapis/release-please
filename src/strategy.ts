@@ -19,7 +19,6 @@ import {Commit} from './commit';
 import {VersioningStrategy} from './versioning-strategy';
 import {ChangelogNotes} from './changelog-notes';
 import {Version} from './version';
-import {BranchName} from './util/branch-name';
 
 export interface BuildReleaseOptions {
   groupPullRequestTitlePattern?: string;
@@ -84,13 +83,6 @@ export interface Strategy {
    * @returns {string}
    */
   getBranchComponent(): Promise<string | undefined>;
-
-  /**
-   * Sets the override for the branch name, in case it does not follow
-   * the branch name convention.
-   * @returns {void}
-   */
-  setOverrideBranchName(branchName: BranchName): void;
 
   /**
    * Validate whether version is a valid release.

@@ -46,6 +46,10 @@ export interface PluginFactoryOptions {
   updateAllPackages?: boolean;
   considerAllArtifacts?: boolean;
 
+  // group level options
+  pullRequestTitlePattern?: string;
+  branchNamePattern?: string;
+
   logger?: Logger;
 }
 
