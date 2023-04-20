@@ -139,6 +139,8 @@ recommend using squash-merge instead](#linear-git-commit-history-use-squash-merg
 
 ## Release Please bot does not create a release PR. Why?
 
+### Step 1: Ensure releasable units are merged
+
 Release Please creates a release pull request after it notices the default branch
 contains "releasable units" since the last release.
 A releasable unit is a commit to the branch with one of the following
@@ -148,11 +150,24 @@ prefixes: "feat", "fix", and "deps".
 Some languages have their specific releasable unit configuration. For example,
 "docs" is a prefix for releasable units in Java and Python.
 
+### Step 2: Ensure no `autorelease: pending` or `autorelease: triggered` label in an old PR
+
+Check existing pull requests labelled with `autorelease: pending` or
+`autorelease: triggered` label.
+Due to GitHub API failures, it's possible that the tag was not removed
+correctly upon a previous release and Release Please thinks that the previous release is
+still pending.
+If you're certain that there's no pending release, remove the
+`autorelease: pending` or `autorelease: triggered` label.
+
+### Step 3: Rerun Release Please
+
 If you think Release Please missed creating a release PR after a pull request
 with a releasable unit has been merged, please re-run `release-please`. If you are using
 the GitHub application, add `release-please:force-run` label to the merged pull request. If
 you are using the action, look for the failed invocation and retry the workflow run.
 Release Please will process the pull request immediately to find releasable units.
+
 
 ## Strategy (Language) types supported
 
