@@ -793,18 +793,17 @@ export class Manifest {
           notes: '',
         };
       } else {
-        const rootPath = '.';
         if (
-          strategiesByPath[rootPath] &&
+          strategiesByPath[ROOT_PROJECT_PATH] &&
           this.repositoryConfig[path].skipGithubRelease
         ) {
           this.logger.debug('could not find release, checking root package');
-          const rootComponent = await strategiesByPath[rootPath].getComponent();
+          const rootComponent = await strategiesByPath[ROOT_PROJECT_PATH].getComponent();
           const rootTag = new TagName(
             expectedVersion,
             rootComponent,
-            this.repositoryConfig[rootPath].tagSeparator,
-            this.repositoryConfig[rootPath].includeVInTag
+            this.repositoryConfig[ROOT_PROJECT_PATH].tagSeparator,
+            this.repositoryConfig[ROOT_PROJECT_PATH].includeVInTag
           );
           const foundTag = allTags[rootTag.toString()];
           if (foundTag) {
