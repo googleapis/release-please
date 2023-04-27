@@ -424,7 +424,7 @@ function getChangelogDepsNotes(
         const origDepVer = depVer(originalScope[depType]?.[depName]);
         if (currentDepVer !== origDepVer) {
           depUpdates.push(
-            `\n    - ${depName} bumped from ${origDepVer} to ${currentDepVer}`
+            `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
           );
         }
       }
@@ -451,14 +451,14 @@ function getChangelogDepsNotes(
   }
 
   for (const [dt, notes] of updates) {
-    depUpdateNotes += `\n  - ${dt}`;
+    depUpdateNotes += `\n  * ${dt}`;
     for (const note of notes) {
       depUpdateNotes += note;
     }
   }
 
   if (depUpdateNotes) {
-    return `- The following workspace dependencies were updated${depUpdateNotes}`;
+    return `* The following workspace dependencies were updated${depUpdateNotes}`;
   }
   return '';
 }

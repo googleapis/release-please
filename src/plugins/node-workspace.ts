@@ -410,7 +410,7 @@ function getChangelogDepsNotes(
       const origDepVer = original[depType]?.[depName];
       if (currentDepVer !== origDepVer) {
         depUpdates.push(
-          `\n    - ${depName} bumped from ${origDepVer} to ${currentDepVer}`
+          `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
         );
         //handle case when "workspace:" version is used
       } else if (
@@ -418,7 +418,7 @@ function getChangelogDepsNotes(
         updateVersions.get(depName) !== undefined
       ) {
         depUpdates.push(
-          `\n    - ${depName} bumped to ${updateVersions
+          `\n    * ${depName} bumped to ${updateVersions
             .get(depName)
             ?.toString()}`
         );
@@ -429,13 +429,13 @@ function getChangelogDepsNotes(
     }
   }
   for (const [dt, notes] of updates) {
-    depUpdateNotes += `\n  - ${dt}`;
+    depUpdateNotes += `\n  * ${dt}`;
     for (const note of notes) {
       depUpdateNotes += note;
     }
   }
   if (depUpdateNotes) {
-    return ` The following workspace dependencies were updated${depUpdateNotes}`;
+    return `* The following workspace dependencies were updated${depUpdateNotes}`;
   }
   return '';
 }

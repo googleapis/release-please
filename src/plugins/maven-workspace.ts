@@ -486,14 +486,14 @@ function getChangelogDepsNotes(
   const depUpdateNotes = [];
   for (const dependencyUpdate of dependencyUpdates) {
     depUpdateNotes.push(
-      `\n    - ${dependencyUpdate.name} bumped to ${dependencyUpdate.version}`
+      `\n    * ${dependencyUpdate.name} bumped to ${dependencyUpdate.version}`
     );
     logger.info(
       `bumped ${dependencyUpdate.name} to ${dependencyUpdate.version}`
     );
   }
   if (depUpdateNotes.length > 0) {
-    return `- The following workspace dependencies were updated${depUpdateNotes.join()}`;
+    return `* The following workspace dependencies were updated${depUpdateNotes.join()}`;
   }
   return '';
 }
