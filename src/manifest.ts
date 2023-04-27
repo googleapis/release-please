@@ -543,7 +543,6 @@ export class Manifest {
       }
     }
 
-    const needsBootstrap = releasesFound < expectedReleases;
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -563,6 +562,9 @@ export class Manifest {
         releasesFound++;
       }
     }
+
+    const needsBootstrap = releasesFound < expectedReleases;
+
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -1516,6 +1518,9 @@ async function latestReleaseVersion(
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
     if (!mergedPullRequest) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
+      );
       continue;
     }
 
@@ -1524,12 +1529,20 @@ async function latestReleaseVersion(
       logger
     );
     if (!branchName) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} unrecognized branch name: ${mergedPullRequest.headBranchName}`
+      );
       continue;
     }
 
     // If branchPrefix is specified, ensure it is found in the branch name.
     // If branchPrefix is not specified, component should also be undefined.
     if (branchName.getComponent() !== branchPrefix) {
+      logger.trace(
+        `skipping commit: ${
+          commitWithPullRequest.sha
+        } branch component ${branchName.getComponent()} doesn't match expected prefix: ${branchPrefix}`
+      );
       continue;
     }
 
@@ -1539,6 +1552,9 @@ async function latestReleaseVersion(
       logger
     );
     if (!pullRequestTitle) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} couldn't parse pull request title: ${mergedPullRequest.title}`
+      );
       continue;
     }
 

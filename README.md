@@ -52,6 +52,26 @@ The most important prefixes you should have in mind are:
 * `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
   (indicated by the `!`) and will result in a SemVer major.
 
+### Linear git commit history (use squash-merge)
+
+We **highly** recommend that you use squash-merges when merging pull requests.
+A linear git history makes it much easier to:
+
+* Follow history - commits are sorted by merge date and are not mixed between
+  pull requests
+* Find and revert bugs - `git bisect` is helpful for tracking down which
+  change introduced a bug
+* Control the release-please changelog - when you merge a PR, you may have
+  commit messages that make sense within the scope of the PR, but don't
+  make sense when merged in the main branch. For example, you make have
+  `feat: introduce feature A` and then `fix: some bugfix introduced in
+  the first commit`. The `fix` commit is actually irrelevant to the release
+  notes as there was never a bug experienced in the main branch.
+* Keep a clean main branch - if you use something like red/green development
+  (create a failing test in commit A, then fix in commit B) and merge (or
+  rebase-merge), then there will be points in time in your main branch where
+  tests do not pass.
+
 ### What if my PR contains multiple fixes or features?
 
 Release Please allows you to represent multiple changes in a single commit,
@@ -79,7 +99,7 @@ The above commit message will contain:
   that it's a breaking change.
 3. an entry for the feature **"update encode to support unicode"**.
 
-> :warning: **Important:** The additional messages must be added to the bottom of the commit.
+:warning: **Important:** The additional messages must be added to the bottom of the commit.
 
 ## How do I change the version number?
 
@@ -112,6 +132,10 @@ END_COMMIT_OVERRIDE
 
 The next time Release Please runs, it will use that override section as the
 commit message instead of the merged commit message.
+
+:warning: **Important:** This feature will not work with plain merges because
+release-please does not know which commit(s) to apply the override to. [We
+recommend using squash-merge instead](#linear-git-commit-history-use-squash-merge).
 
 ## Release Please bot does not create a release PR. Why?
 

@@ -4,6 +4,20 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.10.4](https://github.com/googleapis/release-please/compare/v15.10.3...v15.10.4) (2023-04-19)
+
+
+### Bug Fixes
+
+* Add more trace logging when searching for latest release version ([#1922](https://github.com/googleapis/release-please/issues/1922)) ([c33cc81](https://github.com/googleapis/release-please/commit/c33cc8112fc366242182bcb3a28015c488f6140b))
+
+## [15.10.3](https://github.com/googleapis/release-please/compare/v15.10.2...v15.10.3) (2023-04-11)
+
+
+### Bug Fixes
+
+* NeedsBootstrap computation also considers tags ([#1915](https://github.com/googleapis/release-please/issues/1915)) ([2773b6e](https://github.com/googleapis/release-please/commit/2773b6e8ae6bf7bd98adb89ed0eb702a1705b27b))
+
 ## [15.10.2](https://github.com/googleapis/release-please/compare/v15.10.1...v15.10.2) (2023-04-11)
 
 
