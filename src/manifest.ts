@@ -798,7 +798,9 @@ export class Manifest {
           this.repositoryConfig[path].skipGithubRelease
         ) {
           this.logger.debug('could not find release, checking root package');
-          const rootComponent = await strategiesByPath[ROOT_PROJECT_PATH].getComponent();
+          const rootComponent = await strategiesByPath[
+            ROOT_PROJECT_PATH
+          ].getComponent();
           const rootTag = new TagName(
             expectedVersion,
             rootComponent,
