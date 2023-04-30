@@ -25,8 +25,8 @@ import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Version} from '../../src/version';
 const presetFactory = require('conventional-changelog-conventionalcommits');
 
-const COMMIT_WITH_AUTHOR_FORMAT = '{{#if authors}} by {{authors}}\n {{~/if}}\n'
-const COMMIT_WITH_PR_REF = '{{#if prRef}} in {{prRef}}\n {{~/if}}\n'
+const COMMIT_WITH_AUTHOR_FORMAT = '{{#if authors}} by {{authors}}\n {{~/if}}\n';
+const COMMIT_WITH_PR_REF = '{{#if prRef}} in {{prRef}}\n {{~/if}}\n';
 
 describe('DefaultChangelogNotes', () => {
   const commits: ConventionalCommit[] = [
@@ -42,14 +42,14 @@ describe('DefaultChangelogNotes', () => {
       breaking: false,
       authors: ['jamszh', 'chachako'],
       pullRequest: {
-        title: "feat(api): A good feature",
+        title: 'feat(api): A good feature',
         number: 100,
         headBranchName: 'new-feature',
         baseBranchName: 'main',
         body: 'This is a good feature',
         labels: [],
         files: ['someFile.ts'],
-      }
+      },
     },
     {
       sha: 'sha2',
@@ -91,18 +91,25 @@ describe('DefaultChangelogNotes', () => {
     });
     it('should build default release notes with 2 authors', async () => {
       const preset = await presetFactory({});
-      const commitWithAuthorPartial = preset.writerOpts.commitPartial.replace(/\n*$/, '') + COMMIT_WITH_AUTHOR_FORMAT
-      const changelogNotes = new DefaultChangelogNotes({ commitPartial: commitWithAuthorPartial });
+      const commitWithAuthorPartial =
+        preset.writerOpts.commitPartial.replace(/\n*$/, '') +
+        COMMIT_WITH_AUTHOR_FORMAT;
+      const changelogNotes = new DefaultChangelogNotes({
+        commitPartial: commitWithAuthorPartial,
+      });
       const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });
     it('should build default release notes with 2 authors and prRef', async () => {
       const preset = await presetFactory({});
-      const commitWithAuthorPartial = preset.writerOpts.commitPartial.replace(/\n*$/, '') +
+      const commitWithAuthorPartial =
+        preset.writerOpts.commitPartial.replace(/\n*$/, '') +
         COMMIT_WITH_AUTHOR_FORMAT.replace(/\n*$/, '') +
-        COMMIT_WITH_PR_REF
-      const changelogNotes = new DefaultChangelogNotes({ commitPartial: commitWithAuthorPartial });
+        COMMIT_WITH_PR_REF;
+      const changelogNotes = new DefaultChangelogNotes({
+        commitPartial: commitWithAuthorPartial,
+      });
       const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);

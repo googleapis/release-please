@@ -516,11 +516,11 @@ export class GitHub {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
 
-      const authors = pullRequest ?
-        pullRequest.commits.nodes.flatMap(node => node.commit.authors.nodes) :
-        graphCommit.authors.nodes
+      const authors = pullRequest
+        ? pullRequest.commits.nodes.flatMap(node => node.commit.authors.nodes)
+        : graphCommit.authors.nodes;
 
-      const authorNameSet = new Set<string>(authors.map(author => author.name))
+      const authorNameSet = new Set<string>(authors.map(author => author.name));
       commit.authors = Array.from(authorNameSet);
 
       if (pullRequest) {

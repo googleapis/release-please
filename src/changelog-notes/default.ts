@@ -85,8 +85,10 @@ export class DefaultChangelogNotes implements ChangelogNotes {
           )
         );
 
-      const authors = commit.authors ? commit.authors.map(author => `@${author}`).join(' ') : null
-      const prRef = commit.pullRequest ? `#${commit.pullRequest.number}` : null
+      const authors = commit.authors
+        ? commit.authors.map(author => `@${author}`).join(' ')
+        : null;
+      const prRef = commit.pullRequest ? `#${commit.pullRequest.number}` : null;
 
       return {
         body: '', // commit.body,
