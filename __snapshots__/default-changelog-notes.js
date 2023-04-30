@@ -16,6 +16,40 @@ exports['DefaultChangelogNotes buildNotes should build default release notes 1']
 * some bugfix ([sha2](https://github.com/googleapis/java-asset/commit/sha2))
 `
 
+exports['DefaultChangelogNotes buildNotes should build default release notes with 2 authors 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* some bugfix
+
+### Features
+
+* some feature ([sha1](https://github.com/googleapis/java-asset/commit/sha1)) by @jamszh @chachako
+
+### Bug Fixes
+
+* some bugfix ([sha2](https://github.com/googleapis/java-asset/commit/sha2))
+`
+
+exports['DefaultChangelogNotes buildNotes should build default release notes with 2 authors and prRef 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* some bugfix
+
+### Features
+
+* some feature ([sha1](https://github.com/googleapis/java-asset/commit/sha1)) by @jamszh @chachako in #100
+
+### Bug Fixes
+
+* some bugfix ([sha2](https://github.com/googleapis/java-asset/commit/sha2))
+`
+
 exports['DefaultChangelogNotes buildNotes should build with custom changelog sections 1'] = `
 ## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
