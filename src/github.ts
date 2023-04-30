@@ -512,34 +512,17 @@ export class GitHub {
         message: graphCommit.message,
       };
 
-      const authors = new Set<string>();
-      const associatedPRs = graphCommit.associatedPullRequests.nodes;
-
-      if (associatedPRs.length > 0) {
-        // Add authors from commits of associated PRs
-        associatedPRs.forEach(pr => {
-          pr.commits.nodes.forEach(node => {
-            node.commit.authors.nodes
-              .map(author => author.name)
-              .forEach(authors.add, authors);
-          });
-        });
-      } else {
-        graphCommit.authors.nodes
-          .map(author => author.name)
-          .forEach(authors.add, authors);
-      }
-
-      commit.authors = Array.from(authors);
-
-      if (associatedPRs.length > 0) {
-        commit.pullRequestNumbers =
-          graphCommit.associatedPullRequests.nodes.map(pr => pr.number);
-      }
-
-      const pullRequest = associatedPRs.find(pr => {
+      const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
+
+      const authors = pullRequest ?
+        pullRequest.commits.nodes.flatMap(node => node.commit.authors.nodes) :
+        graphCommit.authors.nodes
+
+      const authorNameSet = new Set<string>(authors.map(author => author.name))
+      commit.authors = Array.from(authorNameSet);
+
       if (pullRequest) {
         const files = (pullRequest.files?.nodes || []).map(node => node.path);
         commit.pullRequest = {

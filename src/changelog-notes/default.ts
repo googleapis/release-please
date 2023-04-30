@@ -84,6 +84,10 @@ export class DefaultChangelogNotes implements ChangelogNotes {
             context.repository
           )
         );
+
+      const authors = commit.authors ? commit.authors.map(author => `@${author}`).join(' ') : null
+      const prRef = commit.pullRequest ? `#${commit.pullRequest.number}` : null
+
       return {
         body: '', // commit.body,
         subject: htmlEscape(commit.bareMessage),
@@ -100,6 +104,8 @@ export class DefaultChangelogNotes implements ChangelogNotes {
           .map(note => `Release-As: ${note.text}`)
           .join('\n'),
         hash: commit.sha,
+        authors,
+        prRef,
       };
     });
 

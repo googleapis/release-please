@@ -30,7 +30,6 @@ export interface Commit {
   message: string;
   files?: string[];
   pullRequest?: PullRequest;
-  pullRequestNumbers?: number[];
   authors?: string[];
 }
 
@@ -386,7 +385,6 @@ export function parseConventionalCommits(
             message: parsedCommit.header,
             files: commit.files,
             pullRequest: commit.pullRequest,
-            pullRequestNumbers: commit.pullRequestNumbers,
             authors: commit.authors,
             type: parsedCommit.type,
             scope: parsedCommit.scope,
