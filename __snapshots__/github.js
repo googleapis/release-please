@@ -9,9 +9,6 @@ exports['GitHub commitsSince backfills commit files for pull requests with lots 
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -34,9 +31,6 @@ exports['GitHub commitsSince backfills commit files without pull requests 1'] = 
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      7
     ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
@@ -63,9 +57,6 @@ exports['GitHub commitsSince finds commits up until a condition 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -91,9 +82,6 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -116,9 +104,6 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ],
     "pullRequest": {
       "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
       "number": 7,
@@ -140,9 +125,6 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
     "message": "feat: feature-branch-plain-merge commit 1",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      7
     ],
     "pullRequest": {
       "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
@@ -169,9 +151,6 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -194,9 +173,6 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ]
   },
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
@@ -204,18 +180,12 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ]
   },
   {
     "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
     "message": "fix: feature-branch-merge fix 1",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      6
     ],
     "pullRequest": {
       "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
@@ -239,9 +209,6 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      6
-    ]
   },
   {
     "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
@@ -249,9 +216,6 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      6
-    ]
   },
   {
     "sha": "520b6f42551c86002197d033564a76a3f99b0019",
@@ -259,18 +223,12 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      6
-    ]
   },
   {
     "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
     "message": "chore(main): release 0.1.1-SNAPSHOT (#3)",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      3
     ],
     "pullRequest": {
       "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
@@ -303,9 +261,6 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "message": "feat: feature-branch that will be squash merged (#2)\n\n* feat: feature-branch commit 1\r\n\r\n* feat: feature-branch commit 2\r\n\r\n* chore: fix lint\r\n\r\n* fix: feature-branch fix 1",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      2
     ],
     "pullRequest": {
       "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
@@ -335,9 +290,6 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -360,9 +312,6 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ]
   },
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
@@ -370,18 +319,12 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ]
   },
   {
     "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
     "message": "fix: feature-branch-merge fix 1",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      6
     ],
     "pullRequest": {
       "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
@@ -405,9 +348,6 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      6
-    ]
   },
   {
     "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
@@ -415,9 +355,6 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      6
-    ]
   },
   {
     "sha": "520b6f42551c86002197d033564a76a3f99b0019",
@@ -425,18 +362,12 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      6
-    ]
   },
   {
     "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
     "message": "chore(main): release 0.1.1-SNAPSHOT (#3)",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      3
     ],
     "pullRequest": {
       "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
@@ -470,9 +401,6 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      2
-    ],
     "pullRequest": {
       "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
       "number": 2,
@@ -497,9 +425,6 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "message": "Release v0.1.0 (#1)",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      1
     ],
     "pullRequest": {
       "sha": "959ee48c95f254300eb040c46ebdc8248317efe4",
@@ -610,9 +535,6 @@ exports['GitHub mergeCommitIterator handles merged pull requests without files 1
     "authors": [
       "Jeff Ching"
     ],
-    "pullRequestNumbers": [
-      7
-    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -630,9 +552,6 @@ exports['GitHub mergeCommitIterator handles merged pull requests without files 1
     "message": "feat: feature-branch-plain-merge commit 2",
     "authors": [
       "Jeff Ching"
-    ],
-    "pullRequestNumbers": [
-      7
     ],
     "pullRequest": {
       "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
