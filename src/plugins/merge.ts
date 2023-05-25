@@ -29,6 +29,7 @@ import {GitHub} from '../github';
 interface MergeOptions {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  headBranchName?: string;
   forceMerge?: boolean;
 }
 
@@ -41,6 +42,7 @@ interface MergeOptions {
 export class Merge extends ManifestPlugin {
   private pullRequestTitlePattern?: string;
   private pullRequestHeader?: string;
+  private headBranchName?: string;
   private forceMerge: boolean;
 
   constructor(
@@ -53,6 +55,7 @@ export class Merge extends ManifestPlugin {
     this.pullRequestTitlePattern =
       options.pullRequestTitlePattern ?? MANIFEST_PULL_REQUEST_TITLE_PATTERN;
     this.pullRequestHeader = options.pullRequestHeader;
+    this.headBranchName = options.headBranchName;
     this.forceMerge = options.forceMerge ?? false;
   }
 
@@ -108,7 +111,9 @@ export class Merge extends ManifestPlugin {
       }),
       updates,
       labels: Array.from(labels),
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName:
+        this.headBranchName ??
+        BranchName.ofTargetBranch(this.targetBranch).toString(),
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
     };
 

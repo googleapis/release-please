@@ -22,6 +22,7 @@ import {Release} from '../release';
 import {Version} from '../version';
 import {buildStrategy} from '../factory';
 import {Merge} from './merge';
+import {BranchName} from '../util/branch-name';
 
 interface LinkedVersionsPluginOptions {
   merge?: boolean;
@@ -180,6 +181,10 @@ export class LinkedVersions extends ManifestPlugin {
         {
           pullRequestTitlePattern: `chore\${scope}: release ${this.groupName} libraries`,
           forceMerge: true,
+          headBranchName: BranchName.ofGroupTargetBranch(
+            this.groupName,
+            this.targetBranch
+          ).toString(),
         }
       );
       const merged = await merge.run(inScopeCandidates);
