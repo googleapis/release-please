@@ -16,7 +16,6 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
-import {PHPManifest} from '../updaters/php/php-manifest';
 import {PHPClientVersion} from '../updaters/php/php-client-version';
 import {VersionsMap, Version} from '../version';
 import {Commit, parseConventionalCommits} from '../commit';
@@ -242,39 +241,11 @@ export class PHPYoshi extends BaseStrategy {
       }),
     });
 
-    // update the aggregate package information in the root
-    // composer.json and manifest.json.
+    // update the aggregate package information in the root composer.json
     updates.push({
       path: this.addPath('composer.json'),
       createIfMissing: false,
       updater: new RootComposerUpdatePackages({
-        version,
-        versionsMap,
-      }),
-    });
-
-    updates.push({
-      path: this.addPath('docs/manifest.json'),
-      createIfMissing: false,
-      updater: new PHPManifest({
-        version,
-        versionsMap,
-      }),
-    });
-
-    updates.push({
-      path: this.addPath('src/Version.php'),
-      createIfMissing: false,
-      updater: new PHPClientVersion({
-        version,
-        versionsMap,
-      }),
-    });
-
-    updates.push({
-      path: this.addPath('src/ServiceBuilder.php'),
-      createIfMissing: false,
-      updater: new PHPClientVersion({
         version,
         versionsMap,
       }),
