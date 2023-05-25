@@ -154,6 +154,7 @@ export class LinkedVersions extends ManifestPlugin {
       (collection, candidate) => {
         if (!candidate.pullRequest.version) {
           this.logger.warn('pull request missing version', candidate);
+          collection[1].push(candidate);
           return collection;
         }
         if (this.components.has(candidate.config.component || '')) {
@@ -168,6 +169,7 @@ export class LinkedVersions extends ManifestPlugin {
     this.logger.info(
       `found ${inScopeCandidates.length} linked-versions candidates`
     );
+    this.logger.info(inScopeCandidates);
 
     // delegate to the merge plugin and add merged pull request
     if (inScopeCandidates.length > 0) {
@@ -175,7 +177,10 @@ export class LinkedVersions extends ManifestPlugin {
         this.github,
         this.targetBranch,
         this.repositoryConfig,
-        `chore\${scope}: release ${this.groupName} libraries`
+        {
+          pullRequestTitlePattern: `chore\${scope}: release ${this.groupName} libraries`,
+          forceMerge: true,
+        }
       );
       const merged = await merge.run(inScopeCandidates);
       outOfScopeCandidates.push(...merged);

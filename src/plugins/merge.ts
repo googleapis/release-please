@@ -26,6 +26,12 @@ import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
 import {GitHub} from '../github';
 
+interface MergeOptions {
+  pullRequestTitlePattern?: string;
+  pullRequestHeader?: string;
+  forceMerge?: boolean;
+}
+
 /**
  * This plugin merges multiple pull requests into a single
  * release pull request.
@@ -35,18 +41,19 @@ import {GitHub} from '../github';
 export class Merge extends ManifestPlugin {
   private pullRequestTitlePattern?: string;
   private pullRequestHeader?: string;
+  private forceMerge: boolean;
 
   constructor(
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
-    pullRequestTitlePattern?: string,
-    pullRequestHeader?: string
+    options: MergeOptions = {}
   ) {
     super(github, targetBranch, repositoryConfig);
     this.pullRequestTitlePattern =
-      pullRequestTitlePattern || MANIFEST_PULL_REQUEST_TITLE_PATTERN;
-    this.pullRequestHeader = pullRequestHeader;
+      options.pullRequestTitlePattern ?? MANIFEST_PULL_REQUEST_TITLE_PATTERN;
+    this.pullRequestHeader = options.pullRequestHeader;
+    this.forceMerge = options.forceMerge ?? false;
   }
 
   async run(
@@ -61,7 +68,7 @@ export class Merge extends ManifestPlugin {
       Array<Array<CandidateReleasePullRequest>>
     >(
       (collection, candidate) => {
-        if (candidate.config.separatePullRequests) {
+        if (candidate.config.separatePullRequests && !this.forceMerge) {
           collection[1].push(candidate);
         } else {
           collection[0].push(candidate);
