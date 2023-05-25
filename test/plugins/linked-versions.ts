@@ -339,5 +339,11 @@ describe('LinkedVersions plugin', () => {
     expect(packageData3).to.not.be.undefined;
     expect(packageData2?.version).to.eql(packageData3?.version);
     safeSnapshot(groupPullRequest2.body.toString());
+
+    expect(groupPullRequest1.headRefName).not.to.eql(
+      groupPullRequest2.headRefName
+    );
+    expect(groupPullRequest1.headRefName).to.not.include(' ');
+    expect(groupPullRequest2.headRefName).to.not.include(' ');
   });
 });
