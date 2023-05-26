@@ -746,12 +746,9 @@ export class Manifest {
     // pull requests
     if (!this.separatePullRequests) {
       this.plugins.push(
-        new Merge(
-          this.github,
-          this.targetBranch,
-          this.repositoryConfig,
-          this.groupPullRequestTitlePattern
-        )
+        new Merge(this.github, this.targetBranch, this.repositoryConfig, {
+          pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+        })
       );
     }
 
