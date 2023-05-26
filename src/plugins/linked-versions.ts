@@ -170,7 +170,6 @@ export class LinkedVersions extends ManifestPlugin {
     this.logger.info(
       `found ${inScopeCandidates.length} linked-versions candidates`
     );
-    this.logger.info(inScopeCandidates);
 
     // delegate to the merge plugin and add merged pull request
     if (inScopeCandidates.length > 0) {

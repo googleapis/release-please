@@ -775,7 +775,6 @@ export class Manifest {
         continue;
       }
       const component = await strategiesByPath[path].getComponent();
-      this.logger.info(`looking for component: ${component}`);
       const expectedTag = new TagName(
         expectedVersion,
         component,
@@ -1400,7 +1399,6 @@ async function parseReleasedVersions(
   for (const path in manifestJson) {
     releasedVersions[path] = Version.parse(manifestJson[path]);
   }
-  console.log(releasedVersions);
   return releasedVersions;
 }
 
