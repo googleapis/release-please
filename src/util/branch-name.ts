@@ -36,6 +36,7 @@ function getAllResourceNames(): BranchNameType[] {
 
 export class BranchName {
   component?: string;
+  group?: string;
   targetBranch?: string;
   version?: Version;
 
@@ -76,6 +77,11 @@ export class BranchName {
   ): BranchName {
     return new ComponentBranchName(
       `${RELEASE_PLEASE}--branches--${targetBranch}--components--${component}`
+    );
+  }
+  static ofGroupTargetBranch(group: string, targetBranch: string): BranchName {
+    return new GroupBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}--groups--${group}`
     );
   }
   constructor(_branchName: string) {}
@@ -209,5 +215,23 @@ class ComponentBranchName extends BranchName {
   }
   toString(): string {
     return `${RELEASE_PLEASE}--branches--${this.targetBranch}--components--${this.component}`;
+  }
+}
+
+const GROUP_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--groups--(?<group>.+)$`;
+class GroupBranchName extends BranchName {
+  static matches(branchName: string): boolean {
+    return !!branchName.match(GROUP_PATTERN);
+  }
+  constructor(branchName: string) {
+    super(branchName);
+    const match = branchName.match(GROUP_PATTERN);
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+      this.group = match.groups['group'];
+    }
+  }
+  toString(): string {
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--groups--${this.group}`;
   }
 }

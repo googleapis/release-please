@@ -18,6 +18,7 @@ import {
   RepositoryConfig,
   MANIFEST_PULL_REQUEST_TITLE_PATTERN,
   ROOT_PROJECT_PATH,
+  MANIFEST_BRANCH_NAME_PATTERN,
 } from '../manifest';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
@@ -33,6 +34,7 @@ import {GitHub} from '../github';
  * Release notes are broken up using `<summary>`/`<details>` blocks.
  */
 export class Merge extends ManifestPlugin {
+  private sourceBranch: BranchName;
   private pullRequestTitlePattern?: string;
   private pullRequestHeader?: string;
 
@@ -40,6 +42,7 @@ export class Merge extends ManifestPlugin {
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
+    sourceBranch: BranchName | string = MANIFEST_BRANCH_NAME_PATTERN,
     pullRequestTitlePattern?: string,
     pullRequestHeader?: string
   ) {
@@ -47,6 +50,12 @@ export class Merge extends ManifestPlugin {
     this.pullRequestTitlePattern =
       pullRequestTitlePattern || MANIFEST_PULL_REQUEST_TITLE_PATTERN;
     this.pullRequestHeader = pullRequestHeader;
+    this.sourceBranch =
+      sourceBranch instanceof BranchName
+        ? sourceBranch
+        : BranchName.ofTargetBranch(
+            sourceBranch.replace('${branch}', targetBranch)
+          );
   }
 
   async run(
@@ -101,7 +110,7 @@ export class Merge extends ManifestPlugin {
       }),
       updates,
       labels: Array.from(labels),
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName: this.sourceBranch.toString(),
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
     };
 

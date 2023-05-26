@@ -22,6 +22,7 @@ import {Release} from '../release';
 import {Version} from '../version';
 import {buildStrategy} from '../factory';
 import {Merge} from './merge';
+import {BranchName} from '../util/branch-name';
 
 interface LinkedVersionsPluginOptions {
   merge?: boolean;
@@ -114,13 +115,14 @@ export class LinkedVersions extends ManifestPlugin {
         this.logger.info(
           `Replacing strategy for path ${path} with forced version: ${primaryVersion}`
         );
-        newStrategies[path] = await buildStrategy({
+        const groupStrategy = await buildStrategy({
           ...this.repositoryConfig[path],
           github: this.github,
           path,
           targetBranch: this.targetBranch,
           releaseAs: primaryVersion.toString(),
         });
+        newStrategies[path] = groupStrategy;
         if (missingReleasePaths.has(path)) {
           this.logger.debug(`Appending fake commit for path: ${path}`);
           commitsByPath[path].push({
@@ -175,6 +177,7 @@ export class LinkedVersions extends ManifestPlugin {
         this.github,
         this.targetBranch,
         this.repositoryConfig,
+        BranchName.ofGroupTargetBranch(this.groupName, this.targetBranch),
         `chore\${scope}: release ${this.groupName} libraries`
       );
       const merged = await merge.run(inScopeCandidates);
