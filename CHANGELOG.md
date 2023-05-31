@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.10.5](https://github.com/googleapis/release-please/compare/v15.10.4...v15.10.5) (2023-05-26)
+
+
+### Bug Fixes
+
+* Allow configuring multiple, separate linked-versions plugins ([#1961](https://github.com/googleapis/release-please/issues/1961)) ([a3fac52](https://github.com/googleapis/release-please/commit/a3fac52b909bf62cfd934c48d139cc3cae9d37f1))
+* **php-yoshi:** Remove manifest.json, Version.php, and ServiceBuilder.php ([#1949](https://github.com/googleapis/release-please/issues/1949)) ([09fb84b](https://github.com/googleapis/release-please/commit/09fb84b9244649622b556a78a8b03f664213bcb7))
+
 ## [15.10.4](https://github.com/googleapis/release-please/compare/v15.10.3...v15.10.4) (2023-04-19)
 
 

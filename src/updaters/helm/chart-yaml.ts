@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as yaml from 'js-yaml';
+import * as yaml from 'yaml';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
@@ -26,13 +26,13 @@ export class ChartYaml extends DefaultUpdater {
    * @returns {string} The updated content
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    const data = yaml.load(content, {json: true});
-    if (data === null || data === undefined) {
+    const chart = yaml.parseDocument(content);
+    if (chart === null || chart === undefined) {
       return '';
     }
-    const parsed = JSON.parse(JSON.stringify(data));
-    logger.info(`updating from ${parsed.version} to ${this.version}`);
-    parsed.version = this.version.toString();
-    return yaml.dump(parsed);
+    const oldVersion = chart.get('version');
+    logger.info(`updating from ${oldVersion} to ${this.version}`);
+    chart.set('version', this.version.toString());
+    return chart.toString();
   }
 }
