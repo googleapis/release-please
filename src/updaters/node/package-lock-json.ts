@@ -31,7 +31,7 @@ export class PackageLockJson extends DefaultUpdater {
     const parsed = JSON.parse(content) as LockFileV2;
     logger.info(`updating from ${parsed.version} to ${this.version}`);
     parsed.version = this.version.toString();
-    if (parsed.lockfileVersion === 2) {
+    if (parsed.lockfileVersion === 2 || parsed.lockfileVersion === 3) {
       parsed.packages[''].version = this.version.toString();
     }
     return jsonStringify(parsed, content);
