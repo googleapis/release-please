@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "15.10.4",
+  "version": "15.11.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -63,7 +63,7 @@
     "gts": "^3.1.0",
     "mocha": "^9.2.2",
     "nock": "^13.0.0",
-    "sinon": "15.0.3",
+    "sinon": "15.1.0",
     "snap-shot-it": "^7.0.0"
   },
   "dependencies": {
@@ -100,6 +100,7 @@
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
     "xpath": "^0.0.32",
+    "yaml": "^2.2.2",
     "yargs": "^17.0.0"
   },
   "engines": {

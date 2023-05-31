@@ -4,6 +4,26 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.11.0](https://github.com/googleapis/release-please/compare/v15.10.5...v15.11.0) (2023-05-31)
+
+
+### Features
+
+* **node:** Support package-lock.json version 3 ([#1940](https://github.com/googleapis/release-please/issues/1940)) ([77d80fb](https://github.com/googleapis/release-please/commit/77d80fb0c324cfadb91fd4a7ec656b2eb8eaeccb)), closes [#1939](https://github.com/googleapis/release-please/issues/1939)
+
+
+### Bug Fixes
+
+* **helm:** Maintain any existing comments in Chart.yaml ([#1968](https://github.com/googleapis/release-please/issues/1968)) ([77de40e](https://github.com/googleapis/release-please/commit/77de40e6f8ceaac87d90948c0d7fa618dcd01163))
+
+## [15.10.5](https://github.com/googleapis/release-please/compare/v15.10.4...v15.10.5) (2023-05-26)
+
+
+### Bug Fixes
+
+* Allow configuring multiple, separate linked-versions plugins ([#1961](https://github.com/googleapis/release-please/issues/1961)) ([a3fac52](https://github.com/googleapis/release-please/commit/a3fac52b909bf62cfd934c48d139cc3cae9d37f1))
+* **php-yoshi:** Remove manifest.json, Version.php, and ServiceBuilder.php ([#1949](https://github.com/googleapis/release-please/issues/1949)) ([09fb84b](https://github.com/googleapis/release-please/commit/09fb84b9244649622b556a78a8b03f664213bcb7))
+
 ## [15.10.4](https://github.com/googleapis/release-please/compare/v15.10.3...v15.10.4) (2023-04-19)
 
 
