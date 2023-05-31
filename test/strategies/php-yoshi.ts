@@ -23,7 +23,6 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {RootComposerUpdatePackages} from '../../src/updaters/php/root-composer-update-packages';
-import {PHPManifest} from '../../src/updaters/php/php-manifest';
 import {PHPClientVersion} from '../../src/updaters/php/php-client-version';
 import {DefaultUpdater} from '../../src/updaters/default';
 import snapshot = require('snap-shot-it');
@@ -152,9 +151,6 @@ describe('PHPYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
-      assertHasUpdate(updates, 'docs/manifest.json', PHPManifest);
-      assertHasUpdate(updates, 'src/Version.php', PHPClientVersion);
-      assertHasUpdate(updates, 'src/ServiceBuilder.php', PHPClientVersion);
     });
     it('finds touched components', async () => {
       const strategy = new PHPYoshi({

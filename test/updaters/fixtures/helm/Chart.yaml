@@ -15,6 +15,7 @@
 name: helm-test-repo
 version: 1.0.0
 apiVersion: v2
+# renovate: image=imageName
 appVersion: 2.0.0
 dependencies:
   - name: another-repo
