@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.11.0](https://github.com/googleapis/release-please/compare/v15.10.5...v15.11.0) (2023-05-31)
+
+
+### Features
+
+* **node:** Support package-lock.json version 3 ([#1940](https://github.com/googleapis/release-please/issues/1940)) ([77d80fb](https://github.com/googleapis/release-please/commit/77d80fb0c324cfadb91fd4a7ec656b2eb8eaeccb)), closes [#1939](https://github.com/googleapis/release-please/issues/1939)
+
+
+### Bug Fixes
+
+* **helm:** Maintain any existing comments in Chart.yaml ([#1968](https://github.com/googleapis/release-please/issues/1968)) ([77de40e](https://github.com/googleapis/release-please/commit/77de40e6f8ceaac87d90948c0d7fa618dcd01163))
+
 ## [15.10.5](https://github.com/googleapis/release-please/compare/v15.10.4...v15.10.5) (2023-05-26)
 
 
