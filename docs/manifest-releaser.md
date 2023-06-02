@@ -551,7 +551,7 @@ Example:
     },
     {
       "type": "linked-versions",
-      "group-name": "my group",
+      "groupName": "my group",
       "components": [
         "pkgA", "pkgB"
       ]
