@@ -75,7 +75,7 @@
           "type": "boolean"
         },
         "include-v-in-tag": {
-          "description": "When tagging a release, include `v` in the tag. Defaults to `false`.",
+          "description": "When tagging a release, include `v` in the tag. Defaults to `true`.",
           "type": "boolean"
         },
         "changelog-type": {
