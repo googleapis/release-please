@@ -174,6 +174,12 @@ describe('PrereleaseVersioningStrategyVersioningStrategy', () => {
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('1.2.3-beta03');
     });
+    it('can bump a wrapping prerelease version', async () => {
+      const strategy = new PrereleaseVersioningStrategy();
+      const oldVersion = Version.parse('1.2.3-beta09');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('1.2.3-beta10');
+    });
   });
 
   describe('with release-as', () => {
