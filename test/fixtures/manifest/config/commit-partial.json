@@ -1,0 +1,10 @@
+{
+  "release-type": "simple",
+  "changelog-type": "default",
+  "packages": {
+    ".": {
+      "component": "root"
+    }
+  },
+  "commit-partial": "{{#if subject}} {{~subject}} {{~else}} {{~header}} {{~/if}}{{#if body}} {{body}}{{~/if}}"
+}

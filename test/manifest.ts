@@ -741,6 +741,36 @@ describe('Manifest', () => {
       ).to.eql('docs/bar.md');
     });
 
+    it('should read commit partial from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/commit-partial.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].changelogType).to.eql('default');
+      expect(
+        manifest.repositoryConfig['.'].commitPartial
+      ).to.eql('{{#if subject}} {{~subject}} {{~else}} {{~header}} {{~/if}}{{#if body}} {{body}}{{~/if}}');
+    });
+
     it('should read versioning type from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
