@@ -119,6 +119,7 @@ export interface ReleaserConfig {
   changelogPath?: string;
   changelogType?: ChangelogNotesType;
   changelogHost?: string;
+  commitPartial?: string;
 
   // Ruby-only
   versionFile?: string;
@@ -161,6 +162,7 @@ interface ReleaserConfigJson {
   'include-v-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'changelog-host'?: string;
+  'commit-partial'?: string;
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
   'separate-pull-requests'?: boolean;
@@ -1266,6 +1268,7 @@ function extractReleaserConfig(
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
+    commitPartial: config['commit-partial'],
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
     draft: config.draft,
@@ -1613,6 +1616,7 @@ function mergeReleaserConfig(
     changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,
     changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
+    commitPartial: pathConfig.commitPartial ?? defaultConfig.commitPartial,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,

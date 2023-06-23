@@ -180,6 +180,11 @@ defaults (those are documented in comments)
   // absence defaults to https://github.com
   "changelog-host": "https://example.com",
 
+  // set custom formatted commit entry
+  // refer to the default conventional-changelog-writer:
+  // https://github.com/conventional-changelog/conventional-changelog/blob/11195f2822b389f6b5dc7216c4cf079e0b2883e7/packages/conventional-changelog-writer/index.js#L40
+  "commit-partial": "see above",
+
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
   // absence defaults to false and Releases are created as already Published.

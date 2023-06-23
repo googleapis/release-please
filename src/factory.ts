@@ -124,6 +124,7 @@ export async function buildStrategy(
     type: options.changelogType || 'default',
     github: options.github,
     changelogSections: options.changelogSections,
+    commitPartial: options.commitPartial,
   });
   const strategyOptions: BaseStrategyOptions = {
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
