@@ -42,7 +42,7 @@ version given a list of parsed commits.
 | `default`           | Breaking changes bump the major version, features bump the minor version, bugfixes bump the patch version   |
 | `always-bump-patch` | Always bump patch version. This is useful for backporting bugfixes to previous major/minor release branches |
 | `always-bump-minor` | Always bump minor version |                                                                                                                                                                    |
-| `always-bump-major` | Always bump major version |                                                                                  
+| `always-bump-major` | Always bump major version |
 | `service-pack`      | Designed for Java backport fixes. Uses Maven's specification for service pack versions (e.g. 1.2.3-sp.1)    |
 
 ### Adding additional versioning strategy types
@@ -78,6 +78,23 @@ release notes appear.
 
 To add a new changelog type, create a new class that implements the
 [`ChangelogNotes` interface](/src/changelog-notes.ts).
+
+## Including arbitrary notes in the changelog
+
+Release please can parse out sections of commit messages and add them to your
+generated changelog. You can do this by writing text between
+`<!-- {x-release-please-start-note} -->` and `<!-- {x-release-please-end} -->`
+in your commit message. For example:
+
+```text
+feat: add an amazing new feature
+
+<!-- {x-release-please-start-note} -->
+### Added an amazing new feature
+
+Here I can add text talking about this amazing new feature.
+<!-- {x-release-please-end} -->
+```
 
 ## Pull Requests
 
