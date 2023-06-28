@@ -116,8 +116,45 @@ function toConventionalChangelogFormat(
 
   // [<any body-text except pre-footer>]
   if (body) {
-    visit(body, ['text', 'newline'], (node: parser.Text) => {
-      headerCommit.body += node.value;
+    let inNote = false;
+    let newNote: parser.Note = {
+      title: '',
+      text: '',
+    };
+
+    // Extract any text in between `<!-- {x-release-please-start-note} -->` and
+    // `<!-- {x-release-please-end} -->` as a note. Take the first none empty line,
+    // remove any leading `#` characters, and treat it as the note title. The rest
+    // of the text is the note body.
+    visit(body, ['text', 'newline'], (node: parser.Text | parser.Newline) => {
+      if (node.value === '<!-- {x-release-please-end} -->') {
+        inNote = false;
+        headerCommit.notes.push(newNote);
+        newNote = {
+          title: '',
+          text: '',
+        };
+        return;
+      }
+
+      if (node.value === '<!-- {x-release-please-start-note} -->') {
+        inNote = true;
+        return;
+      }
+
+      if (!inNote) {
+        headerCommit.body += node.value;
+        return;
+      }
+
+      if (newNote.title === '' && node.type !== 'newline') {
+        newNote.title += node.value.replace(/^#+/, '').trim();
+        return;
+      }
+
+      if (!(newNote.text === '' && node.type === 'newline')) {
+        newNote.text += node.value;
+      }
     });
   }
 

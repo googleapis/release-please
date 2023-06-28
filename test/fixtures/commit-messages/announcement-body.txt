@@ -1,0 +1,17 @@
+feat: some amazing new feature
+
+extended body
+
+<!-- {x-release-please-start-note} -->
+## About this amazing new feature
+
+It does things!
+<!-- {x-release-please-end} -->
+
+some more body text
+
+<!-- {x-release-please-start-note} -->
+Another cool feature I want to call out!
+
+cool stuff here
+<!-- {x-release-please-end} -->

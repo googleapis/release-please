@@ -243,6 +243,21 @@ describe('parseConventionalCommits', () => {
     expect(commit.type).to.eql('chore');
   });
 
+  it('handles custom notes', async () => {
+    const commits = [buildCommitFromFixture('announcement-body')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].notes).lengthOf(2);
+    expect(conventionalCommits[0].notes[0].title).to.equal(
+      'About this amazing new feature'
+    );
+    expect(conventionalCommits[0].notes[0].text).to.equal('It does things!');
+    expect(conventionalCommits[0].notes[1].title).to.equal(
+      'Another cool feature I want to call out!'
+    );
+    expect(conventionalCommits[0].notes[1].text).to.equal('cool stuff here');
+  });
+
   // it('ignores reverted commits', async () => {
   //   const commits = [
   //     {sha: 'sha1', message: 'feat: some feature', files: ['path1/file1.txt']},
