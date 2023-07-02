@@ -119,7 +119,7 @@ export interface ReleaserConfig {
   changelogPath?: string;
   changelogType?: ChangelogNotesType;
   changelogHost?: string;
-  commitPartial?: string;
+  commitPartialPath?: string;
 
   // Ruby-only
   versionFile?: string;
@@ -162,7 +162,7 @@ interface ReleaserConfigJson {
   'include-v-in-tag'?: boolean;
   'changelog-type'?: ChangelogNotesType;
   'changelog-host'?: string;
-  'commit-partial'?: string;
+  'commit-partial-path'?: string;
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
   'separate-pull-requests'?: boolean;
@@ -627,6 +627,7 @@ export class Manifest {
         message: commit.message,
         files: commit.files,
         pullRequest: commit.pullRequest,
+        authors: commit.authors,
       });
     }
 
@@ -1268,7 +1269,7 @@ function extractReleaserConfig(
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
-    commitPartial: config['commit-partial'],
+    commitPartialPath: config['commit-partial-path'],
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
     draft: config.draft,
@@ -1616,7 +1617,8 @@ function mergeReleaserConfig(
     changelogPath: pathConfig.changelogPath ?? defaultConfig.changelogPath,
     changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
-    commitPartial: pathConfig.commitPartial ?? defaultConfig.commitPartial,
+    commitPartialPath:
+      pathConfig.commitPartialPath ?? defaultConfig.commitPartialPath,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,

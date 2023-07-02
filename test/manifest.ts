@@ -767,8 +767,8 @@ describe('Manifest', () => {
       );
       expect(manifest.repositoryConfig['.'].changelogType).to.eql('default');
       expect(
-        manifest.repositoryConfig['.'].commitPartial
-      ).to.eql('{{#if subject}} {{~subject}} {{~else}} {{~header}} {{~/if}}{{#if body}} {{body}}{{~/if}}');
+        manifest.repositoryConfig['.'].commitPartialPath
+      ).to.eql('.release-please-commit-partial.hbs');
     });
 
     it('should read versioning type from manifest', async () => {

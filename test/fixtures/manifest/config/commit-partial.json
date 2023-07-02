@@ -6,5 +6,5 @@
       "component": "root"
     }
   },
-  "commit-partial": "{{#if subject}} {{~subject}} {{~else}} {{~header}} {{~/if}}{{#if body}} {{body}}{{~/if}}"
+  "commit-partial-path": ".release-please-commit-partial.hbs"
 }

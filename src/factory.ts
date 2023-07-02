@@ -44,7 +44,9 @@ import {Java} from './strategies/java';
 import {Maven} from './strategies/maven';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
-import {ConfigurationError} from './errors';
+import {ConfigurationError, GitHubAPIError} from './errors';
+import {logger} from './util/logger';
+import {FileNotFoundError} from '@google-automations/git-file-utils';
 
 export * from './factories/changelog-notes-factory';
 export * from './factories/plugin-factory';
@@ -109,6 +111,26 @@ const releasers: Record<string, ReleaseBuilder> = {
   dart: options => new Dart(options),
 };
 
+async function getCommitPartialContent(
+  options: StrategyFactoryOptions
+): Promise<string | undefined> {
+  if (!options?.commitPartialPath) {
+    logger.warn("'commit-partial-path' did not exist");
+    return undefined;
+  }
+  try {
+    const file = await options.github.getFileContents(
+      options.commitPartialPath
+    );
+    return file.parsedContent;
+  } catch (err) {
+    if (err instanceof GitHubAPIError || err instanceof FileNotFoundError) {
+      logger.warn(`Error retrieving ${options.commitPartialPath}: ${err}`);
+    }
+    return undefined;
+  }
+}
+
 export async function buildStrategy(
   options: StrategyFactoryOptions
 ): Promise<Strategy> {
@@ -120,11 +142,12 @@ export async function buildStrategy(
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
   });
+  const commitPartial = await getCommitPartialContent(options);
   const changelogNotes = buildChangelogNotes({
     type: options.changelogType || 'default',
     github: options.github,
     changelogSections: options.changelogSections,
-    commitPartial: options.commitPartial,
+    commitPartial,
   });
   const strategyOptions: BaseStrategyOptions = {
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
