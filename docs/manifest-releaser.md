@@ -180,10 +180,10 @@ defaults (those are documented in comments)
   // absence defaults to https://github.com
   "changelog-host": "https://example.com",
 
-  // set custom formatted commit entry
-  // refer to the default conventional-changelog-writer:
-  // https://github.com/conventional-changelog/conventional-changelog/blob/11195f2822b389f6b5dc7216c4cf079e0b2883e7/packages/conventional-changelog-writer/index.js#L40
-  "commit-partial": "see above",
+  // For a custom commit format, provide a path to a `.hbs`
+  // Refer to the default conventional-changelog-writer template:
+  // https://github.com/conventional-changelog/conventional-changelog/blob/83773c5e1a8874ea9809ca9db1dff60b7df1daae/packages/conventional-changelog-conventionalcommits/templates/commit.hbs
+  "commit-partial-path": "path/to/my-file.hbs",
 
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
