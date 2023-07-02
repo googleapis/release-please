@@ -766,9 +766,9 @@ describe('Manifest', () => {
         github.repository.defaultBranch
       );
       expect(manifest.repositoryConfig['.'].changelogType).to.eql('default');
-      expect(
-        manifest.repositoryConfig['.'].commitPartialPath
-      ).to.eql('.release-please-commit-partial.hbs');
+      expect(manifest.repositoryConfig['.'].commitPartialPath).to.eql(
+        '.release-please-commit-partial.hbs'
+      );
     });
 
     it('should read versioning type from manifest', async () => {
