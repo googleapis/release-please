@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.11.1](https://github.com/googleapis/release-please/compare/v15.11.0...v15.11.1) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency conventional-commits-filter to v3 ([#1976](https://github.com/googleapis/release-please/issues/1976)) ([20b8f34](https://github.com/googleapis/release-please/commit/20b8f345624f2a7e639df1a50ebda2719f9c2423))
+* **python:** Warn on dynamic pyproject.toml versioning ([#1983](https://github.com/googleapis/release-please/issues/1983)) ([5ee5baa](https://github.com/googleapis/release-please/commit/5ee5baa0932d3435034b96183fed308eaf47ef73))
+
 ## [15.11.0](https://github.com/googleapis/release-please/compare/v15.10.5...v15.11.0) (2023-05-31)
 
 

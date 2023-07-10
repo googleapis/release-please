@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import * as TOML from '@iarna/toml';
-import {replaceTomlValue} from '../../util/toml-edit';
 import {logger as defaultLogger, Logger} from '../../util/logger';
+import {replaceTomlValue} from '../../util/toml-edit';
 import {DefaultUpdater} from '../default';
 
 // TODO: remove support for `poetry.tool` when Poetry will use `project`.
@@ -22,6 +22,7 @@ import {DefaultUpdater} from '../default';
 interface PyProjectContent {
   name: string;
   version: string;
+  dynamic?: string[];
 }
 
 /**
@@ -52,6 +53,14 @@ export class PyProjectToml extends DefaultUpdater {
     const project = parsed.project || parsed.tool?.poetry;
 
     if (!project?.version) {
+      // Throw warning if the version is dynamically generated.
+      if (project?.dynamic && project.dynamic.includes('version')) {
+        const msg =
+          "dynamic version found in 'pyproject.toml'. Skipping update.";
+        logger.warn(msg);
+        return content;
+      }
+
       const msg = 'invalid file';
       logger.error(msg);
       throw new Error(msg);
