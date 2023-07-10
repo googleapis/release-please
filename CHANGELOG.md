@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.11.2](https://github.com/googleapis/release-please/compare/v15.11.1...v15.11.2) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency conventional-changelog-conventionalcommits to v6 ([#1974](https://github.com/googleapis/release-please/issues/1974)) ([1998564](https://github.com/googleapis/release-please/commit/1998564555c472f4eb850cdcec99a009dd76f8ca))
+* **deps:** Update dependency conventional-changelog-writer to v6 ([#1975](https://github.com/googleapis/release-please/issues/1975)) ([a6aa293](https://github.com/googleapis/release-please/commit/a6aa293932200dd004024b8c8f6b458c2fa8f570))
+
 ## [15.11.1](https://github.com/googleapis/release-please/compare/v15.11.0...v15.11.1) (2023-07-10)
 
 
