@@ -63,7 +63,7 @@
     "gts": "^3.1.0",
     "mocha": "^9.2.2",
     "nock": "^13.0.0",
-    "sinon": "15.1.0",
+    "sinon": "15.2.0",
     "snap-shot-it": "^7.0.0"
   },
   "dependencies": {
@@ -84,7 +84,7 @@
     "code-suggester": "^4.2.0",
     "conventional-changelog-conventionalcommits": "^5.0.0",
     "conventional-changelog-writer": "^5.0.0",
-    "conventional-commits-filter": "^2.0.2",
+    "conventional-commits-filter": "^3.0.0",
     "detect-indent": "^6.1.0",
     "diff": "^5.0.0",
     "figures": "^3.0.0",
