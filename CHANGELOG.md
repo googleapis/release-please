@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.12.0](https://github.com/googleapis/release-please/compare/v15.11.2...v15.12.0) (2023-07-11)
+
+
+### Features
+
+* Add PrereleaseVersioningStrategy ([#1981](https://github.com/googleapis/release-please/issues/1981)) ([b070888](https://github.com/googleapis/release-please/commit/b070888f25eff6e28c25014bcf67d6f9d47b9717))
+
 ## [15.11.2](https://github.com/googleapis/release-please/compare/v15.11.1...v15.11.2) (2023-07-10)
 
 
