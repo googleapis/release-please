@@ -105,5 +105,8 @@
   },
   "engines": {
     "node": ">=14.0.0"
+  },
+  "overrides": {
+    "@octokit/plugin-rest-endpoint-methods": "7.1.2"
   }
 }
