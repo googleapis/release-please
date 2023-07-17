@@ -30,6 +30,8 @@ import {
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
+import {readFile, writeFileSync} from 'fs';
+// import {Version} from '../version';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -912,6 +914,60 @@ export const handleError: HandleError = (err: ErrorObject) => {
   }
   process.exitCode = 1;
 };
+
+//function to update version.go file
+function updateVersionGoFile(path: string, version: string) {
+  const RegEx =
+    /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[^+]+))?(\+(?<build>.*))?/;
+  const versionUpdateRegex = new RegExp(`Version = "${RegEx.source}"`);
+
+  try {
+    readFile(path, 'utf-8', (error, content) => {
+      if (error) {
+        throw error;
+      }
+      console.log(content, 'is the content');
+      const updatedContent = content.replace(
+        versionUpdateRegex,
+        `Version = "${version}"`
+      );
+      writeFileSync(path, updatedContent);
+    });
+
+    console.log('version.go file updated successfully!');
+  } catch (err) {
+    const error = err as Error;
+    console.log(error.name + ':' + error.message);
+  }
+
+  // content.replace(versionRegex, `Version = "${version.toString()}"`);
+
+  console.log(path, version);
+}
+
+// Command to update the version.go file
+yargs
+  .command(
+    'update-version <path> <new_version>',
+    'Updates the version.go file',
+    yargs => {
+      return yargs
+        .positional('path', {
+          describe: 'The path to the version.go file',
+          type: 'string',
+        })
+        .positional('new_version', {
+          describe: 'new version to be added',
+          type: 'string',
+        });
+    },
+    argv => {
+      const path = argv['path'];
+      const version = argv['new_version'];
+      updateVersionGoFile(path!, version!);
+    }
+  )
+  .parseAsync();
 
 // Only run parser if executed with node bin, this allows
 // for the parser to be easily tested:
