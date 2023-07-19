@@ -4,6 +4,29 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.12.0](https://github.com/googleapis/release-please/compare/v15.11.2...v15.12.0) (2023-07-11)
+
+
+### Features
+
+* Add PrereleaseVersioningStrategy ([#1981](https://github.com/googleapis/release-please/issues/1981)) ([b070888](https://github.com/googleapis/release-please/commit/b070888f25eff6e28c25014bcf67d6f9d47b9717))
+
+## [15.11.2](https://github.com/googleapis/release-please/compare/v15.11.1...v15.11.2) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency conventional-changelog-conventionalcommits to v6 ([#1974](https://github.com/googleapis/release-please/issues/1974)) ([1998564](https://github.com/googleapis/release-please/commit/1998564555c472f4eb850cdcec99a009dd76f8ca))
+* **deps:** Update dependency conventional-changelog-writer to v6 ([#1975](https://github.com/googleapis/release-please/issues/1975)) ([a6aa293](https://github.com/googleapis/release-please/commit/a6aa293932200dd004024b8c8f6b458c2fa8f570))
+
+## [15.11.1](https://github.com/googleapis/release-please/compare/v15.11.0...v15.11.1) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency conventional-commits-filter to v3 ([#1976](https://github.com/googleapis/release-please/issues/1976)) ([20b8f34](https://github.com/googleapis/release-please/commit/20b8f345624f2a7e639df1a50ebda2719f9c2423))
+* **python:** Warn on dynamic pyproject.toml versioning ([#1983](https://github.com/googleapis/release-please/issues/1983)) ([5ee5baa](https://github.com/googleapis/release-please/commit/5ee5baa0932d3435034b96183fed308eaf47ef73))
+
 ## [15.11.0](https://github.com/googleapis/release-please/compare/v15.10.5...v15.11.0) (2023-05-31)
 
 
