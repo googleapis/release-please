@@ -98,8 +98,35 @@ describe('CommitSplit', () => {
       expect(splitCommits['pkg3']).to.be.undefined;
       expect(splitCommits['pkg4']).lengthOf(1);
     });
+    it('should separate commits by Component footer', () => {
+      const commitSplit = new CommitSplit({includeEmpty: true});
+      const splitCommits = commitSplit.split([
+        ...commits,
+        {sha: 'klm', message: 'commit klm\n\nComponent: pkg1', files: ['pkg2/baz.txt']},
+        {sha: 'nop', message: 'commit nop\n\nComponent: pkg4', files: []},
+      ]);
+      expect(splitCommits['pkg1']).lengthOf(4); /* commits: abc123, def234, efg, klm */
+      expect(splitCommits['pkg1'][3].sha).to.eql('klm');
+      expect(splitCommits['pkg2']).lengthOf(2); /* commits: abc123, klm */
+      expect(splitCommits['pkg3']).lengthOf(2); /* commits: def234, efg */
+      expect(splitCommits['pkg4']).lengthOf(1); /* commits: nop */
+      expect(splitCommits['pkg4'][0].sha).to.eql('nop');
+    });
+    it('should separate commits by Component footer with limited list of paths', () => {
+      const commitSplit = new CommitSplit({includeEmpty: true, packagePaths: ['pkg1', 'pkg4']});
+      const splitCommits = commitSplit.split([
+        ...commits,
+        {sha: 'klm', message: 'commit klm\n\nComponent: pkg1', files: ['pkg2/baz.txt']},
+        {sha: 'nop', message: 'commit nop\n\nComponent: pkg4', files: []},
+      ]);
+      expect(splitCommits['pkg1']).lengthOf(4); /* commits: abc123, def234, efg, klm */
+      expect(splitCommits['pkg1'][3].sha).to.eql('klm');
+      expect(splitCommits['pkg2']).to.be.undefined;
+      expect(splitCommits['pkg3']).to.be.undefined;
+      expect(splitCommits['pkg4']).lengthOf(1); /* commits: nop */
+      expect(splitCommits['pkg4'][0].sha).to.eql('nop');
+    });
   });
-
   describe('excluding empty commits', () => {
     it('should separate commits', () => {
       const commitSplit = new CommitSplit({
@@ -121,6 +148,34 @@ describe('CommitSplit', () => {
       expect(splitCommits['pkg2']).to.be.undefined;
       expect(splitCommits['pkg3']).to.be.undefined;
       expect(splitCommits['pkg4']).to.be.undefined;
+    });
+    it('should separate commits by Component footer', () => {
+      const commitSplit = new CommitSplit({includeEmpty: false});
+      const splitCommits = commitSplit.split([
+        ...commits,
+        {sha: 'klm', message: 'commit klm\n\nComponent: pkg1', files: ['pkg2/baz.txt']},
+        {sha: 'nop', message: 'commit nop\n\nComponent: pkg4', files: []},
+      ]);
+      expect(splitCommits['pkg1']).lengthOf(3); /* commits: abc123, def234, klm */
+      expect(splitCommits['pkg1'][2].sha).to.eql('klm');
+      expect(splitCommits['pkg2']).lengthOf(2); /* commits: abc123, klm */
+      expect(splitCommits['pkg3']).lengthOf(1); /* commits: def234, efg */
+      expect(splitCommits['pkg4']).lengthOf(1); /* commits: nop */
+      expect(splitCommits['pkg4'][0].sha).to.eql('nop');
+    });
+    it('should separate commits by Component footer with limited list of paths', () => {
+      const commitSplit = new CommitSplit({includeEmpty: false, packagePaths: ['pkg1', 'pkg4']});
+      const splitCommits = commitSplit.split([
+        ...commits,
+        {sha: 'klm', message: 'commit klm\n\nComponent: pkg1', files: ['pkg2/baz.txt']},
+        {sha: 'nop', message: 'commit nop\n\nComponent: pkg4', files: []},
+      ]);
+      expect(splitCommits['pkg1']).lengthOf(3); /* commits: abc123, def234, klm */
+      expect(splitCommits['pkg1'][2].sha).to.eql('klm');
+      expect(splitCommits['pkg2']).to.be.undefined;
+      expect(splitCommits['pkg3']).to.be.undefined;
+      expect(splitCommits['pkg4']).lengthOf(1); /* commits: nop */
+      expect(splitCommits['pkg4'][0].sha).to.eql('nop');
     });
   });
 });
