@@ -1868,7 +1868,8 @@ describe('Manifest', () => {
         },
         {
           sha: 'dddddd',
-          message: 'chore(pkg3): transition to beta\n\nComponent: pkg3\nRelease-As: 0.1.2-beta',
+          message:
+            'chore(pkg3): transition to beta\n\nComponent: pkg3\nRelease-As: 0.1.2-beta',
           files: [],
         },
         {
