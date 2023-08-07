@@ -199,6 +199,7 @@ export type ChangeSet = Map<string, FileDiff>;
 interface CreatePullRequestOptions {
   fork?: boolean;
   draft?: boolean;
+  reviewers?: [string];
 }
 
 export class GitHub {
@@ -1132,6 +1133,14 @@ export class GitHub {
         draft: !!options?.draft,
         labels: pullRequest.labels,
       });
+      if (options?.reviewers) {
+        await this.octokit.pulls.requestReviewers({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          pull_number: prNumber,
+          reviewers: options.reviewers,
+        });
+      }
       return await this.getPullRequest(prNumber);
     }
   );
