@@ -194,6 +194,7 @@ export interface ManifestOptions {
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   logger?: Logger;
+  reviewers?: [string];
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -299,6 +300,7 @@ export class Manifest {
   readonly commitSearchDepth: number;
   readonly logger: Logger;
   private pullRequestOverflowHandler: PullRequestOverflowHandler;
+  private reviewers?: [string];
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -375,6 +377,7 @@ export class Manifest {
       this.github,
       this.logger
     );
+    this.reviewers = ['yjp20'];
   }
 
   /**
@@ -966,6 +969,7 @@ export class Manifest {
       {
         fork: this.fork,
         draft: pullRequest.draft,
+        reviewers: this.reviewers,
       }
     );
 
