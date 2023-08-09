@@ -25,11 +25,10 @@ export class MetadataVersion extends DefaultUpdater {
    * @returns {string} The updated content
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    const pattern = '/version: [0-9]+.[0-9]+.[0-9]+(-w+)?/';
-    const oldVersion = content.match(pattern);
+    const oldVersion = content.match(/version: [0-9]+\.[0-9]+\.[0-9]+(-\w+)?/);
     if (oldVersion) {
       logger.info(`updating from ${oldVersion} to v${this.version}`);
     }
-    return content.replace(pattern + 'g', `version: ${this.version}`);
+    return content.replace(/version: [0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g, `version: ${this.version}`);
   }
 }
