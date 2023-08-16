@@ -29,6 +29,9 @@ export class MetadataVersion extends DefaultUpdater {
     if (oldVersion) {
       logger.info(`updating from ${oldVersion} to v${this.version}`);
     }
-    return content.replace(/version: [0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g, `version: ${this.version}`);
+    return content.replace(
+      /version: [0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g,
+      `version: ${this.version}`
+    );
   }
 }
