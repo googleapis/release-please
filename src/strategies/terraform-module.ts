@@ -90,16 +90,18 @@ export class TerraformModule extends BaseStrategy {
       });
     });
 
-    // Update metadata.yaml and metadata.display.yaml to current candidate version.
-    const metadataFiles = await Promise.all([
-      this.github.findFilesByFilenameAndRef(
+    // Update metadata.yaml to current candidate version.
+    let metadataFiles: string[];
+    try {
+      metadataFiles = await this.github.findFilesByFilenameAndRef(
         'metadata.yaml',
         this.targetBranch,
         this.path
-      ),
-    ]).then(([v]) => {
-      return v;
-    });
+      );
+    } catch (error) {
+      metadataFiles = [];
+    }
+
     metadataFiles.forEach(path => {
       updates.push({
         path: this.addPath(path),
