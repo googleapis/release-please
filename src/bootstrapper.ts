@@ -54,6 +54,7 @@ export class Bootstrapper {
     return await this.github.createPullRequest(
       pullRequest,
       this.targetBranch,
+      this.targetBranch,
       pullRequest.title,
       pullRequest.updates,
       {}

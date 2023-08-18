@@ -441,7 +441,6 @@ const createReleasePullRequestCommand: yargs.CommandModule<
   async handler(argv) {
     const github = await buildGitHub(argv);
     const targetBranch = argv.targetBranch || github.repository.defaultBranch;
-    const changesBranch = argv.changesBranch || targetBranch;
     let manifest: Manifest;
     if (argv.releaseType) {
       manifest = await Manifest.fromConfig(

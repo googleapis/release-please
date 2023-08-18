@@ -1567,6 +1567,7 @@ describe('CLI', () => {
           headBranchName: 'release-please/bootstrap/default',
         }),
         'main',
+        'main',
         'chore: bootstrap releases for path: .',
         sinon.match.array,
         {}

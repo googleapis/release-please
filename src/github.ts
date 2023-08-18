@@ -13,6 +13,10 @@
 // limitations under the License.
 
 import {createPullRequest} from 'code-suggester';
+import {commitAndPush} from 'code-suggester/build/src/github/commit-and-push';
+import {addLabels} from 'code-suggester/build/src/github/labels';
+import {setupLogger} from 'code-suggester/build/src/logger';
+
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 
@@ -217,6 +221,9 @@ export class GitHub {
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
+
+    // required to be able to rely on functions from code-suggester
+    setupLogger(this.logger);
   }
 
   static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
@@ -1066,6 +1073,7 @@ export class GitHub {
   async createReleasePullRequest(
     releasePullRequest: ReleasePullRequest,
     targetBranch: string,
+    changesBranch: string,
     options?: {
       signoffUser?: string;
       fork?: boolean;
@@ -1090,6 +1098,7 @@ export class GitHub {
         files: [],
       },
       targetBranch,
+      changesBranch,
       message,
       releasePullRequest.updates,
       {
@@ -1103,7 +1112,8 @@ export class GitHub {
    * Open a pull request
    *
    * @param {PullRequest} pullRequest Pull request data to update
-   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} baseBranch The base branch of the pull request
+   * @param {string} refBranch The reference branch from which the HEAD branch of the PR should be created
    * @param {string} message The commit message for the commit
    * @param {Update[]} updates The files to update
    * @param {CreatePullRequestOptions} options The pull request options
@@ -1112,36 +1122,73 @@ export class GitHub {
   createPullRequest = wrapAsync(
     async (
       pullRequest: PullRequest,
-      targetBranch: string,
+      baseBranch: string,
+      refBranch: string,
       message: string,
       updates: Update[],
       options?: CreatePullRequestOptions
     ): Promise<PullRequest> => {
-      //  Update the files for the release if not already supplied
-      const changes = await this.buildChangeSet(updates, targetBranch);
-      const prNumber = await createPullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title: pullRequest.title,
-        branch: pullRequest.headBranchName,
-        description: pullRequest.body,
-        primary: targetBranch,
-        force: true,
-        fork: !!options?.fork,
+      const changes = await this.buildChangeSet(updates, baseBranch);
+
+      // create release branch
+      const pullRequestBranchSha = await this.forkBranch(
+        pullRequest.headBranchName,
+        refBranch
+      );
+
+      // // create release branch
+      // await this.octokit.git.createRef({
+      //   owner: this.repository.owner,
+      //   repo: this.repository.repo,
+      //   ref: `refs/heads/${pullRequest.headBranchName}`,
+      //   sha: refBranch,
+      // });
+
+      // commit and push changeset
+      await commitAndPush(
+        this.octokit,
+        pullRequestBranchSha,
+        changes,
+        {
+          branch: pullRequest.headBranchName,
+          repo: this.repository.repo,
+          owner: this.repository.owner,
+        },
         message,
-        logger: this.logger,
+        true
+      );
+
+      // create pull request
+      const createPrResponse = await this.octokit.pulls.create({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        title: pullRequest.title,
+        head: pullRequest.headBranchName,
+        base: baseBranch,
+        body: pullRequest.body,
         draft: !!options?.draft,
-        labels: pullRequest.labels,
       });
+
+      // const labelsResponse = (
+      //   await this.octokit.issues.addLabels({
+      //     owner: this.repository.owner,
+      //     repo: this.repository.repo,
+      //     issue_number: createResponse.data.number,
+      //     labels: labels,
+      //   })
+      // );
+
+      // assign reviewers
       if (options?.reviewers) {
         await this.octokit.pulls.requestReviewers({
           owner: this.repository.owner,
           repo: this.repository.repo,
-          pull_number: prNumber,
+          pull_number: createPrResponse.data.number,
           reviewers: options.reviewers,
         });
       }
-      return await this.getPullRequest(prNumber);
+
+      return await this.getPullRequest(createPrResponse.data.number);
     }
   );
 
@@ -1254,22 +1301,20 @@ export class GitHub {
    * Given a set of proposed updates, build a changeset to suggest.
    *
    * @param {Update[]} updates The proposed updates
-   * @param {string} defaultBranch The target branch
+   * @param {string} baseBranch The branch to compare against
    * @return {Changes} The changeset to suggest.
    * @throws {GitHubAPIError} on an API error
    */
   async buildChangeSet(
     updates: Update[],
-    defaultBranch: string
+    baseBranch: string
   ): Promise<ChangeSet> {
     const changes = new Map();
     for (const update of updates) {
       let content: GitHubFileContents | undefined;
+      this.logger.debug(`update.path: ${update.path}`);
       try {
-        content = await this.getFileContentsOnBranch(
-          update.path,
-          defaultBranch
-        );
+        content = await this.getFileContentsOnBranch(update.path, baseBranch);
       } catch (err) {
         if (!(err instanceof FileNotFoundError)) throw err;
         // if the file is missing and create = false, just continue

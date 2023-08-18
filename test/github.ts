@@ -970,6 +970,7 @@ describe('GitHub', () => {
             },
           ],
         },
+        'main',
         'main'
       );
       expect(pullRequest.number).to.eql(1);
@@ -1011,6 +1012,7 @@ describe('GitHub', () => {
             },
           ],
         },
+        'main',
         'main'
       );
       expect(pullRequest.number).to.eql(1);
@@ -1051,6 +1053,7 @@ describe('GitHub', () => {
             },
           ],
         },
+        'main',
         'main'
       );
       expect(pullRequest.number).to.eql(1);

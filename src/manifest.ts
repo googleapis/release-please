@@ -757,6 +757,7 @@ export class Manifest {
       this.plugins.push(
         new Merge(this.github, this.targetBranch, this.repositoryConfig, {
           pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+          changesBranch: this.changesBranch,
         })
       );
     }
@@ -970,6 +971,7 @@ export class Manifest {
         files: [],
       },
       this.targetBranch,
+      this.changesBranch,
       message,
       pullRequest.updates,
       {
