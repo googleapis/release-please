@@ -185,6 +185,7 @@ describe('Manifest', () => {
         );
       const manifest = await Manifest.fromManifest(
         github,
+        github.repository.defaultBranch,
         github.repository.defaultBranch
       );
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(8);
@@ -275,6 +276,7 @@ describe('Manifest', () => {
         );
       const manifest = await Manifest.fromManifest(
         github,
+        github.repository.defaultBranch,
         github.repository.defaultBranch
       );
       expect(manifest.repositoryConfig['.'].releaseType).to.eql('java-yoshi');
@@ -304,6 +306,7 @@ describe('Manifest', () => {
         );
       const manifest = await Manifest.fromManifest(
         github,
+        github.repository.defaultBranch,
         github.repository.defaultBranch
       );
       expect(manifest['groupPullRequestTitlePattern']).to.eql(
@@ -336,6 +339,7 @@ describe('Manifest', () => {
         );
       const manifest = await Manifest.fromManifest(
         github,
+        github.repository.defaultBranch,
         github.repository.defaultBranch
       );
       expect(manifest.repositoryConfig['.'].tagSeparator).to.eql('-');
@@ -366,6 +370,7 @@ describe('Manifest', () => {
         );
       const manifest = await Manifest.fromManifest(
         github,
+        github.repository.defaultBranch,
         github.repository.defaultBranch
       );
       expect(manifest.repositoryConfig['.'].extraFiles).to.eql([
@@ -410,6 +415,7 @@ describe('Manifest', () => {
         );
       const manifest = await Manifest.fromManifest(
         github,
+        github.repository.defaultBranch,
         github.repository.defaultBranch
       );
       expect(manifest.repositoryConfig['.'].includeComponentInTag).to.be.false;

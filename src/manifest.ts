@@ -194,6 +194,7 @@ export interface ManifestOptions {
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   logger?: Logger;
+  changesBranch?: string;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -277,6 +278,7 @@ export class Manifest {
   readonly repositoryConfig: RepositoryConfig;
   readonly releasedVersions: ReleasedVersions;
   private targetBranch: string;
+  readonly changesBranch: string;
   private separatePullRequests: boolean;
   readonly fork: boolean;
   private signoffUser?: string;
@@ -335,6 +337,7 @@ export class Manifest {
     this.repository = github.repository;
     this.github = github;
     this.targetBranch = targetBranch;
+    this.changesBranch = manifestOptions?.changesBranch || this.targetBranch;
     this.repositoryConfig = repositoryConfig;
     this.releasedVersions = releasedVersions;
     this.manifestPath =
@@ -382,6 +385,7 @@ export class Manifest {
    *
    * @param {GitHub} github GitHub client
    * @param {string} targetBranch The releaseable base branch
+   * @param {string} changesBranch Branch containing changes for the new version
    * @param {string} configFile Optional. The path to the manifest config file
    * @param {string} manifestFile Optional. The path to the manifest versions file
    * @param {string} path The single path to check. Optional
@@ -424,6 +428,8 @@ export class Manifest {
    * @param {string} targetBranch The releaseable base branch
    * @param {ReleaserConfig} config Release strategy options
    * @param {ManifestOptions} manifestOptions Optional. Manifest options
+   * @param {string} manifestOptions.changesBranch If provided, this branch will be used
+   *   to find conventional commits instead of the target branch
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
@@ -458,7 +464,7 @@ export class Manifest {
     const releasedVersions: ReleasedVersions = {};
     const latestVersion = await latestReleaseVersion(
       github,
-      targetBranch,
+      manifestOptions?.changesBranch || targetBranch,
       version => isPublishedVersion(strategy, version),
       config,
       component,
@@ -1449,14 +1455,14 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * configured for.
  *
  * @param github GitHub client instance.
- * @param {string} targetBranch Name of the scanned branch.
+ * @param {string} branchToScan Name of the scanned branch.
  * @param releaseFilter Validator function for release version. Used to filter-out SNAPSHOT releases for Java strategy.
  * @param {string} prefix Limit the release to a specific component.
  * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
   github: GitHub,
-  targetBranch: string,
+  branchToScan: string,
   releaseFilter: (version: Version) => boolean,
   config: ReleaserConfig,
   prefix?: string,
@@ -1469,7 +1475,7 @@ async function latestReleaseVersion(
     : undefined;
 
   logger.info(
-    `Looking for latest release on branch: ${targetBranch} with prefix: ${prefix}`
+    `Looking for latest release on branch: ${branchToScan} with prefix: ${prefix}`
   );
 
   // collect set of recent commit SHAs seen to verify that the release
@@ -1480,7 +1486,7 @@ async function latestReleaseVersion(
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
-  const generator = github.mergeCommitIterator(targetBranch, {
+  const generator = github.mergeCommitIterator(branchToScan, {
     maxResults: 250,
   });
   for await (const commitWithPullRequest of generator) {
@@ -1550,7 +1556,7 @@ async function latestReleaseVersion(
       logger.debug(`found release for ${prefix}`, tagName.version);
       if (!commitShas.has(release.sha)) {
         logger.debug(
-          `SHA not found in recent commits to branch ${targetBranch}, skipping`
+          `SHA not found in recent commits to branch ${branchToScan}, skipping`
         );
         continue;
       }
@@ -1580,7 +1586,7 @@ async function latestReleaseVersion(
     if (tagMatchesConfig(tagName, branchPrefix, config.includeComponentInTag)) {
       if (!commitShas.has(tag.sha)) {
         logger.debug(
-          `SHA not found in recent commits to branch ${targetBranch}, skipping`
+          `SHA not found in recent commits to branch ${branchToScan}, skipping`
         );
         continue;
       }

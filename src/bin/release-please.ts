@@ -53,6 +53,7 @@ interface GitHubArgs {
   // deprecated in favor of targetBranch
   defaultBranch?: string;
   targetBranch?: string;
+  changesBranch?: string;
 }
 
 interface ManifestArgs {
@@ -172,6 +173,11 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
     })
     .option('target-branch', {
       describe: 'The branch to open release PRs against and tag releases on',
+      type: 'string',
+    })
+    .option('changes-branch', {
+      describe:
+        'The branch where new conventional commits should be looked. Expected to be based on the target-branch',
       type: 'string',
     })
     .option('repo-url', {
@@ -435,6 +441,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
   async handler(argv) {
     const github = await buildGitHub(argv);
     const targetBranch = argv.targetBranch || github.repository.defaultBranch;
+    const changesBranch = argv.changesBranch || targetBranch;
     let manifest: Manifest;
     if (argv.releaseType) {
       manifest = await Manifest.fromConfig(
@@ -480,6 +487,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
       const pullRequests = await manifest.buildPullRequests();
       console.log(`Would open ${pullRequests.length} pull requests`);
       console.log('fork:', manifest.fork);
+      console.log('☢️ changes branch:', manifest.changesBranch);
       for (const pullRequest of pullRequests) {
         console.log('title:', pullRequest.title.toString());
         console.log('branch:', pullRequest.headRefName);
@@ -534,6 +542,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
       argv.targetBranch ||
       argv.defaultBranch ||
       github.repository.defaultBranch;
+    const changesBranch = argv.changesBranch || targetBranch;
     let manifest: Manifest;
     if (argv.releaseType) {
       manifest = await Manifest.fromConfig(
@@ -600,6 +609,7 @@ const createManifestPullRequestCommand: yargs.CommandModule<
       argv.targetBranch ||
       argv.defaultBranch ||
       github.repository.defaultBranch;
+    const changesBranch = argv.changesBranch || targetBranch;
     const manifestOptions = extractManifestOptions(argv);
     const manifest = await Manifest.fromManifest(
       github,
@@ -856,6 +866,9 @@ function extractManifestOptions(
   argv: GitHubArgs & (PullRequestArgs | ReleaseArgs)
 ): ManifestOptions {
   const manifestOptions: ManifestOptions = {};
+  if ('changesBranch' in argv && argv.changesBranch) {
+    manifestOptions.changesBranch = argv.changesBranch;
+  }
   if ('fork' in argv && argv.fork !== undefined) {
     manifestOptions.fork = argv.fork;
   }

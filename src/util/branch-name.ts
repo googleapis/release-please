@@ -29,6 +29,7 @@ function getAllResourceNames(): BranchNameType[] {
     AutoreleaseBranchName,
     ComponentBranchName,
     GroupBranchName,
+    ChangesBranchName,
     DefaultBranchName,
     V12ComponentBranchName,
     V12DefaultBranchName,
@@ -38,6 +39,7 @@ function getAllResourceNames(): BranchNameType[] {
 export class BranchName {
   component?: string;
   targetBranch?: string;
+  changesBranch?: string;
   version?: Version;
 
   static parse(
@@ -71,6 +73,14 @@ export class BranchName {
       `${RELEASE_PLEASE}--branches--${targetBranch}`
     );
   }
+  static ofChangesTargetBranch(
+    changesBranch: string,
+    targetBranch: string
+  ): BranchName {
+    return new ComponentBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}--changes--${changesBranch}`
+    );
+  }
   static ofComponentTargetBranch(
     component: string,
     targetBranch: string
@@ -93,6 +103,9 @@ export class BranchName {
   }
   getTargetBranch(): string | undefined {
     return this.targetBranch;
+  }
+  getChangesBranch(): string | undefined {
+    return this.changesBranch;
   }
   getComponent(): string | undefined {
     return this.component;
@@ -199,6 +212,24 @@ class DefaultBranchName extends BranchName {
   }
   toString(): string {
     return `${RELEASE_PLEASE}--branches--${this.targetBranch}`;
+  }
+}
+
+const CHANGES_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--changes--(?<changesBranch>.+)$`;
+class ChangesBranchName extends BranchName {
+  static matches(branchName: string): boolean {
+    return !!branchName.match(CHANGES_PATTERN);
+  }
+  constructor(branchName: string) {
+    super(branchName);
+    const match = branchName.match(CHANGES_PATTERN);
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+      this.changesBranch = match.groups['changesBranch'];
+    }
+  }
+  toString(): string {
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--changes--${this.changesBranch}`;
   }
 }
 

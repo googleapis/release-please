@@ -15,6 +15,7 @@
 export interface PullRequest {
   readonly headBranchName: string;
   readonly baseBranchName: string;
+  // readonly changesBranchName: string;
   readonly number: number;
   readonly title: string;
   readonly body: string;
