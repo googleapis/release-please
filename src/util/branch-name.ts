@@ -73,7 +73,7 @@ export class BranchName {
       `${RELEASE_PLEASE}--branches--${targetBranch}`
     );
   }
-  static ofChangesTargetBranch(
+  static ofChangesBranchTargetBranch(
     changesBranch: string,
     targetBranch: string
   ): BranchName {
@@ -87,6 +87,15 @@ export class BranchName {
   ): BranchName {
     return new ComponentBranchName(
       `${RELEASE_PLEASE}--branches--${targetBranch}--components--${component}`
+    );
+  }
+  static ofComponentChangesBranchTargetBranch(
+    component: string,
+    changesBranch: string,
+    targetBranch: string
+  ): BranchName {
+    return new ComponentBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}--changes--${changesBranch}--components--${component}`
     );
   }
   static ofGroupTargetBranch(group: string, targetBranch: string): BranchName {
@@ -215,7 +224,10 @@ class DefaultBranchName extends BranchName {
   }
 }
 
+// TODO: likely to be simpler to merge the pattern and ChangesBranchName class with DefaultBranchName,
+// with the changesBranch section made optional.
 const CHANGES_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--changes--(?<changesBranch>.+)$`;
+
 class ChangesBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(CHANGES_PATTERN);

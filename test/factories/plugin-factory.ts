@@ -126,7 +126,8 @@ describe('PluginFactory', () => {
           new CustomTest(
             options.github,
             options.targetBranch,
-            options.repositoryConfig
+            options.repositoryConfig,
+            {}
           )
       );
 
@@ -147,7 +148,8 @@ describe('PluginFactory', () => {
           new CustomTest(
             options.github,
             options.targetBranch,
-            options.repositoryConfig
+            options.repositoryConfig,
+            {}
           )
       );
 

@@ -12,6 +12,7 @@
     "prepare": "npm run compile",
     "lint": "gts check",
     "compile": "tsc -p .",
+    "cli": "npm run compile && node build/src/bin/release-please.js",
     "fix": "gts fix",
     "pretest": "npm run compile"
   },

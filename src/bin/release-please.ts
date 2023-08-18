@@ -175,11 +175,6 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'The branch to open release PRs against and tag releases on',
       type: 'string',
     })
-    .option('changes-branch', {
-      describe:
-        'The branch where new conventional commits should be looked. Expected to be based on the target-branch',
-      type: 'string',
-    })
     .option('repo-url', {
       describe: 'GitHub URL to generate release for',
       demand: true,
@@ -249,6 +244,11 @@ function pullRequestOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'should the PR be created from a fork',
       type: 'boolean',
       default: false,
+    })
+    .option('changes-branch', {
+      describe:
+        'If provided, override the branch used to find conventional commits with changes for new version',
+      type: 'string',
     })
     .option('draft-pull-request', {
       describe: 'mark pull request as a draft',
@@ -487,7 +487,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
       const pullRequests = await manifest.buildPullRequests();
       console.log(`Would open ${pullRequests.length} pull requests`);
       console.log('fork:', manifest.fork);
-      console.log('☢️ changes branch:', manifest.changesBranch);
+      console.log('➡️➡️➡️➡️➡️➡️➡️➡️➡️ changes branch:', manifest.changesBranch);
       for (const pullRequest of pullRequests) {
         console.log('title:', pullRequest.title.toString());
         console.log('branch:', pullRequest.headRefName);

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ManifestPlugin} from '../plugin';
+import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 import {GitHub} from '../github';
 import {Logger} from '../util/logger';
@@ -24,9 +24,8 @@ import {buildStrategy} from '../factory';
 import {Merge} from './merge';
 import {BranchName} from '../util/branch-name';
 
-interface LinkedVersionsPluginOptions {
+interface LinkedVersionsPluginOptions extends ManifestPluginOptions {
   merge?: boolean;
-  logger?: Logger;
 }
 
 /**
@@ -48,7 +47,7 @@ export class LinkedVersions extends ManifestPlugin {
     components: string[],
     options: LinkedVersionsPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options.logger);
+    super(github, targetBranch, repositoryConfig, options);
     this.groupName = groupName;
     this.components = new Set(components);
     this.merge = options.merge ?? true;

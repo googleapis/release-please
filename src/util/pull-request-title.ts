@@ -133,7 +133,7 @@ export class PullRequestTitle {
       pullRequestTitlePattern,
     });
   }
-  static ofChangesTargetBranchVersion(
+  static ofChangesBranchTargetBranchVersion(
     changesBranch?: string,
     targetBranch?: string,
     version?: Version,
@@ -159,6 +159,23 @@ export class PullRequestTitle {
       pullRequestTitlePattern,
     });
   }
+
+  static ofComponentChangesBranchTargetBranchVersion(
+    component?: string,
+    changesBranch?: string,
+    targetBranch?: string,
+    version?: Version,
+    pullRequestTitlePattern?: string
+  ): PullRequestTitle {
+    return new PullRequestTitle({
+      version,
+      component,
+      changesBranch,
+      targetBranch,
+      pullRequestTitlePattern,
+    });
+  }
+
   static ofTargetBranch(
     targetBranch: string,
     pullRequestTitlePattern?: string
@@ -184,7 +201,7 @@ export class PullRequestTitle {
 
   toString(): string {
     const scope = this.targetBranch
-      ? this.changesBranch
+      ? this.changesBranch && this.changesBranch !== this.targetBranch
         ? `(${this.changesBranch} => ${this.targetBranch})`
         : `(${this.targetBranch})`
       : '';

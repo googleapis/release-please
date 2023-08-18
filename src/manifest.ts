@@ -385,7 +385,6 @@ export class Manifest {
    *
    * @param {GitHub} github GitHub client
    * @param {string} targetBranch The releaseable base branch
-   * @param {string} changesBranch Branch containing changes for the new version
    * @param {string} configFile Optional. The path to the manifest config file
    * @param {string} manifestFile Optional. The path to the manifest versions file
    * @param {string} path The single path to check. Optional
@@ -590,10 +589,13 @@ export class Manifest {
     this.logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
     this.logger.debug(`commit search depth: ${this.commitSearchDepth}`);
-    const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
-      maxResults: this.commitSearchDepth,
-      backfillFiles: true,
-    });
+    const commitGenerator = this.github.mergeCommitIterator(
+      this.changesBranch,
+      {
+        maxResults: this.commitSearchDepth,
+        backfillFiles: true,
+      }
+    );
     const releaseShas = new Set(Object.values(releaseShasByPath));
     this.logger.debug(releaseShas);
     const expectedShas = releaseShas.size;
@@ -698,6 +700,7 @@ export class Manifest {
       );
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
+      this.logger.debug(`changesBranch: ${this.changesBranch}`);
       let pathCommits = parseConventionalCommits(
         commitsPerPath[path],
         this.logger

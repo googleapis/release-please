@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ManifestPlugin} from '../plugin';
+import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {GitHub} from '../github';
 import {RepositoryConfig} from '../manifest';
 import {ConventionalCommit} from '../commit';
@@ -30,9 +30,10 @@ export class SentenceCase extends ManifestPlugin {
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
-    specialWords?: Array<string>
+    specialWords?: Array<string>,
+    options: ManifestPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(github, targetBranch, repositoryConfig, options);
     this.specialWords = new Set(
       specialWords ? [...specialWords] : SPECIAL_WORDS
     );
