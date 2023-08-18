@@ -91,16 +91,11 @@ export class TerraformModule extends BaseStrategy {
     });
 
     // Update metadata.yaml to current candidate version.
-    let metadataFiles: string[];
-    try {
-      metadataFiles = await this.github.findFilesByFilenameAndRef(
-        'metadata.yaml',
-        this.targetBranch,
-        this.path
-      );
-    } catch (error) {
-      metadataFiles = [];
-    }
+    const metadataFiles = await this.github.findFilesByFilenameAndRef(
+      'metadata.yaml',
+      this.targetBranch,
+      this.path
+    );
 
     metadataFiles.forEach(path => {
       updates.push({
