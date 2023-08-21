@@ -60,6 +60,15 @@ describe('PullRequestTitle', () => {
       expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
     });
 
+    it('parses a target branch and changes branch', () => {
+      const name = 'chore(next => main): release v1.2.3';
+      const pullRequestTitle = PullRequestTitle.parse(name);
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('main');
+      expect(pullRequestTitle?.getComponent()).to.be.undefined;
+      expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
+    });
+
     it('parses a target branch and component', () => {
       const name = 'chore(main): release storage v1.2.3';
       const pullRequestTitle = PullRequestTitle.parse(name);

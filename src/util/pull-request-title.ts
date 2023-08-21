@@ -28,18 +28,14 @@ export function generateMatchPattern(
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{scope\}/) === -1
-  )
+  ) {
     logger.warn("pullRequestTitlePattern miss the part of '${scope}'");
+  }
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{component\}/) === -1
   )
     logger.warn("pullRequestTitlePattern miss the part of '${component}'");
-  if (
-    pullRequestTitlePattern &&
-    pullRequestTitlePattern.search(/\$\{changesBranch\}/) === -1
-  )
-    logger.warn("pullRequestTitlePattern miss the part of '${changesBranch}'");
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{version\}/) === -1
@@ -51,7 +47,10 @@ export function generateMatchPattern(
       .replace(']', '\\]')
       .replace('(', '\\(')
       .replace(')', '\\)')
-      .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
+      .replace(
+        '${scope}',
+        '(\\((?<changesBranch>[\\w-./]+ => )?(?<branch>[\\w-./]+)\\))?'
+      )
       .replace('${component}', ' ?(?<component>@?[\\w-./]*)?')
       .replace('${version}', 'v?(?<version>[0-9].*)')
       .replace('${changesBranch}', '(?<changesBranch>?[\\w-./]+)?')
@@ -70,15 +69,15 @@ export class PullRequestTitle {
   private constructor(opts: {
     version?: Version;
     component?: string;
-    changesBranch?: string;
     targetBranch?: string;
+    changesBranch?: string;
     pullRequestTitlePattern?: string;
     logger?: Logger;
   }) {
     this.version = opts.version;
     this.component = opts.component;
-    this.changesBranch = opts.changesBranch;
     this.targetBranch = opts.targetBranch;
+    this.changesBranch = opts.changesBranch || this.targetBranch;
     this.pullRequestTitlePattern =
       opts.pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN;
     this.matchPattern = generateMatchPattern(
