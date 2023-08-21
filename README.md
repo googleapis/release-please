@@ -52,6 +52,26 @@ The most important prefixes you should have in mind are:
 * `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
   (indicated by the `!`) and will result in a SemVer major.
 
+### Linear git commit history (use squash-merge)
+
+We **highly** recommend that you use squash-merges when merging pull requests.
+A linear git history makes it much easier to:
+
+* Follow history - commits are sorted by merge date and are not mixed between
+  pull requests
+* Find and revert bugs - `git bisect` is helpful for tracking down which
+  change introduced a bug
+* Control the release-please changelog - when you merge a PR, you may have
+  commit messages that make sense within the scope of the PR, but don't
+  make sense when merged in the main branch. For example, you make have
+  `feat: introduce feature A` and then `fix: some bugfix introduced in
+  the first commit`. The `fix` commit is actually irrelevant to the release
+  notes as there was never a bug experienced in the main branch.
+* Keep a clean main branch - if you use something like red/green development
+  (create a failing test in commit A, then fix in commit B) and merge (or
+  rebase-merge), then there will be points in time in your main branch where
+  tests do not pass.
+
 ### What if my PR contains multiple fixes or features?
 
 Release Please allows you to represent multiple changes in a single commit,
@@ -79,7 +99,7 @@ The above commit message will contain:
   that it's a breaking change.
 3. an entry for the feature **"update encode to support unicode"**.
 
-> :warning: **Important:** The additional messages must be added to the bottom of the commit.
+:warning: **Important:** The additional messages must be added to the bottom of the commit.
 
 ## How do I change the version number?
 
@@ -113,7 +133,13 @@ END_COMMIT_OVERRIDE
 The next time Release Please runs, it will use that override section as the
 commit message instead of the merged commit message.
 
+:warning: **Important:** This feature will not work with plain merges because
+release-please does not know which commit(s) to apply the override to. [We
+recommend using squash-merge instead](#linear-git-commit-history-use-squash-merge).
+
 ## Release Please bot does not create a release PR. Why?
+
+### Releasable Units
 
 Release Please creates a release pull request after it notices the default branch
 contains "releasable units" since the last release.
@@ -124,11 +150,23 @@ prefixes: "feat", "fix", and "deps".
 Some languages have their specific releasable unit configuration. For example,
 "docs" is a prefix for releasable units in Java and Python.
 
+### Re-run Release Please
+
 If you think Release Please missed creating a release PR after a pull request
 with a releasable unit has been merged, please re-run `release-please`. If you are using
 the GitHub application, add `release-please:force-run` label to the merged pull request. If
 you are using the action, look for the failed invocation and retry the workflow run.
 Release Please will process the pull request immediately to find releasable units.
+
+### Existing Pull Requests with "autorelease: pending" label
+
+For the GitHub application users, Release Please will not create a new pull request
+if there's an existing pull request labeled as `autorelease: pending`.
+To confirm this case, search for a pull request with the label.
+(It's very likely it's the latest release pull request.)
+If you find a release pull request with the label and it is not going to be released
+(or already released), then remove the `autorelease: pending` label and re-run Release
+Please.
 
 ## Strategy (Language) types supported
 
@@ -149,7 +187,7 @@ Release Please automates releases for the following flavors of repositories:
 | `php`               | A repository with a composer.json and a CHANGELOG.md |
 | `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
 | `ruby`              | A repository with a version.rb and a CHANGELOG.md |
-| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
+| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace, although note that workspaces require a [manifest driven release](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) and the "cargo-workspace" plugin) and a CHANGELOG.md |
 | `sfdx`              | A repository with a [sfdx-project.json](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) and a CHANGELOG.md |
 | `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |

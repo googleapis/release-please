@@ -142,6 +142,14 @@ using the [Generic](/src/updaters/generic.ts) updater. You can specify
 a comma separated list of file paths with the `--extra-files` CLI option
 or the `extra-files` option in the manifest configuration.
 
+```json
+{
+  "extra-files": [
+    "path/to/file.md"
+  ]
+}
+```
+
 To mark versions needing an update in those files, you will add annotations
 (usually in comments).
 

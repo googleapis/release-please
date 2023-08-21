@@ -262,6 +262,8 @@ defaults (those are documented in comments)
     ".": {
       // overrides release-type for node
       "release-type": "node",
+      // exclude commits from that path from processing
+      "exclude-paths": ["path/to/myPyPkgA"]
     },
 
     // path segment should be relative to repository root
@@ -280,7 +282,7 @@ defaults (those are documented in comments)
       "release-as": "3.2.1"
     },
 
-    "path/to/my-rust-crate", {
+    "path/to/my-rust-crate": {
       // override release-type for rust
       "release-type": "rust"
     },
@@ -297,7 +299,7 @@ defaults (those are documented in comments)
       "changelog-path": "docs/CHANGES.rst"
     },
 
-    "path/to/github-enterprise-package", {
+    "path/to/github-enterprise-package": {
       // override changelog host for github enterprise package
       "changelog-host": "https://example.com"
     }
@@ -360,6 +362,11 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
 name: Run Release Please
 jobs:
   release-please:
@@ -544,7 +551,7 @@ Example:
     },
     {
       "type": "linked-versions",
-      "group-name": "my group",
+      "groupName": "my group",
       "components": [
         "pkgA", "pkgB"
       ]

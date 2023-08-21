@@ -1,0 +1,12 @@
+{
+  "name": "release-please",
+  "version": "11.1.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "release-please",
+      "version": "11.1.0"
+    }
+  }
+}

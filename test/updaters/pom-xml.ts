@@ -59,5 +59,15 @@ describe('PomXml', () => {
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('preserves trailing newlines', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './pom-trailing-newline.xml'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new PomXml(Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });

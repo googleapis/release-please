@@ -34,5 +34,16 @@ describe('setup.cfg', () => {
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);
     });
+    it('updates big version in setup.cfg', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './setup-big-version.cfg'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new SetupCfg({
+        version: Version.parse('0.6.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });

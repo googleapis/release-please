@@ -46,6 +46,7 @@ import {
   FilePullRequestOverflowHandler,
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
+import {CommitExclude} from './util/commit-exclude';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -125,6 +126,8 @@ export interface ReleaserConfig {
   extraFiles?: ExtraFile[];
   snapshotLabels?: string[];
   skipSnapshot?: boolean;
+  // Manifest only
+  excludePaths?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -167,6 +170,7 @@ interface ReleaserConfigJson {
   'snapshot-label'?: string; // Java-only
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
+  'exclude-paths'?: string[]; // manifest-only
 }
 
 export interface ManifestOptions {
@@ -539,7 +543,6 @@ export class Manifest {
       }
     }
 
-    const needsBootstrap = releasesFound < expectedReleases;
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -559,6 +562,9 @@ export class Manifest {
         releasesFound++;
       }
     }
+
+    const needsBootstrap = releasesFound < expectedReleases;
+
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -637,13 +643,15 @@ export class Manifest {
     const splitCommits = cs.split(commits);
 
     // limit paths to ones since the last release
-    const commitsPerPath: Record<string, Commit[]> = {};
+    let commitsPerPath: Record<string, Commit[]> = {};
     for (const path in this.repositoryConfig) {
       commitsPerPath[path] = commitsAfterSha(
         path === ROOT_PROJECT_PATH ? commits : splitCommits[path],
         releaseShasByPath[path]
       );
     }
+    const commitExclude = new CommitExclude(this.repositoryConfig);
+    commitsPerPath = commitExclude.excludeCommits(commitsPerPath);
 
     // backfill latest release tags from manifest
     for (const path in this.repositoryConfig) {
@@ -738,12 +746,9 @@ export class Manifest {
     // pull requests
     if (!this.separatePullRequests) {
       this.plugins.push(
-        new Merge(
-          this.github,
-          this.targetBranch,
-          this.repositoryConfig,
-          this.groupPullRequestTitlePattern
-        )
+        new Merge(this.github, this.targetBranch, this.repositoryConfig, {
+          pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+        })
       );
     }
 
@@ -1282,6 +1287,7 @@ function extractReleaserConfig(
     extraLabels: config['extra-label']?.split(','),
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
+    excludePaths: config['exclude-paths'],
   };
 }
 
@@ -1481,6 +1487,9 @@ async function latestReleaseVersion(
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
     if (!mergedPullRequest) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
+      );
       continue;
     }
 
@@ -1489,12 +1498,20 @@ async function latestReleaseVersion(
       logger
     );
     if (!branchName) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} unrecognized branch name: ${mergedPullRequest.headBranchName}`
+      );
       continue;
     }
 
     // If branchPrefix is specified, ensure it is found in the branch name.
     // If branchPrefix is not specified, component should also be undefined.
     if (branchName.getComponent() !== branchPrefix) {
+      logger.trace(
+        `skipping commit: ${
+          commitWithPullRequest.sha
+        } branch component ${branchName.getComponent()} doesn't match expected prefix: ${branchPrefix}`
+      );
       continue;
     }
 
@@ -1504,6 +1521,9 @@ async function latestReleaseVersion(
       logger
     );
     if (!pullRequestTitle) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} couldn't parse pull request title: ${mergedPullRequest.title}`
+      );
       continue;
     }
 
@@ -1616,6 +1636,7 @@ function mergeReleaserConfig(
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
+    excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
   };
 }
 
