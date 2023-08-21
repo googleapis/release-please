@@ -1169,14 +1169,13 @@ export class GitHub {
         draft: !!options?.draft,
       });
 
-      // const labelsResponse = (
-      //   await this.octokit.issues.addLabels({
-      //     owner: this.repository.owner,
-      //     repo: this.repository.repo,
-      //     issue_number: createResponse.data.number,
-      //     labels: labels,
-      //   })
-      // );
+      // add labels, autorelease labels are needed for the github-release command
+      await this.octokit.issues.addLabels({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        issue_number: createPrResponse.data.number,
+        labels: pullRequest.labels,
+      });
 
       // assign reviewers
       if (options?.reviewers) {
