@@ -69,6 +69,7 @@ export interface GitHubOptions {
   repository: Repository;
   octokitAPIs: OctokitAPIs;
   logger?: Logger;
+  useGraphql?: boolean;
 }
 
 interface ProxyOption {
@@ -86,6 +87,7 @@ interface GitHubCreateOptions {
   token?: string;
   logger?: Logger;
   proxy?: ProxyOption;
+  useGraphql?: boolean;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -213,6 +215,7 @@ export class GitHub {
   private graphql: Function;
   private fileCache: RepositoryFileCache;
   private logger: Logger;
+  private useGraphql: boolean;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
@@ -221,7 +224,8 @@ export class GitHub {
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
-
+    this.useGraphql = options.useGraphql ?? true;
+    
     // required to be able to rely on functions from code-suggester
     setupLogger(this.logger);
   }
@@ -303,6 +307,7 @@ export class GitHub {
       },
       octokitAPIs: apis,
       logger: options.logger,
+      useGraphql: options.useGraphql,
     };
     return new GitHub(opts);
   }
@@ -370,7 +375,18 @@ export class GitHub {
    * @yields {Commit}
    * @throws {GitHubAPIError} on an API error
    */
-  async *mergeCommitIterator(
+  mergeCommitIterator(
+    targetBranch: string,
+    options: CommitIteratorOptions = {}
+  ): AsyncGenerator<Commit> {
+    if (this.useGraphql) {
+      return this.mergeCommitIteratorGraphql(targetBranch, options);
+    }
+
+    return this.mergeCommitIteratorREST(targetBranch, options);
+  }
+
+  private async *mergeCommitIteratorGraphql(
     targetBranch: string,
     options: CommitIteratorOptions = {}
   ) {
@@ -526,6 +542,84 @@ export class GitHub {
       pageInfo: history.pageInfo,
       data: commitData,
     };
+  }
+
+  private async *mergeCommitIteratorREST(
+    targetBranch: string,
+    options: CommitIteratorOptions = {}
+  ): AsyncGenerator<Commit> {
+    const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
+    let results = 0;
+
+    const iterator = this.octokit.paginate.iterator(
+      this.octokit.rest.repos.listCommits,
+      {
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        per_page: 25,
+        sha: targetBranch,
+      }
+    );
+
+    for await (const response of iterator) {
+      for (let i = 0; i < response.data.length; i++) {
+        if ((results += 1) > maxResults) {
+          break;
+        }
+
+        const commitData = response.data[i];
+        yield await this.mergeCommitREST(
+          {
+            sha: commitData.sha,
+            message: commitData.commit.message,
+          },
+          options
+        );
+      }
+      if (results > maxResults) {
+        break;
+      }
+    }
+  }
+
+  private async mergeCommitREST(
+    commitData: Commit,
+    options: CommitIteratorOptions
+  ): Promise<Commit> {
+    const commit = {...commitData};
+    if (options.backfillFiles) {
+      commit.files = await this.getCommitFiles(commit.sha);
+    }
+
+    const associatedPRs =
+      await this.octokit.repos.listPullRequestsAssociatedWithCommit({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        commit_sha: commit.sha,
+      });
+    if (associatedPRs.data.length) {
+      const pullRequest = associatedPRs.data.find(
+        pr => pr.merge_commit_sha === commit.sha
+      );
+      if (pullRequest) {
+        commit.pullRequest = {
+          sha: commit.sha,
+          number: pullRequest.number,
+          baseBranchName: pullRequest.base.ref,
+          headBranchName: pullRequest.head.ref,
+          title: pullRequest.title,
+          body: pullRequest.body ?? '',
+          labels: pullRequest.labels.map(label => label.name),
+          files: commit.files ?? [],
+        };
+      } else {
+        this.logger.warn(
+          `Found ${associatedPRs.data.length} PRs associated with ${commit.sha} but none matched the commit SHA.`
+        );
+      }
+    }
+
+    return commit;
   }
 
   /**
@@ -816,7 +910,15 @@ export class GitHub {
    * @yields {GitHubRelease}
    * @throws {GitHubAPIError} on an API error
    */
-  async *releaseIterator(options: ReleaseIteratorOptions = {}) {
+  releaseIterator(options: ReleaseIteratorOptions = {}) {
+    if (this.useGraphql) {
+      return this.releaseIteratorGraphql(options);
+    }
+
+    return this.releaseIteratorREST(options);
+  }
+
+  private async *releaseIteratorGraphql(options: ReleaseIteratorOptions) {
     const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
     let results = 0;
     let cursor: string | undefined = undefined;
@@ -835,6 +937,44 @@ export class GitHub {
         break;
       }
       cursor = response.pageInfo.endCursor;
+    }
+  }
+
+  private async *releaseIteratorREST(
+    options: ReleaseIteratorOptions
+  ): AsyncGenerator<GitHubRelease> {
+    const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
+    let results = 0;
+
+    const iterator = this.octokit.paginate.iterator(
+      this.octokit.rest.repos.listReleases,
+      {owner: this.repository.owner, repo: this.repository.repo, per_page: 25}
+    );
+
+    for await (const response of iterator) {
+      for (let i = 0; i < response.data.length; i++) {
+        if ((results += 1) > maxResults) {
+          break;
+        }
+
+        const release = response.data[i];
+        const tag = await this.octokit.git.getRef({
+          repo: this.repository.repo,
+          owner: this.repository.owner,
+          ref: `tags/${release.tag_name}`,
+        });
+
+        yield {
+          ...release,
+          tagName: release.tag_name,
+          notes: release.body ?? undefined,
+          name: release.name ?? undefined,
+          sha: tag.data.object.sha,
+        };
+      }
+      if (results > maxResults) {
+        break;
+      }
     }
   }
 
