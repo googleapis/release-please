@@ -124,64 +124,42 @@ export class PullRequestTitle {
   }
   static ofTargetBranchVersion(
     targetBranch: string,
+    changesBranch: string,
     version: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
       version,
       targetBranch,
-      pullRequestTitlePattern,
-    });
-  }
-  static ofChangesBranchTargetBranchVersion(
-    changesBranch?: string,
-    targetBranch?: string,
-    version?: Version,
-    pullRequestTitlePattern?: string
-  ): PullRequestTitle {
-    return new PullRequestTitle({
-      version,
       changesBranch,
-      targetBranch,
-      pullRequestTitlePattern,
-    });
-  }
-  static ofComponentTargetBranchVersion(
-    component?: string,
-    targetBranch?: string,
-    version?: Version,
-    pullRequestTitlePattern?: string
-  ): PullRequestTitle {
-    return new PullRequestTitle({
-      version,
-      component,
-      targetBranch,
       pullRequestTitlePattern,
     });
   }
 
-  static ofComponentChangesBranchTargetBranchVersion(
+  static ofComponentTargetBranchVersion(
     component?: string,
-    changesBranch?: string,
     targetBranch?: string,
+    changesBranch?: string,
     version?: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
       version,
       component,
-      changesBranch,
       targetBranch,
+      changesBranch,
       pullRequestTitlePattern,
     });
   }
 
   static ofTargetBranch(
     targetBranch: string,
+    changesBranch: string,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
       targetBranch,
+      changesBranch,
       pullRequestTitlePattern,
     });
   }

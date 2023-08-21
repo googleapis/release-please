@@ -68,39 +68,38 @@ export class BranchName {
   static ofVersion(version: Version): BranchName {
     return new AutoreleaseBranchName(`release-v${version}`);
   }
-  static ofTargetBranch(targetBranch: string): BranchName {
-    return new DefaultBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}`
-    );
-  }
-  static ofChangesBranchTargetBranch(
-    changesBranch: string,
-    targetBranch: string
+  static ofTargetBranch(
+    targetBranch: string,
+    changesBranch: string
   ): BranchName {
-    return new ComponentBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}--changes--${changesBranch}`
+    const changes =
+      targetBranch === changesBranch ? '' : `--changes--${changesBranch}`;
+    return new DefaultBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}${changes}`
     );
   }
+
   static ofComponentTargetBranch(
     component: string,
-    targetBranch: string
+    targetBranch: string,
+    changesBranch: string
   ): BranchName {
+    const changes =
+      targetBranch === changesBranch ? '' : `--changes--${changesBranch}`;
     return new ComponentBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}--components--${component}`
+      `${RELEASE_PLEASE}--branches--${targetBranch}${changes}--components--${component}`
     );
   }
-  static ofComponentChangesBranchTargetBranch(
-    component: string,
-    changesBranch: string,
-    targetBranch: string
+
+  static ofGroupTargetBranch(
+    group: string,
+    targetBranch: string,
+    changesBranch: string
   ): BranchName {
-    return new ComponentBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}--changes--${changesBranch}--components--${component}`
-    );
-  }
-  static ofGroupTargetBranch(group: string, targetBranch: string): BranchName {
+    const changes =
+      targetBranch === changesBranch ? '' : `--changes--${changesBranch}`;
     return new GroupBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}--groups--${safeBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}${changes}--groups--${safeBranchName(
         group
       )}`
     );

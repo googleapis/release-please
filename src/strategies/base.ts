@@ -217,6 +217,7 @@ export abstract class BaseStrategy implements Strategy {
       previousTag: latestRelease?.tag?.toString(),
       currentTag: newVersionTag.toString(),
       targetBranch: this.targetBranch,
+      changesBranch: this.changesBranch,
       changelogSections: this.changelogSections,
       commits: commits,
     });
@@ -284,40 +285,28 @@ export abstract class BaseStrategy implements Strategy {
       this.tagSeparator,
       this.includeVInTag
     );
+
     this.logger.debug(
       'pull request title pattern:',
       this.pullRequestTitlePattern
     );
-    const pullRequestTitle =
-      this.targetBranch == this.changesBranch
-        ? PullRequestTitle.ofComponentTargetBranchVersion(
-            component || '',
-            this.targetBranch,
-            newVersion,
-            this.pullRequestTitlePattern
-          )
-        : PullRequestTitle.ofComponentChangesBranchTargetBranchVersion(
-            component || '',
-            this.changesBranch,
-            this.targetBranch,
-            newVersion,
-            this.pullRequestTitlePattern
-          );
+    const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
+      component || '',
+      this.targetBranch,
+      this.changesBranch,
+      newVersion,
+      this.pullRequestTitlePattern
+    );
+
     const branchComponent = await this.getBranchComponent();
     const branchName = branchComponent
-      ? this.targetBranch == this.changesBranch
-        ? BranchName.ofComponentTargetBranch(branchComponent, this.targetBranch)
-        : BranchName.ofComponentChangesBranchTargetBranch(
-            branchComponent,
-            this.changesBranch,
-            this.targetBranch
-          )
-      : this.targetBranch == this.changesBranch
-      ? BranchName.ofTargetBranch(this.targetBranch)
-      : BranchName.ofChangesBranchTargetBranch(
-          this.changesBranch,
-          this.targetBranch
-        );
+      ? BranchName.ofComponentTargetBranch(
+          branchComponent,
+          this.targetBranch,
+          this.changesBranch
+        )
+      : BranchName.ofTargetBranch(this.targetBranch, this.changesBranch);
+
     const releaseNotesBody = await this.buildReleaseNotes(
       conventionalCommits,
       newVersion,

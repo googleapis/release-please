@@ -181,7 +181,8 @@ export class LinkedVersions extends ManifestPlugin {
           forceMerge: true,
           headBranchName: BranchName.ofGroupTargetBranch(
             this.groupName,
-            this.targetBranch
+            this.targetBranch,
+            this.changesBranch
           ).toString(),
         }
       );

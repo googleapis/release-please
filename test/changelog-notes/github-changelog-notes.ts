@@ -67,6 +67,7 @@ describe('GitHubChangelogNotes', () => {
       previousTag: 'v1.2.2',
       currentTag: 'v1.2.3',
       targetBranch: 'main',
+      changesBranch: 'main',
     };
     let github: GitHub;
     beforeEach(async () => {
@@ -98,6 +99,7 @@ describe('GitHubChangelogNotes', () => {
         previousTag: 'v1.2.2',
         currentTag: 'v1.2.3',
         targetBranch: 'main',
+        changesBranch: 'main',
       };
       const changelogNotes = new GitHubChangelogNotes(github);
       const notes = await changelogNotes.buildNotes(commits, notesOptions);

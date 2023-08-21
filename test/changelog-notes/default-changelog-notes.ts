@@ -68,6 +68,7 @@ describe('DefaultChangelogNotes', () => {
       previousTag: 'v1.2.2',
       currentTag: 'v1.2.3',
       targetBranch: 'main',
+      changesBranch: 'main',
     };
     it('should build default release notes', async () => {
       const changelogNotes = new DefaultChangelogNotes();
@@ -294,6 +295,7 @@ describe('DefaultChangelogNotes', () => {
         previousTag: 'v1.2.2',
         currentTag: 'v1.2.3',
         targetBranch: 'main',
+        changesBranch: 'main',
       };
       const changelogNotes = new DefaultChangelogNotes();
       const notes = await changelogNotes.buildNotes(commits, notesOptions);

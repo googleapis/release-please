@@ -87,7 +87,7 @@ export class DotnetYoshi extends BaseStrategy {
     try {
       const contents = await this.github.getFileContentsOnBranch(
         'apis/apis.json',
-        this.targetBranch
+        this.changesBranch
       );
       const apis = JSON.parse(contents.parsedContent) as ApisJsonConfiguration;
       const component = await this.getComponent();

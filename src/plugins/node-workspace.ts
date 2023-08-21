@@ -268,7 +268,10 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     const packageJson = updatedPackage.toJSON() as PackageJson;
     const version = Version.parse(packageJson.version);
     const pullRequest: ReleasePullRequest = {
-      title: PullRequestTitle.ofTargetBranch(this.targetBranch),
+      title: PullRequestTitle.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ),
       body: new PullRequestBody([
         {
           component: updatedPackage.name,
@@ -302,7 +305,10 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         },
       ],
       labels: [],
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName: BranchName.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ).toString(),
       version,
       draft: false,
     };

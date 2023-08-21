@@ -42,12 +42,12 @@ export class TerraformModule extends BaseStrategy {
     const readmeFiles = await Promise.all([
       this.github.findFilesByFilenameAndRef(
         'readme.md',
-        this.targetBranch,
+        this.changesBranch,
         this.path
       ),
       this.github.findFilesByFilenameAndRef(
         'README.md',
-        this.targetBranch,
+        this.changesBranch,
         this.path
       ),
     ]).then(([v, vt]) => {
@@ -68,12 +68,12 @@ export class TerraformModule extends BaseStrategy {
     const versionFiles = await Promise.all([
       this.github.findFilesByFilenameAndRef(
         'versions.tf',
-        this.targetBranch,
+        this.changesBranch,
         this.path
       ),
       this.github.findFilesByFilenameAndRef(
         'versions.tf.tmpl',
-        this.targetBranch,
+        this.changesBranch,
         this.path
       ),
     ]).then(([v, vt]) => {

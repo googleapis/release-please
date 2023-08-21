@@ -3483,7 +3483,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3593,7 +3593,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3611,7 +3611,7 @@ describe('Manifest', () => {
           draft: false,
         },
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes 2',
@@ -3676,7 +3676,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3739,7 +3739,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3818,7 +3818,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3907,7 +3907,7 @@ describe('Manifest', () => {
         );
         sandbox.stub(manifest, 'buildPullRequests').resolves([
           {
-            title: PullRequestTitle.ofTargetBranch('main'),
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
             body,
             updates: [
               {
@@ -3989,7 +3989,7 @@ describe('Manifest', () => {
         );
         sandbox.stub(manifest, 'buildPullRequests').resolves([
           {
-            title: PullRequestTitle.ofTargetBranch('main'),
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
             body,
             updates: [
               {
@@ -4064,7 +4064,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'SNAPSHOT bump',
@@ -4130,7 +4130,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -4210,7 +4210,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -4286,7 +4286,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body,
           updates: [
             {

@@ -104,13 +104,20 @@ describe('PullRequestTitle', () => {
   });
   describe('ofTargetBranch', () => {
     it('builds branchname with only target branch', () => {
-      const pullRequestTitle = PullRequestTitle.ofTargetBranch('main');
+      const pullRequestTitle = PullRequestTitle.ofTargetBranch('main', 'main');
       expect(pullRequestTitle.toString()).to.eql('chore(main): release');
+    });
+    it('builds branchname with target branch and changes branch', () => {
+      const pullRequestTitle = PullRequestTitle.ofTargetBranch('main', 'next');
+      expect(pullRequestTitle.toString()).to.eql(
+        'chore(next => main): release'
+      );
     });
   });
   describe('ofTargetBranchVersion', () => {
     it('builds branchname with target branch and version', () => {
       const pullRequestTitle = PullRequestTitle.ofTargetBranchVersion(
+        'main',
         'main',
         Version.parse('1.2.3')
       );
@@ -121,6 +128,7 @@ describe('PullRequestTitle', () => {
     it('builds branchname with target branch and component', () => {
       const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
         'foo',
+        'main',
         'main',
         Version.parse('1.2.3')
       );
@@ -270,6 +278,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
     it('builds branchname with only target branch', () => {
       const pullRequestTitle = PullRequestTitle.ofTargetBranchVersion(
         'main',
+        'next',
         Version.parse('1.2.3'),
         'chore${scope}: 🔖 release${component} ${version}'
       );
@@ -283,6 +292,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
         'foo',
         'main',
+        'next',
         Version.parse('1.2.3'),
         'chore${scope}: 🔖 release${component} ${version}'
       );

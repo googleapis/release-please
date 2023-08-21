@@ -99,10 +99,10 @@ export class Merge extends ManifestPlugin {
     const updates = mergeUpdates(rawUpdates);
 
     const pullRequest = {
-      title: PullRequestTitle.ofComponentChangesBranchTargetBranchVersion(
+      title: PullRequestTitle.ofComponentTargetBranchVersion(
         rootRelease?.pullRequest.title.component,
-        this.changesBranch,
         this.targetBranch,
+        this.changesBranch,
         rootRelease?.pullRequest.title.version,
         this.pullRequestTitlePattern
       ),
@@ -113,12 +113,11 @@ export class Merge extends ManifestPlugin {
       updates,
       labels: Array.from(labels),
       headRefName:
-        this.headBranchName ?? this.changesBranch !== this.targetBranch
-          ? BranchName.ofChangesBranchTargetBranch(
-              this.changesBranch,
-              this.targetBranch
-            ).toString()
-          : BranchName.ofTargetBranch(this.targetBranch).toString(),
+        this.headBranchName ??
+        BranchName.ofTargetBranch(
+          this.targetBranch,
+          this.changesBranch
+        ).toString(),
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
     };
 

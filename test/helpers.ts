@@ -336,7 +336,7 @@ export function buildMockCandidatePullRequest(
   return {
     path,
     pullRequest: {
-      title: PullRequestTitle.ofTargetBranch('main'),
+      title: PullRequestTitle.ofTargetBranch('main', 'main'),
       body: new PullRequestBody([
         {
           component: options.component,
@@ -348,7 +348,7 @@ export function buildMockCandidatePullRequest(
       ]),
       updates: options.updates ?? [],
       labels: options.labels ?? [],
-      headRefName: BranchName.ofTargetBranch('main').toString(),
+      headRefName: BranchName.ofTargetBranch('main', 'main').toString(),
       version,
       draft: options.draft ?? false,
       group: options.group,

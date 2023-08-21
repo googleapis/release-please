@@ -726,6 +726,10 @@ export class Manifest {
         config.draftPullRequest ?? this.draftPullRequest,
         this.labels
       );
+      this.logger.debug(`path: ${path}`);
+      this.logger.debug(
+        `releasePullRequest.headRefName: ${releasePullRequest?.headRefName}`
+      );
       if (releasePullRequest) {
         // Update manifest, but only for valid release version - this will skip SNAPSHOT from java strategy
         if (
@@ -1233,6 +1237,7 @@ export class Manifest {
           github: this.github,
           path,
           targetBranch: this.targetBranch,
+          changesBranch: this.changesBranch,
         });
         this._strategiesByPath[path] = strategy;
       }

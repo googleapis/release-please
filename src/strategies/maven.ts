@@ -35,7 +35,7 @@ export class Maven extends Java {
     // Update pom.xml files
     const pomFiles = await this.github.findFilesByFilenameAndRef(
       'pom.xml',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
 

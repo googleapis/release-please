@@ -77,7 +77,7 @@ export class JavaYoshiMonoRepo extends Java {
       try {
         this.versionsContent = await this.github.getFileContentsOnBranch(
           this.addPath('versions.txt'),
-          this.targetBranch
+          this.changesBranch
         );
       } catch (err) {
         if (err instanceof GitHubAPIError) {
@@ -112,22 +112,22 @@ export class JavaYoshiMonoRepo extends Java {
 
     const pomFilesSearch = this.github.findFilesByFilenameAndRef(
       'pom.xml',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
     const buildFilesSearch = this.github.findFilesByFilenameAndRef(
       'build.gradle',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
     const dependenciesSearch = this.github.findFilesByFilenameAndRef(
       'dependencies.properties',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
     const readmeFilesSearch = this.github.findFilesByFilenameAndRef(
       'README.md',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
 
@@ -254,7 +254,7 @@ export class JavaYoshiMonoRepo extends Java {
     try {
       const content = await this.github.getFileContentsOnBranch(
         'changelog.json',
-        this.targetBranch
+        this.changesBranch
       );
       return !!content;
     } catch (e) {
@@ -269,7 +269,7 @@ export class JavaYoshiMonoRepo extends Java {
     try {
       const content = await this.github.getFileContentsOnBranch(
         this.addPath(`${path}/.repo-metadata.json`),
-        this.targetBranch
+        this.changesBranch
       );
       return content ? JSON.parse(content.parsedContent) : null;
     } catch (e) {

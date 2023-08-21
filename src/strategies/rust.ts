@@ -155,7 +155,7 @@ export class Rust extends BaseStrategy {
     try {
       return await this.github.getFileContentsOnBranch(
         this.addPath(path),
-        this.targetBranch
+        this.changesBranch
       );
     } catch (e) {
       return null;

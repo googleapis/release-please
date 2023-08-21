@@ -957,7 +957,7 @@ describe('GitHub', () => {
       });
       const pullRequest = await github.createReleasePullRequest(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([]),
           labels: [],
           headRefName: 'release-please--branches--main',
@@ -999,7 +999,7 @@ describe('GitHub', () => {
       });
       const pullRequest = await github.createReleasePullRequest(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([]),
           labels: [],
           headRefName: 'release-please--branches--main',
@@ -1040,7 +1040,7 @@ describe('GitHub', () => {
       });
       const pullRequest = await github.createReleasePullRequest(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([]),
           labels: [],
           headRefName: 'release-please--branches--main',
@@ -1165,7 +1165,7 @@ describe('GitHub', () => {
         },
       });
       const pullRequest = {
-        title: PullRequestTitle.ofTargetBranch('main'),
+        title: PullRequestTitle.ofTargetBranch('main', 'main'),
         body: new PullRequestBody(mockReleaseData(1000), {useComponents: true}),
         labels: [],
         headRefName: 'release-please--branches--main',

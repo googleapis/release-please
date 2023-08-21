@@ -115,11 +115,16 @@ export class Java extends BaseStrategy {
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
+      this.changesBranch,
       newVersion
     );
     const branchName = component
-      ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
-      : BranchName.ofTargetBranch(this.targetBranch);
+      ? BranchName.ofComponentTargetBranch(
+          component,
+          this.targetBranch,
+          this.changesBranch
+        )
+      : BranchName.ofTargetBranch(this.targetBranch, this.changesBranch);
     const notes =
       '### Updating meta-information for bleeding-edge SNAPSHOT release.';
     // TODO use pullrequest header here?

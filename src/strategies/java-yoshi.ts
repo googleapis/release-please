@@ -67,7 +67,7 @@ export class JavaYoshi extends Java {
       try {
         this.versionsContent = await this.github.getFileContentsOnBranch(
           this.addPath('versions.txt'),
-          this.targetBranch
+          this.changesBranch
         );
       } catch (err) {
         if (err instanceof FileNotFoundError) {
@@ -102,17 +102,17 @@ export class JavaYoshi extends Java {
 
     const pomFilesSearch = this.github.findFilesByFilenameAndRef(
       'pom.xml',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
     const buildFilesSearch = this.github.findFilesByFilenameAndRef(
       'build.gradle',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
     const dependenciesSearch = this.github.findFilesByFilenameAndRef(
       'dependencies.properties',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
 

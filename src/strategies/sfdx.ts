@@ -63,7 +63,7 @@ export class Sfdx extends BaseStrategy {
         this.sfdxProjectJsonContents =
           await this.github.getFileContentsOnBranch(
             this.addPath(sfdxProjectJsonFileName),
-            this.targetBranch
+            this.changesBranch
           );
       } catch (e) {
         if (e instanceof FileNotFoundError) {

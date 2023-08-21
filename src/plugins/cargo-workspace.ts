@@ -253,7 +253,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       updatedManifest
     );
     const pullRequest: ReleasePullRequest = {
-      title: PullRequestTitle.ofTargetBranch(this.targetBranch),
+      title: PullRequestTitle.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ),
       body: new PullRequestBody([
         {
           component: pkg.name,
@@ -281,7 +284,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         },
       ],
       labels: [],
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName: BranchName.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ).toString(),
       version,
       draft: false,
     };

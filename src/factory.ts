@@ -62,6 +62,7 @@ export interface StrategyFactoryOptions extends ReleaserConfig {
   github: GitHub;
   path?: string;
   targetBranch?: string;
+  changesBranch?: string;
 }
 
 const releasers: Record<string, ReleaseBuilder> = {
@@ -114,6 +115,7 @@ export async function buildStrategy(
 ): Promise<Strategy> {
   const targetBranch =
     options.targetBranch ?? options.github.repository.defaultBranch;
+  const changesBranch = options.changesBranch || targetBranch;
   const versioningStrategy = buildVersioningStrategy({
     github: options.github,
     type: options.versioning,
@@ -129,6 +131,7 @@ export async function buildStrategy(
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
     ...options,
     targetBranch,
+    changesBranch,
     versioningStrategy,
     changelogNotes,
   };

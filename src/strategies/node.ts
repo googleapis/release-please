@@ -106,7 +106,7 @@ export class Node extends BaseStrategy {
       try {
         this.pkgJsonContents = await this.github.getFileContentsOnBranch(
           this.addPath('package.json'),
-          this.targetBranch
+          this.changesBranch
         );
       } catch (e) {
         if (e instanceof FileNotFoundError) {

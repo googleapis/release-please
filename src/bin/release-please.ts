@@ -486,7 +486,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
       const pullRequests = await manifest.buildPullRequests();
       console.log(`Would open ${pullRequests.length} pull requests`);
       console.log('fork:', manifest.fork);
-      console.log('➡️➡️➡️➡️➡️➡️➡️➡️➡️ changes branch:', manifest.changesBranch);
+      console.log('changes branch:', manifest.changesBranch);
       for (const pullRequest of pullRequests) {
         console.log('title:', pullRequest.title.toString());
         console.log('branch:', pullRequest.headRefName);
