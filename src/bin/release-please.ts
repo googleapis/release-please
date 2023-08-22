@@ -49,6 +49,7 @@ interface GitHubArgs {
   apiUrl?: string;
   graphqlUrl?: string;
   fork?: boolean;
+  useGraphql?: boolean;
 
   // deprecated in favor of targetBranch
   defaultBranch?: string;
@@ -183,6 +184,12 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'Prepare but do not take action',
       type: 'boolean',
       default: false,
+    })
+    .option('use-graphql', {
+      describe:
+        'Whether or not the GraphQL API should be used. If false, the REST API will be used instead.',
+      type: 'boolean',
+      default: true,
     })
     .middleware(_argv => {
       const argv = _argv as GitHubArgs;
@@ -801,6 +808,7 @@ async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
     token: argv.token!,
     apiUrl: argv.apiUrl,
     graphqlUrl: argv.graphqlUrl,
+    useGraphql: argv.useGraphql,
   });
   return github;
 }
