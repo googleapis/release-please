@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [15.13.0](https://github.com/googleapis/release-please/compare/v15.12.0...v15.13.0) (2023-08-18)
+
+
+### Features
+
+* Adds metadata versioning for terraform modules ([#2041](https://github.com/googleapis/release-please/issues/2041)) ([49b33c7](https://github.com/googleapis/release-please/commit/49b33c73b2571699ad8362f8b6b934154a6ce375))
+
 ## [15.12.0](https://github.com/googleapis/release-please/compare/v15.11.2...v15.12.0) (2023-07-11)
 
 
