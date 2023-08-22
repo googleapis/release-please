@@ -100,6 +100,14 @@ interface GraphQLCommit {
   };
 }
 
+interface GraphQLLockBrachProtectionRule {
+  repository: {
+    ref: {
+      branchProtectionRule: {id: string; lockBranch: true};
+    };
+  };
+}
+
 interface GraphQLPullRequest {
   number: number;
   title: string;
@@ -1834,6 +1842,122 @@ export class GitHub {
     });
     this.logger.debug(`Updated branch: ${branchName} to ${sha}`);
     return sha;
+  }
+
+  async lockBranch(branchName: string) {
+    const currentLockRule = await this.queryLockBranchProtectionRule(
+      branchName
+    );
+    if (!currentLockRule) {
+      this.logger.warn(
+        `No lock protection rule found for branch ${branchName}`
+      );
+      return;
+    }
+
+    if (currentLockRule.repository.ref.branchProtectionRule.lockBranch) {
+      this.logger.debug(`Branch ${branchName} was already locked`);
+      return;
+    }
+
+    this.logger.info(`Locking branch ${branchName}, it is now read-only`);
+    await this.mutateLockBranchProtectionRule(
+      currentLockRule.repository.ref.branchProtectionRule.id,
+      true
+    );
+  }
+
+  async unlockBranch(branchName: string) {
+    const currentLockRule = await this.queryLockBranchProtectionRule(
+      branchName
+    );
+    if (!currentLockRule) {
+      this.logger.warn(
+        `No lock protection rule found for branch ${branchName}`
+      );
+      return;
+    }
+    if (!currentLockRule.repository.ref.branchProtectionRule.lockBranch) {
+      this.logger.debug(`Branch ${branchName} was already unlocked`);
+      return;
+    }
+
+    this.logger.info(`Unlocking branch ${branchName}, it can allows writes`);
+    await this.mutateLockBranchProtectionRule(
+      currentLockRule.repository.ref.branchProtectionRule.id,
+      true
+    );
+  }
+
+  private async queryLockBranchProtectionRule(
+    branchName: string
+  ): Promise<GraphQLLockBrachProtectionRule | null> {
+    const query = `query lockBranchProtectionRule($owner: String!, $repo: String!, $branchName: String!) {
+        repository(name: "test-release-please-behaviour", owner: "dgellow") {
+          ref(qualifiedName: "next") {
+            branchProtectionRule {
+              id
+              lockBranch
+            }
+          }
+        }
+      }`;
+    const currentProtectionRule = await this.graphqlRequest({
+      query,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      branchName,
+    });
+
+    if (
+      !currentProtectionRule?.data?.repository?.ref?.branchProtectionRule?.id ||
+      !currentProtectionRule?.data?.repository?.ref?.branchProtectionRule
+        ?.lockBranch
+    ) {
+      return null;
+    }
+    return currentProtectionRule.data as GraphQLLockBrachProtectionRule;
+  }
+
+  private async mutateLockBranchProtectionRule(
+    protectionRuleId: string,
+    locked: boolean
+  ) {
+    const query = `mutation LockBranch($ruleId: ID!, $locked: Boolean) {
+        updateBranchProtectionRule(
+          input: {branchProtectionRuleId: $ruleId, lockBranch: $locked}
+        ) {
+          branchProtectionRule {
+            lockBranch
+          }
+        }
+      }`;
+    await this.graphqlRequest({
+      query,
+      ruleId: protectionRuleId,
+      locked: locked ? 'true' : 'false',
+    });
+  }
+
+  /**
+   * Check if branchA is based on the latest commit of branchB. Can be used to detect if branchB received new commits
+   * since branchA creation/last rebase.
+   */
+  async isBranchABasedOnLatestBranchB(
+    branchAName: string,
+    branchBName: string
+  ): Promise<boolean> {
+    const branchA = await this.octokit.repos.getBranch({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      branch: branchAName,
+    });
+    const branchB = await this.octokit.repos.getBranch({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      branch: branchBName,
+    });
+    return true;
   }
 }
 

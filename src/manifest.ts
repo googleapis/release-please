@@ -1120,6 +1120,8 @@ export class Manifest {
   async createReleases(): Promise<(CreatedRelease | undefined)[]> {
     const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
     const pullRequestsByNumber: Record<number, PullRequest> = {};
+    const pullRequests = Object.values(pullRequestsByNumber);
+
     for (const release of await this.buildReleases()) {
       pullRequestsByNumber[release.pullRequest.number] = release.pullRequest;
       if (releasesByPullRequest[release.pullRequest.number]) {
@@ -1129,28 +1131,94 @@ export class Manifest {
       }
     }
 
-    if (this.sequentialCalls) {
-      const resultReleases: CreatedRelease[] = [];
-      for (const pullNumber in releasesByPullRequest) {
-        const releases = await this.createReleasesForPullRequest(
-          releasesByPullRequest[pullNumber],
-          pullRequestsByNumber[pullNumber]
-        );
-        resultReleases.push(...releases);
-      }
-      return resultReleases;
-    } else {
-      const promises: Promise<CreatedRelease[]>[] = [];
-      for (const pullNumber in releasesByPullRequest) {
-        promises.push(
-          this.createReleasesForPullRequest(
+    // to minimize risks of race condition we lock branches used as the source of commits for the duration of the
+    // release process
+    await this.lockPullRequestsChangesBranche(pullRequests);
+    try {
+      // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
+      await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+
+      if (this.sequentialCalls) {
+        const resultReleases: CreatedRelease[] = [];
+        for (const pullNumber in releasesByPullRequest) {
+          const releases = await this.createReleasesForPullRequest(
             releasesByPullRequest[pullNumber],
             pullRequestsByNumber[pullNumber]
-          )
-        );
+          );
+          resultReleases.push(...releases);
+        }
+        return resultReleases;
+      } else {
+        const promises: Promise<CreatedRelease[]>[] = [];
+        for (const pullNumber in releasesByPullRequest) {
+          promises.push(
+            this.createReleasesForPullRequest(
+              releasesByPullRequest[pullNumber],
+              pullRequestsByNumber[pullNumber]
+            )
+          );
+        }
+        const releases = await Promise.all(promises);
+        return releases.reduce((collection, r) => collection.concat(r), []);
       }
-      const releases = await Promise.all(promises);
-      return releases.reduce((collection, r) => collection.concat(r), []);
+    } finally {
+      // always try to unlock branches, we don't want to keep them read-only when the release process fails before
+      // completion
+      await this.unlockPullRequestsChangesBranche(pullRequests);
+    }
+  }
+
+  private async lockPullRequestsChangesBranche(pullRequests: PullRequest[]) {
+    for (const pr of pullRequests) {
+      const branchName = BranchName.parse(pr.headBranchName);
+      // if a changes branch has been used when creating the PR, use it
+      if (branchName?.changesBranch) {
+        await this.github.lockBranch(branchName.changesBranch);
+      }
+      // otherwise lock the target branch
+      else if (branchName?.targetBranch) {
+        await this.github.lockBranch(branchName.targetBranch);
+      }
+    }
+  }
+
+  private async unlockPullRequestsChangesBranche(pullRequests: PullRequest[]) {
+    for (const pr of pullRequests) {
+      const branchName = BranchName.parse(pr.headBranchName);
+      // if a changes branch has been used when creating the PR, use it
+      if (branchName?.changesBranch) {
+        await this.github.unlockBranch(branchName.changesBranch);
+      }
+      // otherwise lock the target branch
+      else if (branchName?.targetBranch) {
+        await this.github.unlockBranch(branchName.targetBranch);
+      }
+    }
+  }
+
+  private async throwIfChangesBranchesRaceConditionDetected(
+    pullRequests: PullRequest[]
+  ) {
+    for (const pr of pullRequests) {
+      const branchName = BranchName.parse(pr.headBranchName);
+      // we only care about pull requests with an associated changes-branch
+      if (!branchName?.changesBranch) {
+        continue;
+      }
+
+      if (
+        await this.github.isBranchABasedOnLatestBranchB(
+          pr.headBranchName,
+          branchName.changesBranch
+        )
+      ) {
+        // no new changes to changes-branch detected, all good
+        continue;
+      }
+
+      throw new Error(
+        'Race condition detected. changes-branch used for release pull request received new commits. Not safe to reset branch'
+      );
     }
   }
 
