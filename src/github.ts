@@ -1893,8 +1893,8 @@ export class GitHub {
     branchName: string
   ): Promise<GraphQLLockBrachProtectionRule | null> {
     const query = `query lockBranchProtectionRule($owner: String!, $repo: String!, $branchName: String!) {
-        repository(name: "test-release-please-behaviour", owner: "dgellow") {
-          ref(qualifiedName: "next") {
+        repository(name: $repo, owner: $owner) {
+          ref(qualifiedName: $branchName) {
             branchProtectionRule {
               id
               lockBranch
@@ -1957,10 +1957,13 @@ export class GitHub {
         `A given branch name is empty. Branch A: ${branchAName}. Branch B: ${branchBName}`
       );
     }
+    this.logger.info(
+      `Compare branch A ${branchAName} with branch B ${branchBName}`
+    );
     const comparison = await this.octokit.repos.compareCommitsWithBasehead({
       owner: this.repository.owner,
       repo: this.repository.repo,
-      basehead: `${branchAName}..${branchBName}`,
+      basehead: `${branchAName}...${branchBName}`,
     });
     return comparison.data.total_commits === 0;
   }
@@ -1985,6 +1988,9 @@ export class GitHub {
       repo: 'repo',
       ref: `heads/${targetBranchName}`,
     });
+    this.logger.info(
+      `Align source branch ${sourceBranchName} to target branch ${targetBranch}, commit ${targetBranch.data.object.sha}`
+    );
     await this.octokit.git.updateRef({
       owner: this.repository.owner,
       repo: this.repository.repo,

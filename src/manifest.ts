@@ -1120,7 +1120,6 @@ export class Manifest {
   async createReleases(): Promise<(CreatedRelease | undefined)[]> {
     const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
     const pullRequestsByNumber: Record<number, PullRequest> = {};
-    const pullRequests = Object.values(pullRequestsByNumber);
 
     for (const release of await this.buildReleases()) {
       pullRequestsByNumber[release.pullRequest.number] = release.pullRequest;
@@ -1133,7 +1132,9 @@ export class Manifest {
 
     // to minimize risks of race condition we lock branches used as the source of commits for the duration of the
     // release process
+    const pullRequests = Object.values(pullRequestsByNumber);
     await this.lockPullRequestsChangesBranche(pullRequests);
+
     let createdReleases: CreatedRelease[];
     try {
       // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
