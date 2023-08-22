@@ -225,7 +225,7 @@ export class GitHub {
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
     this.useGraphql = options.useGraphql ?? true;
-    
+
     // required to be able to rely on functions from code-suggester
     setupLogger(this.logger);
   }
@@ -1310,12 +1310,20 @@ export class GitHub {
       });
 
       // add labels, autorelease labels are needed for the github-release command
-      await this.octokit.issues.addLabels({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        issue_number: createPrResponse.data.number,
-        labels: pullRequest.labels,
-      });
+      await addLabels(
+        this.octokit,
+        {
+          repo: this.repository.repo,
+          owner: this.repository.owner,
+        },
+        {
+          branch: pullRequest.headBranchName,
+          repo: this.repository.repo,
+          owner: this.repository.owner,
+        },
+        createPrResponse.data.number,
+        pullRequest.labels
+      );
 
       // assign reviewers
       if (options?.reviewers) {

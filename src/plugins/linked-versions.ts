@@ -15,7 +15,6 @@
 import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 import {GitHub} from '../github';
-import {Logger} from '../util/logger';
 import {Strategy} from '../strategy';
 import {Commit, parseConventionalCommits} from '../commit';
 import {Release} from '../release';
