@@ -1133,7 +1133,9 @@ export class Manifest {
     // to minimize risks of race condition we lock branches used as the source of commits for the duration of the
     // release process
     const pullRequests = Object.values(pullRequestsByNumber);
-    await this.lockPullRequestsChangesBranche(pullRequests);
+
+    // FIXME: currently fail due to branch protection rules not found
+    // await this.lockPullRequestsChangesBranche(pullRequests);
 
     let createdReleases: CreatedRelease[];
     try {
@@ -1170,9 +1172,10 @@ export class Manifest {
 
       await this.alignPullRequestsChangesBranche(pullRequests);
     } finally {
+      // FIXME: currently fail due to branch protection rules not found
       // always try to unlock branches, we don't want to keep them read-only when the release process fails before
       // completion
-      await this.unlockPullRequestsChangesBranche(pullRequests);
+      // await this.unlockPullRequestsChangesBranche(pullRequests);
     }
 
     return createdReleases;
