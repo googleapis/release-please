@@ -1964,6 +1964,34 @@ export class GitHub {
     });
     return comparison.data.total_commits === 0;
   }
+
+  /**
+   * Aligns the specified source branch with the target branch by updating the source branch's reference to point to the same commit as the target branch.
+   *
+   * @param {string} sourceBranch - The name of the branch that will be updated to align with the target branch.
+   * @param {string} targetBranch - The name of the branch whose commit the source branch will be aligned with.
+   */
+  async alignBranchWithAnother(
+    sourceBranchName: string,
+    targetBranchName: string
+  ) {
+    if (!targetBranchName || !sourceBranchName) {
+      throw new Error(
+        `A given branch name is empty. Target branch: ${targetBranchName}. Source branch: ${sourceBranchName}`
+      );
+    }
+    const targetBranch = await this.octokit.git.getRef({
+      owner: 'owner',
+      repo: 'repo',
+      ref: `heads/${targetBranchName}`,
+    });
+    await this.octokit.git.updateRef({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: `heads/${sourceBranchName}`,
+      sha: targetBranch.data.object.sha,
+    });
+  }
 }
 
 /**

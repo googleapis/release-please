@@ -1134,10 +1134,12 @@ export class Manifest {
     // to minimize risks of race condition we lock branches used as the source of commits for the duration of the
     // release process
     await this.lockPullRequestsChangesBranche(pullRequests);
+    let createdReleases: CreatedRelease[];
     try {
       // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
       await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
 
+      // create the actual github releases
       if (this.sequentialCalls) {
         const resultReleases: CreatedRelease[] = [];
         for (const pullNumber in releasesByPullRequest) {
@@ -1147,7 +1149,7 @@ export class Manifest {
           );
           resultReleases.push(...releases);
         }
-        return resultReleases;
+        createdReleases = resultReleases;
       } else {
         const promises: Promise<CreatedRelease[]>[] = [];
         for (const pullNumber in releasesByPullRequest) {
@@ -1159,13 +1161,20 @@ export class Manifest {
           );
         }
         const releases = await Promise.all(promises);
-        return releases.reduce((collection, r) => collection.concat(r), []);
+        createdReleases = releases.reduce(
+          (collection, r) => collection.concat(r),
+          []
+        );
       }
+
+      await this.alignPullRequestsChangesBranche(pullRequests);
     } finally {
       // always try to unlock branches, we don't want to keep them read-only when the release process fails before
       // completion
       await this.unlockPullRequestsChangesBranche(pullRequests);
     }
+
+    return createdReleases;
   }
 
   private async lockPullRequestsChangesBranche(pullRequests: PullRequest[]) {
@@ -1218,6 +1227,20 @@ export class Manifest {
 
       throw new Error(
         'Race condition detected. changes-branch used for release pull request received new commits. Not safe to reset branch'
+      );
+    }
+  }
+
+  private async alignPullRequestsChangesBranche(pullRequests: PullRequest[]) {
+    for (const pr of pullRequests) {
+      const branchName = BranchName.parse(pr.headBranchName);
+      // we only care about pull requests with an associated changes-branch
+      if (!branchName?.changesBranch) {
+        continue;
+      }
+      await this.github.alignBranchWithAnother(
+        branchName.changesBranch,
+        this.targetBranch
       );
     }
   }
