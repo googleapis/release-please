@@ -29,7 +29,6 @@ function getAllResourceNames(): BranchNameType[] {
     AutoreleaseBranchName,
     ComponentBranchName,
     GroupBranchName,
-    ChangesBranchName,
     DefaultBranchName,
     V12ComponentBranchName,
     V12DefaultBranchName,
@@ -206,7 +205,8 @@ class V12ComponentBranchName extends BranchName {
   }
 }
 
-const DEFAULT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)$`;
+const DEFAULT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+?)(?:--changes--(?<changes>.+))?$`;
+
 class DefaultBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(DEFAULT_PATTERN);
@@ -216,35 +216,19 @@ class DefaultBranchName extends BranchName {
     const match = branchName.match(DEFAULT_PATTERN);
     if (match?.groups) {
       this.targetBranch = match.groups['branch'];
+      this.changesBranch = match.groups['changes'];
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}--branches--${this.targetBranch}`;
+    const changes =
+      !this.changesBranch || this.targetBranch === this.changesBranch
+        ? ''
+        : `--changes--${this.changesBranch}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}${changes}`;
   }
 }
 
-// TODO: likely to be simpler to merge the pattern and ChangesBranchName class with DefaultBranchName,
-// with the changesBranch section made optional.
-const CHANGES_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--changes--(?<changesBranch>.+)$`;
-
-class ChangesBranchName extends BranchName {
-  static matches(branchName: string): boolean {
-    return !!branchName.match(CHANGES_PATTERN);
-  }
-  constructor(branchName: string) {
-    super(branchName);
-    const match = branchName.match(CHANGES_PATTERN);
-    if (match?.groups) {
-      this.targetBranch = match.groups['branch'];
-      this.changesBranch = match.groups['changesBranch'];
-    }
-  }
-  toString(): string {
-    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--changes--${this.changesBranch}`;
-  }
-}
-
-const COMPONENT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--components--(?<component>.+)$`;
+const COMPONENT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+?)(?:--changes--(?<changes>.+))?--components--(?<component>.+)$`;
 class ComponentBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(COMPONENT_PATTERN);
@@ -254,15 +238,20 @@ class ComponentBranchName extends BranchName {
     const match = branchName.match(COMPONENT_PATTERN);
     if (match?.groups) {
       this.targetBranch = match.groups['branch'];
+      this.changesBranch = match.groups['changes'];
       this.component = match.groups['component'];
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--components--${this.component}`;
+    const changes =
+      !this.changesBranch || this.targetBranch === this.changesBranch
+        ? ''
+        : `--changes--${this.changesBranch}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}${changes}--components--${this.component}`;
   }
 }
 
-const GROUP_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--groups--(?<group>.+)$`;
+const GROUP_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+?)(?:--changes--(?<changes>.+))?--groups--(?<group>.+)$`;
 class GroupBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(GROUP_PATTERN);
@@ -272,11 +261,16 @@ class GroupBranchName extends BranchName {
     const match = branchName.match(GROUP_PATTERN);
     if (match?.groups) {
       this.targetBranch = match.groups['branch'];
+      this.changesBranch = match.groups['changes'];
       this.component = match.groups['group'];
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--groups--${this.component}`;
+    const changes =
+      !this.changesBranch || this.targetBranch === this.changesBranch
+        ? ''
+        : `--changes--${this.changesBranch}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}${changes}--groups--${this.component}`;
   }
 }
 
@@ -284,5 +278,5 @@ function safeBranchName(branchName: string): string {
   // convert disallowed characters in branch names, replacing them with '-'.
   // replace multiple consecutive '-' with a single '-' to avoid interfering with
   // our regexes for parsing the branch names
-  return branchName.replace(/[^\w\d]/g, '-').replace(/-+/g, '-');
+  return branchName.replace(/[^w\d]/g, '-').replace(/-+/g, '-');
 }
