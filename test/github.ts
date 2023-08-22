@@ -36,6 +36,8 @@ import {fail} from 'assert';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import * as codeSuggester from 'code-suggester';
+import * as codeSuggesterCommitAndPush from 'code-suggester/build/src/github/commit-and-push';
+import * as codeSuggesterLabels from 'code-suggester/build/src/github/labels';
 import {RawContent} from '../src/updaters/raw-content';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
@@ -933,10 +935,26 @@ describe('GitHub', () => {
   });
 
   describe('createReleasePullRequest', () => {
+    beforeEach(() => {
+      req
+        .post('/repos/fake/fake/pulls', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(200, {
+          id: 123,
+          number: 1,
+        });
+      sandbox
+        .stub(github, <any>'forkBranch')
+        .resolves('the-pull-request-branch-sha');
+      sandbox.stub(codeSuggesterLabels, 'addLabels').resolves();
+    });
+
     it('should update file', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('existing-file', 'main')
@@ -973,17 +991,18 @@ describe('GitHub', () => {
         'main',
         'main'
       );
+      req.done();
       expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
+      sinon.assert.calledOnce(commitAndPushStub);
+      const changes = commitAndPushStub.getCall(0).args[2];
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(1);
       expect(changes!.get('existing-file')).to.not.be.undefined;
     });
     it('should handle missing files', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
@@ -1015,16 +1034,17 @@ describe('GitHub', () => {
         'main',
         'main'
       );
+      req.done();
       expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
+      sinon.assert.calledOnce(commitAndPushStub);
+      const changes = commitAndPushStub.getCall(0).args[2];
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(0);
     });
     it('should create missing file', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
@@ -1056,9 +1076,10 @@ describe('GitHub', () => {
         'main',
         'main'
       );
+      req.done();
       expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
+      sinon.assert.calledOnce(commitAndPushStub);
+      const changes = commitAndPushStub.getCall(0).args[2];
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(1);
       expect(changes!.get('missing-file')).to.not.be.undefined;

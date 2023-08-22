@@ -451,6 +451,30 @@ exports['GitHub createRelease should raise a RequestError for other validation e
   "target_commitish": "abc123"
 }
 
+exports['GitHub createReleasePullRequest should create missing file 1'] = {
+  "title": "chore(main): release",
+  "head": "release-please--branches--main",
+  "base": "main",
+  "body": ":robot: I have created a release *beep* *boop*\n---\n\n\n\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+  "draft": false
+}
+
+exports['GitHub createReleasePullRequest should handle missing files 1'] = {
+  "title": "chore(main): release",
+  "head": "release-please--branches--main",
+  "base": "main",
+  "body": ":robot: I have created a release *beep* *boop*\n---\n\n\n\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+  "draft": false
+}
+
+exports['GitHub createReleasePullRequest should update file 1'] = {
+  "title": "chore(main): release",
+  "head": "release-please--branches--main",
+  "base": "main",
+  "body": ":robot: I have created a release *beep* *boop*\n---\n\n\n\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+  "draft": false
+}
+
 exports['GitHub findFilesByExtension returns files matching the requested pattern 1'] = [
   "appengine/pom.xml",
   "bom/pom.xml",

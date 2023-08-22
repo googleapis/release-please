@@ -1276,14 +1276,6 @@ export class GitHub {
         refBranch
       );
 
-      // // create release branch
-      // await this.octokit.git.createRef({
-      //   owner: this.repository.owner,
-      //   repo: this.repository.repo,
-      //   ref: `refs/heads/${pullRequest.headBranchName}`,
-      //   sha: refBranch,
-      // });
-
       // commit and push changeset
       await commitAndPush(
         this.octokit,
