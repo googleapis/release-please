@@ -64,6 +64,7 @@ describe('Bootstrapper', () => {
         baseBranchName: 'main',
       }),
       'main',
+      'main',
       expectedTitle,
       sinon.match.array,
       sinon.match.any
