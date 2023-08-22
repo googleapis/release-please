@@ -1940,24 +1940,29 @@ export class GitHub {
   }
 
   /**
-   * Check if branchA is based on the latest commit of branchB. Can be used to detect if branchB received new commits
-   * since branchA creation/last rebase.
+   * Determines whether branch A is up-to-date with the latest commit of branch B.
+   * This function can be used to detect if branch B has received any new commits since branch A was created or last rebased.
+   *
+   * @param {string} branchAName - The name of branch A, which is to be checked against the latest commit of branch B.
+   * @param {string} branchBName - The name of branch B, against which branch A is to be compared.
+   * @returns {Promise<boolean>} Returns `true` if branch A is based on the latest commit of branch B, meaning no new commits have been made to B since A was branched from it. Returns `false` otherwise.
+   * @throws {Error} Throws an error if branch names are empty or if there is an issue with the comparison, such as API errors or network issues.
    */
-  async isBranchABasedOnLatestBranchB(
+  async isBranchASyncedWithB(
     branchAName: string,
     branchBName: string
   ): Promise<boolean> {
-    const branchA = await this.octokit.repos.getBranch({
+    if (!branchAName || !branchBName) {
+      throw new Error(
+        `A given branch name is empty. Branch A: ${branchAName}. Branch B: ${branchBName}`
+      );
+    }
+    const comparison = await this.octokit.repos.compareCommitsWithBasehead({
       owner: this.repository.owner,
       repo: this.repository.repo,
-      branch: branchAName,
+      basehead: `${branchAName}..${branchBName}`,
     });
-    const branchB = await this.octokit.repos.getBranch({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      branch: branchBName,
-    });
-    return true;
+    return comparison.data.total_commits === 0;
   }
 }
 

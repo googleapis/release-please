@@ -1207,7 +1207,7 @@ export class Manifest {
       }
 
       if (
-        await this.github.isBranchABasedOnLatestBranchB(
+        await this.github.isBranchASyncedWithB(
           pr.headBranchName,
           branchName.changesBranch
         )
