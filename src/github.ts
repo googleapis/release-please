@@ -1984,8 +1984,8 @@ export class GitHub {
       );
     }
     const targetBranch = await this.octokit.git.getRef({
-      owner: 'owner',
-      repo: 'repo',
+      owner: this.repository.owner,
+      repo: this.repository.repo,
       ref: `heads/${targetBranchName}`,
     });
     this.logger.info(
@@ -1996,6 +1996,7 @@ export class GitHub {
       repo: this.repository.repo,
       ref: `heads/${sourceBranchName}`,
       sha: targetBranch.data.object.sha,
+      force: true,
     });
   }
 }
