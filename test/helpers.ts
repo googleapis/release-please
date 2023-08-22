@@ -17,9 +17,7 @@ import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
 import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
-import {Octokit} from '@octokit/rest';
 import {
   Commit,
   ConventionalCommit,
@@ -42,25 +40,6 @@ import {CompositeUpdater} from '../src/updaters/composite';
 import {PullRequestOverflowHandler} from '../src/util/pull-request-overflow-handler';
 import {ReleasePullRequest} from '../src/release-pull-request';
 import {PullRequest} from '../src/pull-request';
-
-export function stubSuggesterWithSnapshot(
-  sandbox: sinon.SinonSandbox,
-  snapName: string
-) {
-  sandbox.replace(
-    suggester,
-    'createPullRequest',
-    (
-      _octokit: Octokit,
-      changes: suggester.Changes | null | undefined,
-      options: CreatePullRequestUserOptions
-    ): Promise<number> => {
-      snapshot(snapName + ': changes', stringifyExpectedChanges([...changes!]));
-      snapshot(snapName + ': options', stringifyExpectedOptions(options));
-      return Promise.resolve(22);
-    }
-  );
-}
 
 export function safeSnapshot(content: string) {
   snapshot(dateSafe(newLine(content)));

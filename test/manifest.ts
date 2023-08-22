@@ -20,7 +20,6 @@ import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
   buildGitHubFileRaw,
-  stubSuggesterWithSnapshot,
   assertHasUpdate,
   dateSafe,
   safeSnapshot,
@@ -3439,10 +3438,28 @@ describe('Manifest', () => {
 
     it('handles a single pull request', async function () {
       sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
         number: 22,
@@ -3534,6 +3551,7 @@ describe('Manifest', () => {
         .withArgs(
           sinon.match.has('headBranchName', 'release-please/branches/main'),
           'main',
+          'main',
           sinon.match.string,
           sinon.match.array,
           sinon.match({fork: false, draft: false})
@@ -3549,6 +3567,7 @@ describe('Manifest', () => {
         })
         .withArgs(
           sinon.match.has('headBranchName', 'release-please/branches/main2'),
+          'main',
           'main',
           sinon.match.string,
           sinon.match.array,
@@ -3631,10 +3650,28 @@ describe('Manifest', () => {
 
     it('handles signoff users', async function () {
       sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
         number: 22,
@@ -3694,10 +3731,28 @@ describe('Manifest', () => {
 
     it('handles fork = true', async function () {
       sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: true, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
         number: 22,
@@ -3760,7 +3815,25 @@ describe('Manifest', () => {
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       mockPullRequests(
         github,
         [
@@ -3844,7 +3917,25 @@ describe('Manifest', () => {
           .stub(github, 'getFileContentsOnBranch')
           .withArgs('README.md', 'main')
           .resolves(buildGitHubFileRaw('some-content'));
-        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+        sandbox
+          .stub(github, 'createPullRequest')
+          .withArgs(
+            sinon.match.has('headBranchName', 'release-please/branches/main'),
+            'main',
+            'main',
+            sinon.match.string,
+            sinon.match.array,
+            sinon.match({fork: false, draft: false})
+          )
+          .resolves({
+            number: 22,
+            title: 'pr title1',
+            body: 'pr body1',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: [],
+            files: [],
+          });
         mockPullRequests(
           github,
           [
@@ -3926,7 +4017,25 @@ describe('Manifest', () => {
           .resolves(buildGitHubFileRaw('some-content'))
           .withArgs('release-notes.md', 'my-head-branch--release-notes')
           .resolves(buildGitHubFileRaw(body.toString()));
-        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+        sandbox
+          .stub(github, 'createPullRequest')
+          .withArgs(
+            sinon.match.has('headBranchName', 'release-please/branches/main'),
+            'main',
+            'main',
+            sinon.match.string,
+            sinon.match.array,
+            sinon.match({fork: false, draft: false})
+          )
+          .resolves({
+            number: 22,
+            title: 'pr title1',
+            body: 'pr body1',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: [],
+            files: [],
+          });
         mockPullRequests(
           github,
           [
@@ -4007,7 +4116,25 @@ describe('Manifest', () => {
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       mockPullRequests(
         github,
         [
@@ -4151,7 +4278,25 @@ describe('Manifest', () => {
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       mockPullRequests(
         github,
         [],
