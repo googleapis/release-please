@@ -17,7 +17,6 @@ import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
 import * as snapshot from 'snap-shot-it';
-import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {
   Commit,
   ConventionalCommit,
@@ -50,17 +49,6 @@ export function dateSafe(content: string): string {
     /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
     '1983-10-10' // use a fake date, so that we don't break daily.
   );
-}
-
-function stringifyExpectedOptions(
-  expected: CreatePullRequestUserOptions
-): string {
-  expected.description = newLine(expected.description);
-  let stringified = '';
-  for (const [option, value] of Object.entries(expected)) {
-    stringified = `${stringified}\n${option}: ${value}`;
-  }
-  return dateSafe(stringified);
 }
 
 function newLine(content: string): string {

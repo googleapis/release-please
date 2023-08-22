@@ -3436,7 +3436,7 @@ describe('Manifest', () => {
       expect(pullRequests).to.be.empty;
     });
 
-    it('handles a single pull request', async function () {
+    it('handles a single pull request', async () => {
       sandbox
         .stub(github, 'createPullRequest')
         .withArgs(
@@ -3648,7 +3648,7 @@ describe('Manifest', () => {
       ]);
     });
 
-    it('handles signoff users', async function () {
+    it('handles signoff users', async () => {
       sandbox
         .stub(github, 'createPullRequest')
         .withArgs(
@@ -3729,7 +3729,7 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(1);
     });
 
-    it('handles fork = true', async function () {
+    it('handles fork = true', async () => {
       sandbox
         .stub(github, 'createPullRequest')
         .withArgs(
@@ -3810,7 +3810,7 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(1);
     });
 
-    it('updates an existing pull request', async function () {
+    it('updates an existing pull request', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
@@ -3912,7 +3912,7 @@ describe('Manifest', () => {
         useComponents: true,
       });
 
-      it('updates an existing pull request', async function () {
+      it('updates an existing pull request', async () => {
         sandbox
           .stub(github, 'getFileContentsOnBranch')
           .withArgs('README.md', 'main')
@@ -4010,7 +4010,7 @@ describe('Manifest', () => {
         expect(pullRequestNumbers).lengthOf(1);
       });
 
-      it('ignores an existing pull request if there are no changes', async function () {
+      it('ignores an existing pull request if there are no changes', async () => {
         sandbox
           .stub(github, 'getFileContentsOnBranch')
           .withArgs('README.md', 'main')
@@ -4111,7 +4111,7 @@ describe('Manifest', () => {
       });
     });
 
-    it('updates an existing snapshot pull request', async function () {
+    it('updates an existing snapshot pull request', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
@@ -4273,7 +4273,7 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(0);
     });
 
-    it('reopens snoozed, closed pull request if there are changes', async function () {
+    it('reopens snoozed, closed pull request if there are changes', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
