@@ -278,5 +278,5 @@ function safeBranchName(branchName: string): string {
   // convert disallowed characters in branch names, replacing them with '-'.
   // replace multiple consecutive '-' with a single '-' to avoid interfering with
   // our regexes for parsing the branch names
-  return branchName.replace(/[^\w\d]/g, '-').replace(/\-+/g, '-');
+  return branchName.replace(/[^\w\d]/g, '-').replace(/-+/g, '-');
 }
