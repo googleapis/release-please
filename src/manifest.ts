@@ -1135,10 +1135,9 @@ export class Manifest {
     // to minimize risks of race condition we lock branches used as the source of commits for the duration of the
     // release process
     const pullRequests = Object.values(pullRequestsByNumber);
-
-    // FIXME: currently fail due to branch protection rules not found
-    // await this.lockPullRequestsChangesBranche(pullRequests);
-
+    const lockedBranches = await this.lockPullRequestsChangesBranch(
+      pullRequests
+    );
     let createdReleases: CreatedRelease[];
     try {
       // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
@@ -1171,43 +1170,40 @@ export class Manifest {
           []
         );
       }
-
-      await this.alignPullRequestsChangesBranche(pullRequests);
     } finally {
-      // FIXME: currently fail due to branch protection rules not found
-      // always try to unlock branches, we don't want to keep them read-only when the release process fails before
-      // completion
-      // await this.unlockPullRequestsChangesBranche(pullRequests);
+      // FIXME:
+      // always try to unlock branches, we don't want to keep them blocked as read-only when the release process fails
+      // before completion
+      await this.unlockPullRequestsChangesBranch(lockedBranches);
     }
 
+    await this.alignPullRequestsChangesBranch(pullRequests);
     return createdReleases;
   }
 
-  private async lockPullRequestsChangesBranche(pullRequests: PullRequest[]) {
+  /**
+   * Attempt to lock the branch used as the ref for the release branch of pull requests
+   *
+   * @returns {Set<string>} Branch names that have been locked
+   */
+  private async lockPullRequestsChangesBranch(
+    pullRequests: PullRequest[]
+  ): Promise<Set<string>> {
+    const lockedBranches = new Set<string>();
     for (const pr of pullRequests) {
       const branchName = BranchName.parse(pr.headBranchName);
-      // if a changes branch has been used when creating the PR, use it
-      if (branchName?.changesBranch) {
-        await this.github.lockBranch(branchName.changesBranch);
-      }
-      // otherwise lock the target branch
-      else if (branchName?.targetBranch) {
-        await this.github.lockBranch(branchName.targetBranch);
+      const refBranch = branchName?.changesBranch || branchName?.targetBranch;
+      if (refBranch && !lockedBranches.has(refBranch)) {
+        await this.github.lockBranch(refBranch);
+        lockedBranches.add(refBranch);
       }
     }
+    return lockedBranches;
   }
 
-  private async unlockPullRequestsChangesBranche(pullRequests: PullRequest[]) {
-    for (const pr of pullRequests) {
-      const branchName = BranchName.parse(pr.headBranchName);
-      // if a changes branch has been used when creating the PR, use it
-      if (branchName?.changesBranch) {
-        await this.github.unlockBranch(branchName.changesBranch);
-      }
-      // otherwise lock the target branch
-      else if (branchName?.targetBranch) {
-        await this.github.unlockBranch(branchName.targetBranch);
-      }
+  private async unlockPullRequestsChangesBranch(branchNames: Set<string>) {
+    for (const branch of branchNames) {
+      await this.github.unlockBranch(branch);
     }
   }
 
@@ -1216,11 +1212,13 @@ export class Manifest {
   ) {
     for (const pr of pullRequests) {
       const branchName = BranchName.parse(pr.headBranchName);
+
       // we only care about pull requests with an associated changes-branch
       if (!branchName?.changesBranch) {
         continue;
       }
 
+      // first check if the release branch is synced with changes-branch
       if (
         await this.github.isBranchASyncedWithB(
           pr.headBranchName,
@@ -1231,13 +1229,24 @@ export class Manifest {
         continue;
       }
 
+      // then check if changes-branch has already been synced with the base branch (that's the case if the release
+      // process is run twice in a row for example)
+      if (
+        await this.github.isBranchASyncedWithB(
+          branchName.changesBranch,
+          pr.baseBranchName
+        )
+      ) {
+        continue;
+      }
+
       throw new Error(
-        'Race condition detected. changes-branch used for release pull request received new commits. Not safe to reset branch'
+        'Race condition detected. The ref branch used to create the release pull request branch received new commits. Cannot safely reset branch.'
       );
     }
   }
 
-  private async alignPullRequestsChangesBranche(pullRequests: PullRequest[]) {
+  private async alignPullRequestsChangesBranch(pullRequests: PullRequest[]) {
     for (const pr of pullRequests) {
       const branchName = BranchName.parse(pr.headBranchName);
       // we only care about pull requests with an associated changes-branch
@@ -1663,7 +1672,7 @@ async function latestReleaseVersion(
       logger.debug(`found release for ${prefix}`, tagName.version);
       if (!commitShas.has(release.sha)) {
         logger.debug(
-          `SHA not found in recent commits to branch ${branchToScan}, skipping`
+          `SHA not found in recent commits to branch '${branchToScan}', skipping`
         );
         continue;
       }
@@ -1693,7 +1702,7 @@ async function latestReleaseVersion(
     if (tagMatchesConfig(tagName, branchPrefix, config.includeComponentInTag)) {
       if (!commitShas.has(tag.sha)) {
         logger.debug(
-          `SHA not found in recent commits to branch ${branchToScan}, skipping`
+          `SHA not found in recent commits to branch '${branchToScan}', skipping`
         );
         continue;
       }

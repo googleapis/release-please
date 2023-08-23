@@ -99,7 +99,7 @@ interface GraphQLCommit {
   };
 }
 
-interface GraphQLLockBrachProtectionRule {
+interface GraphQLLockBranchProtectionRule {
   repository: {
     ref: {
       branchProtectionRule: {id: string; lockBranch: true};
@@ -432,7 +432,7 @@ export class GitHub {
     options: CommitIteratorOptions = {}
   ): Promise<CommitHistory | null> {
     this.logger.debug(
-      `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
+      `Fetching merge commits on branch '${targetBranch}' with cursor: '${cursor}'`
     );
     const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
       repository(owner: $owner, name: $repo) {
@@ -504,7 +504,7 @@ export class GitHub {
     // if the branch does exist, return null
     if (!response.repository?.ref) {
       this.logger.warn(
-        `Could not find commits for branch ${targetBranch} - it likely does not exist.`
+        `Could not find commits for branch '${targetBranch}' - it likely does not exist.`
       );
       return null;
     }
@@ -671,7 +671,7 @@ export class GitHub {
   private graphqlRequest = wrapAsync(
     async (
       opts: {
-        [key: string]: string | number | null | undefined;
+        [key: string]: string | number | boolean | null | undefined;
       },
       options?: {
         maxRetries?: number;
@@ -843,7 +843,7 @@ export class GitHub {
     cursor?: string
   ): Promise<PullRequestHistory | null> {
     this.logger.debug(
-      `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
+      `Fetching ${states} pull requests on branch '${targetBranch}' with cursor '${cursor}'`
     );
     const response = await this.graphqlRequest({
       query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
@@ -890,7 +890,7 @@ export class GitHub {
     });
     if (!response?.repository?.pullRequests) {
       this.logger.warn(
-        `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
+        `Could not find merged pull requests for branch '${targetBranch}' - it likely does not exist.`
       );
       return null;
     }
@@ -1106,7 +1106,7 @@ export class GitHub {
     path: string,
     branch: string
   ): Promise<GitHubFileContents> {
-    this.logger.debug(`Fetching ${path} from branch ${branch}`);
+    this.logger.debug(`Fetching '${path}' from branch '${branch}'`);
     try {
       return await this.fileCache.getFileContents(path, branch);
     } catch (e) {
@@ -1820,7 +1820,7 @@ export class GitHub {
     branchName: string,
     branchSha: string
   ): Promise<string> {
-    this.logger.debug(`Creating new branch: ${branchName} at ${branchSha}`);
+    this.logger.debug(`Creating new branch: '${branchName}' at $'{branchSha}'`);
     const {
       data: {
         object: {sha},
@@ -1831,7 +1831,7 @@ export class GitHub {
       ref: `refs/heads/${branchName}`,
       sha: branchSha,
     });
-    this.logger.debug(`New branch: ${branchName} at ${sha}`);
+    this.logger.debug(`New branch: '${branchName}' at '${sha}'`);
     return sha;
   }
 
@@ -1839,7 +1839,7 @@ export class GitHub {
     branchName: string,
     branchSha: string
   ): Promise<string> {
-    this.logger.debug(`Updating branch ${branchName} to ${branchSha}`);
+    this.logger.debug(`Updating branch '${branchName}' to '${branchSha}'`);
     const {
       data: {
         object: {sha},
@@ -1851,27 +1851,35 @@ export class GitHub {
       sha: branchSha,
       force: true,
     });
-    this.logger.debug(`Updated branch: ${branchName} to ${sha}`);
+    this.logger.debug(`Updated branch: '${branchName}' to ${sha}`);
     return sha;
   }
 
   async lockBranch(branchName: string) {
-    const currentLockRule = await this.queryLockBranchProtectionRule(
-      branchName
-    );
+    let currentLockRule = await this.queryLockBranchProtectionRule(branchName);
     if (!currentLockRule) {
-      this.logger.warn(
-        `No lock protection rule found for branch ${branchName}`
+      this.logger.info(
+        `No lock protection rule found for branch '${branchName}'. Try to create one with lock_branch=true`,
+        {currentLockRule}
       );
-      return;
+      currentLockRule = await this.createLockBranchProtectionRule(
+        branchName,
+        true
+      );
+      if (!currentLockRule) {
+        this.logger.warn(
+          `Even after trying to create one, no lock protection rule for branch '${branchName}'`
+        );
+        return;
+      }
     }
 
     if (currentLockRule.repository.ref.branchProtectionRule.lockBranch) {
-      this.logger.debug(`Branch ${branchName} was already locked`);
+      this.logger.warn(`Branch '${branchName}' was already locked`);
       return;
     }
 
-    this.logger.info(`Locking branch ${branchName}, it is now read-only`);
+    this.logger.info(`Locking branch '${branchName}', it is now read-only`);
     await this.mutateLockBranchProtectionRule(
       currentLockRule.repository.ref.branchProtectionRule.id,
       true
@@ -1884,25 +1892,25 @@ export class GitHub {
     );
     if (!currentLockRule) {
       this.logger.warn(
-        `No lock protection rule found for branch ${branchName}`
+        `No lock protection rule found for branch '${branchName}'`
       );
       return;
     }
     if (!currentLockRule.repository.ref.branchProtectionRule.lockBranch) {
-      this.logger.debug(`Branch ${branchName} was already unlocked`);
+      this.logger.warn(`Branch '${branchName}' was already unlocked`);
       return;
     }
 
-    this.logger.info(`Unlocking branch ${branchName}, it can allows writes`);
+    this.logger.info(`Unlocking branch '${branchName}', it now allows writes`);
     await this.mutateLockBranchProtectionRule(
       currentLockRule.repository.ref.branchProtectionRule.id,
-      true
+      false
     );
   }
 
   private async queryLockBranchProtectionRule(
     branchName: string
-  ): Promise<GraphQLLockBrachProtectionRule | null> {
+  ): Promise<GraphQLLockBranchProtectionRule | null> {
     const query = `query lockBranchProtectionRule($owner: String!, $repo: String!, $branchName: String!) {
         repository(name: $repo, owner: $owner) {
           ref(qualifiedName: $branchName) {
@@ -1920,21 +1928,17 @@ export class GitHub {
       branchName,
     });
 
-    if (
-      !currentProtectionRule?.data?.repository?.ref?.branchProtectionRule?.id ||
-      !currentProtectionRule?.data?.repository?.ref?.branchProtectionRule
-        ?.lockBranch
-    ) {
+    if (!currentProtectionRule?.repository?.ref?.branchProtectionRule?.id) {
       return null;
     }
-    return currentProtectionRule.data as GraphQLLockBrachProtectionRule;
+    return currentProtectionRule as GraphQLLockBranchProtectionRule;
   }
 
   private async mutateLockBranchProtectionRule(
     protectionRuleId: string,
     locked: boolean
   ) {
-    const query = `mutation LockBranch($ruleId: ID!, $locked: Boolean) {
+    const mutation = `mutation MutateLockBranch($ruleId: ID!, $locked: Boolean) {
         updateBranchProtectionRule(
           input: {branchProtectionRuleId: $ruleId, lockBranch: $locked}
         ) {
@@ -1944,10 +1948,41 @@ export class GitHub {
         }
       }`;
     await this.graphqlRequest({
-      query,
+      query: mutation,
       ruleId: protectionRuleId,
-      locked: locked ? 'true' : 'false',
+      locked: locked,
     });
+  }
+
+  private async createLockBranchProtectionRule(
+    branchName: string,
+    locked: boolean
+  ): Promise<GraphQLLockBranchProtectionRule | null> {
+    const repositoryResponse = await this.octokit.repos.get({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+    });
+
+    const mutation = `mutation CreateLockBranch($repositoryId: ID!, $branchName: String!, $locked: Boolean) {
+        createBranchProtectionRule(
+          input: {repositoryId: $repositoryId, pattern: $branchName, lockBranch: $locked, allowsForcePushes: true}
+        ) {
+          branchProtectionRule {
+            id
+            lockBranch
+          }
+        }
+      }`;
+    const protectionRule = await this.graphqlRequest({
+      query: mutation,
+      repositoryId: repositoryResponse.data.node_id,
+      branchName,
+      locked: locked,
+    });
+    if (!protectionRule?.branchProtectionRule?.id) {
+      return null;
+    }
+    return protectionRule as GraphQLLockBranchProtectionRule;
   }
 
   /**
@@ -1965,11 +2000,11 @@ export class GitHub {
   ): Promise<boolean> {
     if (!branchAName || !branchBName) {
       throw new Error(
-        `A given branch name is empty. Branch A: ${branchAName}. Branch B: ${branchBName}`
+        `A given branch name is empty. Branch A: '${branchAName}'. Branch B: '${branchBName}'`
       );
     }
-    this.logger.info(
-      `Compare branch A ${branchAName} with branch B ${branchBName}`
+    this.logger.debug(
+      `Compare branch A '${branchAName}' with branch B '${branchBName}'`
     );
     const comparison = await this.octokit.repos.compareCommitsWithBasehead({
       owner: this.repository.owner,
@@ -1991,7 +2026,7 @@ export class GitHub {
   ) {
     if (!targetBranchName || !sourceBranchName) {
       throw new Error(
-        `A given branch name is empty. Target branch: ${targetBranchName}. Source branch: ${sourceBranchName}`
+        `A given branch name is empty. Target branch: '${targetBranchName}'. Source branch: '${sourceBranchName}'`
       );
     }
     const targetBranch = await this.octokit.git.getRef({
@@ -2000,7 +2035,7 @@ export class GitHub {
       ref: `heads/${targetBranchName}`,
     });
     this.logger.info(
-      `Align source branch ${sourceBranchName} to target branch ${targetBranch}, commit ${targetBranch.data.object.sha}`
+      `Align source branch '${sourceBranchName}' to target branch '${targetBranchName}', commit '${targetBranch.data.object.sha}'`
     );
     await this.octokit.git.updateRef({
       owner: this.repository.owner,

@@ -5466,6 +5466,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5495,6 +5497,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should handle a multiple manifest release', async () => {
@@ -5560,6 +5564,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5613,6 +5619,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should handle a single standalone release', async () => {
@@ -5636,6 +5644,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5669,6 +5679,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should allow customizing pull request labels', async () => {
@@ -5707,6 +5719,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5739,6 +5753,8 @@ describe('Manifest', () => {
         ['some-pull-request-label'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should create a draft release', async () => {
@@ -5782,6 +5798,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5816,6 +5834,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should create a prerelease release from beta', async () => {
@@ -5861,6 +5881,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5895,6 +5917,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should not create a prerelease release from non-prerelease', async () => {
@@ -5938,6 +5962,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5972,6 +5998,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should handle partially failed manifest release', async () => {
@@ -6042,6 +6070,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -6091,6 +6121,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should throw DuplicateReleaseError if all releases already tagged', async () => {
@@ -6171,6 +6203,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -6204,6 +6238,8 @@ describe('Manifest', () => {
       sinon.assert.notCalled(commentStub);
       sinon.assert.calledOnce(addLabelsStub);
       sinon.assert.calledOnce(removeLabelsStub);
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
   });
 });
