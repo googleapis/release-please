@@ -16,9 +16,9 @@ import {logger as defaultLogger, Logger} from './logger';
 import {parse} from 'node-html-parser';
 import {Version} from '../version';
 
-const DEFAULT_HEADER = ':robot: I have created a release *beep* *boop*';
-const DEFAULT_FOOTER =
-  'This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).';
+const DEFAULT_HEADER = ':sparkles: Stainless prepared a new release';
+const DEFAULT_FOOTER = `This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).`;
 const NOTES_DELIMITER = '---';
 
 interface PullRequestBodyOptions {
