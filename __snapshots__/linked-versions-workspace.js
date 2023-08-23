@@ -1,5 +1,5 @@
 exports['Plugin compatibility linked-versions and workspace should version bump dependencies together 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -31,5 +31,6 @@ exports['Plugin compatibility linked-versions and workspace should version bump 
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `

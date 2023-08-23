@@ -36,7 +36,8 @@ exports['FilePullRequestOverflowHandler parseOverflow ignores small pull request
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['FilePullRequestOverflowHandler parseOverflow parses overflow body and reads file contents 1'] = `
@@ -73,5 +74,6 @@ exports['FilePullRequestOverflowHandler parseOverflow parses overflow body and r
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `

@@ -455,7 +455,7 @@ exports['GitHub createReleasePullRequest should create missing file 1'] = {
   "title": "chore(main): release",
   "head": "release-please--branches--main",
   "base": "main",
-  "body": ":robot: I have created a release *beep* *boop*\n---\n\n\n\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+  "body": ":sparkles: Stainless prepared a new release\n---\n\n\n\n\n---\nThis Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.\nFor technical details, see [this repository](https://github.com/stainless-api/release-please).",
   "draft": false
 }
 
@@ -463,7 +463,7 @@ exports['GitHub createReleasePullRequest should handle missing files 1'] = {
   "title": "chore(main): release",
   "head": "release-please--branches--main",
   "base": "main",
-  "body": ":robot: I have created a release *beep* *boop*\n---\n\n\n\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+  "body": ":sparkles: Stainless prepared a new release\n---\n\n\n\n\n---\nThis Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.\nFor technical details, see [this repository](https://github.com/stainless-api/release-please).",
   "draft": false
 }
 
@@ -471,7 +471,7 @@ exports['GitHub createReleasePullRequest should update file 1'] = {
   "title": "chore(main): release",
   "head": "release-please--branches--main",
   "base": "main",
-  "body": ":robot: I have created a release *beep* *boop*\n---\n\n\n\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+  "body": ":sparkles: Stainless prepared a new release\n---\n\n\n\n\n---\nThis Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.\nFor technical details, see [this repository](https://github.com/stainless-api/release-please).",
   "draft": false
 }
 
