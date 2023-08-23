@@ -1171,6 +1171,71 @@ describe('GitHub', () => {
   });
 
   describe('updatePullRequest', () => {
+    it('handles a ref branch different from the base branch', async () => {
+      const forkBranchStub = sandbox
+        .stub(github, <any>'forkBranch')
+        .withArgs('release-please--branches--main--changes--next', 'next')
+        .resolves('the-pull-request-branch-sha');
+
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .withArgs(
+          sinon.match.any,
+          'the-pull-request-branch-sha',
+          sinon.match.any,
+          sinon.match.has(
+            'branch',
+            'release-please--branches--main--changes--next'
+          ),
+          sinon.match.string,
+          true
+        )
+        .resolves();
+
+      const getPullRequestStub = sandbox
+        .stub(github, 'getPullRequest')
+        .withArgs(123)
+        .resolves({
+          title: 'updated-title',
+          headBranchName: 'release-please--branches--main--changes--next',
+          baseBranchName: 'main',
+          number: 123,
+          body: 'updated body',
+          labels: [],
+          files: [],
+        });
+
+      req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
+        number: 123,
+        title: 'updated-title',
+        body: 'updated body',
+        labels: [],
+        head: {
+          ref: 'release-please--branches--main--changes--next',
+        },
+        base: {
+          ref: 'main',
+        },
+      });
+
+      const pullRequest = {
+        title: PullRequestTitle.ofTargetBranch('main', 'next'),
+        body: new PullRequestBody(mockReleaseData(1000), {
+          useComponents: true,
+        }),
+        labels: [],
+        headRefName: 'release-please--branches--main--changes--next',
+        draft: false,
+        updates: [],
+      };
+
+      await github.updatePullRequest(123, pullRequest, 'main', 'next');
+      sinon.assert.calledOnce(forkBranchStub);
+      sinon.assert.calledOnce(commitAndPushStub);
+      sinon.assert.calledOnce(getPullRequestStub);
+      req.done();
+    });
+
     it('handles a PR body that is too big', async () => {
       const commitAndPushStub = sandbox
         .stub(codeSuggesterCommitAndPush, 'commitAndPush')
