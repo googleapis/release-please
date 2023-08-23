@@ -75,9 +75,9 @@ export class LinkedVersions extends ManifestPlugin {
       }
     }
     this.logger.info(
-      `Found ${Object.keys(groupStrategies).length} group components for ${
+      `Found ${Object.keys(groupStrategies).length} components for group '${
         this.groupName
-      }`
+      }'`
     );
 
     const groupVersions: Record<string, Version> = {};
@@ -118,6 +118,7 @@ export class LinkedVersions extends ManifestPlugin {
           github: this.github,
           path,
           targetBranch: this.targetBranch,
+          changesBranch: this.changesBranch,
           releaseAs: primaryVersion.toString(),
         });
         if (missingReleasePaths.has(path)) {
@@ -166,7 +167,7 @@ export class LinkedVersions extends ManifestPlugin {
       [[], []] as CandidateReleasePullRequest[][]
     );
     this.logger.info(
-      `found ${inScopeCandidates.length} linked-versions candidates`
+      `Found ${inScopeCandidates.length} linked-versions candidates`
     );
 
     // delegate to the merge plugin and add merged pull request

@@ -76,6 +76,10 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
 `
 
 exports['LinkedVersions plugin should allow multiple groups of linked versions 2'] = `
+release-please--branches--target-branch--groups--second-group-name
+`
+
+exports['LinkedVersions plugin should allow multiple groups of linked versions 3'] = `
 :robot: I have created a release *beep* *boop*
 ---
 
@@ -102,6 +106,10 @@ exports['LinkedVersions plugin should allow multiple groups of linked versions 2
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['LinkedVersions plugin should allow multiple groups of linked versions 4'] = `
+release-please--branches--target-branch--groups--group-name
 `
 
 exports['LinkedVersions plugin should group pull requests 1'] = `

@@ -327,6 +327,7 @@ describe('LinkedVersions plugin', () => {
     );
     expect(packageData4).to.not.be.undefined;
     safeSnapshot(groupPullRequest1.body.toString());
+    safeSnapshot(groupPullRequest1.headRefName);
 
     const groupPullRequest2 = pullRequests[0];
     const packageData2 = groupPullRequest2.body.releaseData.find(
@@ -339,6 +340,7 @@ describe('LinkedVersions plugin', () => {
     expect(packageData3).to.not.be.undefined;
     expect(packageData2?.version).to.eql(packageData3?.version);
     safeSnapshot(groupPullRequest2.body.toString());
+    safeSnapshot(groupPullRequest2.headRefName);
 
     expect(groupPullRequest1.headRefName).not.to.eql(
       groupPullRequest2.headRefName
