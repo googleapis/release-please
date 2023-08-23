@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createPullRequest} from 'code-suggester';
 import {commitAndPush} from 'code-suggester/build/src/github/commit-and-push';
 import {addLabels} from 'code-suggester/build/src/github/labels';
 import {setupLogger} from 'code-suggester/build/src/logger';
@@ -214,6 +213,11 @@ interface CreatePullRequestOptions {
   fork?: boolean;
   draft?: boolean;
   reviewers?: [string];
+  /**
+   * If the number of an existing pull request is passed, its HEAD branch and attributes (title, labels, etc) will be
+   * updated instead of creating a new pull request.
+   */
+  existingPrNumber?: number;
 }
 
 export class GitHub {
@@ -1257,7 +1261,7 @@ export class GitHub {
   }
 
   /**
-   * Open a pull request
+   * Open a pull request and its release branch
    *
    * @param {PullRequest} pullRequest Pull request data to update
    * @param {string} baseBranch The base branch of the pull request
@@ -1298,16 +1302,22 @@ export class GitHub {
         true
       );
 
-      // create pull request
-      const createPrResponse = await this.octokit.pulls.create({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        title: pullRequest.title,
-        head: pullRequest.headBranchName,
-        base: baseBranch,
-        body: pullRequest.body,
-        draft: !!options?.draft,
-      });
+      // create pull request, unless one already exists
+      let pullRequestNumber: number;
+      if (options?.existingPrNumber) {
+        pullRequestNumber = options.existingPrNumber;
+      } else {
+        const createPrResponse = await this.octokit.pulls.create({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          title: pullRequest.title,
+          head: pullRequest.headBranchName,
+          base: baseBranch,
+          body: pullRequest.body,
+          draft: !!options?.draft,
+        });
+        pullRequestNumber = createPrResponse.data.number;
+      }
 
       // add labels, autorelease labels are needed for the github-release command
       await addLabels(
@@ -1321,7 +1331,7 @@ export class GitHub {
           repo: this.repository.repo,
           owner: this.repository.owner,
         },
-        createPrResponse.data.number,
+        pullRequestNumber,
         pullRequest.labels
       );
 
@@ -1330,12 +1340,12 @@ export class GitHub {
         await this.octokit.pulls.requestReviewers({
           owner: this.repository.owner,
           repo: this.repository.repo,
-          pull_number: createPrResponse.data.number,
+          pull_number: pullRequestNumber,
           reviewers: options.reviewers,
         });
       }
 
-      return await this.getPullRequest(createPrResponse.data.number);
+      return await this.getPullRequest(pullRequestNumber);
     }
   );
 
@@ -1367,7 +1377,8 @@ export class GitHub {
    * Update a pull request's title and body.
    * @param {number} number The pull request number
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
-   * @param {string} targetBranch The target branch of the pull request
+   * @param {string} baseBranch The base branch of the pull request
+   * @param {string} refBranch The reference branch from which the HEAD branch of the PR should be synced with
    * @param {string} options.signoffUser Optional. Commit signoff message
    * @param {boolean} options.fork Optional. Whether to open the pull request from
    *   a fork or not. Defaults to `false`
@@ -1378,7 +1389,8 @@ export class GitHub {
     async (
       number: number,
       releasePullRequest: ReleasePullRequest,
-      targetBranch: string,
+      baseBranch: string,
+      refBranch: string,
       options?: {
         signoffUser?: string;
         fork?: boolean;
@@ -1386,15 +1398,10 @@ export class GitHub {
       }
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
-      const changes = await this.buildChangeSet(
-        releasePullRequest.updates,
-        targetBranch
-      );
       let message = releasePullRequest.title.toString();
       if (options?.signoffUser) {
         message = signoffCommitMessage(message, options.signoffUser);
       }
-      const title = releasePullRequest.title.toString();
       const body = (
         options?.pullRequestOverflowHandler
           ? await options.pullRequestOverflowHandler.handleOverflow(
@@ -1404,24 +1411,27 @@ export class GitHub {
       )
         .toString()
         .slice(0, MAX_ISSUE_BODY_SIZE);
-      const prNumber = await createPullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title,
-        branch: releasePullRequest.headRefName,
-        description: body,
-        primary: targetBranch,
-        force: true,
-        fork: options?.fork === false ? false : true,
+
+      await this.createPullRequest(
+        {
+          headBranchName: releasePullRequest.headRefName,
+          baseBranchName: baseBranch,
+          number,
+          title: releasePullRequest.title.toString(),
+          body,
+          labels: releasePullRequest.labels,
+          files: [],
+        },
+        baseBranch,
+        refBranch,
         message,
-        logger: this.logger,
-        draft: releasePullRequest.draft,
-      });
-      if (prNumber !== number) {
-        this.logger.warn(
-          `updated code for ${prNumber}, but update requested for ${number}`
-        );
-      }
+        releasePullRequest.updates,
+        {
+          fork: options?.fork,
+          existingPrNumber: number,
+        }
+      );
+
       const response = await this.octokit.pulls.update({
         owner: this.repository.owner,
         repo: this.repository.repo,
@@ -1430,6 +1440,7 @@ export class GitHub {
         body,
         state: 'open',
       });
+
       return {
         headBranchName: response.data.head.ref,
         baseBranchName: response.data.base.ref,

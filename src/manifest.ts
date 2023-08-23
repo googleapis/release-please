@@ -1003,6 +1003,7 @@ export class Manifest {
       existing.number,
       pullRequest,
       this.targetBranch,
+      this.changesBranch,
       {
         fork: this.fork,
         signoffUser: this.signoffUser,
@@ -1028,6 +1029,7 @@ export class Manifest {
       snoozed.number,
       pullRequest,
       this.targetBranch,
+      this.changesBranch,
       {
         fork: this.fork,
         signoffUser: this.signoffUser,

@@ -1196,7 +1196,7 @@ describe('GitHub', () => {
       const handleOverflowStub = sandbox
         .stub(pullRequestOverflowHandler, 'handleOverflow')
         .resolves('overflow message');
-      await github.updatePullRequest(123, pullRequest, 'main', {
+      await github.updatePullRequest(123, pullRequest, 'main', 'main', {
         pullRequestOverflowHandler,
       });
       sinon.assert.calledOnce(handleOverflowStub);
