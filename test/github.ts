@@ -1172,18 +1172,36 @@ describe('GitHub', () => {
 
   describe('updatePullRequest', () => {
     it('handles a PR body that is too big', async () => {
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
+      const forkBranchStub = sandbox
+        .stub(github, <any>'forkBranch')
+        .resolves('the-pull-request-branch-sha');
       req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
         number: 123,
         title: 'updated-title',
         body: 'updated body',
         labels: [],
         head: {
-          ref: 'abc123',
+          ref: 'release-please--branches--main',
         },
         base: {
-          ref: 'def234',
+          ref: 'main',
         },
       });
+      const getPullRequestStub = sandbox
+        .stub(github, 'getPullRequest')
+        .withArgs(123)
+        .resolves({
+          title: 'updated-title',
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          number: 123,
+          body: 'updated body',
+          labels: [],
+          files: [],
+        });
       const pullRequest = {
         title: PullRequestTitle.ofTargetBranch('main', 'main'),
         body: new PullRequestBody(mockReleaseData(1000), {useComponents: true}),
@@ -1200,6 +1218,9 @@ describe('GitHub', () => {
         pullRequestOverflowHandler,
       });
       sinon.assert.calledOnce(handleOverflowStub);
+      sinon.assert.calledOnce(commitAndPushStub);
+      sinon.assert.calledOnce(forkBranchStub);
+      sinon.assert.calledOnce(getPullRequestStub);
       req.done();
     });
   });

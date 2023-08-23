@@ -3913,29 +3913,6 @@ describe('Manifest', () => {
       });
 
       it('updates an existing pull request', async () => {
-        sandbox
-          .stub(github, 'getFileContentsOnBranch')
-          .withArgs('README.md', 'main')
-          .resolves(buildGitHubFileRaw('some-content'));
-        sandbox
-          .stub(github, 'createPullRequest')
-          .withArgs(
-            sinon.match.has('headBranchName', 'release-please/branches/main'),
-            'main',
-            'main',
-            sinon.match.string,
-            sinon.match.array,
-            sinon.match({fork: false, draft: false})
-          )
-          .resolves({
-            number: 22,
-            title: 'pr title1',
-            body: 'pr body1',
-            headBranchName: 'release-please/branches/main',
-            baseBranchName: 'main',
-            labels: [],
-            files: [],
-          });
         mockPullRequests(
           github,
           [
@@ -3951,12 +3928,13 @@ describe('Manifest', () => {
           ],
           []
         );
-        sandbox
+        const updatePullRequestStub = sandbox
           .stub(github, 'updatePullRequest')
           .withArgs(
             22,
             sinon.match.any,
-            sinon.match.any,
+            'main',
+            'main',
             sinon.match.has('pullRequestOverflowHandler', sinon.match.truthy)
           )
           .resolves({
@@ -3990,23 +3968,27 @@ describe('Manifest', () => {
             plugins: ['node-workspace'],
           }
         );
-        sandbox.stub(manifest, 'buildPullRequests').resolves([
-          {
-            title: PullRequestTitle.ofTargetBranch('main', 'main'),
-            body,
-            updates: [
-              {
-                path: 'README.md',
-                createIfMissing: false,
-                updater: new RawContent('some raw content'),
-              },
-            ],
-            labels: [],
-            headRefName: 'release-please/branches/main',
-            draft: false,
-          },
-        ]);
+        const buildPullRequestsStub = sandbox
+          .stub(manifest, 'buildPullRequests')
+          .resolves([
+            {
+              title: PullRequestTitle.ofTargetBranch('main', 'main'),
+              body,
+              updates: [
+                {
+                  path: 'README.md',
+                  createIfMissing: false,
+                  updater: new RawContent('some raw content'),
+                },
+              ],
+              labels: [],
+              headRefName: 'release-please/branches/main',
+              draft: false,
+            },
+          ]);
         const pullRequestNumbers = await manifest.createPullRequests();
+        sinon.assert.calledOnce(updatePullRequestStub);
+        sinon.assert.calledOnce(buildPullRequestsStub);
         expect(pullRequestNumbers).lengthOf(1);
       });
 
