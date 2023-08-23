@@ -945,7 +945,7 @@ describe('GitHub', () => {
           number: 1,
         });
       sandbox
-        .stub(github, <any>'forkBranch')
+        .stub(github, <any>'forkBranch') // eslint-disable-line @typescript-eslint/no-explicit-any
         .resolves('the-pull-request-branch-sha');
       sandbox.stub(codeSuggesterLabels, 'addLabels').resolves();
     });
@@ -1173,7 +1173,7 @@ describe('GitHub', () => {
   describe('updatePullRequest', () => {
     it('handles a ref branch different from the base branch', async () => {
       const forkBranchStub = sandbox
-        .stub(github, <any>'forkBranch')
+        .stub(github, <any>'forkBranch') // eslint-disable-line @typescript-eslint/no-explicit-any
         .withArgs('release-please--branches--main--changes--next', 'next')
         .resolves('the-pull-request-branch-sha');
 
@@ -1241,7 +1241,7 @@ describe('GitHub', () => {
         .stub(codeSuggesterCommitAndPush, 'commitAndPush')
         .resolves();
       const forkBranchStub = sandbox
-        .stub(github, <any>'forkBranch')
+        .stub(github, <any>'forkBranch') // eslint-disable-line @typescript-eslint/no-explicit-any
         .resolves('the-pull-request-branch-sha');
       req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
         number: 123,
