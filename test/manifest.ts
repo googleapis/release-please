@@ -54,7 +54,6 @@ import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
 import {MavenWorkspace} from '../src/plugins/maven-workspace';
-import {RequestErrorOptions} from '@octokit/request-error/dist-types/types';
 
 nock.disableNetConnect();
 
@@ -6323,7 +6322,7 @@ describe('Manifest', () => {
       // stub the race condition detection method to be able to check it was called twice
       const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
         manifest,
-        <any>'throwIfChangesBranchesRaceConditionDetected'
+        <any>'throwIfChangesBranchesRaceConditionDetected' // eslint-disable-line @typescript-eslint/no-explicit-any
       );
 
       const releases = await manifest.createReleases();
