@@ -48,6 +48,7 @@ import {
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
 import {RequestError} from '@octokit/request-error';
+import {GraphqlResponseError} from '@octokit/graphql';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -1177,14 +1178,20 @@ export class Manifest {
         await this.unlockPullRequestsChangesBranch(lockedBranches);
       }
     } catch (err: unknown) {
-      this.logger.info({err});
+      if (err instanceof GraphqlResponseError) {
+        this.logger.info({err: err.errors});
+      }
       // Error: 403 "Resource not accessible by integration" is returned by GitHub when the API token doesn't have
       // permissions to manipulate branch protection rules, if that seems to be the case we instead fallback to checking
       // twice for race conditions, once at the beginning of the release process and once again before aligning branches.
       // While not ideal that still significantly reduces risks of overwriting new commits.
       //
       // Error mentioned here: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/resource-not-accessible-by-integration
-      if (err && err instanceof RequestError && err.status === 403) {
+      if (
+        (err && err instanceof RequestError && err.status === 403) ||
+        (err instanceof GraphqlResponseError &&
+          err.errors?.find(e => e.type === '???'))
+      ) {
         await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
         createdReleases = await runReleaseProcess();
         await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
