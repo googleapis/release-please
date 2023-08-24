@@ -1177,6 +1177,7 @@ export class Manifest {
         await this.unlockPullRequestsChangesBranch(lockedBranches);
       }
     } catch (err: unknown) {
+      this.logger.info({err});
       // Error: 403 "Resource not accessible by integration" is returned by GitHub when the API token doesn't have
       // permissions to manipulate branch protection rules, if that seems to be the case we instead fallback to checking
       // twice for race conditions, once at the beginning of the release process and once again before aligning branches.
