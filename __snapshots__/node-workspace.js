@@ -1,5 +1,5 @@
 exports['NodeWorkspace plugin run appends dependency notes to an updated module 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -37,7 +37,8 @@ Release notes for path: node1, releaseType: node
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['NodeWorkspace plugin run appends dependency notes to an updated module 2'] = `
@@ -62,7 +63,7 @@ exports['NodeWorkspace plugin run appends dependency notes to an updated module 
 `
 
 exports['NodeWorkspace plugin run combines node packages 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -90,11 +91,12 @@ Release notes for path: ., releaseType: node
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['NodeWorkspace plugin run handles a single node package 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -104,7 +106,8 @@ Release notes for path: node1, releaseType: node
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['NodeWorkspace plugin run respects version prefix 1'] = `
@@ -118,7 +121,7 @@ exports['NodeWorkspace plugin run respects version prefix 1'] = `
 `
 
 exports['NodeWorkspace plugin run should ignore peer dependencies 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -128,11 +131,12 @@ Release notes for path: node1, releaseType: node
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['NodeWorkspace plugin run walks dependency tree and updates previously untouched packages 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -174,5 +178,6 @@ Release notes for path: node4, releaseType: node
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `

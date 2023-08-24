@@ -87,7 +87,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
   }> {
     const cargoManifestContent = await this.github.getFileContentsOnBranch(
       'Cargo.toml',
-      this.targetBranch
+      this.changesBranch
     );
     const cargoManifest = parseCargoManifest(
       cargoManifestContent.parsedContent
@@ -105,7 +105,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     const members = (
       await Promise.all(
         cargoManifest.workspace.members.map(member =>
-          this.github.findFilesByGlobAndRef(member, this.targetBranch)
+          this.github.findFilesByGlobAndRef(member, this.changesBranch)
         )
       )
     ).flat();
@@ -122,7 +122,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         )?.cachedFileContents ||
         (await this.github.getFileContentsOnBranch(
           manifestPath,
-          this.targetBranch
+          this.changesBranch
         ));
       const manifest = parseCargoManifest(manifestContent.parsedContent);
       const packageName = manifest.package?.name;
@@ -253,7 +253,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       updatedManifest
     );
     const pullRequest: ReleasePullRequest = {
-      title: PullRequestTitle.ofTargetBranch(this.targetBranch),
+      title: PullRequestTitle.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ),
       body: new PullRequestBody([
         {
           component: pkg.name,
@@ -281,7 +284,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         },
       ],
       labels: [],
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName: BranchName.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ).toString(),
       version,
       draft: false,
     };

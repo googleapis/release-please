@@ -25,6 +25,7 @@ describe('BranchName', () => {
         const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
         expect(branchName?.getTargetBranch()).to.be.undefined;
+        expect(branchName?.getChangesBranch()).to.be.undefined;
         expect(branchName?.getComponent()).to.be.undefined;
         expect(branchName?.getVersion()?.toString()).to.eql('1.2.3');
         expect(branchName?.toString()).to.eql(name);
@@ -34,6 +35,7 @@ describe('BranchName', () => {
         const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
         expect(branchName?.getTargetBranch()).to.be.undefined;
+        expect(branchName?.getChangesBranch()).to.be.undefined;
         expect(branchName?.getComponent()).to.eql('storage');
         expect(branchName?.getVersion()?.toString()).to.eql('1.2.3');
         expect(branchName?.toString()).to.eql(name);
@@ -50,6 +52,7 @@ describe('BranchName', () => {
         const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
         expect(branchName?.getTargetBranch()).to.eql('main');
+        expect(branchName?.getChangesBranch()).to.be.undefined;
         expect(branchName?.getComponent()).to.be.undefined;
         expect(branchName?.getVersion()).to.be.undefined;
         expect(branchName?.toString()).to.eql(name);
@@ -60,6 +63,7 @@ describe('BranchName', () => {
         const branchName = BranchName.parse(name);
         expect(branchName).to.not.be.undefined;
         expect(branchName?.getTargetBranch()).to.eql('main');
+        expect(branchName?.getChangesBranch()).to.be.undefined;
         expect(branchName?.getComponent()).to.eql('storage');
         expect(branchName?.getVersion()).to.be.undefined;
         expect(branchName?.toString()).to.eql(name);
@@ -71,6 +75,18 @@ describe('BranchName', () => {
       const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('main');
+      expect(branchName?.getChangesBranch()).to.be.undefined;
+      expect(branchName?.getComponent()).to.be.undefined;
+      expect(branchName?.getVersion()).to.be.undefined;
+      expect(branchName?.toString()).to.eql(name);
+    });
+
+    it('parses a target branch with changes branch', () => {
+      const name = 'release-please--branches--main--changes--next';
+      const branchName = BranchName.parse(name);
+      expect(branchName).to.not.be.undefined;
+      expect(branchName?.getTargetBranch()).to.eql('main');
+      expect(branchName?.getChangesBranch()).to.eql('next');
       expect(branchName?.getComponent()).to.be.undefined;
       expect(branchName?.getVersion()).to.be.undefined;
       expect(branchName?.toString()).to.eql(name);
@@ -81,6 +97,7 @@ describe('BranchName', () => {
       const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('v3.3.x');
+      expect(branchName?.getChangesBranch()).to.be.undefined;
       expect(branchName?.getComponent()).to.be.undefined;
       expect(branchName?.getVersion()).to.be.undefined;
       expect(branchName?.toString()).to.eql(name);
@@ -91,6 +108,7 @@ describe('BranchName', () => {
       const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('v3.3.9');
+      expect(branchName?.getChangesBranch()).to.be.undefined;
       expect(branchName?.getComponent()).to.be.undefined;
       expect(branchName?.getVersion()).to.be.undefined;
       expect(branchName?.toString()).to.eql(name);
@@ -101,6 +119,19 @@ describe('BranchName', () => {
       const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('main');
+      expect(branchName?.getChangesBranch()).to.be.undefined;
+      expect(branchName?.getComponent()).to.eql('storage');
+      expect(branchName?.getVersion()).to.be.undefined;
+      expect(branchName?.toString()).to.eql(name);
+    });
+
+    it('parses a target branch, changes branch, and component', () => {
+      const name =
+        'release-please--branches--main--changes--next--components--storage';
+      const branchName = BranchName.parse(name);
+      expect(branchName).to.not.be.undefined;
+      expect(branchName?.getTargetBranch()).to.eql('main');
+      expect(branchName?.getChangesBranch()).to.eql('next');
       expect(branchName?.getComponent()).to.eql('storage');
       expect(branchName?.getVersion()).to.be.undefined;
       expect(branchName?.toString()).to.eql(name);
@@ -111,6 +142,7 @@ describe('BranchName', () => {
       const branchName = BranchName.parse(name);
       expect(branchName).to.not.be.undefined;
       expect(branchName?.getTargetBranch()).to.eql('hotfix/3.3.x');
+      expect(branchName?.getChangesBranch()).to.be.undefined;
       expect(branchName?.getComponent()).to.be.undefined;
       expect(branchName?.getVersion()).to.be.undefined;
       expect(branchName?.toString()).to.eql(name);
@@ -138,15 +170,35 @@ describe('BranchName', () => {
   });
   describe('ofTargetBranch', () => {
     it('builds branchname with only target branch', () => {
-      const branchName = BranchName.ofTargetBranch('main');
+      const branchName = BranchName.ofTargetBranch('main', 'main');
       expect(branchName.toString()).to.eql('release-please--branches--main');
+    });
+    it('builds branchname with target branch and changes branch', () => {
+      const branchName = BranchName.ofTargetBranch('main', 'next');
+      expect(branchName.toString()).to.eql(
+        'release-please--branches--main--changes--next'
+      );
     });
   });
   describe('ofComponentTargetBranch', () => {
     it('builds branchname with target branch and component', () => {
-      const branchName = BranchName.ofComponentTargetBranch('foo', 'main');
+      const branchName = BranchName.ofComponentTargetBranch(
+        'foo',
+        'main',
+        'main'
+      );
       expect(branchName.toString()).to.eql(
         'release-please--branches--main--components--foo'
+      );
+    });
+    it('builds branchname with target branch, changes branch, and component', () => {
+      const branchName = BranchName.ofComponentTargetBranch(
+        'foo',
+        'main',
+        'next'
+      );
+      expect(branchName.toString()).to.eql(
+        'release-please--branches--main--changes--next--components--foo'
       );
     });
   });

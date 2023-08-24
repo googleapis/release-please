@@ -122,7 +122,7 @@ export class Python extends BaseStrategy {
     // There should be only one version.py, but foreach in case that is incorrect
     const versionPyFilesSearch = this.github.findFilesByFilenameAndRef(
       'version.py',
-      this.targetBranch,
+      this.changesBranch,
       this.path
     );
     const versionPyFiles = await versionPyFilesSearch;
@@ -159,7 +159,7 @@ export class Python extends BaseStrategy {
     try {
       const content = await this.github.getFileContentsOnBranch(
         path,
-        this.targetBranch
+        this.changesBranch
       );
       return parsePyProject(content.parsedContent);
     } catch (e) {
@@ -184,7 +184,7 @@ export class Python extends BaseStrategy {
       return (
         await this.github.getFileContentsOnBranch(
           this.addPath('setup.py'),
-          this.targetBranch
+          this.changesBranch
         )
       ).parsedContent;
     } catch (e) {

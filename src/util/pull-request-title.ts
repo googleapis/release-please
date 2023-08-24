@@ -28,8 +28,9 @@ export function generateMatchPattern(
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{scope\}/) === -1
-  )
+  ) {
     logger.warn("pullRequestTitlePattern miss the part of '${scope}'");
+  }
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{component\}/) === -1
@@ -46,15 +47,20 @@ export function generateMatchPattern(
       .replace(']', '\\]')
       .replace('(', '\\(')
       .replace(')', '\\)')
-      .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
+      .replace(
+        '${scope}',
+        '(\\((?<changesBranch>[\\w-./]+ => )?(?<branch>[\\w-./]+)\\))?'
+      )
       .replace('${component}', ' ?(?<component>@?[\\w-./]*)?')
       .replace('${version}', 'v?(?<version>[0-9].*)')
+      .replace('${changesBranch}', '(?<changesBranch>?[\\w-./]+)?')
       .replace('${branch}', '(?<branch>[\\w-./]+)?')}$`
   );
 }
 
 export class PullRequestTitle {
   component?: string;
+  changesBranch?: string;
   targetBranch?: string;
   version?: Version;
   pullRequestTitlePattern: string;
@@ -64,12 +70,14 @@ export class PullRequestTitle {
     version?: Version;
     component?: string;
     targetBranch?: string;
+    changesBranch?: string;
     pullRequestTitlePattern?: string;
     logger?: Logger;
   }) {
     this.version = opts.version;
     this.component = opts.component;
     this.targetBranch = opts.targetBranch;
+    this.changesBranch = opts.changesBranch || this.targetBranch;
     this.pullRequestTitlePattern =
       opts.pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN;
     this.matchPattern = generateMatchPattern(
@@ -91,6 +99,7 @@ export class PullRequestTitle {
           ? Version.parse(match.groups['version'])
           : undefined,
         component: match.groups['component'],
+        changesBranch: match.groups['changesBranch'],
         targetBranch: match.groups['branch'],
         pullRequestTitlePattern,
         logger,
@@ -114,18 +123,22 @@ export class PullRequestTitle {
   }
   static ofTargetBranchVersion(
     targetBranch: string,
+    changesBranch: string,
     version: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
       version,
       targetBranch,
+      changesBranch,
       pullRequestTitlePattern,
     });
   }
+
   static ofComponentTargetBranchVersion(
     component?: string,
     targetBranch?: string,
+    changesBranch?: string,
     version?: Version,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
@@ -133,21 +146,28 @@ export class PullRequestTitle {
       version,
       component,
       targetBranch,
+      changesBranch,
       pullRequestTitlePattern,
     });
   }
+
   static ofTargetBranch(
     targetBranch: string,
+    changesBranch: string,
     pullRequestTitlePattern?: string
   ): PullRequestTitle {
     return new PullRequestTitle({
       targetBranch,
+      changesBranch,
       pullRequestTitlePattern,
     });
   }
 
   getTargetBranch(): string | undefined {
     return this.targetBranch;
+  }
+  getChangesBRanch(): string | undefined {
+    return this.changesBranch;
   }
   getComponent(): string | undefined {
     return this.component;
@@ -157,13 +177,18 @@ export class PullRequestTitle {
   }
 
   toString(): string {
-    const scope = this.targetBranch ? `(${this.targetBranch})` : '';
+    const scope = this.targetBranch
+      ? this.changesBranch && this.changesBranch !== this.targetBranch
+        ? `(${this.changesBranch} => ${this.targetBranch})`
+        : `(${this.targetBranch})`
+      : '';
     const component = this.component ? ` ${this.component}` : '';
     const version = this.version ?? '';
     return this.pullRequestTitlePattern
       .replace('${scope}', scope)
       .replace('${component}', component)
       .replace('${version}', version.toString())
+      .replace('${changesBranch}', this.changesBranch || '')
       .replace('${branch}', this.targetBranch || '')
       .trim();
   }

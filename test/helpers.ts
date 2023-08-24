@@ -17,9 +17,6 @@ import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
 import * as snapshot from 'snap-shot-it';
-import * as suggester from 'code-suggester';
-import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
-import {Octokit} from '@octokit/rest';
 import {
   Commit,
   ConventionalCommit,
@@ -43,25 +40,6 @@ import {PullRequestOverflowHandler} from '../src/util/pull-request-overflow-hand
 import {ReleasePullRequest} from '../src/release-pull-request';
 import {PullRequest} from '../src/pull-request';
 
-export function stubSuggesterWithSnapshot(
-  sandbox: sinon.SinonSandbox,
-  snapName: string
-) {
-  sandbox.replace(
-    suggester,
-    'createPullRequest',
-    (
-      _octokit: Octokit,
-      changes: suggester.Changes | null | undefined,
-      options: CreatePullRequestUserOptions
-    ): Promise<number> => {
-      snapshot(snapName + ': changes', stringifyExpectedChanges([...changes!]));
-      snapshot(snapName + ': options', stringifyExpectedOptions(options));
-      return Promise.resolve(22);
-    }
-  );
-}
-
 export function safeSnapshot(content: string) {
   snapshot(dateSafe(newLine(content)));
 }
@@ -71,17 +49,6 @@ export function dateSafe(content: string): string {
     /[0-9]{4}-[0-9]{2}-[0-9]{2}/g,
     '1983-10-10' // use a fake date, so that we don't break daily.
   );
-}
-
-function stringifyExpectedOptions(
-  expected: CreatePullRequestUserOptions
-): string {
-  expected.description = newLine(expected.description);
-  let stringified = '';
-  for (const [option, value] of Object.entries(expected)) {
-    stringified = `${stringified}\n${option}: ${value}`;
-  }
-  return dateSafe(stringified);
 }
 
 function newLine(content: string): string {
@@ -336,7 +303,7 @@ export function buildMockCandidatePullRequest(
   return {
     path,
     pullRequest: {
-      title: PullRequestTitle.ofTargetBranch('main'),
+      title: PullRequestTitle.ofTargetBranch('main', 'main'),
       body: new PullRequestBody([
         {
           component: options.component,
@@ -348,7 +315,7 @@ export function buildMockCandidatePullRequest(
       ]),
       updates: options.updates ?? [],
       labels: options.labels ?? [],
-      headRefName: BranchName.ofTargetBranch('main').toString(),
+      headRefName: BranchName.ofTargetBranch('main', 'main').toString(),
       version,
       draft: options.draft ?? false,
       group: options.group,

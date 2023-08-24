@@ -410,7 +410,10 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       this.logger
     );
     const pullRequest: ReleasePullRequest = {
-      title: PullRequestTitle.ofTargetBranch(this.targetBranch),
+      title: PullRequestTitle.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ),
       body: new PullRequestBody([
         {
           component: artifact.name,
@@ -438,7 +441,10 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
         },
       ],
       labels: [],
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName: BranchName.ofTargetBranch(
+        this.targetBranch,
+        this.changesBranch
+      ).toString(),
       version,
       draft: false,
     };

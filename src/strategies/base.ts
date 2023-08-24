@@ -61,6 +61,7 @@ export interface BaseStrategyOptions {
   packageName?: string;
   versioningStrategy?: VersioningStrategy;
   targetBranch: string;
+  changesBranch?: string;
   changelogPath?: string;
   changelogHost?: string;
   changelogSections?: ChangelogSection[];
@@ -96,6 +97,7 @@ export abstract class BaseStrategy implements Strategy {
   private packageName?: string;
   readonly versioningStrategy: VersioningStrategy;
   protected targetBranch: string;
+  protected changesBranch: string;
   protected repository: Repository;
   protected changelogPath: string;
   protected changelogHost?: string;
@@ -126,6 +128,7 @@ export abstract class BaseStrategy implements Strategy {
       options.versioningStrategy ||
       new DefaultVersioningStrategy({logger: this.logger});
     this.targetBranch = options.targetBranch;
+    this.changesBranch = options.changesBranch || this.targetBranch;
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
     this.changelogHost = options.changelogHost;
@@ -214,6 +217,7 @@ export abstract class BaseStrategy implements Strategy {
       previousTag: latestRelease?.tag?.toString(),
       currentTag: newVersionTag.toString(),
       targetBranch: this.targetBranch,
+      changesBranch: this.changesBranch,
       changelogSections: this.changelogSections,
       commits: commits,
     });
@@ -281,6 +285,7 @@ export abstract class BaseStrategy implements Strategy {
       this.tagSeparator,
       this.includeVInTag
     );
+
     this.logger.debug(
       'pull request title pattern:',
       this.pullRequestTitlePattern
@@ -288,13 +293,20 @@ export abstract class BaseStrategy implements Strategy {
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
+      this.changesBranch,
       newVersion,
       this.pullRequestTitlePattern
     );
+
     const branchComponent = await this.getBranchComponent();
     const branchName = branchComponent
-      ? BranchName.ofComponentTargetBranch(branchComponent, this.targetBranch)
-      : BranchName.ofTargetBranch(this.targetBranch);
+      ? BranchName.ofComponentTargetBranch(
+          branchComponent,
+          this.targetBranch,
+          this.changesBranch
+        )
+      : BranchName.ofTargetBranch(this.targetBranch, this.changesBranch);
+
     const releaseNotesBody = await this.buildReleaseNotes(
       conventionalCommits,
       newVersion,
@@ -356,20 +368,20 @@ export abstract class BaseStrategy implements Strategy {
       return (
         await this.github.findFilesByGlobAndRef(
           extraFile.path.slice(1),
-          this.targetBranch
+          this.changesBranch
         )
       ).map(file => `/${file}`);
     } else if (this.path === ROOT_PROJECT_PATH) {
       // root component, ignore path prefix
       return this.github.findFilesByGlobAndRef(
         extraFile.path,
-        this.targetBranch
+        this.changesBranch
       );
     } else {
       // glob is relative to current path
       return this.github.findFilesByGlobAndRef(
         extraFile.path,
-        this.targetBranch,
+        this.changesBranch,
         this.path
       );
     }

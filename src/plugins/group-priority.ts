@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ManifestPlugin} from '../plugin';
+import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {GitHub} from '../github';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 
@@ -36,9 +36,10 @@ export class GroupPriority extends ManifestPlugin {
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
-    groups: string[]
+    groups: string[],
+    options: ManifestPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(github, targetBranch, repositoryConfig, options);
     this.groups = groups;
   }
 

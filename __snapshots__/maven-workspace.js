@@ -1,5 +1,5 @@
 exports['MavenWorkspace plugin run appends to existing candidate 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -18,11 +18,12 @@ Release notes for path: maven3, releaseType: maven
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['MavenWorkspace plugin run appends to existing candidate with special updater 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -41,11 +42,12 @@ Release notes for path: maven3, releaseType: maven
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['MavenWorkspace plugin run can consider all artifacts 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -65,7 +67,8 @@ Release notes for path: multi1, releaseType: java-yoshi
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['MavenWorkspace plugin run can consider all artifacts 2'] = `
@@ -109,7 +112,7 @@ exports['MavenWorkspace plugin run can consider all artifacts 2'] = `
 `
 
 exports['MavenWorkspace plugin run handles a single maven package 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -119,11 +122,12 @@ Release notes for path: maven4, releaseType: maven
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['MavenWorkspace plugin run skips pom files not configured for release 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -157,11 +161,12 @@ Release notes for path: maven1, releaseType: maven
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['MavenWorkspace plugin run walks dependency tree and updates previously untouched packages 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -195,5 +200,6 @@ Release notes for path: maven1, releaseType: maven
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `

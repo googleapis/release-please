@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createPullRequest} from 'code-suggester';
+import {commitAndPush} from 'code-suggester/build/src/github/commit-and-push';
+import {addLabels} from 'code-suggester/build/src/github/labels';
+import {setupLogger} from 'code-suggester/build/src/logger';
+
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 
@@ -93,6 +96,14 @@ interface GraphQLCommit {
   message: string;
   associatedPullRequests: {
     nodes: GraphQLPullRequest[];
+  };
+}
+
+interface GraphQLLockBranchProtectionRule {
+  repository: {
+    ref: {
+      branchProtectionRule: {id: string; lockBranch: true};
+    };
   };
 }
 
@@ -202,6 +213,11 @@ interface CreatePullRequestOptions {
   fork?: boolean;
   draft?: boolean;
   reviewers?: [string];
+  /**
+   * If the number of an existing pull request is passed, its HEAD branch and attributes (title, labels, etc) will be
+   * updated instead of creating a new pull request.
+   */
+  existingPrNumber?: number;
 }
 
 export class GitHub {
@@ -221,6 +237,9 @@ export class GitHub {
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
     this.useGraphql = options.useGraphql ?? true;
+
+    // required to be able to rely on functions from code-suggester
+    setupLogger(this.logger);
   }
 
   static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
@@ -413,7 +432,7 @@ export class GitHub {
     options: CommitIteratorOptions = {}
   ): Promise<CommitHistory | null> {
     this.logger.debug(
-      `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
+      `Fetching merge commits on branch '${targetBranch}' with cursor: '${cursor}'`
     );
     const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
       repository(owner: $owner, name: $repo) {
@@ -485,7 +504,7 @@ export class GitHub {
     // if the branch does exist, return null
     if (!response.repository?.ref) {
       this.logger.warn(
-        `Could not find commits for branch ${targetBranch} - it likely does not exist.`
+        `Could not find commits for branch '${targetBranch}' - it likely does not exist.`
       );
       return null;
     }
@@ -652,7 +671,7 @@ export class GitHub {
   private graphqlRequest = wrapAsync(
     async (
       opts: {
-        [key: string]: string | number | null | undefined;
+        [key: string]: string | number | boolean | null | undefined;
       },
       options?: {
         maxRetries?: number;
@@ -824,7 +843,7 @@ export class GitHub {
     cursor?: string
   ): Promise<PullRequestHistory | null> {
     this.logger.debug(
-      `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
+      `Fetching ${states} pull requests on branch '${targetBranch}' with cursor '${cursor}'`
     );
     const response = await this.graphqlRequest({
       query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
@@ -871,7 +890,7 @@ export class GitHub {
     });
     if (!response?.repository?.pullRequests) {
       this.logger.warn(
-        `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
+        `Could not find merged pull requests for branch '${targetBranch}' - it likely does not exist.`
       );
       return null;
     }
@@ -1087,7 +1106,7 @@ export class GitHub {
     path: string,
     branch: string
   ): Promise<GitHubFileContents> {
-    this.logger.debug(`Fetching ${path} from branch ${branch}`);
+    this.logger.debug(`Fetching '${path}' from branch '${branch}'`);
     try {
       return await this.fileCache.getFileContents(path, branch);
     } catch (e) {
@@ -1206,6 +1225,7 @@ export class GitHub {
   async createReleasePullRequest(
     releasePullRequest: ReleasePullRequest,
     targetBranch: string,
+    changesBranch: string,
     options?: {
       signoffUser?: string;
       fork?: boolean;
@@ -1230,6 +1250,7 @@ export class GitHub {
         files: [],
       },
       targetBranch,
+      changesBranch,
       message,
       releasePullRequest.updates,
       {
@@ -1240,10 +1261,11 @@ export class GitHub {
   }
 
   /**
-   * Open a pull request
+   * Open a pull request and its release branch
    *
    * @param {PullRequest} pullRequest Pull request data to update
-   * @param {string} targetBranch The base branch of the pull request
+   * @param {string} baseBranch The base branch of the pull request
+   * @param {string} refBranch The reference branch from which the HEAD branch of the PR should be created
    * @param {string} message The commit message for the commit
    * @param {Update[]} updates The files to update
    * @param {CreatePullRequestOptions} options The pull request options
@@ -1252,36 +1274,78 @@ export class GitHub {
   createPullRequest = wrapAsync(
     async (
       pullRequest: PullRequest,
-      targetBranch: string,
+      baseBranch: string,
+      refBranch: string,
       message: string,
       updates: Update[],
       options?: CreatePullRequestOptions
     ): Promise<PullRequest> => {
-      //  Update the files for the release if not already supplied
-      const changes = await this.buildChangeSet(updates, targetBranch);
-      const prNumber = await createPullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title: pullRequest.title,
-        branch: pullRequest.headBranchName,
-        description: pullRequest.body,
-        primary: targetBranch,
-        force: true,
-        fork: !!options?.fork,
+      const changes = await this.buildChangeSet(updates, baseBranch);
+
+      // create release branch
+      const pullRequestBranchSha = await this.forkBranch(
+        pullRequest.headBranchName,
+        refBranch
+      );
+
+      // commit and push changeset
+      await commitAndPush(
+        this.octokit,
+        pullRequestBranchSha,
+        changes,
+        {
+          branch: pullRequest.headBranchName,
+          repo: this.repository.repo,
+          owner: this.repository.owner,
+        },
         message,
-        logger: this.logger,
-        draft: !!options?.draft,
-        labels: pullRequest.labels,
-      });
+        true
+      );
+
+      // create pull request, unless one already exists
+      let pullRequestNumber: number;
+      if (options?.existingPrNumber) {
+        pullRequestNumber = options.existingPrNumber;
+      } else {
+        const createPrResponse = await this.octokit.pulls.create({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          title: pullRequest.title,
+          head: pullRequest.headBranchName,
+          base: baseBranch,
+          body: pullRequest.body,
+          draft: !!options?.draft,
+        });
+        pullRequestNumber = createPrResponse.data.number;
+      }
+
+      // add labels, autorelease labels are needed for the github-release command
+      await addLabels(
+        this.octokit,
+        {
+          repo: this.repository.repo,
+          owner: this.repository.owner,
+        },
+        {
+          branch: pullRequest.headBranchName,
+          repo: this.repository.repo,
+          owner: this.repository.owner,
+        },
+        pullRequestNumber,
+        pullRequest.labels
+      );
+
+      // assign reviewers
       if (options?.reviewers) {
         await this.octokit.pulls.requestReviewers({
           owner: this.repository.owner,
           repo: this.repository.repo,
-          pull_number: prNumber,
+          pull_number: pullRequestNumber,
           reviewers: options.reviewers,
         });
       }
-      return await this.getPullRequest(prNumber);
+
+      return await this.getPullRequest(pullRequestNumber);
     }
   );
 
@@ -1313,7 +1377,8 @@ export class GitHub {
    * Update a pull request's title and body.
    * @param {number} number The pull request number
    * @param {ReleasePullRequest} releasePullRequest Pull request data to update
-   * @param {string} targetBranch The target branch of the pull request
+   * @param {string} baseBranch The base branch of the pull request
+   * @param {string} refBranch The reference branch from which the HEAD branch of the PR should be synced with
    * @param {string} options.signoffUser Optional. Commit signoff message
    * @param {boolean} options.fork Optional. Whether to open the pull request from
    *   a fork or not. Defaults to `false`
@@ -1324,7 +1389,8 @@ export class GitHub {
     async (
       number: number,
       releasePullRequest: ReleasePullRequest,
-      targetBranch: string,
+      baseBranch: string,
+      refBranch: string,
       options?: {
         signoffUser?: string;
         fork?: boolean;
@@ -1332,15 +1398,10 @@ export class GitHub {
       }
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
-      const changes = await this.buildChangeSet(
-        releasePullRequest.updates,
-        targetBranch
-      );
       let message = releasePullRequest.title.toString();
       if (options?.signoffUser) {
         message = signoffCommitMessage(message, options.signoffUser);
       }
-      const title = releasePullRequest.title.toString();
       const body = (
         options?.pullRequestOverflowHandler
           ? await options.pullRequestOverflowHandler.handleOverflow(
@@ -1350,24 +1411,27 @@ export class GitHub {
       )
         .toString()
         .slice(0, MAX_ISSUE_BODY_SIZE);
-      const prNumber = await createPullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title,
-        branch: releasePullRequest.headRefName,
-        description: body,
-        primary: targetBranch,
-        force: true,
-        fork: options?.fork === false ? false : true,
+
+      await this.createPullRequest(
+        {
+          headBranchName: releasePullRequest.headRefName,
+          baseBranchName: baseBranch,
+          number,
+          title: releasePullRequest.title.toString(),
+          body,
+          labels: releasePullRequest.labels,
+          files: [],
+        },
+        baseBranch,
+        refBranch,
         message,
-        logger: this.logger,
-        draft: releasePullRequest.draft,
-      });
-      if (prNumber !== number) {
-        this.logger.warn(
-          `updated code for ${prNumber}, but update requested for ${number}`
-        );
-      }
+        releasePullRequest.updates,
+        {
+          fork: options?.fork,
+          existingPrNumber: number,
+        }
+      );
+
       const response = await this.octokit.pulls.update({
         owner: this.repository.owner,
         repo: this.repository.repo,
@@ -1376,6 +1440,7 @@ export class GitHub {
         body,
         state: 'open',
       });
+
       return {
         headBranchName: response.data.head.ref,
         baseBranchName: response.data.base.ref,
@@ -1394,22 +1459,20 @@ export class GitHub {
    * Given a set of proposed updates, build a changeset to suggest.
    *
    * @param {Update[]} updates The proposed updates
-   * @param {string} defaultBranch The target branch
+   * @param {string} baseBranch The branch to compare against
    * @return {Changes} The changeset to suggest.
    * @throws {GitHubAPIError} on an API error
    */
   async buildChangeSet(
     updates: Update[],
-    defaultBranch: string
+    baseBranch: string
   ): Promise<ChangeSet> {
     const changes = new Map();
     for (const update of updates) {
       let content: GitHubFileContents | undefined;
+      this.logger.debug(`update.path: ${update.path}`);
       try {
-        content = await this.getFileContentsOnBranch(
-          update.path,
-          defaultBranch
-        );
+        content = await this.getFileContentsOnBranch(update.path, baseBranch);
       } catch (err) {
         if (!(err instanceof FileNotFoundError)) throw err;
         // if the file is missing and create = false, just continue
@@ -1757,7 +1820,7 @@ export class GitHub {
     branchName: string,
     branchSha: string
   ): Promise<string> {
-    this.logger.debug(`Creating new branch: ${branchName} at ${branchSha}`);
+    this.logger.debug(`Creating new branch: '${branchName}' at $'{branchSha}'`);
     const {
       data: {
         object: {sha},
@@ -1768,7 +1831,7 @@ export class GitHub {
       ref: `refs/heads/${branchName}`,
       sha: branchSha,
     });
-    this.logger.debug(`New branch: ${branchName} at ${sha}`);
+    this.logger.debug(`New branch: '${branchName}' at '${sha}'`);
     return sha;
   }
 
@@ -1776,7 +1839,7 @@ export class GitHub {
     branchName: string,
     branchSha: string
   ): Promise<string> {
-    this.logger.debug(`Updating branch ${branchName} to ${branchSha}`);
+    this.logger.debug(`Updating branch '${branchName}' to '${branchSha}'`);
     const {
       data: {
         object: {sha},
@@ -1788,8 +1851,199 @@ export class GitHub {
       sha: branchSha,
       force: true,
     });
-    this.logger.debug(`Updated branch: ${branchName} to ${sha}`);
+    this.logger.debug(`Updated branch: '${branchName}' to ${sha}`);
     return sha;
+  }
+
+  async lockBranch(branchName: string) {
+    let currentLockRule = await this.queryLockBranchProtectionRule(branchName);
+    if (!currentLockRule) {
+      this.logger.info(
+        `No lock protection rule found for branch '${branchName}'. Try to create one with lock_branch=true`,
+        {currentLockRule}
+      );
+      currentLockRule = await this.createLockBranchProtectionRule(
+        branchName,
+        true
+      );
+      if (!currentLockRule) {
+        this.logger.warn(
+          `Even after trying to create one, no lock protection rule for branch '${branchName}'`
+        );
+        return;
+      }
+    }
+
+    if (currentLockRule.repository.ref.branchProtectionRule.lockBranch) {
+      this.logger.warn(`Branch '${branchName}' was already locked`);
+      return;
+    }
+
+    this.logger.info(`Locking branch '${branchName}', it is now read-only`);
+    await this.mutateLockBranchProtectionRule(
+      currentLockRule.repository.ref.branchProtectionRule.id,
+      true
+    );
+  }
+
+  async unlockBranch(branchName: string) {
+    const currentLockRule = await this.queryLockBranchProtectionRule(
+      branchName
+    );
+    if (!currentLockRule) {
+      this.logger.warn(
+        `No lock protection rule found for branch '${branchName}'`
+      );
+      return;
+    }
+    if (!currentLockRule.repository.ref.branchProtectionRule.lockBranch) {
+      this.logger.warn(`Branch '${branchName}' was already unlocked`);
+      return;
+    }
+
+    this.logger.info(`Unlocking branch '${branchName}', it now allows writes`);
+    await this.mutateLockBranchProtectionRule(
+      currentLockRule.repository.ref.branchProtectionRule.id,
+      false
+    );
+  }
+
+  private async queryLockBranchProtectionRule(
+    branchName: string
+  ): Promise<GraphQLLockBranchProtectionRule | null> {
+    const query = `query lockBranchProtectionRule($owner: String!, $repo: String!, $branchName: String!) {
+        repository(name: $repo, owner: $owner) {
+          ref(qualifiedName: $branchName) {
+            branchProtectionRule {
+              id
+              lockBranch
+            }
+          }
+        }
+      }`;
+    const currentProtectionRule = await this.graphqlRequest({
+      query,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      branchName,
+    });
+
+    if (!currentProtectionRule?.repository?.ref?.branchProtectionRule?.id) {
+      return null;
+    }
+    return currentProtectionRule as GraphQLLockBranchProtectionRule;
+  }
+
+  private async mutateLockBranchProtectionRule(
+    protectionRuleId: string,
+    locked: boolean
+  ) {
+    const mutation = `mutation MutateLockBranch($ruleId: ID!, $locked: Boolean) {
+        updateBranchProtectionRule(
+          input: {branchProtectionRuleId: $ruleId, lockBranch: $locked}
+        ) {
+          branchProtectionRule {
+            lockBranch
+          }
+        }
+      }`;
+    await this.graphqlRequest({
+      query: mutation,
+      ruleId: protectionRuleId,
+      locked: locked,
+    });
+  }
+
+  private async createLockBranchProtectionRule(
+    branchName: string,
+    locked: boolean
+  ): Promise<GraphQLLockBranchProtectionRule | null> {
+    const repositoryResponse = await this.octokit.repos.get({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+    });
+
+    const mutation = `mutation CreateLockBranch($repositoryId: ID!, $branchName: String!, $locked: Boolean) {
+        createBranchProtectionRule(
+          input: {repositoryId: $repositoryId, pattern: $branchName, lockBranch: $locked, allowsForcePushes: true}
+        ) {
+          branchProtectionRule {
+            id
+            lockBranch
+          }
+        }
+      }`;
+    const protectionRule = await this.graphqlRequest({
+      query: mutation,
+      repositoryId: repositoryResponse.data.node_id,
+      branchName,
+      locked: locked,
+    });
+    if (!protectionRule?.branchProtectionRule?.id) {
+      return null;
+    }
+    return protectionRule as GraphQLLockBranchProtectionRule;
+  }
+
+  /**
+   * Determines whether branch A is up-to-date with the latest commit of branch B.
+   * This function can be used to detect if branch B has received any new commits since branch A was created or last rebased.
+   *
+   * @param {string} branchAName - The name of branch A, which is to be checked against the latest commit of branch B.
+   * @param {string} branchBName - The name of branch B, against which branch A is to be compared.
+   * @returns {Promise<boolean>} Returns `true` if branch A is based on the latest commit of branch B, meaning no new commits have been made to B since A was branched from it. Returns `false` otherwise.
+   * @throws {Error} Throws an error if branch names are empty or if there is an issue with the comparison, such as API errors or network issues.
+   */
+  async isBranchASyncedWithB(
+    branchAName: string,
+    branchBName: string
+  ): Promise<boolean> {
+    if (!branchAName || !branchBName) {
+      throw new Error(
+        `A given branch name is empty. Branch A: '${branchAName}'. Branch B: '${branchBName}'`
+      );
+    }
+    this.logger.debug(
+      `Compare branch A '${branchAName}' with branch B '${branchBName}'`
+    );
+    const comparison = await this.octokit.repos.compareCommitsWithBasehead({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      basehead: `${branchAName}...${branchBName}`,
+    });
+    return comparison.data.total_commits === 0;
+  }
+
+  /**
+   * Aligns the specified source branch with the target branch by updating the source branch's reference to point to the same commit as the target branch.
+   *
+   * @param {string} sourceBranch - The name of the branch that will be updated to align with the target branch.
+   * @param {string} targetBranch - The name of the branch whose commit the source branch will be aligned with.
+   */
+  async alignBranchWithAnother(
+    sourceBranchName: string,
+    targetBranchName: string
+  ) {
+    if (!targetBranchName || !sourceBranchName) {
+      throw new Error(
+        `A given branch name is empty. Target branch: '${targetBranchName}'. Source branch: '${sourceBranchName}'`
+      );
+    }
+    const targetBranch = await this.octokit.git.getRef({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: `heads/${targetBranchName}`,
+    });
+    this.logger.info(
+      `Align source branch '${sourceBranchName}' to target branch '${targetBranchName}', commit '${targetBranch.data.object.sha}'`
+    );
+    await this.octokit.git.updateRef({
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      ref: `heads/${sourceBranchName}`,
+      sha: targetBranch.data.object.sha,
+      force: true,
+    });
   }
 }
 

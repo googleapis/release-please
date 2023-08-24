@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ManifestPlugin} from '../plugin';
+import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 import {GitHub} from '../github';
-import {Logger} from '../util/logger';
 import {Strategy} from '../strategy';
 import {Commit, parseConventionalCommits} from '../commit';
 import {Release} from '../release';
@@ -24,9 +23,8 @@ import {buildStrategy} from '../factory';
 import {Merge} from './merge';
 import {BranchName} from '../util/branch-name';
 
-interface LinkedVersionsPluginOptions {
+interface LinkedVersionsPluginOptions extends ManifestPluginOptions {
   merge?: boolean;
-  logger?: Logger;
 }
 
 /**
@@ -48,7 +46,7 @@ export class LinkedVersions extends ManifestPlugin {
     components: string[],
     options: LinkedVersionsPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options.logger);
+    super(github, targetBranch, repositoryConfig, options);
     this.groupName = groupName;
     this.components = new Set(components);
     this.merge = options.merge ?? true;
@@ -77,9 +75,9 @@ export class LinkedVersions extends ManifestPlugin {
       }
     }
     this.logger.info(
-      `Found ${Object.keys(groupStrategies).length} group components for ${
+      `Found ${Object.keys(groupStrategies).length} components for group '${
         this.groupName
-      }`
+      }'`
     );
 
     const groupVersions: Record<string, Version> = {};
@@ -120,6 +118,7 @@ export class LinkedVersions extends ManifestPlugin {
           github: this.github,
           path,
           targetBranch: this.targetBranch,
+          changesBranch: this.changesBranch,
           releaseAs: primaryVersion.toString(),
         });
         if (missingReleasePaths.has(path)) {
@@ -168,7 +167,7 @@ export class LinkedVersions extends ManifestPlugin {
       [[], []] as CandidateReleasePullRequest[][]
     );
     this.logger.info(
-      `found ${inScopeCandidates.length} linked-versions candidates`
+      `Found ${inScopeCandidates.length} linked-versions candidates`
     );
 
     // delegate to the merge plugin and add merged pull request
@@ -182,7 +181,8 @@ export class LinkedVersions extends ManifestPlugin {
           forceMerge: true,
           headBranchName: BranchName.ofGroupTargetBranch(
             this.groupName,
-            this.targetBranch
+            this.targetBranch,
+            this.changesBranch
           ).toString(),
         }
       );

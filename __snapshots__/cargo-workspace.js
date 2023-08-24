@@ -1,5 +1,5 @@
 exports['CargoWorkspace plugin run appends dependency notes to an updated module 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -37,22 +37,24 @@ Release notes for path: packages/rustA, releaseType: rust
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run can skip merging rust packages 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
 Release notes for path: packages/rustA, releaseType: rust
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run can skip merging rust packages 2'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -63,11 +65,12 @@ exports['CargoWorkspace plugin run can skip merging rust packages 2'] = `
     * pkgA bumped from 1.1.1 to 1.1.2
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run can skip merging rust packages 3'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -78,22 +81,24 @@ exports['CargoWorkspace plugin run can skip merging rust packages 3'] = `
     * pkgB bumped from 2.2.2 to 2.2.3
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run can skip merging rust packages 4'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
 Release notes for path: packages/rustD, releaseType: rust
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run can skip merging rust packages 5'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -104,11 +109,12 @@ exports['CargoWorkspace plugin run can skip merging rust packages 5'] = `
     * pkgA bumped from 1.1.1 to 1.1.2
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run combines rust packages 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -123,11 +129,12 @@ Release notes for path: packages/rustD, releaseType: rust
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run handles a single rust package 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -137,11 +144,12 @@ Release notes for path: packages/rustA, releaseType: rust
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run handles glob paths 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -156,11 +164,12 @@ Release notes for path: packages/rustD, releaseType: rust
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run skips component if not touched 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -179,11 +188,12 @@ Release notes for path: packages/rustB, releaseType: rust
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['CargoWorkspace plugin run walks dependency tree and updates previously untouched packages 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -225,5 +235,6 @@ Release notes for path: packages/rustD, releaseType: rust
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `

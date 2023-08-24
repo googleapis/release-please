@@ -35,7 +35,8 @@ import {
 import {fail} from 'assert';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
-import * as codeSuggester from 'code-suggester';
+import * as codeSuggesterCommitAndPush from 'code-suggester/build/src/github/commit-and-push';
+import * as codeSuggesterLabels from 'code-suggester/build/src/github/labels';
 import {RawContent} from '../src/updaters/raw-content';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
@@ -933,10 +934,26 @@ describe('GitHub', () => {
   });
 
   describe('createReleasePullRequest', () => {
+    beforeEach(() => {
+      req
+        .post('/repos/fake/fake/pulls', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(200, {
+          id: 123,
+          number: 1,
+        });
+      sandbox
+        .stub(github, <any>'forkBranch') // eslint-disable-line @typescript-eslint/no-explicit-any
+        .resolves('the-pull-request-branch-sha');
+      sandbox.stub(codeSuggesterLabels, 'addLabels').resolves();
+    });
+
     it('should update file', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('existing-file', 'main')
@@ -957,7 +974,7 @@ describe('GitHub', () => {
       });
       const pullRequest = await github.createReleasePullRequest(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([]),
           labels: [],
           headRefName: 'release-please--branches--main',
@@ -970,19 +987,21 @@ describe('GitHub', () => {
             },
           ],
         },
+        'main',
         'main'
       );
+      req.done();
       expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
+      sinon.assert.calledOnce(commitAndPushStub);
+      const changes = commitAndPushStub.getCall(0).args[2];
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(1);
       expect(changes!.get('existing-file')).to.not.be.undefined;
     });
     it('should handle missing files', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
@@ -998,7 +1017,7 @@ describe('GitHub', () => {
       });
       const pullRequest = await github.createReleasePullRequest(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([]),
           labels: [],
           headRefName: 'release-please--branches--main',
@@ -1011,18 +1030,20 @@ describe('GitHub', () => {
             },
           ],
         },
+        'main',
         'main'
       );
+      req.done();
       expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
+      sinon.assert.calledOnce(commitAndPushStub);
+      const changes = commitAndPushStub.getCall(0).args[2];
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(0);
     });
     it('should create missing file', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
@@ -1038,7 +1059,7 @@ describe('GitHub', () => {
       });
       const pullRequest = await github.createReleasePullRequest(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([]),
           labels: [],
           headRefName: 'release-please--branches--main',
@@ -1051,11 +1072,13 @@ describe('GitHub', () => {
             },
           ],
         },
+        'main',
         'main'
       );
+      req.done();
       expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
+      sinon.assert.calledOnce(commitAndPushStub);
+      const changes = commitAndPushStub.getCall(0).args[2];
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(1);
       expect(changes!.get('missing-file')).to.not.be.undefined;
@@ -1148,21 +1171,104 @@ describe('GitHub', () => {
   });
 
   describe('updatePullRequest', () => {
-    it('handles a PR body that is too big', async () => {
+    it('handles a ref branch different from the base branch', async () => {
+      const forkBranchStub = sandbox
+        .stub(github, <any>'forkBranch') // eslint-disable-line @typescript-eslint/no-explicit-any
+        .withArgs('release-please--branches--main--changes--next', 'next')
+        .resolves('the-pull-request-branch-sha');
+
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .withArgs(
+          sinon.match.any,
+          'the-pull-request-branch-sha',
+          sinon.match.any,
+          sinon.match.has(
+            'branch',
+            'release-please--branches--main--changes--next'
+          ),
+          sinon.match.string,
+          true
+        )
+        .resolves();
+
+      const getPullRequestStub = sandbox
+        .stub(github, 'getPullRequest')
+        .withArgs(123)
+        .resolves({
+          title: 'updated-title',
+          headBranchName: 'release-please--branches--main--changes--next',
+          baseBranchName: 'main',
+          number: 123,
+          body: 'updated body',
+          labels: [],
+          files: [],
+        });
+
       req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
         number: 123,
         title: 'updated-title',
         body: 'updated body',
         labels: [],
         head: {
-          ref: 'abc123',
+          ref: 'release-please--branches--main--changes--next',
         },
         base: {
-          ref: 'def234',
+          ref: 'main',
         },
       });
+
       const pullRequest = {
-        title: PullRequestTitle.ofTargetBranch('main'),
+        title: PullRequestTitle.ofTargetBranch('main', 'next'),
+        body: new PullRequestBody(mockReleaseData(1000), {
+          useComponents: true,
+        }),
+        labels: [],
+        headRefName: 'release-please--branches--main--changes--next',
+        draft: false,
+        updates: [],
+      };
+
+      await github.updatePullRequest(123, pullRequest, 'main', 'next');
+      sinon.assert.calledOnce(forkBranchStub);
+      sinon.assert.calledOnce(commitAndPushStub);
+      sinon.assert.calledOnce(getPullRequestStub);
+      req.done();
+    });
+
+    it('handles a PR body that is too big', async () => {
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .resolves();
+      const forkBranchStub = sandbox
+        .stub(github, <any>'forkBranch') // eslint-disable-line @typescript-eslint/no-explicit-any
+        .resolves('the-pull-request-branch-sha');
+      req = req.patch('/repos/fake/fake/pulls/123').reply(200, {
+        number: 123,
+        title: 'updated-title',
+        body: 'updated body',
+        labels: [],
+        head: {
+          ref: 'release-please--branches--main',
+        },
+        base: {
+          ref: 'main',
+        },
+      });
+      const getPullRequestStub = sandbox
+        .stub(github, 'getPullRequest')
+        .withArgs(123)
+        .resolves({
+          title: 'updated-title',
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          number: 123,
+          body: 'updated body',
+          labels: [],
+          files: [],
+        });
+      const pullRequest = {
+        title: PullRequestTitle.ofTargetBranch('main', 'main'),
         body: new PullRequestBody(mockReleaseData(1000), {useComponents: true}),
         labels: [],
         headRefName: 'release-please--branches--main',
@@ -1173,10 +1279,13 @@ describe('GitHub', () => {
       const handleOverflowStub = sandbox
         .stub(pullRequestOverflowHandler, 'handleOverflow')
         .resolves('overflow message');
-      await github.updatePullRequest(123, pullRequest, 'main', {
+      await github.updatePullRequest(123, pullRequest, 'main', 'main', {
         pullRequestOverflowHandler,
       });
       sinon.assert.calledOnce(handleOverflowStub);
+      sinon.assert.calledOnce(commitAndPushStub);
+      sinon.assert.calledOnce(forkBranchStub);
+      sinon.assert.calledOnce(getPullRequestStub);
       req.done();
     });
   });

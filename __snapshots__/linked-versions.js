@@ -1,5 +1,5 @@
 exports['LinkedVersions plugin can skip grouping pull requests 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -11,11 +11,12 @@ exports['LinkedVersions plugin can skip grouping pull requests 1'] = `
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['LinkedVersions plugin can skip grouping pull requests 2'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -27,11 +28,12 @@ exports['LinkedVersions plugin can skip grouping pull requests 2'] = `
 * some bugfix ([bbbbbb](https://github.com/fake-owner/fake-repo/commit/bbbbbb))
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['LinkedVersions plugin can skip grouping pull requests 3'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -43,11 +45,12 @@ exports['LinkedVersions plugin can skip grouping pull requests 3'] = `
 * **pkg3:** Synchronize group name versions
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['LinkedVersions plugin should allow multiple groups of linked versions 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -72,11 +75,16 @@ exports['LinkedVersions plugin should allow multiple groups of linked versions 1
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['LinkedVersions plugin should allow multiple groups of linked versions 2'] = `
-:robot: I have created a release *beep* *boop*
+release-please--branches--target-branch--groups--second-group-name
+`
+
+exports['LinkedVersions plugin should allow multiple groups of linked versions 3'] = `
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -101,11 +109,16 @@ exports['LinkedVersions plugin should allow multiple groups of linked versions 2
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
+`
+
+exports['LinkedVersions plugin should allow multiple groups of linked versions 4'] = `
+release-please--branches--target-branch--groups--group-name
 `
 
 exports['LinkedVersions plugin should group pull requests 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -117,11 +130,12 @@ exports['LinkedVersions plugin should group pull requests 1'] = `
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['LinkedVersions plugin should group pull requests 2'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -146,11 +160,12 @@ exports['LinkedVersions plugin should group pull requests 2'] = `
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['LinkedVersions plugin should sync versions pull requests 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -185,5 +200,6 @@ exports['LinkedVersions plugin should sync versions pull requests 1'] = `
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `

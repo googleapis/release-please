@@ -20,7 +20,6 @@ import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
   buildGitHubFileRaw,
-  stubSuggesterWithSnapshot,
   assertHasUpdate,
   dateSafe,
   safeSnapshot,
@@ -55,6 +54,7 @@ import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
 import {MavenWorkspace} from '../src/plugins/maven-workspace';
+import {GraphqlResponseError} from '@octokit/graphql';
 
 nock.disableNetConnect();
 
@@ -3437,12 +3437,30 @@ describe('Manifest', () => {
       expect(pullRequests).to.be.empty;
     });
 
-    it('handles a single pull request', async function () {
+    it('handles a single pull request', async () => {
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
         number: 22,
@@ -3477,7 +3495,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3534,6 +3552,7 @@ describe('Manifest', () => {
         .withArgs(
           sinon.match.has('headBranchName', 'release-please/branches/main'),
           'main',
+          'main',
           sinon.match.string,
           sinon.match.array,
           sinon.match({fork: false, draft: false})
@@ -3549,6 +3568,7 @@ describe('Manifest', () => {
         })
         .withArgs(
           sinon.match.has('headBranchName', 'release-please/branches/main2'),
+          'main',
           'main',
           sinon.match.string,
           sinon.match.array,
@@ -3587,7 +3607,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3605,7 +3625,7 @@ describe('Manifest', () => {
           draft: false,
         },
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes 2',
@@ -3629,12 +3649,30 @@ describe('Manifest', () => {
       ]);
     });
 
-    it('handles signoff users', async function () {
+    it('handles signoff users', async () => {
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
         number: 22,
@@ -3670,7 +3708,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3692,12 +3730,30 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(1);
     });
 
-    it('handles fork = true', async function () {
+    it('handles fork = true', async () => {
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: true, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
         number: 22,
@@ -3733,7 +3789,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3755,12 +3811,30 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(1);
     });
 
-    it('updates an existing pull request', async function () {
+    it('updates an existing pull request', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       mockPullRequests(
         github,
         [
@@ -3812,7 +3886,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -3839,12 +3913,7 @@ describe('Manifest', () => {
         useComponents: true,
       });
 
-      it('updates an existing pull request', async function () {
-        sandbox
-          .stub(github, 'getFileContentsOnBranch')
-          .withArgs('README.md', 'main')
-          .resolves(buildGitHubFileRaw('some-content'));
-        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      it('updates an existing pull request', async () => {
         mockPullRequests(
           github,
           [
@@ -3860,12 +3929,13 @@ describe('Manifest', () => {
           ],
           []
         );
-        sandbox
+        const updatePullRequestStub = sandbox
           .stub(github, 'updatePullRequest')
           .withArgs(
             22,
             sinon.match.any,
-            sinon.match.any,
+            'main',
+            'main',
             sinon.match.has('pullRequestOverflowHandler', sinon.match.truthy)
           )
           .resolves({
@@ -3899,34 +3969,56 @@ describe('Manifest', () => {
             plugins: ['node-workspace'],
           }
         );
-        sandbox.stub(manifest, 'buildPullRequests').resolves([
-          {
-            title: PullRequestTitle.ofTargetBranch('main'),
-            body,
-            updates: [
-              {
-                path: 'README.md',
-                createIfMissing: false,
-                updater: new RawContent('some raw content'),
-              },
-            ],
-            labels: [],
-            headRefName: 'release-please/branches/main',
-            draft: false,
-          },
-        ]);
+        const buildPullRequestsStub = sandbox
+          .stub(manifest, 'buildPullRequests')
+          .resolves([
+            {
+              title: PullRequestTitle.ofTargetBranch('main', 'main'),
+              body,
+              updates: [
+                {
+                  path: 'README.md',
+                  createIfMissing: false,
+                  updater: new RawContent('some raw content'),
+                },
+              ],
+              labels: [],
+              headRefName: 'release-please/branches/main',
+              draft: false,
+            },
+          ]);
         const pullRequestNumbers = await manifest.createPullRequests();
+        sinon.assert.calledOnce(updatePullRequestStub);
+        sinon.assert.calledOnce(buildPullRequestsStub);
         expect(pullRequestNumbers).lengthOf(1);
       });
 
-      it('ignores an existing pull request if there are no changes', async function () {
+      it('ignores an existing pull request if there are no changes', async () => {
         sandbox
           .stub(github, 'getFileContentsOnBranch')
           .withArgs('README.md', 'main')
           .resolves(buildGitHubFileRaw('some-content'))
           .withArgs('release-notes.md', 'my-head-branch--release-notes')
           .resolves(buildGitHubFileRaw(body.toString()));
-        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+        sandbox
+          .stub(github, 'createPullRequest')
+          .withArgs(
+            sinon.match.has('headBranchName', 'release-please/branches/main'),
+            'main',
+            'main',
+            sinon.match.string,
+            sinon.match.array,
+            sinon.match({fork: false, draft: false})
+          )
+          .resolves({
+            number: 22,
+            title: 'pr title1',
+            body: 'pr body1',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: [],
+            files: [],
+          });
         mockPullRequests(
           github,
           [
@@ -3983,7 +4075,7 @@ describe('Manifest', () => {
         );
         sandbox.stub(manifest, 'buildPullRequests').resolves([
           {
-            title: PullRequestTitle.ofTargetBranch('main'),
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
             body,
             updates: [
               {
@@ -4002,12 +4094,30 @@ describe('Manifest', () => {
       });
     });
 
-    it('updates an existing snapshot pull request', async function () {
+    it('updates an existing snapshot pull request', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       mockPullRequests(
         github,
         [
@@ -4058,7 +4168,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'SNAPSHOT bump',
@@ -4124,7 +4234,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -4146,12 +4256,30 @@ describe('Manifest', () => {
       expect(pullRequestNumbers).lengthOf(0);
     });
 
-    it('reopens snoozed, closed pull request if there are changes', async function () {
+    it('reopens snoozed, closed pull request if there are changes', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
         .resolves(buildGitHubFileRaw('some-content'));
-      stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+      sandbox
+        .stub(github, 'createPullRequest')
+        .withArgs(
+          sinon.match.has('headBranchName', 'release-please/branches/main'),
+          'main',
+          'main',
+          sinon.match.string,
+          sinon.match.array,
+          sinon.match({fork: false, draft: false})
+        )
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       mockPullRequests(
         github,
         [],
@@ -4204,7 +4332,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body: new PullRequestBody([
             {
               notes: 'Some release notes',
@@ -4280,7 +4408,7 @@ describe('Manifest', () => {
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body,
           updates: [
             {
@@ -5339,6 +5467,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5368,6 +5498,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should handle a multiple manifest release', async () => {
@@ -5433,6 +5565,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5486,6 +5620,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should handle a single standalone release', async () => {
@@ -5509,6 +5645,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5542,6 +5680,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should allow customizing pull request labels', async () => {
@@ -5580,6 +5720,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5612,6 +5754,8 @@ describe('Manifest', () => {
         ['some-pull-request-label'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should create a draft release', async () => {
@@ -5655,6 +5799,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5689,6 +5835,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should create a prerelease release from beta', async () => {
@@ -5734,6 +5882,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5768,6 +5918,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should not create a prerelease release from non-prerelease', async () => {
@@ -5811,6 +5963,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5845,6 +5999,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should handle partially failed manifest release', async () => {
@@ -5915,6 +6071,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -5964,6 +6122,8 @@ describe('Manifest', () => {
         ['autorelease: pending'],
         1234
       );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
 
     it('should throw DuplicateReleaseError if all releases already tagged', async () => {
@@ -6044,6 +6204,8 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
       const manifest = new Manifest(
         github,
         'main',
@@ -6077,6 +6239,224 @@ describe('Manifest', () => {
       sinon.assert.notCalled(commentStub);
       sinon.assert.calledOnce(addLabelsStub);
       sinon.assert.calledOnce(removeLabelsStub);
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
+    });
+
+    it('should fallback to checking twice for race conditions when branch lock fails due to missing token permissions (REST error)', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {id: 123456, sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
+
+      // make the lock branch fail with the relevant permission error
+      sandbox.replace(github, 'lockBranch', async () => {
+        throw new RequestError('Resource not accessible by integration', 403, {
+          request: {
+            method: 'POST',
+            url: 'https://api.github.com/foo',
+            body: {
+              bar: 'baz',
+            },
+            headers: {
+              authorization: 'token secret123',
+            },
+          },
+          response: {
+            status: 500,
+            url: 'https://api.github.com/foo',
+            headers: {
+              'x-github-request-id': '1:2:3:4',
+            },
+            data: {
+              foo: 'bar',
+            },
+          },
+        });
+      });
+
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+
+      // stub the race condition detection method to be able to check it was called twice
+      const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
+        manifest,
+        <any>'throwIfChangesBranchesRaceConditionDetected' // eslint-disable-line @typescript-eslint/no-explicit-any
+      );
+
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.path).to.eql('.');
+
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+
+      sinon.assert.calledTwice(throwIfChangesBranchesRaceConditionDetectedStub);
+      // ensure we don't try to update permissions rules again given the lock failed
+      sinon.assert.notCalled(unlockBranchStub);
+    });
+
+    it('should fallback to checking twice for race conditions when branch lock fails due to missing token permissions (GraphQL error)', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {id: 123456, sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
+
+      // make the lock branch fail with the relevant permission error
+      sandbox.replace(github, 'lockBranch', async () => {
+        throw new GraphqlResponseError(
+          {
+            method: 'GET',
+            url: '/foo/bar',
+          },
+          {},
+          {
+            data: {},
+            errors: [
+              {
+                type: 'FORBIDDEN',
+                message: 'Resource not accessible by integration',
+                path: ['foo'],
+                extensions: {},
+                locations: [
+                  {
+                    line: 123,
+                    column: 456,
+                  },
+                ],
+              },
+            ],
+          }
+        );
+      });
+
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+
+      // stub the race condition detection method to be able to check it was called twice
+      const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
+        manifest,
+        <any>'throwIfChangesBranchesRaceConditionDetected' // eslint-disable-line @typescript-eslint/no-explicit-any
+      );
+
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.path).to.eql('.');
+
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+
+      sinon.assert.calledTwice(throwIfChangesBranchesRaceConditionDetectedStub);
+      // ensure we don't try to update permissions rules again given the lock failed
+      sinon.assert.notCalled(unlockBranchStub);
     });
   });
 });

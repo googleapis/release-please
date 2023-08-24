@@ -18,18 +18,19 @@ A custom footer
 `
 
 exports['PullRequestBody toString can handle a single entries 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
 some special notes go here
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['PullRequestBody toString can handle a single entries forced components 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -39,11 +40,12 @@ some special notes go here
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['PullRequestBody toString can handle componently entries 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -58,11 +60,12 @@ more special notes go here
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `
 
 exports['PullRequestBody toString can handle multiple entries 1'] = `
-:robot: I have created a release *beep* *boop*
+:sparkles: Stainless prepared a new release
 ---
 
 
@@ -77,5 +80,6 @@ more special notes go here
 </details>
 
 ---
-This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
+For technical details, see [this repository](https://github.com/stainless-api/release-please).
 `

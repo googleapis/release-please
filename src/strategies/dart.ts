@@ -68,7 +68,7 @@ export class Dart extends BaseStrategy {
       try {
         this.pubspecYmlContents = await this.github.getFileContentsOnBranch(
           this.addPath('pubspec.yaml'),
-          this.targetBranch
+          this.changesBranch
         );
       } catch (e) {
         if (e instanceof FileNotFoundError) {

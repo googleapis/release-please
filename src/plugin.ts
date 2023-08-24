@@ -19,6 +19,11 @@ import {Commit, ConventionalCommit} from './commit';
 import {Release} from './release';
 import {logger as defaultLogger, Logger} from './util/logger';
 
+export interface ManifestPluginOptions {
+  logger?: Logger;
+  changesBranch?: string;
+}
+
 /**
  * A plugin runs after a repository manifest has built candidate
  * pull requests and can make updates that span across multiple
@@ -28,18 +33,20 @@ import {logger as defaultLogger, Logger} from './util/logger';
 export abstract class ManifestPlugin {
   readonly github: GitHub;
   readonly targetBranch: string;
+  readonly changesBranch: string;
   readonly repositoryConfig: RepositoryConfig;
   protected logger: Logger;
   constructor(
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
-    logger: Logger = defaultLogger
+    options: ManifestPluginOptions
   ) {
     this.github = github;
     this.targetBranch = targetBranch;
     this.repositoryConfig = repositoryConfig;
-    this.logger = logger;
+    this.changesBranch = options?.changesBranch || this.targetBranch;
+    this.logger = options.logger || defaultLogger;
   }
 
   /**

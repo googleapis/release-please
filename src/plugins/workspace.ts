@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ManifestPlugin} from '../plugin';
+import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {
   CandidateReleasePullRequest,
   RepositoryConfig,
@@ -31,11 +31,10 @@ export interface DependencyNode<T> {
   value: T;
 }
 
-export interface WorkspacePluginOptions {
+export interface WorkspacePluginOptions extends ManifestPluginOptions {
   manifestPath?: string;
   updateAllPackages?: boolean;
   merge?: boolean;
-  logger?: Logger;
 }
 
 export interface AllPackages<T> {
@@ -64,7 +63,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
     repositoryConfig: RepositoryConfig,
     options: WorkspacePluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options.logger);
+    super(github, targetBranch, repositoryConfig, options);
     this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;

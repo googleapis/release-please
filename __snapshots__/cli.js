@@ -103,6 +103,9 @@ Options:
                                                       [boolean] [default: false]
   --fork                should the PR be created from a fork
                                                       [boolean] [default: false]
+  --changes-branch      If provided, override the branch used to find
+                        conventional commits with changes for new version
+                                                                        [string]
   --draft-pull-request  mark pull request as a draft  [boolean] [default: false]
   --signoff             Add Signed-off-by line at the end of the commit log
                         message using the user and email provided. (format "Name
@@ -229,6 +232,9 @@ Options:
                                                       [boolean] [default: false]
   --fork                            should the PR be created from a fork
                                                       [boolean] [default: false]
+  --changes-branch                  If provided, override the branch used to
+                                    find conventional commits with changes for
+                                    new version                         [string]
   --draft-pull-request              mark pull request as a draft
                                                       [boolean] [default: false]
   --signoff                         Add Signed-off-by line at the end of the

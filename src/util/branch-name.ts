@@ -38,6 +38,7 @@ function getAllResourceNames(): BranchNameType[] {
 export class BranchName {
   component?: string;
   targetBranch?: string;
+  changesBranch?: string;
   version?: Version;
 
   static parse(
@@ -66,22 +67,38 @@ export class BranchName {
   static ofVersion(version: Version): BranchName {
     return new AutoreleaseBranchName(`release-v${version}`);
   }
-  static ofTargetBranch(targetBranch: string): BranchName {
+  static ofTargetBranch(
+    targetBranch: string,
+    changesBranch: string
+  ): BranchName {
+    const changes =
+      targetBranch === changesBranch ? '' : `--changes--${changesBranch}`;
     return new DefaultBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}`
+      `${RELEASE_PLEASE}--branches--${targetBranch}${changes}`
     );
   }
+
   static ofComponentTargetBranch(
     component: string,
-    targetBranch: string
+    targetBranch: string,
+    changesBranch: string
   ): BranchName {
+    const changes =
+      targetBranch === changesBranch ? '' : `--changes--${changesBranch}`;
     return new ComponentBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}--components--${component}`
+      `${RELEASE_PLEASE}--branches--${targetBranch}${changes}--components--${component}`
     );
   }
-  static ofGroupTargetBranch(group: string, targetBranch: string): BranchName {
+
+  static ofGroupTargetBranch(
+    group: string,
+    targetBranch: string,
+    changesBranch: string
+  ): BranchName {
+    const changes =
+      targetBranch === changesBranch ? '' : `--changes--${changesBranch}`;
     return new GroupBranchName(
-      `${RELEASE_PLEASE}--branches--${targetBranch}--groups--${safeBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}${changes}--groups--${safeBranchName(
         group
       )}`
     );
@@ -93,6 +110,9 @@ export class BranchName {
   }
   getTargetBranch(): string | undefined {
     return this.targetBranch;
+  }
+  getChangesBranch(): string | undefined {
+    return this.changesBranch;
   }
   getComponent(): string | undefined {
     return this.component;
@@ -185,7 +205,8 @@ class V12ComponentBranchName extends BranchName {
   }
 }
 
-const DEFAULT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)$`;
+const DEFAULT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+?)(?:--changes--(?<changes>.+))?$`;
+
 class DefaultBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(DEFAULT_PATTERN);
@@ -195,14 +216,19 @@ class DefaultBranchName extends BranchName {
     const match = branchName.match(DEFAULT_PATTERN);
     if (match?.groups) {
       this.targetBranch = match.groups['branch'];
+      this.changesBranch = match.groups['changes'];
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}--branches--${this.targetBranch}`;
+    const changes =
+      !this.changesBranch || this.targetBranch === this.changesBranch
+        ? ''
+        : `--changes--${this.changesBranch}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}${changes}`;
   }
 }
 
-const COMPONENT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--components--(?<component>.+)$`;
+const COMPONENT_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+?)(?:--changes--(?<changes>.+))?--components--(?<component>.+)$`;
 class ComponentBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(COMPONENT_PATTERN);
@@ -212,15 +238,20 @@ class ComponentBranchName extends BranchName {
     const match = branchName.match(COMPONENT_PATTERN);
     if (match?.groups) {
       this.targetBranch = match.groups['branch'];
+      this.changesBranch = match.groups['changes'];
       this.component = match.groups['component'];
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--components--${this.component}`;
+    const changes =
+      !this.changesBranch || this.targetBranch === this.changesBranch
+        ? ''
+        : `--changes--${this.changesBranch}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}${changes}--components--${this.component}`;
   }
 }
 
-const GROUP_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--groups--(?<group>.+)$`;
+const GROUP_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+?)(?:--changes--(?<changes>.+))?--groups--(?<group>.+)$`;
 class GroupBranchName extends BranchName {
   static matches(branchName: string): boolean {
     return !!branchName.match(GROUP_PATTERN);
@@ -230,11 +261,16 @@ class GroupBranchName extends BranchName {
     const match = branchName.match(GROUP_PATTERN);
     if (match?.groups) {
       this.targetBranch = match.groups['branch'];
+      this.changesBranch = match.groups['changes'];
       this.component = match.groups['group'];
     }
   }
   toString(): string {
-    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--groups--${this.component}`;
+    const changes =
+      !this.changesBranch || this.targetBranch === this.changesBranch
+        ? ''
+        : `--changes--${this.changesBranch}`;
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}${changes}--groups--${this.component}`;
   }
 }
 

@@ -64,11 +64,12 @@ describe('Bootstrapper', () => {
         baseBranchName: 'main',
       }),
       'main',
+      'main',
       expectedTitle,
       sinon.match.array,
       sinon.match.any
     );
-    const updates = createPullRequestStub.firstCall.args[3];
+    const updates = createPullRequestStub.firstCall.args[4];
     assertHasUpdate(
       updates,
       '.release-please-manifest.json',

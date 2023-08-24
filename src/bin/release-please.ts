@@ -54,6 +54,7 @@ interface GitHubArgs {
   // deprecated in favor of targetBranch
   defaultBranch?: string;
   targetBranch?: string;
+  changesBranch?: string;
 }
 
 interface ManifestArgs {
@@ -250,6 +251,11 @@ function pullRequestOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'should the PR be created from a fork',
       type: 'boolean',
       default: false,
+    })
+    .option('changes-branch', {
+      describe:
+        'If provided, override the branch used to find conventional commits with changes for new version',
+      type: 'string',
     })
     .option('draft-pull-request', {
       describe: 'mark pull request as a draft',
@@ -485,20 +491,22 @@ const createReleasePullRequestCommand: yargs.CommandModule<
 
     if (argv.dryRun) {
       const pullRequests = await manifest.buildPullRequests();
-      console.log(`Would open ${pullRequests.length} pull requests`);
-      console.log('fork:', manifest.fork);
+      logger.debug(`Would open ${pullRequests.length} pull requests`);
+      logger.debug('fork:', manifest.fork);
+      logger.debug('changes branch:', manifest.changesBranch);
+
       for (const pullRequest of pullRequests) {
-        console.log('title:', pullRequest.title.toString());
-        console.log('branch:', pullRequest.headRefName);
-        console.log('draft:', pullRequest.draft);
-        console.log('body:', pullRequest.body.toString());
-        console.log('updates:', pullRequest.updates.length);
+        logger.debug('title:', pullRequest.title.toString());
+        logger.debug('branch:', pullRequest.headRefName);
+        logger.debug('draft:', pullRequest.draft);
+        logger.debug('body:', pullRequest.body.toString());
+        logger.debug('updates:', pullRequest.updates.length);
         const changes = await github.buildChangeSet(
           pullRequest.updates,
           targetBranch
         );
         for (const update of pullRequest.updates) {
-          console.log(
+          logger.debug(
             `  ${update.path}: `,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (update.updater as any).constructor
@@ -511,16 +519,16 @@ const createReleasePullRequestCommand: yargs.CommandModule<
                 change.originalContent || '',
                 change.content || ''
               );
-              console.log(patch);
+              logger.trace(patch);
             } else {
-              console.warn(`no change found for ${update.path}`);
+              logger.warn(`no change found for ${update.path}`);
             }
           }
         }
       }
     } else {
       const pullRequestNumbers = await manifest.createPullRequests();
-      console.log(pullRequestNumbers);
+      logger.trace(pullRequestNumbers);
     }
   },
 };
@@ -585,7 +593,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
       }
     } else {
       const releaseNumbers = await manifest.createReleases();
-      console.log(releaseNumbers);
+      logger.debug(releaseNumbers);
     }
   },
 };
@@ -618,16 +626,16 @@ const createManifestPullRequestCommand: yargs.CommandModule<
 
     if (argv.dryRun) {
       const pullRequests = await manifest.buildPullRequests();
-      console.log(`Would open ${pullRequests.length} pull requests`);
-      console.log('fork:', manifest.fork);
+      logger.debug(`Would open ${pullRequests.length} pull requests`);
+      logger.debug('fork:', manifest.fork);
       for (const pullRequest of pullRequests) {
-        console.log('title:', pullRequest.title.toString());
-        console.log('branch:', pullRequest.headRefName);
-        console.log('draft:', pullRequest.draft);
-        console.log('body:', pullRequest.body.toString());
-        console.log('updates:', pullRequest.updates.length);
+        logger.debug('title:', pullRequest.title.toString());
+        logger.debug('branch:', pullRequest.headRefName);
+        logger.debug('draft:', pullRequest.draft);
+        logger.debug('body:', pullRequest.body.toString());
+        logger.debug('updates:', pullRequest.updates.length);
         for (const update of pullRequest.updates) {
-          console.log(
+          logger.debug(
             `  ${update.path}: `,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (update.updater as any).constructor
@@ -636,7 +644,7 @@ const createManifestPullRequestCommand: yargs.CommandModule<
       }
     } else {
       const pullRequestNumbers = await manifest.createPullRequests();
-      console.log(pullRequestNumbers);
+      logger.debug(pullRequestNumbers);
     }
   },
 };
@@ -674,7 +682,7 @@ const createManifestReleaseCommand: yargs.CommandModule<
       logger.info(releases);
     } else {
       const releaseNumbers = await manifest.createReleases();
-      console.log(releaseNumbers);
+      logger.debug(releaseNumbers);
     }
   },
 };
@@ -731,17 +739,17 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
         path,
         releaserConfig
       );
-      console.log('Would open 1 pull request');
-      console.log('title:', pullRequest.title);
-      console.log('branch:', pullRequest.headBranchName);
-      console.log('body:', pullRequest.body);
-      console.log('updates:', pullRequest.updates.length);
+      logger.debug('Would open 1 pull request');
+      logger.debug('title:', pullRequest.title);
+      logger.debug('branch:', pullRequest.headBranchName);
+      logger.debug('body:', pullRequest.body);
+      logger.debug('updates:', pullRequest.updates.length);
       const changes = await github.buildChangeSet(
         pullRequest.updates,
         targetBranch
       );
       for (const update of pullRequest.updates) {
-        console.log(
+        logger.debug(
           `  ${update.path}: `,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (update.updater as any).constructor
@@ -754,15 +762,15 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
               change.originalContent || '',
               change.content || ''
             );
-            console.log(patch);
+            logger.debug(patch);
           } else {
-            console.warn(`no change found for ${update.path}`);
+            logger.warn(`no change found for ${update.path}`);
           }
         }
       }
     } else {
       const pullRequest = await bootstrapper.bootstrap(path, releaserConfig);
-      console.log(pullRequest);
+      logger.debug(pullRequest);
     }
   },
 };
@@ -787,7 +795,7 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
       argv.manifestFile,
       manifestOptions
     );
-    console.log(manifest);
+    logger.debug(manifest);
   },
 };
 
@@ -835,18 +843,16 @@ export const parser = yargs
   })
   .middleware(argv => {
     for (const pluginName of argv.plugin) {
-      console.log(`requiring plugin: ${pluginName}`);
+      logger.debug(`requiring plugin: ${pluginName}`);
       try {
         const plugin = require(pluginName.toString());
         if (plugin?.init) {
-          console.log(`loading plugin: ${pluginName}`);
+          logger.debug(`loading plugin: ${pluginName}`);
         } else {
-          console.warn(
-            `plugin: ${pluginName} did not have an init() function.`
-          );
+          logger.warn(`plugin: ${pluginName} did not have an init() function.`);
         }
       } catch (e) {
-        console.warn(`failed to require plugin: ${pluginName}:`, e);
+        logger.warn(`failed to require plugin: ${pluginName}:`, e);
       }
     }
   })
@@ -864,6 +870,9 @@ function extractManifestOptions(
   argv: GitHubArgs & (PullRequestArgs | ReleaseArgs)
 ): ManifestOptions {
   const manifestOptions: ManifestOptions = {};
+  if ('changesBranch' in argv && argv.changesBranch) {
+    manifestOptions.changesBranch = argv.changesBranch;
+  }
   if ('fork' in argv && argv.fork !== undefined) {
     manifestOptions.fork = argv.fork;
   }

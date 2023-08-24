@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ManifestPlugin} from '../plugin';
+import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {
   CandidateReleasePullRequest,
   RepositoryConfig,
@@ -26,7 +26,7 @@ import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
 import {GitHub} from '../github';
 
-interface MergeOptions {
+interface MergeOptions extends ManifestPluginOptions {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   headBranchName?: string;
@@ -51,7 +51,7 @@ export class Merge extends ManifestPlugin {
     repositoryConfig: RepositoryConfig,
     options: MergeOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig);
+    super(github, targetBranch, repositoryConfig, options);
     this.pullRequestTitlePattern =
       options.pullRequestTitlePattern ?? MANIFEST_PULL_REQUEST_TITLE_PATTERN;
     this.pullRequestHeader = options.pullRequestHeader;
@@ -102,6 +102,7 @@ export class Merge extends ManifestPlugin {
       title: PullRequestTitle.ofComponentTargetBranchVersion(
         rootRelease?.pullRequest.title.component,
         this.targetBranch,
+        this.changesBranch,
         rootRelease?.pullRequest.title.version,
         this.pullRequestTitlePattern
       ),
@@ -113,7 +114,10 @@ export class Merge extends ManifestPlugin {
       labels: Array.from(labels),
       headRefName:
         this.headBranchName ??
-        BranchName.ofTargetBranch(this.targetBranch).toString(),
+        BranchName.ofTargetBranch(
+          this.targetBranch,
+          this.changesBranch
+        ).toString(),
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
     };
 

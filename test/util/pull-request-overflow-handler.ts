@@ -62,7 +62,7 @@ describe('FilePullRequestOverflowHandler', () => {
         );
       const newContents = await overflowHandler.handleOverflow(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'main'),
           body,
           labels: [],
           updates: [],
@@ -76,7 +76,7 @@ describe('FilePullRequestOverflowHandler', () => {
     });
     it('ignores small pull request body contents', async () => {
       const newContents = await overflowHandler.handleOverflow({
-        title: PullRequestTitle.ofTargetBranch('main'),
+        title: PullRequestTitle.ofTargetBranch('main', 'main'),
         body,
         labels: [],
         updates: [],

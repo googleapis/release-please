@@ -60,6 +60,15 @@ describe('PullRequestTitle', () => {
       expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
     });
 
+    it('parses a target branch and changes branch', () => {
+      const name = 'chore(next => main): release v1.2.3';
+      const pullRequestTitle = PullRequestTitle.parse(name);
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('main');
+      expect(pullRequestTitle?.getComponent()).to.be.undefined;
+      expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
+    });
+
     it('parses a target branch and component', () => {
       const name = 'chore(main): release storage v1.2.3';
       const pullRequestTitle = PullRequestTitle.parse(name);
@@ -104,13 +113,20 @@ describe('PullRequestTitle', () => {
   });
   describe('ofTargetBranch', () => {
     it('builds branchname with only target branch', () => {
-      const pullRequestTitle = PullRequestTitle.ofTargetBranch('main');
+      const pullRequestTitle = PullRequestTitle.ofTargetBranch('main', 'main');
       expect(pullRequestTitle.toString()).to.eql('chore(main): release');
+    });
+    it('builds branchname with target branch and changes branch', () => {
+      const pullRequestTitle = PullRequestTitle.ofTargetBranch('main', 'next');
+      expect(pullRequestTitle.toString()).to.eql(
+        'chore(next => main): release'
+      );
     });
   });
   describe('ofTargetBranchVersion', () => {
     it('builds branchname with target branch and version', () => {
       const pullRequestTitle = PullRequestTitle.ofTargetBranchVersion(
+        'main',
         'main',
         Version.parse('1.2.3')
       );
@@ -121,6 +137,7 @@ describe('PullRequestTitle', () => {
     it('builds branchname with target branch and component', () => {
       const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
         'foo',
+        'main',
         'main',
         Version.parse('1.2.3')
       );
@@ -133,7 +150,7 @@ describe('PullRequestTitle', () => {
     it('return matchPattern with default Pattern', () => {
       const matchPattern = generateMatchPattern();
       expect(matchPattern).to.eql(
-        /^chore(\((?<branch>[\w-./]+)\))?: release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
+        /^chore(\((?<changesBranch>[\w-./]+ => )?(?<branch>[\w-./]+)\))?: release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
       );
     });
   });
@@ -270,11 +287,23 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
     it('builds branchname with only target branch', () => {
       const pullRequestTitle = PullRequestTitle.ofTargetBranchVersion(
         'main',
+        'main',
         Version.parse('1.2.3'),
         'chore${scope}: 🔖 release${component} ${version}'
       );
       expect(pullRequestTitle.toString()).to.eql(
         'chore(main): 🔖 release 1.2.3'
+      );
+    });
+    it('builds branchname with target branch and changes branch', () => {
+      const pullRequestTitle = PullRequestTitle.ofTargetBranchVersion(
+        'main',
+        'next',
+        Version.parse('1.2.3'),
+        'chore${scope}: 🔖 release${component} ${version}'
+      );
+      expect(pullRequestTitle.toString()).to.eql(
+        'chore(next => main): 🔖 release 1.2.3'
       );
     });
   });
@@ -283,11 +312,24 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
         'foo',
         'main',
+        'main',
         Version.parse('1.2.3'),
         'chore${scope}: 🔖 release${component} ${version}'
       );
       expect(pullRequestTitle.toString()).to.eql(
         'chore(main): 🔖 release foo 1.2.3'
+      );
+    });
+    it('builds branchname with target branch, changes branch, and component', () => {
+      const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
+        'foo',
+        'main',
+        'next',
+        Version.parse('1.2.3'),
+        'chore${scope}: 🔖 release${component} ${version}'
+      );
+      expect(pullRequestTitle.toString()).to.eql(
+        'chore(next => main): 🔖 release foo 1.2.3'
       );
     });
   });
@@ -297,7 +339,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
         'chore${scope}: 🔖 release${component} ${version}'
       );
       expect(matchPattern).to.eql(
-        /^chore(\((?<branch>[\w-./]+)\))?: 🔖 release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
+        /^chore(\((?<changesBranch>[\w-./]+ => )?(?<branch>[\w-./]+)\))?: 🔖 release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
       );
     });
 

@@ -12,6 +12,7 @@
     "prepare": "npm run compile",
     "lint": "gts check",
     "compile": "tsc -p .",
+    "cli": "npm run compile && node build/src/bin/release-please.js",
     "fix": "gts fix",
     "pretest": "npm run compile"
   },
@@ -21,7 +22,7 @@
     "!build/src/**/*.map",
     "schemas"
   ],
-  "repository": "googleapis/release-please",
+  "repository": "stainless-api/release-please",
   "keywords": [
     "release",
     "conventional-commits"
@@ -29,9 +30,9 @@
   "author": "Google Inc.",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/googleapis/release-please/issues"
+    "url": "https://github.com/stainless-api/release-please/issues"
   },
-  "homepage": "https://github.com/googleapis/release-please#readme",
+  "homepage": "https://github.com/stainless-api/release-please#readme",
   "config": {
     "snap-shot-it": {
       "sortSnapshots": true

@@ -47,6 +47,8 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
+import {RequestError} from '@octokit/request-error';
+import {GraphqlResponseError} from '@octokit/graphql';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -194,6 +196,7 @@ export interface ManifestOptions {
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   logger?: Logger;
+  changesBranch?: string;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -277,6 +280,7 @@ export class Manifest {
   readonly repositoryConfig: RepositoryConfig;
   readonly releasedVersions: ReleasedVersions;
   private targetBranch: string;
+  readonly changesBranch: string;
   private separatePullRequests: boolean;
   readonly fork: boolean;
   private signoffUser?: string;
@@ -335,6 +339,7 @@ export class Manifest {
     this.repository = github.repository;
     this.github = github;
     this.targetBranch = targetBranch;
+    this.changesBranch = manifestOptions?.changesBranch || this.targetBranch;
     this.repositoryConfig = repositoryConfig;
     this.releasedVersions = releasedVersions;
     this.manifestPath =
@@ -424,6 +429,8 @@ export class Manifest {
    * @param {string} targetBranch The releaseable base branch
    * @param {ReleaserConfig} config Release strategy options
    * @param {ManifestOptions} manifestOptions Optional. Manifest options
+   * @param {string} manifestOptions.changesBranch If provided, this branch will be used
+   *   to find conventional commits instead of the target branch
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
@@ -458,7 +465,7 @@ export class Manifest {
     const releasedVersions: ReleasedVersions = {};
     const latestVersion = await latestReleaseVersion(
       github,
-      targetBranch,
+      manifestOptions?.changesBranch || targetBranch,
       version => isPublishedVersion(strategy, version),
       config,
       component,
@@ -584,10 +591,13 @@ export class Manifest {
     this.logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
     this.logger.debug(`commit search depth: ${this.commitSearchDepth}`);
-    const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
-      maxResults: this.commitSearchDepth,
-      backfillFiles: true,
-    });
+    const commitGenerator = this.github.mergeCommitIterator(
+      this.changesBranch,
+      {
+        maxResults: this.commitSearchDepth,
+        backfillFiles: true,
+      }
+    );
     const releaseShas = new Set(Object.values(releaseShasByPath));
     this.logger.debug(releaseShas);
     const expectedShas = releaseShas.size;
@@ -692,6 +702,7 @@ export class Manifest {
       );
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
+      this.logger.debug(`changesBranch: ${this.changesBranch}`);
       let pathCommits = parseConventionalCommits(
         commitsPerPath[path],
         this.logger
@@ -716,6 +727,10 @@ export class Manifest {
         latestRelease,
         config.draftPullRequest ?? this.draftPullRequest,
         this.labels
+      );
+      this.logger.debug(`path: ${path}`);
+      this.logger.debug(
+        `releasePullRequest.headRefName: ${releasePullRequest?.headRefName}`
       );
       if (releasePullRequest) {
         // Update manifest, but only for valid release version - this will skip SNAPSHOT from java strategy
@@ -748,6 +763,7 @@ export class Manifest {
       this.plugins.push(
         new Merge(this.github, this.targetBranch, this.repositoryConfig, {
           pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+          changesBranch: this.changesBranch,
         })
       );
     }
@@ -961,6 +977,7 @@ export class Manifest {
         files: [],
       },
       this.targetBranch,
+      this.changesBranch,
       message,
       pullRequest.updates,
       {
@@ -988,6 +1005,7 @@ export class Manifest {
       existing.number,
       pullRequest,
       this.targetBranch,
+      this.changesBranch,
       {
         fork: this.fork,
         signoffUser: this.signoffUser,
@@ -1013,6 +1031,7 @@ export class Manifest {
       snoozed.number,
       pullRequest,
       this.targetBranch,
+      this.changesBranch,
       {
         fork: this.fork,
         signoffUser: this.signoffUser,
@@ -1105,6 +1124,7 @@ export class Manifest {
   async createReleases(): Promise<(CreatedRelease | undefined)[]> {
     const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
     const pullRequestsByNumber: Record<number, PullRequest> = {};
+
     for (const release of await this.buildReleases()) {
       pullRequestsByNumber[release.pullRequest.number] = release.pullRequest;
       if (releasesByPullRequest[release.pullRequest.number]) {
@@ -1114,28 +1134,150 @@ export class Manifest {
       }
     }
 
-    if (this.sequentialCalls) {
-      const resultReleases: CreatedRelease[] = [];
-      for (const pullNumber in releasesByPullRequest) {
-        const releases = await this.createReleasesForPullRequest(
-          releasesByPullRequest[pullNumber],
-          pullRequestsByNumber[pullNumber]
-        );
-        resultReleases.push(...releases);
-      }
-      return resultReleases;
-    } else {
-      const promises: Promise<CreatedRelease[]>[] = [];
-      for (const pullNumber in releasesByPullRequest) {
-        promises.push(
-          this.createReleasesForPullRequest(
+    const runReleaseProcess = async (): Promise<CreatedRelease[]> => {
+      if (this.sequentialCalls) {
+        const resultReleases: CreatedRelease[] = [];
+        for (const pullNumber in releasesByPullRequest) {
+          const releases = await this.createReleasesForPullRequest(
             releasesByPullRequest[pullNumber],
             pullRequestsByNumber[pullNumber]
-          )
-        );
+          );
+          resultReleases.push(...releases);
+        }
+        return resultReleases;
+      } else {
+        const promises: Promise<CreatedRelease[]>[] = [];
+        for (const pullNumber in releasesByPullRequest) {
+          promises.push(
+            this.createReleasesForPullRequest(
+              releasesByPullRequest[pullNumber],
+              pullRequestsByNumber[pullNumber]
+            )
+          );
+        }
+        const releases = await Promise.all(promises);
+        return releases.reduce((collection, r) => collection.concat(r), []);
       }
-      const releases = await Promise.all(promises);
-      return releases.reduce((collection, r) => collection.concat(r), []);
+    };
+
+    // to minimize risks of race condition we attempt to lock branches used as the source of commits for the duration of the
+    // release process
+    let createdReleases: CreatedRelease[];
+    const pullRequests = Object.values(pullRequestsByNumber);
+    try {
+      const lockedBranches = await this.lockPullRequestsChangesBranch(
+        pullRequests
+      );
+      try {
+        // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
+        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+        createdReleases = await runReleaseProcess();
+      } finally {
+        // always try to unlock branches, we don't want to keep them blocked as read-only when the release process fails
+        // before completion
+        await this.unlockPullRequestsChangesBranch(lockedBranches);
+      }
+    } catch (err: unknown) {
+      // Error: 403 "Resource not accessible by integration" is returned by GitHub when the API token doesn't have
+      // permissions to manipulate branch protection rules, if that seems to be the case we instead fallback to checking
+      // twice for race conditions, once at the beginning of the release process and once again before aligning branches.
+      // While not ideal that still significantly reduces risks of overwriting new commits.
+      //
+      // Error mentioned here: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/resource-not-accessible-by-integration
+      if (
+        err &&
+        ((err instanceof RequestError && err.status === 403) ||
+          (err instanceof GraphqlResponseError &&
+            err.errors?.find(e => e.type === 'FORBIDDEN')))
+      ) {
+        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+        createdReleases = await runReleaseProcess();
+        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+      } else {
+        throw err;
+      }
+    }
+
+    await this.alignPullRequestsChangesBranch(pullRequests);
+    return createdReleases;
+  }
+
+  /**
+   * Attempt to lock the branch used as the ref for the release branch of pull requests
+   *
+   * @returns {Set<string>} Branch names that have been locked
+   */
+  private async lockPullRequestsChangesBranch(
+    pullRequests: PullRequest[]
+  ): Promise<Set<string>> {
+    const lockedBranches = new Set<string>();
+    for (const pr of pullRequests) {
+      const branchName = BranchName.parse(pr.headBranchName);
+      const refBranch = branchName?.changesBranch || branchName?.targetBranch;
+      if (refBranch && !lockedBranches.has(refBranch)) {
+        await this.github.lockBranch(refBranch);
+        lockedBranches.add(refBranch);
+      }
+    }
+    return lockedBranches;
+  }
+
+  private async unlockPullRequestsChangesBranch(branchNames: Set<string>) {
+    for (const branch of branchNames) {
+      await this.github.unlockBranch(branch);
+    }
+  }
+
+  private async throwIfChangesBranchesRaceConditionDetected(
+    pullRequests: PullRequest[]
+  ) {
+    for (const pr of pullRequests) {
+      const branchName = BranchName.parse(pr.headBranchName);
+
+      // we only care about pull requests with an associated changes-branch
+      if (!branchName?.changesBranch) {
+        continue;
+      }
+
+      // first check if the release branch is synced with changes-branch
+      if (
+        await this.github.isBranchASyncedWithB(
+          pr.headBranchName,
+          branchName.changesBranch
+        )
+      ) {
+        // no new changes to changes-branch detected, all good
+        continue;
+      }
+
+      // then check if changes-branch has already been synced with the base branch (that's the case if the release
+      // process is run twice in a row for example)
+      if (
+        await this.github.isBranchASyncedWithB(
+          branchName.changesBranch,
+          pr.baseBranchName
+        )
+      ) {
+        continue;
+      }
+
+      throw new Error(
+        'Race condition detected. The ref branch used to create the release pull request branch received new commits. Cannot safely reset branch.'
+      );
+    }
+  }
+
+  private async alignPullRequestsChangesBranch(pullRequests: PullRequest[]) {
+    for (const pr of pullRequests) {
+      const branchName = BranchName.parse(pr.headBranchName);
+      // we only care about pull requests with an associated changes-branch
+      if (!branchName?.changesBranch) {
+        continue;
+      }
+      await this.github.alignBranchWithAnother(
+        branchName.changesBranch,
+        this.targetBranch
+      );
     }
   }
 
@@ -1222,6 +1364,7 @@ export class Manifest {
           github: this.github,
           path,
           targetBranch: this.targetBranch,
+          changesBranch: this.changesBranch,
         });
         this._strategiesByPath[path] = strategy;
       }
@@ -1449,14 +1592,14 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * configured for.
  *
  * @param github GitHub client instance.
- * @param {string} targetBranch Name of the scanned branch.
+ * @param {string} branchToScan Name of the scanned branch.
  * @param releaseFilter Validator function for release version. Used to filter-out SNAPSHOT releases for Java strategy.
  * @param {string} prefix Limit the release to a specific component.
  * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
   github: GitHub,
-  targetBranch: string,
+  branchToScan: string,
   releaseFilter: (version: Version) => boolean,
   config: ReleaserConfig,
   prefix?: string,
@@ -1469,7 +1612,7 @@ async function latestReleaseVersion(
     : undefined;
 
   logger.info(
-    `Looking for latest release on branch: ${targetBranch} with prefix: ${prefix}`
+    `Looking for latest release on branch: ${branchToScan} with prefix: ${prefix}`
   );
 
   // collect set of recent commit SHAs seen to verify that the release
@@ -1480,7 +1623,7 @@ async function latestReleaseVersion(
   // only look at the last 250 or so commits to find the latest tag - we
   // don't want to scan the entire repository history if this repo has never
   // been released
-  const generator = github.mergeCommitIterator(targetBranch, {
+  const generator = github.mergeCommitIterator(branchToScan, {
     maxResults: 250,
   });
   for await (const commitWithPullRequest of generator) {
@@ -1550,7 +1693,7 @@ async function latestReleaseVersion(
       logger.debug(`found release for ${prefix}`, tagName.version);
       if (!commitShas.has(release.sha)) {
         logger.debug(
-          `SHA not found in recent commits to branch ${targetBranch}, skipping`
+          `SHA not found in recent commits to branch '${branchToScan}', skipping`
         );
         continue;
       }
@@ -1580,7 +1723,7 @@ async function latestReleaseVersion(
     if (tagMatchesConfig(tagName, branchPrefix, config.includeComponentInTag)) {
       if (!commitShas.has(tag.sha)) {
         logger.debug(
-          `SHA not found in recent commits to branch ${targetBranch}, skipping`
+          `SHA not found in recent commits to branch '${branchToScan}', skipping`
         );
         continue;
       }

@@ -96,12 +96,12 @@ export class PHPYoshi extends BaseStrategy {
       try {
         const contents = await this.github.getFileContentsOnBranch(
           this.addPath(`${directory}/VERSION`),
-          this.targetBranch
+          this.changesBranch
         );
         const version = Version.parse(contents.parsedContent);
         const composer = await this.github.getFileJson<ComposerJson>(
           this.addPath(`${directory}/composer.json`),
-          this.targetBranch
+          this.changesBranch
         );
         directoryVersionContents[directory] = {
           versionContents: contents,
@@ -122,6 +122,7 @@ export class PHPYoshi extends BaseStrategy {
             previousTag: latestRelease?.tag?.toString(),
             currentTag: newVersionTag.toString(),
             targetBranch: this.targetBranch,
+            changesBranch: this.changesBranch,
             changelogSections: this.changelogSections,
           }
         );
@@ -140,14 +141,21 @@ export class PHPYoshi extends BaseStrategy {
         }
       }
     }
+
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
+      this.changesBranch,
       newVersion
     );
     const branchName = component
-      ? BranchName.ofComponentTargetBranch(component, this.targetBranch)
-      : BranchName.ofTargetBranch(this.targetBranch);
+      ? BranchName.ofComponentTargetBranch(
+          component,
+          this.targetBranch,
+          this.changesBranch
+        )
+      : BranchName.ofTargetBranch(this.targetBranch, this.changesBranch);
+
     const updates = await this.buildUpdates({
       changelogEntry: releaseNotesBody,
       newVersion,
