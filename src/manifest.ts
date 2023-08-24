@@ -1171,7 +1171,6 @@ export class Manifest {
         );
       }
     } finally {
-      // FIXME:
       // always try to unlock branches, we don't want to keep them blocked as read-only when the release process fails
       // before completion
       await this.unlockPullRequestsChangesBranch(lockedBranches);
