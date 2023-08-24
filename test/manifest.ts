@@ -54,6 +54,7 @@ import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
 import {MavenWorkspace} from '../src/plugins/maven-workspace';
+import {RequestErrorOptions} from '@octokit/request-error/dist-types/types';
 
 nock.disableNetConnect();
 
@@ -6240,6 +6241,113 @@ describe('Manifest', () => {
       sinon.assert.calledOnce(removeLabelsStub);
       sinon.assert.calledOnce(lockBranchStub);
       sinon.assert.calledOnce(unlockBranchStub);
+    });
+
+    it('should fallback to checking twice for race conditions when branch lock fails due to missing token permissions', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {id: 123456, sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
+
+      // make the lock branch fail with the relevant permission error
+      sandbox.replace(github, 'lockBranch', async () => {
+        throw new RequestError('Resource not accessible by integration', 403, {
+          request: {
+            method: 'POST',
+            url: 'https://api.github.com/foo',
+            body: {
+              bar: 'baz',
+            },
+            headers: {
+              authorization: 'token secret123',
+            },
+          },
+          response: {
+            status: 500,
+            url: 'https://api.github.com/foo',
+            headers: {
+              'x-github-request-id': '1:2:3:4',
+            },
+            data: {
+              foo: 'bar',
+            },
+          },
+        });
+      });
+
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+
+      // stub the race condition detection method to be able to check it was called twice
+      const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
+        manifest,
+        <any>'throwIfChangesBranchesRaceConditionDetected'
+      );
+
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.path).to.eql('.');
+
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+
+      sinon.assert.calledTwice(throwIfChangesBranchesRaceConditionDetectedStub);
+      // ensure we don't try to update permissions rules again given the lock failed
+      sinon.assert.notCalled(unlockBranchStub);
     });
   });
 });

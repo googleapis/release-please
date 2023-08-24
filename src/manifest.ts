@@ -47,6 +47,7 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
+import {RequestError} from '@octokit/request-error';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -1132,18 +1133,7 @@ export class Manifest {
       }
     }
 
-    // to minimize risks of race condition we lock branches used as the source of commits for the duration of the
-    // release process
-    const pullRequests = Object.values(pullRequestsByNumber);
-    const lockedBranches = await this.lockPullRequestsChangesBranch(
-      pullRequests
-    );
-    let createdReleases: CreatedRelease[];
-    try {
-      // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
-      await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
-
-      // create the actual github releases
+    const runReleaseProcess = async (): Promise<CreatedRelease[]> => {
       if (this.sequentialCalls) {
         const resultReleases: CreatedRelease[] = [];
         for (const pullNumber in releasesByPullRequest) {
@@ -1153,7 +1143,7 @@ export class Manifest {
           );
           resultReleases.push(...releases);
         }
-        createdReleases = resultReleases;
+        return resultReleases;
       } else {
         const promises: Promise<CreatedRelease[]>[] = [];
         for (const pullNumber in releasesByPullRequest) {
@@ -1165,15 +1155,41 @@ export class Manifest {
           );
         }
         const releases = await Promise.all(promises);
-        createdReleases = releases.reduce(
-          (collection, r) => collection.concat(r),
-          []
-        );
+        return releases.reduce((collection, r) => collection.concat(r), []);
       }
-    } finally {
-      // always try to unlock branches, we don't want to keep them blocked as read-only when the release process fails
-      // before completion
-      await this.unlockPullRequestsChangesBranch(lockedBranches);
+    };
+
+    // to minimize risks of race condition we attempt to lock branches used as the source of commits for the duration of the
+    // release process
+    let createdReleases: CreatedRelease[];
+    const pullRequests = Object.values(pullRequestsByNumber);
+    try {
+      const lockedBranches = await this.lockPullRequestsChangesBranch(
+        pullRequests
+      );
+      try {
+        // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
+        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+        createdReleases = await runReleaseProcess();
+      } finally {
+        // always try to unlock branches, we don't want to keep them blocked as read-only when the release process fails
+        // before completion
+        await this.unlockPullRequestsChangesBranch(lockedBranches);
+      }
+    } catch (err: unknown) {
+      // Error: 403 "Resource not accessible by integration" is returned by GitHub when the API token doesn't have
+      // permissions to manipulate branch protection rules, if that seems to be the case we instead fallback to checking
+      // twice for race conditions, once at the beginning of the release process and once again before aligning branches.
+      // While not ideal that still significantly reduces risks of overwriting new commits.
+      //
+      // Error mentioned here: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/resource-not-accessible-by-integration
+      if (err && err instanceof RequestError && err.status === 403) {
+        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+        createdReleases = await runReleaseProcess();
+        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+      } else {
+        throw err;
+      }
     }
 
     await this.alignPullRequestsChangesBranch(pullRequests);
