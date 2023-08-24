@@ -1185,9 +1185,10 @@ export class Manifest {
       //
       // Error mentioned here: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/resource-not-accessible-by-integration
       if (
-        (err && err instanceof RequestError && err.status === 403) ||
-        (err instanceof GraphqlResponseError &&
-          err.errors?.find(e => e.type === 'FORBIDDEN'))
+        err &&
+        ((err instanceof RequestError && err.status === 403) ||
+          (err instanceof GraphqlResponseError &&
+            err.errors?.find(e => e.type === 'FORBIDDEN')))
       ) {
         await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
         createdReleases = await runReleaseProcess();
