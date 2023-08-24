@@ -1178,9 +1178,6 @@ export class Manifest {
         await this.unlockPullRequestsChangesBranch(lockedBranches);
       }
     } catch (err: unknown) {
-      if (err instanceof GraphqlResponseError) {
-        this.logger.info({err: err.errors});
-      }
       // Error: 403 "Resource not accessible by integration" is returned by GitHub when the API token doesn't have
       // permissions to manipulate branch protection rules, if that seems to be the case we instead fallback to checking
       // twice for race conditions, once at the beginning of the release process and once again before aligning branches.
@@ -1190,7 +1187,7 @@ export class Manifest {
       if (
         (err && err instanceof RequestError && err.status === 403) ||
         (err instanceof GraphqlResponseError &&
-          err.errors?.find(e => e.type === '???'))
+          err.errors?.find(e => e.type === 'FORBIDDEN'))
       ) {
         await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
         createdReleases = await runReleaseProcess();
