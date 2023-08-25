@@ -39,6 +39,8 @@ import {
   DuplicateReleaseError,
   FileNotFoundError,
   ConfigurationError,
+  isOctokitRequestError,
+  isOctokitGraphqlResponseError,
 } from './errors';
 import {ManifestPlugin} from './plugin';
 import {
@@ -47,8 +49,6 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
-import {RequestError} from '@octokit/request-error';
-import {GraphqlResponseError} from '@octokit/graphql';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -1185,10 +1185,9 @@ export class Manifest {
       //
       // Error mentioned here: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/resource-not-accessible-by-integration
       if (
-        err &&
-        ((err instanceof RequestError && err.status === 403) ||
-          (err instanceof GraphqlResponseError &&
-            err.errors?.find(e => e.type === 'FORBIDDEN')))
+        (isOctokitRequestError(err) && err.status === 403) ||
+        (isOctokitGraphqlResponseError(err) &&
+          err.errors?.find(e => e.type === 'FORBIDDEN'))
       ) {
         await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
         createdReleases = await runReleaseProcess();

@@ -22,12 +22,12 @@ import {Commit} from './commit';
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
-import {RequestError} from '@octokit/request-error';
 import {
   GitHubAPIError,
   DuplicateReleaseError,
   FileNotFoundError,
   ConfigurationError,
+  isOctokitRequestError,
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
@@ -1590,7 +1590,7 @@ export class GitHub {
       };
     },
     e => {
-      if (e instanceof RequestError) {
+      if (isOctokitRequestError(e)) {
         if (
           e.status === 422 &&
           GitHubAPIError.parseErrors(e).some(error => {
@@ -1754,7 +1754,7 @@ export class GitHub {
       this.logger.debug(`SHA for branch: ${sha}`);
       return sha;
     } catch (e) {
-      if (e instanceof RequestError && e.status === 404) {
+      if (isOctokitRequestError(e) && e.status === 404) {
         this.logger.debug(`Branch: ${branchName} does not exist`);
         return undefined;
       }
@@ -2079,7 +2079,7 @@ const wrapAsync = <T extends Array<any>, V>(
       if (errorHandler) {
         errorHandler(e as GitHubAPIError);
       }
-      if (e instanceof RequestError) {
+      if (isOctokitRequestError(e)) {
         throw new GitHubAPIError(e);
       }
       throw e;
