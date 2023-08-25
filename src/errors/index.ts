@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {GraphqlResponseError} from '@octokit/graphql';
 import {RequestError} from '@octokit/request-error';
 import {RequestError as RequestErrorBody} from '@octokit/types';
 
@@ -90,4 +91,57 @@ export class FileNotFoundError extends Error {
     this.path = path;
     this.name = FileNotFoundError.name;
   }
+}
+
+/**
+ * Type guard to check if an error is an Octokit RequestError.
+ *
+ * This function checks the structure of the error object to determine if it matches
+ * the shape of a RequestError. It should be favored instead of `instanceof` checks,
+ * especially in scenarios where the prototype chain might not be reliable, such as when
+ * dealing with different versions of a package or when the error object might have been
+ * modified.
+ *
+ * @param error The error object to check.
+ * @returns A boolean indicating whether the error is a RequestError.
+ */
+export function isOctokitRequestError(error: unknown): error is RequestError {
+  if (typeof error === 'object' && error !== null) {
+    const e = error as RequestError;
+    return (
+      e.name === 'HttpError' &&
+      typeof e.status === 'number' &&
+      typeof e.request === 'object'
+    );
+  }
+  return false;
+}
+
+/**
+ * Type guard to check if an error is an Octokit GraphqlResponseError.
+ *
+ * This function checks the structure of the error object to determine if it matches
+ * the shape of a GraphqlResponseError. It should be favored instead of `instanceof` checks,
+ * especially in scenarios where the prototype chain might not be reliable, such as when
+ * dealing with different versions of a package or when the error object might have been
+ * modified.
+ *
+ * @param error The error object to check.
+ * @returns A boolean indicating whether the error is a GraphqlResponseError.
+ */
+export function isOctokitGraphqlResponseError(
+  error: unknown
+): error is GraphqlResponseError<unknown> {
+  if (typeof error === 'object' && error !== null) {
+    const e = error as GraphqlResponseError<unknown>;
+    return (
+      typeof e.request === 'object' &&
+      typeof e.headers === 'object' &&
+      typeof e.response === 'object' &&
+      typeof e.name === 'string' &&
+      Array.isArray(e.errors) &&
+      e.data !== undefined
+    );
+  }
+  return false;
 }
