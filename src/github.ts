@@ -1337,12 +1337,20 @@ export class GitHub {
 
       // assign reviewers
       if (options?.reviewers) {
-        await this.octokit.pulls.requestReviewers({
-          owner: this.repository.owner,
-          repo: this.repository.repo,
-          pull_number: pullRequestNumber,
-          reviewers: options.reviewers,
-        });
+        try {
+          await this.octokit.pulls.requestReviewers({
+            owner: this.repository.owner,
+            repo: this.repository.repo,
+            pull_number: pullRequestNumber,
+            reviewers: options.reviewers,
+          });
+        } catch (error) {
+          console.log(
+            `Failed to add reviewers. Continuing anyway: ${
+              isOctokitRequestError(error) ? error.message : error
+            }`
+          );
+        }
       }
 
       return await this.getPullRequest(pullRequestNumber);
