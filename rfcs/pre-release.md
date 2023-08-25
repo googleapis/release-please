@@ -35,6 +35,6 @@ The SemVer spec does not go into detail about the semantics of prerelease versio
 
 > Pre-release versions have a lower precedence than the associated normal version
 
-Other than being preceeded by a hyphen and consisting of "a series of dot separated identifiers", prerelease versions can be *anything*.  I.e. there's no semantic correlation to the major-minor-patch fields.  Nor is there any requirement for it contain a numeric component.
+Other than being preceeded by a hyphen and consisting of "a series of dot separated identifiers", prerelease versions can be *anything*.  There's no requirement there even be a numeric component to them, let alone any semantic relationship to the normal major-minor-patch fields.
 
-Thus, (for now) we should use the simplest-possible logic for implementing version bumps, as described above.
+Thus, applying the simple and (hopefully) intuitive right-most-number logic described above should will minimize the amount of confusion this causes.  If/when users demand more involved logic, new schemes can be added at a future date.
