@@ -83,7 +83,7 @@
     "chalk": "^4.0.0",
     "code-suggester": "^4.2.0",
     "conventional-changelog-conventionalcommits": "^6.0.0",
-    "conventional-changelog-writer": "^6.0.0",
+    "conventional-changelog-writer": "^7.0.0",
     "conventional-commits-filter": "^3.0.0",
     "detect-indent": "^6.1.0",
     "diff": "^5.0.0",
