@@ -17,8 +17,10 @@ jobs:
 
       - name: Checkout release branch
         run: |
+          git config --global user.name "Stainless Bot"
+          git config --global user.email "stainless-bot@users.noreply.github.com"
           git checkout release
-          git rebase main
+          git rebase -Xtheirs main
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -39,8 +41,6 @@ jobs:
 
       - name: Commit and push build files
         run: |
-          git config --global user.name "Stainless Bot"
-          git config --global user.email "stainless-bot@users.noreply.github.com"
           git add ./build
           git commit -m "Build sources"
           git push
