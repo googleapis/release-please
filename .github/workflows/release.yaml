@@ -41,7 +41,7 @@ jobs:
 
       - name: Commit and push build files
         run: |
-          git add ./build
+          git add -f ./build
           git commit -m "Build sources"
           git push origin release
 
