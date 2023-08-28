@@ -20,7 +20,7 @@ jobs:
           git config --global user.name "Stainless Bot"
           git config --global user.email "stainless-bot@users.noreply.github.com"
           git checkout release
-          git rebase -Xtheirs main
+          git merge --no-ff main
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -43,7 +43,7 @@ jobs:
         run: |
           git add ./build
           git commit -m "Build sources"
-          git push
+          git push origin release
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
