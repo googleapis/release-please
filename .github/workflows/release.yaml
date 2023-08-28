@@ -1,0 +1,51 @@
+name: Build and release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: main
+
+      - name: Checkout release branch
+        run: |
+          git checkout release
+          git rebase main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Commit and push build files
+        run: |
+          git add ./build
+          git commit -m "Build sources"
+          git push
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: 'release-${{ github.run_id }}'
+          name: 'Release ${{ github.run_id }}'
+          body: 'Auto-generated release'
