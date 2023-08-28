@@ -1977,6 +1977,29 @@ export class GitHub {
       force: true,
     });
   }
+
+  async getLabels(): Promise<string[]> {
+    const {owner, repo} = this.repository;
+    const labels = await this.request('GET /repos/{owner}/{repo}/labels', {
+      owner,
+      repo,
+    });
+    return labels.data.map(l => l.name);
+  }
+
+  async createLabels(labels: string[]) {
+    const {owner, repo} = this.repository;
+    for (const label of labels) {
+      await this.request('POST /repos/{owner}/{repo}/labels', {
+        owner,
+        repo,
+        name: label,
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      });
+    }
+  }
 }
 
 /**

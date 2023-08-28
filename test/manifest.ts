@@ -3436,8 +3436,18 @@ describe('Manifest', () => {
         }
       );
       sandbox.stub(manifest, 'buildPullRequests').resolves([]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequests = await manifest.createPullRequests();
       expect(pullRequests).to.be.empty;
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
 
     it('handles a single pull request', async () => {
@@ -3516,8 +3526,18 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequests = await manifest.createPullRequests();
       expect(pullRequests).lengthOf(1);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
 
     it('handles a multiple pull requests', async () => {
@@ -3646,9 +3666,19 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequests = await manifest.createPullRequests();
       expect(pullRequests.map(pullRequest => pullRequest!.number)).to.eql([
         123, 124,
+      ]);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
       ]);
     });
 
@@ -3729,8 +3759,18 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequestNumbers = await manifest.createPullRequests();
       expect(pullRequestNumbers).lengthOf(1);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
 
     it('handles fork = true', async () => {
@@ -3810,8 +3850,18 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequestNumbers = await manifest.createPullRequests();
       expect(pullRequestNumbers).lengthOf(1);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
 
     it('updates an existing pull request', async () => {
@@ -3907,8 +3957,18 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequestNumbers = await manifest.createPullRequests();
       expect(pullRequestNumbers).lengthOf(1);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
 
     describe('with an overflowing body', () => {
@@ -3990,9 +4050,21 @@ describe('Manifest', () => {
               draft: false,
             },
           ]);
+        const getLabelsStub = sandbox
+          .stub(github, 'getLabels')
+          .resolves(['label-a', 'label-b']);
+        const createLabelsStub = sandbox
+          .stub(github, 'createLabels')
+          .resolves();
         const pullRequestNumbers = await manifest.createPullRequests();
         sinon.assert.calledOnce(updatePullRequestStub);
         sinon.assert.calledOnce(buildPullRequestsStub);
+        sinon.assert.calledOnce(getLabelsStub);
+        sinon.assert.calledOnceWithExactly(createLabelsStub, [
+          'autorelease: pending',
+          'autorelease: tagged',
+          'autorelease: pre-release',
+        ]);
         expect(pullRequestNumbers).lengthOf(1);
       });
 
@@ -4076,6 +4148,12 @@ describe('Manifest', () => {
             plugins: ['node-workspace'],
           }
         );
+        const getLabelsStub = sandbox
+          .stub(github, 'getLabels')
+          .resolves(['label-a', 'label-b', 'autorelease: pending']);
+        const createLabelsStub = sandbox
+          .stub(github, 'createLabels')
+          .resolves();
         sandbox.stub(manifest, 'buildPullRequests').resolves([
           {
             title: PullRequestTitle.ofTargetBranch('main', 'main'),
@@ -4094,6 +4172,11 @@ describe('Manifest', () => {
         ]);
         const pullRequestNumbers = await manifest.createPullRequests();
         expect(pullRequestNumbers).lengthOf(0);
+        sinon.assert.calledOnce(getLabelsStub);
+        sinon.assert.calledOnceWithExactly(createLabelsStub, [
+          'autorelease: tagged',
+          'autorelease: pre-release',
+        ]);
       });
     });
 
@@ -4169,6 +4252,10 @@ describe('Manifest', () => {
           separatePullRequests: true,
         }
       );
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b', 'autorelease: pending']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       sandbox.stub(manifest, 'buildPullRequests').resolves([
         {
           title: PullRequestTitle.ofTargetBranch('main', 'main'),
@@ -4191,6 +4278,11 @@ describe('Manifest', () => {
       ]);
       const pullRequestNumbers = await manifest.createPullRequests();
       expect(pullRequestNumbers).lengthOf(1);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
 
     it('skips pull requests if there are pending, merged pull requests', async () => {
@@ -4255,8 +4347,18 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequestNumbers = await manifest.createPullRequests();
       expect(pullRequestNumbers).lengthOf(0);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
 
     it('reopens snoozed, closed pull request if there are changes', async () => {
@@ -4356,8 +4458,18 @@ describe('Manifest', () => {
       const removeLabelsStub = sandbox
         .stub(github, 'removeIssueLabels')
         .resolves();
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequestNumbers = await manifest.createPullRequests();
       expect(pullRequestNumbers).lengthOf(1);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
       sinon.assert.calledOnce(removeLabelsStub);
     });
 
@@ -4425,8 +4537,18 @@ describe('Manifest', () => {
           draft: false,
         },
       ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a', 'label-b']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
       const pullRequestNumbers = await manifest.createPullRequests();
       expect(pullRequestNumbers).lengthOf(0);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnceWithExactly(createLabelsStub, [
+        'autorelease: pending',
+        'autorelease: tagged',
+        'autorelease: pre-release',
+      ]);
     });
   });
 

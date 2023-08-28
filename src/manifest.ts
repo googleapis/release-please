@@ -837,6 +837,9 @@ export class Manifest {
    * @returns {PullRequest[]} Pull request numbers of release pull requests
    */
   async createPullRequests(): Promise<(PullRequest | undefined)[]> {
+    // register all possible labels to make them available to users through GitHub label dropdown
+    await this.registerLabels();
+
     const candidatePullRequests = await this.buildPullRequests();
     if (candidatePullRequests.length === 0) {
       return [];
@@ -882,6 +885,16 @@ export class Manifest {
       // reject any pull numbers that were not created or updated
       return pullNumbers.filter(number => !!number);
     }
+  }
+
+  private async registerLabels() {
+    const repoLabels = new Set<string>(await this.github.getLabels());
+    const missingLabels = [
+      ...this.labels,
+      ...this.releaseLabels,
+      ...this.prereleaseLabels,
+    ].filter(label => !repoLabels.has(label));
+    await this.github.createLabels(missingLabels);
   }
 
   private async findOpenReleasePullRequests(): Promise<PullRequest[]> {
