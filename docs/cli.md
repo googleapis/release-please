@@ -68,7 +68,7 @@ Extra options:
 ## Creating/updating release PRs
 
 ```bash
-release-please release-pr 
+release-please release-pr
   --token=$GITHUB_TOKEN \
   --repo-url=<owner>/<repo> [extra options]
 ```

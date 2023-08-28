@@ -64,6 +64,9 @@ Options:
   --release-label               set a pull request label other than
                                 "autorelease: tagged"
                                        [string] [default: "autorelease: tagged"]
+  --prerelease-label            set a pre-release pull request label other than
+                                "autorelease: pre-release"
+                                  [string] [default: "autorelease: pre-release"]
   --snapshot-label              set a java snapshot pull request label other
                                 than "autorelease: snapshot"
                                      [string] [default: "autorelease: snapshot"]
@@ -122,43 +125,47 @@ release-please manifest-release
 create releases/tags from last release-PR using a manifest file
 
 Options:
-  --help            Show help                                          [boolean]
-  --version         Show version number                                [boolean]
-  --debug           print verbose errors (use only for local debugging).
+  --help              Show help                                        [boolean]
+  --version           Show version number                              [boolean]
+  --debug             print verbose errors (use only for local debugging).
                                                       [boolean] [default: false]
-  --trace           print extra verbose errors (use only for local debugging).
+  --trace             print extra verbose errors (use only for local debugging).
                                                       [boolean] [default: false]
-  --plugin          load plugin named release-please-<plugin-name>
+  --plugin            load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
-  --token           GitHub token with repo write permissions
-  --api-url         URL to use when making API requests
+  --token             GitHub token with repo write permissions
+  --api-url           URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
-  --graphql-url     URL to use when making GraphQL requests
+  --graphql-url       URL to use when making GraphQL requests
                                     [string] [default: "https://api.github.com"]
-  --default-branch  The branch to open release PRs against and tag releases on
+  --default-branch    The branch to open release PRs against and tag releases on
                               [deprecated: use --target-branch instead] [string]
-  --target-branch   The branch to open release PRs against and tag releases on
+  --target-branch     The branch to open release PRs against and tag releases on
                                                                         [string]
-  --repo-url        GitHub URL to generate release for                [required]
-  --dry-run         Prepare but do not take action    [boolean] [default: false]
-  --use-graphql     Whether or not the GraphQL API should be used. If false, the
-                    REST API will be used instead.     [boolean] [default: true]
-  --draft           mark release as a draft. no tag is created but tag_name and
-                    target_commitish are associated with the release for future
-                    tag creation upon "un-drafting" the release.
+  --repo-url          GitHub URL to generate release for              [required]
+  --dry-run           Prepare but do not take action  [boolean] [default: false]
+  --use-graphql       Whether or not the GraphQL API should be used. If false,
+                      the REST API will be used instead.
+                                                       [boolean] [default: true]
+  --draft             mark release as a draft. no tag is created but tag_name
+                      and target_commitish are associated with the release for
+                      future tag creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
-  --prerelease      mark release that have prerelease versions as as a
-                    prerelease on Github              [boolean] [default: false]
-  --label           comma-separated list of labels to remove to from release PR
-                                               [default: "autorelease: pending"]
-  --release-label   set a pull request label other than "autorelease: tagged"
+  --prerelease        mark release that have prerelease versions as as a
+                      prerelease on Github            [boolean] [default: false]
+  --label             comma-separated list of labels to remove to from release
+                      PR                       [default: "autorelease: pending"]
+  --release-label     set a pull request label other than "autorelease: tagged"
                                        [string] [default: "autorelease: tagged"]
-  --snapshot-label  set a java snapshot pull request label other than
-                    "autorelease: snapshot"
+  --prerelease-label  set a pre-release pull request label other than
+                      "autorelease: pre-release"
+                                  [string] [default: "autorelease: pre-release"]
+  --snapshot-label    set a java snapshot pull request label other than
+                      "autorelease: snapshot"
                                      [string] [default: "autorelease: snapshot"]
-  --config-file     where can the config file be found in the project?
+  --config-file       where can the config file be found in the project?
                                          [default: "release-please-config.json"]
-  --manifest-file   where can the manifest file be found in the project?
+  --manifest-file     where can the manifest file be found in the project?
                                       [default: ".release-please-manifest.json"]
 `
 

@@ -2,6 +2,7 @@
   "release-type": "simple",
   "label": "custom: pending",
   "release-label": "custom: tagged",
+  "prerelease-label": "custom: pre-release",
   "packages": {
     ".": {
       "component": "root"

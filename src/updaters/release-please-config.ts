@@ -69,6 +69,7 @@ function releaserConfigToJsonConfig(
     'draft-pull-request': config.draftPullRequest,
     label: config.labels?.join(','),
     'release-label': config.releaseLabels?.join(','),
+    'prerelease-label': config.prereleaseLabels?.join(','),
     'include-component-in-tag': config.includeComponentInTag,
     'include-v-in-tag': config.includeVInTag,
     'changelog-type': config.changelogType,

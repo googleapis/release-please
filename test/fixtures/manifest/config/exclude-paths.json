@@ -2,11 +2,16 @@
   "release-type": "simple",
   "label": "custom: pending",
   "release-label": "custom: tagged",
-  "exclude-paths": ["path-ignore"],
+  "prerelease-label": "custom: pre-release",
+  "exclude-paths": [
+    "path-ignore"
+  ],
   "packages": {
     ".": {
       "component": "root",
-      "exclude-paths": ["path-root-ignore"]
+      "exclude-paths": [
+        "path-root-ignore"
+      ]
     },
     "node-lib": {
       "component": "node-lib"

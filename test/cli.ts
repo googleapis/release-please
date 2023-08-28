@@ -482,9 +482,9 @@ describe('CLI', () => {
       sinon.assert.calledOnce(buildReleasesStub);
     });
 
-    it('handles --label and --release-label', async () => {
+    it('handles --label, --release-label, and --prerelease-label', async () => {
       await parser.parseAsync(
-        'manifest-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer'
+        'manifest-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer --prerelease-label=preview1,preview2'
       );
 
       sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
@@ -501,7 +501,11 @@ describe('CLI', () => {
         'main',
         DEFAULT_RELEASE_PLEASE_CONFIG,
         DEFAULT_RELEASE_PLEASE_MANIFEST,
-        sinon.match({labels: ['foo', 'bar'], releaseLabels: ['asdf', 'qwer']})
+        sinon.match({
+          labels: ['foo', 'bar'],
+          releaseLabels: ['asdf', 'qwer'],
+          prereleaseLabels: ['preview1', 'preview2'],
+        })
       );
       sinon.assert.calledOnce(createReleasesStub);
     });
@@ -1294,9 +1298,9 @@ describe('CLI', () => {
         sinon.assert.calledOnce(buildReleasesStub);
       });
 
-      it('handles --label and --release-label', async () => {
+      it('handles --label, --release-label, and --prerelease-label', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer'
+          'github-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer --prerelease-label=preview1,preview2'
         );
 
         sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
@@ -1313,7 +1317,11 @@ describe('CLI', () => {
           'main',
           DEFAULT_RELEASE_PLEASE_CONFIG,
           DEFAULT_RELEASE_PLEASE_MANIFEST,
-          sinon.match({labels: ['foo', 'bar'], releaseLabels: ['asdf', 'qwer']})
+          sinon.match({
+            labels: ['foo', 'bar'],
+            releaseLabels: ['asdf', 'qwer'],
+            prereleaseLabels: ['preview1', 'preview2'],
+          })
         );
         sinon.assert.calledOnce(createReleasesStub);
       });
@@ -1472,9 +1480,9 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createReleasesStub);
       });
 
-      it('handles --label and --release-label', async () => {
+      it('handles --label, --release-label, and prerelease-label', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --label=foo,bar --release-label=asdf,qwer'
+          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --label=foo,bar --release-label=asdf,qwer --prerelease-label=preview1,preview2'
         );
 
         sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
@@ -1493,6 +1501,7 @@ describe('CLI', () => {
           sinon.match({
             labels: ['foo', 'bar'],
             releaseLabels: ['asdf', 'qwer'],
+            prereleaseLabels: ['preview1', 'preview2'],
           }),
           undefined
         );

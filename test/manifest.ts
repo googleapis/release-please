@@ -472,6 +472,9 @@ describe('Manifest', () => {
       );
       expect(manifest['labels']).to.deep.equal(['custom: pending']);
       expect(manifest['releaseLabels']).to.deep.equal(['custom: tagged']);
+      expect(manifest['prereleaseLabels']).to.deep.equal([
+        'custom: pre-release',
+      ]);
     });
     it('should read extra labels from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
@@ -5736,6 +5739,7 @@ describe('Manifest', () => {
         {
           labels: ['some-pull-request-label'],
           releaseLabels: ['some-tagged-label'],
+          prereleaseLabels: ['some-prerelease-label'],
         }
       );
       const releases = await manifest.createReleases();
@@ -5910,7 +5914,7 @@ describe('Manifest', () => {
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
-        ['autorelease: tagged'],
+        ['autorelease: tagged', 'autorelease: pre-release'],
         1234
       );
       sinon.assert.calledOnceWithExactly(
@@ -5992,6 +5996,86 @@ describe('Manifest', () => {
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
         ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
+    });
+
+    it('should create a prerelease when pull request labelled as pre-release', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending', 'autorelease: pre-release'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const githubReleaseStub = mockCreateRelease(github, [
+        {
+          id: 123456,
+          sha: 'abc123',
+          tagName: 'release-brancher-v1.3.1',
+          prerelease: true,
+        },
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.draft).to.be.undefined;
+      sinon.assert.calledOnceWithExactly(githubReleaseStub, sinon.match.any, {
+        draft: undefined,
+        prerelease: true,
+      } as ReleaseOptions);
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged', 'autorelease: pre-release'],
         1234
       );
       sinon.assert.calledOnceWithExactly(

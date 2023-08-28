@@ -43,7 +43,10 @@
                 "type": "boolean"
               }
             },
-            "required": ["type", "section"]
+            "required": [
+              "type",
+              "section"
+            ]
           }
         },
         "release-as": {
@@ -81,7 +84,10 @@
         "changelog-type": {
           "description": "The type of changelog to use. Defaults to `default`.",
           "type": "string",
-          "enum": ["default", "github"]
+          "enum": [
+            "default",
+            "github"
+          ]
         },
         "changelog-host": {
           "description": "Generate changelog links to this GitHub host. Useful for running against GitHub Enterprise.",
@@ -122,7 +128,11 @@
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["json", "toml", "yaml"]
+                    "enum": [
+                      "json",
+                      "toml",
+                      "yaml"
+                    ]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -137,7 +147,11 @@
                     "type": "string"
                   }
                 },
-                "required": ["type", "path", "jsonpath"]
+                "required": [
+                  "type",
+                  "path",
+                  "jsonpath"
+                ]
               },
               {
                 "description": "An extra XML file with a targeted update via xpath.",
@@ -145,7 +159,9 @@
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["xml"]
+                    "enum": [
+                      "xml"
+                    ]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -160,7 +176,11 @@
                     "type": "string"
                   }
                 },
-                "required": ["type", "path", "xpath"]
+                "required": [
+                  "type",
+                  "path",
+                  "xpath"
+                ]
               },
               {
                 "description": "An extra pom.xml file.",
@@ -168,7 +188,9 @@
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["pom"]
+                    "enum": [
+                      "pom"
+                    ]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -179,7 +201,10 @@
                     "type": "boolean"
                   }
                 },
-                "required": ["type", "path"]
+                "required": [
+                  "type",
+                  "path"
+                ]
               }
             ]
           }
@@ -256,7 +281,9 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["linked-versions"]
+                    "enum": [
+                      "linked-versions"
+                    ]
                   },
                   "groupName": {
                     "description": "The name of the group of components.",
@@ -281,7 +308,11 @@
                     }
                   }
                 },
-                "required": ["type", "groupName", "components"]
+                "required": [
+                  "type",
+                  "groupName",
+                  "components"
+                ]
               },
               {
                 "description": "Configuration for various `workspace` plugins.",
@@ -290,7 +321,11 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["cargo-workspace", "maven-workspace", "node-workspace"]
+                    "enum": [
+                      "cargo-workspace",
+                      "maven-workspace",
+                      "node-workspace"
+                    ]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -313,7 +348,9 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["group-priority"]
+                    "enum": [
+                      "group-priority"
+                    ]
                   },
                   "groups": {
                     "description": "Group names ordered with highest priority first.",
@@ -360,9 +397,15 @@
         "release-label": {
           "description": "Comma-separated list of labels to add to a pull request that has been released/tagged",
           "type": "string"
+        },
+        "prerelease-label": {
+          "description": "Comma-separated list of labels to add to a pull request to denote the release should be marked as pre-release",
+          "type": "string"
         }
       },
-      "required": ["packages"]
+      "required": [
+        "packages"
+      ]
     }
   ],
   "properties": {
@@ -388,6 +431,7 @@
     "draft-pull-request": true,
     "label": true,
     "release-label": true,
+    "prerelease-label": true,
     "extra-label": true,
     "include-component-in-tag": true,
     "include-v-in-tag": true,

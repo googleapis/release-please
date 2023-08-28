@@ -113,6 +113,7 @@ export interface ReleaserConfig {
   separatePullRequests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
+  prereleaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
 
@@ -158,6 +159,7 @@ interface ReleaserConfigJson {
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
+  'prerelease-label'?: string;
   'extra-label'?: string;
   'include-component-in-tag'?: boolean;
   'include-v-in-tag'?: boolean;
@@ -186,6 +188,7 @@ export interface ManifestOptions {
   manifestPath?: string;
   labels?: string[];
   releaseLabels?: string[];
+  prereleaseLabels?: string[];
   snapshotLabels?: string[];
   skipLabeling?: boolean;
   sequentialCalls?: boolean;
@@ -260,6 +263,7 @@ export const DEFAULT_LABELS = ['autorelease: pending'];
 export const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
 export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
+export const DEFAULT_PRERELEASE_LABELS = ['autorelease: pre-release'];
 const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
 const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
@@ -288,6 +292,7 @@ export class Manifest {
   private skipLabeling?: boolean;
   private sequentialCalls?: boolean;
   private releaseLabels: string[];
+  private prereleaseLabels: string[];
   private snapshotLabels: string[];
   readonly plugins: ManifestPlugin[];
   private _strategiesByPath?: Record<string, Strategy>;
@@ -328,6 +333,8 @@ export class Manifest {
    *   pull request. Defaults to `[autorelease: pending]`
    * @param {string[]} manifestOptions.releaseLabels Labels to apply to a tagged release
    *   pull request. Defaults to `[autorelease: tagged]`
+   * @param {string[]} manifestOptions.prereleaseLabels Labels that denote a pre-release pull request.
+   *   Defaults to `[autorelease: pre-release]`
    */
   constructor(
     github: GitHub,
@@ -351,6 +358,8 @@ export class Manifest {
     this.signoffUser = manifestOptions?.signoff;
     this.releaseLabels =
       manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
+    this.prereleaseLabels =
+      manifestOptions?.prereleaseLabels || DEFAULT_PRERELEASE_LABELS;
     this.labels = manifestOptions?.labels || DEFAULT_LABELS;
     this.skipLabeling = manifestOptions?.skipLabeling || false;
     this.sequentialCalls = manifestOptions?.sequentialCalls || false;
@@ -446,6 +455,8 @@ export class Manifest {
    *   pull request. Defaults to `[autorelease: pending]`
    * @param {string[]} manifestOptions.releaseLabels Labels to apply to a tagged release
    *   pull request. Defaults to `[autorelease: tagged]`
+   * @param {string[]} manifestOptions.prereleaseLabels Labels that denote a pre-release pull request.
+   *   Defaults to `[autorelease: pre-release]`
    * @returns {Manifest}
    */
   static async fromConfig(
@@ -1097,6 +1108,11 @@ export class Manifest {
         const releases = await strategy.buildReleases(pullRequest, {
           groupPullRequestTitlePattern: this.groupPullRequestTitlePattern,
         });
+        const hasPrereleaseLabel = !!pullRequest.labels.find(label =>
+          this.prereleaseLabels.find(
+            prereleaseLabel => prereleaseLabel === label
+          )
+        );
         for (const release of releases) {
           candidateReleases.push({
             ...release,
@@ -1104,9 +1120,10 @@ export class Manifest {
             pullRequest,
             draft: config.draft ?? this.draft,
             prerelease:
-              config.prerelease &&
-              (!!release.tag.version.preRelease ||
-                release.tag.version.major === 0),
+              hasPrereleaseLabel ||
+              (config.prerelease &&
+                (!!release.tag.version.preRelease ||
+                  release.tag.version.major === 0)),
           });
         }
       }
@@ -1329,28 +1346,36 @@ export class Manifest {
       }
     }
 
+    const adjustPullRequestTags = async () => {
+      // Note: if the pull request represents moret than one release it becomes difficult to determine if it should be
+      // labelled as pre-release.
+      const isPrerelease = releases.length === 1 && releases[0].prerelease;
+      await Promise.all([
+        this.github.removeIssueLabels(this.labels, pullRequest.number),
+        this.github.addIssueLabels(
+          [
+            ...this.releaseLabels,
+            ...(isPrerelease ? this.prereleaseLabels : []),
+          ],
+          pullRequest.number
+        ),
+      ]);
+    };
+
     if (duplicateReleases.length > 0) {
       if (
         duplicateReleases.length + githubReleases.length ===
         releases.length
       ) {
-        // we've either tagged all releases or they were duplicates:
-        // adjust tags on pullRequest
-        await Promise.all([
-          this.github.removeIssueLabels(this.labels, pullRequest.number),
-          this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-        ]);
+        // we've either tagged all releases or they were duplicates
+        await adjustPullRequestTags();
       }
       if (githubReleases.length === 0) {
         // If all releases were duplicate, throw a duplicate error
         throw duplicateReleases[0];
       }
     } else {
-      // adjust tags on pullRequest
-      await Promise.all([
-        this.github.removeIssueLabels(this.labels, pullRequest.number),
-        this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-      ]);
+      await adjustPullRequestTags();
     }
 
     return githubReleases;
@@ -1453,6 +1478,7 @@ function extractReleaserConfig(
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
     releaseLabels: config['release-label']?.split(','),
+    prereleaseLabels: config['prerelease-label']?.split(','),
     extraLabels: config['extra-label']?.split(','),
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
@@ -1492,6 +1518,7 @@ async function parseConfig(
   }
   const configLabel = config['label'];
   const configReleaseLabel = config['release-label'];
+  const configPreReleaseLabel = config['prerelease-label'];
   const configSnapshotLabel = config['snapshot-label'];
   const configExtraLabel = config['extra-label'];
   const manifestOptions = {
@@ -1503,6 +1530,7 @@ async function parseConfig(
     plugins: config['plugins'],
     labels: configLabel?.split(','),
     releaseLabels: configReleaseLabel?.split(','),
+    prereleaseLabels: configPreReleaseLabel?.split(','),
     snapshotLabels: configSnapshotLabel?.split(','),
     extraLabels: configExtraLabel?.split(','),
     releaseSearchDepth: config['release-search-depth'],
