@@ -961,7 +961,8 @@ export class Manifest {
     }
 
     const body = await this.pullRequestOverflowHandler.handleOverflow(
-      pullRequest
+      pullRequest,
+      this.changesBranch
     );
     const message = this.signoffUser
       ? signoffCommitMessage(pullRequest.title.toString(), this.signoffUser)

@@ -65,8 +65,9 @@ export class Helm extends BaseStrategy {
   private async getChartYmlContents(): Promise<GitHubFileContents> {
     if (!this.chartYmlContents) {
       try {
-        this.chartYmlContents = await this.github.getFileContents(
-          this.addPath('Chart.yaml')
+        this.chartYmlContents = await this.github.getFileContentsOnBranch(
+          this.addPath('Chart.yaml'),
+          this.changesBranch
         );
       } catch (e) {
         if (e instanceof FileNotFoundError) {

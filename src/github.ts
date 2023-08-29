@@ -1080,20 +1080,6 @@ export class GitHub {
   }
 
   /**
-   * Fetch the contents of a file from the configured branch
-   *
-   * @param {string} path The path to the file in the repository
-   * @returns {GitHubFileContents}
-   * @throws {GitHubAPIError} on other API errors
-   */
-  async getFileContents(path: string): Promise<GitHubFileContents> {
-    return await this.getFileContentsOnBranch(
-      path,
-      this.repository.defaultBranch
-    );
-  }
-
-  /**
    * Fetch the contents of a file
    *
    * @param {string} path The path to the file in the repository
@@ -1129,28 +1115,6 @@ export class GitHub {
    * the provided prefix.
    *
    * @param filename The name of the file to find
-   * @param prefix Optional path prefix used to filter results
-   * @returns {string[]} List of file paths
-   * @throws {GitHubAPIError} on an API error
-   */
-  async findFilesByFilename(
-    filename: string,
-    prefix?: string
-  ): Promise<string[]> {
-    return this.findFilesByFilenameAndRef(
-      filename,
-      this.repository.defaultBranch,
-      prefix
-    );
-  }
-
-  /**
-   * Returns a list of paths to all files with a given name.
-   *
-   * If a prefix is specified, only return paths that match
-   * the provided prefix.
-   *
-   * @param filename The name of the file to find
    * @param ref Git reference to search files in
    * @param prefix Optional path prefix used to filter results
    * @throws {GitHubAPIError} on an API error
@@ -1171,24 +1135,6 @@ export class GitHub {
     }
   );
 
-  /**
-   * Returns a list of paths to all files matching a glob pattern.
-   *
-   * If a prefix is specified, only return paths that match
-   * the provided prefix.
-   *
-   * @param glob The glob to match
-   * @param prefix Optional path prefix used to filter results
-   * @returns {string[]} List of file paths
-   * @throws {GitHubAPIError} on an API error
-   */
-  async findFilesByGlob(glob: string, prefix?: string): Promise<string[]> {
-    return this.findFilesByGlobAndRef(
-      glob,
-      this.repository.defaultBranch,
-      prefix
-    );
-  }
   /**
    * Returns a list of paths to all files matching a glob pattern.
    *
@@ -1413,7 +1359,8 @@ export class GitHub {
       const body = (
         options?.pullRequestOverflowHandler
           ? await options.pullRequestOverflowHandler.handleOverflow(
-              releasePullRequest
+              releasePullRequest,
+              baseBranch
             )
           : releasePullRequest.body
       )
@@ -1534,30 +1481,6 @@ export class GitHub {
       return this.fileCache.findFilesByExtension(extension, ref, prefix);
     }
   );
-
-  /**
-   * Returns a list of paths to all files with a given file
-   * extension.
-   *
-   * If a prefix is specified, only return paths that match
-   * the provided prefix.
-   *
-   * @param extension The file extension used to filter results.
-   *   Example: `js`, `java`
-   * @param prefix Optional path prefix used to filter results
-   * @returns {string[]} List of file paths
-   * @throws {GitHubAPIError} on an API error
-   */
-  async findFilesByExtension(
-    extension: string,
-    prefix?: string
-  ): Promise<string[]> {
-    return this.findFilesByExtensionAndRef(
-      extension,
-      this.repository.defaultBranch,
-      prefix
-    );
-  }
 
   /**
    * Create a GitHub release

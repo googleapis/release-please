@@ -54,9 +54,11 @@ export class KRMBlueprint extends BaseStrategy {
       this.path
     );
     for (const yamlPath of yamlPaths) {
-      const contents: GitHubFileContents = await this.github.getFileContents(
-        this.addPath(yamlPath)
-      );
+      const contents: GitHubFileContents =
+        await this.github.getFileContentsOnBranch(
+          this.addPath(yamlPath),
+          this.changesBranch
+        );
       if (hasKRMBlueprintAttrib(contents.parsedContent)) {
         updates.push({
           path: this.addPath(yamlPath),

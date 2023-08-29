@@ -137,7 +137,10 @@ describe('GitHub', () => {
       req
         .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, fileSearchResponse);
-      const pomFiles = await github.findFilesByFilename('pom.xml');
+      const pomFiles = await github.findFilesByFilenameAndRef(
+        'pom.xml',
+        'main'
+      );
       snapshot(pomFiles);
       req.done();
     });
@@ -162,7 +165,11 @@ describe('GitHub', () => {
         req
           .get('/repos/fake/fake/git/trees/main?recursive=true')
           .reply(200, fileSearchResponse);
-        const pomFiles = await github.findFilesByFilename('pom.xml', prefix);
+        const pomFiles = await github.findFilesByFilenameAndRef(
+          'pom.xml',
+          'main',
+          prefix
+        );
         req.done();
         expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
       });
@@ -177,7 +184,7 @@ describe('GitHub', () => {
       req
         .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, fileSearchResponse);
-      const pomFiles = await github.findFilesByExtension('xml');
+      const pomFiles = await github.findFilesByExtensionAndRef('xml', 'main');
       snapshot(pomFiles);
       req.done();
     });
@@ -202,7 +209,11 @@ describe('GitHub', () => {
         req
           .get('/repos/fake/fake/git/trees/main?recursive=true')
           .reply(200, fileSearchResponse);
-        const pomFiles = await github.findFilesByExtension('xml', prefix);
+        const pomFiles = await github.findFilesByExtensionAndRef(
+          'xml',
+          'main',
+          prefix
+        );
         req.done();
         expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
       });
@@ -217,7 +228,11 @@ describe('GitHub', () => {
       req
         .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, fileSearchResponse);
-      const pomFiles = await github.findFilesByExtension('xml', 'appengine');
+      const pomFiles = await github.findFilesByExtensionAndRef(
+        'xml',
+        'main',
+        'appengine'
+      );
       req.done();
       expect(pomFiles).to.deep.equal(['pom.xml', 'foo/pom.xml']);
     });
@@ -257,7 +272,10 @@ describe('GitHub', () => {
         )
         .reply(200, dataAPIBlobResponse);
 
-      const fileContents = await github.getFileContents('package-lock.json');
+      const fileContents = await github.getFileContentsOnBranch(
+        'package-lock.json',
+        'main'
+      );
       expect(fileContents).to.have.property('content');
       expect(fileContents).to.have.property('parsedContent');
       expect(fileContents)
@@ -269,7 +287,7 @@ describe('GitHub', () => {
 
     it('should throw a missing file error', async () => {
       await assert.rejects(async () => {
-        await github.getFileContents('non-existent-file');
+        await github.getFileContentsOnBranch('non-existent-file', 'main');
       }, FileNotFoundError);
     });
   });
