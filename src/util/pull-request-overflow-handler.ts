@@ -37,11 +37,13 @@ export interface PullRequestOverflowHandler {
    * If a pull request's body is too big, store it somewhere and return
    * a new pull request body with information about the new location.
    * @param {ReleasePullRequest} pullRequest The candidate release pull request
+   * @param {string} baseBranch The branch to use as the base branch to fork from
    * @returns {string} The new pull request body which may contain a link to
    *   the full content.
    */
   handleOverflow(
     pullRequest: ReleasePullRequest,
+    baseBranch: string,
     maxSize?: number
   ): Promise<string>;
 
@@ -81,6 +83,7 @@ export class FilePullRequestOverflowHandler
    */
   async handleOverflow(
     pullRequest: ReleasePullRequest,
+    baseBranch: string,
     maxSize: number = MAX_ISSUE_BODY_SIZE
   ): Promise<string> {
     const notes = pullRequest.body.toString();
@@ -90,7 +93,7 @@ export class FilePullRequestOverflowHandler
         RELEASE_NOTES_FILENAME,
         notes,
         notesBranchName,
-        this.github.repository.defaultBranch
+        baseBranch
       );
       return `${OVERFLOW_MESSAGE} ${url}`;
     }

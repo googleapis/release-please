@@ -62,27 +62,31 @@ describe('FilePullRequestOverflowHandler', () => {
         );
       const newContents = await overflowHandler.handleOverflow(
         {
-          title: PullRequestTitle.ofTargetBranch('main', 'main'),
+          title: PullRequestTitle.ofTargetBranch('main', 'next'),
           body,
           labels: [],
           updates: [],
           draft: false,
           headRefName: 'my-head-branch',
         },
+        'next',
         50
       );
       snapshot(newContents);
       sinon.assert.calledOnce(createFileStub);
     });
     it('ignores small pull request body contents', async () => {
-      const newContents = await overflowHandler.handleOverflow({
-        title: PullRequestTitle.ofTargetBranch('main', 'main'),
-        body,
-        labels: [],
-        updates: [],
-        draft: false,
-        headRefName: 'my-head-branch',
-      });
+      const newContents = await overflowHandler.handleOverflow(
+        {
+          title: PullRequestTitle.ofTargetBranch('main', 'next'),
+          body,
+          labels: [],
+          updates: [],
+          draft: false,
+          headRefName: 'my-head-branch',
+        },
+        'next'
+      );
       expect(newContents).to.eql(body.toString());
     });
   });

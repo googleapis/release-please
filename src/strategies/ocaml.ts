@@ -41,12 +41,18 @@ export class OCaml extends BaseStrategy {
       }),
     });
 
-    const jsonPaths = await this.github.findFilesByExtension('json', this.path);
+    const jsonPaths = await this.github.findFilesByExtensionAndRef(
+      'json',
+      this.changesBranch,
+      this.path
+    );
     for (const path of jsonPaths) {
       if (notEsyLock(path)) {
-        const contents: GitHubFileContents = await this.github.getFileContents(
-          this.addPath(path)
-        );
+        const contents: GitHubFileContents =
+          await this.github.getFileContentsOnBranch(
+            this.addPath(path),
+            this.changesBranch
+          );
         const pkg = JSON.parse(contents.parsedContent);
         if (pkg.version !== undefined) {
           updates.push({
@@ -61,7 +67,11 @@ export class OCaml extends BaseStrategy {
       }
     }
 
-    const opamPaths = await this.github.findFilesByExtension('opam', this.path);
+    const opamPaths = await this.github.findFilesByExtensionAndRef(
+      'opam',
+      this.changesBranch,
+      this.path
+    );
     opamPaths.filter(notEsyLock).forEach(path => {
       updates.push({
         path: this.addPath(path),
@@ -72,8 +82,9 @@ export class OCaml extends BaseStrategy {
       });
     });
 
-    const opamLockedPaths = await this.github.findFilesByExtension(
+    const opamLockedPaths = await this.github.findFilesByExtensionAndRef(
       'opam.locked',
+      this.changesBranch,
       this.path
     );
     opamLockedPaths.filter(notEsyLock).forEach(path => {

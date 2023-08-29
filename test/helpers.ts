@@ -133,7 +133,7 @@ export interface StubFiles {
   sandbox: sinon.SinonSandbox;
   github: GitHub;
 
-  // "master" TODO update all test code to use "main"
+  // "main"
   targetBranch?: string;
 
   // Example1: test/updaters/fixtures/python
@@ -175,7 +175,7 @@ export function stubFilesFromFixtures(options: StubFiles) {
       'Overlap between files and inlineFiles: ' + JSON.stringify(overlap)
     );
   }
-  const targetBranch = options.targetBranch ?? 'master';
+  const targetBranch = options.targetBranch ?? 'main';
   const flatten = options.flatten ?? true;
   const stub = sandbox.stub(github, 'getFileContentsOnBranch');
   for (const file of files) {
@@ -396,6 +396,7 @@ export class MockPullRequestOverflowHandler
 {
   async handleOverflow(
     pullRequest: ReleasePullRequest,
+    _baseBranch: string,
     _maxSize?: number | undefined
   ): Promise<string> {
     return pullRequest.body.toString();

@@ -63,7 +63,7 @@ describe('OCaml', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -78,7 +78,7 @@ describe('OCaml', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = {
         tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
         sha: 'abc123',
@@ -98,7 +98,7 @@ describe('OCaml', () => {
         github,
         component: 'google-cloud-automl',
       });
-      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -116,11 +116,13 @@ describe('OCaml', () => {
         github,
         component: 'google-cloud-automl',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByExtension');
-      findFilesStub.withArgs('json', '.').resolves(['esy.json', 'other.json']);
-      findFilesStub.withArgs('opam', '.').resolves(['sample.opam']);
+      const findFilesStub = sandbox.stub(github, 'findFilesByExtensionAndRef');
       findFilesStub
-        .withArgs('opam.locked', '.')
+        .withArgs('json', 'main', '.')
+        .resolves(['esy.json', 'other.json']);
+      findFilesStub.withArgs('opam', 'main', '.').resolves(['sample.opam']);
+      findFilesStub
+        .withArgs('opam.locked', 'main', '.')
         .resolves(['sample.opam.locked']);
       stubFilesFromFixtures({
         sandbox,

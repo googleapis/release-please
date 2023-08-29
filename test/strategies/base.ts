@@ -94,7 +94,15 @@ describe('Strategy', () => {
         targetBranch: 'main',
         github,
         component: 'google-cloud-automl',
-        extraFiles: ['0', 'foo/1.~csv', 'foo/2.bak', 'foo/baz/bar/', '/3.java'],
+        extraFiles: [
+          'README.md',
+          'build.gradle.kts',
+          '0',
+          'foo/1.~csv',
+          'foo/2.bak',
+          'foo/baz/bar/',
+          '/3.java',
+        ],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
         buildMockConventionalCommit('fix: a bugfix'),
@@ -104,6 +112,8 @@ describe('Strategy', () => {
       expect(pullRequest?.updates).to.be.an('array');
       expect(pullRequest?.updates.map(update => update.path))
         .to.include.members([
+          'README.md',
+          'build.gradle.kts',
           '0',
           '3.java',
           'foo/1.~csv',

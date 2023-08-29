@@ -402,7 +402,7 @@ describe('MavenWorkspace plugin', () => {
         'bom/pom.xml',
         PomXml
       );
-      safeSnapshot(await renderUpdate(github, bomUpdate));
+      safeSnapshot(await renderUpdate(github, 'main', bomUpdate));
     });
     it('skips updating manifest with snapshot versions', async () => {
       plugin = new MavenWorkspace(github, 'main', {
@@ -515,8 +515,13 @@ function buildMockPackageUpdate(
   };
 }
 
-async function renderUpdate(github: GitHub, update: Update): Promise<string> {
+async function renderUpdate(
+  github: GitHub,
+  branch: string,
+  update: Update
+): Promise<string> {
   const fileContents =
-    update.cachedFileContents || (await github.getFileContents(update.path));
+    update.cachedFileContents ||
+    (await github.getFileContentsOnBranch(update.path, branch));
   return update.updater.updateContent(fileContents.parsedContent);
 }
