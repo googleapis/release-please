@@ -1226,7 +1226,7 @@ export class GitHub {
       updates: Update[],
       options?: CreatePullRequestOptions
     ): Promise<PullRequest> => {
-      const changes = await this.buildChangeSet(updates, baseBranch);
+      const changes = await this.buildChangeSet(updates, refBranch);
 
       // create release branch
       const pullRequestBranchSha = await this.forkBranch(
@@ -1414,20 +1414,20 @@ export class GitHub {
    * Given a set of proposed updates, build a changeset to suggest.
    *
    * @param {Update[]} updates The proposed updates
-   * @param {string} baseBranch The branch to compare against
+   * @param {string} refBranch The branch where changed file are located
    * @return {Changes} The changeset to suggest.
    * @throws {GitHubAPIError} on an API error
    */
   async buildChangeSet(
     updates: Update[],
-    baseBranch: string
+    refBranch: string
   ): Promise<ChangeSet> {
     const changes = new Map();
     for (const update of updates) {
       let content: GitHubFileContents | undefined;
       this.logger.debug(`update.path: ${update.path}`);
       try {
-        content = await this.getFileContentsOnBranch(update.path, baseBranch);
+        content = await this.getFileContentsOnBranch(update.path, refBranch);
       } catch (err) {
         if (!(err instanceof FileNotFoundError)) throw err;
         // if the file is missing and create = false, just continue

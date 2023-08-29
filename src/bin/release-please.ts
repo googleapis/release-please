@@ -503,7 +503,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
         logger.debug('updates:', pullRequest.updates.length);
         const changes = await github.buildChangeSet(
           pullRequest.updates,
-          targetBranch
+          manifest.changesBranch
         );
         for (const update of pullRequest.updates) {
           logger.debug(
