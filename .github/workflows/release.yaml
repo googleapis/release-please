@@ -1,26 +1,19 @@
-name: Build and release
+name: Create GitHub releases
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types:
+      - closed
+      - labeled
 
 jobs:
-  build-and-release:
+  create-releases:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'release'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Checkout release branch
-        run: |
-          git config --global user.name "Stainless Bot"
-          git config --global user.email "stainless-bot@users.noreply.github.com"
-          git checkout release
-          git merge --no-ff main
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -30,24 +23,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Lint code
-        run: npm run lint
-
-      - name: Run tests
-        run: npm run test
-
-      - name: Compile
-        run: npm run compile
-
-      - name: Commit and push build files
+      - name: Create release
         run: |
-          git add -f ./build
-          git commit -m "Build sources"
-          git push origin release
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: 'release-${{ github.run_id }}'
-          name: 'Release ${{ github.run_id }}'
-          body: 'Auto-generated release'
+          npm run cli -- github-release --token=${{ secrets.GITHUB_TOKEN }} \
+                      --repo-url=${{ env.GITHUB_REPOSITORY }} \
+                      --target-branch=release \
+                      --release-type=simple \
+                      --include-v-in-tags=true
