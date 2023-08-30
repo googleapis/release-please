@@ -1161,17 +1161,17 @@ export class Manifest {
       }
     };
 
-    // to minimize risks of race condition we attempt to lock branches used as the source of commits for the duration of the
-    // release process
+    // to minimize risks of race condition we attempt as early as possible to lock branches as used as the source of
+    // commits for the duration of the release process.
     let createdReleases: CreatedRelease[];
     const pullRequests = Object.values(pullRequestsByNumber);
+    let locked = false; // used to be sure we only take the fallback branch on locking errors, not when unlocking fails
     try {
       const lockedBranches = await this.lockPullRequestsChangesBranch(
         pullRequests
       );
+      locked = true;
       try {
-        // now that branches have been locked, ensure no new commits have been pushed since we created the release branch
-        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
         createdReleases = await runReleaseProcess();
       } finally {
         // always try to unlock branches, we don't want to keep them blocked as read-only when the release process fails
@@ -1186,19 +1186,21 @@ export class Manifest {
       //
       // Error mentioned here: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/resource-not-accessible-by-integration
       if (
-        (isOctokitRequestError(err) && err.status === 403) ||
+        (!locked && isOctokitRequestError(err) && err.status === 403) ||
         (isOctokitGraphqlResponseError(err) &&
           err.errors?.find(e => e.type === 'FORBIDDEN'))
       ) {
-        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
         createdReleases = await runReleaseProcess();
-        await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
       } else {
         throw err;
       }
     }
 
+    // look for inconsistencies between branches before re-aligning. In case of inconsistencies releases are still
+    // created but the command fails and won't force a re-alignment between a PR ref branch and base branch.
+    await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
     await this.alignPullRequestsChangesBranch(pullRequests);
+
     return createdReleases;
   }
 
@@ -1240,18 +1242,26 @@ export class Manifest {
       }
 
       // first check if the release branch is synced with changes-branch
-      if (
-        await this.github.isBranchASyncedWithB(
-          pr.headBranchName,
-          branchName.changesBranch
-        )
-      ) {
-        // no new changes to changes-branch detected, all good
-        continue;
+      try {
+        if (
+          await this.github.isBranchASyncedWithB(
+            pr.headBranchName,
+            branchName.changesBranch
+          )
+        ) {
+          // no new changes to changes-branch detected, all good
+          continue;
+        }
+      } catch (err: unknown) {
+        if (isOctokitRequestError(err) && err.status === 404) {
+          throw new Error(
+            `Branch comparison between '${pr.headBranchName}' and '${branchName.changesBranch}' failed due to a missing branch. As a result branches '${pr.baseBranchName}' and '${branchName.changesBranch}' won't be re-aligned which may result in git conflicts when the next release PR is created. Note: the release branch '${pr.headBranchName}' used for the PR ${pr.number} has likely been deleted manually before the release process could run, resulting in this error.`
+          );
+        }
       }
 
       // then check if changes-branch has already been synced with the base branch (that's the case if the release
-      // process is run twice in a row for example)
+      // process runs twice in a row for example)
       if (
         await this.github.isBranchASyncedWithB(
           branchName.changesBranch,

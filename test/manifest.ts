@@ -6243,7 +6243,7 @@ describe('Manifest', () => {
       sinon.assert.calledOnce(unlockBranchStub);
     });
 
-    it('should fallback to checking twice for race conditions when branch lock fails due to missing token permissions (REST error)', async () => {
+    it('should use fallback when branch lock fails due to missing token permissions (REST error)', async () => {
       mockPullRequests(
         github,
         [],
@@ -6320,7 +6320,7 @@ describe('Manifest', () => {
         }
       );
 
-      // stub the race condition detection method to be able to check it was called twice
+      // stub the race condition detection method to be able to check it was called once
       const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
         manifest,
         <any>'throwIfChangesBranchesRaceConditionDetected' // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -6345,12 +6345,12 @@ describe('Manifest', () => {
         1234
       );
 
-      sinon.assert.calledTwice(throwIfChangesBranchesRaceConditionDetectedStub);
+      sinon.assert.called(throwIfChangesBranchesRaceConditionDetectedStub);
       // ensure we don't try to update permissions rules again given the lock failed
       sinon.assert.notCalled(unlockBranchStub);
     });
 
-    it('should fallback to checking twice for race conditions when branch lock fails due to missing token permissions (GraphQL error)', async () => {
+    it('should use fallback when branch lock fails due to missing token permissions (GraphQL error)', async () => {
       mockPullRequests(
         github,
         [],
@@ -6429,7 +6429,7 @@ describe('Manifest', () => {
         }
       );
 
-      // stub the race condition detection method to be able to check it was called twice
+      // stub the race condition detection method to be able to check it was called once
       const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
         manifest,
         <any>'throwIfChangesBranchesRaceConditionDetected' // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -6454,7 +6454,7 @@ describe('Manifest', () => {
         1234
       );
 
-      sinon.assert.calledTwice(throwIfChangesBranchesRaceConditionDetectedStub);
+      sinon.assert.calledOnce(throwIfChangesBranchesRaceConditionDetectedStub);
       // ensure we don't try to update permissions rules again given the lock failed
       sinon.assert.notCalled(unlockBranchStub);
     });
