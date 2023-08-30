@@ -1360,7 +1360,7 @@ export class Manifest {
     }
 
     const adjustPullRequestTags = async () => {
-      // Note: if the pull request represents moret than one release it becomes difficult to determine if it should be
+      // Note: if the pull request represents more than one release it becomes difficult to determine if it should be
       // labelled as pre-release.
       const isPrerelease = releases.length === 1 && releases[0].prerelease;
       await Promise.all([
