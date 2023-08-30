@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14, 16, 18]
+        node: [14, 16, 18, 20]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -23,7 +23,7 @@ jobs:
       # Clean up the production install, before installing dev/production:
       - run: rm -rf node_modules
       - run: npm install
-      - run: npm test
+      - run: npm run test:node${{ matrix.node }}
         env:
           MOCHA_THROW_DEPRECATION: false
   windows:
