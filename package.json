@@ -1,7 +1,7 @@
 {
-  "name": "release-please",
-  "version": "15.12.0",
-  "description": "generate release PRs based on the conventionalcommits.org spec",
+  "name": "@stainless-api/release-please",
+  "version": "0.0.1",
+  "description": "Generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
@@ -31,7 +31,7 @@
     "release",
     "conventional-commits"
   ],
-  "author": "Google Inc.",
+  "author": "Stainless Team",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/stainless-api/release-please/issues"

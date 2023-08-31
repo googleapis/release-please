@@ -1,9 +1,8 @@
 <img src="https://avatars2.githubusercontent.com/u/2810941?v=3&s=96" alt="Google Cloud Platform logo" title="Google Cloud Platform" align="right" height="96" width="96"/>
 
-# [Release Please](https://github.com/googleapis/release-please)
+# [Stainless' Release Please](https://github.com/stainless-api/release-please)
 
-[![npm version](https://img.shields.io/npm/v/release-please.svg)](https://www.npmjs.org/package/release-please)
-[![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/main.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
+> Note: this is a fork of [release-please](https://github.com/googleapis/release-please) with changes specific to Stainless use cases.
 
 Release Please automates CHANGELOG generation, the creation of GitHub releases,
 and version bumps for your projects.
@@ -46,10 +45,10 @@ Release Please assumes you are using [Conventional Commit messages](https://www.
 
 The most important prefixes you should have in mind are:
 
-* `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
+- `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
   patch.
-* `feat:` which represents a new feature, and correlates to a SemVer minor.
-* `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
+- `feat:` which represents a new feature, and correlates to a SemVer minor.
+- `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change
   (indicated by the `!`) and will result in a SemVer major.
 
 ### Linear git commit history (use squash-merge)
@@ -57,17 +56,17 @@ The most important prefixes you should have in mind are:
 We **highly** recommend that you use squash-merges when merging pull requests.
 A linear git history makes it much easier to:
 
-* Follow history - commits are sorted by merge date and are not mixed between
+- Follow history - commits are sorted by merge date and are not mixed between
   pull requests
-* Find and revert bugs - `git bisect` is helpful for tracking down which
+- Find and revert bugs - `git bisect` is helpful for tracking down which
   change introduced a bug
-* Control the release-please changelog - when you merge a PR, you may have
+- Control the release-please changelog - when you merge a PR, you may have
   commit messages that make sense within the scope of the PR, but don't
   make sense when merged in the main branch. For example, you make have
   `feat: introduce feature A` and then `fix: some bugfix introduced in
-  the first commit`. The `fix` commit is actually irrelevant to the release
+the first commit`. The `fix` commit is actually irrelevant to the release
   notes as there was never a bug experienced in the main branch.
-* Keep a clean main branch - if you use something like red/green development
+- Keep a clean main branch - if you use something like red/green development
   (create a failing test in commit A, then fix in commit B) and merge (or
   rebase-merge), then there will be points in time in your main branch where
   tests do not pass.
@@ -96,7 +95,7 @@ The above commit message will contain:
 
 1. an entry for the **"adds v4 UUID to crypto"** feature.
 2. an entry for the fix **"unicode no longer throws exception"**, along with a note
-  that it's a breaking change.
+   that it's a breaking change.
 3. an entry for the feature **"update encode to support unicode"**.
 
 :warning: **Important:** The additional messages must be added to the bottom of the commit.
@@ -172,29 +171,29 @@ Please.
 
 Release Please automates releases for the following flavors of repositories:
 
-| release type        | description |
-|---------------------|---------------------------------------------------------|
-| `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
-| `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
-| `go`                | A repository with a CHANGELOG.md |
-| `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
-| `java`              | [A strategy that generates SNAPSHOT version after each release](docs/java.md) |
-| `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
-| `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](docs/java.md) |
-| `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
-| `expo`              | [An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md](https://github.com/yargs/yargs) |
-| `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
-| `php`               | A repository with a composer.json and a CHANGELOG.md |
-| `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
-| `ruby`              | A repository with a version.rb and a CHANGELOG.md |
-| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace, although note that workspaces require a [manifest driven release](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) and the "cargo-workspace" plugin) and a CHANGELOG.md |
-| `sfdx`              | A repository with a [sfdx-project.json](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) and a CHANGELOG.md |
-| `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
-| `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
+| release type       | description                                                                                                                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `dart`             | A repository with a pubspec.yaml and a CHANGELOG.md                                                                                                                                                                                                                            |
+| `elixir`           | A repository with a mix.exs and a CHANGELOG.md                                                                                                                                                                                                                                 |
+| `go`               | A repository with a CHANGELOG.md                                                                                                                                                                                                                                               |
+| `helm`             | A repository with a Chart.yaml and a CHANGELOG.md                                                                                                                                                                                                                              |
+| `java`             | [A strategy that generates SNAPSHOT version after each release](docs/java.md)                                                                                                                                                                                                  |
+| `krm-blueprint`    | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project)                                                                                                                                      |
+| `maven`            | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](docs/java.md)                                                                                                                                                 |
+| `node`             | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs)                                                                                                                                                                                   |
+| `expo`             | [An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md](https://github.com/yargs/yargs)                                                                                                                                                        |
+| `ocaml`            | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml)                                                                                                                                                    |
+| `php`              | A repository with a composer.json and a CHANGELOG.md                                                                                                                                                                                                                           |
+| `python`           | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py                                                                                            |
+| `ruby`             | A repository with a version.rb and a CHANGELOG.md                                                                                                                                                                                                                              |
+| `rust`             | A Rust repository, with a Cargo.toml (either as a crate or workspace, although note that workspaces require a [manifest driven release](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) and the "cargo-workspace" plugin) and a CHANGELOG.md |
+| `sfdx`             | A repository with a [sfdx-project.json](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) and a CHANGELOG.md                                                                                                                    |
+| `simple`           | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator)                                                                                                                                                                            |
+| `terraform-module` | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory)                                                                                                                        |
 
 ## Setting up Release Please
 
-There are a variety of ways you can deploy release-please: 
+There are a variety of ways you can deploy release-please:
 
 ### GitHub Action (recommended)
 
@@ -207,7 +206,7 @@ Please see [Running release-please CLI](docs/cli.md) for all the configuration o
 ### Install the GitHub App
 
 There is a probot application available, which allows you to deploy Release
-Please as a GitHub App. Please see 
+Please as a GitHub App. Please see
 [github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please)
 for installation and configuration instructions.
 
@@ -239,13 +238,13 @@ The dist-tags follow the naming convention `legacy-(version)`.
 
 _Legacy Node.js versions are supported as a best effort:_
 
-* Legacy versions will not be tested in continuous integration.
-* Some security patches may not be able to be backported.
-* Dependencies will not be kept up-to-date, and features will not be backported.
+- Legacy versions will not be tested in continuous integration.
+- Some security patches may not be able to be backported.
+- Dependencies will not be kept up-to-date, and features will not be backported.
 
 #### Legacy tags available
 
-* `legacy-8`: install client libraries from this dist-tag for versions
+- `legacy-8`: install client libraries from this dist-tag for versions
   compatible with Node.js 8.
 
 ## Versioning

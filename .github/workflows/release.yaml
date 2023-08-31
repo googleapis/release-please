@@ -18,15 +18,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Install dependencies
         run: npm install
 
       - name: Create release
         run: |
-          npm run cli -- github-release --token=${{ secrets.GITHUB_TOKEN }} \
+          npm run cli -- github-release \
+                      --token=${{ secrets.GITHUB_TOKEN }} \
                       --repo-url=${{ github.repository }} \
-                      --target-branch=release \
-                      --release-type=simple \
-                      --include-v-in-tags=true
+                      --target-branch=release

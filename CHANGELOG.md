@@ -1,8 +1,10 @@
 # Changelog
 
-[npm history][1]
 
-[1]: https://www.npmjs.com/package/release-please?activeTab=versions
+----
+
+> 👇 Changelogs from googleapis/release-please before Stainless fork
+
 
 ## [15.12.0](https://github.com/googleapis/release-please/compare/v15.11.2...v15.12.0) (2023-07-11)
 
