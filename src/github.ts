@@ -1960,6 +1960,7 @@ export class GitHub {
         `A given branch name is empty. Target branch: '${targetBranchName}'. Source branch: '${sourceBranchName}'`
       );
     }
+
     const targetBranch = await this.octokit.git.getRef({
       owner: this.repository.owner,
       repo: this.repository.repo,
