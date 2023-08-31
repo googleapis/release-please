@@ -26,7 +26,7 @@ jobs:
       - name: Create release
         run: |
           npm run cli -- github-release --token=${{ secrets.GITHUB_TOKEN }} \
-                      --repo-url=${{ env.GITHUB_REPOSITORY }} \
+                      --repo-url=${{ github.repository }} \
                       --target-branch=release \
                       --release-type=simple \
                       --include-v-in-tags=true
