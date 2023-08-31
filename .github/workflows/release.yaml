@@ -1,18 +1,32 @@
 name: Create GitHub releases
 
 on:
-  push:
-    branches:
-      - release
+  pull_request:
+    types:
+      - closed
+      - labeled
 
 jobs:
   create-releases:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'release'
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Checkout release branch
+        run: |
+          git config --global user.name "Stainless Bot"
+          git config --global user.email "stainless-bot@users.noreply.github.com"
+          git checkout release
+
+      - name: Merge main into release branch
+        run: |
+          git pull origin release --rebase=false --ff-only
+          git merge --no-ff main
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -22,7 +36,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Create release
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Commit and push build directory
+        run: |
+          git add -f ./build
+          git diff --cached --exit-code || git commit -m "Build sources"
+          git push origin release
+
+      - name: Create github release
         run: |
           npm run cli -- github-release \
                       --token=${{ secrets.GITHUB_TOKEN }} \

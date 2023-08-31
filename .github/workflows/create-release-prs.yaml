@@ -12,18 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Checkout release branch
-        run: |
-          git config --global user.name "Stainless Bot"
-          git config --global user.email "stainless-bot@users.noreply.github.com"
-          git checkout release
-      - name: Merge main into release branch
-        run: |
-          git pull origin release --rebase=false --ff-only
-          git merge --no-ff main
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -41,12 +29,6 @@ jobs:
 
       - name: Compile
         run: npm run compile
-
-      - name: Commit and push build files
-        run: |
-          git add -f ./build
-          git diff --cached --exit-code || git commit -m "Build sources"
-          git push origin release
 
       - name: Create release PRs
         run: |
