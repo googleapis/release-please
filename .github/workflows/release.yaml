@@ -1,10 +1,9 @@
 name: Create GitHub releases
 
 on:
-  pull_request:
-    types:
-      - closed
-      - labeled
+  push:
+    branches:
+      - release
 
 jobs:
   create-releases:

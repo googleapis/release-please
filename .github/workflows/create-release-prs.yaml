@@ -53,4 +53,4 @@ jobs:
           npm run cli -- release-pr \
                       --token=${{ secrets.GITHUB_TOKEN }} \
                       --repo-url=${{ github.repository }} \
-                      --target-branch=release
+                      --target-branch=main
