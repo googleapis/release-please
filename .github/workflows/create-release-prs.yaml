@@ -45,7 +45,7 @@ jobs:
       - name: Commit and push build files
         run: |
           git add -f ./build
-          git commit -m "Build sources"
+          git diff --cached --exit-code || git commit -m "Build sources"
           git push origin release
 
       - name: Create release PRs
