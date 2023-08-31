@@ -12,7 +12,9 @@ exports['Manifest buildPullRequests should allow creating multiple pull requests
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['Manifest buildPullRequests should allow creating multiple pull requests 2'] = `
@@ -29,7 +31,9 @@ exports['Manifest buildPullRequests should allow creating multiple pull requests
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['Manifest buildPullRequests should allow customizing pull request title with root package 1'] = `
@@ -72,7 +76,9 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['Manifest buildPullRequests should allow overriding commit message 1'] = `
@@ -89,7 +95,9 @@ exports['Manifest buildPullRequests should allow overriding commit message 1'] =
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['Manifest buildPullRequests should handle mixing componentless configs 1'] = `
@@ -119,7 +127,9 @@ exports['Manifest buildPullRequests should handle mixing componentless configs 1
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['Manifest buildPullRequests should handle multiple package repository 1'] = `
@@ -149,5 +159,7 @@ exports['Manifest buildPullRequests should handle multiple package repository 1'
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `

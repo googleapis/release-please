@@ -12,7 +12,9 @@ exports['LinkedVersions plugin can skip grouping pull requests 1'] = `
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['LinkedVersions plugin can skip grouping pull requests 2'] = `
@@ -29,7 +31,9 @@ exports['LinkedVersions plugin can skip grouping pull requests 2'] = `
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['LinkedVersions plugin can skip grouping pull requests 3'] = `
@@ -46,7 +50,9 @@ exports['LinkedVersions plugin can skip grouping pull requests 3'] = `
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['LinkedVersions plugin should allow multiple groups of linked versions 1'] = `
@@ -76,7 +82,9 @@ exports['LinkedVersions plugin should allow multiple groups of linked versions 1
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['LinkedVersions plugin should allow multiple groups of linked versions 2'] = `
@@ -110,7 +118,9 @@ exports['LinkedVersions plugin should allow multiple groups of linked versions 3
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['LinkedVersions plugin should allow multiple groups of linked versions 4'] = `
@@ -131,7 +141,9 @@ exports['LinkedVersions plugin should group pull requests 1'] = `
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['LinkedVersions plugin should group pull requests 2'] = `
@@ -161,7 +173,9 @@ exports['LinkedVersions plugin should group pull requests 2'] = `
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['LinkedVersions plugin should sync versions pull requests 1'] = `
@@ -201,5 +215,7 @@ exports['LinkedVersions plugin should sync versions pull requests 1'] = `
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `

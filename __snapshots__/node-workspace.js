@@ -38,7 +38,9 @@ Release notes for path: node1, releaseType: node
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['NodeWorkspace plugin run appends dependency notes to an updated module 2'] = `
@@ -92,7 +94,9 @@ Release notes for path: ., releaseType: node
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['NodeWorkspace plugin run handles a single node package 1'] = `
@@ -107,7 +111,9 @@ Release notes for path: node1, releaseType: node
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['NodeWorkspace plugin run respects version prefix 1'] = `
@@ -132,7 +138,9 @@ Release notes for path: node1, releaseType: node
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['NodeWorkspace plugin run walks dependency tree and updates previously untouched packages 1'] = `
@@ -179,5 +187,7 @@ Release notes for path: node4, releaseType: node
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `

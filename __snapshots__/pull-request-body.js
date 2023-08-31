@@ -26,7 +26,9 @@ some special notes go here
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['PullRequestBody toString can handle a single entries forced components 1'] = `
@@ -41,7 +43,9 @@ some special notes go here
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['PullRequestBody toString can handle componently entries 1'] = `
@@ -61,7 +65,9 @@ more special notes go here
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
 exports['PullRequestBody toString can handle multiple entries 1'] = `
@@ -81,5 +87,7 @@ more special notes go here
 
 ---
 This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For technical details, see [this repository](https://github.com/stainless-api/release-please).
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+
+_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
