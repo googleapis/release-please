@@ -1318,7 +1318,7 @@ export class Manifest {
 
       if (!safeToRealign) {
         throw new Error(
-          `Branch '${branchName.changesBranch}' cannot be safely re-aligned with '${this.targetBranch}', and will likely result in git conflicts when the next release PR is created. Hint: compare ${pr.headBranchName}, ${branchName.changesBranch}, and ${this.targetBranch} for inconsistencies`
+          `Branch '${branchName.changesBranch}' cannot be safely re-aligned with '${this.targetBranch}', and will likely result in git conflicts when the next release PR is created. Hint: compare branches '${pr.headBranchName}', '${branchName.changesBranch}', and '${this.targetBranch}' for inconsistencies`
         );
       }
 
