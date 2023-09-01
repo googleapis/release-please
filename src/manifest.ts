@@ -1191,7 +1191,7 @@ export class Manifest {
       }
     };
 
-    // to minimize risks of race condition we attempt as early as possible to lock branches as used as the source of
+    // to minimize risks of race condition we attempt as early as possible to lock branches used as the source of
     // commits for the duration of the release process.
     let createdReleases: CreatedRelease[];
     const pullRequests = Object.values(pullRequestsByNumber);
@@ -1211,7 +1211,8 @@ export class Manifest {
     } catch (err: unknown) {
       // Error: 403 "Resource not accessible by integration" is returned by GitHub when the API token doesn't have
       // permissions to manipulate branch protection rules, if that seems to be the case we instead fallback to checking
-      // twice for race conditions, once at the beginning of the release process and once again before aligning branches.
+      // twice for race conditions, once at the beginning of the release process and once again before aligning
+      // branches.
       // While not ideal that still significantly reduces risks of overwriting new commits.
       //
       // Error mentioned here: https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/resource-not-accessible-by-integration
@@ -1226,9 +1227,9 @@ export class Manifest {
       }
     }
 
-    // look for inconsistencies between branches before re-aligning. In case of inconsistencies releases are still
-    // created but the command fails and won't force a re-alignment between a PR ref branch and base branch.
-    await this.throwIfChangesBranchesRaceConditionDetected(pullRequests);
+    // try to re-align branches to ensure the next release pull request won't face git conflicts. In case of
+    // inconsistencies releases are still created but the command fails and won't force a re-alignment between a PR
+    // ref branch and base branch.
     await this.alignPullRequestsChangesBranch(pullRequests);
 
     return createdReleases;
@@ -1260,55 +1261,6 @@ export class Manifest {
     }
   }
 
-  private async throwIfChangesBranchesRaceConditionDetected(
-    pullRequests: PullRequest[]
-  ) {
-    for (const pr of pullRequests) {
-      const branchName = BranchName.parse(pr.headBranchName);
-
-      // we only care about pull requests with an associated changes-branch
-      if (!branchName?.changesBranch) {
-        continue;
-      }
-
-      // first check if the release branch is synced with changes-branch
-      try {
-        if (
-          await this.github.isBranchASyncedWithB(
-            pr.headBranchName,
-            branchName.changesBranch
-          )
-        ) {
-          // no new changes to changes-branch detected, all good
-          continue;
-        }
-      } catch (err: unknown) {
-        if (isOctokitRequestError(err) && err.status === 404) {
-          // note: this really should trigger an alert of some sort, but that's not yet a thing
-          this.logger.error(
-            `Branch comparison between '${pr.headBranchName}' and '${branchName.changesBranch}' failed due to a missing branch. As a result branches '${pr.baseBranchName}' and '${branchName.changesBranch}' won't be re-aligned which may result in git conflicts when the next release PR is created. Note: the release branch '${pr.headBranchName}' used for the PR ${pr.number} has likely been deleted manually before the release process could run, resulting in this error.`
-          );
-          continue;
-        }
-      }
-
-      // then check if changes-branch has already been synced with the base branch (that's the case if the release
-      // process runs twice in a row for example)
-      if (
-        await this.github.isBranchASyncedWithB(
-          branchName.changesBranch,
-          pr.baseBranchName
-        )
-      ) {
-        continue;
-      }
-
-      throw new Error(
-        'Race condition detected. The ref branch used to create the release pull request branch received new commits. Cannot safely reset branch.'
-      );
-    }
-  }
-
   private async alignPullRequestsChangesBranch(pullRequests: PullRequest[]) {
     for (const pr of pullRequests) {
       const branchName = BranchName.parse(pr.headBranchName);
@@ -1317,19 +1269,59 @@ export class Manifest {
         continue;
       }
       this.logger.info(
-        `Aligning pull request branches for PR #${pr.number}, changes branch ${branchName.changesBranch}`
+        `Aligning pull request branches for PR #${pr.number}, changes branch ${branchName.changesBranch} to be aligned with ${this.targetBranch}`
       );
+
+      let safeToRealign = false;
+
+      // first check if the release branch is synced with changes-branch
+      try {
+        this.logger.debug(
+          `Checking if ${pr.headBranchName} is synced with ${branchName.changesBranch}...`
+        );
+        if (
+          await this.github.isBranchASyncedWithB(
+            pr.headBranchName,
+            branchName.changesBranch
+          )
+        ) {
+          this.logger.debug('Branches in sync, safe to re-align');
+          safeToRealign = true;
+        }
+      } catch (err: unknown) {
+        // if a branch is not found, it is likely that the release branch has been deleted. In this case just ignore and
+        // continue with the next check
+        if (isOctokitRequestError(err) && err.status === 404) {
+          this.logger.debug(
+            `Could not compare branches '${pr.headBranchName}' and '${branchName.changesBranch}' due to a missing branch. Continue with the next check`
+          );
+        } else {
+          throw err;
+        }
+      }
+
+      // then check if changes-branch has already been synced with the base branch, in which case we don't need to do
+      // anything
       if (
-        await this.github.isBranchASyncedWithB(
+        !safeToRealign &&
+        (await this.github.isBranchASyncedWithB(
           branchName.changesBranch,
           this.targetBranch
-        )
+        ))
       ) {
         this.logger.debug(
-          `Branches ${branchName.changesBranch} and ${this.targetBranch} already in sync, do nothing`
+          `Checking if ${branchName.changesBranch} is synced with ${this.targetBranch}...`
         );
+        this.logger.debug('Branches already in sync, no need to re-align');
         continue;
       }
+
+      if (!safeToRealign) {
+        throw new Error(
+          `Branch '${branchName.changesBranch}' cannot be safely re-aligned with '${this.targetBranch}', and will likely result in git conflicts when the next release PR is created. Hint: compare ${pr.headBranchName}, ${branchName.changesBranch}, and ${this.targetBranch} for inconsistencies`
+        );
+      }
+
       await this.github.alignBranchWithAnother(
         branchName.changesBranch,
         this.targetBranch

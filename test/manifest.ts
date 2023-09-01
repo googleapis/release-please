@@ -6501,7 +6501,7 @@ describe('Manifest', () => {
             },
           },
           response: {
-            status: 500,
+            status: 403,
             url: 'https://api.github.com/foo',
             headers: {
               'x-github-request-id': '1:2:3:4',
@@ -6526,12 +6526,6 @@ describe('Manifest', () => {
         }
       );
 
-      // stub the race condition detection method to be able to check it was called once
-      const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
-        manifest,
-        <any>'throwIfChangesBranchesRaceConditionDetected' // eslint-disable-line @typescript-eslint/no-explicit-any
-      );
-
       const releases = await manifest.createReleases();
       expect(releases).lengthOf(1);
       expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
@@ -6551,7 +6545,6 @@ describe('Manifest', () => {
         1234
       );
 
-      sinon.assert.called(throwIfChangesBranchesRaceConditionDetectedStub);
       // ensure we don't try to update permissions rules again given the lock failed
       sinon.assert.notCalled(unlockBranchStub);
     });
@@ -6635,10 +6628,93 @@ describe('Manifest', () => {
         }
       );
 
-      // stub the race condition detection method to be able to check it was called once
-      const throwIfChangesBranchesRaceConditionDetectedStub = sandbox.stub(
-        manifest,
-        <any>'throwIfChangesBranchesRaceConditionDetected' // eslint-disable-line @typescript-eslint/no-explicit-any
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.path).to.eql('.');
+
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+
+      // ensure we don't try to update permissions rules again given the lock failed
+      sinon.assert.notCalled(unlockBranchStub);
+    });
+
+    it('should align changes and target branches when release and changes branches are in sync', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main--changes--next',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {id: 123456, sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
+
+      const isBranchASyncedWithBStub = sandbox.stub(
+        github,
+        'isBranchASyncedWithB'
+      );
+
+      // release branch in synced with changes-branch, safe to align changes-branch with target-branch
+      isBranchASyncedWithBStub
+        .withArgs('release-please--branches--main--changes--next', 'next')
+        .resolves(true);
+
+      const alignBranchWithAnotherStub = sandbox
+        .stub(github, 'alignBranchWithAnother')
+        .resolves();
+
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
       );
 
       const releases = await manifest.createReleases();
@@ -6660,9 +6736,250 @@ describe('Manifest', () => {
         1234
       );
 
-      sinon.assert.calledOnce(throwIfChangesBranchesRaceConditionDetectedStub);
-      // ensure we don't try to update permissions rules again given the lock failed
-      sinon.assert.notCalled(unlockBranchStub);
+      sinon.assert.calledOnce(isBranchASyncedWithBStub);
+      sinon.assert.calledOnce(alignBranchWithAnotherStub);
+
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
+    });
+
+    it('should not align and not throw when release branch is missing but changes-branch already synced with target-branch', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main--changes--next',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {id: 123456, sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
+
+      const isBranchASyncedWithBStub = sandbox.stub(
+        github,
+        'isBranchASyncedWithB'
+      );
+
+      // throw 404 not found when comparing changes-branch against release branch
+      isBranchASyncedWithBStub
+        .withArgs('release-please--branches--main--changes--next', 'next')
+        .throwsException(
+          new RequestError('Resource not found', 404, {
+            request: {
+              method: 'GET',
+              url: 'https://api.github.com/foo',
+              body: {
+                bar: 'baz',
+              },
+              headers: {
+                authorization: 'token secret123',
+              },
+            },
+            response: {
+              status: 404,
+              url: 'https://api.github.com/foo',
+              headers: {
+                'x-github-request-id': '1:2:3:4',
+              },
+              data: {
+                foo: 'bar',
+              },
+            },
+          })
+        );
+
+      // changes-branch already synced with target-branch
+      isBranchASyncedWithBStub.withArgs('next', 'main').resolves(true);
+
+      const alignBranchWithAnotherStub = sandbox
+        .stub(github, 'alignBranchWithAnother')
+        .resolves();
+
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0]!.tagName).to.eql('release-brancher-v1.3.1');
+      expect(releases[0]!.sha).to.eql('abc123');
+      expect(releases[0]!.notes).to.eql('some release notes');
+      expect(releases[0]!.path).to.eql('.');
+
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+
+      sinon.assert.calledTwice(isBranchASyncedWithBStub);
+      sinon.assert.notCalled(alignBranchWithAnotherStub);
+
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
+    });
+
+    it('should throw when release branch is missing and changes-branch not in synced with target-branch', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main--changes--next',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single-manifest.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      mockCreateRelease(github, [
+        {id: 123456, sha: 'abc123', tagName: 'release-brancher-v1.3.1'},
+      ]);
+      const commentStub = sandbox.stub(github, 'commentOnIssue').resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
+      const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
+
+      const isBranchASyncedWithBStub = sandbox.stub(
+        github,
+        'isBranchASyncedWithB'
+      );
+
+      // throw 404 not found when comparing changes-branch against release branch
+      isBranchASyncedWithBStub
+        .withArgs('release-please--branches--main--changes--next', 'next')
+        .throwsException(
+          new RequestError('Resource not found', 404, {
+            request: {
+              method: 'GET',
+              url: 'https://api.github.com/foo',
+              body: {
+                bar: 'baz',
+              },
+              headers: {
+                authorization: 'token secret123',
+              },
+            },
+            response: {
+              status: 404,
+              url: 'https://api.github.com/foo',
+              headers: {
+                'x-github-request-id': '1:2:3:4',
+              },
+              data: {
+                foo: 'bar',
+              },
+            },
+          })
+        );
+
+      // changes-branch not in synced with target-branch
+      isBranchASyncedWithBStub.withArgs('next', 'main').resolves(false);
+
+      const alignBranchWithAnotherStub = sandbox
+        .stub(github, 'alignBranchWithAnother')
+        .resolves();
+
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('1.3.1'),
+        }
+      );
+
+      let err: unknown;
+      try {
+        await manifest.createReleases();
+      } catch (e) {
+        err = e;
+      }
+      expect(err).to.be.instanceOf(Error);
+      snapshot(<Error>err);
+
+      // releases are still created
+      sinon.assert.calledOnce(commentStub);
+      sinon.assert.calledOnceWithExactly(
+        addLabelsStub,
+        ['autorelease: tagged'],
+        1234
+      );
+      sinon.assert.calledOnceWithExactly(
+        removeLabelsStub,
+        ['autorelease: pending'],
+        1234
+      );
+
+      sinon.assert.calledTwice(isBranchASyncedWithBStub);
+      sinon.assert.notCalled(alignBranchWithAnotherStub);
+
+      sinon.assert.calledOnce(lockBranchStub);
+      sinon.assert.calledOnce(unlockBranchStub);
     });
   });
 });
