@@ -70,6 +70,7 @@ describe('GitHubChangelogNotes', () => {
       changesBranch: 'main',
     };
     let github: GitHub;
+    let req: nock.Scope;
     beforeEach(async () => {
       github = await GitHub.create({
         owner: 'fake-owner',
@@ -77,7 +78,7 @@ describe('GitHubChangelogNotes', () => {
         defaultBranch: 'main',
         token: 'fake-token',
       });
-      nock('https://api.github.com/')
+      req = nock('https://api.github.com/')
         .post('/repos/fake-owner/fake-repo/releases/generate-notes')
         .reply(200, {
           name: 'Release v1.0.0 is now available!',
@@ -89,6 +90,7 @@ describe('GitHubChangelogNotes', () => {
       const notes = await changelogNotes.buildNotes(commits, notesOptions);
       expect(notes).to.is.string;
       safeSnapshot(notes);
+      req.done();
     });
 
     it('should build parseable notes', async () => {
@@ -118,6 +120,7 @@ describe('GitHubChangelogNotes', () => {
       expect(parsedPullRequestBody!.releaseData[0].version?.toString()).to.eql(
         '1.2.3'
       );
+      req.done();
     });
   });
 });
