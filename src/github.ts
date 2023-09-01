@@ -1917,12 +1917,16 @@ export class GitHub {
   }
 
   /**
-   * Determines whether branch A is up-to-date with the latest commit of branch B.
-   * This function can be used to detect if branch B has received any new commits since branch A was created or last rebased.
+   * Determines whether branch A is up-to-date with the latest commits from branch B.
+   * This function can be used to detect if branch A has received any new commits since it was created or last rebased
+   * from branch B.
    *
    * @param {string} branchAName - The name of branch A, which is to be checked against the latest commit of branch B.
    * @param {string} branchBName - The name of branch B, against which branch A is to be compared.
-   * @returns {Promise<boolean>} Returns `true` if branch A is based on the latest commit of branch B, meaning no new commits have been made to B since A was branched from it. Returns `false` otherwise.
+   * @returns {Promise<boolean>} Returns `true` if branch B is ahead of branch A, meaning no new
+   * commits have been added to A since it was branched from B, or if branch A is identical to branch B. Returns `true`
+   * if branches are diverging, but all commits exclusive to A can be found in c ommits exclusive to B (e.g B contains
+   * all commits from A but different sha following a rebase + merge). Returns `false` otherwise.
    * @throws {Error} Throws an error if branch names are empty or if there is an issue with the comparison, such as API errors or network issues.
    */
   async isBranchASyncedWithB(
@@ -1940,9 +1944,128 @@ export class GitHub {
     const comparison = await this.octokit.repos.compareCommitsWithBasehead({
       owner: this.repository.owner,
       repo: this.repository.repo,
-      basehead: `${branchAName}...${branchBName}`,
+      basehead: `${branchBName}...${branchAName}`,
     });
-    return comparison.data.total_commits === 0;
+
+    this.logger.debug({status: comparison.data.status});
+
+    if (
+      comparison.data.status === 'identical' ||
+      comparison.data.status === 'ahead' ||
+      comparison.data.total_commits === 0
+    ) {
+      return true;
+    }
+
+    if (comparison.data.status === 'diverged') {
+      // For each branch fetch commits since the last known common sha
+      const exclusiveCommitsA = new Set(
+        comparison.data.commits.map(commit => commit.sha)
+      );
+      const exclusiveCommitsB = new Set(
+        (
+          await this.octokit.repos.compareCommitsWithBasehead({
+            owner: this.repository.owner,
+            repo: this.repository.repo,
+            basehead: `${comparison.data.merge_base_commit.sha}...${branchBName}`,
+          })
+        ).data.commits.map(commit => commit.sha)
+      );
+
+      type CommitData = Awaited<
+        ReturnType<typeof this.octokit.repos.getCommit>
+      >['data'];
+      type CommitFiles = NonNullable<CommitData['files']>;
+
+      const getChangedFiles = (files: CommitFiles | undefined) =>
+        files?.map(file => ({
+          sha: file.sha,
+          filename: file.filename,
+          status: file.status,
+          additions: file.additions,
+          deletions: file.deletions,
+          changes: file.changes,
+          patch: file.patch,
+        })) || [];
+
+      // cache branch B data to avoid unnecessary requests
+      const cacheOfBranchBCommitMetadataPerCommitSha = new Map<
+        string,
+        CommitData['commit']
+      >();
+      const cacheOfBranchBFilesPerCommitSha = new Map<
+        string,
+        Map<string, ReturnType<typeof getChangedFiles>[0]>
+      >();
+
+      // Check if branch B seems to contain all commits exclusives to A
+      for (const shaA of exclusiveCommitsA) {
+        const commitA = await this.octokit.repos.getCommit({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          ref: shaA,
+        });
+        const metaA = commitA.data.commit;
+        const filesA = getChangedFiles(commitA.data.files);
+
+        let foundInB = false;
+        for (const shaB of exclusiveCommitsB) {
+          let metaB = cacheOfBranchBCommitMetadataPerCommitSha.get(shaB);
+          let filesBMap = cacheOfBranchBFilesPerCommitSha.get(shaB);
+          if (!filesBMap || !metaB) {
+            this.logger.trace(`Populate branch B cache for ${shaB}`);
+            const commit = await this.octokit.repos.getCommit({
+              owner: this.repository.owner,
+              repo: this.repository.repo,
+              ref: shaB,
+            });
+            metaB = commit.data.commit;
+            filesBMap = new Map(
+              getChangedFiles(commit.data.files).map(file => [file.sha, file])
+            );
+            cacheOfBranchBCommitMetadataPerCommitSha.set(shaB, metaB);
+            cacheOfBranchBFilesPerCommitSha.set(shaB, filesBMap);
+          }
+
+          if (filesA.length !== filesBMap.size) {
+            continue;
+          }
+
+          // Compare various properties we expect to be equal between identical commits
+          // - commit message
+          // - all file changes
+          //
+          // Note: should we also compare the author, or some timestamps?
+          foundInB =
+            metaA.message === metaB.message &&
+            filesA.every(fileA => {
+              const fileB = filesBMap?.get(fileA.sha);
+              if (!fileB) return false;
+              return (
+                fileA.filename === fileB.filename &&
+                fileA.status === fileB.status &&
+                fileA.additions === fileB.additions &&
+                fileA.deletions === fileB.deletions &&
+                fileA.changes === fileB.changes &&
+                fileA.patch === fileB.patch
+              );
+            });
+          if (foundInB) {
+            exclusiveCommitsB.delete(shaB);
+            cacheOfBranchBFilesPerCommitSha.delete(shaB);
+            break;
+          }
+        }
+
+        if (!foundInB) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   /**
