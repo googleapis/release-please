@@ -1307,4 +1307,394 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
+  describe('isBranchASyncedWithB', () => {
+    it('returns true if branch A is ahead', async () => {
+      req = req
+        .get('/repos/fake/fake/compare/base-branch...new-branch')
+        .reply(200, {
+          status: 'ahead',
+        });
+      const result = await github.isBranchASyncedWithB(
+        'new-branch',
+        'base-branch'
+      );
+      req.done();
+      expect(result).to.eql(true);
+    });
+
+    it('returns true when identical', async () => {
+      req = req
+        .get('/repos/fake/fake/compare/base-branch...new-branch')
+        .reply(200, {
+          status: 'identical',
+        });
+      const result = await github.isBranchASyncedWithB(
+        'new-branch',
+        'base-branch'
+      );
+      req.done();
+      expect(result).to.eql(true);
+    });
+
+    it('returns false if branch A is behind', async () => {
+      req = req
+        .get('/repos/fake/fake/compare/base-branch...new-branch')
+        .reply(200, {
+          status: 'behind',
+        });
+      const result = await github.isBranchASyncedWithB(
+        'new-branch',
+        'base-branch'
+      );
+      req.done();
+      expect(result).to.eql(false);
+    });
+
+    it('returns true if branch A diverged and all divergent commits are present in branch B', async () => {
+      req = req
+        .get('/repos/fake/fake/compare/base-branch...new-branch')
+        .reply(200, {
+          status: 'diverged',
+          merge_base_commit: {sha: 'merge_base_sha'},
+          commits: [{sha: 'commit1A'}, {sha: 'commit2A'}],
+        })
+        .get('/repos/fake/fake/compare/merge_base_sha...base-branch')
+        .reply(200, {
+          commits: [
+            // shuffled order to be sure we don't rely on ordering
+            {sha: 'commit2B'},
+            {sha: 'CommitOnlyPresentInBranchB'},
+            {sha: 'commit1B'},
+          ],
+        })
+        // Commits exclusive to branch A
+        .get('/repos/fake/fake/commits/commit1A')
+        .reply(200, {
+          commit: {
+            message: 'message1',
+          },
+          files: [
+            {
+              sha: 'file_sha1',
+              filename: 'file1.txt',
+              status: 'added',
+              additions: 10,
+              deletions: 0,
+              changes: 10,
+              patch: 'patch_data1',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit2A')
+        .reply(200, {
+          commit: {
+            message: 'message2',
+          },
+          files: [
+            {
+              sha: 'file_sha2',
+              filename: 'file2.txt',
+              status: 'removed',
+              additions: 20,
+              deletions: 30,
+              changes: 40,
+              patch: 'patch_data2',
+            },
+          ],
+        })
+        // Commits exclusive to branch B
+        .get('/repos/fake/fake/commits/commit1B')
+        .reply(200, {
+          commit: {
+            message: 'message1',
+          },
+          files: [
+            {
+              sha: 'file_sha1',
+              filename: 'file1.txt',
+              status: 'added',
+              additions: 10,
+              deletions: 0,
+              changes: 10,
+              patch: 'patch_data1',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit2B')
+        .reply(200, {
+          commit: {
+            message: 'message2',
+          },
+          files: [
+            {
+              sha: 'file_sha2',
+              filename: 'file2.txt',
+              status: 'removed',
+              additions: 20,
+              deletions: 30,
+              changes: 40,
+              patch: 'patch_data2',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/CommitOnlyPresentInBranchB')
+        .reply(200, {
+          commit: {
+            message: 'message3B',
+          },
+          files: [
+            {
+              sha: 'file_sha3',
+              filename: 'file3.txt',
+              status: 'deleted',
+              additions: 50,
+              deletions: 60,
+              changes: 70,
+              patch: 'patch_data3',
+            },
+          ],
+        });
+
+      const result = await github.isBranchASyncedWithB(
+        'new-branch',
+        'base-branch'
+      );
+      req.done();
+
+      expect(result).to.be.true;
+    });
+
+    it('returns false if branch A diverged and at least one commit is not present in branch B (message)', async () => {
+      req = req
+        .get('/repos/fake/fake/compare/base-branch...new-branch')
+        .reply(200, {
+          status: 'diverged',
+          merge_base_commit: {sha: 'merge_base_sha'},
+          commits: [{sha: 'commit1A'}, {sha: 'commit2A'}],
+        })
+        .get('/repos/fake/fake/compare/merge_base_sha...base-branch')
+        .reply(200, {
+          commits: [
+            {sha: 'CommitOnlyPresentInBranchB'},
+            {sha: 'commit1B'},
+            {sha: 'commit2B'},
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit1A')
+        .reply(200, {
+          commit: {
+            message: 'message1',
+          },
+          files: [
+            {
+              sha: 'file_sha1',
+              filename: 'file1.txt',
+              status: 'added',
+              additions: 10,
+              deletions: 0,
+              changes: 10,
+              patch: 'patch_data1',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit2A')
+        .reply(200, {
+          commit: {
+            message: 'message2_different', // Different message, only on branch A
+          },
+          files: [
+            {
+              sha: 'file_sha2',
+              filename: 'file2.txt',
+              status: 'removed',
+              additions: 20,
+              deletions: 30,
+              changes: 40,
+              patch: 'patch_data2',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit1B')
+        .reply(200, {
+          commit: {
+            message: 'message1',
+          },
+          files: [
+            {
+              sha: 'file_sha1',
+              filename: 'file1.txt',
+              status: 'added',
+              additions: 10,
+              deletions: 0,
+              changes: 10,
+              patch: 'patch_data1',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit2B')
+        .reply(200, {
+          commit: {
+            message: 'message2',
+          },
+          files: [
+            {
+              sha: 'file_sha2',
+              filename: 'file2.txt',
+              status: 'removed',
+              additions: 20,
+              deletions: 30,
+              changes: 40,
+              patch: 'patch_data2',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/CommitOnlyPresentInBranchB')
+        .reply(200, {
+          commit: {
+            message: 'message3B',
+          },
+          files: [
+            {
+              sha: 'file_sha3',
+              filename: 'file3.txt',
+              status: 'deleted',
+              additions: 50,
+              deletions: 60,
+              changes: 70,
+              patch: 'patch_data3',
+            },
+          ],
+        });
+
+      const result = await github.isBranchASyncedWithB(
+        'new-branch',
+        'base-branch'
+      );
+      req.done();
+
+      expect(result).to.be.false;
+    });
+
+    it('returns false if branch A diverged and at least one commit is not present in branch B (extra file)', async () => {
+      req = req
+        .get('/repos/fake/fake/compare/base-branch...new-branch')
+        .reply(200, {
+          status: 'diverged',
+          merge_base_commit: {sha: 'merge_base_sha'},
+          commits: [{sha: 'commit1A'}, {sha: 'commit2A'}],
+        })
+        .get('/repos/fake/fake/compare/merge_base_sha...base-branch')
+        .reply(200, {
+          commits: [
+            {sha: 'CommitOnlyPresentInBranchB'},
+            {sha: 'commit1B'},
+            {sha: 'commit2B'},
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit1A')
+        .reply(200, {
+          commit: {
+            message: 'message1',
+          },
+          files: [
+            {
+              sha: 'file_sha1',
+              filename: 'file1.txt',
+              status: 'added',
+              additions: 10,
+              deletions: 0,
+              changes: 10,
+              patch: 'patch_data1',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit2A')
+        .reply(200, {
+          commit: {
+            message: 'message2',
+          },
+          files: [
+            {
+              sha: 'file_sha2',
+              filename: 'file2.txt',
+              status: 'removed',
+              additions: 20,
+              deletions: 30,
+              changes: 40,
+              patch: 'patch_data2',
+            },
+            // Extra file only present in branch A
+            {
+              sha: 'file_sha__only_in_branch_a',
+              filename: 'file__only_in_branch_a.txt',
+              status: 'deleted',
+              additions: 999,
+              deletions: 333,
+              changes: 666,
+              patch: 'patch_data__only_in_branch_a',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit1B')
+        .reply(200, {
+          commit: {
+            message: 'message1',
+          },
+          files: [
+            {
+              sha: 'file_sha1',
+              filename: 'file1.txt',
+              status: 'added',
+              additions: 10,
+              deletions: 0,
+              changes: 10,
+              patch: 'patch_data1',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/commit2B')
+        .reply(200, {
+          commit: {
+            message: 'message2',
+          },
+          files: [
+            {
+              sha: 'file_sha2',
+              filename: 'file2.txt',
+              status: 'removed',
+              additions: 20,
+              deletions: 30,
+              changes: 40,
+              patch: 'patch_data2',
+            },
+          ],
+        })
+        .get('/repos/fake/fake/commits/CommitOnlyPresentInBranchB')
+        .reply(200, {
+          commit: {
+            message: 'message3B',
+          },
+          files: [
+            {
+              sha: 'file_sha3',
+              filename: 'file3.txt',
+              status: 'deleted',
+              additions: 50,
+              deletions: 60,
+              changes: 70,
+              patch: 'patch_data3',
+            },
+          ],
+        });
+
+      const result = await github.isBranchASyncedWithB(
+        'new-branch',
+        'base-branch'
+      );
+      req.done();
+
+      expect(result).to.be.false;
+    });
+  });
 });

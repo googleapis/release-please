@@ -1958,7 +1958,7 @@ export class GitHub {
     }
 
     if (comparison.data.status === 'diverged') {
-      // For each branch fetch commits since the last known common sha
+      // For each branch fetch commits since branches diverged
       const exclusiveCommitsA = new Set(
         comparison.data.commits.map(commit => commit.sha)
       );
