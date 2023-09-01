@@ -6960,7 +6960,7 @@ describe('Manifest', () => {
         err = e;
       }
       expect(err).to.be.instanceOf(Error);
-      snapshot(<Error>err);
+      snapshot((<Error>err).message);
 
       // releases are still created
       sinon.assert.calledOnce(commentStub);

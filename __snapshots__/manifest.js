@@ -164,4 +164,6 @@ For a better experience, it is recommended to use either rebase-merge or squash-
 _More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
-exports['Manifest createReleases should throw when release branch is missing and changes-branch not in synced with target-branch 1'] = {}
+exports['Manifest createReleases should throw when release branch is missing and changes-branch not in synced with target-branch 1'] = `
+Branch 'next' cannot be safely re-aligned with 'main', and will likely result in git conflicts when the next release PR is created. Hint: compare release-please--branches--main--changes--next, next, and main for inconsistencies
+`
