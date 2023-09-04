@@ -166,7 +166,7 @@ describe('LinkedVersions plugin', () => {
         ],
       }
     );
-    const pullRequests = await manifest.buildPullRequests();
+    const pullRequests = await manifest.buildPullRequests([], []);
     expect(pullRequests).lengthOf(1);
     const pullRequest = pullRequests[0];
     const packageData2 = pullRequest.body.releaseData.find(
@@ -214,7 +214,7 @@ describe('LinkedVersions plugin', () => {
         ],
       }
     );
-    const pullRequests = await manifest.buildPullRequests();
+    const pullRequests = await manifest.buildPullRequests([], []);
     expect(pullRequests).lengthOf(2);
     const singlePullRequest = pullRequests[0];
     safeSnapshot(singlePullRequest.body.toString());
@@ -266,7 +266,7 @@ describe('LinkedVersions plugin', () => {
         ],
       }
     );
-    const pullRequests = await manifest.buildPullRequests();
+    const pullRequests = await manifest.buildPullRequests([], []);
     for (const pullRequest of pullRequests) {
       safeSnapshot(pullRequest.body.toString());
     }
@@ -315,7 +315,7 @@ describe('LinkedVersions plugin', () => {
         ],
       }
     );
-    const pullRequests = await manifest.buildPullRequests();
+    const pullRequests = await manifest.buildPullRequests([], []);
     expect(pullRequests).lengthOf(2);
     const groupPullRequest1 = pullRequests[1];
     const packageData1 = groupPullRequest1.body.releaseData.find(

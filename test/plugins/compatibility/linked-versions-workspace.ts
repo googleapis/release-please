@@ -164,7 +164,7 @@ describe('Plugin compatibility', () => {
           ],
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       safeSnapshot(pullRequest.body.toString());

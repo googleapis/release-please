@@ -20,7 +20,7 @@ import {PullRequestTitle} from './util/pull-request-title';
 export interface ReleasePullRequest {
   readonly title: PullRequestTitle;
   readonly body: PullRequestBody;
-  readonly labels: string[];
+  labels: string[];
   readonly headRefName: string;
   readonly version?: Version;
   readonly draft: boolean;

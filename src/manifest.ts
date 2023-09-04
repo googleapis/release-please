@@ -264,6 +264,7 @@ export const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
 export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
 export const DEFAULT_PRERELEASE_LABELS = ['autorelease: pre-release'];
+export const DEFAULT_USEREDITED_LABEL = 'autorelease: user edited';
 const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
 const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
@@ -505,7 +506,10 @@ export class Manifest {
    *
    * @returns {ReleasePullRequest[]} The candidate pull requests to open or update.
    */
-  async buildPullRequests(): Promise<ReleasePullRequest[]> {
+  async buildPullRequests(
+    openPullRequests: PullRequest[],
+    snoozedPullRequests: PullRequest[]
+  ): Promise<ReleasePullRequest[]> {
     this.logger.info('Building pull requests');
     const pathsByComponent = await this.getPathsByComponent();
     const strategiesByPath = await this.getStrategiesByPath();
@@ -733,11 +737,18 @@ export class Manifest {
 
       const strategy = strategies[path];
       const latestRelease = releasesByPath[path];
+
+      const branchName = (await strategy.getBranchName()).toString();
+      const existingPR =
+        openPullRequests.find(pr => pr.headBranchName === branchName) ||
+        snoozedPullRequests.find(pr => pr.headBranchName === branchName);
+
       const releasePullRequest = await strategy.buildReleasePullRequest(
         pathCommits,
         latestRelease,
         config.draftPullRequest ?? this.draftPullRequest,
-        this.labels
+        this.labels,
+        existingPR
       );
       this.logger.debug(`path: ${path}`);
       this.logger.debug(
@@ -840,11 +851,6 @@ export class Manifest {
     // register all possible labels to make them available to users through GitHub label dropdown
     await this.registerLabels();
 
-    const candidatePullRequests = await this.buildPullRequests();
-    if (candidatePullRequests.length === 0) {
-      return [];
-    }
-
     // if there are any merged, pending release pull requests, don't open
     // any new release PRs
     const mergedPullRequestsGenerator = this.findMergedReleasePullRequests();
@@ -858,6 +864,15 @@ export class Manifest {
     // collect open and snoozed release pull requests
     const openPullRequests = await this.findOpenReleasePullRequests();
     const snoozedPullRequests = await this.findSnoozedReleasePullRequests();
+
+    // prepare releases pull requests
+    const candidatePullRequests = await this.buildPullRequests(
+      openPullRequests,
+      snoozedPullRequests
+    );
+    if (candidatePullRequests.length === 0) {
+      return [];
+    }
 
     if (this.sequentialCalls) {
       const pullRequests: PullRequest[] = [];
@@ -1019,13 +1034,23 @@ export class Manifest {
     existing: PullRequest,
     pullRequest: ReleasePullRequest
   ): Promise<PullRequest | undefined> {
+    const userEditedExistingPR = existing.labels.find(
+      label => label === DEFAULT_USEREDITED_LABEL
+    );
+
+    this.logger.debug({userEditedExistingPR, existing});
+
     // If unchanged, no need to push updates
-    if (existing.body === pullRequest.body.toString()) {
+    if (
+      !userEditedExistingPR &&
+      existing.body === pullRequest.body.toString()
+    ) {
       this.logger.info(
         `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
       );
       return undefined;
     }
+
     const updatedPullRequest = await this.github.updatePullRequest(
       existing.number,
       pullRequest,
@@ -1037,6 +1062,12 @@ export class Manifest {
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
       }
     );
+
+    await this.github.removeIssueLabels(
+      [DEFAULT_USEREDITED_LABEL],
+      existing.number
+    );
+
     return updatedPullRequest;
   }
 

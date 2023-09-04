@@ -147,7 +147,7 @@ describe('Plugin compatibility', () => {
           groupPullRequestTitlePattern: 'chore: Release${component} ${version}',
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       safeSnapshot(pullRequest.body.toString());

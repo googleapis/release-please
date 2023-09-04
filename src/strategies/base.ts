@@ -146,6 +146,17 @@ export abstract class BaseStrategy implements Strategy {
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
   }
+  async getBranchName(): Promise<BranchName> {
+    const branchComponent = await this.getBranchComponent();
+    const branchName = branchComponent
+      ? BranchName.ofComponentTargetBranch(
+          branchComponent,
+          this.targetBranch,
+          this.changesBranch
+        )
+      : BranchName.ofTargetBranch(this.targetBranch, this.changesBranch);
+    return branchName;
+  }
 
   /**
    * Specify the files necessary to update in a release pull request.
@@ -258,7 +269,8 @@ export abstract class BaseStrategy implements Strategy {
     commits: ConventionalCommit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels: string[] = []
+    labels: string[] = [],
+    existingPullRequest?: PullRequest
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(commits);
     this.logger.info(`Considering: ${conventionalCommits.length} commits`);
@@ -267,10 +279,41 @@ export abstract class BaseStrategy implements Strategy {
       return undefined;
     }
 
-    const newVersion = await this.buildNewVersion(
-      conventionalCommits,
-      latestRelease
+    const releaseAsCommit = conventionalCommits.find(conventionalCommit =>
+      conventionalCommit.notes.find(note => note.title === 'RELEASE AS')
     );
+    const releaseAsNote = releaseAsCommit?.notes.find(
+      note => note.title === 'RELEASE AS'
+    );
+
+    const existingPRTitleVersion =
+      existingPullRequest &&
+      PullRequestTitle.parse(existingPullRequest.title)?.getVersion();
+    const userEditedExistingPR =
+      existingPullRequest &&
+      existingPullRequest.labels.find(
+        label => label === 'autorelease: user edited'
+      );
+
+    let newVersion: Version;
+    if (existingPRTitleVersion && userEditedExistingPR) {
+      newVersion = existingPRTitleVersion;
+    } else if (this.releaseAs) {
+      this.logger.warn(
+        `Setting version for ${this.path} from release-as configuration`
+      );
+      newVersion = Version.parse(this.releaseAs);
+    } else if (releaseAsNote) {
+      newVersion = Version.parse(releaseAsNote.text);
+    } else if (latestRelease) {
+      newVersion = await this.versioningStrategy.bump(
+        latestRelease.tag.version,
+        conventionalCommits
+      );
+    } else {
+      newVersion = this.initialReleaseVersion();
+    }
+
     const versionsMap = await this.updateVersionsMap(
       await this.buildVersionsMap(conventionalCommits),
       conventionalCommits,
@@ -297,15 +340,6 @@ export abstract class BaseStrategy implements Strategy {
       newVersion,
       this.pullRequestTitlePattern
     );
-
-    const branchComponent = await this.getBranchComponent();
-    const branchName = branchComponent
-      ? BranchName.ofComponentTargetBranch(
-          branchComponent,
-          this.targetBranch,
-          this.changesBranch
-        )
-      : BranchName.ofTargetBranch(this.targetBranch, this.changesBranch);
 
     const releaseNotesBody = await this.buildReleaseNotes(
       conventionalCommits,
@@ -346,7 +380,7 @@ export abstract class BaseStrategy implements Strategy {
       body: pullRequestBody,
       updates: updatesWithExtras,
       labels: [...labels, ...this.extraLabels],
-      headRefName: branchName.toString(),
+      headRefName: (await this.getBranchName()).toString(),
       version: newVersion,
       draft: draft ?? false,
     };
@@ -463,43 +497,10 @@ export abstract class BaseStrategy implements Strategy {
     for (const [component, version] of versionsMap.entries()) {
       versionsMap.set(
         component,
-        await this.versioningStrategy.bump(version, conventionalCommits)
+        this.versioningStrategy.bump(version, conventionalCommits)
       );
     }
     return versionsMap;
-  }
-
-  protected async buildNewVersion(
-    conventionalCommits: ConventionalCommit[],
-    latestRelease?: Release
-  ): Promise<Version> {
-    if (this.releaseAs) {
-      this.logger.warn(
-        `Setting version for ${this.path} from release-as configuration`
-      );
-      return Version.parse(this.releaseAs);
-    }
-
-    const releaseAsCommit = conventionalCommits.find(conventionalCommit =>
-      conventionalCommit.notes.find(note => note.title === 'RELEASE AS')
-    );
-    if (releaseAsCommit) {
-      const note = releaseAsCommit.notes.find(
-        note => note.title === 'RELEASE AS'
-      );
-      if (note) {
-        return Version.parse(note.text);
-      }
-    }
-
-    if (latestRelease) {
-      return await this.versioningStrategy.bump(
-        latestRelease.tag.version,
-        conventionalCommits
-      );
-    }
-
-    return this.initialReleaseVersion();
   }
 
   protected async buildVersionsMap(

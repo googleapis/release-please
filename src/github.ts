@@ -1495,6 +1495,7 @@ export class GitHub {
       release: Release,
       options: ReleaseOptions = {}
     ): Promise<GitHubRelease> => {
+      this.logger.debug({tag: release.tag});
       const resp = await this.octokit.repos.createRelease({
         name: release.name,
         owner: this.repository.owner,
@@ -1751,7 +1752,7 @@ export class GitHub {
     branchName: string,
     branchSha: string
   ): Promise<string> {
-    this.logger.debug(`Creating new branch: '${branchName}' at $'{branchSha}'`);
+    this.logger.debug(`Creating new branch: '${branchName}' at '${branchSha}'`);
     const {
       data: {
         object: {sha},

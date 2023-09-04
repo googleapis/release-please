@@ -497,7 +497,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
     }
 
     if (argv.dryRun) {
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       logger.debug(`Would open ${pullRequests.length} pull requests`);
       logger.debug('fork:', manifest.fork);
       logger.debug('changes branch:', manifest.changesBranch);
@@ -632,7 +632,7 @@ const createManifestPullRequestCommand: yargs.CommandModule<
     );
 
     if (argv.dryRun) {
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       logger.debug(`Would open ${pullRequests.length} pull requests`);
       logger.debug('fork:', manifest.fork);
       for (const pullRequest of pullRequests) {

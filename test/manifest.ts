@@ -1517,7 +1517,7 @@ describe('Manifest', () => {
             '.': Version.parse('1.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.version?.toString()).to.eql('1.0.1');
@@ -1554,7 +1554,7 @@ describe('Manifest', () => {
           undefined,
           'non/default/path/manifest.json'
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         assertHasUpdate(pullRequest.updates, 'non/default/path/manifest.json');
@@ -1574,7 +1574,7 @@ describe('Manifest', () => {
             '.': Version.parse('1.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.draft).to.be.true;
@@ -1596,7 +1596,7 @@ describe('Manifest', () => {
             draftPullRequest: true,
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.draft).to.be.true;
@@ -1618,7 +1618,7 @@ describe('Manifest', () => {
             labels: ['some-special-label'],
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.labels).to.eql(['some-special-label']);
@@ -1638,7 +1638,7 @@ describe('Manifest', () => {
             '.': Version.parse('1.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.title.toString()).to.eql('release: 1.0.1');
@@ -1658,7 +1658,7 @@ describe('Manifest', () => {
             '.': Version.parse('1.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.body.header.toString()).to.eql(
@@ -1722,7 +1722,7 @@ describe('Manifest', () => {
           '.': Version.parse('1.0.0'),
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
@@ -1811,7 +1811,7 @@ describe('Manifest', () => {
           'path/b': Version.parse('0.2.3'),
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
       snapshot(dateSafe(pullRequests[0].body.toString()));
@@ -1900,7 +1900,7 @@ describe('Manifest', () => {
           separatePullRequests: true,
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(2);
       snapshot(dateSafe(pullRequests[0].body.toString()));
       snapshot(dateSafe(pullRequests[1].body.toString()));
@@ -1993,7 +1993,7 @@ describe('Manifest', () => {
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
       const manifest = await Manifest.fromManifest(github, 'main');
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(2);
       expect(pullRequests[0].version?.toString()).to.eql('1.0.1');
       expect(pullRequests[1].version?.toString()).to.eql('3.3.3');
@@ -2086,7 +2086,7 @@ describe('Manifest', () => {
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
       const manifest = await Manifest.fromManifest(github, 'main');
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(2);
       expect(pullRequests[0].version?.toString()).to.eql('3.3.3');
       expect(pullRequests[1].version?.toString()).to.eql('3.3.3');
@@ -2142,7 +2142,7 @@ describe('Manifest', () => {
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
       const manifest = await Manifest.fromManifest(github, 'main');
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
     });
@@ -2235,7 +2235,7 @@ describe('Manifest', () => {
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
       const manifest = await Manifest.fromManifest(github, 'main');
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
     });
@@ -2347,7 +2347,7 @@ describe('Manifest', () => {
             'chore${scope}: release${component} v${version}',
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.title.toString()).to.eql(
@@ -2446,7 +2446,7 @@ describe('Manifest', () => {
             'chore${scope}: release${component} v${version}',
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].title.toString()).to.eql('chore(main): release v');
     });
@@ -2489,7 +2489,7 @@ describe('Manifest', () => {
         .withArgs('.release-please-manifest.json', 'main')
         .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
       const manifest = await Manifest.fromManifest(github, 'main');
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].body.releaseData).lengthOf(1);
       expect(pullRequests[0].body.releaseData[0].component).to.eql('pkg1');
@@ -2536,7 +2536,7 @@ describe('Manifest', () => {
           '.': Version.parse('1.2.3'),
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.2.4-SNAPSHOT');
@@ -2571,7 +2571,7 @@ describe('Manifest', () => {
             '.': Version.parse('1.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(0);
       });
 
@@ -2601,7 +2601,7 @@ describe('Manifest', () => {
             '.': Version.parse('1.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.version?.toString()).to.eql('1.0.1-SNAPSHOT');
@@ -2659,7 +2659,7 @@ describe('Manifest', () => {
           'pkg/c': Version.parse('1.0.1'),
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].updates).to.be.an('array');
       expect(pullRequests[0].updates.map(update => update.path))
@@ -2733,7 +2733,7 @@ describe('Manifest', () => {
           draftPullRequest: true,
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       safeSnapshot(pullRequest.body.toString());
@@ -2837,7 +2837,7 @@ describe('Manifest', () => {
             plugins: ['node-workspace'],
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).not.empty;
         sinon.assert.calledOnce(mockPlugin.run);
       });
@@ -2881,7 +2881,7 @@ describe('Manifest', () => {
             plugins: ['node-workspace', 'cargo-workspace'],
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).not.empty;
         sinon.assert.calledOnce(mockPlugin.run);
         sinon.assert.calledOnce(mockPlugin2.run);
@@ -2912,7 +2912,7 @@ describe('Manifest', () => {
             plugins: ['sentence-case'],
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).not.empty;
         // This assertion verifies that conventional commit parsing
         // was applied before calling the processCommits plugin hook:
@@ -2999,7 +2999,7 @@ describe('Manifest', () => {
           '.': Version.parse('1.0.0'),
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
@@ -3089,7 +3089,7 @@ describe('Manifest', () => {
           'path/b': Version.parse('0.2.3'),
         }
       );
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
       snapshot(dateSafe(pullRequests[0].body.toString()));
@@ -3153,7 +3153,7 @@ describe('Manifest', () => {
         }
       );
       expect(manifest.releaseSearchDepth).to.eql(1);
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
@@ -3224,7 +3224,7 @@ describe('Manifest', () => {
         }
       );
       expect(manifest.commitSearchDepth).to.eql(1);
-      const pullRequests = await manifest.buildPullRequests();
+      const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
@@ -3318,7 +3318,7 @@ describe('Manifest', () => {
             separatePullRequests: true,
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(3);
         const pullRequestB = pullRequests[0];
         expect(pullRequestB.headRefName).to.eql(
@@ -3359,7 +3359,7 @@ describe('Manifest', () => {
             'pkg/d': Version.parse('3.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(2);
         const pullRequest = pullRequests[0];
         expect(pullRequest.headRefName).to.eql(
@@ -3397,7 +3397,7 @@ describe('Manifest', () => {
             'pkg/d': Version.parse('3.0.0'),
           }
         );
-        const pullRequests = await manifest.buildPullRequests();
+        const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).lengthOf(2);
         const pullRequest = pullRequests[0];
         expect(pullRequest.headRefName).to.eql(
