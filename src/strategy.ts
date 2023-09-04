@@ -45,13 +45,14 @@ export interface Strategy {
    * @returns {ReleasePullRequest | undefined} The release pull request to open for this path/component. Returns
    * undefined if we should not open a pull request.
    */
-  buildReleasePullRequest(
-    commits: Commit[],
-    latestRelease?: Release,
-    draft?: boolean,
-    labels?: string[],
-    existingPullRequest?: PullRequest
-  ): Promise<ReleasePullRequest | undefined>;
+  buildReleasePullRequest(opts: {
+    commits: Commit[];
+    latestRelease?: Release;
+    draft?: boolean;
+    labels?: string[];
+    existingPullRequest?: PullRequest;
+    manifestPath: string;
+  }): Promise<ReleasePullRequest | undefined>;
 
   /**
    * Given a merged pull request, build the candidate release.

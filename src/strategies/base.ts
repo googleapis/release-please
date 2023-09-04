@@ -21,6 +21,8 @@ import {
   ROOT_PROJECT_PATH,
   MANIFEST_PULL_REQUEST_TITLE_PATTERN,
   ExtraFile,
+  Manifest,
+  ManifestConfig,
 } from '../manifest';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
@@ -42,6 +44,7 @@ import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
 import {GenericToml} from '../updaters/generic-toml';
+import {FileNotFoundError} from '../errors';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -265,19 +268,30 @@ export abstract class BaseStrategy implements Strategy {
    *   open for this path/component. Returns undefined if we should not
    *   open a pull request.
    */
-  async buildReleasePullRequest(
-    commits: ConventionalCommit[],
-    latestRelease?: Release,
-    draft?: boolean,
-    labels: string[] = [],
-    existingPullRequest?: PullRequest
-  ): Promise<ReleasePullRequest | undefined> {
+  async buildReleasePullRequest({
+    commits,
+    existingPullRequest,
+    labels = [],
+    latestRelease,
+    draft,
+    manifestPath,
+  }: {
+    commits: ConventionalCommit[];
+    latestRelease?: Release;
+    draft?: boolean;
+    labels: string[];
+    existingPullRequest?: PullRequest;
+    manifestPath: string;
+  }): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(commits);
     this.logger.info(`Considering: ${conventionalCommits.length} commits`);
     if (conventionalCommits.length === 0) {
       this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }
+
+    const component = await this.getComponent();
+    this.logger.debug('component:', component);
 
     const releaseAsCommit = conventionalCommits.find(conventionalCommit =>
       conventionalCommit.notes.find(note => note.title === 'RELEASE AS')
@@ -286,19 +300,8 @@ export abstract class BaseStrategy implements Strategy {
       note => note.title === 'RELEASE AS'
     );
 
-    const existingPRTitleVersion =
-      existingPullRequest &&
-      PullRequestTitle.parse(existingPullRequest.title)?.getVersion();
-    const userEditedExistingPR =
-      existingPullRequest &&
-      existingPullRequest.labels.find(
-        label => label === 'autorelease: user edited'
-      );
-
     let newVersion: Version;
-    if (existingPRTitleVersion && userEditedExistingPR) {
-      newVersion = existingPRTitleVersion;
-    } else if (this.releaseAs) {
+    if (this.releaseAs) {
       this.logger.warn(
         `Setting version for ${this.path} from release-as configuration`
       );
@@ -314,13 +317,44 @@ export abstract class BaseStrategy implements Strategy {
       newVersion = this.initialReleaseVersion();
     }
 
+    // If a pull request already exists, compare the manifest version from its branch against the one from the PR title.
+    // If they don't match, assume the PR title has been edited by an end user to set the version.
+    if (existingPullRequest) {
+      this.logger.info(
+        `PR already exists for ${existingPullRequest.headBranchName}, checking if PR title edited to set custom version`
+      );
+      try {
+        const manifest =
+          (await this.github.getFileJson<Record<string, string>>(
+            manifestPath,
+            existingPullRequest.headBranchName
+          )) || {};
+        const componentVersion = manifest[component || '.'];
+        const existingPRTitleVersion = PullRequestTitle.parse(
+          existingPullRequest.title
+        )?.getVersion();
+        if (
+          existingPRTitleVersion &&
+          componentVersion !== existingPRTitleVersion?.toString()
+        ) {
+          newVersion = existingPRTitleVersion;
+        }
+      } catch (err: unknown) {
+        if (err instanceof FileNotFoundError) {
+          this.logger.error(
+            `Manifest file was expected to exist on PR branch but was not found. Check for PR title edits aborted.`,
+            err
+          );
+        } else {
+          throw err;
+        }
+      }
+    }
     const versionsMap = await this.updateVersionsMap(
       await this.buildVersionsMap(conventionalCommits),
       conventionalCommits,
       newVersion
     );
-    const component = await this.getComponent();
-    this.logger.debug('component:', component);
 
     const newVersionTag = new TagName(
       newVersion,

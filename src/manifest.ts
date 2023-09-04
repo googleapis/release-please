@@ -264,7 +264,6 @@ export const DEFAULT_RELEASE_LABELS = ['autorelease: tagged'];
 export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
 export const DEFAULT_PRERELEASE_LABELS = ['autorelease: pre-release'];
-export const DEFAULT_USEREDITED_LABEL = 'autorelease: user edited';
 const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
 const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
@@ -743,13 +742,14 @@ export class Manifest {
         openPullRequests.find(pr => pr.headBranchName === branchName) ||
         snoozedPullRequests.find(pr => pr.headBranchName === branchName);
 
-      const releasePullRequest = await strategy.buildReleasePullRequest(
-        pathCommits,
+      const releasePullRequest = await strategy.buildReleasePullRequest({
+        commits: pathCommits,
         latestRelease,
-        config.draftPullRequest ?? this.draftPullRequest,
-        this.labels,
-        existingPR
-      );
+        draft: config.draftPullRequest ?? this.draftPullRequest,
+        labels: this.labels,
+        existingPullRequest: existingPR,
+        manifestPath: this.manifestPath,
+      });
       this.logger.debug(`path: ${path}`);
       this.logger.debug(
         `releasePullRequest.headRefName: ${releasePullRequest?.headRefName}`
@@ -1034,15 +1034,9 @@ export class Manifest {
     existing: PullRequest,
     pullRequest: ReleasePullRequest
   ): Promise<PullRequest | undefined> {
-    const userEditedExistingPR = existing.labels.find(
-      label => label === DEFAULT_USEREDITED_LABEL
-    );
-
-    this.logger.debug({userEditedExistingPR, existing});
-
     // If unchanged, no need to push updates
     if (
-      !userEditedExistingPR &&
+      existing.title === pullRequest.title.toString() &&
       existing.body === pullRequest.body.toString()
     ) {
       this.logger.info(
@@ -1061,11 +1055,6 @@ export class Manifest {
         signoffUser: this.signoffUser,
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
       }
-    );
-
-    await this.github.removeIssueLabels(
-      [DEFAULT_USEREDITED_LABEL],
-      existing.number
     );
 
     return updatedPullRequest;
