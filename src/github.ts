@@ -1916,6 +1916,26 @@ export class GitHub {
     return protectionRule as GraphQLLockBranchProtectionRule;
   }
 
+  async isBranchSyncedWithPullRequestCommits(
+    branchName: string,
+    pullRequest: PullRequest
+  ): Promise<boolean> {
+    const prCommits = await this.request(
+      'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
+      {
+        pull_number: pullRequest.number,
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+      }
+    );
+    if (prCommits.data.length === 0) {
+      return false;
+    }
+    this.logger.debug(prCommits.data);
+    const latestPRCommit = prCommits.data[prCommits.data.length - 1];
+    return await this.isBranchASyncedWithB(branchName, latestPRCommit.sha);
+  }
+
   /**
    * Determines whether branch A is up-to-date with the latest commits from branch B.
    * This function can be used to detect if branch A has received any new commits since it was created or last rebased
@@ -2058,6 +2078,10 @@ export class GitHub {
         }
 
         if (!foundInB) {
+          this.logger.debug(
+            `Commit ${shaA} from branch ${branchAName} not found in ${branchBName}`
+          );
+          this.logger.trace(commitA.data.commit.message);
           return false;
         }
       }

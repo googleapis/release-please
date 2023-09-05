@@ -1269,31 +1269,32 @@ export class Manifest {
         continue;
       }
       this.logger.info(
-        `Aligning pull request branches for PR #${pr.number}, changes branch ${branchName.changesBranch} to be aligned with ${this.targetBranch}`
+        `Aligning branches for PR #${pr.number}, changes branch ${branchName.changesBranch} to be aligned with ${this.targetBranch}`
       );
 
       let safeToRealign = false;
 
-      // first check if the release branch is synced with changes-branch
       try {
         this.logger.debug(
-          `Checking if ${pr.headBranchName} is synced with ${branchName.changesBranch}...`
+          `Checking if PR commits are in sync with ${branchName.changesBranch}...`
         );
         if (
-          await this.github.isBranchASyncedWithB(
-            pr.headBranchName,
-            branchName.changesBranch
+          await this.github.isBranchSyncedWithPullRequestCommits(
+            branchName.changesBranch,
+            pr
           )
         ) {
-          this.logger.debug('Branches in sync, safe to re-align');
+          this.logger.debug(
+            'PR commits and changes branch in sync, safe to re-align'
+          );
           safeToRealign = true;
         }
       } catch (err: unknown) {
-        // if a branch is not found, it is likely that the release branch has been deleted. In this case just ignore and
-        // continue with the next check
+        // if a branch of commit cannot be found it is likely the PR commits information aren't in a reliable state, in
+        // this case just ignore and continue with the next check
         if (isOctokitRequestError(err) && err.status === 404) {
           this.logger.debug(
-            `Could not compare branches '${pr.headBranchName}' and '${branchName.changesBranch}' due to a missing branch. Continue with the next check`
+            `Could not compare commits from PR and '${branchName.changesBranch}' due to a branch or commit not found. Continue with the next check`
           );
         } else {
           throw err;
