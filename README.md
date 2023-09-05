@@ -176,9 +176,6 @@ the GitHub application, add `release-please:force-run` label to the merged pull 
 you are using the action, look for the failed invocation and retry the workflow run.
 Release Please will process the pull request immediately to find releasable units.
 
-### Existing Pull Requests with "autorelease: pending" label
-
-
 ## Strategy (Language) types supported
 
 Release Please automates releases for the following flavors of repositories:
