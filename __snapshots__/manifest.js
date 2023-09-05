@@ -170,7 +170,7 @@ exports['Manifest buildPullRequests should report issue via PR comment if labele
 
 :rotating_light: This Pull Request has the \`autorelease: custom version\` label but the version number cannot be found in the title. Instead the generated version \`0.2.4\` will be used.
 
-If you want to use a custom version be sure to use the semver format.
+If you want to set a custom version be sure to use the [semantic versioning format](https://devhints.io/semver).
 
 If you do not want to set a custom version and want  to get rid of this warning, remove the label \`autorelease: custom version\` from this Pull Request.
 
