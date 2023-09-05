@@ -16,7 +16,6 @@ import {ManifestPlugin, ManifestPluginOptions} from '../plugin';
 import {
   CandidateReleasePullRequest,
   RepositoryConfig,
-  DEFAULT_RELEASE_PLEASE_MANIFEST,
   ROOT_PROJECT_PATH,
 } from '../manifest';
 import {logger as defaultLogger, Logger} from '../util/logger';

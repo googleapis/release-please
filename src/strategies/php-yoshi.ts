@@ -18,7 +18,7 @@ import {Changelog} from '../updaters/changelog';
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
 import {PHPClientVersion} from '../updaters/php/php-client-version';
 import {VersionsMap, Version} from '../version';
-import {Commit, ConventionalCommit, parseConventionalCommits} from '../commit';
+import {Commit, parseConventionalCommits} from '../commit';
 import {CommitSplit} from '../util/commit-split';
 import {DefaultUpdater} from '../updaters/default';
 import {Release} from '../release';

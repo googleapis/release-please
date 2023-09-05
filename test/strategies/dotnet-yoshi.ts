@@ -28,7 +28,6 @@ import {TagName} from '../../src/util/tag-name';
 import {Changelog} from '../../src/updaters/changelog';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Apis} from '../../src/updaters/dotnet/apis';
-import {DEFAULT_RELEASE_PLEASE_MANIFEST} from '../../src/manifest';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/dotnet-yoshi';

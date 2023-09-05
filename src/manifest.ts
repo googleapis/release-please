@@ -743,6 +743,8 @@ export class Manifest {
         openPullRequests.find(pr => pr.headBranchName === branchName) ||
         snoozedPullRequests.find(pr => pr.headBranchName === branchName);
 
+      this.logger.debug({existingPR});
+
       const releasePullRequest = await strategy.buildReleasePullRequest({
         commits: pathCommits,
         latestRelease,

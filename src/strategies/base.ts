@@ -319,53 +319,76 @@ export abstract class BaseStrategy implements Strategy {
 
     // If a pull request already exists, compare the manifest version from its branch against the one from the PR title.
     // If they don't match, assume the PR title has been edited by an end user to set the version.
-    if (
-      existingPullRequest &&
-      !existingPullRequest.labels.find(
-        label => label === DEFAULT_CUSTOM_VERSION_LABEL
-      )
-    ) {
+    if (existingPullRequest) {
       this.logger.info(
         `PR already exists for ${existingPullRequest.headBranchName}, checking if PR title edited to set custom version`
       );
-      try {
-        const manifest =
-          (await this.github.getFileJson<Record<string, string>>(
-            manifestPath || DEFAULT_RELEASE_PLEASE_MANIFEST,
-            existingPullRequest.headBranchName
-          )) || {};
-        const componentVersion = manifest[component || '.'];
-        const existingPRTitleVersion = PullRequestTitle.parse(
-          existingPullRequest.title
-        )?.getVersion();
-        if (
-          existingPRTitleVersion &&
-          componentVersion !== existingPRTitleVersion?.toString()
-        ) {
-          this.github.addIssueLabels(
-            [DEFAULT_CUSTOM_VERSION_LABEL],
-            existingPullRequest.number
-          );
-          this.github.commentOnIssue(
-            `
+      const existingPRTitleVersion = PullRequestTitle.parse(
+        existingPullRequest.title
+      )?.getVersion();
+      const hasCustomVersionLabel = existingPullRequest.labels.find(
+        label => label === DEFAULT_CUSTOM_VERSION_LABEL
+      );
+
+      if (!existingPRTitleVersion && hasCustomVersionLabel) {
+        // report error
+        this.github.commentOnIssue(
+          `
+## Invalid version number in PR title
+
+:rotating_light: This Pull Request has the \`${DEFAULT_CUSTOM_VERSION_LABEL}\` label but the version number cannot be found in the title. Instead the generated version \`${newVersion}\` will be used.
+
+If you want to use a custom version be sure to use the semver format.
+
+If you do not want to set a custom version and want  to get rid of this warning, remove the label \`${DEFAULT_CUSTOM_VERSION_LABEL}\` from this Pull Request.
+`,
+          existingPullRequest.number
+        );
+      } else if (!existingPRTitleVersion) {
+        // do nothing
+      } else if (
+        existingPullRequest.labels.find(
+          label => label === DEFAULT_CUSTOM_VERSION_LABEL
+        )
+      ) {
+        // PR labeled as custom version, use version from the title
+        newVersion = existingPRTitleVersion;
+      } else {
+        // look at the manifest from release branch and compare against version from PR title
+        try {
+          const manifest =
+            (await this.github.getFileJson<Record<string, string>>(
+              manifestPath || DEFAULT_RELEASE_PLEASE_MANIFEST,
+              existingPullRequest.headBranchName
+            )) || {};
+          const componentVersion = manifest[component || '.'];
+          if (componentVersion !== existingPRTitleVersion?.toString()) {
+            // version from title has been edited, add custom version label, a comment, and use the title version
+            this.github.addIssueLabels(
+              [DEFAULT_CUSTOM_VERSION_LABEL],
+              existingPullRequest.number
+            );
+            this.github.commentOnIssue(
+              `
 ## Release version edited manually
 
 The Pull Request version has been manually set to \`${existingPRTitleVersion}\` and will be used for the release.
 
 If you instead want to use the version number \`${newVersion}\` generated from conventional commits, just remove the label \`${DEFAULT_CUSTOM_VERSION_LABEL}\` from this Pull Request.
 `,
-            existingPullRequest.number
-          );
-          newVersion = existingPRTitleVersion;
-        }
-      } catch (err: unknown) {
-        if (err instanceof FileNotFoundError) {
-          this.logger.error(
-            'Manifest file was expected to exist on PR branch but was not found. Check for PR title edits aborted.',
-            err
-          );
-        } else {
-          throw err;
+              existingPullRequest.number
+            );
+            newVersion = existingPRTitleVersion;
+          }
+        } catch (err: unknown) {
+          if (err instanceof FileNotFoundError) {
+            this.logger.error(
+              'Manifest file was expected to exist on PR branch but was not found. Checks for PR title edits aborted, will instead use version calculated from commits.',
+              err
+            );
+          } else {
+            throw err;
+          }
         }
       }
     }

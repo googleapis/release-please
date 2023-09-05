@@ -31,7 +31,6 @@ import {GenericXml} from '../../src/updaters/generic-xml';
 import {PomXml} from '../../src/updaters/java/pom-xml';
 import {GenericYaml} from '../../src/updaters/generic-yaml';
 import {GenericToml} from '../../src/updaters/generic-toml';
-import {DEFAULT_RELEASE_PLEASE_MANIFEST} from '../../src/manifest';
 
 const sandbox = sinon.createSandbox();
 

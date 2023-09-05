@@ -23,7 +23,6 @@ import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
 import {Changelog} from '../../src/updaters/changelog';
 import {ElixirMixExs} from '../../src/updaters/elixir/elixir-mix-exs';
-import {DEFAULT_RELEASE_PLEASE_MANIFEST} from '../../src/manifest';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();

@@ -164,6 +164,24 @@ For a better experience, it is recommended to use either rebase-merge or squash-
 _More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
 `
 
-exports['Manifest createReleases should throw when release branch is missing and changes-branch not in synced with target-branch 1'] = `
-Branch 'next' cannot be safely re-aligned with 'main', and will likely result in git conflicts when the next release PR is created. Hint: compare branches 'release-please--branches--main--changes--next', 'next', and 'main' for inconsistencies
+exports['Manifest buildPullRequests should report issue via PR comment if labeled as custom version but version not found in title 1'] = `
+
+## Invalid version number in PR title
+
+:rotating_light: This Pull Request has the \`autorelease: custom version\` label but the version number cannot be found in the title. Instead the generated version \`0.2.4\` will be used.
+
+If you want to use a custom version be sure to use the semver format.
+
+If you do not want to set a custom version and want  to get rid of this warning, remove the label \`autorelease: custom version\` from this Pull Request.
+
+`
+
+exports['Manifest buildPullRequests should use version from existing PR title if differs from release branch manifest 1'] = `
+
+## Release version edited manually
+
+The Pull Request version has been manually set to \`4.5.6-beta.1\` and will be used for the release.
+
+If you instead want to use the version number \`0.2.4\` generated from conventional commits, just remove the label \`autorelease: custom version\` from this Pull Request.
+
 `

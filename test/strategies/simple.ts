@@ -23,7 +23,6 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {DefaultUpdater} from '../../src/updaters/default';
-import {DEFAULT_RELEASE_PLEASE_MANIFEST} from '../../src/manifest';
 
 const sandbox = sinon.createSandbox();
 

@@ -27,7 +27,6 @@ import {TagName} from '../../src/util/tag-name';
 import {expect} from 'chai';
 import {Changelog} from '../../src/updaters/changelog';
 import {PubspecYaml} from '../../src/updaters/dart/pubspec-yaml';
-import {DEFAULT_RELEASE_PLEASE_MANIFEST} from '../../src/manifest';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
