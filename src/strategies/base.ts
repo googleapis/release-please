@@ -23,6 +23,7 @@ import {
   ExtraFile,
   Manifest,
   ManifestConfig,
+  DEFAULT_CUSTOM_VERSION_LABEL,
 } from '../manifest';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
@@ -319,7 +320,12 @@ export abstract class BaseStrategy implements Strategy {
 
     // If a pull request already exists, compare the manifest version from its branch against the one from the PR title.
     // If they don't match, assume the PR title has been edited by an end user to set the version.
-    if (existingPullRequest) {
+    if (
+      existingPullRequest &&
+      !existingPullRequest.labels.find(
+        label => label === DEFAULT_CUSTOM_VERSION_LABEL
+      )
+    ) {
       this.logger.info(
         `PR already exists for ${existingPullRequest.headBranchName}, checking if PR title edited to set custom version`
       );
@@ -337,6 +343,20 @@ export abstract class BaseStrategy implements Strategy {
           existingPRTitleVersion &&
           componentVersion !== existingPRTitleVersion?.toString()
         ) {
+          this.github.addIssueLabels(
+            [DEFAULT_CUSTOM_VERSION_LABEL],
+            existingPullRequest.number
+          );
+          this.github.commentOnIssue(
+            `
+## Release version edited manually
+
+The Pull Request version has been manually set to \`${existingPRTitleVersion}\` and will be used for the release.
+
+If you instead want to use the version number \`${newVersion}\` generated from conventional commits, just remove the label \`${DEFAULT_CUSTOM_VERSION_LABEL}\` from this Pull Request.
+`,
+            existingPullRequest.number
+          );
           newVersion = existingPRTitleVersion;
         }
       } catch (err: unknown) {
