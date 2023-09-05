@@ -3437,6 +3437,7 @@ describe('Manifest', () => {
           plugins: ['node-workspace'],
         }
       );
+      mockPullRequests(github, []);
       sandbox.stub(manifest, 'buildPullRequests').resolves([]);
       const getLabelsStub = sandbox
         .stub(github, 'getLabels')
