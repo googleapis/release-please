@@ -338,7 +338,7 @@ export abstract class BaseStrategy implements Strategy {
 
 :rotating_light: This Pull Request has the \`${DEFAULT_CUSTOM_VERSION_LABEL}\` label but the version number cannot be found in the title. Instead the generated version \`${newVersion}\` will be used.
 
-If you want to use a custom version be sure to use the semver format.
+If you want to set a custom version be sure to use the [semantic versioning format](https://devhints.io/semver).
 
 If you do not want to set a custom version and want  to get rid of this warning, remove the label \`${DEFAULT_CUSTOM_VERSION_LABEL}\` from this Pull Request.
 `,
