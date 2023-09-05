@@ -20,6 +20,7 @@ import {AlwaysBumpMajor} from '../versioning-strategies/always-bump-major';
 import {ServicePackVersioningStrategy} from '../versioning-strategies/service-pack';
 import {GitHub} from '../github';
 import {ConfigurationError} from '../errors';
+import {PrereleaseVersioningStrategy} from '../versioning-strategies/prerelease';
 
 export type VersioningStrategyType = string;
 
@@ -40,6 +41,7 @@ const versioningTypes: Record<string, VersioningStrategyBuilder> = {
   'always-bump-minor': options => new AlwaysBumpMinor(options),
   'always-bump-major': options => new AlwaysBumpMajor(options),
   'service-pack': options => new ServicePackVersioningStrategy(options),
+  prerelease: options => new PrereleaseVersioningStrategy(options),
 };
 
 export function buildVersioningStrategy(

@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,28 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {jsonStringify} from '../../util/json-stringify';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
-type LockFileV2 = {
-  version: string;
-  lockfileVersion?: number;
-  packages: Record<string, {version: string}>;
-};
-
 /**
- * Updates a Node.js package-lock.json file's version and '' package
- * version (for a v2 lock file).
+ * Updates a Terraform metadata.yaml or metadata.display.yaml file(s).
  */
-export class PackageLockJson extends DefaultUpdater {
+export class MetadataVersion extends DefaultUpdater {
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    const parsed = JSON.parse(content) as LockFileV2;
-    logger.info(`updating from ${parsed.version} to ${this.version}`);
-    parsed.version = this.version.toString();
-    if (parsed.lockfileVersion === 2 || parsed.lockfileVersion === 3) {
-      parsed.packages[''].version = this.version.toString();
+    const oldVersion = content.match(/version: [0-9]+\.[0-9]+\.[0-9]+(-\w+)?/);
+    if (oldVersion) {
+      logger.info(`updating from ${oldVersion} to v${this.version}`);
     }
-    return jsonStringify(parsed, content);
+    return content.replace(
+      /version: [0-9]+\.[0-9]+\.[0-9]+(-\w+)?/g,
+      `version: ${this.version}`
+    );
   }
 }

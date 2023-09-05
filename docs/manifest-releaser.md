@@ -282,7 +282,7 @@ defaults (those are documented in comments)
       "release-as": "3.2.1"
     },
 
-    "path/to/my-rust-crate", {
+    "path/to/my-rust-crate": {
       // override release-type for rust
       "release-type": "rust"
     },
@@ -299,7 +299,7 @@ defaults (those are documented in comments)
       "changelog-path": "docs/CHANGES.rst"
     },
 
-    "path/to/github-enterprise-package", {
+    "path/to/github-enterprise-package": {
       // override changelog host for github enterprise package
       "changelog-host": "https://example.com"
     }
@@ -551,7 +551,7 @@ Example:
     },
     {
       "type": "linked-versions",
-      "group-name": "my group",
+      "groupName": "my group",
       "components": [
         "pkgA", "pkgB"
       ]
