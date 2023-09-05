@@ -61,10 +61,10 @@ describe('Maven', () => {
         .withArgs('pom.xml', 'main')
         .resolves(['pom.xml', 'submodule/pom.xml']);
 
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        undefined
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease: undefined,
+      });
 
       expect(release?.version?.toString()).to.eql('1.0.0');
 
@@ -99,10 +99,10 @@ describe('Maven', () => {
         notes: 'some notes',
       };
 
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
 
       expect(release?.version?.toString()).to.eql('2.3.4-SNAPSHOT');
 

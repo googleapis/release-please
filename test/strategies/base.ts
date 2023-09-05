@@ -62,7 +62,6 @@ describe('Strategy', () => {
       });
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: [],
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.be.undefined;
     });
@@ -77,7 +76,6 @@ describe('Strategy', () => {
       );
       const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.not.be.undefined;
       expect(pullRequest?.version?.toString()).to.eql('2.3.4');
@@ -93,7 +91,6 @@ describe('Strategy', () => {
       const commits = buildMockConventionalCommit('feat: initial commit');
       const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.not.be.undefined;
       expect(pullRequest?.version?.toString()).to.eql('0.1.0');
@@ -117,7 +114,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       expect(pullRequest?.updates).to.be.an('array');
@@ -143,7 +139,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
@@ -161,7 +156,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
@@ -179,7 +173,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
@@ -197,7 +190,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
@@ -215,7 +207,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
@@ -244,7 +235,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
@@ -263,7 +253,6 @@ describe('Strategy', () => {
       const commits = buildMockConventionalCommit('fix: a bugfix');
       const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       expect(pullRequest?.body.toString()).to.have.string(
@@ -294,7 +283,6 @@ describe('Strategy', () => {
           await strategy.buildReleasePullRequest({
             commits: buildMockConventionalCommit('fix: a bugfix'),
             latestRelease: undefined,
-            manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
           });
           expect.fail(`expected [addPath] to reject path: ${file}`);
         } catch (err) {
@@ -315,7 +303,6 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest({
         commits: buildMockConventionalCommit('fix: a bugfix'),
         latestRelease: undefined,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(pullRequest).to.exist;
       expect(pullRequest?.labels).to.eql(['foo', 'bar']);

@@ -59,10 +59,10 @@ describe('RubyYoshi', () => {
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const pullRequest = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const pullRequest = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
     it('returns release PR changes with semver patch bump', async () => {
@@ -77,10 +77,10 @@ describe('RubyYoshi', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const pullRequest = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
       safeSnapshot(pullRequest!.body.toString());
     });
@@ -93,10 +93,10 @@ describe('RubyYoshi', () => {
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const pullRequest = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const pullRequest = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = pullRequest!.updates;
       expect(updates).lengthOf(2);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
@@ -113,10 +113,10 @@ describe('RubyYoshi', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const pullRequest = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = pullRequest!.updates;
       expect(updates).lengthOf(2);
       const {updater} = assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
@@ -132,10 +132,10 @@ describe('RubyYoshi', () => {
         versionFile: 'lib/foo/version.rb',
       });
       const latestRelease = undefined;
-      const pullRequest = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const pullRequest = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = pullRequest!.updates;
       expect(updates).lengthOf(2);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);

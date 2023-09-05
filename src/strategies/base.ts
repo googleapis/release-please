@@ -22,6 +22,7 @@ import {
   MANIFEST_PULL_REQUEST_TITLE_PATTERN,
   ExtraFile,
   DEFAULT_CUSTOM_VERSION_LABEL,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
 } from '../manifest';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
@@ -280,7 +281,7 @@ export abstract class BaseStrategy implements Strategy {
     draft?: boolean;
     labels?: string[];
     existingPullRequest?: PullRequest;
-    manifestPath: string;
+    manifestPath?: string;
   }): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(commits);
     this.logger.info(`Considering: ${conventionalCommits.length} commits`);
@@ -330,7 +331,7 @@ export abstract class BaseStrategy implements Strategy {
       try {
         const manifest =
           (await this.github.getFileJson<Record<string, string>>(
-            manifestPath,
+            manifestPath || DEFAULT_RELEASE_PLEASE_MANIFEST,
             existingPullRequest.headBranchName
           )) || {};
         const componentVersion = manifest[component || '.'];

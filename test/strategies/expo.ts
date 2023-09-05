@@ -74,10 +74,10 @@ describe('Expo', () => {
         packageName: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
 
@@ -103,10 +103,10 @@ describe('Expo', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
 
@@ -135,10 +135,10 @@ describe('Expo', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
 
@@ -168,10 +168,10 @@ describe('Expo', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -194,10 +194,10 @@ describe('Expo', () => {
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
 
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);

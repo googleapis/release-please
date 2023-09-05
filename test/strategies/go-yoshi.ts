@@ -56,10 +56,10 @@ describe('GoYoshi', () => {
         component: 'iam',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release?.version?.toString()).to.eql(expectedVersion);
     });
     it('returns release PR changes with semver patch bump', async () => {
@@ -74,10 +74,10 @@ describe('GoYoshi', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release?.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -89,10 +89,10 @@ describe('GoYoshi', () => {
         component: 'iam',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGES.md', Changelog);
       assertHasUpdate(updates, 'internal/version.go', VersionGo);
@@ -115,7 +115,7 @@ describe('GoYoshi', () => {
         ...buildMockConventionalCommit('fix(logging): some logging fix'),
         ...buildMockConventionalCommit('feat: some generic feature'),
       ];
-      const pullRequest = await strategy.buildReleasePullRequest(commits);
+      const pullRequest = await strategy.buildReleasePullRequest({commits});
       const pullRequestBody = pullRequest!.body.toString();
       expect(pullRequestBody).to.not.include('logging');
       snapshot(dateSafe(pullRequestBody));
@@ -138,7 +138,7 @@ describe('GoYoshi', () => {
         ]),
         ...buildMockConventionalCommit('feat: some generic feature'),
       ];
-      const pullRequest = await strategy.buildReleasePullRequest(commits);
+      const pullRequest = await strategy.buildReleasePullRequest({commits});
       const pullRequestBody = pullRequest!.body.toString();
       expect(pullRequestBody).to.not.include('access');
       expect(pullRequestBody).to.include('iam');
@@ -169,7 +169,7 @@ describe('GoYoshi', () => {
           'feat(all): auto-regenerate discovery clients (#1278)'
         ),
       ];
-      const pullRequest = await strategy.buildReleasePullRequest(commits);
+      const pullRequest = await strategy.buildReleasePullRequest({commits});
       const pullRequestBody = pullRequest!.body.toString();
       snapshot(dateSafe(pullRequestBody));
     });

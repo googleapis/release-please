@@ -56,10 +56,10 @@ describe('Go', () => {
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('returns release PR changes with semver patch bump', async () => {
@@ -74,10 +74,10 @@ describe('Go', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -89,10 +89,10 @@ describe('Go', () => {
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
     });

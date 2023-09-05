@@ -67,18 +67,16 @@ export class PHPYoshi extends BaseStrategy {
   }
   async buildReleasePullRequest({
     commits,
-    existingPullRequest,
     labels = [],
     latestRelease,
     draft,
-    manifestPath,
   }: {
-    commits: ConventionalCommit[];
+    commits: Commit[];
     latestRelease?: Release;
     draft?: boolean;
     labels?: string[];
     existingPullRequest?: PullRequest;
-    manifestPath: string;
+    manifestPath?: string;
   }): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits, this.logger)

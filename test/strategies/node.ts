@@ -70,10 +70,10 @@ describe('Node', () => {
         packageName: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('builds a release pull request', async () => {
@@ -89,10 +89,10 @@ describe('Node', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
     it('detects a default component', async () => {
@@ -118,10 +118,10 @@ describe('Node', () => {
       getFileContentsStub
         .withArgs('package.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'package.json'));
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
     it('detects a default packageName', async () => {
@@ -148,10 +148,10 @@ describe('Node', () => {
       getFileContentsStub
         .withArgs('package.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'package.json'));
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
     it('handles missing package.json', async () => {
@@ -168,7 +168,7 @@ describe('Node', () => {
         notes: 'some notes',
       };
       assert.rejects(async () => {
-        await strategy.buildReleasePullRequest(commits, latestRelease);
+        await strategy.buildReleasePullRequest({commits, latestRelease});
       }, MissingRequiredFileError);
     });
     it('updates changelog.json if present', async () => {
@@ -200,10 +200,10 @@ describe('Node', () => {
         .withArgs('package.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'package.json'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       const update = assertHasUpdate(updates, 'changelog.json', ChangelogJson);
@@ -228,10 +228,10 @@ describe('Node', () => {
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'package-lock.json', PackageLockJson);

@@ -60,10 +60,10 @@ describe('Rust', () => {
         component: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
 
@@ -79,10 +79,10 @@ describe('Rust', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
 
@@ -104,10 +104,10 @@ describe('Rust', () => {
       getFileContentsStub
         .withArgs('Cargo.toml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-crate1.toml'));
-      const pullRequest = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const pullRequest = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
       snapshot(dateSafe(pullRequest!.body.toString()));
     });
@@ -141,10 +141,10 @@ describe('Rust Crate', () => {
         .withArgs('Cargo.lock', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo.lock'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'Cargo.toml', CargoToml);
@@ -182,10 +182,10 @@ describe('Rust Workspace', () => {
         .withArgs('Cargo.toml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-workspace.toml'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'Cargo.toml', CargoToml);
@@ -207,10 +207,10 @@ describe('Rust Workspace', () => {
         .withArgs('crates/crate2/Cargo.toml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Cargo-crate2.toml'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'crates/crate1/Cargo.toml', CargoToml);
       assertHasUpdate(updates, 'crates/crate2/Cargo.toml', CargoToml);

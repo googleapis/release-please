@@ -60,10 +60,10 @@ describe('KRMBlueprint', () => {
       });
       sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('builds a release pull request', async () => {
@@ -82,10 +82,10 @@ describe('KRMBlueprint', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -98,10 +98,10 @@ describe('KRMBlueprint', () => {
       });
       sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
     });
@@ -124,10 +124,10 @@ describe('KRMBlueprint', () => {
         targetBranch: 'main',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'project.yaml', KRMBlueprintVersion);
       assertNoHasUpdate(updates, 'no-attrib-bucket.yaml');

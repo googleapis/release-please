@@ -61,7 +61,6 @@ describe('Simple', () => {
       const release = await strategy.buildReleasePullRequest({
         commits: COMMITS,
         latestRelease,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
@@ -80,7 +79,6 @@ describe('Simple', () => {
       const release = await strategy.buildReleasePullRequest({
         commits: COMMITS,
         latestRelease,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
@@ -96,7 +94,6 @@ describe('Simple', () => {
       const release = await strategy.buildReleasePullRequest({
         commits: COMMITS,
         latestRelease,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
@@ -114,7 +111,6 @@ describe('Simple', () => {
       const release = await strategy.buildReleasePullRequest({
         commits: COMMITS,
         latestRelease,
-        manifestPath: DEFAULT_RELEASE_PLEASE_MANIFEST,
       });
       const updates = release!.updates;
       assertHasUpdate(updates, 'packages/CHANGELOG.md', Changelog);

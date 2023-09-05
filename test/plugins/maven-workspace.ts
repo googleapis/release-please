@@ -17,7 +17,10 @@ import * as sinon from 'sinon';
 import {MavenWorkspace} from '../../src/plugins/maven-workspace';
 import {GitHub} from '../../src/github';
 import {ManifestPlugin} from '../../src/plugin';
-import {CandidateReleasePullRequest} from '../../src/manifest';
+import {
+  CandidateReleasePullRequest,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+} from '../../src/manifest';
 import {
   buildMockCandidatePullRequest,
   buildGitHubFileContent,
@@ -45,23 +48,28 @@ describe('MavenWorkspace plugin', () => {
       repo: 'maven-test-repo',
       defaultBranch: 'main',
     });
-    plugin = new MavenWorkspace(github, 'main', {
-      bom: {
-        releaseType: 'maven',
-      },
-      maven1: {
-        releaseType: 'maven',
-      },
-      maven2: {
-        releaseType: 'maven',
-      },
-      maven3: {
-        releaseType: 'maven',
-      },
-      maven4: {
-        releaseType: 'maven',
-      },
-    });
+    plugin = new MavenWorkspace(
+      github,
+      'main',
+      DEFAULT_RELEASE_PLEASE_MANIFEST,
+      {
+        bom: {
+          releaseType: 'maven',
+        },
+        maven1: {
+          releaseType: 'maven',
+        },
+        maven2: {
+          releaseType: 'maven',
+        },
+        maven3: {
+          releaseType: 'maven',
+        },
+        maven4: {
+          releaseType: 'maven',
+        },
+      }
+    );
   });
   afterEach(() => {
     sandbox.restore();
@@ -250,6 +258,7 @@ describe('MavenWorkspace plugin', () => {
       plugin = new MavenWorkspace(
         github,
         'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
         {
           bom: {
             releaseType: 'maven',
@@ -311,6 +320,7 @@ describe('MavenWorkspace plugin', () => {
       plugin = new MavenWorkspace(
         github,
         'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
         {
           bom: {
             component: 'my-bom',
@@ -405,23 +415,28 @@ describe('MavenWorkspace plugin', () => {
       safeSnapshot(await renderUpdate(github, 'main', bomUpdate));
     });
     it('skips updating manifest with snapshot versions', async () => {
-      plugin = new MavenWorkspace(github, 'main', {
-        bom: {
-          releaseType: 'maven',
-        },
-        maven1: {
-          releaseType: 'maven',
-        },
-        maven2: {
-          releaseType: 'maven',
-        },
-        maven3: {
-          releaseType: 'maven',
-        },
-        maven4: {
-          releaseType: 'maven',
-        },
-      });
+      plugin = new MavenWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          bom: {
+            releaseType: 'maven',
+          },
+          maven1: {
+            releaseType: 'maven',
+          },
+          maven2: {
+            releaseType: 'maven',
+          },
+          maven3: {
+            releaseType: 'maven',
+          },
+          maven4: {
+            releaseType: 'maven',
+          },
+        }
+      );
       sandbox
         .stub(github, 'findFilesByFilenameAndRef')
         .withArgs('pom.xml', 'main')

@@ -51,7 +51,7 @@ export interface Strategy {
     draft?: boolean;
     labels?: string[];
     existingPullRequest?: PullRequest;
-    manifestPath: string;
+    manifestPath?: string;
   }): Promise<ReleasePullRequest | undefined>;
 
   /**

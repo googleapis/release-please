@@ -63,12 +63,12 @@ describe('Java', () => {
         });
 
         const latestRelease = undefined;
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_WITH_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_WITH_SNAPSHOT,
           latestRelease,
-          false,
-          DEFAULT_LABELS
-        );
+          draft: false,
+          labels: DEFAULT_LABELS,
+        });
 
         expect(release?.version?.toString()).to.eql('1.0.0');
         expect(release?.title.toString()).to.eql('chore(main): release 1.0.0');
@@ -89,12 +89,12 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_WITH_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_WITH_SNAPSHOT,
           latestRelease,
-          false,
-          DEFAULT_LABELS
-        );
+          draft: false,
+          labels: DEFAULT_LABELS,
+        });
 
         expect(release?.version?.toString()).to.eql('2.3.4');
         expect(release?.title.toString()).to.eql('chore(main): release 2.3.4');
@@ -115,12 +115,12 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT,
           latestRelease,
-          false,
-          DEFAULT_LABELS
-        );
+          draft: false,
+          labels: DEFAULT_LABELS,
+        });
 
         expect(release?.version?.toString()).to.eql('2.3.4-SNAPSHOT');
         expect(release?.title.toString()).to.eql(
@@ -144,12 +144,12 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT,
           latestRelease,
-          false,
-          DEFAULT_LABELS
-        );
+          draft: false,
+          labels: DEFAULT_LABELS,
+        });
 
         expect(release?.version?.toString()).to.eql('2.3.4');
         expect(release?.title.toString()).to.eql('chore(main): release 2.3.4');
@@ -170,10 +170,10 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT, // no snapshot in commits
-          latestRelease
-        );
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT, // no snapshot in commits
+          latestRelease,
+        });
 
         expect(release?.version?.toString()).to.eql('2.3.4');
         assertHasUpdate(release!.updates, 'CHANGELOG.md', Changelog);
@@ -190,15 +190,15 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          [
+        const release = await strategy.buildReleasePullRequest({
+          commits: [
             ...buildMockConventionalCommit(
               'chore(main): release other 2.3.4-SNAPSHOT'
             ),
             ...COMMITS_NO_SNAPSHOT,
           ],
-          latestRelease
-        );
+          latestRelease,
+        });
 
         expect(release?.version?.toString()).to.eql('2.3.4-SNAPSHOT');
         expect(release?.title.toString()).to.eql(
@@ -219,12 +219,12 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT,
           latestRelease,
-          false,
-          ['custom:pending']
-        );
+          draft: false,
+          labels: ['custom:pending'],
+        });
 
         expect(release?.labels).to.eql(['bot', 'custom:snapshot']);
       });
@@ -240,11 +240,11 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT,
           latestRelease,
-          true
-        );
+          draft: true,
+        });
 
         expect(release?.draft).to.eql(true);
       });
@@ -255,10 +255,10 @@ describe('Java', () => {
           github,
           extraFiles: ['foo/bar.java', 'pom.xml'],
         });
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT,
-          undefined
-        );
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT,
+          latestRelease: undefined,
+        });
 
         const updates = release!.updates;
         assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
@@ -278,10 +278,10 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT,
-          latestRelease
-        );
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT,
+          latestRelease,
+        });
 
         const updates = release!.updates;
         assertNoHasUpdate(updates, 'CHANGELOG.md');
@@ -316,12 +316,12 @@ describe('Java', () => {
           includeComponentInTag: true,
         });
 
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_WITH_SNAPSHOT,
-          undefined,
-          false,
-          DEFAULT_LABELS
-        );
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_WITH_SNAPSHOT,
+          latestRelease: undefined,
+          draft: false,
+          labels: DEFAULT_LABELS,
+        });
 
         expect(release?.version?.toString()).to.eql('1.0.0');
         expect(release?.title.toString()).to.eql(
@@ -348,12 +348,12 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_WITH_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_WITH_SNAPSHOT,
           latestRelease,
-          false,
-          DEFAULT_LABELS
-        );
+          draft: false,
+          labels: DEFAULT_LABELS,
+        });
 
         expect(release?.version?.toString()).to.eql('2.3.4');
         expect(release?.title.toString()).to.eql(
@@ -380,12 +380,12 @@ describe('Java', () => {
           sha: 'abc123',
           notes: 'some notes',
         };
-        const release = await strategy.buildReleasePullRequest(
-          COMMITS_NO_SNAPSHOT,
+        const release = await strategy.buildReleasePullRequest({
+          commits: COMMITS_NO_SNAPSHOT,
           latestRelease,
-          false,
-          DEFAULT_LABELS
-        );
+          draft: false,
+          labels: DEFAULT_LABELS,
+        });
 
         expect(release?.version?.toString()).to.eql('2.3.4-SNAPSHOT');
         expect(release?.title.toString()).to.eql(

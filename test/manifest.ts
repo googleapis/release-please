@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {describe, it, beforeEach, afterEach} from 'mocha';
-import {Manifest} from '../src/manifest';
+import {DEFAULT_RELEASE_PLEASE_MANIFEST, Manifest} from '../src/manifest';
 import {GitHub, ReleaseOptions} from '../src/github';
 import * as githubModule from '../src/github';
 import * as sinon from 'sinon';
@@ -2888,7 +2888,9 @@ describe('Manifest', () => {
       });
 
       it('should apply plugin hook "processCommits"', async () => {
-        const spyPlugin = sinon.spy(new SentenceCase(github, 'main', {}));
+        const spyPlugin = sinon.spy(
+          new SentenceCase(github, 'main', DEFAULT_RELEASE_PLEASE_MANIFEST, {})
+        );
         sandbox
           .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'sentence-case'))

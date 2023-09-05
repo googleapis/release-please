@@ -15,7 +15,10 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
-import {CandidateReleasePullRequest} from '../../src/manifest';
+import {
+  CandidateReleasePullRequest,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+} from '../../src/manifest';
 import {Update} from '../../src/update';
 import {
   buildGitHubFileContent,
@@ -65,17 +68,22 @@ describe('CargoWorkspace plugin', () => {
       repo: 'rust-test-repo',
       defaultBranch: 'main',
     });
-    plugin = new CargoWorkspace(github, 'main', {
-      'packages/rustA': {
-        releaseType: 'rust',
-      },
-      'packages/rustB': {
-        releaseType: 'rust',
-      },
-      'packages/rustC': {
-        releaseType: 'rust',
-      },
-    });
+    plugin = new CargoWorkspace(
+      github,
+      'main',
+      DEFAULT_RELEASE_PLEASE_MANIFEST,
+      {
+        'packages/rustA': {
+          releaseType: 'rust',
+        },
+        'packages/rustB': {
+          releaseType: 'rust',
+        },
+        'packages/rustC': {
+          releaseType: 'rust',
+        },
+      }
+    );
   });
   afterEach(() => {
     sandbox.restore();
@@ -114,14 +122,19 @@ describe('CargoWorkspace plugin', () => {
           ['Cargo.toml', '[workspace]\nmembers = ["packages/rustA"]'],
         ],
       });
-      plugin = new CargoWorkspace(github, 'main', {
-        python: {
-          releaseType: 'python',
-        },
-        'packages/rustA': {
-          releaseType: 'rust',
-        },
-      });
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          python: {
+            releaseType: 'python',
+          },
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+        }
+      );
       sandbox
         .stub(github, 'findFilesByGlobAndRef')
         .withArgs('packages/rustA', 'main')
@@ -178,14 +191,19 @@ describe('CargoWorkspace plugin', () => {
         .resolves(['packages/rustA'])
         .withArgs('packages/rustD', 'main')
         .resolves(['packages/rustD']);
-      plugin = new CargoWorkspace(github, 'main', {
-        'packages/rustA': {
-          releaseType: 'rust',
-        },
-        'packages/rustD': {
-          releaseType: 'rust',
-        },
-      });
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+          'packages/rustD': {
+            releaseType: 'rust',
+          },
+        }
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const rustCandidate = newCandidates.find(
@@ -231,14 +249,19 @@ describe('CargoWorkspace plugin', () => {
         .stub(github, 'findFilesByGlobAndRef')
         .withArgs('packages/*', 'main')
         .resolves(['packages/rustA', 'packages/rustD']);
-      plugin = new CargoWorkspace(github, 'main', {
-        'packages/rustA': {
-          releaseType: 'rust',
-        },
-        'packages/rustD': {
-          releaseType: 'rust',
-        },
-      });
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+          'packages/rustD': {
+            releaseType: 'rust',
+          },
+        }
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const rustCandidate = newCandidates.find(
@@ -364,6 +387,7 @@ describe('CargoWorkspace plugin', () => {
       plugin = new CargoWorkspace(
         github,
         'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
         {
           'packages/rustA': {
             releaseType: 'rust',
@@ -534,14 +558,19 @@ describe('CargoWorkspace plugin', () => {
         .resolves(['packages/rustA'])
         .withArgs('packages/rustB', 'main')
         .resolves(['packages/rustB']);
-      plugin = new CargoWorkspace(github, 'main', {
-        'packages/rustA': {
-          releaseType: 'rust',
-        },
-        'packages/rustB': {
-          releaseType: 'rust',
-        },
-      });
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+          'packages/rustB': {
+            releaseType: 'rust',
+          },
+        }
+      );
       await assert.rejects(
         async () => {
           await plugin.run(candidates);
@@ -589,14 +618,19 @@ describe('CargoWorkspace plugin', () => {
         .resolves(['packages/rustA'])
         .withArgs('packages/rustB', 'main')
         .resolves(['packages/rustB']);
-      plugin = new CargoWorkspace(github, 'main', {
-        'packages/rustA': {
-          releaseType: 'rust',
-        },
-        'packages/rustB': {
-          releaseType: 'rust',
-        },
-      });
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+          'packages/rustB': {
+            releaseType: 'rust',
+          },
+        }
+      );
       await assert.rejects(
         async () => {
           await plugin.run(candidates);

@@ -76,7 +76,6 @@ export class Java extends BaseStrategy {
 
   async buildReleasePullRequest({
     commits,
-    existingPullRequest,
     labels = [],
     latestRelease,
     draft,
@@ -87,7 +86,7 @@ export class Java extends BaseStrategy {
     draft?: boolean;
     labels?: string[];
     existingPullRequest?: PullRequest;
-    manifestPath: string;
+    manifestPath?: string;
   }): Promise<ReleasePullRequest | undefined> {
     if (await this.needsSnapshot(commits, latestRelease)) {
       this.logger.info('Repository needs a snapshot bump.');

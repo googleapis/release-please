@@ -59,10 +59,10 @@ describe('Helm', () => {
         packageName: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('builds a release pull request', async () => {
@@ -78,10 +78,10 @@ describe('Helm', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
     it('detects a default component', async () => {
@@ -102,10 +102,10 @@ describe('Helm', () => {
       getFileContentsStub
         .withArgs('Chart.yaml', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'Chart.yaml'));
-      const pullRequest = await strategy.buildReleasePullRequest(
+      const pullRequest = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -118,10 +118,10 @@ describe('Helm', () => {
         packageName: 'google-cloud-automl',
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
       expect(updates).lengthOf(2);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);

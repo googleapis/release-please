@@ -80,10 +80,10 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('returns release PR changes with semver patch bump', async () => {
@@ -106,10 +106,10 @@ describe('JavaYoshiMonoRepo', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('returns a snapshot bump PR', async () => {
@@ -134,10 +134,10 @@ describe('JavaYoshiMonoRepo', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('handles promotion to 1.0.0', async () => {
@@ -170,10 +170,10 @@ describe('JavaYoshiMonoRepo', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const releasePullRequest = await strategy.buildReleasePullRequest(
-        commits,
-        latestRelease
-      );
+      const releasePullRequest = await strategy.buildReleasePullRequest({
+        commits: commits,
+        latestRelease,
+      });
       expect(releasePullRequest!.version?.toString()).to.eql(expectedVersion);
       const update = assertHasUpdate(
         releasePullRequest!.updates,
@@ -205,10 +205,10 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
@@ -241,10 +241,10 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       const {updater} = assertHasUpdate(updates, 'path1/pom.xml', JavaUpdate);
@@ -278,10 +278,10 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('versions.txt', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'foo/bar.java', CompositeUpdater);
@@ -318,10 +318,10 @@ describe('JavaYoshiMonoRepo', () => {
           buildGitHubFileContent(fixturesPath, 'versions-released.txt')
         );
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertNoHasUpdate(updates, 'CHANGELOG.md');
       const {updater} = assertHasUpdate(updates, 'path1/pom.xml', JavaUpdate);
@@ -360,10 +360,10 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('changelog.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
@@ -420,10 +420,10 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('changelog.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
@@ -471,10 +471,10 @@ describe('JavaYoshiMonoRepo', () => {
         .withArgs('changelog.json', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'changelog.json'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);

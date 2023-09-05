@@ -72,10 +72,10 @@ describe('Python', () => {
         .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('returns release PR changes with semver patch bump', async () => {
@@ -94,10 +94,10 @@ describe('Python', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -113,10 +113,10 @@ describe('Python', () => {
         .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'setup.cfg', SetupCfg);
@@ -156,10 +156,10 @@ describe('Python', () => {
         );
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'pyproject.toml', PyProjectToml);
     });
@@ -177,10 +177,10 @@ describe('Python', () => {
         .stub(github, 'findFilesByFilenameAndRef')
         .resolves(['src/version.py']);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'src/version.py', PythonFileWithVersion);
     });
@@ -214,10 +214,10 @@ describe('Python', () => {
         .withArgs('setup.py', 'main')
         .resolves(buildGitHubFileContent(fixturesPath, 'setup.py'));
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       const update = assertHasUpdate(updates, 'changelog.json', ChangelogJson);

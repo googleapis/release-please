@@ -87,10 +87,10 @@ describe('PHPYoshi', () => {
         github,
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
       snapshot(dateSafe(release!.body.toString()));
     });
@@ -105,10 +105,10 @@ describe('PHPYoshi', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
       snapshot(dateSafe(release!.body.toString()));
     });
@@ -123,16 +123,16 @@ describe('PHPYoshi', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        [
+      const release = await strategy.buildReleasePullRequest({
+        commits: [
           {
             sha: 'def234',
             message: 'misc: some miscellaneous task',
             files: ['Client3/README.md'],
           },
         ],
-        latestRelease
-      );
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
       snapshot(dateSafe(release!.body.toString()));
     });
@@ -144,10 +144,10 @@ describe('PHPYoshi', () => {
         github,
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
@@ -158,10 +158,10 @@ describe('PHPYoshi', () => {
         github,
       });
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
@@ -188,10 +188,10 @@ describe('PHPYoshi', () => {
       getFileStub
         .withArgs('.git/VERSION', 'main')
         .rejects(new FileNotFoundError('.git/VERSION'));
-      const release = await strategy.buildReleasePullRequest(
+      const release = await strategy.buildReleasePullRequest({
         commits,
-        latestRelease
-      );
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);

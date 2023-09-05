@@ -15,7 +15,10 @@ import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
 import {Merge} from '../../src/plugins/merge';
-import {CandidateReleasePullRequest} from '../../src/manifest';
+import {
+  CandidateReleasePullRequest,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+} from '../../src/manifest';
 import {expect} from 'chai';
 import {
   buildMockCandidatePullRequest,
@@ -43,7 +46,12 @@ describe('Merge plugin', () => {
   describe('run', () => {
     it('ignores no pull requests', async () => {
       const candidates: CandidateReleasePullRequest[] = [];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {}
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(0);
     });
@@ -52,7 +60,12 @@ describe('Merge plugin', () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {}
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       expect(newCandidates[0].pullRequest.title.toString()).to.eql(
@@ -88,7 +101,12 @@ describe('Merge plugin', () => {
           ],
         }),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {}
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const candidate = newCandidates[0];
@@ -131,7 +149,12 @@ describe('Merge plugin', () => {
           draft: true,
         }),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {}
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const candidate = newCandidates[0];
@@ -173,7 +196,12 @@ describe('Merge plugin', () => {
           labels: ['label-a', 'label-c'],
         }),
       ];
-      const plugin = new Merge(github, 'main', {});
+      const plugin = new Merge(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {}
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const candidate = newCandidates[0]!;

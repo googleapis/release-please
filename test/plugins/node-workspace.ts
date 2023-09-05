@@ -16,7 +16,10 @@ import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
 import {NodeWorkspace} from '../../src/plugins/node-workspace';
-import {CandidateReleasePullRequest} from '../../src/manifest';
+import {
+  CandidateReleasePullRequest,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+} from '../../src/manifest';
 import {expect} from 'chai';
 import {Version} from '../../src/version';
 import {Update} from '../../src/update';
@@ -89,23 +92,28 @@ describe('NodeWorkspace plugin', () => {
       repo: 'node-test-repo',
       defaultBranch: 'main',
     });
-    plugin = new NodeWorkspace(github, 'main', {
-      node1: {
-        releaseType: 'node',
-      },
-      node2: {
-        releaseType: 'node',
-      },
-      node3: {
-        releaseType: 'node',
-      },
-      node4: {
-        releaseType: 'node',
-      },
-      node5: {
-        releaseType: 'node',
-      },
-    });
+    plugin = new NodeWorkspace(
+      github,
+      'main',
+      DEFAULT_RELEASE_PLEASE_MANIFEST,
+      {
+        node1: {
+          releaseType: 'node',
+        },
+        node2: {
+          releaseType: 'node',
+        },
+        node3: {
+          releaseType: 'node',
+        },
+        node4: {
+          releaseType: 'node',
+        },
+        node5: {
+          releaseType: 'node',
+        },
+      }
+    );
   });
   afterEach(() => {
     sandbox.restore();
@@ -128,14 +136,19 @@ describe('NodeWorkspace plugin', () => {
           ],
         }),
       ];
-      plugin = new NodeWorkspace(github, 'main', {
-        python: {
-          releaseType: 'python',
-        },
-        node1: {
-          releaseType: 'node',
-        },
-      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          python: {
+            releaseType: 'python',
+          },
+          node1: {
+            releaseType: 'node',
+          },
+        }
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(2);
       const nodeCandidate = newCandidates.find(
@@ -164,10 +177,15 @@ describe('NodeWorkspace plugin', () => {
           ],
         }),
       ];
-      plugin = new NodeWorkspace(github, 'main', {
-        plugin1: {releaseType: 'node'},
-        node1: {releaseType: 'node'},
-      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          plugin1: {releaseType: 'node'},
+          node1: {releaseType: 'node'},
+        }
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const nodeCandidate = newCandidates.find(
@@ -212,17 +230,22 @@ describe('NodeWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
-      plugin = new NodeWorkspace(github, 'main', {
-        '.': {
-          releaseType: 'node',
-        },
-        node1: {
-          releaseType: 'node',
-        },
-        node4: {
-          releaseType: 'node',
-        },
-      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          '.': {
+            releaseType: 'node',
+          },
+          node1: {
+            releaseType: 'node',
+          },
+          node4: {
+            releaseType: 'node',
+          },
+        }
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const nodeCandidate = newCandidates.find(
@@ -388,14 +411,19 @@ describe('NodeWorkspace plugin', () => {
         flatten: false,
         targetBranch: 'main',
       });
-      plugin = new NodeWorkspace(github, 'main', {
-        node1: {
-          releaseType: 'node',
-        },
-        plugin1: {
-          releaseType: 'node',
-        },
-      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {
+          node1: {
+            releaseType: 'node',
+          },
+          plugin1: {
+            releaseType: 'node',
+          },
+        }
+      );
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(1);
       const nodeCandidate = newCandidates.find(

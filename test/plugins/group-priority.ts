@@ -15,7 +15,10 @@ import {describe, it, beforeEach} from 'mocha';
 import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {GroupPriority} from '../../src/plugins/group-priority';
-import {CandidateReleasePullRequest} from '../../src/manifest';
+import {
+  CandidateReleasePullRequest,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+} from '../../src/manifest';
 import {buildMockCandidatePullRequest} from '../helpers';
 
 describe('GroupPriority plugin', () => {
@@ -29,7 +32,13 @@ describe('GroupPriority plugin', () => {
   });
   describe('run', () => {
     it('prioritizes a group', async () => {
-      const plugin = new GroupPriority(github, 'main', {}, ['snapshot']);
+      const plugin = new GroupPriority(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {},
+        ['snapshot']
+      );
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('path1', 'java', '1.2.3-SNAPSHOT', {
           component: 'component1',
@@ -47,7 +56,13 @@ describe('GroupPriority plugin', () => {
       expect(newCandidates[0].path).to.eql('path1');
     });
     it('falls back to all pull requests if prioritized group not found', async () => {
-      const plugin = new GroupPriority(github, 'main', {}, ['snapshot']);
+      const plugin = new GroupPriority(
+        github,
+        'main',
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        {},
+        ['snapshot']
+      );
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('path1', 'java', '1.2.3', {
           component: 'component1',

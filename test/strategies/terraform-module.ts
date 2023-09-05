@@ -58,10 +58,10 @@ describe('TerraformModule', () => {
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
     it('returns release PR changes with semver patch bump', async () => {
@@ -77,10 +77,10 @@ describe('TerraformModule', () => {
         sha: 'abc123',
         notes: 'some notes',
       };
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
   });
@@ -93,10 +93,10 @@ describe('TerraformModule', () => {
       });
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
     });
@@ -121,10 +121,10 @@ describe('TerraformModule', () => {
         .withArgs('versions.tf.tmpl', 'main', '.')
         .resolves(['path1/versions.tf.tmpl', 'path2/versions.tf.tmpl']);
       const latestRelease = undefined;
-      const release = await strategy.buildReleasePullRequest(
-        COMMITS,
-        latestRelease
-      );
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
       const updates = release!.updates;
       assertHasUpdate(updates, 'path1/readme.md', ReadMe);
       assertHasUpdate(updates, 'path2/readme.md', ReadMe);
