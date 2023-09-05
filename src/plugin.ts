@@ -34,16 +34,19 @@ export abstract class ManifestPlugin {
   readonly github: GitHub;
   readonly targetBranch: string;
   readonly changesBranch: string;
+  readonly manifestPath: string;
   readonly repositoryConfig: RepositoryConfig;
   protected logger: Logger;
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     options: ManifestPluginOptions
   ) {
     this.github = github;
     this.targetBranch = targetBranch;
+    this.manifestPath = manifestPath;
     this.repositoryConfig = repositoryConfig;
     this.changesBranch = options?.changesBranch || this.targetBranch;
     this.logger = options.logger || defaultLogger;

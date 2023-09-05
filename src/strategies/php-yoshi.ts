@@ -18,7 +18,7 @@ import {Changelog} from '../updaters/changelog';
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
 import {PHPClientVersion} from '../updaters/php/php-client-version';
 import {VersionsMap, Version} from '../version';
-import {Commit, parseConventionalCommits} from '../commit';
+import {Commit, ConventionalCommit, parseConventionalCommits} from '../commit';
 import {CommitSplit} from '../util/commit-split';
 import {DefaultUpdater} from '../updaters/default';
 import {Release} from '../release';
@@ -29,6 +29,7 @@ import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError} from '../errors';
+import {PullRequest} from '../pull-request';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -64,12 +65,21 @@ export class PHPYoshi extends BaseStrategy {
       changelogSections: CHANGELOG_SECTIONS,
     });
   }
-  async buildReleasePullRequest(
-    commits: Commit[],
-    latestRelease?: Release,
-    draft?: boolean,
-    labels: string[] = []
-  ): Promise<ReleasePullRequest | undefined> {
+  async buildReleasePullRequest({
+    commits,
+    existingPullRequest,
+    labels = [],
+    latestRelease,
+    draft,
+    manifestPath,
+  }: {
+    commits: ConventionalCommit[];
+    latestRelease?: Release;
+    draft?: boolean;
+    labels?: string[];
+    existingPullRequest?: PullRequest;
+    manifestPath: string;
+  }): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits, this.logger)
     );

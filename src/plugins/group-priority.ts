@@ -35,11 +35,12 @@ export class GroupPriority extends ManifestPlugin {
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     groups: string[],
     options: ManifestPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
+    super(github, targetBranch, manifestPath, repositoryConfig, options);
     this.groups = groups;
   }
 

@@ -21,8 +21,6 @@ import {
   ROOT_PROJECT_PATH,
   MANIFEST_PULL_REQUEST_TITLE_PATTERN,
   ExtraFile,
-  Manifest,
-  ManifestConfig,
   DEFAULT_CUSTOM_VERSION_LABEL,
 } from '../manifest';
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
@@ -280,7 +278,7 @@ export abstract class BaseStrategy implements Strategy {
     commits: ConventionalCommit[];
     latestRelease?: Release;
     draft?: boolean;
-    labels: string[];
+    labels?: string[];
     existingPullRequest?: PullRequest;
     manifestPath: string;
   }): Promise<ReleasePullRequest | undefined> {
@@ -362,7 +360,7 @@ If you instead want to use the version number \`${newVersion}\` generated from c
       } catch (err: unknown) {
         if (err instanceof FileNotFoundError) {
           this.logger.error(
-            `Manifest file was expected to exist on PR branch but was not found. Check for PR title edits aborted.`,
+            'Manifest file was expected to exist on PR branch but was not found. Check for PR title edits aborted.',
             err
           );
         } else {

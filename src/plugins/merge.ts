@@ -48,10 +48,11 @@ export class Merge extends ManifestPlugin {
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     options: MergeOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
+    super(github, targetBranch, manifestPath, repositoryConfig, options);
     this.pullRequestTitlePattern =
       options.pullRequestTitlePattern ?? MANIFEST_PULL_REQUEST_TITLE_PATTERN;
     this.pullRequestHeader = options.pullRequestHeader;

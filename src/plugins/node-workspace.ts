@@ -68,10 +68,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     options: NodeWorkspaceOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
+    super(github, targetBranch, manifestPath, repositoryConfig, options);
     this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
   }
   protected async buildAllPackages(

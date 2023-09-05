@@ -30,6 +30,7 @@ import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
 import {JavaReleased} from '../updaters/java/java-released';
 import {mergeUpdates} from '../updaters/composite';
 import {logger as defaultLogger} from '../util/logger';
+import {PullRequest} from '../pull-request';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -73,12 +74,21 @@ export class Java extends BaseStrategy {
     this.skipSnapshot = options.skipSnapshot ?? false;
   }
 
-  async buildReleasePullRequest(
-    commits: ConventionalCommit[],
-    latestRelease?: Release,
-    draft?: boolean,
-    labels: string[] = []
-  ): Promise<ReleasePullRequest | undefined> {
+  async buildReleasePullRequest({
+    commits,
+    existingPullRequest,
+    labels = [],
+    latestRelease,
+    draft,
+    manifestPath,
+  }: {
+    commits: ConventionalCommit[];
+    latestRelease?: Release;
+    draft?: boolean;
+    labels?: string[];
+    existingPullRequest?: PullRequest;
+    manifestPath: string;
+  }): Promise<ReleasePullRequest | undefined> {
     if (await this.needsSnapshot(commits, latestRelease)) {
       this.logger.info('Repository needs a snapshot bump.');
       return await this.buildSnapshotPullRequest(
@@ -88,12 +98,13 @@ export class Java extends BaseStrategy {
       );
     }
     this.logger.info('No Java snapshot needed');
-    return await super.buildReleasePullRequest(
+    return await super.buildReleasePullRequest({
       commits,
       latestRelease,
       draft,
-      labels
-    );
+      labels,
+      manifestPath,
+    });
   }
 
   protected async buildSnapshotPullRequest(

@@ -29,11 +29,12 @@ export class SentenceCase extends ManifestPlugin {
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     specialWords?: Array<string>,
     options: ManifestPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
+    super(github, targetBranch, manifestPath, repositoryConfig, options);
     this.specialWords = new Set(
       specialWords ? [...specialWords] : SPECIAL_WORDS
     );

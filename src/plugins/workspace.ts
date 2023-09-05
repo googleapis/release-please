@@ -55,16 +55,15 @@ export interface AllPackages<T> {
  */
 export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private updateAllPackages: boolean;
-  private manifestPath: string;
   private merge: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     options: WorkspacePluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
-    this.manifestPath = options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
+    super(github, targetBranch, manifestPath, repositoryConfig, options);
     this.updateAllPackages = options.updateAllPackages ?? false;
     this.merge = options.merge ?? true;
   }
@@ -170,6 +169,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       const mergePlugin = new Merge(
         this.github,
         this.targetBranch,
+        this.manifestPath,
         this.repositoryConfig
       );
       newCandidates = await mergePlugin.run(newCandidates);

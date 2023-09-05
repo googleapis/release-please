@@ -81,10 +81,11 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     options: MavenWorkspacePluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
+    super(github, targetBranch, manifestPath, repositoryConfig, options);
     this.considerAllArtifacts = options.considerAllArtifacts ?? true;
   }
   private async fetchPom(path: string): Promise<MavenArtifact | undefined> {

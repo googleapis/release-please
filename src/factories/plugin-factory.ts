@@ -56,6 +56,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
     new LinkedVersions(
       options.github,
       options.targetBranch,
+      options.manifestPath,
       options.repositoryConfig,
       (options.type as LinkedVersionPluginConfig).groupName,
       (options.type as LinkedVersionPluginConfig).components,
@@ -68,6 +69,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
     new CargoWorkspace(
       options.github,
       options.targetBranch,
+      options.manifestPath,
       options.repositoryConfig,
       {
         ...options,
@@ -78,6 +80,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
     new NodeWorkspace(
       options.github,
       options.targetBranch,
+      options.manifestPath,
       options.repositoryConfig,
       {
         ...options,
@@ -88,6 +91,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
     new MavenWorkspace(
       options.github,
       options.targetBranch,
+      options.manifestPath,
       options.repositoryConfig,
       {
         ...options,
@@ -98,6 +102,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
     new SentenceCase(
       options.github,
       options.targetBranch,
+      options.manifestPath,
       options.repositoryConfig,
       (options.type as SentenceCasePluginConfig).specialWords
     ),
@@ -105,6 +110,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
     new GroupPriority(
       options.github,
       options.targetBranch,
+      options.manifestPath,
       options.repositoryConfig,
       (options.type as GroupPriorityPluginConfig).groups
     ),

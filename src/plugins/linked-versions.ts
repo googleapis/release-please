@@ -41,12 +41,13 @@ export class LinkedVersions extends ManifestPlugin {
   constructor(
     github: GitHub,
     targetBranch: string,
+    manifestPath: string,
     repositoryConfig: RepositoryConfig,
     groupName: string,
     components: string[],
     options: LinkedVersionsPluginOptions = {}
   ) {
-    super(github, targetBranch, repositoryConfig, options);
+    super(github, targetBranch, manifestPath, repositoryConfig, options);
     this.groupName = groupName;
     this.components = new Set(components);
     this.merge = options.merge ?? true;
@@ -85,10 +86,11 @@ export class LinkedVersions extends ManifestPlugin {
     for (const path in groupStrategies) {
       const strategy = groupStrategies[path];
       const latestRelease = releasesByPath[path];
-      const releasePullRequest = await strategy.buildReleasePullRequest(
-        parseConventionalCommits(commitsByPath[path], this.logger),
-        latestRelease
-      );
+      const releasePullRequest = await strategy.buildReleasePullRequest({
+        commits: parseConventionalCommits(commitsByPath[path], this.logger),
+        latestRelease,
+        manifestPath: this.manifestPath,
+      });
       if (releasePullRequest?.version) {
         groupVersions[path] = releasePullRequest.version;
       } else {
@@ -175,6 +177,7 @@ export class LinkedVersions extends ManifestPlugin {
       const merge = new Merge(
         this.github,
         this.targetBranch,
+        this.manifestPath,
         this.repositoryConfig,
         {
           pullRequestTitlePattern: `chore\${scope}: release ${this.groupName} libraries`,
