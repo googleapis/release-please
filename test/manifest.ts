@@ -17,6 +17,7 @@ import {
   DEFAULT_CUSTOM_VERSION_LABEL,
   DEFAULT_RELEASE_PLEASE_MANIFEST,
   Manifest,
+  ManifestConfig,
 } from '../src/manifest';
 import {GitHub, ReleaseOptions} from '../src/github';
 import * as githubModule from '../src/github';
@@ -1972,7 +1973,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      const config = {
+      const config: ManifestConfig = {
         'separate-pull-requests': true,
         packages: {
           'path/a': {
@@ -2065,7 +2066,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      const config = {
+      const config: ManifestConfig = {
         'release-as': '3.3.3',
         'separate-pull-requests': true,
         packages: {
@@ -2099,77 +2100,135 @@ describe('Manifest', () => {
     it('should use version from existing PR title if differs from release branch manifest', async () => {
       mockReleases(sandbox, github, [
         {
-          id: 123456,
-          sha: 'abc123',
+          id: 11111,
+          sha: 'commit1',
           tagName: 'pkg1-v1.0.0',
           url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
         },
         {
-          id: 654321,
-          sha: 'def234',
-          tagName: 'pkg2-v0.2.3',
-          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v1.0.0',
+          id: 22222,
+          sha: 'commit2',
+          tagName: 'pkg2-v2.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v2.0.0',
+        },
+        {
+          id: 33333,
+          sha: 'commit3',
+          tagName: 'pkg3-v3.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg3-v3.0.0',
+        },
+        {
+          id: 44444,
+          sha: 'commit4',
+          tagName: 'pkg4-v4.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg4-v4.0.0',
         },
       ]);
       mockCommits(sandbox, github, [
         {
-          sha: 'aaaaaa',
+          sha: 'commit11',
           message: 'fix: some bugfix',
           files: ['path/a/foo'],
         },
         {
-          sha: 'abc123',
+          sha: 'commit22',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'commit33',
+          message: 'fix: some bugfix',
+          files: ['path/c/foo'],
+        },
+        {
+          sha: 'commit44',
+          message: 'fix: some bugfix',
+          files: ['path/d/foo'],
+        },
+        {
+          sha: 'commit1',
           message: 'chore: release 1.0.0',
           files: [],
           pullRequest: {
             headBranchName:
               'release-please--branches--main--changes--next--components--pkg1',
             baseBranchName: 'main',
-            number: 123,
+            number: 111,
             title: 'chore: release 1.0.0',
             body: '',
             labels: [],
             files: [],
-            sha: 'abc123',
+            sha: 'commit1',
           },
         },
         {
-          sha: 'bbbbbb',
-          message: 'fix: some bugfix',
-          files: ['path/b/foo'],
-        },
-        {
-          sha: 'cccccc',
-          message: 'fix: some bugfix',
-          files: ['path/a/foo'],
-        },
-        {
-          sha: 'def234',
-          message: 'chore: release 0.2.3',
+          sha: 'commit2',
+          message: 'chore: release 2.0.0',
           files: [],
           pullRequest: {
             headBranchName:
               'release-please--branches--main--changes--next--components--pkg2',
             baseBranchName: 'main',
-            number: 123,
-            title: 'chore: release 0.2.3',
+            number: 222,
+            title: 'chore: release 2.0.0',
             body: '',
             labels: [],
             files: [],
-            sha: 'def234',
+            sha: 'commit2',
+          },
+        },
+        {
+          sha: 'commit3',
+          message: 'chore: release 3.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName:
+              'release-please--branches--main--changes--next--components--pkg3',
+            baseBranchName: 'main',
+            number: 333,
+            title: 'chore: release 3.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'commit3',
+          },
+        },
+        {
+          sha: 'commit4',
+          message: 'chore: release 4.0.0',
+          files: [],
+          pullRequest: {
+            headBranchName:
+              'release-please--branches--main--changes--next--components--pkg4',
+            baseBranchName: 'main',
+            number: 444,
+            title: 'chore: release 4.0.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'commit4',
           },
         },
       ]);
-      const config = {
+      const config: ManifestConfig = {
         'separate-pull-requests': true,
+        'release-type': 'simple',
         packages: {
           'path/a': {
             'release-type': 'simple',
             component: 'pkg1',
           },
           'path/b': {
-            'release-type': 'simple',
+            'release-type': 'node',
             component: 'pkg2',
+          },
+          'path/c': {
+            'release-type': 'python',
+            component: 'pkg3',
+          },
+          'path/d': {
+            'release-type': 'go',
+            component: 'pkg4',
           },
         },
       };
@@ -2183,7 +2242,20 @@ describe('Manifest', () => {
           buildGitHubFileRaw(
             JSON.stringify({
               'path/a': '1.0.0',
-              'path/b': '0.2.3',
+              'path/b': '2.0.0',
+              'path/c': '3.0.0',
+              'path/d': '4.0.0',
+            })
+          )
+        )
+        .withArgs(
+          '.release-please-manifest.json',
+          'release-please--branches--main--changes--next--components--pkg1'
+        )
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({
+              'path/a': '1.0.1',
             })
           )
         )
@@ -2194,22 +2266,66 @@ describe('Manifest', () => {
         .resolves(
           buildGitHubFileRaw(
             JSON.stringify({
-              'path/a': '1.0.1',
-              'path/b': '0.2.4',
+              'path/b': '2.0.1',
+            })
+          )
+        )
+        .withArgs('path/b/package.json', 'next')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({
+              name: 'pkg2',
+            })
+          )
+        )
+        .withArgs(
+          '.release-please-manifest.json',
+          'release-please--branches--main--changes--next--components--pkg3'
+        )
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({
+              'path/c': '3.0.1',
+            })
+          )
+        )
+        .withArgs('path/c/setup.py', 'next')
+        .resolves(
+          buildGitHubFileRaw(
+            `
+name = "pkg3"
+description = "Something"
+version = "3.0.0"
+`
+          )
+        )
+        .withArgs(
+          '.release-please-manifest.json',
+          'release-please--branches--main--changes--next--components--pkg4'
+        )
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({
+              'path/d': '4.0.1',
             })
           )
         );
 
+      const findFilesByFilenameAndRefStub = sandbox
+        .stub(github, 'findFilesByFilenameAndRef')
+        .withArgs('version.py', 'next', 'path/c')
+        .resolves([]);
+
       const addIssueLabelsStub = sandbox
         .stub(github, 'addIssueLabels')
-        .withArgs([DEFAULT_CUSTOM_VERSION_LABEL], 123)
+        .withArgs([DEFAULT_CUSTOM_VERSION_LABEL], 111)
         .resolves();
 
-      let commented = false;
+      let commentCount = 0;
       sandbox.replace(github, 'commentOnIssue', (comment, number) => {
         snapshot(comment);
-        expect(number).to.eql(123);
-        commented = true;
+        expect(number).to.be.oneOf([111, 222, 333, 444]);
+        commentCount += 1;
         return Promise.resolve('https://foo/bar');
       });
 
@@ -2224,25 +2340,57 @@ describe('Manifest', () => {
       const pullRequests = await manifest.buildPullRequests(
         [
           {
-            title: 'chore(main): release v4.5.6-beta.1', // version from title differs from PR manifest
+            title: 'chore(main): release v6.7.9-alpha.1', // version from title differs from PR manifest
+            body: 'some content',
+            headBranchName:
+              'release-please--branches--main--changes--next--components--pkg1',
+            baseBranchName: 'main',
+            number: 111,
+            labels: [],
+            files: [],
+          },
+          {
+            title: 'chore(main): release v7.8.9', // version from title differs from PR manifest
             body: 'some content',
             headBranchName:
               'release-please--branches--main--changes--next--components--pkg2',
             baseBranchName: 'main',
-            number: 123,
+            number: 222,
+            labels: [],
+            files: [],
+          },
+          {
+            title: 'chore(main): release 8.9.0', // version from title differs from PR manifest
+            body: 'some content',
+            headBranchName:
+              'release-please--branches--main--changes--next--components--pkg3',
+            baseBranchName: 'main',
+            number: 333,
+            labels: [],
+            files: [],
+          },
+          {
+            title: 'chore(main): release v9.0.1', // version from title differs from PR manifest
+            body: 'some content',
+            headBranchName:
+              'release-please--branches--main--changes--next--components--pkg4',
+            baseBranchName: 'main',
+            number: 444,
             labels: [],
             files: [],
           },
         ],
         []
       );
-      expect(pullRequests).lengthOf(2);
-      // title only edited for pkg2 thus should match version from PR title while pkg1 version should be a normal bump
-      expect(pullRequests[0].version?.toString()).to.eql('1.0.1');
-      expect(pullRequests[1].version?.toString()).to.eql('4.5.6-beta.1');
+      expect(pullRequests).lengthOf(4);
+      expect(pullRequests[0].version?.toString()).to.eql('6.7.9-alpha.1');
+      expect(pullRequests[1].version?.toString()).to.eql('7.8.9');
+      expect(pullRequests[2].version?.toString()).to.eql('8.9.0');
+      expect(pullRequests[3].version?.toString()).to.eql('9.0.1');
       sinon.assert.called(getFileContentsOnBranchStub);
       sinon.assert.called(addIssueLabelsStub);
-      expect(commented).to.be.true;
+      sinon.assert.called(findFilesByFilenameAndRefStub);
+      expect(commentCount).to.eql(4);
     });
 
     it('should always use PR title version when labelled as custom version', async () => {
@@ -2309,7 +2457,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      const config = {
+      const config: ManifestConfig = {
         'separate-pull-requests': true,
         packages: {
           'path/a': {
@@ -2430,7 +2578,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      const config = {
+      const config: ManifestConfig = {
         'separate-pull-requests': true,
         packages: {
           'path/a': {
@@ -2561,7 +2709,7 @@ describe('Manifest', () => {
           },
         },
       ]);
-      const config = {
+      const config: ManifestConfig = {
         'separate-pull-requests': true,
         packages: {
           'path/a': {
@@ -2653,7 +2801,7 @@ describe('Manifest', () => {
         },
       ]);
       mockTags(sandbox, github, []);
-      const config = {
+      const config: ManifestConfig = {
         'bootstrap-sha': 'cccccc',
         'separate-pull-requests': true,
         packages: {
@@ -2746,7 +2894,7 @@ describe('Manifest', () => {
         },
       ]);
       mockTags(sandbox, github, []);
-      const config = {
+      const config: ManifestConfig = {
         'last-release-sha': 'bbbbbb',
         'separate-pull-requests': true,
         packages: {
@@ -3002,7 +3150,7 @@ describe('Manifest', () => {
         },
       ]);
       mockTags(sandbox, github, []);
-      const config = {
+      const config: ManifestConfig = {
         packages: {
           'path/a': {
             'release-type': 'simple',

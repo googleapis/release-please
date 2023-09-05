@@ -180,9 +180,39 @@ exports['Manifest buildPullRequests should use version from existing PR title if
 
 ## Release version edited manually
 
-The Pull Request version has been manually set to \`4.5.6-beta.1\` and will be used for the release.
+The Pull Request version has been manually set to \`6.7.9-alpha.1\` and will be used for the release.
 
-If you instead want to use the version number \`0.2.4\` generated from conventional commits, just remove the label \`autorelease: custom version\` from this Pull Request.
+If you instead want to use the version number \`1.0.1\` generated from conventional commits, just remove the label \`autorelease: custom version\` from this Pull Request.
+
+`
+
+exports['Manifest buildPullRequests should use version from existing PR title if differs from release branch manifest 2'] = `
+
+## Release version edited manually
+
+The Pull Request version has been manually set to \`7.8.9\` and will be used for the release.
+
+If you instead want to use the version number \`2.0.1\` generated from conventional commits, just remove the label \`autorelease: custom version\` from this Pull Request.
+
+`
+
+exports['Manifest buildPullRequests should use version from existing PR title if differs from release branch manifest 3'] = `
+
+## Release version edited manually
+
+The Pull Request version has been manually set to \`8.9.0\` and will be used for the release.
+
+If you instead want to use the version number \`3.0.1\` generated from conventional commits, just remove the label \`autorelease: custom version\` from this Pull Request.
+
+`
+
+exports['Manifest buildPullRequests should use version from existing PR title if differs from release branch manifest 4'] = `
+
+## Release version edited manually
+
+The Pull Request version has been manually set to \`9.0.1\` and will be used for the release.
+
+If you instead want to use the version number \`4.0.1\` generated from conventional commits, just remove the label \`autorelease: custom version\` from this Pull Request.
 
 `
 

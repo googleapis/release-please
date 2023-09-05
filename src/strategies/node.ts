@@ -103,6 +103,11 @@ export class Node extends BaseStrategy {
 
   protected async getPkgJsonContents(): Promise<GitHubFileContents> {
     if (!this.pkgJsonContents) {
+      const errMissingFile = new MissingRequiredFileError(
+        this.addPath('package.json'),
+        'node',
+        `${this.repository.owner}/${this.repository.repo}#${this.changesBranch}`
+      );
       try {
         this.pkgJsonContents = await this.github.getFileContentsOnBranch(
           this.addPath('package.json'),
@@ -110,13 +115,12 @@ export class Node extends BaseStrategy {
         );
       } catch (e) {
         if (e instanceof FileNotFoundError) {
-          throw new MissingRequiredFileError(
-            this.addPath('package.json'),
-            'node',
-            `${this.repository.owner}/${this.repository.repo}`
-          );
+          throw errMissingFile;
         }
         throw e;
+      }
+      if (!this.pkgJsonContents) {
+        throw errMissingFile;
       }
     }
     return this.pkgJsonContents;
