@@ -1276,7 +1276,7 @@ export class Manifest {
 
       try {
         this.logger.debug(
-          `Checking if PR commits are in sync with ${branchName.changesBranch}...`
+          `Checking if PR commits are in sync with '${branchName.changesBranch}'...`
         );
         if (
           await this.github.isBranchSyncedWithPullRequestCommits(

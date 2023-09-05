@@ -6690,14 +6690,16 @@ describe('Manifest', () => {
       const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
       const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
 
-      const isBranchASyncedWithBStub = sandbox.stub(
-        github,
-        'isBranchASyncedWithB'
-      );
-
       // release branch in synced with changes-branch, safe to align changes-branch with target-branch
-      isBranchASyncedWithBStub
-        .withArgs('release-please--branches--main--changes--next', 'next')
+      const isBranchSyncedWithPullRequestCommitsStub = sandbox
+        .stub(github, 'isBranchSyncedWithPullRequestCommits')
+        .withArgs(
+          'next',
+          sinon.match.has(
+            'headBranchName',
+            'release-please--branches--main--changes--next'
+          )
+        )
         .resolves(true);
 
       const alignBranchWithAnotherStub = sandbox
@@ -6736,7 +6738,7 @@ describe('Manifest', () => {
         1234
       );
 
-      sinon.assert.calledOnce(isBranchASyncedWithBStub);
+      sinon.assert.calledOnce(isBranchSyncedWithPullRequestCommitsStub);
       sinon.assert.calledOnce(alignBranchWithAnotherStub);
 
       sinon.assert.calledOnce(lockBranchStub);
@@ -6782,14 +6784,16 @@ describe('Manifest', () => {
       const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
       const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
 
-      const isBranchASyncedWithBStub = sandbox.stub(
-        github,
-        'isBranchASyncedWithB'
-      );
-
-      // throw 404 not found when comparing changes-branch against release branch
-      isBranchASyncedWithBStub
-        .withArgs('release-please--branches--main--changes--next', 'next')
+      // throw 404 not found when comparing changes-branch against pull request commits
+      const isBranchSyncedWithPullRequestCommitsStub = sandbox
+        .stub(github, 'isBranchSyncedWithPullRequestCommits')
+        .withArgs(
+          'next',
+          sinon.match.has(
+            'headBranchName',
+            'release-please--branches--main--changes--next'
+          )
+        )
         .throwsException(
           new RequestError('Resource not found', 404, {
             request: {
@@ -6816,7 +6820,10 @@ describe('Manifest', () => {
         );
 
       // changes-branch already synced with target-branch
-      isBranchASyncedWithBStub.withArgs('next', 'main').resolves(true);
+      const isBranchASyncedWithBStub = sandbox
+        .stub(github, 'isBranchASyncedWithB')
+        .withArgs('next', 'main')
+        .resolves(true);
 
       const alignBranchWithAnotherStub = sandbox
         .stub(github, 'alignBranchWithAnother')
@@ -6854,7 +6861,8 @@ describe('Manifest', () => {
         1234
       );
 
-      sinon.assert.calledTwice(isBranchASyncedWithBStub);
+      sinon.assert.calledOnce(isBranchSyncedWithPullRequestCommitsStub);
+      sinon.assert.calledOnce(isBranchASyncedWithBStub);
       sinon.assert.notCalled(alignBranchWithAnotherStub);
 
       sinon.assert.calledOnce(lockBranchStub);
@@ -6900,14 +6908,16 @@ describe('Manifest', () => {
       const lockBranchStub = sandbox.stub(github, 'lockBranch').resolves();
       const unlockBranchStub = sandbox.stub(github, 'unlockBranch').resolves();
 
-      const isBranchASyncedWithBStub = sandbox.stub(
-        github,
-        'isBranchASyncedWithB'
-      );
-
       // throw 404 not found when comparing changes-branch against release branch
-      isBranchASyncedWithBStub
-        .withArgs('release-please--branches--main--changes--next', 'next')
+      const isBranchSyncedWithPullRequestCommitsStub = sandbox
+        .stub(github, 'isBranchSyncedWithPullRequestCommits')
+        .withArgs(
+          'next',
+          sinon.match.has(
+            'headBranchName',
+            'release-please--branches--main--changes--next'
+          )
+        )
         .throwsException(
           new RequestError('Resource not found', 404, {
             request: {
@@ -6934,7 +6944,10 @@ describe('Manifest', () => {
         );
 
       // changes-branch not in synced with target-branch
-      isBranchASyncedWithBStub.withArgs('next', 'main').resolves(false);
+      const isBranchASyncedWithBStub = sandbox
+        .stub(github, 'isBranchASyncedWithB')
+        .withArgs('next', 'main')
+        .resolves(false);
 
       const alignBranchWithAnotherStub = sandbox
         .stub(github, 'alignBranchWithAnother')
@@ -6975,7 +6988,8 @@ describe('Manifest', () => {
         1234
       );
 
-      sinon.assert.calledTwice(isBranchASyncedWithBStub);
+      sinon.assert.calledOnce(isBranchSyncedWithPullRequestCommitsStub);
+      sinon.assert.calledOnce(isBranchASyncedWithBStub);
       sinon.assert.notCalled(alignBranchWithAnotherStub);
 
       sinon.assert.calledOnce(lockBranchStub);
