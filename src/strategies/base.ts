@@ -331,7 +331,7 @@ export abstract class BaseStrategy implements Strategy {
       );
 
       if (!existingPRTitleVersion && hasCustomVersionLabel) {
-        // report error
+        // report problem to end user
         this.github.commentOnIssue(
           `
 ## Invalid version number in PR title
@@ -345,7 +345,17 @@ If you do not want to set a custom version and want  to get rid of this warning,
           existingPullRequest.number
         );
       } else if (!existingPRTitleVersion) {
-        // do nothing
+        // warn end user
+        this.github.commentOnIssue(
+          `
+## Invalid version number in PR title
+
+:warning: No version number can be found in the title. Did you want to set a custom version for this release?
+
+To set a custom version be sure to use the semver format, e.g \`1.2.3\`.
+`,
+          existingPullRequest.number
+        );
       } else if (
         existingPullRequest.labels.find(
           label => label === DEFAULT_CUSTOM_VERSION_LABEL

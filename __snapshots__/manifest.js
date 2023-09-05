@@ -185,3 +185,13 @@ The Pull Request version has been manually set to \`4.5.6-beta.1\` and will be u
 If you instead want to use the version number \`0.2.4\` generated from conventional commits, just remove the label \`autorelease: custom version\` from this Pull Request.
 
 `
+
+exports['Manifest buildPullRequests should warn end user via PR comment if version not found in title and not labeled as custom version 1'] = `
+
+## Invalid version number in PR title
+
+:warning: No version number can be found in the title. Did you want to set a custom version for this release?
+
+To set a custom version be sure to use the semver format, e.g \`1.2.3\`.
+
+`
