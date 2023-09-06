@@ -1930,16 +1930,13 @@ export class GitHub {
     }
 
     const commitsPerPage = 100;
-    const lastPageOfPrCommits = await this.request(
-      'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
-      {
-        pull_number: pullRequest.number,
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        per_page: commitsPerPage,
-        page: Math.ceil(pr.data.commits / commitsPerPage),
-      }
-    );
+    const lastPageOfPrCommits = await this.octokit.pulls.listCommits({
+      pull_number: pullRequest.number,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      per_page: commitsPerPage,
+      page: Math.ceil(pr.data.commits / commitsPerPage),
+    });
 
     const latestPRCommit =
       lastPageOfPrCommits.data[lastPageOfPrCommits.data.length - 1];
