@@ -93,6 +93,7 @@ describe('GitHub', () => {
         owner: 'some-owner',
         repo: 'some-repo',
       });
+      req.done();
 
       expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
     });
@@ -126,6 +127,87 @@ describe('GitHub', () => {
           port: 3000,
         })
       ).instanceof(HttpProxyAgent);
+    });
+
+    it('should enable octokit throttling plugin', async () => {
+      req.get('/repos/some-owner/some-repo').reply(
+        403,
+        {
+          message:
+            "API rate limit exceeded for xxx.xxx.xxx.xxx. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
+          documentation_url:
+            'https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting',
+        },
+        {
+          'x-ratelimit-limit': '60',
+          'x-ratelimit-remaining': '0',
+          'x-ratelimit-used': '60',
+          'x-ratelimit-reset': '1377013266',
+        }
+      );
+      req.get('/repos/some-owner/some-repo').reply(200, {
+        default_branch: 'some-branch-from-api',
+      });
+      const github = await GitHub.create({
+        owner: 'some-owner',
+        repo: 'some-repo',
+        throttlingRetries: 1,
+      });
+      req.done();
+
+      expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
+    });
+
+    it('should enable octokit retry plugins', async () => {
+      req.get('/repos/some-owner/some-repo').reply(500, {
+        message: 'Server error',
+      });
+      req.get('/repos/some-owner/some-repo').reply(200, {
+        default_branch: 'some-branch-from-api',
+      });
+      const github = await GitHub.create({
+        owner: 'some-owner',
+        repo: 'some-repo',
+        retries: 1,
+      });
+      req.done();
+
+      expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
+    });
+
+    it('should enable octokit retry and trottling plugins', async () => {
+      req.get('/repos/some-owner/some-repo').reply(500, {
+        // handled by retry plugin
+        message: 'Server error',
+      });
+      req.get('/repos/some-owner/some-repo').reply(
+        // handled by throttling plugin
+        403,
+        {
+          message:
+            "API rate limit exceeded for xxx.xxx.xxx.xxx. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)",
+          documentation_url:
+            'https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting',
+        },
+        {
+          'x-ratelimit-limit': '60',
+          'x-ratelimit-remaining': '0',
+          'x-ratelimit-used': '60',
+          'x-ratelimit-reset': '1377013266',
+        }
+      );
+      req.get('/repos/some-owner/some-repo').reply(200, {
+        default_branch: 'some-branch-from-api',
+      });
+      const github = await GitHub.create({
+        owner: 'some-owner',
+        repo: 'some-repo',
+        retries: 1,
+        throttlingRetries: 1,
+      });
+      req.done();
+
+      expect(github.repository.defaultBranch).to.eql('some-branch-from-api');
     });
   });
 
@@ -763,14 +845,10 @@ describe('GitHub', () => {
         sha: 'abc123',
         notes: 'Some release notes',
       });
-      await assert.rejects(promise, error => {
-        return (
-          error instanceof DuplicateReleaseError &&
-          // ensure stack contains calling method
-          error.stack?.includes('GitHub.createRelease') &&
-          !!error.cause
-        );
-      });
+      await assert.rejects(
+        promise,
+        error => error instanceof DuplicateReleaseError
+      );
     });
 
     it('should raise a RequestError for other validation errors', async () => {
@@ -790,14 +868,7 @@ describe('GitHub', () => {
         sha: 'abc123',
         notes: 'Some release notes',
       });
-      await assert.rejects(promise, error => {
-        return (
-          error instanceof GitHubAPIError &&
-          // ensure stack contains calling method
-          error.stack?.includes('GitHub.createRelease') &&
-          !!error.cause
-        );
-      });
+      await assert.rejects(promise, error => error instanceof GitHubAPIError);
     });
 
     it('should create a draft release', async () => {

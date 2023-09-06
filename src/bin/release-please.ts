@@ -742,7 +742,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       versionFile: argv.versionFile,
     };
     if (argv.dryRun) {
-      const pullRequest = await await bootstrapper.buildPullRequest(
+      const pullRequest = await bootstrapper.buildPullRequest(
         path,
         releaserConfig
       );
@@ -815,6 +815,8 @@ async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
     apiUrl: argv.apiUrl,
     graphqlUrl: argv.graphqlUrl,
     useGraphql: argv.useGraphql,
+    retries: 3,
+    throttlingRetries: 3,
   });
   return github;
 }

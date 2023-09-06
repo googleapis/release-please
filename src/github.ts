@@ -53,6 +53,8 @@ import {Logger} from 'code-suggester/build/src/types';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
+import {retry} from '@octokit/plugin-retry';
+import {throttling} from '@octokit/plugin-throttling';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -87,6 +89,8 @@ interface GitHubCreateOptions {
   logger?: Logger;
   proxy?: ProxyOption;
   useGraphql?: boolean;
+  retries?: number;
+  throttlingRetries?: number;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -278,12 +282,50 @@ export class GitHub {
     const apiUrl = options.apiUrl ?? GH_API_URL;
     const graphqlUrl = options.graphqlUrl ?? GH_GRAPHQL_URL;
     const releasePleaseVersion = require('../../package.json').version;
+
+    const OctokitWithPlugins = Octokit.plugin(retry, throttling);
+    const throttlingRetries = options.throttlingRetries ?? 0;
     const apis = options.octokitAPIs ?? {
-      octokit: new Octokit({
+      octokit: new OctokitWithPlugins({
         baseUrl: apiUrl,
         auth: options.token,
         request: {
           agent: this.createDefaultAgent(apiUrl, options.proxy),
+          retries: options.retries ?? 0,
+        },
+        log: defaultLogger,
+        retry: {
+          doNotRetry: [
+            '403', // Used by GitHub when throttling
+            '429', // Too Many Request
+          ],
+        },
+        throttle: {
+          enabled: throttlingRetries > 0,
+          onRateLimit: (retryAfter, options, octokit, retryCount) => {
+            const method =
+              'method' in options ? options.method : 'UnknownMethod';
+            const url = 'url' in options ? options.url : 'UnknownUrl';
+            octokit.log.warn(
+              `[octokit-throttling] Request quota exhausted for request ${method} ${url}`
+            );
+
+            if (retryCount < throttlingRetries) {
+              octokit.log.info(`Retrying after ${retryAfter} seconds`);
+              return true;
+            }
+            return undefined;
+          },
+          // See https://docs.github.com/en/rest/overview/resources-in-the-rest-api?apiVersion=2022-11-28#secondary-rate-limits
+          onSecondaryRateLimit: (_retryAfter, options, octokit) => {
+            const method =
+              'method' in options ? options.method : 'UnknownMethod';
+            const url = 'url' in options ? options.url : 'UnknownUrl';
+            // do not retry, only log a warning
+            octokit.log.warn(
+              `[octokit-throttling] SecondaryRateLimit reached for request ${method} ${url}`
+            );
+          },
         },
       }),
       request: request.defaults({
@@ -305,6 +347,7 @@ export class GitHub {
         },
       }),
     };
+
     const opts = {
       repository: {
         owner: options.owner,
@@ -1522,15 +1565,14 @@ export class GitHub {
       };
     },
     e => {
-      if (isOctokitRequestError(e)) {
-        if (
-          e.status === 422 &&
-          GitHubAPIError.parseErrors(e).some(error => {
-            return error.code === 'already_exists';
-          })
-        ) {
-          throw new DuplicateReleaseError(e, 'tagName');
-        }
+      if (
+        isOctokitRequestError(e) &&
+        e.status === 422 &&
+        GitHubAPIError.parseErrors(e).some(
+          error => error.code === 'already_exists'
+        )
+      ) {
+        throw new DuplicateReleaseError(e, 'tagName');
       }
     }
   );

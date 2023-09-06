@@ -113,7 +113,7 @@ describe('CLI', () => {
     });
 
     it('instantiates a basic Manifest', async () => {
-      await await parser.parseAsync(
+      await parser.parseAsync(
         'manifest-pr --repo-url=googleapis/release-please-cli'
       );
 
@@ -124,6 +124,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -148,6 +150,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -172,6 +176,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -201,6 +207,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -225,6 +233,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -249,6 +259,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -273,6 +285,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -297,6 +311,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -344,6 +360,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -393,6 +411,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -417,6 +437,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -441,6 +463,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -470,6 +494,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -494,6 +520,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -522,6 +550,8 @@ describe('CLI', () => {
         apiUrl: 'https://api.github.com',
         graphqlUrl: 'https://api.github.com',
         useGraphql: true,
+        retries: 3,
+        throttlingRetries: 3,
       });
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
@@ -592,6 +622,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -618,6 +650,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -644,6 +678,8 @@ describe('CLI', () => {
             apiUrl: 'https://api.github.com',
             graphqlUrl: 'https://api.github.com',
             useGraphql: true,
+            retries: 3,
+            throttlingRetries: 3,
           });
           sinon.assert.calledOnceWithExactly(
             fromManifestStub,
@@ -675,6 +711,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -723,6 +761,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -748,6 +788,8 @@ describe('CLI', () => {
             apiUrl: 'https://api.github.com',
             graphqlUrl: 'https://api.github.com',
             useGraphql: true,
+            retries: 3,
+            throttlingRetries: 3,
           });
           sinon.assert.calledOnceWithExactly(
             fromConfigStub,
@@ -777,6 +819,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -801,6 +845,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -825,6 +871,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -852,6 +900,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -880,6 +930,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -907,6 +959,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -934,6 +988,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -958,6 +1014,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -985,6 +1043,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1012,6 +1072,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1038,6 +1100,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1062,6 +1126,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1086,6 +1152,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1110,6 +1178,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1134,6 +1204,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1158,6 +1230,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1209,6 +1283,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1233,6 +1309,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1257,6 +1335,8 @@ describe('CLI', () => {
             apiUrl: 'https://api.github.com',
             graphqlUrl: 'https://api.github.com',
             useGraphql: true,
+            retries: 3,
+            throttlingRetries: 3,
           });
           sinon.assert.calledOnceWithExactly(
             fromManifestStub,
@@ -1286,6 +1366,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1310,6 +1392,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1338,6 +1422,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
@@ -1393,6 +1479,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1420,6 +1508,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1444,6 +1534,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1468,6 +1560,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1492,6 +1586,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1520,6 +1616,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1544,6 +1642,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1568,6 +1668,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1592,6 +1694,8 @@ describe('CLI', () => {
           apiUrl: 'https://api.github.com',
           graphqlUrl: 'https://api.github.com',
           useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
         });
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
@@ -1618,7 +1722,7 @@ describe('CLI', () => {
           labels: [],
           files: [],
         });
-      await await parser.parseAsync(
+      await parser.parseAsync(
         'bootstrap --repo-url=googleapis/release-please-cli --release-type=java'
       );
 
