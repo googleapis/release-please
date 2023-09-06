@@ -284,6 +284,7 @@ export class GitHub {
     const releasePleaseVersion = require('../../package.json').version;
 
     const OctokitWithPlugins = Octokit.plugin(retry, throttling);
+    const logger = options.logger ?? defaultLogger;
     const throttlingRetries = options.throttlingRetries ?? 0;
     const apis = options.octokitAPIs ?? {
       octokit: new OctokitWithPlugins({
@@ -293,7 +294,14 @@ export class GitHub {
           agent: this.createDefaultAgent(apiUrl, options.proxy),
           retries: options.retries ?? 0,
         },
-        log: defaultLogger,
+        log: {
+          // octokit debug logs include all requests, too noisy for our debug level
+          debug: logger.trace,
+          // octokit info are debug information
+          info: logger.debug,
+          warn: logger.warn,
+          error: logger.error,
+        },
         retry: {
           doNotRetry: [
             '403', // Used by GitHub when throttling
@@ -361,7 +369,7 @@ export class GitHub {
           )),
       },
       octokitAPIs: apis,
-      logger: options.logger,
+      logger,
       useGraphql: options.useGraphql,
     };
     return new GitHub(opts);
