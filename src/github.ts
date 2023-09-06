@@ -1920,19 +1920,30 @@ export class GitHub {
     branchName: string,
     pullRequest: PullRequest
   ): Promise<boolean> {
-    const prCommits = await this.request(
+    const pr = await this.octokit.pulls.get({
+      pull_number: pullRequest.number,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+    });
+    if (pr.data.commits === 0) {
+      return true;
+    }
+
+    const commitsPerPage = 100;
+    const lastPageOfPrCommits = await this.request(
       'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
       {
         pull_number: pullRequest.number,
         owner: this.repository.owner,
         repo: this.repository.repo,
+        per_page: commitsPerPage,
+        page: Math.ceil(pr.data.commits / commitsPerPage),
       }
     );
-    if (prCommits.data.length === 0) {
-      return false;
-    }
-    this.logger.debug(prCommits.data);
-    const latestPRCommit = prCommits.data[prCommits.data.length - 1];
+
+    const latestPRCommit =
+      lastPageOfPrCommits.data[lastPageOfPrCommits.data.length - 1];
+
     return await this.isBranchASyncedWithB(branchName, latestPRCommit.sha);
   }
 
@@ -1966,8 +1977,6 @@ export class GitHub {
       repo: this.repository.repo,
       basehead: `${branchBName}...${branchAName}`,
     });
-
-    this.logger.debug({status: comparison.data.status});
 
     if (
       comparison.data.status === 'identical' ||
