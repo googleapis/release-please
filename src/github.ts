@@ -1992,6 +1992,11 @@ export class GitHub {
         ).data.commits.map(commit => commit.sha)
       );
 
+      // if branch A has more commits than branch B, we know for sure they aren't in sync
+      if (exclusiveCommitsA.size > exclusiveCommitsB.size) {
+        return false;
+      }
+
       type CommitData = Awaited<
         ReturnType<typeof this.octokit.repos.getCommit>
       >['data'];
