@@ -49,4 +49,18 @@ describe('PackageLockJson', () => {
       snapshot(newContent.replace(/\r\n/g, '\n'));
     });
   });
+
+  describe('updateContent v3', () => {
+    it('updates the package version', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-lock-v3.json'),
+        'utf8'
+      );
+      const packageJson = new PackageLockJson({
+        version: Version.parse('14.0.0'),
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
+    });
+  });
 });
