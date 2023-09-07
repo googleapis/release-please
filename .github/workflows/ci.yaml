@@ -15,6 +15,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+      - name: Override NODE options for the most recent version
+        if: matrix.node == '18'
+        run: echo "NODE_OPTIONS=--no-experimental-fetch" >> $GITHUB_ENV
       - run: node --version
       # The first installation step ensures that all of our production
       # dependencies work on the given Node.js version, this helps us find
