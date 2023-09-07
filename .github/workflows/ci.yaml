@@ -36,6 +36,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+      - name: Override NODE options for the most recent version
+        run: echo "NODE_OPTIONS=--no-experimental-fetch" >> $GITHUB_ENV
       - run: npm install
       - run: npm test
         env:
