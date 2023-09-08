@@ -9,12 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14, 16]
+        node: [14, 16, 18]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+      - name: Override NODE options for the most recent version
+        if: matrix.node == '18'
+        run: echo "NODE_OPTIONS=--no-experimental-fetch" >> $GITHUB_ENV
       - run: node --version
       # The first installation step ensures that all of our production
       # dependencies work on the given Node.js version, this helps us find
@@ -32,7 +35,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 18
+      - name: Override NODE options for the most recent version
+        run: echo "NODE_OPTIONS=--no-experimental-fetch" >> $env:GITHUB_ENV
       - run: npm install
       - run: npm test
         env:
@@ -43,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 18
       - run: npm install
       - run: npm run lint
   docs:
@@ -52,7 +57,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 18
       - run: npm install
       - run: npm run docs
       - uses: JustinBeckwith/linkinator-action@v1
