@@ -16,7 +16,6 @@ import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {ChangelogJson} from '../updaters/changelog-json';
-import {Version} from '../version';
 import {SetupCfg} from '../updaters/python/setup-cfg';
 import {SetupPy} from '../updaters/python/setup-py';
 import {

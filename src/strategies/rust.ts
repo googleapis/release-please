@@ -21,7 +21,7 @@ import {CargoToml} from '../updaters/rust/cargo-toml';
 import {CargoLock} from '../updaters/rust/cargo-lock';
 import {CargoManifest, parseCargoManifest} from '../updaters/rust/common';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
-import {VersionsMap, Version} from '../version';
+import {VersionsMap} from '../version';
 import {Update} from '../update';
 
 export class Rust extends BaseStrategy {

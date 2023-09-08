@@ -20,7 +20,6 @@ import {ModuleVersion} from '../updaters/terraform/module-version';
 import {MetadataVersion} from '../updaters/terraform/metadata-version';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
-import {Version} from '../version';
 
 export class TerraformModule extends BaseStrategy {
   protected async buildUpdates(
