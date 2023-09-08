@@ -23,6 +23,7 @@ import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {ReadMe} from '../../src/updaters/terraform/readme';
 import {ModuleVersion} from '../../src/updaters/terraform/module-version';
+import {MetadataVersion} from '../../src/updaters/terraform/metadata-version';
 
 const sandbox = sinon.createSandbox();
 
@@ -120,6 +121,9 @@ describe('TerraformModule', () => {
       findFilesStub
         .withArgs('versions.tf.tmpl', 'main', '.')
         .resolves(['path1/versions.tf.tmpl', 'path2/versions.tf.tmpl']);
+      findFilesStub
+        .withArgs('metadata.yaml', 'main', '.')
+        .resolves(['path1/metadata.yaml', 'path2/metadata.yaml']);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest({
         commits: COMMITS,
@@ -134,6 +138,8 @@ describe('TerraformModule', () => {
       assertHasUpdate(updates, 'path2/versions.tf', ModuleVersion);
       assertHasUpdate(updates, 'path1/versions.tf.tmpl', ModuleVersion);
       assertHasUpdate(updates, 'path2/versions.tf.tmpl', ModuleVersion);
+      assertHasUpdate(updates, 'path1/metadata.yaml', MetadataVersion);
+      assertHasUpdate(updates, 'path2/metadata.yaml', MetadataVersion);
     });
   });
 });

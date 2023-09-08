@@ -138,7 +138,7 @@ recommend using squash-merge instead](#linear-git-commit-history-use-squash-merg
 
 ## Release Please bot does not create a release PR. Why?
 
-### Releasable Units
+### Step 1: Ensure releasable units are merged
 
 Release Please creates a release pull request after it notices the default branch
 contains "releasable units" since the last release.
@@ -149,15 +149,15 @@ prefixes: "feat", "fix", and "deps".
 Some languages have their specific releasable unit configuration. For example,
 "docs" is a prefix for releasable units in Java and Python.
 
-### Re-run Release Please
+### Step 2: Ensure no `autorelease: pending` or `autorelease: triggered` label in an old PR
 
-If you think Release Please missed creating a release PR after a pull request
-with a releasable unit has been merged, please re-run `release-please`. If you are using
-the GitHub application, add `release-please:force-run` label to the merged pull request. If
-you are using the action, look for the failed invocation and retry the workflow run.
-Release Please will process the pull request immediately to find releasable units.
-
-### Existing Pull Requests with "autorelease: pending" label
+Check existing pull requests labelled with `autorelease: pending` or
+`autorelease: triggered` label.
+Due to GitHub API failures, it's possible that the tag was not removed
+correctly upon a previous release and Release Please thinks that the previous release is
+still pending.
+If you're certain that there's no pending release, remove the
+`autorelease: pending` or `autorelease: triggered` label.
 
 For the GitHub application users, Release Please will not create a new pull request
 if there's an existing pull request labeled as `autorelease: pending`.
@@ -166,6 +166,14 @@ To confirm this case, search for a pull request with the label.
 If you find a release pull request with the label and it is not going to be released
 (or already released), then remove the `autorelease: pending` label and re-run Release
 Please.
+
+### Step 3: Rerun Release Please
+
+If you think Release Please missed creating a release PR after a pull request
+with a releasable unit has been merged, please re-run `release-please`. If you are using
+the GitHub application, add `release-please:force-run` label to the merged pull request. If
+you are using the action, look for the failed invocation and retry the workflow run.
+Release Please will process the pull request immediately to find releasable units.
 
 ## Strategy (Language) types supported
 
