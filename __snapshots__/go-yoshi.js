@@ -3,7 +3,7 @@ exports['GoYoshi buildReleasePullRequest combines google-api-go-client autogener
 ---
 
 
-## 0.1.0 (1983-10-10)
+## 0.0.1 (1983-10-10)
 
 
 ### Features
@@ -22,7 +22,7 @@ exports['GoYoshi buildReleasePullRequest filters out submodule commits 1'] = `
 ---
 
 
-## 0.1.0 (1983-10-10)
+## 0.0.1 (1983-10-10)
 
 
 ### Bug Fixes
@@ -41,7 +41,7 @@ exports['GoYoshi buildReleasePullRequest filters out touched files not matching 
 ---
 
 
-## 0.1.0 (1983-10-10)
+## 0.0.1 (1983-10-10)
 
 
 ### Bug Fixes

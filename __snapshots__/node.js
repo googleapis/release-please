@@ -25,7 +25,7 @@ exports['Node buildReleasePullRequest updates changelog.json if present 1'] = `
           "scope": "deps"
         }
       ],
-      "version": "1.0.0",
+      "version": "0.0.1",
       "language": "JAVASCRIPT",
       "artifactName": "node-test-repo",
       "id": "abc-123-efd-qwerty",

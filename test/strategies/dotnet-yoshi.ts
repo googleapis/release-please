@@ -62,9 +62,9 @@ describe('DotnetYoshi', () => {
         .resolves(buildGitHubFileContent(fixturesPath, 'apis.json'));
     });
     it('returns release PR changes with defaultInitialVersion', async () => {
-      const expectedVersion = '1.0.0';
+      const expectedVersion = '0.0.1';
       const expectedTitle =
-        'Release Google.Cloud.SecurityCenter.V1 version 1.0.0';
+        'Release Google.Cloud.SecurityCenter.V1 version 0.0.1';
       const strategy = new DotnetYoshi({
         targetBranch: 'main',
         github,

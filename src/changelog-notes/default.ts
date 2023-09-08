@@ -103,9 +103,10 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       };
     });
 
-    return conventionalChangelogWriter
+    const result = conventionalChangelogWriter
       .parseArray(changelogCommits, context, preset.writerOpts)
       .trim();
+    return result;
   }
 }
 

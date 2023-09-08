@@ -434,6 +434,7 @@ If you instead want to use the version number \`${newVersion}\` generated from c
       latestRelease,
       commits
     );
+
     if (this.changelogEmpty(releaseNotesBody)) {
       this.logger.info(
         `No user facing commits found since ${
@@ -751,7 +752,7 @@ If you instead want to use the version number \`${newVersion}\` generated from c
       return Version.parse(this.initialVersion);
     }
 
-    return Version.parse('1.0.0');
+    return Version.parse('0.0.1');
   }
 
   /**

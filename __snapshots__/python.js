@@ -25,7 +25,7 @@ exports['Python buildUpdates updates changelog.json if present 1'] = `
           "scope": "deps"
         }
       ],
-      "version": "0.1.0",
+      "version": "0.0.1",
       "language": "PYTHON",
       "artifactName": "google-cloud-automl",
       "id": "abc-123-efd-qwerty",

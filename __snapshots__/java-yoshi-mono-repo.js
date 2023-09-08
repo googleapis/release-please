@@ -22,7 +22,7 @@ exports['JavaYoshiMonoRepo buildUpdates omits non-breaking chores from changelog
           "breakingChangeNote": "update a very important dep"
         }
       ],
-      "version": "0.1.0",
+      "version": "0.0.1",
       "language": "JAVA",
       "artifactName": "cloud.google.com:foo",
       "id": "abc-123-efd-qwerty",
@@ -46,7 +46,7 @@ exports['JavaYoshiMonoRepo buildUpdates updates changelog.json 1'] = `
           "scope": "deps"
         }
       ],
-      "version": "0.1.0",
+      "version": "0.0.1",
       "language": "JAVA",
       "artifactName": "cloud.google.com:foo",
       "id": "abc-123-efd-qwerty",

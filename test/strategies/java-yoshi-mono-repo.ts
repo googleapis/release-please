@@ -65,7 +65,7 @@ describe('JavaYoshiMonoRepo', () => {
   });
   describe('buildReleasePullRequest', () => {
     it('returns release PR changes with defaultInitialVersion', async () => {
-      const expectedVersion = '0.1.0';
+      const expectedVersion = '0.0.1';
       const strategy = new JavaYoshiMonoRepo({
         targetBranch: 'main',
         github,

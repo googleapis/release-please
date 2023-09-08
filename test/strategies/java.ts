@@ -70,8 +70,8 @@ describe('Java', () => {
           labels: DEFAULT_LABELS,
         });
 
-        expect(release?.version?.toString()).to.eql('1.0.0');
-        expect(release?.title.toString()).to.eql('chore(main): release 1.0.0');
+        expect(release?.version?.toString()).to.eql('0.0.1');
+        expect(release?.title.toString()).to.eql('chore(main): release 0.0.1');
         expect(release?.headRefName).to.eql('release-please--branches--main');
         expect(release?.draft).to.eql(false);
         expect(release?.labels).to.eql(DEFAULT_LABELS);
@@ -323,9 +323,9 @@ describe('Java', () => {
           labels: DEFAULT_LABELS,
         });
 
-        expect(release?.version?.toString()).to.eql('1.0.0');
+        expect(release?.version?.toString()).to.eql('0.0.1');
         expect(release?.title.toString()).to.eql(
-          'chore(main): release test-sample 1.0.0'
+          'chore(main): release test-sample 0.0.1'
         );
         expect(release?.headRefName).to.eql(
           'release-please--branches--main--components--test-sample'

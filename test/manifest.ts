@@ -195,6 +195,33 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(8);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
     });
+    it('should fetch config and manifest from changes-branch when specified', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'next')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+        )
+        .withArgs('.release-please-manifest.json', 'next')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch,
+        undefined,
+        undefined,
+        {changesBranch: 'next'}
+      );
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(8);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
+    });
     it('should limit manifest loading to the given path', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
@@ -2235,9 +2262,9 @@ describe('Manifest', () => {
 
       const getFileContentsOnBranchStub = sandbox
         .stub(github, 'getFileContentsOnBranch')
-        .withArgs('release-please-config.json', 'main')
+        .withArgs('release-please-config.json', 'next')
         .resolves(buildGitHubFileRaw(JSON.stringify(config)))
-        .withArgs('.release-please-manifest.json', 'main')
+        .withArgs('.release-please-manifest.json', 'next')
         .resolves(
           buildGitHubFileRaw(
             JSON.stringify({
@@ -2473,9 +2500,9 @@ version = "3.0.0"
 
       const getFileContentsOnBranchStub = sandbox
         .stub(github, 'getFileContentsOnBranch')
-        .withArgs('release-please-config.json', 'main')
+        .withArgs('release-please-config.json', 'next')
         .resolves(buildGitHubFileRaw(JSON.stringify(config)))
-        .withArgs('.release-please-manifest.json', 'main')
+        .withArgs('.release-please-manifest.json', 'next')
         .resolves(
           buildGitHubFileRaw(
             JSON.stringify({
@@ -2594,9 +2621,9 @@ version = "3.0.0"
 
       const getFileContentsOnBranchStub = sandbox
         .stub(github, 'getFileContentsOnBranch')
-        .withArgs('release-please-config.json', 'main')
+        .withArgs('release-please-config.json', 'next')
         .resolves(buildGitHubFileRaw(JSON.stringify(config)))
-        .withArgs('.release-please-manifest.json', 'main')
+        .withArgs('.release-please-manifest.json', 'next')
         .resolves(
           buildGitHubFileRaw(
             JSON.stringify({
@@ -2725,9 +2752,9 @@ version = "3.0.0"
 
       const getFileContentsOnBranchStub = sandbox
         .stub(github, 'getFileContentsOnBranch')
-        .withArgs('release-please-config.json', 'main')
+        .withArgs('release-please-config.json', 'next')
         .resolves(buildGitHubFileRaw(JSON.stringify(config)))
-        .withArgs('.release-please-manifest.json', 'main')
+        .withArgs('.release-please-manifest.json', 'next')
         .resolves(
           buildGitHubFileRaw(
             JSON.stringify({
@@ -2828,7 +2855,7 @@ version = "3.0.0"
       const manifest = await Manifest.fromManifest(github, 'main');
       const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
-      expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
+      expect(pullRequests[0].version?.toString()).to.eql('0.0.1');
     });
 
     it('should allow specifying a last release sha', async () => {
@@ -2921,7 +2948,7 @@ version = "3.0.0"
       const manifest = await Manifest.fromManifest(github, 'main');
       const pullRequests = await manifest.buildPullRequests([], []);
       expect(pullRequests).lengthOf(1);
-      expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
+      expect(pullRequests[0].version?.toString()).to.eql('0.0.1');
     });
 
     it('should allow customizing pull request title with root package', async () => {

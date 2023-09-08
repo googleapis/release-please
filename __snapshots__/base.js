@@ -41,7 +41,7 @@ exports['Strategy buildReleasePullRequest should pass changelogHost to default b
 ---
 
 
-## 1.0.0 (1983-10-10)
+## 0.0.1 (1983-10-10)
 
 
 ### Bug Fixes

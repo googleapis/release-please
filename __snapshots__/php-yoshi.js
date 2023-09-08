@@ -763,7 +763,7 @@ exports['PHPYoshi buildReleasePullRequest returns release PR changes with defaul
 ---
 
 
-## 1.0.0
+## 0.0.1
 
 <details><summary>google/client1 1.2.4</summary>
 

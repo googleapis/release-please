@@ -81,7 +81,7 @@ describe('PHPYoshi', () => {
   });
   describe('buildReleasePullRequest', () => {
     it('returns release PR changes with defaultInitialVersion', async () => {
-      const expectedVersion = '1.0.0';
+      const expectedVersion = '0.0.1';
       const strategy = new PHPYoshi({
         targetBranch: 'main',
         github,

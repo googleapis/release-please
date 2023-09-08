@@ -3,7 +3,7 @@ exports['DotnetYoshi buildReleasePullRequest returns release PR changes with def
 ---
 
 
-## Version 1.0.0, released 1983-10-10
+## Version 0.0.1, released 1983-10-10
 
 
 ### Bug fixes
@@ -39,7 +39,7 @@ _More technical details can be found at [stainless-api/release-please](https://g
 `
 
 exports['DotnetYoshi buildUpdates builds common files 1'] = `
-## Version 1.0.0, released 1983-10-10
+## Version 0.0.1, released 1983-10-10
 
 
 ### Bug fixes

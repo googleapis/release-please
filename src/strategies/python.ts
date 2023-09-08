@@ -197,6 +197,6 @@ export class Python extends BaseStrategy {
   }
 
   protected initialReleaseVersion(): Version {
-    return Version.parse('0.1.0');
+    return Version.parse('0.0.1');
   }
 }

@@ -66,7 +66,7 @@ describe('Maven', () => {
         latestRelease: undefined,
       });
 
-      expect(release?.version?.toString()).to.eql('1.0.0');
+      expect(release?.version?.toString()).to.eql('0.0.1');
 
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
