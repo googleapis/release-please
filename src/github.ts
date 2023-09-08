@@ -306,6 +306,7 @@ export class GitHub {
           doNotRetry: [
             '403', // Used by GitHub when throttling
             '429', // Too Many Request
+            '404', // Not Found
           ],
         },
         throttle: {
