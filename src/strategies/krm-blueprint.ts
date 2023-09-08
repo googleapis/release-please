@@ -73,8 +73,4 @@ export class KRMBlueprint extends BaseStrategy {
     }
     return updates;
   }
-
-  protected initialReleaseVersion(): Version {
-    return Version.parse('0.0.1');
-  }
 }

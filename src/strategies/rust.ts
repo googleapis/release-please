@@ -129,10 +129,6 @@ export class Rust extends BaseStrategy {
     return updates;
   }
 
-  protected initialReleaseVersion(): Version {
-    return Version.parse('0.0.1');
-  }
-
   async getDefaultPackageName(): Promise<string | undefined> {
     const packageManifest = await this.getPackageManifest();
     if (packageManifest) {

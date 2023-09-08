@@ -195,10 +195,6 @@ export class GoYoshi extends BaseStrategy {
     );
     return releaseNotes.replace(/, closes /g, ', refs ');
   }
-
-  protected initialReleaseVersion(): Version {
-    return Version.parse('0.0.1');
-  }
 }
 
 function commitMatchesScope(commitScope: string, scope: string): boolean {
