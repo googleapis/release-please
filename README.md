@@ -63,7 +63,7 @@ A linear git history makes it much easier to:
   change introduced a bug
 * Control the release-please changelog - when you merge a PR, you may have
   commit messages that make sense within the scope of the PR, but don't
-  make sense when merged in the main branch. For example, you make have
+  make sense when merged in the main branch. For example, you may have
   `feat: introduce feature A` and then `fix: some bugfix introduced in
   the first commit`. The `fix` commit is actually irrelevant to the release
   notes as there was never a bug experienced in the main branch.
