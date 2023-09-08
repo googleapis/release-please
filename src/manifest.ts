@@ -270,7 +270,7 @@ const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
-interface CreatedRelease extends GitHubRelease {
+export interface CreatedRelease extends GitHubRelease {
   id: number;
   path: string;
   version: string;
