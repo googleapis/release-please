@@ -499,6 +499,13 @@
 * release PRs should target main to update changelog, manifest, etc ([b44b1c5](https://github.com/stainless-api/release-please/commit/b44b1c5a716639e7ef6215fef4aa718a3800c2cd))
 * use merge no-ff instead of rebase ([d67f3bf](https://github.com/stainless-api/release-please/commit/d67f3bf7ea9e39691cdbba34372b6e24aef143f0))
 
+## [15.13.0](https://github.com/googleapis/release-please/compare/v15.12.0...v15.13.0) (2023-08-18)
+
+
+### Features
+
+* Adds metadata versioning for terraform modules ([#2041](https://github.com/googleapis/release-please/issues/2041)) ([49b33c7](https://github.com/googleapis/release-please/commit/49b33c73b2571699ad8362f8b6b934154a6ce375))
+
 ## [15.12.0](https://github.com/googleapis/release-please/compare/v15.11.2...v15.12.0) (2023-07-11)
 
 
