@@ -5,8 +5,6 @@
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
-    "test:node14": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --require build/test/_fetch-polyfill.js --recursive --timeout=5000 build/test",
-    "test:node16": "npm run test:node14",
     "test:node18": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --node-option no-experimental-fetch --require build/test/_fetch-polyfill.js --recursive --timeout=5000 build/test",
     "test:node20": "npm run test:node18",
     "test": "npm run test:node18",
