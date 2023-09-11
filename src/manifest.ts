@@ -1423,6 +1423,8 @@ export class Manifest {
       prerelease: release.prerelease,
     });
 
+    await this.github.waitForRelease(githubRelease);
+
     // comment on pull request
     const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
     await this.github.commentOnIssue(comment, release.pullRequest.number);

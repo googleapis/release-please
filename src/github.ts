@@ -2221,6 +2221,29 @@ export class GitHub {
       });
     }
   }
+
+  async waitForRelease({url, id}: GitHubRelease) {
+    for (let i = 0; i < 10; i++) {
+      try {
+        this.logger.debug(
+          `Checking if release ${url} is fetchable (attempt ${i + 1})...`
+        );
+        await this.octokit.repos.getRelease({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          release_id: id,
+        });
+        this.logger.debug(`Release found`);
+        return;
+      } catch (err: unknown) {
+        if (!isOctokitRequestError(err) || err.status !== 404) {
+          throw err;
+        }
+      }
+    }
+
+    this.logger.debug(`Release ${url} not found`);
+  }
 }
 
 /**
