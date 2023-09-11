@@ -11,8 +11,7 @@ branchProtectionRules:
       - cla/google
       - docs
       - lint
-      - test (14)
-      - test (16)
+      - test (18)
       - windows
   - pattern: 12.x
     isAdminEnforced: false
