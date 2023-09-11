@@ -1292,6 +1292,7 @@ export class Manifest {
   private async alignPullRequestsChangesBranch(pullRequests: PullRequest[]) {
     for (const pr of pullRequests) {
       const branchName = BranchName.parse(pr.headBranchName);
+
       // we only care about pull requests with an associated changes-branch
       if (!branchName?.changesBranch) {
         continue;
@@ -1355,6 +1356,27 @@ export class Manifest {
         branchName.changesBranch,
         this.targetBranch
       );
+
+      const version = PullRequestTitle.parse(pr.title)?.getVersion();
+      if (!version) {
+        this.logger.warn(
+          `PR #${pr.number} title missing a version number: '${pr.title}'`
+        );
+        continue;
+      }
+
+      await this.github.waitForFileToBeUpToDateOnBranch({
+        branch: branchName.changesBranch,
+        filePath: this.manifestPath,
+        predicateFn: (fileContent: string) => {
+          const json = JSON.parse(fileContent) as Record<string, any>;
+          if (!json) {
+            return false;
+          }
+          const path = branchName.getComponent() || '.';
+          return json[path] === version;
+        },
+      });
     }
   }
 
@@ -1423,7 +1445,7 @@ export class Manifest {
       prerelease: release.prerelease,
     });
 
-    await this.github.waitForRelease(githubRelease);
+    await this.github.waitForReleaseToBeListed(githubRelease);
 
     // comment on pull request
     const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
