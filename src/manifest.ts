@@ -1379,7 +1379,7 @@ export class Manifest {
             return false;
           }
           const path = branchName.getComponent() || '.';
-          return json[path] === version;
+          return json[path] === version.toString();
         },
       });
     }
