@@ -2258,13 +2258,8 @@ export class GitHub {
   }
 
   /**
-   * Waits for a file in a given branch to meet a specified condition, checking up to 10 times.
-   *
-   * @param {Function} params.checkFileStatus - A function that takes an object with either `fileContent` and `kind: 'success'`
-   *                                            or `error` and `kind: 'error'`. It should return a boolean indicating
-   *                                            whether the file is considered up to date and we should stop waiting.
-   *
-   * @throws Will throw if an error other than FileNotFound occurs while fetching the file.
+   * Waits for a file in a given branch to meet a specified condition, checking up to 10 times.*
+   * @throws Will throw the last returned error if
    **/
   async waitForFileToBeUpToDateOnBranch({
     branch,
@@ -2273,13 +2268,12 @@ export class GitHub {
   }: {
     branch: string;
     filePath: string;
-    checkFileStatus: (
-      arg:
-        | {fileContent: string; kind: 'success'}
-        | {error: FileNotFoundError; kind: 'error'}
-    ) => boolean;
+    checkFileStatus: (fileContent: string) => boolean;
   }) {
-    for (let attempt = 0; attempt < 10; attempt++) {
+    const maxAttempts = 10;
+
+    let lastError: Error | undefined = undefined;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
       this.logger.debug(
         `Checking if file ${filePath} on branch ${branch} is up to date on GitHub (attempt ${
           attempt + 1
@@ -2288,27 +2282,28 @@ export class GitHub {
 
       // ensure we are fetching from github directly and update the cache once we find the file to be up to date
       this.invalidateFileCache();
-      let upToDate = false;
       try {
         const file = await this.getFileContentsOnBranch(filePath, branch);
-        upToDate = checkFileStatus({
-          fileContent: file.parsedContent,
-          kind: 'success',
-        });
-      } catch (e: unknown) {
-        if (e instanceof FileNotFoundError) {
-          upToDate = checkFileStatus({error: e, kind: 'error'});
-        } else {
-          throw e;
+        const upToDate = checkFileStatus(file.parsedContent);
+        if (upToDate) {
+          this.logger.debug(
+            `File ${filePath} on branch ${branch} seems up to date on GitHub`
+          );
+          return;
         }
-      }
-      if (upToDate) {
-        this.logger.debug(
-          `File ${filePath} on branch ${branch} seems up to date on GitHub`
+      } catch (e: unknown) {
+        lastError = e as Error;
+        this.logger.warn(
+          `Failed to fetch ${filePath} on branch ${branch}`,
+          lastError
         );
-        return;
+        continue;
       }
       await sleepInMs(500 * attempt);
+    }
+
+    if (lastError) {
+      throw lastError;
     }
 
     // cache should be invalidated again to be sure we remove the last item we fetched
