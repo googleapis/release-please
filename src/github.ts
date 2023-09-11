@@ -2272,7 +2272,7 @@ export class GitHub {
   }) {
     const maxAttempts = 10;
 
-    let error: Error | undefined = undefined;
+    let notFoundError: FileNotFoundError | undefined = undefined;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       this.logger.debug(
         `Checking if file ${filePath} on branch ${branch} is up to date on GitHub (attempt ${
@@ -2283,7 +2283,7 @@ export class GitHub {
       // ensure we are fetching from github directly and update the cache once we find the file to be up to date
       this.invalidateFileCache();
 
-      error = undefined;
+      notFoundError = undefined;
       try {
         const file = await this.getFileContentsOnBranch(filePath, branch);
         const upToDate = checkFileStatus(file.parsedContent);
@@ -2294,17 +2294,21 @@ export class GitHub {
           return;
         }
       } catch (e: unknown) {
-        error = e as Error;
-        this.logger.warn(
-          `Failed to fetch ${filePath} on branch ${branch}`,
-          error
-        );
+        // other errors are already retried by octokit-plugin-retry
+        if (e instanceof FileNotFoundError) {
+          notFoundError = e;
+          this.logger.warn(
+            `Failed to fetch ${filePath} on branch ${branch}`,
+            notFoundError
+          );
+        } else {
+          throw e;
+        }
       }
       await sleepInMs(500 * attempt);
     }
-
-    if (error) {
-      throw error;
+    if (notFoundError) {
+      throw notFoundError;
     }
 
     // cache should be invalidated again to be sure we remove the last item we fetched
