@@ -2297,7 +2297,6 @@ export class GitHub {
           `Failed to fetch ${filePath} on branch ${branch}`,
           lastError
         );
-        continue;
       }
       await sleepInMs(500 * attempt);
     }
