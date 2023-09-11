@@ -2222,6 +2222,9 @@ export class GitHub {
     }
   }
 
+  /**
+   * Waits for a GitHub release to be listed by repeatedly polling the GitHub API.
+   */
   async waitForReleaseToBeListed({tagName, id}: GitHubRelease) {
     for (let attempt = 0; attempt < 10; attempt++) {
       this.logger.debug(
@@ -2254,14 +2257,27 @@ export class GitHub {
     this.logger.warn(`Release ${tagName} is not yet listed on GitHub`);
   }
 
+  /**
+   * Waits for a file in a given branch to meet a specified condition, checking up to 10 times.
+   *
+   * @param {Function} params.checkFileStatus - A function that takes an object with either `fileContent` and `kind: 'success'`
+   *                                            or `error` and `kind: 'error'`. It should return a boolean indicating
+   *                                            whether the file is considered up to date and we should stop waiting.
+   *
+   * @throws Will throw if an error other than FileNotFound occurs while fetching the file.
+   **/
   async waitForFileToBeUpToDateOnBranch({
     branch,
     filePath,
-    predicateFn,
+    checkFileStatus,
   }: {
     branch: string;
     filePath: string;
-    predicateFn: (fileContent: string) => boolean;
+    checkFileStatus: (
+      arg:
+        | {fileContent: string; kind: 'success'}
+        | {error: FileNotFoundError; kind: 'error'}
+    ) => boolean;
   }) {
     for (let attempt = 0; attempt < 10; attempt++) {
       this.logger.debug(
@@ -2272,8 +2288,20 @@ export class GitHub {
 
       // ensure we are fetching from github directly and update the cache once we find the file to be up to date
       this.invalidateFileCache();
-      const file = await this.getFileContentsOnBranch(filePath, branch);
-      const upToDate = predicateFn(file.parsedContent);
+      let upToDate = false;
+      try {
+        const file = await this.getFileContentsOnBranch(filePath, branch);
+        upToDate = checkFileStatus({
+          fileContent: file.parsedContent,
+          kind: 'success',
+        });
+      } catch (e: unknown) {
+        if (e instanceof FileNotFoundError) {
+          upToDate = checkFileStatus({error: e, kind: 'error'});
+        } else {
+          throw e;
+        }
+      }
       if (upToDate) {
         this.logger.debug(
           `File ${filePath} on branch ${branch} seems up to date on GitHub`

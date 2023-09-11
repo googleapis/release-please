@@ -1373,8 +1373,11 @@ export class Manifest {
       await this.github.waitForFileToBeUpToDateOnBranch({
         branch: branchName.changesBranch,
         filePath: this.manifestPath,
-        predicateFn: (fileContent: string) => {
-          const json = JSON.parse(fileContent) as Record<string, any>;
+        checkFileStatus: arg => {
+          if (arg.kind === 'error') {
+            throw arg.error;
+          }
+          const json = JSON.parse(arg.fileContent) as Record<string, any>;
           if (!json) {
             return false;
           }
