@@ -2224,7 +2224,7 @@ export class GitHub {
 
   async waitForReleaseToBeListed({tagName, id}: GitHubRelease) {
     for (let attempt = 0; attempt < 10; attempt++) {
-      this.logger.warn(
+      this.logger.debug(
         `Checking if release ${tagName} is listed on GitHub (attempt ${
           attempt + 1
         })...`
@@ -2248,7 +2248,7 @@ export class GitHub {
         return;
       }
 
-      await sleepInMs(100 * attempt);
+      await sleepInMs(500 * attempt);
     }
 
     this.logger.warn(`Release ${tagName} is not yet listed on GitHub`);
@@ -2264,7 +2264,7 @@ export class GitHub {
     predicateFn: (fileContent: string) => boolean;
   }) {
     for (let attempt = 0; attempt < 10; attempt++) {
-      this.logger.warn(
+      this.logger.debug(
         `Checking if file ${filePath} on branch ${branch} is up to date on GitHub (attempt ${
           attempt + 1
         })...`
@@ -2273,7 +2273,6 @@ export class GitHub {
       // ensure we are fetching from github directly and update the cache once we find the file to be up to date
       this.invalidateFileCache();
       const file = await this.getFileContentsOnBranch(filePath, branch);
-      this.logger.warn({file});
       const upToDate = predicateFn(file.parsedContent);
       if (upToDate) {
         this.logger.debug(
@@ -2281,7 +2280,7 @@ export class GitHub {
         );
         return;
       }
-      await sleepInMs(100 * attempt);
+      await sleepInMs(500 * attempt);
     }
 
     // cache should be invalidated again to be sure we remove the last item we fetched
@@ -2291,7 +2290,7 @@ export class GitHub {
     );
   }
 
-  private invalidateFileCache() {
+  invalidateFileCache() {
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
   }
 }

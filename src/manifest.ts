@@ -856,6 +856,8 @@ export class Manifest {
    * @returns {PullRequest[]} Pull request numbers of release pull requests
    */
   async createPullRequests(): Promise<(PullRequest | undefined)[]> {
+    this.github.invalidateFileCache();
+
     // register all possible labels to make them available to users through GitHub label dropdown
     await this.registerLabels();
 
@@ -1181,6 +1183,8 @@ export class Manifest {
    * @returns {GitHubRelease[]} List of created GitHub releases
    */
   async createReleases(): Promise<(CreatedRelease | undefined)[]> {
+    this.github.invalidateFileCache();
+
     const releasesByPullRequest: Record<number, CandidateRelease[]> = {};
     const pullRequestsByNumber: Record<number, PullRequest> = {};
 
@@ -1357,6 +1361,8 @@ export class Manifest {
         this.targetBranch
       );
 
+      // updating git branches isn't always instant and can take a bit of time to propagate throughout github systems,
+      // it is safer to wait a little bit before doing anything else
       const version = PullRequestTitle.parse(pr.title)?.getVersion();
       if (!version) {
         this.logger.warn(
@@ -1364,7 +1370,6 @@ export class Manifest {
         );
         continue;
       }
-
       await this.github.waitForFileToBeUpToDateOnBranch({
         branch: branchName.changesBranch,
         filePath: this.manifestPath,
