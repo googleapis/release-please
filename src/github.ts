@@ -2272,7 +2272,7 @@ export class GitHub {
   }) {
     const maxAttempts = 10;
 
-    let lastError: Error | undefined = undefined;
+    let error: Error | undefined = undefined;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       this.logger.debug(
         `Checking if file ${filePath} on branch ${branch} is up to date on GitHub (attempt ${
@@ -2282,6 +2282,8 @@ export class GitHub {
 
       // ensure we are fetching from github directly and update the cache once we find the file to be up to date
       this.invalidateFileCache();
+
+      error = undefined;
       try {
         const file = await this.getFileContentsOnBranch(filePath, branch);
         const upToDate = checkFileStatus(file.parsedContent);
@@ -2292,17 +2294,17 @@ export class GitHub {
           return;
         }
       } catch (e: unknown) {
-        lastError = e as Error;
+        error = e as Error;
         this.logger.warn(
           `Failed to fetch ${filePath} on branch ${branch}`,
-          lastError
+          error
         );
       }
       await sleepInMs(500 * attempt);
     }
 
-    if (lastError) {
-      throw lastError;
+    if (error) {
+      throw error;
     }
 
     // cache should be invalidated again to be sure we remove the last item we fetched
