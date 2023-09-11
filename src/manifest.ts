@@ -1394,12 +1394,19 @@ export class Manifest {
         if (arg.kind === 'error') {
           throw arg.error;
         }
-        const json = JSON.parse(arg.fileContent) as Record<string, any>;
+        const json = JSON.parse(arg.fileContent) as Record<string, unknown>;
         if (!json) {
           return false;
         }
         const path = branchName.getComponent() || '.';
-        return json[path] === version.toString();
+        const val = json[path];
+        if (typeof val !== 'string') {
+          this.logger.error(
+            `Value of manifest file ${this.manifestPath} at key '${path}' was not a string. value=${val}`
+          );
+          return false;
+        }
+        return val === version.toString();
       },
     });
   }
