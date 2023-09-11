@@ -145,3 +145,10 @@ export function isOctokitGraphqlResponseError(
   }
   return false;
 }
+
+export class AggregateError extends Error {
+  constructor(public errors: Error[], message?: string) {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
