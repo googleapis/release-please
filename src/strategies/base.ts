@@ -428,6 +428,30 @@ export abstract class BaseStrategy implements Strategy {
               );
           }
         }
+      } else if (extraFile.endsWith('.json')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new GenericJson('$.version', version),
+        });
+      } else if (extraFile.endsWith('.yaml') || extraFile.endsWith('.yml')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new GenericYaml('$.version', version),
+        });
+      } else if (extraFile.endsWith('.toml')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new GenericToml('$.version', version),
+        });
+      } else if (extraFile.endsWith('.xml')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new GenericXml('/*/version', version),
+        });
       } else {
         extraFileUpdates.push({
           path: this.addPath(extraFile),
