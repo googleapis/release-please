@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {PackageGraph} from '@lerna/package-graph';
+import {PackageGraph} from '@lerna-lite/core';
 import {
   Package as LernaPackage,
   RawManifest as PackageJson,
-} from '@lerna/package';
+} from '@lerna-lite/core';
 import {GitHub} from '../github';
 import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import {Version, VersionsMap} from '../version';
@@ -47,7 +47,11 @@ class Package extends LernaPackage {
   }
 
   clone() {
-    return new Package(this.rawContent, this.location, this.toJSON());
+    return new Package(
+      this.rawContent,
+      this.location,
+      this.toJSON() as PackageJson
+    );
   }
 }
 
