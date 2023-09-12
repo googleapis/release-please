@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const visit = require('unist-util-visit');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const visitWithAncestors = require('unist-util-visit-parents');
+import visit from 'unist-util-visit';
+import visitParents from 'unist-util-visit-parents';
 const NUMBER_REGEX = /^[0-9]+$/;
 import {PullRequest} from './pull-request';
 import {logger as defaultLogger, Logger} from './util/logger';
@@ -79,8 +77,8 @@ function toConventionalChangelogFormat(
   // Separate the body and summary nodes, this simplifies the subsequent
   // tree walking logic:
   let body;
-  let summary;
-  visit(ast, ['body', 'summary'], (node: parser.Node) => {
+  let summary: parser.Node;
+  visit.visit(ast, ['body', 'summary'], (node: parser.Node) => {
     switch (node.type) {
       case 'body':
         body = node;
@@ -92,22 +90,25 @@ function toConventionalChangelogFormat(
   });
 
   // <type>, "(", <scope>, ")", ["!"], ":", <whitespace>*, <text>
-  visit(summary, (node: SummaryNodes) => {
+  visit.visit(summary!, (node: parser.Node) => {
     switch (node.type) {
       case 'type':
-        headerCommit.type = node.value;
-        headerCommit.header += node.value;
+        const typeNode = node as parser.Type;
+        headerCommit.type = typeNode.value;
+        headerCommit.header += typeNode.value;
         break;
       case 'scope':
-        headerCommit.scope = node.value;
-        headerCommit.header += `(${node.value})`;
+        const scopeNode = node as parser.Scope;
+        headerCommit.scope = scopeNode.value;
+        headerCommit.header += `(${scopeNode.value})`;
         break;
       case 'breaking-change':
         headerCommit.header += '!';
         break;
       case 'text':
-        headerCommit.subject = node.value;
-        headerCommit.header += `: ${node.value}`;
+        const textNode = node as parser.Text;
+        headerCommit.subject = textNode.value;
+        headerCommit.header += `: ${textNode.value}`;
         break;
       default:
         break;
@@ -116,7 +117,7 @@ function toConventionalChangelogFormat(
 
   // [<any body-text except pre-footer>]
   if (body) {
-    visit(body, ['text', 'newline'], (node: parser.Text) => {
+    visit.visit(body, ['text', 'newline'], (node: parser.Text) => {
       headerCommit.body += node.value;
     });
   }
@@ -127,10 +128,11 @@ function toConventionalChangelogFormat(
     title: 'BREAKING CHANGE',
     text: '', // "text" will be populated if a BREAKING CHANGE token is parsed.
   };
-  visitWithAncestors(
+  visitParents.visitParents(
     ast,
     ['breaking-change'],
-    (node: parser.BreakingChange, ancestors: parser.Node[]) => {
+    (_node: parser.Node, ancestors: parser.Node[]) => {
+      const node = _node as parser.BreakingChange;
       let hitBreakingMarker = false;
       let parent = ancestors.pop();
       if (!parent) {
@@ -144,10 +146,11 @@ function toConventionalChangelogFormat(
           breaking.text = '';
           // We treat text from the BREAKING CHANGE marker forward as
           // the breaking change notes:
-          visit(
+          visit.visit(
             parent,
             ['breaking-change', 'text', 'newline'],
-            (node: SummaryNodes) => {
+            (_node: parser.Node) => {
+              const node = _node as SummaryNodes;
               if (node.type === 'breaking-change') {
                 hitBreakingMarker = true;
                 return;
@@ -162,8 +165,8 @@ function toConventionalChangelogFormat(
           // will be identified when the footer is parsed as a commit:
           if (!node.value.includes('BREAKING')) return;
           parent = ancestors.pop();
-          visit(parent, ['text', 'newline'], (node: parser.Text) => {
-            breaking.text = node.value;
+          visit.visit(parent!, ['text', 'newline'], (node: parser.Node) => {
+            breaking.text = (node as parser.Text).value;
           });
           break;
       }
@@ -179,41 +182,39 @@ function toConventionalChangelogFormat(
   //    issue: '1', raw: '#1',
   //    prefix: '#'
   // }]
-  visit(ast, ['footer'], (node: parser.Footer) => {
+  visit.visit(ast, ['footer'], (node: parser.Node) => {
     const reference: parser.Reference = {
       prefix: '#',
       action: '',
       issue: '',
     };
     let hasRefSepartor = false;
-    visit(
-      node,
-      ['type', 'separator', 'text'],
-      (node: parser.Type | parser.Separator | parser.Text) => {
-        switch (node.type) {
-          case 'type':
-            // refs, closes, etc:
-            // TODO(@bcoe): conventional-changelog does not currently use
-            // "reference.action" in its templates:
-            reference.action = node.value;
-            break;
-          case 'separator':
-            // Footer of the form "Refs #99":
-            if (node.value.includes('#')) hasRefSepartor = true;
-            break;
-          case 'text':
-            // Footer of the form "Refs: #99"
-            if (node.value.charAt(0) === '#') {
-              hasRefSepartor = true;
-              reference.issue = node.value.substring(1);
-              // TODO(@bcoe): what about references like "Refs: #99, #102"?
-            } else {
-              reference.issue = node.value;
-            }
-            break;
-        }
+    visit.visit(node, ['type', 'separator', 'text'], (node: parser.Node) => {
+      switch (node.type) {
+        case 'type':
+          // refs, closes, etc:
+          // TODO(@bcoe): conventional-changelog does not currently use
+          // "reference.action" in its templates:
+          reference.action = (node as parser.Type).value;
+          break;
+        case 'separator':
+          // Footer of the form "Refs #99":
+          if ((node as parser.Separator).value.includes('#'))
+            hasRefSepartor = true;
+          break;
+        case 'text':
+          const textNode = node as parser.Text;
+          // Footer of the form "Refs: #99"
+          if (textNode.value.charAt(0) === '#') {
+            hasRefSepartor = true;
+            reference.issue = textNode.value.substring(1);
+            // TODO(@bcoe): what about references like "Refs: #99, #102"?
+          } else {
+            reference.issue = textNode.value;
+          }
+          break;
       }
-    );
+    });
     // TODO(@bcoe): how should references like "Refs: v8:8940" work.
     if (hasRefSepartor && reference.issue.match(NUMBER_REGEX)) {
       headerCommit.references.push(reference);
@@ -228,10 +229,11 @@ function toConventionalChangelogFormat(
    *   PiperOrigin-RevId: 345559154
    * ...
    */
-  visitWithAncestors(
+  visitParents.visitParents(
     ast,
     ['type'],
-    (node: parser.Type, ancestors: parser.Node[]) => {
+    (_node: parser.Node, ancestors: parser.Node[]) => {
+      const node = _node as parser.Type;
       let parent = ancestors.pop();
       if (!parent) {
         return;
@@ -240,10 +242,11 @@ function toConventionalChangelogFormat(
         parent = ancestors.pop();
         let footerText = '';
         const semanticFooter = node.value.toLowerCase() === 'release-as';
-        visit(
-          parent,
+        visit.visit(
+          parent!,
           ['type', 'scope', 'breaking-change', 'separator', 'text', 'newline'],
-          (node: FooterNodes) => {
+          (_node: parser.Node) => {
+            const node = _node as FooterNodes;
             switch (node.type) {
               case 'scope':
                 footerText += `(${node.value})`;
@@ -263,8 +266,8 @@ function toConventionalChangelogFormat(
         // be added to the footer field, for the benefits of post-processing:
         if (semanticFooter) {
           let releaseAs = '';
-          visit(parent, ['text'], (node: parser.Text) => {
-            releaseAs = node.value;
+          visit.visit(parent!, ['text'], (node: parser.Node) => {
+            releaseAs = (node as parser.Text).value;
           });
           // record Release-As footer as a note
           headerCommit.notes.push({
