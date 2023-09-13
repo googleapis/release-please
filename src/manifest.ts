@@ -791,6 +791,34 @@ export class Manifest {
           sha: foundTag.sha,
           notes: '',
         };
+      } else {
+        if (
+          strategiesByPath[ROOT_PROJECT_PATH] &&
+          this.repositoryConfig[path].skipGithubRelease
+        ) {
+          this.logger.debug('could not find release, checking root package');
+          const rootComponent = await strategiesByPath[
+            ROOT_PROJECT_PATH
+          ].getComponent();
+          const rootTag = new TagName(
+            expectedVersion,
+            rootComponent,
+            this.repositoryConfig[ROOT_PROJECT_PATH].tagSeparator,
+            this.repositoryConfig[ROOT_PROJECT_PATH].includeVInTag
+          );
+          const foundTag = allTags[rootTag.toString()];
+          if (foundTag) {
+            this.logger.debug(
+              `found rootTag: ${foundTag.name} ${foundTag.sha}`
+            );
+            releasesByPath[path] = {
+              name: foundTag.name,
+              tag: rootTag,
+              sha: foundTag.sha,
+              notes: '',
+            };
+          }
+        }
       }
     }
     return releasesByPath;
