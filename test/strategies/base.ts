@@ -23,9 +23,9 @@ import snapshot = require('snap-shot-it');
 import {
   dateSafe,
   assertHasUpdate,
+  assertHasUpdates,
   buildMockConventionalCommit,
 } from '../helpers';
-import {CompositeUpdater} from '../../src/updaters/composite';
 import {GenericJson} from '../../src/updaters/generic-json';
 import {Generic} from '../../src/updaters/generic';
 import {GenericXml} from '../../src/updaters/generic-xml';
@@ -127,7 +127,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'manifest.json', CompositeUpdater);
+      assertHasUpdates(updates!, 'manifest.json', GenericJson, Generic);
     });
     it('updates extra YAML files with default', async () => {
       const strategy = new TestStrategy({
@@ -143,7 +143,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'pubspec.yaml', CompositeUpdater);
+      assertHasUpdates(updates!, 'pubspec.yaml', GenericYaml, Generic);
     });
     it('updates extra TOML files with default', async () => {
       const strategy = new TestStrategy({
@@ -159,7 +159,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'foo.toml', CompositeUpdater);
+      assertHasUpdates(updates!, 'foo.toml', GenericToml, Generic);
     });
     it('updates extra Xml files with default', async () => {
       const strategy = new TestStrategy({
@@ -175,7 +175,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'pom.xml', CompositeUpdater);
+      assertHasUpdates(updates!, 'pom.xml', GenericXml, Generic);
     });
     it('updates extra JSON files', async () => {
       const strategy = new TestStrategy({

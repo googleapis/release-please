@@ -460,6 +460,7 @@ export abstract class BaseStrategy implements Strategy {
           path: this.addPath(extraFile),
           createIfMissing: false,
           updater: new CompositeUpdater(
+            // Updates "version" element that is a child of the root element.
             new GenericXml('/*/version', version),
             new Generic({version, versionsMap})
           ),
