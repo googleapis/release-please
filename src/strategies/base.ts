@@ -35,7 +35,7 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {PullRequest} from '../pull-request';
-import {mergeUpdates} from '../updaters/composite';
+import {CompositeUpdater, mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
@@ -432,25 +432,37 @@ export abstract class BaseStrategy implements Strategy {
         extraFileUpdates.push({
           path: this.addPath(extraFile),
           createIfMissing: false,
-          updater: new GenericJson('$.version', version),
+          updater: new CompositeUpdater(
+            new GenericJson('$.version', version),
+            new Generic({version, versionsMap})
+          ),
         });
       } else if (extraFile.endsWith('.yaml') || extraFile.endsWith('.yml')) {
         extraFileUpdates.push({
           path: this.addPath(extraFile),
           createIfMissing: false,
-          updater: new GenericYaml('$.version', version),
+          updater: new CompositeUpdater(
+            new GenericYaml('$.version', version),
+            new Generic({version, versionsMap})
+          ),
         });
       } else if (extraFile.endsWith('.toml')) {
         extraFileUpdates.push({
           path: this.addPath(extraFile),
           createIfMissing: false,
-          updater: new GenericToml('$.version', version),
+          updater: new CompositeUpdater(
+            new GenericToml('$.version', version),
+            new Generic({version, versionsMap})
+          ),
         });
       } else if (extraFile.endsWith('.xml')) {
         extraFileUpdates.push({
           path: this.addPath(extraFile),
           createIfMissing: false,
-          updater: new GenericXml('/*/version', version),
+          updater: new CompositeUpdater(
+            new GenericXml('/*/version', version),
+            new Generic({version, versionsMap})
+          ),
         });
       } else {
         extraFileUpdates.push({

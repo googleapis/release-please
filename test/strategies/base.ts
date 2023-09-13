@@ -25,6 +25,7 @@ import {
   assertHasUpdate,
   buildMockConventionalCommit,
 } from '../helpers';
+import {CompositeUpdater} from '../../src/updaters/composite';
 import {GenericJson} from '../../src/updaters/generic-json';
 import {Generic} from '../../src/updaters/generic';
 import {GenericXml} from '../../src/updaters/generic-xml';
@@ -126,7 +127,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'manifest.json', GenericJson);
+      assertHasUpdate(updates!, 'manifest.json', CompositeUpdater);
     });
     it('updates extra YAML files with default', async () => {
       const strategy = new TestStrategy({
@@ -142,7 +143,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'pubspec.yaml', GenericYaml);
+      assertHasUpdate(updates!, 'pubspec.yaml', CompositeUpdater);
     });
     it('updates extra TOML files with default', async () => {
       const strategy = new TestStrategy({
@@ -158,7 +159,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'foo.toml', GenericToml);
+      assertHasUpdate(updates!, 'foo.toml', CompositeUpdater);
     });
     it('updates extra Xml files with default', async () => {
       const strategy = new TestStrategy({
@@ -174,7 +175,7 @@ describe('Strategy', () => {
       expect(pullRequest).to.exist;
       const updates = pullRequest?.updates;
       expect(updates).to.be.an('array');
-      assertHasUpdate(updates!, 'pom.xml', GenericXml);
+      assertHasUpdate(updates!, 'pom.xml', CompositeUpdater);
     });
     it('updates extra JSON files', async () => {
       const strategy = new TestStrategy({
