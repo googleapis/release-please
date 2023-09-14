@@ -1043,7 +1043,7 @@ export class Manifest {
         fork: this.fork,
         draft: pullRequest.draft,
         reviewers: this.reviewers,
-        autoMerge: this.autoMerge,
+        autoMerge: this.pullRequestAutoMergeOption(pullRequest),
       }
     );
 
@@ -1076,7 +1076,7 @@ export class Manifest {
         reviewers: this.reviewers,
         signoffUser: this.signoffUser,
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
-        autoMerge: this.autoMerge,
+        autoMerge: this.pullRequestAutoMergeOption(pullRequest),
       }
     );
 
@@ -1104,7 +1104,7 @@ export class Manifest {
         fork: this.fork,
         signoffUser: this.signoffUser,
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
-        autoMerge: this.autoMerge,
+        autoMerge: this.pullRequestAutoMergeOption(pullRequest),
       }
     );
     // TODO: consider leaving the snooze label
@@ -1543,6 +1543,27 @@ export class Manifest {
       }
     }
     return this._pathsByComponent;
+  }
+
+  /**
+   * Only return the auto-merge option if the release pull request has non-breaking changes.
+   */
+  pullRequestAutoMergeOption(
+    pullRequest: ReleasePullRequest
+  ): {mergeMethod: MergeMethod} | undefined {
+    const versionBump =
+      pullRequest.version &&
+      pullRequest.previousVersion &&
+      pullRequest.version.compareBump(pullRequest.previousVersion);
+    if (
+      versionBump &&
+      (versionBump === 'minor' ||
+        versionBump === 'patch' ||
+        versionBump === 'build')
+    ) {
+      return this.autoMerge;
+    }
+    return undefined;
   }
 }
 

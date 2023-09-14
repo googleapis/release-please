@@ -1656,6 +1656,10 @@ describe('Manifest', () => {
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.version?.toString()).to.eql('1.0.1');
+        expect(pullRequest.previousVersion?.toString()).to.eql('1.0.0');
+        expect(
+          pullRequest.version!.compareBump(pullRequest.previousVersion!)
+        ).to.eql('patch');
         // simple release type updates the changelog and version.txt
         assertHasUpdate(pullRequest.updates, 'CHANGELOG.md');
         assertHasUpdate(pullRequest.updates, 'version.txt');
@@ -1862,6 +1866,10 @@ describe('Manifest', () => {
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.previousVersion?.toString()).to.eql('1.0.0');
+      expect(
+        pullRequest.version!.compareBump(pullRequest.previousVersion!)
+      ).to.eql('patch');
       expect(pullRequest.headRefName).to.eql(
         'release-please--branches--main--components--pkg1'
       );
@@ -3385,6 +3393,10 @@ version = "3.0.0"
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.2.4-SNAPSHOT');
+      expect(pullRequest.previousVersion?.toString()).to.eql('1.2.3');
+      expect(
+        pullRequest.version!.compareBump(pullRequest.previousVersion!)
+      ).to.eql('patch');
       // simple release type updates the changelog and version.txt
       assertNoHasUpdate(pullRequest.updates, 'CHANGELOG.md');
       assertNoHasUpdate(pullRequest.updates, '.release-please-manifest.json');
@@ -3450,6 +3462,10 @@ version = "3.0.0"
         expect(pullRequests).lengthOf(1);
         const pullRequest = pullRequests[0];
         expect(pullRequest.version?.toString()).to.eql('1.0.1-SNAPSHOT');
+        expect(pullRequest.previousVersion?.toString()).to.eql('1.0.0');
+        expect(
+          pullRequest.version!.compareBump(pullRequest.previousVersion!)
+        ).to.eql('patch');
         expect(pullRequest.headRefName).to.eql(
           'release-please--branches--main'
         );
@@ -3850,6 +3866,10 @@ version = "3.0.0"
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.previousVersion?.toString()).to.eql('1.0.0');
+      expect(
+        pullRequest.version!.compareBump(pullRequest.previousVersion!)
+      ).to.eql('patch');
       expect(pullRequest.headRefName).to.eql(
         'release-please--branches--main--components--pkg1'
       );
@@ -4004,6 +4024,10 @@ version = "3.0.0"
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.previousVersion?.toString()).to.eql('1.0.0');
+      expect(
+        pullRequest.version!.compareBump(pullRequest.previousVersion!)
+      ).to.eql('patch');
       expect(pullRequest.headRefName).to.eql(
         'release-please--branches--main--components--pkg1'
       );
@@ -4075,6 +4099,10 @@ version = "3.0.0"
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.previousVersion?.toString()).to.eql('1.0.0');
+      expect(
+        pullRequest.version!.compareBump(pullRequest.previousVersion!)
+      ).to.eql('patch');
       expect(pullRequest.headRefName).to.eql(
         'release-please--branches--main--components--pkg1'
       );

@@ -23,6 +23,7 @@ export interface ReleasePullRequest {
   labels: string[];
   readonly headRefName: string;
   readonly version?: Version;
+  readonly previousVersion?: Version;
   readonly draft: boolean;
   readonly group?: string;
   updates: Update[];
