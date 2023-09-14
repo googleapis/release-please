@@ -1311,7 +1311,7 @@ export class GitHub {
         } catch (e: unknown) {
           this.logger.warn(
             isOctokitGraphqlResponseError(e) ? e.errors || [] : (e as {}),
-            `Failed to enable auto merge. Continuing.`
+            'Failed to enable auto merge. Continuing.'
           );
         }
       }

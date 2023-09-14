@@ -36,8 +36,6 @@ import {fail} from 'assert';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import * as codeSuggesterCommitAndPush from 'code-suggester/build/src/github/commit-and-push';
-import * as codeSuggesterLabels from 'code-suggester/build/src/github/labels';
-import {RawContent} from '../src/updaters/raw-content';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {Commit} from '../src/commit';
