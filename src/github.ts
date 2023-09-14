@@ -214,7 +214,7 @@ interface FileDiff {
 }
 export type ChangeSet = Map<string, FileDiff>;
 
-export type MergeMethod = 'MERGE' | 'SQUASH' | 'REBASE';
+export type MergeMethod = 'merge' | 'squash' | 'rebase';
 
 interface CreatePullRequestOptions {
   fork?: boolean;
@@ -2356,7 +2356,7 @@ export class GitHub {
     const response = await this.graphqlRequest({
       query: mutation,
       pullRequestId,
-      mergeMethod,
+      mergeMethod: mergeMethod.toUpperCase(),
     });
 
     this.logger.debug({response}, 'mutatePullrequestEnableAutoMerge');
@@ -2366,11 +2366,33 @@ export class GitHub {
     pullRequestNumber: number,
     mergeMethod: MergeMethod
   ) {
+    this.logger.debug('Enable PR auto-merge');
     const prId = await this.queryPullRequestId(pullRequestNumber);
     if (!prId) {
       throw new Error(`No id found for pull request ${pullRequestNumber}`);
     }
-    await this.mutatePullRequestEnableAutoMerge(prId, mergeMethod);
+    try {
+      await this.mutatePullRequestEnableAutoMerge(prId, mergeMethod);
+    } catch (e: unknown) {
+      if (
+        isOctokitGraphqlResponseError(e) &&
+        (e.errors || []).find(
+          err =>
+            err.type === 'UNPROCESSABLE' &&
+            err.message.includes('Pull request is in clean status')
+        )
+      ) {
+        this.logger.debug(
+          'PR can be merged directly, do it instead of via GitHub auto-merge'
+        );
+        this.octokit.pulls.merge({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          pull_number: pullRequestNumber,
+          merge_method: mergeMethod,
+        });
+      }
+    }
   }
 }
 
