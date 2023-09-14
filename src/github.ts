@@ -28,6 +28,7 @@ import {
   FileNotFoundError,
   ConfigurationError,
   isOctokitRequestError,
+  isOctokitGraphqlResponseError,
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
@@ -213,10 +214,15 @@ interface FileDiff {
 }
 export type ChangeSet = Map<string, FileDiff>;
 
+export type MergeMethod = 'MERGE' | 'SQUASH' | 'REBASE';
+
 interface CreatePullRequestOptions {
   fork?: boolean;
   draft?: boolean;
   reviewers?: string[];
+  autoMerge?: {
+    mergeMethod: MergeMethod;
+  };
   /**
    * If the number of an existing pull request is passed, its HEAD branch and attributes (title, labels, etc) will be
    * updated instead of creating a new pull request.
@@ -228,6 +234,9 @@ interface UpdatePullRequestOptions {
   signoffUser?: string;
   fork?: boolean;
   reviewers?: string[];
+  autoMerge?: {
+    mergeMethod: MergeMethod;
+  };
   pullRequestOverflowHandler?: PullRequestOverflowHandler;
 }
 
@@ -1292,6 +1301,18 @@ export class GitHub {
         pullRequest.labels
       );
 
+      // attempt to enable auto-merge
+      if (options?.autoMerge) {
+        try {
+          await this.enablePullRequestAutoMerge(
+            pullRequestNumber,
+            options.autoMerge.mergeMethod
+          );
+        } catch (e: unknown) {
+          this.logger.warn(e as {}, `Failed to enable auto merge. Continuing.`);
+        }
+      }
+
       // assign reviewers
       if (options?.reviewers) {
         try {
@@ -1301,11 +1322,10 @@ export class GitHub {
             pull_number: pullRequestNumber,
             reviewers: options.reviewers,
           });
-        } catch (error) {
-          console.log(
-            `Failed to add reviewers. Continuing anyway: ${
-              isOctokitRequestError(error) ? error.message : error
-            }`
+        } catch (error: unknown) {
+          this.logger.warn(
+            isOctokitRequestError(error) ? error.message : (error as {}),
+            'Failed to add reviewers. Continuing.'
           );
         }
       }
@@ -1392,6 +1412,7 @@ export class GitHub {
           fork: options?.fork,
           reviewers: options?.reviewers,
           existingPrNumber: number,
+          autoMerge: options?.autoMerge,
         }
       );
 
@@ -2276,6 +2297,77 @@ export class GitHub {
 
   invalidateFileCache() {
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
+  }
+
+  private async queryPullRequestId(
+    pullRequestNumber: number
+  ): Promise<string | undefined> {
+    const query = `query pullRequestId($owner: String!, $repo: String!, $pullRequestNumber: Int!) {
+        repository(name: $repo, owner: $owner) {
+          pullRequest(number: $pullRequestNumber) {
+            id
+          }
+        }
+      }`;
+    const response = await this.graphqlRequest({
+      query,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      pullRequestNumber,
+    });
+
+    this.logger.debug(response, 'queryPullrequestId');
+
+    const id = response?.repository?.pullRequest?.id;
+    if (id) {
+      return id as string;
+    }
+    return undefined;
+  }
+
+  private async mutatePullRequestEnableAutoMerge(
+    pullRequestId: string,
+    mergeMethod: MergeMethod
+  ) {
+    const mutation = `mutation mutateEnableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod) {
+      enablePullRequestAutoMerge(
+        input: {pullRequestId: $pullRequestId, mergeMethod: $mergeMethod}
+      ) {
+        pullRequest {
+          autoMergeRequest{
+            authorEmail,
+            commitBody,
+            commitHeadline,
+            enabledAt,
+            enabledBy {
+              login
+            },
+            mergeMethod,
+            pullRequest{
+              id
+            }
+          }
+        }
+      }
+    }`;
+    const response = await this.graphqlRequest({
+      query: mutation,
+      pullRequestId,
+      mergeMethod,
+    });
+
+    this.logger.debug({response}, 'mutatePullrequestEnableAutoMerge');
+  }
+
+  private async enablePullRequestAutoMerge(
+    pullRequestNumber: number,
+    mergeMethod: MergeMethod
+  ) {
+    const prId = await this.queryPullRequestId(pullRequestNumber);
+    if (!prId) {
+      throw new Error(`No id found for pull request ${pullRequestNumber}`);
+    }
+    await this.mutatePullRequestEnableAutoMerge(prId, mergeMethod);
   }
 }
 

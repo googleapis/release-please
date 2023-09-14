@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease, GitHubTag} from './github';
+import {GitHub, GitHubRelease, GitHubTag, MergeMethod} from './github';
 import {Version, VersionsMap} from './version';
 import {Commit, parseConventionalCommits} from './commit';
 import {PullRequest} from './pull-request';
@@ -188,6 +188,7 @@ export interface ManifestOptions {
   plugins?: PluginType[];
   fork?: boolean;
   reviewers?: string[];
+  autoMerge?: {mergeMethod: MergeMethod};
   signoff?: string;
   manifestPath?: string;
   labels?: string[];
@@ -293,6 +294,7 @@ export class Manifest {
   private separatePullRequests: boolean;
   readonly fork: boolean;
   private reviewers: string[];
+  private autoMerge?: {mergeMethod: MergeMethod};
   private signoffUser?: string;
   private labels: string[];
   private skipLabeling?: boolean;
@@ -362,6 +364,7 @@ export class Manifest {
       Object.keys(repositoryConfig).length === 1;
     this.fork = manifestOptions?.fork || false;
     this.reviewers = manifestOptions?.reviewers ?? [];
+    this.autoMerge = manifestOptions?.autoMerge;
     this.signoffUser = manifestOptions?.signoff;
     this.releaseLabels =
       manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
@@ -1040,6 +1043,7 @@ export class Manifest {
         fork: this.fork,
         draft: pullRequest.draft,
         reviewers: this.reviewers,
+        autoMerge: this.autoMerge,
       }
     );
 
@@ -1072,6 +1076,7 @@ export class Manifest {
         reviewers: this.reviewers,
         signoffUser: this.signoffUser,
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
+        autoMerge: this.autoMerge,
       }
     );
 
@@ -1099,6 +1104,7 @@ export class Manifest {
         fork: this.fork,
         signoffUser: this.signoffUser,
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
+        autoMerge: this.autoMerge,
       }
     );
     // TODO: consider leaving the snooze label
