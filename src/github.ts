@@ -1309,7 +1309,10 @@ export class GitHub {
             options.autoMerge.mergeMethod
           );
         } catch (e: unknown) {
-          this.logger.warn(e as {}, `Failed to enable auto merge. Continuing.`);
+          this.logger.warn(
+            isOctokitGraphqlResponseError(e) ? e.errors || [] : (e as {}),
+            `Failed to enable auto merge. Continuing.`
+          );
         }
       }
 
