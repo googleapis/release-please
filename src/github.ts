@@ -2391,6 +2391,8 @@ export class GitHub {
           pull_number: pullRequestNumber,
           merge_method: mergeMethod,
         });
+      } else {
+        throw e;
       }
     }
   }
