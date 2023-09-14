@@ -1218,54 +1218,6 @@ export class GitHub {
   );
 
   /**
-   * Open a pull request
-   *
-   * @deprecated This logic is handled by the Manifest class now as it
-   *   can be more complicated if the release notes are too big
-   * @param {ReleasePullRequest} releasePullRequest Pull request data to update
-   * @param {string} targetBranch The base branch of the pull request
-   * @param {GitHubPR} options The pull request options
-   * @throws {GitHubAPIError} on an API error
-   */
-  async createReleasePullRequest(
-    releasePullRequest: ReleasePullRequest,
-    targetBranch: string,
-    changesBranch: string,
-    options?: {
-      signoffUser?: string;
-      fork?: boolean;
-      skipLabeling?: boolean;
-    }
-  ): Promise<PullRequest> {
-    let message = releasePullRequest.title.toString();
-    if (options?.signoffUser) {
-      message = signoffCommitMessage(message, options.signoffUser);
-    }
-    const pullRequestLabels: string[] = options?.skipLabeling
-      ? []
-      : releasePullRequest.labels;
-    return await this.createPullRequest(
-      {
-        headBranchName: releasePullRequest.headRefName,
-        baseBranchName: targetBranch,
-        number: -1,
-        title: releasePullRequest.title.toString(),
-        body: releasePullRequest.body.toString().slice(0, MAX_ISSUE_BODY_SIZE),
-        labels: pullRequestLabels,
-        files: [],
-      },
-      targetBranch,
-      changesBranch,
-      message,
-      releasePullRequest.updates,
-      {
-        fork: options?.fork,
-        draft: releasePullRequest.draft,
-      }
-    );
-  }
-
-  /**
    * Open a pull request and its release branch
    *
    * @param {PullRequest} pullRequest Pull request data to update

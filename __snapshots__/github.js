@@ -451,30 +451,6 @@ exports['GitHub createRelease should raise a RequestError for other validation e
   "target_commitish": "abc123"
 }
 
-exports['GitHub createReleasePullRequest should create missing file 1'] = {
-  "title": "chore(main): release",
-  "head": "release-please--branches--main",
-  "base": "main",
-  "body": ":sparkles: Stainless prepared a new release\n---\n\n\n\n\n---\nThis Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.\nFor a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).\n\n_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.",
-  "draft": false
-}
-
-exports['GitHub createReleasePullRequest should handle missing files 1'] = {
-  "title": "chore(main): release",
-  "head": "release-please--branches--main",
-  "base": "main",
-  "body": ":sparkles: Stainless prepared a new release\n---\n\n\n\n\n---\nThis Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.\nFor a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).\n\n_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.",
-  "draft": false
-}
-
-exports['GitHub createReleasePullRequest should update file 1'] = {
-  "title": "chore(main): release",
-  "head": "release-please--branches--main",
-  "base": "main",
-  "body": ":sparkles: Stainless prepared a new release\n---\n\n\n\n\n---\nThis Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.\nFor a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).\n\n_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.",
-  "draft": false
-}
-
 exports['GitHub findFilesByExtension returns files matching the requested pattern 1'] = [
   "appengine/pom.xml",
   "bom/pom.xml",
