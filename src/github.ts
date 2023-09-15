@@ -1302,12 +1302,14 @@ export class GitHub {
       );
 
       // attempt to enable auto-merge
+      let directlyMerged = false;
       if (options?.autoMerge) {
         try {
-          await this.enablePullRequestAutoMerge(
+          const result = await this.enablePullRequestAutoMerge(
             pullRequestNumber,
             options.autoMerge.mergeMethod
           );
+          directlyMerged = result === 'direct-merged';
         } catch (e: unknown) {
           this.logger.warn(
             isOctokitGraphqlResponseError(e) ? e.errors || [] : (e as {}),
@@ -1317,7 +1319,7 @@ export class GitHub {
       }
 
       // assign reviewers
-      if (options?.reviewers) {
+      if (!directlyMerged && options?.reviewers) {
         try {
           await this.octokit.pulls.requestReviewers({
             owner: this.repository.owner,
@@ -2365,7 +2367,7 @@ export class GitHub {
   private async enablePullRequestAutoMerge(
     pullRequestNumber: number,
     mergeMethod: MergeMethod
-  ) {
+  ): Promise<'auto-merged' | 'direct-merged'> {
     this.logger.debug('Enable PR auto-merge');
     const prId = await this.queryPullRequestId(pullRequestNumber);
     if (!prId) {
@@ -2373,6 +2375,7 @@ export class GitHub {
     }
     try {
       await this.mutatePullRequestEnableAutoMerge(prId, mergeMethod);
+      return 'auto-merged';
     } catch (e: unknown) {
       if (
         isOctokitGraphqlResponseError(e) &&
@@ -2391,6 +2394,7 @@ export class GitHub {
           pull_number: pullRequestNumber,
           merge_method: mergeMethod,
         });
+        return 'direct-merged';
       } else {
         throw e;
       }
