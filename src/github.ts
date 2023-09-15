@@ -1311,7 +1311,7 @@ export class GitHub {
           );
           directlyMerged = result === 'direct-merged';
         } catch (e: unknown) {
-          this.logger.warn(
+          this.logger.error(
             isOctokitGraphqlResponseError(e) ? e.errors || [] : (e as {}),
             'Failed to enable auto merge. Continuing.'
           );
@@ -1328,7 +1328,7 @@ export class GitHub {
             reviewers: options.reviewers,
           });
         } catch (error: unknown) {
-          this.logger.warn(
+          this.logger.error(
             isOctokitRequestError(error) ? error.message : (error as {}),
             'Failed to add reviewers. Continuing.'
           );
