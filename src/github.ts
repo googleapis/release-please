@@ -72,6 +72,7 @@ export interface GitHubOptions {
   octokitAPIs: OctokitAPIs;
   logger?: Logger;
   useGraphql?: boolean;
+  graphqlRetries?: number;
 }
 
 interface ProxyOption {
@@ -92,6 +93,7 @@ interface GitHubCreateOptions {
   useGraphql?: boolean;
   retries?: number;
   throttlingRetries?: number;
+  graphqlRetries?: number;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -248,6 +250,7 @@ export class GitHub {
   private fileCache: RepositoryFileCache;
   private logger: Logger;
   private useGraphql: boolean;
+  private graphqlRetries: number;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
@@ -257,6 +260,7 @@ export class GitHub {
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
     this.useGraphql = options.useGraphql ?? true;
+    this.graphqlRetries = options.graphqlRetries ?? 5;
 
     // required to be able to rely on functions from code-suggester
     setupLogger(this.logger);
@@ -373,7 +377,7 @@ export class GitHub {
       }),
     };
 
-    const opts = {
+    const opts: GitHubOptions = {
       repository: {
         owner: options.owner,
         repo: options.repo,
@@ -388,6 +392,7 @@ export class GitHub {
       octokitAPIs: apis,
       logger,
       useGraphql: options.useGraphql,
+      graphqlRetries: options.graphqlRetries,
     };
     return new GitHub(opts);
   }
@@ -745,7 +750,7 @@ export class GitHub {
         maxRetries?: number;
       }
     ) => {
-      let maxRetries = options?.maxRetries ?? 5;
+      let maxRetries = options?.maxRetries ?? this.graphqlRetries;
       let seconds = 1;
       while (maxRetries >= 0) {
         try {
@@ -2388,7 +2393,7 @@ export class GitHub {
         this.logger.debug(
           'PR can be merged directly, do it instead of via GitHub auto-merge'
         );
-        this.octokit.pulls.merge({
+        await this.octokit.pulls.merge({
           owner: this.repository.owner,
           repo: this.repository.repo,
           pull_number: pullRequestNumber,

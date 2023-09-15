@@ -411,6 +411,23 @@ exports['GitHub commitsSince paginates through commits 1'] = [
   }
 ]
 
+exports['GitHub createPullRequest handles auto-merge option 1'] = {
+  "query": "query pullRequestId($owner: String!, $repo: String!, $pullRequestNumber: Int!) {\n        repository(name: $repo, owner: $owner) {\n          pullRequest(number: $pullRequestNumber) {\n            id\n          }\n        }\n      }",
+  "variables": {
+    "owner": "fake",
+    "repo": "fake",
+    "pullRequestNumber": 123
+  }
+}
+
+exports['GitHub createPullRequest handles auto-merge option 2'] = {
+  "query": "mutation mutateEnableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod) {\n      enablePullRequestAutoMerge(\n        input: {pullRequestId: $pullRequestId, mergeMethod: $mergeMethod}\n      ) {\n        pullRequest {\n          autoMergeRequest{\n            authorEmail,\n            commitBody,\n            commitHeadline,\n            enabledAt,\n            enabledBy {\n              login\n            },\n            mergeMethod,\n            pullRequest{\n              id\n            }\n          }\n        }\n      }\n    }",
+  "variables": {
+    "pullRequestId": "someIdForPR123",
+    "mergeMethod": "REBASE"
+  }
+}
+
 exports['GitHub createRelease should create a draft release 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
@@ -1289,3 +1306,20 @@ exports['GitHub pullRequestIterator uses REST API if files are not needed 1'] = 
     "sha": "abc123"
   }
 ]
+
+exports['GitHub updatePullRequest handles auto-merge option 1'] = {
+  "query": "query pullRequestId($owner: String!, $repo: String!, $pullRequestNumber: Int!) {\n        repository(name: $repo, owner: $owner) {\n          pullRequest(number: $pullRequestNumber) {\n            id\n          }\n        }\n      }",
+  "variables": {
+    "owner": "fake",
+    "repo": "fake",
+    "pullRequestNumber": 123
+  }
+}
+
+exports['GitHub updatePullRequest handles auto-merge option 2'] = {
+  "query": "mutation mutateEnableAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod) {\n      enablePullRequestAutoMerge(\n        input: {pullRequestId: $pullRequestId, mergeMethod: $mergeMethod}\n      ) {\n        pullRequest {\n          autoMergeRequest{\n            authorEmail,\n            commitBody,\n            commitHeadline,\n            enabledAt,\n            enabledBy {\n              login\n            },\n            mergeMethod,\n            pullRequest{\n              id\n            }\n          }\n        }\n      }\n    }",
+  "variables": {
+    "pullRequestId": "someIdForPR123",
+    "mergeMethod": "REBASE"
+  }
+}
