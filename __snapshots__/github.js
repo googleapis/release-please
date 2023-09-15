@@ -428,6 +428,15 @@ exports['GitHub createPullRequest handles auto-merge option 2'] = {
   }
 }
 
+exports['GitHub createPullRequest merges release PR directly when an auto-merge given but PR in "clean status" 1'] = {
+  "query": "query pullRequestId($owner: String!, $repo: String!, $pullRequestNumber: Int!) {\n        repository(name: $repo, owner: $owner) {\n          pullRequest(number: $pullRequestNumber) {\n            id\n          }\n        }\n      }",
+  "variables": {
+    "owner": "fake",
+    "repo": "fake",
+    "pullRequestNumber": 123
+  }
+}
+
 exports['GitHub createRelease should create a draft release 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
@@ -1321,5 +1330,14 @@ exports['GitHub updatePullRequest handles auto-merge option 2'] = {
   "variables": {
     "pullRequestId": "someIdForPR123",
     "mergeMethod": "REBASE"
+  }
+}
+
+exports['GitHub updatePullRequest merges release PR directly when an auto-merge given but PR in "clean status" 1'] = {
+  "query": "query pullRequestId($owner: String!, $repo: String!, $pullRequestNumber: Int!) {\n        repository(name: $repo, owner: $owner) {\n          pullRequest(number: $pullRequestNumber) {\n            id\n          }\n        }\n      }",
+  "variables": {
+    "owner": "fake",
+    "repo": "fake",
+    "pullRequestNumber": 123
   }
 }
