@@ -529,6 +529,34 @@ describe('Manifest', () => {
         'custom: pre-release',
       ]);
     });
+
+    it('should read reviewers from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'next')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/reviewers.json')
+        )
+        .withArgs('.release-please-manifest.json', 'next')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch,
+        undefined,
+        undefined,
+        {changesBranch: 'next'}
+      );
+      expect(manifest['reviewers']).to.deep.equal(['sam', 'frodo']);
+    });
+
     it('should read extra labels from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,

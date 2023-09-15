@@ -1,0 +1,12 @@
+{
+  "release-type": "simple",
+  "packages": {
+    ".": {
+      "component": "root"
+    }
+  },
+  "reviewers": [
+    "sam",
+    "frodo"
+  ]
+}
