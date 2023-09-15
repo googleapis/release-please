@@ -216,12 +216,19 @@ export type ChangeSet = Map<string, FileDiff>;
 interface CreatePullRequestOptions {
   fork?: boolean;
   draft?: boolean;
-  reviewers?: [string];
+  reviewers?: string[];
   /**
    * If the number of an existing pull request is passed, its HEAD branch and attributes (title, labels, etc) will be
    * updated instead of creating a new pull request.
    */
   existingPrNumber?: number;
+}
+
+interface UpdatePullRequestOptions {
+  signoffUser?: string;
+  fork?: boolean;
+  reviewers?: string[];
+  pullRequestOverflowHandler?: PullRequestOverflowHandler;
 }
 
 export class GitHub {
@@ -1397,11 +1404,7 @@ export class GitHub {
       releasePullRequest: ReleasePullRequest,
       baseBranch: string,
       refBranch: string,
-      options?: {
-        signoffUser?: string;
-        fork?: boolean;
-        pullRequestOverflowHandler?: PullRequestOverflowHandler;
-      }
+      options?: UpdatePullRequestOptions
     ): Promise<PullRequest> => {
       //  Update the files for the release if not already supplied
       let message = releasePullRequest.title.toString();
@@ -1435,6 +1438,7 @@ export class GitHub {
         releasePullRequest.updates,
         {
           fork: options?.fork,
+          reviewers: options?.reviewers,
           existingPrNumber: number,
         }
       );

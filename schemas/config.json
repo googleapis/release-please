@@ -113,6 +113,13 @@
           "description": "Customize the separator between the component and version in the GitHub tag.",
           "type": "string"
         },
+        "reviewers": {
+          "description": "Github usernames that should be assigned as reviewers to the release pull request",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "extra-files": {
           "description": "Specify extra generic files to replace versions.",
           "type": "array",
@@ -443,6 +450,7 @@
     "separate-pull-requests": true,
     "tag-separator": true,
     "extra-files": true,
+    "reviewers": true,
     "version-file": true,
     "snapshot-label": true,
     "initial-version": true,

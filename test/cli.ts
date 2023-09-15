@@ -28,27 +28,6 @@ import {ParseCallback} from 'yargs';
 
 const sandbox = sinon.createSandbox();
 
-// function callStub(
-//   instance: Manifest,
-//   method: ManifestMethod
-// ): ManifestCallResult;
-// function callStub(
-//   instance: ReleasePR,
-//   method: ReleasePRMethod
-// ): ReleasePRCallResult;
-// function callStub(
-//   instance: GitHubRelease,
-//   method: GitHubReleaseMethod
-// ): GitHubReleaseCallResult;
-// function callStub(
-//   instance: Manifest | ReleasePR | GitHubRelease,
-//   method: Method
-// ): CallResult {
-//   instanceToRun = instance;
-//   methodCalled = method;
-//   return Promise.resolve(undefined);
-// }
-
 describe('CLI', () => {
   let fakeGitHub: GitHub;
   let fakeManifest: Manifest;
@@ -665,6 +644,7 @@ describe('CLI', () => {
         );
         sinon.assert.calledOnce(createPullRequestsStub);
       });
+
       for (const flag of ['--target-branch', '--default-branch']) {
         it(`handles ${flag}`, async () => {
           await parser.parseAsync(
@@ -1239,6 +1219,32 @@ describe('CLI', () => {
           'main',
           sinon.match({releaseType: 'java-yoshi', includeComponentInTag: true}),
           sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createPullRequestsStub);
+      });
+
+      it('handles --reviewers', async () => {
+        await parser.parseAsync(
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --reviewers=sam,frodo'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
+          useGraphql: true,
+          retries: 3,
+          throttlingRetries: 3,
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({releaseType: 'java-yoshi', reviewers: ['sam', 'frodo']}),
+          sinon.match({}),
           undefined
         );
         sinon.assert.calledOnce(createPullRequestsStub);

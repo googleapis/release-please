@@ -21,7 +21,7 @@ import {
 } from '../manifest';
 
 const SCHEMA_URL =
-  'https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json';
+  'https://raw.githubusercontent.com/stainless-api/release-please/main/schemas/config.json';
 
 interface ManifestConfigFile extends ManifestConfig {
   $schema?: string;
@@ -80,7 +80,7 @@ function releaserConfigToJsonConfig(
     'tag-separator': config.tagSeparator,
     'extra-files': config.extraFiles,
     'version-file': config.versionFile,
-    'snapshot-label': config.snapshotLabels?.join(','), // Java-only
+    'snapshot-label': config.snapshotLabels?.join(','), // Java-only,
   };
   return jsonConfig;
 }

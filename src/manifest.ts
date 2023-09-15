@@ -132,6 +132,7 @@ export interface ReleaserConfig {
   skipSnapshot?: boolean;
   // Manifest only
   excludePaths?: string[];
+  reviewers?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -176,6 +177,7 @@ interface ReleaserConfigJson {
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
+  reviewers?: string[];
 }
 
 export interface ManifestOptions {
@@ -185,6 +187,7 @@ export interface ManifestOptions {
   separatePullRequests?: boolean;
   plugins?: PluginType[];
   fork?: boolean;
+  reviewers?: string[];
   signoff?: string;
   manifestPath?: string;
   labels?: string[];
@@ -289,6 +292,7 @@ export class Manifest {
   readonly changesBranch: string;
   private separatePullRequests: boolean;
   readonly fork: boolean;
+  private reviewers: string[];
   private signoffUser?: string;
   private labels: string[];
   private skipLabeling?: boolean;
@@ -357,6 +361,7 @@ export class Manifest {
       manifestOptions?.separatePullRequests ??
       Object.keys(repositoryConfig).length === 1;
     this.fork = manifestOptions?.fork || false;
+    this.reviewers = manifestOptions?.reviewers ?? [];
     this.signoffUser = manifestOptions?.signoff;
     this.releaseLabels =
       manifestOptions?.releaseLabels || DEFAULT_RELEASE_LABELS;
@@ -1034,6 +1039,7 @@ export class Manifest {
       {
         fork: this.fork,
         draft: pullRequest.draft,
+        reviewers: this.reviewers,
       }
     );
 
@@ -1063,6 +1069,7 @@ export class Manifest {
       this.changesBranch,
       {
         fork: this.fork,
+        reviewers: this.reviewers,
         signoffUser: this.signoffUser,
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
       }
@@ -1574,6 +1581,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    reviewers: config.reviewers,
   };
 }
 
@@ -1611,8 +1619,7 @@ async function parseConfig(
   const configReleaseLabel = config['release-label'];
   const configPreReleaseLabel = config['prerelease-label'];
   const configSnapshotLabel = config['snapshot-label'];
-  const configExtraLabel = config['extra-label'];
-  const manifestOptions = {
+  const manifestOptions: ManifestOptions = {
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
@@ -1623,10 +1630,10 @@ async function parseConfig(
     releaseLabels: configReleaseLabel?.split(','),
     prereleaseLabels: configPreReleaseLabel?.split(','),
     snapshotLabels: configSnapshotLabel?.split(','),
-    extraLabels: configExtraLabel?.split(','),
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
     sequentialCalls: config['sequential-calls'],
+    reviewers: config.reviewers,
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
@@ -1925,6 +1932,7 @@ function mergeReleaserConfig(
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    reviewers: pathConfig.reviewers ?? defaultConfig.reviewers,
   };
 }
 
