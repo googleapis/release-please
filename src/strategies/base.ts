@@ -324,7 +324,9 @@ export abstract class BaseStrategy implements Strategy {
         `PR already exists for ${existingPullRequest.headBranchName}, checking if PR title edited to set custom version`
       );
       const existingPRTitleVersion = PullRequestTitle.parse(
-        existingPullRequest.title
+        existingPullRequest.title,
+        this.pullRequestTitlePattern,
+        this.logger
       )?.getVersion();
       const hasCustomVersionLabel = existingPullRequest.labels.find(
         label => label === DEFAULT_CUSTOM_VERSION_LABEL

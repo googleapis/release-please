@@ -1380,7 +1380,12 @@ export class Manifest {
 
     // updating git branches isn't always instant and can take a bit of time to propagate throughout github systems,
     // it is safer to wait a little bit before doing anything else
-    const version = PullRequestTitle.parse(pr.title)?.getVersion();
+    const version = PullRequestTitle.parse(
+      pr.title,
+      this.repositoryConfig[branchName.getComponent() || '.']
+        ?.pullRequestTitlePattern,
+      this.logger
+    )?.getVersion();
     if (!version) {
       this.logger.warn(
         `PR #${pr.number} title missing a version number: '${pr.title}'`
