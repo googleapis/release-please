@@ -4,6 +4,28 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.0.0](https://github.com/googleapis/release-please/compare/v15.13.0...v16.0.0) (2023-09-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* require node 18+ ([#2069](https://github.com/googleapis/release-please/issues/2069))
+
+### Features
+
+* Fallback to root package version if package ignores github release ([#1935](https://github.com/googleapis/release-please/issues/1935)) ([0e11d4c](https://github.com/googleapis/release-please/commit/0e11d4c019f1e33cd713a237e037f31397d5371a))
+* Require node 18+ ([#2069](https://github.com/googleapis/release-please/issues/2069)) ([5a50247](https://github.com/googleapis/release-please/commit/5a5024727b93d0ba557b6f7ee5c6c1bab8d723d6))
+* Support pnpm workspaces ([#2058](https://github.com/googleapis/release-please/issues/2058)) ([13cba14](https://github.com/googleapis/release-please/commit/13cba14225cb836c74199d726a996f83122fab07))
+* Use default updaters based on file extension ([#2072](https://github.com/googleapis/release-please/issues/2072)) ([1ee162b](https://github.com/googleapis/release-please/commit/1ee162b3344e986afd09275f6762624e4a49faae))
+
+
+### Bug Fixes
+
+* **deps:** Bump semver dependency version ([#2068](https://github.com/googleapis/release-please/issues/2068)) ([cd0bd85](https://github.com/googleapis/release-please/commit/cd0bd853ac23087e5d5348c22f032fe0e533451d))
+* **deps:** Replace lerna dependency with lerna-lite ([13cba14](https://github.com/googleapis/release-please/commit/13cba14225cb836c74199d726a996f83122fab07))
+* **deps:** Upgrade http-proxy-agent to v7 ([#2071](https://github.com/googleapis/release-please/issues/2071)) ([cc50a34](https://github.com/googleapis/release-please/commit/cc50a34dee16115c07e574b05552678108f9e0c3))
+* **deps:** Upgrade https-proxy-agent to v7 ([cc50a34](https://github.com/googleapis/release-please/commit/cc50a34dee16115c07e574b05552678108f9e0c3))
+
 ## [15.13.0](https://github.com/googleapis/release-please/compare/v15.12.0...v15.13.0) (2023-08-18)
 
 
