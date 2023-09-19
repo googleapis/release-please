@@ -28,6 +28,7 @@ export interface VersioningStrategyFactoryOptions {
   type?: VersioningStrategyType;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  prereleaseType?: string;
   github: GitHub;
 }
 

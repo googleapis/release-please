@@ -172,6 +172,9 @@ defaults (those are documented in comments)
   // absence defaults to false
   "bump-patch-for-minor-pre-major": true,
 
+  // setting the type of prerelease in case of prerelease strategy
+  "prerelease-type": true,
+
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...],

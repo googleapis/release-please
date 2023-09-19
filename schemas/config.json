@@ -20,6 +20,10 @@
           "description": "Feature changes only bump semver patch if version < 1.0.0",
           "type": "boolean"
         },
+        "prerelease-type": {
+          "description": "Configuration option for the prerelese versioning strategy. If prerelease strategy used and type set, will set the prerelese part of the version to the provided value in case prerelease part is not present.",
+          "type": "boolean"
+        },
         "versioning": {
           "description": "Versioning strategy. Defaults to `default`",
           "type": "string"
@@ -290,7 +294,11 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["cargo-workspace", "maven-workspace", "node-workspace"]
+                    "enum": [
+                      "cargo-workspace",
+                      "maven-workspace",
+                      "node-workspace"
+                    ]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
