@@ -4400,6 +4400,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const getLabelsStub = sandbox
@@ -4522,6 +4523,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
         {
           title: PullRequestTitle.ofTargetBranch('main', 'main'),
@@ -4540,6 +4542,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main2',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const getLabelsStub = sandbox
@@ -4633,6 +4636,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const getLabelsStub = sandbox
@@ -4724,6 +4728,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const getLabelsStub = sandbox
@@ -4831,6 +4836,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const getLabelsStub = sandbox
@@ -4924,6 +4930,7 @@ version = "3.0.0"
               labels: [],
               headRefName: 'release-please/branches/main',
               draft: false,
+              conventionalCommits: [],
             },
           ]);
         const getLabelsStub = sandbox
@@ -5044,6 +5051,7 @@ version = "3.0.0"
             labels: [],
             headRefName: 'release-please/branches/main',
             draft: false,
+            conventionalCommits: [],
           },
         ]);
         const pullRequestNumbers = await manifest.createPullRequests();
@@ -5150,6 +5158,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const pullRequestNumbers = await manifest.createPullRequests();
@@ -5221,6 +5230,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const getLabelsStub = sandbox
@@ -5329,6 +5339,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const removeLabelsStub = sandbox
@@ -5411,6 +5422,7 @@ version = "3.0.0"
           labels: [],
           headRefName: 'release-please/branches/main',
           draft: false,
+          conventionalCommits: [],
         },
       ]);
       const getLabelsStub = sandbox

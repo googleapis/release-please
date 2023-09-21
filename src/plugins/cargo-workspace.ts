@@ -290,6 +290,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
       ).toString(),
       version,
       draft: false,
+      conventionalCommits: [],
     };
     return {
       path: pkg.path,

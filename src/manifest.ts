@@ -188,7 +188,7 @@ export interface ManifestOptions {
   plugins?: PluginType[];
   fork?: boolean;
   reviewers?: string[];
-  autoMerge?: {mergeMethod: MergeMethod};
+  autoMerge?: AutoMergeOption;
   signoff?: string;
   manifestPath?: string;
   labels?: string[];
@@ -284,6 +284,22 @@ export interface CreatedRelease extends GitHubRelease {
   patch: number;
 }
 
+/**
+ * Option to control when to auto-merge release PRs. If no filter have been provided, never auto-merge. If both
+ * conventionalCommitFilter and versionBumpFilter are provided we take the intersection (AND operation).
+ */
+export type AutoMergeOption = {
+  mergeMethod: MergeMethod;
+  /**
+   * Only auto merge if all conventional commits of the PR match the filter
+   */
+  conventionalCommitFilter?: {type: string; scope: string}[];
+  /**
+   * Only auto merge if the version bump match the filter
+   */
+  versionBumpFilter?: ('major' | 'minor' | 'patch' | 'build')[];
+};
+
 export class Manifest {
   private repository: Repository;
   private github: GitHub;
@@ -294,7 +310,7 @@ export class Manifest {
   private separatePullRequests: boolean;
   readonly fork: boolean;
   private reviewers: string[];
-  private autoMerge?: {mergeMethod: MergeMethod};
+  private autoMerge?: AutoMergeOption;
   private signoffUser?: string;
   private labels: string[];
   private skipLabeling?: boolean;
@@ -1546,24 +1562,58 @@ export class Manifest {
   }
 
   /**
-   * Only return the auto-merge option if the release pull request has non-breaking changes.
+   * Only return the auto-merge option if the release PR match filters. If no filter provided, do not auto merge. If
+   * multiple filters are provided we take the intersection (AND operation).
    */
   pullRequestAutoMergeOption(
     pullRequest: ReleasePullRequest
-  ): {mergeMethod: MergeMethod} | undefined {
-    const versionBump =
-      pullRequest.version &&
-      pullRequest.previousVersion &&
-      pullRequest.version.compareBump(pullRequest.previousVersion);
-    if (
-      versionBump &&
-      (versionBump === 'minor' ||
-        versionBump === 'patch' ||
-        versionBump === 'build')
-    ) {
-      return this.autoMerge;
-    }
-    return undefined;
+  ): AutoMergeOption | undefined {
+    const {versionBumpFilter, conventionalCommitFilter} = this.autoMerge || {};
+
+    // if the version bump do not match any provided filter value, do not auto-merge
+    const applyVersionBumpFilter = () => {
+      const versionBump =
+        pullRequest.version &&
+        pullRequest.previousVersion &&
+        pullRequest.version.compareBump(pullRequest.previousVersion);
+      return (
+        versionBump && versionBumpFilter?.find(filter => versionBump === filter)
+      );
+    };
+
+    // given two sets of type:scope items, if any item from commitSet isn't in filterSet do not auto-merge
+    const applyConventionalCommitFilter = () => {
+      if (pullRequest.conventionalCommits.length === 0) {
+        return false;
+      }
+      const commitSet = new Set(
+        pullRequest.conventionalCommits.map(
+          commit => `${commit.type}:${commit.scope}`
+        )
+      );
+      const filterSet = new Set(
+        conventionalCommitFilter!.map(
+          filter => `${filter.type}:${filter.scope}`
+        )
+      );
+      for (const n of commitSet) {
+        if (!filterSet.has(n)) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    const selected =
+      conventionalCommitFilter?.length && conventionalCommitFilter.length
+        ? applyConventionalCommitFilter() && applyVersionBumpFilter()
+        : conventionalCommitFilter?.length
+        ? applyConventionalCommitFilter()
+        : versionBumpFilter?.length
+        ? applyVersionBumpFilter()
+        : // no filter provided
+          false;
+    return selected ? this.autoMerge : undefined;
   }
 }
 

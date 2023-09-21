@@ -165,6 +165,7 @@ export class Java extends BaseStrategy {
       previousVersion: latestRelease?.tag.version,
       draft: draft ?? false,
       group: 'snapshot',
+      conventionalCommits: [],
     };
   }
 

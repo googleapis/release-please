@@ -312,6 +312,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       ).toString(),
       version,
       draft: false,
+      conventionalCommits: [],
     };
     return {
       path: updatedPackage.location,

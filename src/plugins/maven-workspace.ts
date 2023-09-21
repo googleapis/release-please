@@ -448,6 +448,7 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
       ).toString(),
       version,
       draft: false,
+      conventionalCommits: [],
     };
     return {
       path: artifact.path,

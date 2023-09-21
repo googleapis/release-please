@@ -25,6 +25,7 @@ import {BranchName} from '../util/branch-name';
 import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
 import {GitHub} from '../github';
+import {ReleasePullRequest} from '../release-pull-request';
 
 interface MergeOptions extends ManifestPluginOptions {
   pullRequestTitlePattern?: string;
@@ -99,7 +100,7 @@ export class Merge extends ManifestPlugin {
     }
     const updates = mergeUpdates(rawUpdates);
 
-    const pullRequest = {
+    const pullRequest: ReleasePullRequest = {
       title: PullRequestTitle.ofComponentTargetBranchVersion(
         rootRelease?.pullRequest.title.component,
         this.targetBranch,
@@ -120,6 +121,9 @@ export class Merge extends ManifestPlugin {
           this.changesBranch
         ).toString(),
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
+      conventionalCommits: candidates.flatMap(
+        c => c.pullRequest.conventionalCommits
+      ),
     };
 
     const releaseTypes = new Set(

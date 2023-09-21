@@ -68,6 +68,7 @@ describe('FilePullRequestOverflowHandler', () => {
           updates: [],
           draft: false,
           headRefName: 'my-head-branch',
+          conventionalCommits: [],
         },
         'next',
         50
@@ -84,6 +85,7 @@ describe('FilePullRequestOverflowHandler', () => {
           updates: [],
           draft: false,
           headRefName: 'my-head-branch',
+          conventionalCommits: [],
         },
         'next'
       );

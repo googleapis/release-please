@@ -216,6 +216,7 @@ export class PHPYoshi extends BaseStrategy {
       version: newVersion,
       previousVersion: latestRelease?.tag.version,
       draft: draft ?? false,
+      conventionalCommits,
     };
   }
 

@@ -41,6 +41,7 @@ import {HttpProxyAgent} from 'http-proxy-agent';
 import {Commit} from '../src/commit';
 import {mockReleaseData, MockPullRequestOverflowHandler} from './helpers';
 import {GraphqlResponseError} from '@octokit/graphql';
+import {ReleasePullRequest} from '../src/release-pull-request';
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -1157,7 +1158,7 @@ describe('GitHub', () => {
         },
       });
 
-      const pullRequest = {
+      const pullRequest: ReleasePullRequest = {
         title: PullRequestTitle.ofTargetBranch('main', 'next'),
         body: new PullRequestBody(mockReleaseData(1000), {
           useComponents: true,
@@ -1166,6 +1167,7 @@ describe('GitHub', () => {
         headRefName: 'release-please--branches--main--changes--next',
         draft: false,
         updates: [],
+        conventionalCommits: [],
       };
 
       await github.updatePullRequest(123, pullRequest, 'main', 'next');
@@ -1253,7 +1255,7 @@ describe('GitHub', () => {
         })
         .reply(200, {});
 
-      const pullRequest = {
+      const pullRequest: ReleasePullRequest = {
         title: PullRequestTitle.ofTargetBranch('main', 'next'),
         body: new PullRequestBody(mockReleaseData(1000), {
           useComponents: true,
@@ -1262,6 +1264,7 @@ describe('GitHub', () => {
         headRefName: 'release-please--branches--main--changes--next',
         draft: false,
         updates: [],
+        conventionalCommits: [],
       };
 
       await github.updatePullRequest(123, pullRequest, 'main', 'next', {
@@ -1366,7 +1369,7 @@ describe('GitHub', () => {
         })
         .reply(200);
 
-      const pullRequest = {
+      const pullRequest: ReleasePullRequest = {
         title: PullRequestTitle.ofTargetBranch('main', 'next'),
         body: new PullRequestBody(mockReleaseData(1000), {
           useComponents: true,
@@ -1375,6 +1378,7 @@ describe('GitHub', () => {
         headRefName: 'release-please--branches--main--changes--next',
         draft: false,
         updates: [],
+        conventionalCommits: [],
       };
 
       await github.updatePullRequest(123, pullRequest, 'main', 'next', {
@@ -1418,13 +1422,14 @@ describe('GitHub', () => {
           labels: [],
           files: [],
         });
-      const pullRequest = {
+      const pullRequest: ReleasePullRequest = {
         title: PullRequestTitle.ofTargetBranch('main', 'main'),
         body: new PullRequestBody(mockReleaseData(1000), {useComponents: true}),
         labels: [],
         headRefName: 'release-please--branches--main',
         draft: false,
         updates: [],
+        conventionalCommits: [],
       };
       const pullRequestOverflowHandler = new MockPullRequestOverflowHandler();
       const handleOverflowStub = sandbox

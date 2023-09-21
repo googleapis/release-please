@@ -319,6 +319,7 @@ export function buildMockCandidatePullRequest(
       version,
       draft: options.draft ?? false,
       group: options.group,
+      conventionalCommits: [],
     },
     config: {
       releaseType,
