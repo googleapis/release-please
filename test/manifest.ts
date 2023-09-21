@@ -4745,6 +4745,190 @@ version = "3.0.0"
       ]);
     });
 
+    it('enables auto-merge when provided filters match the release pull request', async () => {
+      const createPullRequestStub = sandbox
+        .stub(github, 'createPullRequest')
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      mockPullRequests(github, []);
+      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+        number: 22,
+        title: 'pr title1',
+        body: 'pr body1',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        labels: [],
+        files: [],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+          'path/c': {
+            releaseType: 'node',
+            component: 'pkg3',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('1.0.0'),
+          'path/c': Version.parse('1.0.0'),
+        },
+        {
+          separatePullRequests: true,
+          autoMerge: {
+            mergeMethod: 'rebase',
+            versionBumpFilter: ['minor'],
+            conventionalCommitFilter: [{type: 'fix', scope: 'api'}],
+          },
+        }
+      );
+      sandbox
+        .stub(manifest, 'buildPullRequests')
+        .withArgs(sinon.match.any, sinon.match.any)
+        .resolves([
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/a',
+            draft: false,
+            version: Version.parse('1.0.1'), // patch bump, does not match filter
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type match filter
+                scope: 'api', // scope match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/b',
+            draft: false,
+            version: Version.parse('1.1.0'), // minor bump, match filter
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type match filter
+                scope: 'api', // scope match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/c',
+            draft: false,
+            version: Version.parse('1.1.0'), // minor bump, match filter
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'feat', // type does not match filter
+                scope: 'api', // scope match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'feat(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+        ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
+
+      const pullRequestNumbers = await manifest.createPullRequests();
+
+      expect(pullRequestNumbers).lengthOf(3);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnce(createLabelsStub);
+
+      sinon.assert.calledThrice(createPullRequestStub);
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/a'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: undefined,
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/b'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/c'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: undefined,
+        })
+      );
+    });
+
     it('updates an existing pull request', async () => {
       sandbox
         .stub(github, 'getFileContentsOnBranch')
