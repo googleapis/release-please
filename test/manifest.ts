@@ -4745,7 +4745,7 @@ version = "3.0.0"
       ]);
     });
 
-    it('enables auto-merge when provided filters match the release pull request', async () => {
+    it('enables auto-merge when filters are provided (filters: version bump, commit type, commit scope)', async () => {
       const createPullRequestStub = sandbox
         .stub(github, 'createPullRequest')
         .resolves({
@@ -4787,11 +4787,21 @@ version = "3.0.0"
             releaseType: 'node',
             component: 'pkg3',
           },
+          'path/d': {
+            releaseType: 'node',
+            component: 'pkg4',
+          },
+          'path/e': {
+            releaseType: 'node',
+            component: 'pkg5',
+          },
         },
         {
           'path/a': Version.parse('1.0.0'),
           'path/b': Version.parse('1.0.0'),
           'path/c': Version.parse('1.0.0'),
+          'path/d': Version.parse('1.0.0'),
+          'path/e': Version.parse('1.0.0'),
         },
         {
           separatePullRequests: true,
@@ -4872,6 +4882,50 @@ version = "3.0.0"
               },
             ],
           },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/d',
+            draft: false,
+            version: Version.parse('1.1.0'), // minor bump, match filter
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type does match filter
+                scope: null, // no scope, does not match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix: something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/e',
+            draft: false,
+            version: Version.parse('1.1.0'), // minor bump, match filter
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type does match filter
+                scope: 'other', // other scope, does not match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(other): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
         ]);
       const getLabelsStub = sandbox
         .stub(github, 'getLabels')
@@ -4880,11 +4934,11 @@ version = "3.0.0"
 
       const pullRequestNumbers = await manifest.createPullRequests();
 
-      expect(pullRequestNumbers).lengthOf(3);
+      expect(pullRequestNumbers).lengthOf(5);
       sinon.assert.calledOnce(getLabelsStub);
       sinon.assert.calledOnce(createLabelsStub);
 
-      sinon.assert.calledThrice(createPullRequestStub);
+      expect(createPullRequestStub.callCount).to.equal(5);
       sinon.assert.calledWith(
         createPullRequestStub,
         sinon.match.has(
@@ -4925,6 +4979,526 @@ version = "3.0.0"
         sinon.match.array,
         sinon.match({
           autoMerge: undefined,
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/d'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: undefined,
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/e'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: undefined,
+        })
+      );
+    });
+
+    it('enables auto-merge when filters are provided (filters: only commit type)', async () => {
+      const createPullRequestStub = sandbox
+        .stub(github, 'createPullRequest')
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      mockPullRequests(github, []);
+      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+        number: 22,
+        title: 'pr title1',
+        body: 'pr body1',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        labels: [],
+        files: [],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+          'path/c': {
+            releaseType: 'node',
+            component: 'pkg3',
+          },
+          'path/d': {
+            releaseType: 'node',
+            component: 'pkg4',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('1.0.0'),
+          'path/c': Version.parse('1.0.0'),
+          'path/d': Version.parse('1.0.0'),
+        },
+        {
+          separatePullRequests: true,
+          autoMerge: {
+            mergeMethod: 'rebase',
+            conventionalCommitFilter: [{type: 'fix'}], // only filter on type
+          },
+        }
+      );
+      sandbox
+        .stub(manifest, 'buildPullRequests')
+        .withArgs(sinon.match.any, sinon.match.any)
+        .resolves([
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/a',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type match filter
+                scope: 'api', // some scope
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/b',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type match filter
+                scope: 'other', // another scope
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(other): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/c',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type does match filter
+                scope: null, // no scope
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'feat(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/d',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'feat', // type does not match filter
+                scope: 'api',
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'feat(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+        ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
+
+      const pullRequestNumbers = await manifest.createPullRequests();
+
+      expect(pullRequestNumbers).lengthOf(4);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnce(createLabelsStub);
+
+      expect(createPullRequestStub.callCount).to.equal(4);
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/a'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/b'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/c'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/d'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: undefined,
+        })
+      );
+    });
+
+    it('enables auto-merge when filters are provided (filters: multiple commit filters)', async () => {
+      const createPullRequestStub = sandbox
+        .stub(github, 'createPullRequest')
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('README.md', 'main')
+        .resolves(buildGitHubFileRaw('some-content'));
+      mockPullRequests(github, []);
+      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+        number: 22,
+        title: 'pr title1',
+        body: 'pr body1',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        labels: [],
+        files: [],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'node',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'node',
+            component: 'pkg2',
+          },
+          'path/c': {
+            releaseType: 'node',
+            component: 'pkg3',
+          },
+          'path/d': {
+            releaseType: 'node',
+            component: 'pkg4',
+          },
+          'path/e': {
+            releaseType: 'node',
+            component: 'pkg5',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('1.0.0'),
+          'path/c': Version.parse('1.0.0'),
+          'path/d': Version.parse('1.0.0'),
+          'path/e': Version.parse('1.0.0'),
+        },
+        {
+          separatePullRequests: true,
+          autoMerge: {
+            mergeMethod: 'rebase',
+            conventionalCommitFilter: [
+              {type: 'fix'},
+              {type: 'feat', scope: 'api'},
+            ],
+          },
+        }
+      );
+      sandbox
+        .stub(manifest, 'buildPullRequests')
+        .withArgs(sinon.match.any, sinon.match.any)
+        .resolves([
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/a',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type match filter
+                scope: 'something', // some scope
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(something): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/b',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'feat', // type match filter
+                scope: 'api', // scope match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'feat(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/c',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'feat', // type does match filter
+                scope: null, // no scope, does not match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'feat: something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/d',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type does match filter
+                scope: null, // no scope, does match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix: something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
+            headRefName: 'release-please/branches/main/components/e',
+            draft: false,
+            version: Version.parse('1.1.0'),
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type does match filter
+                scope: 'api',
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'chore(something): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+        ]);
+      const getLabelsStub = sandbox
+        .stub(github, 'getLabels')
+        .resolves(['label-a']);
+      const createLabelsStub = sandbox.stub(github, 'createLabels').resolves();
+
+      const pullRequestNumbers = await manifest.createPullRequests();
+
+      expect(pullRequestNumbers).lengthOf(5);
+      sinon.assert.calledOnce(getLabelsStub);
+      sinon.assert.calledOnce(createLabelsStub);
+
+      expect(createPullRequestStub.callCount).to.equal(5);
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/a'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/b'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/c'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: undefined,
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/d'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
+        })
+      );
+      sinon.assert.calledWith(
+        createPullRequestStub,
+        sinon.match.has(
+          'headBranchName',
+          'release-please/branches/main/components/e'
+        ),
+        'main',
+        'main',
+        sinon.match.string,
+        sinon.match.array,
+        sinon.match({
+          autoMerge: {mergeMethod: 'rebase'},
         })
       );
     });

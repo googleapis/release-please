@@ -293,7 +293,7 @@ export type AutoMergeOption = {
   /**
    * Only auto merge if all conventional commits of the PR match the filter
    */
-  conventionalCommitFilter?: {type: string; scope: string}[];
+  conventionalCommitFilter?: {type: string; scope?: string}[];
   /**
    * Only auto merge if the version bump match the filter
    */
@@ -1586,18 +1586,16 @@ export class Manifest {
       if (pullRequest.conventionalCommits.length === 0) {
         return false;
       }
-      const commitSet = new Set(
-        pullRequest.conventionalCommits.map(
-          commit => `${commit.type}:${commit.scope}`
-        )
-      );
       const filterSet = new Set(
         conventionalCommitFilter!.map(
-          filter => `${filter.type}:${filter.scope}`
+          filter => `${filter.type}:${filter.scope ? filter.scope : '*'}`
         )
       );
-      for (const n of commitSet) {
-        if (!filterSet.has(n)) {
+      for (const commit of pullRequest.conventionalCommits) {
+        if (
+          !filterSet.has(`${commit.type}:${commit.scope}`) &&
+          !filterSet.has(`${commit.type}:*`)
+        ) {
           return false;
         }
       }
@@ -1605,7 +1603,7 @@ export class Manifest {
     };
 
     const selected =
-      conventionalCommitFilter?.length && conventionalCommitFilter.length
+      conventionalCommitFilter?.length && versionBumpFilter?.length
         ? applyConventionalCommitFilter() && applyVersionBumpFilter()
         : conventionalCommitFilter?.length
         ? applyConventionalCommitFilter()
@@ -1613,6 +1611,7 @@ export class Manifest {
         ? applyVersionBumpFilter()
         : // no filter provided
           false;
+
     return selected ? this.autoMerge : undefined;
   }
 }
