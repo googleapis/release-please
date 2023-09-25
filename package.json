@@ -78,6 +78,7 @@
     "@lerna/package": "^6.4.1",
     "@lerna/package-graph": "^6.4.1",
     "@lerna/run-topologically": "^6.4.1",
+    "@octokit/core": "^4.0.0",
     "@octokit/graphql": "^5.0.0",
     "@octokit/plugin-retry": "5.0.5",
     "@octokit/plugin-throttling": "6.1.0",
