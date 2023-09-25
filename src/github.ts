@@ -56,6 +56,7 @@ import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {retry} from '@octokit/plugin-retry';
 import {throttling} from '@octokit/plugin-throttling';
+import {Agent} from 'http';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -266,7 +267,10 @@ export class GitHub {
     setupLogger(this.logger);
   }
 
-  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
+  static createDefaultAgent(
+    baseUrl: string,
+    defaultProxy?: ProxyOption
+  ): Agent | undefined {
     if (!defaultProxy) {
       return undefined;
     }

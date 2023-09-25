@@ -100,6 +100,7 @@
     "jsonpath": "^1.1.1",
     "node-fetch": "^2.7.0",
     "node-html-parser": "^6.0.0",
+    "octokit": "3.1.0",
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
     "type-fest": "^3.0.0",
