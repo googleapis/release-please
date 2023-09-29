@@ -1,8 +1,0 @@
-generatedFiles:
-- path: '.kokoro/**'
-  message: '`.kokoro` files are templated and should be updated in [`synthtool`](https://github.com/googleapis/synthtool)'
-- path: '.github/CODEOWNERS'
-  message: 'CODEOWNERS should instead be modified via the `codeowner_team` property in .repo-metadata.json'
-ignoreAuthors:
-- 'gcf-owl-bot[bot]'
-- 'yoshi-automation'
