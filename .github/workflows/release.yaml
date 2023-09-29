@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -29,21 +29,22 @@ jobs:
           git merge --no-ff main
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 18
+          cache: pnpm
+      - run: corepack enable && corepack install
+      # Note: actions/setup-node doesn't yet provide parameters for corepack, we need to run it again after enabling it
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Lint code
-        run: npm run lint
-
-      - name: Run tests
-        run: npm run test
+        run: pnpm install
 
       - name: Compile
-        run: npm run compile
+        run: pnpm build
 
       - name: Commit and push build directory
         run: |
@@ -53,7 +54,8 @@ jobs:
 
       - name: Create github release
         run: |
-          npm run cli -- github-release \
-                      --token=${{ secrets.GITHUB_TOKEN }} \
-                      --repo-url=${{ github.repository }} \
-                      --target-branch=release
+          pnpm start \
+                -- github-release \
+                --token=${{ secrets.GITHUB_TOKEN }} \
+                --repo-url=${{ github.repository }} \
+                --target-branch=release

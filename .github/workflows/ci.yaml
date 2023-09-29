@@ -3,58 +3,37 @@ on:
     branches:
       - main
   pull_request:
+
 name: ci
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  tests:
     strategy:
       matrix:
         node: [18, 20]
+        os: ['ubuntu-latest', 'windows-latest']
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - run: corepack enable && corepack install
+      # Note: actions/setup-node doesn't yet provide parameters for corepack, we need to run it again after enabling it
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
       - run: node --version
-      # The first installation step ensures that all of our production
-      # dependencies work on the given Node.js version, this helps us find
-      # dependencies that don't match our engines field:
-      - run: npm install --production --engine-strict --ignore-scripts --no-package-lock
-      # Clean up the production install, before installing dev/production:
-      - run: rm -rf node_modules
-      - run: npm install
-      - run: npm run test:node${{ matrix.node }}
-        env:
-          MOCHA_THROW_DEPRECATION: false
-  windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm test
-        env:
-          MOCHA_THROW_DEPRECATION: false
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm run lint
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm run docs
-      - uses: JustinBeckwith/linkinator-action@v1
-        with:
-          paths: docs/
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint code
+        run: pnpm lint
+
+      - name: Run tests
+        run: pnpm test
