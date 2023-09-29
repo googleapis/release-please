@@ -19,7 +19,7 @@ import {
   buildGitHubFileContent,
   assertHasUpdate,
 } from '../helpers';
-import * as nock from 'nock';
+import nock = require('nock');
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
 import {Version} from '../../src/version';

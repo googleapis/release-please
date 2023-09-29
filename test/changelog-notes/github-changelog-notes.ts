@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as nock from 'nock';
+import nock = require('nock');
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
 import {safeSnapshot} from '../helpers';

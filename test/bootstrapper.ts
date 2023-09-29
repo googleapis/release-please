@@ -20,7 +20,7 @@ import {GitHub} from '../src/github';
 import {assertHasUpdate} from './helpers';
 import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
 import {ReleasePleaseConfig} from '../src/updaters/release-please-config';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 
 const sandbox = sinon.createSandbox();
 

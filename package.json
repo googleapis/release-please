@@ -11,18 +11,13 @@
     "pnpm": ">=8"
   },
   "scripts": {
-    "test:node18": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --node-option no-experimental-fetch --require build/test/_fetch-polyfill.js --recursive --timeout=5000 build/test",
-    "test:node20": "npm run test:node18",
-    "test": "npm run test:node18",
-    "docs": "echo add docs tests",
-    "test:snap": "SNAPSHOT_UPDATE=1 LC_ALL=en npm test",
-    "clean": "gts clean",
-    "prepare": "npm run compile",
+    "build": "tsc",
+    "install": "tsc",
     "lint": "gts check",
-    "compile": "tsc -p .",
-    "cli": "npm run compile && node build/src/bin/release-please.js",
     "fix": "gts fix",
-    "pretest": "npm run compile"
+    "start": "ts-node ./src/bin/release-please.ts",
+    "test": "cross-env ENVIRONMENT=test mocha --require test/_fetch-polyfill.js",
+    "test:snap": "SNAPSHOT_UPDATE=1 LC_ALL=en pnpm test"
   },
   "files": [
     "build/src",
@@ -73,7 +68,9 @@
     "mocha": "^9.2.2",
     "nock": "^13.0.0",
     "sinon": "15.2.0",
-    "snap-shot-it": "^7.0.0"
+    "snap-shot-it": "^7.0.0",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.6.2"
   },
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
@@ -110,7 +107,7 @@
     "parse-github-repo-url": "^1.4.1",
     "semver": "^7.0.0",
     "type-fest": "^3.0.0",
-    "typescript": "^4.6.4",
+    "typescript": "^5.2.2",
     "unist-util-visit": "^2.0.3",
     "unist-util-visit-parents": "^3.1.1",
     "xpath": "^0.0.32",

@@ -15,7 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {Elixir} from '../../src/strategies/elixir';
 import {buildMockConventionalCommit, assertHasUpdate} from '../helpers';
-import * as nock from 'nock';
+import nock = require('nock');
 import * as sinon from 'sinon';
 import {GitHub} from '../../src/github';
 import {Version} from '../../src/version';

@@ -14,7 +14,7 @@
 
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 import {describe, it} from 'mocha';
 import {PHPClientVersion} from '../../src/updaters/php/php-client-version';
 import {Version} from '../../src/version';

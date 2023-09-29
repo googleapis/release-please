@@ -57,6 +57,7 @@ import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {retry} from '@octokit/plugin-retry';
 import {throttling} from '@octokit/plugin-throttling';
 import {Agent} from 'http';
+import {Version} from './version';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -95,6 +96,7 @@ interface GitHubCreateOptions {
   retries?: number;
   throttlingRetries?: number;
   graphqlRetries?: number;
+  version?: Version;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -305,7 +307,6 @@ export class GitHub {
   static async create(options: GitHubCreateOptions): Promise<GitHub> {
     const apiUrl = options.apiUrl ?? GH_API_URL;
     const graphqlUrl = options.graphqlUrl ?? GH_GRAPHQL_URL;
-    const releasePleaseVersion = require('../../package.json').version;
 
     const OctokitWithPlugins = Octokit.plugin(retry, throttling);
     const logger = options.logger ?? defaultLogger;
@@ -364,7 +365,9 @@ export class GitHub {
       request: request.defaults({
         baseUrl: apiUrl,
         headers: {
-          'user-agent': `release-please/${releasePleaseVersion}`,
+          'user-agent': `@stainless-api/release-please/${
+            options.version?.toString() || '0.0.0-dev'
+          }`,
           Authorization: `token ${options.token}`,
         },
       }),
@@ -374,7 +377,9 @@ export class GitHub {
           agent: this.createDefaultAgent(graphqlUrl, options.proxy),
         },
         headers: {
-          'user-agent': `release-please/${releasePleaseVersion}`,
+          'user-agent': `@stainless-api/release-please/${
+            options.version?.toString() || '0.0.0-dev'
+          }`,
           Authorization: `token ${options.token}`,
           'content-type': 'application/vnd.github.v3+json',
         },
@@ -778,7 +783,7 @@ export class GitHub {
         maxRetries -= 1;
         if (maxRetries >= 0) {
           this.logger.trace(`sleeping ${seconds} seconds`);
-          await sleepInMs(1000 * seconds);
+          await this.sleepInMs(1000 * seconds);
           seconds = Math.min(seconds * 2, MAX_SLEEP_SECONDS);
         }
       }
@@ -2242,7 +2247,7 @@ export class GitHub {
         return;
       }
 
-      await sleepInMs(500 * attempt);
+      await this.sleepInMs(500 * attempt);
     }
 
     this.logger.warn(`Release ${tagName} is not yet listed on GitHub`);
@@ -2296,7 +2301,7 @@ export class GitHub {
           throw e;
         }
       }
-      await sleepInMs(500 * attempt);
+      await this.sleepInMs(500 * attempt);
     }
     if (notFoundError) {
       throw notFoundError;
@@ -2409,6 +2414,10 @@ export class GitHub {
       }
     }
   }
+
+  private sleepInMs(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 }
 
 /**
@@ -2450,6 +2459,3 @@ const wrapAsync = <T extends Array<any>, V>(
     }
   };
 };
-
-export const sleepInMs = (ms: number) =>
-  new Promise(resolve => setTimeout(resolve, ms));

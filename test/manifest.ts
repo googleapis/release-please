@@ -20,7 +20,6 @@ import {
   ManifestConfig,
 } from '../src/manifest';
 import {GitHub, ReleaseOptions} from '../src/github';
-import * as githubModule from '../src/github';
 import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
@@ -56,7 +55,7 @@ import {
   GitHubAPIError,
 } from '../src/errors';
 import {RequestError} from '@octokit/request-error';
-import * as nock from 'nock';
+import nock = require('nock');
 import {LinkedVersions} from '../src/plugins/linked-versions';
 import {MavenWorkspace} from '../src/plugins/maven-workspace';
 import {GraphqlResponseError} from '@octokit/graphql';
@@ -1581,7 +1580,8 @@ describe('Manifest', () => {
         .post('/graphql')
         .times(6) // original + 5 retries
         .reply(502);
-      const sleepStub = sandbox.stub(githubModule, 'sleepInMs').resolves();
+
+      const sleepStub = sandbox.stub(github, <any>'sleepInMs').resolves(); // eslint-disable-line @typescript-eslint/no-explicit-any
       await assert.rejects(
         async () => {
           await Manifest.fromConfig(github, 'target-branch', {
@@ -1592,7 +1592,7 @@ describe('Manifest', () => {
             includeComponentInTag: false,
           });
         },
-        error => {
+        (error: unknown) => {
           return (
             error instanceof GitHubAPIError &&
             (error as GitHubAPIError).status === 502
@@ -3670,7 +3670,9 @@ version = "3.0.0"
         mockPlugin.run.returnsArg(0);
         mockPlugin.preconfigure.returnsArg(0);
         mockPlugin.processCommits.returnsArg(0);
-        sandbox
+
+        const pluginFactory = require('../src/factories/plugin-factory');
+        const buildPluginStub = sandbox
           .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'node-workspace'))
           .returns(mockPlugin);
@@ -3701,6 +3703,7 @@ version = "3.0.0"
         const pullRequests = await manifest.buildPullRequests([], []);
         expect(pullRequests).not.empty;
         sinon.assert.calledOnce(mockPlugin.run);
+        sinon.assert.calledOnce(buildPluginStub);
       });
 
       it('should load and run multiple plugins', async () => {

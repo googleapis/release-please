@@ -30,7 +30,7 @@ import {JavaUpdate} from '../../src/updaters/java/java-update';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
 import {CompositeUpdater} from '../../src/updaters/composite';
 
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/java-yoshi';

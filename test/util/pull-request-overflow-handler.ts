@@ -14,9 +14,9 @@
 
 import {describe, it, beforeEach} from 'mocha';
 import {expect} from 'chai';
-import * as nock from 'nock';
+import nock = require('nock');
 import * as sinon from 'sinon';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {GitHub} from '../../src';

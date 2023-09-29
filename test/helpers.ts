@@ -16,7 +16,7 @@ import {readFileSync, readdirSync, statSync} from 'fs';
 import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 import {
   Commit,
   ConventionalCommit,

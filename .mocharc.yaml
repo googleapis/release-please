@@ -1,0 +1,15 @@
+timeout: 5000
+node-option:
+  - no-experimental-fetch
+require: ts-node/register
+recursive: true
+extension:
+  - ts
+  - tsx
+spec:
+  - test/**/*.ts
+reporter: list
+slow: 500
+ignore: __snapshots__
+full-trace: true
+check-leaks: true

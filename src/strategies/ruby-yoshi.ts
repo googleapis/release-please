@@ -49,15 +49,15 @@ export class RubyYoshi extends BaseStrategy {
       ...options,
       changelogSections: CHANGELOG_SECTIONS,
       commitPartial: readFileSync(
-        resolve(__dirname, '../../../templates/commit.hbs'),
+        resolve(__dirname, '../../templates/commit.hbs'),
         'utf8'
       ),
       headerPartial: readFileSync(
-        resolve(__dirname, '../../../templates/header.hbs'),
+        resolve(__dirname, '../../templates/header.hbs'),
         'utf8'
       ),
       mainTemplate: readFileSync(
-        resolve(__dirname, '../../../templates/template.hbs'),
+        resolve(__dirname, '../../templates/template.hbs'),
         'utf8'
       ),
       tagSeparator: '/',

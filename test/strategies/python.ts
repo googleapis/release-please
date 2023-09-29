@@ -27,7 +27,7 @@ import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
 import {Changelog} from '../../src/updaters/changelog';
 import {ChangelogJson} from '../../src/updaters/changelog-json';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/python';

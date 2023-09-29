@@ -14,7 +14,7 @@
 
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
 import {GenericXml} from '../../src/updaters/generic-xml';

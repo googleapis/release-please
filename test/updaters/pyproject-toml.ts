@@ -14,7 +14,7 @@
 
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 import {describe, it} from 'mocha';
 import {PyProjectToml} from '../../src/updaters/python/pyproject-toml';
 import {expect} from 'chai';

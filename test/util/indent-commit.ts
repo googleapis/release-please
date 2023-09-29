@@ -14,7 +14,7 @@
 
 import {indentCommit} from '../../src/util/indent-commit';
 import {describe, it} from 'mocha';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 
 describe('indentCommit', () => {
   it('handles carriage return', () => {

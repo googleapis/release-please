@@ -1,12 +1,35 @@
 {
+  "ts-node": {
+    // "swc": true
+  },
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
+    "noEmit": false,
+    "sourceMap": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "lib": ["es2018", "dom"],
+    // "module": "node",
+    "moduleResolution": "node",
+    "target": "ES2018",
+    "lib": [
+      "ES2018",
+    ],
+    "isolatedModules": true,
+    "importHelpers": true,
+    "allowJs": true,
+    "alwaysStrict": true,
+    "incremental": true,
+    "useUnknownInCatchVariables": true,
     "rootDir": ".",
     "outDir": "build",
-    "typeRoots": ["./typings", "./node_modules/@types"]
+    "typeRoots": [
+      "./typings",
+      "./node_modules/@types"
+    ]
   },
+  "exclude": [
+    "__snapshots__",
+  ],
   "include": [
     "typings/**/*.d.ts",
     "src/**/*.ts",

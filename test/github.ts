@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as nock from 'nock';
+import nock = require('nock');
 import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 nock.disableNetConnect();
 
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
-import * as snapshot from 'snap-shot-it';
+import snapshot = require('snap-shot-it');
 import * as sinon from 'sinon';
 
 import {GH_API_URL, GitHub, GitHubRelease} from '../src/github';
