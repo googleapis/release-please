@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-      - run: corepack enable && corepack install
+      - run: corepack enable && corepack prepare
       # Note: actions/setup-node doesn't yet provide parameters for corepack, we need to run it again after enabling it
       - uses: actions/setup-node@v3
         with:
