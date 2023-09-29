@@ -30,7 +30,7 @@ jobs:
       - name: Create release PRs
         run: |
           pnpm start \
-                  -- release-pr \
+                  --release-pr \
                   --token=${{ secrets.GITHUB_TOKEN }} \
                   --repo-url=${{ github.repository }} \
                   --target-branch=main
