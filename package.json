@@ -3,7 +3,13 @@
   "version": "0.1.0",
   "description": "Generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
+  "types": "build/src/index.d.ts",
   "bin": "./build/src/bin/release-please.js",
+  "packageManager": "pnpm@8.8.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8"
+  },
   "scripts": {
     "test:node18": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --node-option no-experimental-fetch --require build/test/_fetch-polyfill.js --recursive --timeout=5000 build/test",
     "test:node20": "npm run test:node18",
@@ -21,7 +27,6 @@
   "files": [
     "build/src",
     "templates",
-    "!build/src/**/*.map",
     "schemas"
   ],
   "repository": "stainless-api/release-please",
@@ -111,8 +116,5 @@
     "xpath": "^0.0.32",
     "yaml": "^2.2.2",
     "yargs": "^17.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   }
 }
