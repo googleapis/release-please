@@ -18,6 +18,7 @@ import {PullRequest} from '../pull-request';
 import {Logger, logger as defaultLogger} from './logger';
 import {URL} from 'url';
 import {ReleasePullRequest} from '../release-pull-request';
+import {FileNotFoundError} from '../errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 const OVERFLOW_MESSAGE =
@@ -117,11 +118,19 @@ export class FilePullRequestOverflowHandler
       const url = new URL(match.groups.url);
       const pathMatch = url.pathname.match(FILE_PATH_REGEX);
       if (pathMatch?.groups?.branchName) {
-        const fileContents = await this.github.getFileContentsOnBranch(
-          RELEASE_NOTES_FILENAME,
-          pathMatch.groups.branchName
-        );
-        return PullRequestBody.parse(fileContents.parsedContent);
+        try {
+          const fileContents = await this.github.getFileContentsOnBranch(
+            RELEASE_NOTES_FILENAME,
+            pathMatch.groups.branchName
+          );
+          return PullRequestBody.parse(fileContents.parsedContent);
+        } catch (err) {
+          if (err instanceof FileNotFoundError) {
+            // the branch or file have been deleted, do nothing
+          } else {
+            throw err;
+          }
+        }
       }
       this.logger.warn(`Could not parse branch from ${match.groups.url}`);
       return PullRequestBody.parse(pullRequest.body, this.logger);
