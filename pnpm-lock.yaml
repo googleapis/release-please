@@ -26,6 +26,9 @@ dependencies:
   '@lerna/run-topologically':
     specifier: ^6.4.1
     version: 6.4.1
+  '@octokit/core':
+    specifier: ^4.0.0
+    version: 4.2.4
   '@octokit/graphql':
     specifier: ^5.0.0
     version: 5.0.4
