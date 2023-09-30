@@ -53,8 +53,7 @@ jobs:
 
       - name: Create github release
         run: |
-          pnpm start \
-                --github-release \
+          pnpm start github-release \
                 --token=${{ secrets.GITHUB_TOKEN }} \
                 --repo-url=${{ github.repository }} \
                 --target-branch=release
