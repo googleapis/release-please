@@ -1391,6 +1391,122 @@ describe('GitHub', () => {
       req.done();
     });
 
+    it('merges release PR directly when an auto-merge given but "protected branch rules not configured for this branch"', async () => {
+      const forkBranchStub = sandbox
+        .stub(github, <any>'forkBranch') // eslint-disable-line @typescript-eslint/no-explicit-any
+        .withArgs('release-please--branches--main--changes--next', 'next')
+        .resolves('the-pull-request-branch-sha');
+
+      const commitAndPushStub = sandbox
+        .stub(codeSuggesterCommitAndPush, 'commitAndPush')
+        .withArgs(
+          sinon.match.any,
+          'the-pull-request-branch-sha',
+          sinon.match.any,
+          sinon.match.has(
+            'branch',
+            'release-please--branches--main--changes--next'
+          ),
+          sinon.match.string,
+          true
+        )
+        .resolves();
+
+      const getPullRequestStub = sandbox
+        .stub(github, 'getPullRequest')
+        .withArgs(123)
+        .resolves({
+          title: 'updated-title',
+          headBranchName: 'release-please--branches--main--changes--next',
+          baseBranchName: 'main',
+          number: 123,
+          body: 'updated body',
+          labels: [],
+          files: [],
+        });
+
+      const mutatePullRequestEnableAutoMergeStub = sandbox
+        .stub(github, <any>'mutatePullRequestEnableAutoMerge') // eslint-disable-line @typescript-eslint/no-explicit-any
+        .throws(
+          new GraphqlResponseError(
+            {method: 'GET', url: '/foo/bar'},
+            {},
+            {
+              data: {},
+              errors: [
+                {
+                  type: 'UNPROCESSABLE',
+                  message:
+                    '["Pull request Protected branch rules not configured for this branch"]',
+                  path: ['foo'],
+                  extensions: {},
+                  locations: [{line: 123, column: 456}],
+                },
+              ],
+            }
+          )
+        );
+
+      req
+        .patch('/repos/fake/fake/pulls/123')
+        .reply(200, {
+          number: 123,
+          title: 'updated-title',
+          body: 'updated body',
+          labels: [],
+          head: {
+            ref: 'release-please--branches--main--changes--next',
+          },
+          base: {
+            ref: 'main',
+          },
+        })
+        .post('/graphql', body => {
+          snapshot(body);
+          expect(body.query).to.contain('query pullRequestId');
+          expect(body.variables).to.eql({
+            owner: 'fake',
+            repo: 'fake',
+            pullRequestNumber: 123,
+          });
+          return true;
+        })
+        .reply(200, {
+          data: {
+            repository: {
+              pullRequest: {
+                id: 'someIdForPR123',
+              },
+            },
+          },
+        })
+        .put('/repos/fake/fake/pulls/123/merge', {
+          merge_method: 'rebase',
+        })
+        .reply(200);
+
+      const pullRequest: ReleasePullRequest = {
+        title: PullRequestTitle.ofTargetBranch('main', 'next'),
+        body: new PullRequestBody(mockReleaseData(1000), {
+          useComponents: true,
+        }),
+        labels: [],
+        headRefName: 'release-please--branches--main--changes--next',
+        draft: false,
+        updates: [],
+        conventionalCommits: [],
+      };
+
+      await github.updatePullRequest(123, pullRequest, 'main', 'next', {
+        autoMerge: {mergeMethod: 'rebase'},
+      });
+      sinon.assert.calledOnce(forkBranchStub);
+      sinon.assert.calledOnce(commitAndPushStub);
+      sinon.assert.calledOnce(getPullRequestStub);
+      sinon.assert.calledOnce(mutatePullRequestEnableAutoMergeStub);
+      req.done();
+    });
+
     it('handles a PR body that is too big', async () => {
       const commitAndPushStub = sandbox
         .stub(codeSuggesterCommitAndPush, 'commitAndPush')

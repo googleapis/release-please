@@ -2396,7 +2396,10 @@ export class GitHub {
         (e.errors || []).find(
           err =>
             err.type === 'UNPROCESSABLE' &&
-            err.message.includes('Pull request is in clean status')
+            (err.message.includes('Pull request is in clean status') ||
+              err.message.includes(
+                'Protected branch rules not configured for this branch'
+              ))
         )
       ) {
         this.logger.debug(
