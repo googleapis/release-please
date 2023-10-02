@@ -225,8 +225,3 @@ exports['Manifest buildPullRequests should warn end user via PR comment if versi
 To set a custom version be sure to use the [semantic versioning format](https://devhints.io/semver), e.g \`1.2.3\`.
 
 `
-
-exports['Manifest createReleases should throw when release branch is missing and changes-branch not in synced with target-branch 1'] = `
-Errors when aligning pull requests branches: 
-  - Branch 'next' cannot be safely re-aligned with 'main', and will likely result in git conflicts when the next release PR is created. Hint: compare branches 'release-please--branches--main--changes--next', 'next', and 'main' for inconsistencies
-`

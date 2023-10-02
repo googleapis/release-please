@@ -8637,7 +8637,7 @@ version = "3.0.0"
       sinon.assert.calledOnce(unlockBranchStub);
     });
 
-    it('should throw when release branch is missing and changes-branch not in synced with target-branch', async () => {
+    it('should not throw when release branch is missing and changes-branch not in synced with target-branch', async () => {
       mockPullRequests(
         github,
         [],
@@ -8737,14 +8737,7 @@ version = "3.0.0"
         }
       );
 
-      let err: unknown;
-      try {
-        await manifest.createReleases();
-      } catch (e) {
-        err = e;
-      }
-      expect(err).to.be.instanceOf(Error);
-      snapshot((<Error>err).message);
+      await manifest.createReleases();
 
       // releases are still created
       sinon.assert.calledOnce(commentStub);
