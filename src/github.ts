@@ -37,7 +37,7 @@ export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
 
-import {logger as defaultLogger} from './util/logger';
+import {Logger, logger as defaultLogger} from './util/logger';
 import {Repository} from './repository';
 import {ReleasePullRequest} from './release-pull-request';
 import {Update} from './update';
@@ -50,7 +50,6 @@ import {
   DEFAULT_FILE_MODE,
   FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
-import {Logger} from 'code-suggester/build/src/types';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
