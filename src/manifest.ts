@@ -1292,7 +1292,11 @@ export class Manifest {
     // try to re-align branches to ensure the next release pull request won't face git conflicts. In case of
     // inconsistencies releases are still created but the command fails and won't force a re-alignment between a PR
     // ref branch and base branch.
-    await this.alignPullRequestsChangesBranch(pullRequests);
+    try {
+      await this.alignPullRequestsChangesBranch(pullRequests);
+    } catch (err) {
+      this.logger.error(err as {});
+    }
 
     return createdReleases;
   }
