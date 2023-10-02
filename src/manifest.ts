@@ -50,6 +50,7 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
+import {setupLogger} from 'code-suggester/build/src/logger';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -444,6 +445,9 @@ export class Manifest {
       parseConfig(github, configFile, changesBranch, path, releaseAs),
       parseReleasedVersions(github, manifestFile, changesBranch),
     ]);
+    if (manifestOptions.logger) {
+      setupLogger(manifestOptions.logger);
+    }
     return new Manifest(
       github,
       targetBranch,
