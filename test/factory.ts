@@ -61,6 +61,20 @@ describe('factory', () => {
       expect(await strategy.getComponent()).not.ok;
       expect(strategy.changelogNotes).instanceof(DefaultChangelogNotes);
     });
+    it('should build a with configuration', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+      });
+      expect(strategy).instanceof(Simple);
+      expect(strategy.versioningStrategy).instanceof(DefaultVersioningStrategy);
+      const versioningStrategy =
+          strategy.versioningStrategy as DefaultVersioningStrategy;
+      expect(versioningStrategy.bumpMinorPreMajor).to.be.true;
+      expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
+    });
     it('should build with prerelease type', async () => {
       const strategy = await buildStrategy({
         github,
