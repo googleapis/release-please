@@ -22,7 +22,7 @@
         },
         "prerelease-type": {
           "description": "Configuration option for the prerelese versioning strategy. If prerelease strategy used and type set, will set the prerelese part of the version to the provided value in case prerelease part is not present.",
-          "type": "boolean"
+          "type": "string"
         },
         "versioning": {
           "description": "Versioning strategy. Defaults to `default`",

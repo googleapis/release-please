@@ -173,7 +173,7 @@ defaults (those are documented in comments)
   "bump-patch-for-minor-pre-major": true,
 
   // setting the type of prerelease in case of prerelease strategy
-  "prerelease-type": true,
+  "prerelease-type": "beta",
 
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
