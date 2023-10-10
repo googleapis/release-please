@@ -3315,9 +3315,53 @@ version = "3.0.0"
           files: ['path/a/foo'],
         },
         {
-          sha: 'cccccc',
+          sha: 'bbb',
           message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'commit1',
+          message: 'release: 1.2.3',
           files: ['path/a/foo'],
+          pullRequest: {
+            headBranchName:
+              'release-please--branches--main--changes--next--components--pkg1',
+            baseBranchName: 'main',
+            number: 111,
+            title: 'release: 1.2.3',
+            body: '',
+            labels: ['tagged'],
+            files: ['path/a/foo'],
+            sha: 'commit1',
+          },
+        },
+        // should be included in pkg1 new release, commits created after v1.2.3
+        ...Array.from({length: 100}, (_, i) => ({
+          sha: `ccc${i}`,
+          message: `fix: some fix ${i}`,
+          files: ['path/a/foo'],
+        })),
+        {
+          sha: 'commit2',
+          message: 'release: 2.3.4',
+          files: ['path/b/package.json'],
+          pullRequest: {
+            headBranchName:
+              'release-please/branches/main/changes/next/components/pkg2',
+            baseBranchName: 'main',
+            number: 222,
+            title: 'release: 2.3.4',
+            body: '',
+            labels: ['tagged'],
+            files: ['path/b/foo'],
+            sha: 'commit2',
+          },
+          // should not be included in pgk2 new release, commits created before v2.3.4
+          ...Array.from({length: 100}, (_, i) => ({
+            sha: `ddd${i}`,
+            message: `fix: some fix ${i}`,
+            files: ['path/b/foo'],
+          })),
         },
       ]);
       mockTags(sandbox, github, []);
@@ -3328,7 +3372,7 @@ version = "3.0.0"
             component: 'pkg1',
           },
           'path/b': {
-            'release-type': 'simple',
+            'release-type': 'node',
             component: 'pkg2',
           },
         },
@@ -3342,20 +3386,31 @@ version = "3.0.0"
         .withArgs('release-please-config.json', 'next')
         .resolves(buildGitHubFileRaw(JSON.stringify(config)))
         .withArgs('.release-please-manifest.json', 'next')
-        .resolves(buildGitHubFileRaw(JSON.stringify(versions)));
+        .resolves(buildGitHubFileRaw(JSON.stringify(versions)))
+        .withArgs('path/b/package.json', 'next')
+        .resolves(
+          buildGitHubFileRaw(JSON.stringify({name: 'b', version: '2.3.4'}))
+        );
       const manifest = await Manifest.fromManifest(
         github,
         'main',
         undefined,
         undefined,
-        {changesBranch: 'next'}
+        {changesBranch: 'next', separatePullRequests: true}
       );
       const pullRequests = await manifest.buildPullRequests([], []);
-      expect(pullRequests).lengthOf(1);
+      expect(pullRequests).lengthOf(2);
       expect(pullRequests[0].body.releaseData).lengthOf(1);
+      expect(pullRequests[0].conventionalCommits).lengthOf(102);
       expect(pullRequests[0].body.releaseData[0].component).to.eql('pkg1');
       expect(pullRequests[0].body.releaseData[0].version?.toString()).to.eql(
         '1.2.4'
+      );
+      expect(pullRequests[1].body.releaseData).lengthOf(1);
+      expect(pullRequests[1].conventionalCommits).lengthOf(2);
+      expect(pullRequests[1].body.releaseData[0].component).to.eql('pkg2');
+      expect(pullRequests[1].body.releaseData[0].version?.toString()).to.eql(
+        '2.3.5'
       );
     });
 
