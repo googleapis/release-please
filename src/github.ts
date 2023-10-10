@@ -514,7 +514,9 @@ export class GitHub {
     options: CommitIteratorOptions = {}
   ): Promise<CommitHistory | null> {
     this.logger.debug(
-      `Fetching merge commits on branch '${targetBranch}' with cursor: '${cursor}'`
+      `Fetching merge commits on branch '${targetBranch}'${
+        cursor ? ` (cursor ${cursor})` : ''
+      }`
     );
     const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
       repository(owner: $owner, name: $repo) {
@@ -586,18 +588,20 @@ export class GitHub {
     // if the branch does exist, return null
     if (!response.repository?.ref) {
       this.logger.warn(
-        `Could not find commits for branch '${targetBranch}' - it likely does not exist.`
+        `Could not find commits for branch '${targetBranch}' - it likely does not exist`
       );
       return null;
     }
     const history = response.repository.ref.target.history;
     const commits = (history.nodes || []) as GraphQLCommit[];
+    this.logger.debug(`Found ${commits.length} merge commits`);
     const commitData: Commit[] = [];
     for (const graphCommit of commits) {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
       };
+      this.logger.trace(`${commit.sha}: "${commit.message}"`);
       const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
@@ -724,7 +728,7 @@ export class GitHub {
    * @throws {GitHubAPIError} on an API error
    */
   getCommitFiles = wrapAsync(async (sha: string): Promise<string[]> => {
-    this.logger.debug(`Backfilling file list for commit: ${sha}`);
+    this.logger.trace(`Backfilling file list for commit: ${sha}`);
     const files: string[] = [];
     for await (const resp of this.octokit.paginate.iterator(
       this.octokit.repos.getCommit,
@@ -745,7 +749,7 @@ export class GitHub {
         `Found ${files.length} files. This may not include all the files.`
       );
     } else {
-      this.logger.debug(`Found ${files.length} files`);
+      this.logger.trace(`Found ${files.length} files`);
     }
     return files;
   });
@@ -1710,7 +1714,7 @@ export class GitHub {
 
     if (!content?.html_url) {
       throw new Error(
-        `Failed to write to file: ${filename} on branch: ${newBranchName}`
+        `Failed to write to file '${filename}' on branch '${newBranchName}'`
       );
     }
 
@@ -1724,7 +1728,7 @@ export class GitHub {
    *   or undefined if it can't be found.
    */
   private async getBranchSha(branchName: string): Promise<string | undefined> {
-    this.logger.debug(`Looking up SHA for branch: ${branchName}`);
+    this.logger.debug(`Looking up SHA for branch '${branchName}'`);
     try {
       const {
         data: {
@@ -1735,11 +1739,11 @@ export class GitHub {
         repo: this.repository.repo,
         ref: `heads/${branchName}`,
       });
-      this.logger.debug(`SHA for branch: ${sha}`);
+      this.logger.debug(`SHA: ${sha}`);
       return sha;
     } catch (e) {
       if (isOctokitRequestError(e) && e.status === 404) {
-        this.logger.debug(`Branch: ${branchName} does not exist`);
+        this.logger.debug(`Branch '${branchName}' does not exist`);
         return undefined;
       }
       throw e;
