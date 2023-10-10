@@ -633,7 +633,8 @@ export class Manifest {
           releasesFound === 0
             ? 'none could be found'
             : `only found ${releasesFound} of them`
-        }. Hint: does the manifest points to versions for which no git tag or github release exist? Tags may have been deleted or not created correctly for a past release.`
+        }.
+    Hint: does the manifest points to versions for which no git tag and github release exist? Tags may have been deleted or not created correctly for past releases.`
       );
     }
     for (const path in releasesByPath) {
@@ -666,16 +667,21 @@ export class Manifest {
     const releasePullRequestsBySha: Record<string, PullRequest> = {};
     let releaseCommitsFound = 0;
     for await (const commit of commitGenerator) {
+      this.logger.debug(`- ${commit.sha} "${commit.message}"`);
       if (releaseShas.has(commit.sha)) {
         if (commit.pullRequest) {
+          this.logger.trace(
+            `Release commit has associated pull request: "${commit.pullRequest.title}" (#${commit.pullRequest.number})`
+          );
           releasePullRequestsBySha[commit.sha] = commit.pullRequest;
         } else {
           this.logger.warn(
-            `Release SHA ${commit.sha} did not have an associated pull request`
+            `Release commit '${commit.sha}' did not have an associated pull request`
           );
         }
         releaseCommitsFound += 1;
       }
+
       if (this.lastReleaseSha && this.lastReleaseSha === commit.sha) {
         this.logger.info(
           `Using configured lastReleaseSha ${this.lastReleaseSha} as last commit.`
@@ -687,9 +693,10 @@ export class Manifest {
         );
         break;
       } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
-        // found enough commits
+        this.logger.trace('Found enough commits');
         break;
       }
+
       commits.push({
         sha: commit.sha,
         message: commit.message,
