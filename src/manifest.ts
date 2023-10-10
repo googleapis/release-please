@@ -271,8 +271,15 @@ export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
 export const DEFAULT_PRERELEASE_LABELS = ['autorelease: pre-release'];
 export const DEFAULT_CUSTOM_VERSION_LABEL = 'autorelease: custom version';
-const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
-const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
+
+/**
+ * Default number of github releases to search latest release through
+ */
+const DEFAULT_RELEASE_SEARCH_DEPTH = 10;
+/**
+ * Default number of commits to search past release commits through
+ */
+const DEFAULT_COMMIT_SEARCH_DEPTH = 10;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 

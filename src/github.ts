@@ -499,6 +499,9 @@ export class GitHub {
       }
       for (let i = 0; i < response.data.length; i++) {
         results += 1;
+        if (results > maxResults) {
+          break;
+        }
         yield response.data[i];
       }
       if (!response.pageInfo.hasNextPage) {
@@ -585,7 +588,7 @@ export class GitHub {
       return null;
     }
 
-    // if the branch does exist, return null
+    // if the branch does not exist, return null
     if (!response.repository?.ref) {
       this.logger.warn(
         `Could not find commits for branch '${targetBranch}' - it likely does not exist`
@@ -846,6 +849,9 @@ export class GitHub {
       }
       for (let i = 0; i < response.data.length; i++) {
         results += 1;
+        if (results > maxResults) {
+          break;
+        }
         yield response.data[i];
       }
       if (!response.pageInfo.hasNextPage) {
