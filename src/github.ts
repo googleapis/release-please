@@ -141,6 +141,7 @@ interface GraphQLPullRequest {
 }
 
 interface GraphQLRelease {
+  databaseId: number;
   name: string;
   tag: {
     name: string;
@@ -1080,6 +1081,7 @@ export class GitHub {
         repository(owner: $owner, name: $repo) {
           releases(first: $num, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
             nodes {
+              databaseId
               name
               tag {
                 name
@@ -1104,7 +1106,7 @@ export class GitHub {
       num: 25,
     });
     if (!response.repository.releases.nodes.length) {
-      this.logger.warn('Could not find releases.');
+      this.logger.warn('GraphQL query did not return any GitHub release');
       return null;
     }
     const releases = response.repository.releases.nodes as GraphQLRelease[];
@@ -1114,9 +1116,13 @@ export class GitHub {
         .filter(release => !!release.tagCommit)
         .map(release => {
           if (!release.tag || !release.tagCommit) {
-            this.logger.debug(release);
+            this.logger.warn(
+              'Release returned by GraphQL query missing tag and tagCommit',
+              release
+            );
           }
           return {
+            id: release.databaseId,
             name: release.name || undefined,
             tagName: release.tag ? release.tag.name : 'unknown',
             sha: release.tagCommit.oid,

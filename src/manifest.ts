@@ -558,6 +558,7 @@ export class Manifest {
     for await (const release of this.github.releaseIterator({
       maxResults: this.releaseSearchDepth,
     })) {
+      this.logger.debug(`GitHub release with id ${release.id}`);
       const tagName = TagName.parse(release.tagName);
       if (!tagName) {
         this.logger.warn(`Unable to parse release name: ${release.name}`);
