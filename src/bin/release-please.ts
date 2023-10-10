@@ -852,9 +852,9 @@ export const parser = yargs
     type: 'boolean',
   })
   .middleware(argv => {
-    if (argv.trace) {
+    if (argv.trace || process.env['LOG_LEVEL'] === 'trace') {
       setLogger(new CheckpointLogger(true, true));
-    } else if (argv.debug) {
+    } else if (argv.debug || process.env['LOG_LEVEL'] == 'debug') {
       setLogger(new CheckpointLogger(true));
     }
   })
