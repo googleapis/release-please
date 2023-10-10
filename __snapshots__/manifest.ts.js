@@ -49,8 +49,6 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
-* some bugfix ([bbbbbb](https://github.com/fake-owner/fake-repo/commit/bbbbbb))
-* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
 </details>
 
 <details><summary>pkg1: 1.0.2</summary>
@@ -61,17 +59,6 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
-* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
-</details>
-
-<details><summary>pkg2: 0.2.4</summary>
-
-## [0.2.4](https://github.com/fake-owner/fake-repo/compare/pkg2-v0.2.3...pkg2-v0.2.4) (1983-10-10)
-
-
-### Bug Fixes
-
-* some bugfix ([bbbbbb](https://github.com/fake-owner/fake-repo/commit/bbbbbb))
 </details>
 
 ---
