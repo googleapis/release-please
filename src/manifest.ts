@@ -680,6 +680,16 @@ export class Manifest {
           );
         }
         releaseCommitsFound += 1;
+      } else if (commit.pullRequest) {
+        this.logger.trace(
+          `Commit not a known release but has associated pull request: "${commit.pullRequest.title}" (#${commit.pullRequest.number})`
+        );
+        const branchName = BranchName.parse(commit.pullRequest.headBranchName);
+        if (branchName) {
+          this.logger.trace(`PR head looks like a release: ${branchName}`);
+          releasePullRequestsBySha[commit.sha] = commit.pullRequest;
+          releaseCommitsFound += 1;
+        }
       }
 
       if (this.lastReleaseSha && this.lastReleaseSha === commit.sha) {
