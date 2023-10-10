@@ -417,10 +417,6 @@ If you instead want to use the version number \`${newVersion}\` generated from c
       this.includeVInTag
     );
 
-    this.logger.debug(
-      'pull request title pattern:',
-      this.pullRequestTitlePattern
-    );
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,

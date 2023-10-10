@@ -21,26 +21,7 @@ import {Version} from '../version';
 
 const DEFAULT_PR_TITLE_PATTERN =
   'chore${scope}: release${component} ${version}';
-export function generateMatchPattern(
-  pullRequestTitlePattern?: string,
-  logger: Logger = defaultLogger
-): RegExp {
-  if (
-    pullRequestTitlePattern &&
-    pullRequestTitlePattern.search(/\$\{scope\}/) === -1
-  ) {
-    logger.warn("pullRequestTitlePattern miss the part of '${scope}'");
-  }
-  if (
-    pullRequestTitlePattern &&
-    pullRequestTitlePattern.search(/\$\{component\}/) === -1
-  )
-    logger.warn("pullRequestTitlePattern miss the part of '${component}'");
-  if (
-    pullRequestTitlePattern &&
-    pullRequestTitlePattern.search(/\$\{version\}/) === -1
-  )
-    logger.warn("pullRequestTitlePattern miss the part of '${version}'");
+export function generateMatchPattern(pullRequestTitlePattern?: string): RegExp {
   return new RegExp(
     `^${(pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN)
       .replace('[', '\\[') // TODO: handle all regex escaping
@@ -80,10 +61,7 @@ export class PullRequestTitle {
     this.changesBranch = opts.changesBranch || this.targetBranch;
     this.pullRequestTitlePattern =
       opts.pullRequestTitlePattern || DEFAULT_PR_TITLE_PATTERN;
-    this.matchPattern = generateMatchPattern(
-      this.pullRequestTitlePattern,
-      opts.logger
-    );
+    this.matchPattern = generateMatchPattern(this.pullRequestTitlePattern);
   }
 
   static parse(
@@ -91,7 +69,7 @@ export class PullRequestTitle {
     pullRequestTitlePattern?: string,
     logger: Logger = defaultLogger
   ): PullRequestTitle | undefined {
-    const matchPattern = generateMatchPattern(pullRequestTitlePattern, logger);
+    const matchPattern = generateMatchPattern(pullRequestTitlePattern);
     const match = title.match(matchPattern);
     if (match?.groups) {
       return new PullRequestTitle({

@@ -1827,7 +1827,6 @@ export class GitHub {
     branchName: string,
     branchSha: string
   ): Promise<string> {
-    this.logger.debug(`Updating branch '${branchName}' to '${branchSha}'`);
     const {
       data: {
         object: {sha},
@@ -1839,7 +1838,6 @@ export class GitHub {
       sha: branchSha,
       force: true,
     });
-    this.logger.debug(`Updated branch: '${branchName}' to ${sha}`);
     return sha;
   }
 
