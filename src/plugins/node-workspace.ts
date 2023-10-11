@@ -136,7 +136,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     const allPackages = Array.from(packagesByPath.values());
     this.packageGraph = new PackageGraph(
       allPackages,
-      'allDependencies',
+      'allPlusPeerDependencies',
       this.alwaysLinkLocal
     );
 
@@ -178,7 +178,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         updatedPackage.updateLocalDependency(
           resolved,
           depVersion.toString(),
-          prefix
+          prefix,
+          true
         );
         this.logger.info(
           `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
@@ -257,7 +258,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         updatedPackage.updateLocalDependency(
           resolved,
           depVersion.toString(),
-          prefix
+          prefix,
+          true
         );
         this.logger.info(
           `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
@@ -373,6 +375,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       ...(packageJson.dependencies ?? {}),
       ...(packageJson.devDependencies ?? {}),
       ...(packageJson.optionalDependencies ?? {}),
+      ...(packageJson.peerDependencies ?? {}),
     };
   }
 }
