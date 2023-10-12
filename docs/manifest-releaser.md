@@ -34,8 +34,7 @@ release-please bootstrap \
 This will open a pull request that configures the initial
 `release-please-config.json` and `.release-please-manifest.json` files.
 
-> For this to work you may need to set "Allow GitHub Actions to create and approve pull requests" under repository Settings > Actions > General.
-
+Note: For this to work you may need to set "Allow GitHub Actions to create and approve pull requests" under repository Settings > Actions > General.
 
 For the full options, see the [CLI documentation](/docs/cli.md#bootstrapping).
 
