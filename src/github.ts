@@ -317,7 +317,6 @@ export class GitHub {
         auth: options.token,
         request: {
           agent: this.createDefaultAgent(apiUrl, options.proxy),
-          retries: options.retries ?? 0,
         },
         log: {
           // octokit debug logs include all requests, too noisy for our debug level
@@ -328,6 +327,8 @@ export class GitHub {
           error: logger.error,
         },
         retry: {
+          retries: options.retries ?? 0,
+          retryAfter: 3, // 3 seconds
           doNotRetry: [
             '403', // Used by GitHub when throttling
             '429', // Too Many Request
@@ -336,6 +337,8 @@ export class GitHub {
         },
         throttle: {
           enabled: throttlingRetries > 0,
+          retryAfterBaseValue: 3000, // 3 seconds
+
           onRateLimit: (retryAfter, options, octokit, retryCount) => {
             const method =
               'method' in options ? options.method : 'UnknownMethod';
