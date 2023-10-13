@@ -71,7 +71,7 @@ describe('factory', () => {
       expect(strategy).instanceof(Simple);
       expect(strategy.versioningStrategy).instanceof(DefaultVersioningStrategy);
       const versioningStrategy =
-          strategy.versioningStrategy as DefaultVersioningStrategy;
+        strategy.versioningStrategy as DefaultVersioningStrategy;
       expect(versioningStrategy.bumpMinorPreMajor).to.be.true;
       expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
     });
