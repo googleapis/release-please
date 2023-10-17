@@ -174,6 +174,8 @@ the block, we will attempt to replace version values.
 
 ## Updating arbitrary JSON files
 
+For files with the `.xml` extension, the `version` property is updated.
+
 For most release strategies, you can provide additional files to update
 using the [GenericJson](/src/updaters/generic-json.ts) updater. You can
 specify a configuration object in the `extra-files` option in the manifest
@@ -197,6 +199,8 @@ informs release-please on which JSON field to update with the new version.
 
 ## Updating arbitrary XML files
 
+For files with the `.xml` extension, the `version` element is updated.
+
 For most release strategies, you can provide additional files to update
 using the [GenericXml](/src/updaters/generic-xml.ts) updater. You can
 specify a configuration object in the `extra-files` option in the manifest
@@ -216,6 +220,9 @@ configuration.
 
 ## Updating arbitrary YAML files
 
+For files with the `.yaml` or `.yml` extension, the `version` property is
+updated.
+
 For most release strategies, you can provide additional files to update
 using the [GenericYaml](/src/updaters/generic-yaml.ts) updater. You can
 specify a configuration object in the `extra-files` option in the manifest
@@ -234,6 +241,8 @@ configuration.
 ```
 
 ## Updating arbitrary TOML files
+
+For files with the `.toml` extension, the `version` property is updated.
 
 For most release strategies, you can provide additional files to update
 using the [GenericToml](/src/updaters/generic-toml.ts) updater. You can

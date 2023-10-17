@@ -27,6 +27,7 @@ import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {Changelog} from '../../src/updaters/changelog';
 import {DEFAULT_LABELS, DEFAULT_SNAPSHOT_LABELS} from '../../src/manifest';
+import {CompositeUpdater} from '../../src/updaters/composite';
 import {Generic} from '../../src/updaters/generic';
 import {JavaReleased} from '../../src/updaters/java/java-released';
 
@@ -262,7 +263,7 @@ describe('Java', () => {
 
         const updates = release!.updates;
         assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-        assertHasUpdates(updates, 'pom.xml', JavaReleased, Generic);
+        assertHasUpdates(updates, 'pom.xml', JavaReleased, CompositeUpdater);
         assertHasUpdates(updates, 'foo/bar.java', JavaReleased, Generic);
       });
 
@@ -286,7 +287,7 @@ describe('Java', () => {
         const updates = release!.updates;
         assertNoHasUpdate(updates, 'CHANGELOG.md');
         assertHasUpdate(updates, 'foo/bar.java', Generic);
-        assertHasUpdate(updates, 'pom.xml', Generic);
+        assertHasUpdate(updates, 'pom.xml', CompositeUpdater);
       });
     });
 

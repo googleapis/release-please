@@ -224,16 +224,11 @@ export class GitHub {
     }
 
     const {host, port} = defaultProxy;
-
-    return new URL(baseUrl).protocol.replace(':', '') === 'http'
-      ? new HttpProxyAgent({
-          host,
-          port,
-        })
-      : new HttpsProxyAgent({
-          host,
-          port,
-        });
+    if (new URL(baseUrl).protocol.replace(':', '') === 'http') {
+      return new HttpProxyAgent(`http://${host}:${port}`);
+    } else {
+      return new HttpsProxyAgent(`https://${host}:${port}`);
+    }
   }
 
   /**
