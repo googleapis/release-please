@@ -75,6 +75,10 @@ export class Rust extends BaseStrategy {
           this.logger.warn(`member ${member} has no package name`);
           continue;
         }
+        if (typeof manifest.package?.version === "object" && manifest.package?.version?.workspace) {
+          this.logger.warn(`member ${member} inherits version from workspace`);
+          continue;
+        }
         versionsMap.set(manifest.package.name, version);
       }
       this.logger.info(`updating ${manifestsByPath.size} submodules`);

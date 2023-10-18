@@ -44,7 +44,11 @@ export interface CargoWorkspace {
 
 export interface CargoPackage {
   name?: string;
-  version?: string;
+  version?: string | VersionConfig;
+}
+
+export interface VersionConfig {
+  workspace?: boolean;
 }
 
 export interface CargoDependencies {

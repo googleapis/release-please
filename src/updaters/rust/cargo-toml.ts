@@ -39,6 +39,11 @@ export class CargoToml extends DefaultUpdater {
       logger.error(msg);
       throw new Error(msg);
     }
+    if (typeof parsed.package.version !== 'string') {
+      const msg = 'is not a package manifest (might be a cargo workspace)';
+      logger.warn(msg);
+      return content;
+    }
     payload = replaceTomlValue(
       payload,
       ['package', 'version'],
