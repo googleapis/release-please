@@ -293,9 +293,16 @@ export interface CreatedRelease extends GitHubRelease {
 export type AutoMergeOption = {
   mergeMethod: MergeMethod;
   /**
-   * Only auto merge if all conventional commits of the PR match the filter
+   * Only auto merge if conventional commits of the PR match the filter
    */
-  conventionalCommitFilter?: {type: string; scope?: string}[];
+  conventionalCommitFilter?: {
+    matchBehaviour: 'match-all' | 'match-at-least-one';
+    commits: {
+      type: string;
+      scope?: string;
+    }[];
+  };
+
   /**
    * Only auto merge if the version bump match the filter
    */
@@ -1614,41 +1621,69 @@ export class Manifest {
         pullRequest.version &&
         pullRequest.previousVersion &&
         pullRequest.version.compareBump(pullRequest.previousVersion);
+      console.log(`pr: ${pullRequest.headRefName}, version bump`, {
+        versionBump,
+      });
       return (
         versionBump && versionBumpFilter?.find(filter => versionBump === filter)
       );
     };
 
-    // given two sets of type:scope items, if any item from commitSet isn't in filterSet do not auto-merge
+    // given two sets of type:scope items, auto-merge if items from commitSet match filterSet
     const applyConventionalCommitFilter = () => {
       if (pullRequest.conventionalCommits.length === 0) {
         return false;
       }
       const filterSet = new Set(
-        conventionalCommitFilter!.map(
+        conventionalCommitFilter!.commits.map(
           filter => `${filter.type}:${filter.scope ? filter.scope : '*'}`
         )
       );
-      for (const commit of pullRequest.conventionalCommits) {
-        if (
-          !filterSet.has(`${commit.type}:${commit.scope}`) &&
-          !filterSet.has(`${commit.type}:*`)
-        ) {
+      if (conventionalCommitFilter!.matchBehaviour === 'match-all') {
+        for (const commit of pullRequest.conventionalCommits) {
+          if (
+            !filterSet.has(`${commit.type}:${commit.scope}`) &&
+            !filterSet.has(`${commit.type}:*`)
+          ) {
+            return false;
+          }
+          return true;
+        }
+      } else if (
+        conventionalCommitFilter!.matchBehaviour === 'match-at-least-one'
+      ) {
+        for (const commit of pullRequest.conventionalCommits) {
+          if (
+            filterSet.has(`${commit.type}:${commit.scope}`) ||
+            filterSet.has(`${commit.type}:*`)
+          ) {
+            console.log(
+              `pr: ${
+                pullRequest.headRefName
+              }, match-at-least-one: found match ${commit.type}:${
+                commit.scope ?? '*'
+              }`,
+              filterSet
+            );
+            return true;
+          }
           return false;
         }
       }
-      return true;
+      return false;
     };
 
     const selected =
-      conventionalCommitFilter?.length && versionBumpFilter?.length
+      conventionalCommitFilter?.commits.length && versionBumpFilter?.length
         ? applyConventionalCommitFilter() && applyVersionBumpFilter()
-        : conventionalCommitFilter?.length
+        : conventionalCommitFilter?.commits.length
         ? applyConventionalCommitFilter()
         : versionBumpFilter?.length
         ? applyVersionBumpFilter()
         : // no filter provided
           false;
+
+    console.log(`pr: ${pullRequest.headRefName}, selected: ${selected}`);
 
     return selected ? this.autoMerge : undefined;
   }
