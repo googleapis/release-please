@@ -929,7 +929,7 @@ describe('CLI', () => {
 
       it('handles ruby --version-file', async () => {
         await parser.parseAsync(
-          'release-pr --repo-url=googleapis/release-please-cli --release-type=ruby-yoshi --version-file=lib/foo/version.rb'
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=ruby --version-file=lib/foo/version.rb'
         );
 
         sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
@@ -947,7 +947,7 @@ describe('CLI', () => {
           fakeGitHub,
           'main',
           sinon.match({
-            releaseType: 'ruby-yoshi',
+            releaseType: 'ruby',
             versionFile: 'lib/foo/version.rb',
           }),
           sinon.match.any,

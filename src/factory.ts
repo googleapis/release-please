@@ -23,7 +23,6 @@ import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
 import {Python} from './strategies/python';
 import {Ruby} from './strategies/ruby';
-import {RubyYoshi} from './strategies/ruby-yoshi';
 import {Rust} from './strategies/rust';
 import {Sfdx} from './strategies/sfdx';
 import {Simple} from './strategies/simple';
@@ -99,7 +98,6 @@ const releasers: Record<string, ReleaseBuilder> = {
   'php-yoshi': options => new PHPYoshi(options),
   python: options => new Python(options),
   ruby: options => new Ruby(options),
-  'ruby-yoshi': options => new RubyYoshi(options),
   rust: options => new Rust(options),
   salesforce: options => new Sfdx(options),
   sfdx: options => new Sfdx(options),

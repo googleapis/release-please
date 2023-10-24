@@ -45,8 +45,8 @@ Options:
    [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
                   "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
        "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
-      "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
-                                                   "simple", "terraform-module"]
+          "php-yoshi", "python", "ruby", "rust", "salesforce", "sfdx", "simple",
+                                                             "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
   --manifest-file               where can the manifest file be found in the
@@ -270,8 +270,8 @@ Options:
    [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
                   "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
        "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
-      "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
-                                                   "simple", "terraform-module"]
+          "php-yoshi", "python", "ruby", "rust", "salesforce", "sfdx", "simple",
+                                                             "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?
                                          [default: "release-please-config.json"]
