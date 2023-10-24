@@ -46,7 +46,7 @@
     "@types/js-yaml": "^4.0.0",
     "@types/jsonpath": "^0.2.0",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/npmlog": "^4.1.4",
     "@types/pino": "^7.0.0",
     "@types/semver": "^7.0.0",
