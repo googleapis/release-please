@@ -329,11 +329,6 @@ export class GitHub {
         retry: {
           retries: options.retries ?? 0,
           retryAfter: 3, // 3 seconds
-          doNotRetry: [
-            '403', // Used by GitHub when throttling
-            '429', // Too Many Request
-            '404', // Not Found
-          ],
         },
         throttle: {
           enabled: throttlingRetries > 0,
