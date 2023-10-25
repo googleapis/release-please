@@ -1613,6 +1613,8 @@ export class Manifest {
   pullRequestAutoMergeOption(
     pullRequest: ReleasePullRequest
   ): AutoMergeOption | undefined {
+    this.logger.debug(`Auto merge options: ${JSON.stringify(this.autoMerge)}`);
+
     const {versionBumpFilter, conventionalCommitFilter} = this.autoMerge || {};
 
     // if the version bump do not match any provided filter value, do not auto-merge
@@ -1621,12 +1623,13 @@ export class Manifest {
         pullRequest.version &&
         pullRequest.previousVersion &&
         pullRequest.version.compareBump(pullRequest.previousVersion);
-      console.log(`pr: ${pullRequest.headRefName}, version bump`, {
-        versionBump,
-      });
-      return (
-        versionBump && versionBumpFilter?.find(filter => versionBump === filter)
+      const found =
+        versionBump &&
+        versionBumpFilter?.find(filter => versionBump === filter);
+      this.logger.debug(
+        `applyVersionBumpFilter: ${JSON.stringify({versionBump, found})}`
       );
+      return found;
     };
 
     // given two sets of type:scope items, auto-merge if items from commitSet match filterSet
@@ -1645,6 +1648,11 @@ export class Manifest {
             !filterSet.has(`${commit.type}:${commit.scope}`) &&
             !filterSet.has(`${commit.type}:*`)
           ) {
+            this.logger.debug(
+              `applyConventionalCommitFilter: match-all: found match ${
+                commit.type
+              }:${commit.scope ?? '*'}`
+            );
             return false;
           }
           return true;
@@ -1657,12 +1665,10 @@ export class Manifest {
             filterSet.has(`${commit.type}:${commit.scope}`) ||
             filterSet.has(`${commit.type}:*`)
           ) {
-            console.log(
-              `pr: ${
-                pullRequest.headRefName
-              }, match-at-least-one: found match ${commit.type}:${
-                commit.scope ?? '*'
-              }`,
+            this.logger.debug(
+              `applyConventionalCommitFilter: match-at-least-one: found match ${
+                commit.type
+              }:${commit.scope ?? '*'}`,
               filterSet
             );
             return true;
@@ -1683,7 +1689,9 @@ export class Manifest {
         : // no filter provided
           false;
 
-    console.log(`pr: ${pullRequest.headRefName}, selected: ${selected}`);
+    this.logger.debug(
+      `Use auto merge option for release PR? ${Boolean(selected)}`
+    );
 
     return selected ? this.autoMerge : undefined;
   }
