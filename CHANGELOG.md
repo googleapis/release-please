@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.1.0](https://github.com/googleapis/release-please/compare/v16.0.0...v16.1.0) (2023-10-26)
+
+
+### Features
+
+* Implement custom prerelease type ([#2083](https://github.com/googleapis/release-please/issues/2083)) ([97b0542](https://github.com/googleapis/release-please/commit/97b05421168316a23592897c8853893adf08d24c))
+* Update package-lock.json workspace entry versions ([#2088](https://github.com/googleapis/release-please/issues/2088)) ([dbb11bc](https://github.com/googleapis/release-please/commit/dbb11bc62d6c8135b5b168354e8f235398ffab03)), closes [#1993](https://github.com/googleapis/release-please/issues/1993)
+
+
+### Bug Fixes
+
+* Releasable units should use version from pull-request body ([#2102](https://github.com/googleapis/release-please/issues/2102)) ([db035b7](https://github.com/googleapis/release-please/commit/db035b798f33c5ce0ddf2a43dcf2458c170c8fe3)), closes [#2101](https://github.com/googleapis/release-please/issues/2101)
+
 ## [16.0.0](https://github.com/googleapis/release-please/compare/v15.13.0...v16.0.0) (2023-09-18)
 
 
