@@ -32,6 +32,7 @@ import {DependencyManifest} from '../src/versioning-strategies/dependency-manife
 import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {DefaultChangelogNotes} from '../src/changelog-notes/default';
 import {Java} from '../src/strategies/java';
+import {PrereleaseVersioningStrategy} from '../src/versioning-strategies/prerelease';
 
 describe('factory', () => {
   let github: GitHub;
@@ -73,6 +74,25 @@ describe('factory', () => {
         strategy.versioningStrategy as DefaultVersioningStrategy;
       expect(versioningStrategy.bumpMinorPreMajor).to.be.true;
       expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
+    });
+    it('should build with prerelease type', async () => {
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'simple',
+        bumpMinorPreMajor: true,
+        bumpPatchForMinorPreMajor: true,
+        versioning: 'prerelease',
+        prereleaseType: 'alpha',
+      });
+      expect(strategy).instanceof(Simple);
+      expect(strategy.versioningStrategy).instanceof(
+        PrereleaseVersioningStrategy
+      );
+      const versioningStrategy =
+        strategy.versioningStrategy as PrereleaseVersioningStrategy;
+      expect(versioningStrategy.bumpMinorPreMajor).to.be.true;
+      expect(versioningStrategy.bumpPatchForMinorPreMajor).to.be.true;
+      expect(versioningStrategy.prereleaseType).to.eql('alpha');
     });
     it('should throw for unknown type', async () => {
       try {

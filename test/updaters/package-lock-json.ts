@@ -74,7 +74,7 @@ describe('PackageLockJson', () => {
       versionsMap.set('release-please-foo', new Version(2, 0, 0));
       const packageJson = new PackageLockJson({
         version: Version.parse('14.0.0'),
-        versionsMap
+        versionsMap,
       });
       const newContent = packageJson.updateContent(oldContent);
       snapshot(newContent.replace(/\r\n/g, '\n'));

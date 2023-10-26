@@ -57,13 +57,13 @@ export class DependencyManifest extends DefaultVersioningStrategy {
 
     let dependencyBump: VersionUpdater;
     if (breaking > 0) {
-      if (version.major < 1 && this.bumpMinorPreMajor) {
+      if (version.isPreMajor && this.bumpMinorPreMajor) {
         dependencyBump = new MinorVersionUpdate();
       } else {
         dependencyBump = new MajorVersionUpdate();
       }
     } else if (features > 0) {
-      if (version.major < 1 && this.bumpPatchForMinorPreMajor) {
+      if (version.isPreMajor && this.bumpPatchForMinorPreMajor) {
         dependencyBump = new PatchVersionUpdate();
       } else {
         dependencyBump = new MinorVersionUpdate();

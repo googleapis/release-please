@@ -12,14 +12,72 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {DefaultVersioningStrategy} from './default';
+import {
+  DefaultVersioningStrategyOptions,
+  DefaultVersioningStrategy,
+} from './default';
 import {Version} from '../version';
 import {ConventionalCommit} from '..';
-import {VersionUpdater, CustomVersionUpdate} from '../versioning-strategy';
+import {
+  VersionUpdater,
+  CustomVersionUpdate,
+  MinorVersionUpdate,
+  MajorVersionUpdate,
+} from '../versioning-strategy';
 
-const PRERELEASE_PATTERN = /^(?<type>[a-z]+)(?<number>\d+)$/;
+interface PrereleaseVersioningStrategyOptions
+  extends DefaultVersioningStrategyOptions {
+  prereleaseType?: string;
+}
 
-class PrereleasePatchVersionUpdate implements VersionUpdater {
+/**
+ * Regex to match the last set of numbers in a string
+ * Example: 1.2.3-beta01-01 -> 01
+ */
+const PRERELEASE_NUMBER = /(?<number>\d+)(?=\D*$)/;
+
+abstract class AbstractPrereleaseVersionUpdate implements VersionUpdater {
+  protected readonly prereleaseType?: string;
+
+  constructor(prereleaseType?: string) {
+    this.prereleaseType = prereleaseType;
+  }
+
+  /**
+   * Returns the new bumped prerelease version
+   *
+   * That is, if the current version is 1.2.3-beta01, the next prerelease version
+   * will be 1.2.3-beta02. If no number is found, the prerelease version will be
+   * 1.2.3-beta. If multiple numbers are found, the last set of numbers will be
+   * incremented, e.g. 1.2.3-beta01-01 -> 1.2.3-beta01-02.
+   *
+   * @param {prerelease} string The current version
+   * @returns {Version} The bumped version
+   */
+  protected bumpPrerelease(prerelease: string): string {
+    const match = prerelease.match(PRERELEASE_NUMBER);
+
+    let nextPrerelease = `${prerelease}.1`;
+
+    if (match?.groups) {
+      const numberLength = match.groups.number.length;
+      const nextPrereleaseNumber = Number(match.groups.number) + 1;
+      const paddedNextPrereleaseNumber = `${nextPrereleaseNumber}`.padStart(
+        numberLength,
+        '0'
+      );
+      nextPrerelease = prerelease.replace(
+        PRERELEASE_NUMBER,
+        paddedNextPrereleaseNumber
+      );
+    }
+    return nextPrerelease;
+  }
+
+  abstract bump(version: Version): Version;
+}
+
+class PrereleasePatchVersionUpdate extends AbstractPrereleaseVersionUpdate {
   /**
    * Returns the new bumped version
    *
@@ -28,15 +86,37 @@ class PrereleasePatchVersionUpdate implements VersionUpdater {
    */
   bump(version: Version): Version {
     if (version.preRelease) {
-      const match = version.preRelease.match(PRERELEASE_PATTERN);
-      if (match?.groups) {
-        const numberLength = match.groups.number.length;
-        const nextPrereleaseNumber = Number(match.groups.number) + 1;
-        const paddedNextPrereleaseNumber = `${nextPrereleaseNumber}`.padStart(
-          numberLength,
-          '0'
-        );
-        const nextPrerelease = `${match.groups.type}${paddedNextPrereleaseNumber}`;
+      const nextPrerelease = this.bumpPrerelease(version.preRelease);
+      return new Version(
+        version.major,
+        version.minor,
+        version.patch,
+        nextPrerelease,
+        version.build
+      );
+    }
+    return new Version(
+      version.major,
+      version.minor,
+      version.patch + 1,
+      this.prereleaseType,
+      version.build
+    );
+  }
+}
+
+class PrereleaseMinorVersionUpdate extends AbstractPrereleaseVersionUpdate {
+  /**
+   * Returns the new bumped version
+   *
+   * @param {Version} version The current version
+   * @returns {Version} The bumped version
+   */
+  bump(version: Version): Version {
+    if (version.preRelease) {
+      if (version.patch === 0) {
+        const nextPrerelease = this.bumpPrerelease(version.preRelease);
+
         return new Version(
           version.major,
           version.minor,
@@ -45,66 +125,20 @@ class PrereleasePatchVersionUpdate implements VersionUpdater {
           version.build
         );
       }
-    }
-    return new Version(
-      version.major,
-      version.minor,
-      version.patch + 1,
-      version.preRelease,
-      version.build
-    );
-  }
-}
 
-class PrereleaseMinorVersionUpdate implements VersionUpdater {
-  /**
-   * Returns the new bumped version
-   *
-   * @param {Version} version The current version
-   * @returns {Version} The bumped version
-   */
-  bump(version: Version): Version {
-    if (version.preRelease) {
-      const match = version.preRelease.match(PRERELEASE_PATTERN);
-      if (match?.groups) {
-        const numberLength = match.groups.number.length;
-        const prereleaseNumber = Number(match.groups.number);
-
-        let nextPrereleaseNumber = 1;
-        let nextMinorNumber = version.minor + 1;
-        let nextPatchNumber = 0;
-        if (version.patch === 0) {
-          // this is already the next minor candidate, then bump the pre-release number
-          nextPrereleaseNumber = prereleaseNumber + 1;
-          nextMinorNumber = version.minor;
-          nextPatchNumber = version.patch;
-        }
-
-        const paddedNextPrereleaseNumber = `${nextPrereleaseNumber}`.padStart(
-          numberLength,
-          '0'
-        );
-        const nextPrerelease = `${match.groups.type}${paddedNextPrereleaseNumber}`;
-        return new Version(
-          version.major,
-          nextMinorNumber,
-          nextPatchNumber,
-          nextPrerelease,
-          version.build
-        );
-      }
+      return new MinorVersionUpdate().bump(version);
     }
     return new Version(
       version.major,
       version.minor + 1,
       0,
-      version.preRelease,
+      this.prereleaseType,
       version.build
     );
   }
 }
 
-class PrereleaseMajorVersionUpdate implements VersionUpdater {
+class PrereleaseMajorVersionUpdate extends AbstractPrereleaseVersionUpdate {
   /**
    * Returns the new bumped version
    *
@@ -113,42 +147,23 @@ class PrereleaseMajorVersionUpdate implements VersionUpdater {
    */
   bump(version: Version): Version {
     if (version.preRelease) {
-      const match = version.preRelease.match(PRERELEASE_PATTERN);
-      if (match?.groups) {
-        const numberLength = match.groups.number.length;
-        const prereleaseNumber = Number(match.groups.number);
-
-        let nextPrereleaseNumber = 1;
-        let nextMajorNumber = version.major + 1;
-        let nextMinorNumber = 0;
-        let nextPatchNumber = 0;
-        if (version.patch === 0 && version.minor === 0) {
-          // this is already the next major candidate, then bump the pre-release number
-          nextPrereleaseNumber = prereleaseNumber + 1;
-          nextMajorNumber = version.major;
-          nextMinorNumber = version.minor;
-          nextPatchNumber = version.patch;
-        }
-
-        const paddedNextPrereleaseNumber = `${nextPrereleaseNumber}`.padStart(
-          numberLength,
-          '0'
-        );
-        const nextPrerelease = `${match.groups.type}${paddedNextPrereleaseNumber}`;
+      if (version.patch === 0 && version.minor === 0) {
+        const nextPrerelease = this.bumpPrerelease(version.preRelease);
         return new Version(
-          nextMajorNumber,
-          nextMinorNumber,
-          nextPatchNumber,
+          version.major,
+          version.minor,
+          version.patch,
           nextPrerelease,
           version.build
         );
       }
+      return new MajorVersionUpdate().bump(version);
     }
     return new Version(
       version.major + 1,
       0,
       0,
-      version.preRelease,
+      this.prereleaseType,
       version.build
     );
   }
@@ -160,6 +175,13 @@ class PrereleaseMajorVersionUpdate implements VersionUpdater {
  * Example: 1.2.3-beta01 -> 1.2.3-beta02.
  */
 export class PrereleaseVersioningStrategy extends DefaultVersioningStrategy {
+  readonly prereleaseType?: string;
+
+  constructor(options: PrereleaseVersioningStrategyOptions = {}) {
+    super(options);
+    this.prereleaseType = options.prereleaseType;
+  }
+
   determineReleaseType(
     version: Version,
     commits: ConventionalCommit[]
@@ -186,18 +208,18 @@ export class PrereleaseVersioningStrategy extends DefaultVersioningStrategy {
     }
 
     if (breaking > 0) {
-      if (version.major < 1 && this.bumpMinorPreMajor) {
-        return new PrereleaseMinorVersionUpdate();
+      if (version.isPreMajor && this.bumpMinorPreMajor) {
+        return new PrereleaseMinorVersionUpdate(this.prereleaseType);
       } else {
-        return new PrereleaseMajorVersionUpdate();
+        return new PrereleaseMajorVersionUpdate(this.prereleaseType);
       }
     } else if (features > 0) {
-      if (version.major < 1 && this.bumpPatchForMinorPreMajor) {
-        return new PrereleasePatchVersionUpdate();
+      if (version.isPreMajor && this.bumpPatchForMinorPreMajor) {
+        return new PrereleasePatchVersionUpdate(this.prereleaseType);
       } else {
-        return new PrereleaseMinorVersionUpdate();
+        return new PrereleaseMinorVersionUpdate(this.prereleaseType);
       }
     }
-    return new PrereleasePatchVersionUpdate();
+    return new PrereleasePatchVersionUpdate(this.prereleaseType);
   }
 }

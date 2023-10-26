@@ -51,6 +51,7 @@ Extra options:
 | `--versioning-strategy` | [`VersioningStrategyType`](/docs/customizing.md#versioning-strategies) | Override method of determining SemVer version bumps based on commits. Defaults to `default` |
 | `--bump-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the minor version for breaking changes for versions < 1.0.0 |
 | `--bump-patch-for-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the patch version for features for versions < 1.0.0 |
+| `--prerelease-type` | `string` | Configuration option for the prerelese versioning strategy. If prerelease strategy used and type set, will set the prerelese part of the version to the provided value in case prerelease part is not present. |
 | `--draft` | `boolean` | If set, create releases as drafts |
 | `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--draft-pull-request` | `boolean` | If set, create pull requests as drafts |
@@ -101,6 +102,7 @@ need to specify your release options:
 | `--versioning-strategy` | VersioningStrategy | Override method of determining SemVer version bumps based on commits. Defaults to `default` |
 | `--bump-minor-pre-major` | boolean | Configuration option for the versioning strategy. If set, will bump the minor version for breaking changes for versions < 1.0.0 |
 | `--bump-patch-for-minor-pre-major` | boolean | Configuration option for the versioning strategy. If set, will bump the patch version for features for versions < 1.0.0 |
+| `--prerelease-type` | `string` | Configuration option for the prerelese versioning strategy. If prerelease strategy used and type set, will set the prerelese part of the version to the provided value in case prerelease part is not present. |
 | `--draft-pull-request` | boolean | If set, create pull requests as drafts |
 | `--label` | string | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |`autorelease: tagged` |
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
