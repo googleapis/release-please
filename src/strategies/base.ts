@@ -632,7 +632,15 @@ export abstract class BaseStrategy implements Strategy {
     if (notes === undefined) {
       this.logger.warn('Failed to find release notes');
     }
-    const version = pullRequestTitle.getVersion() || releaseData?.version;
+
+    let version: Version | undefined = pullRequestTitle.getVersion();
+    if (
+      !version ||
+      (pullRequestBody.releaseData.length > 1 && releaseData?.version)
+    ) {
+      // prioritize pull-request body version for multi-component releases
+      version = releaseData?.version;
+    }
     if (!version) {
       this.logger.error('Pull request should have included version');
       return;
