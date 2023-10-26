@@ -5116,6 +5116,7 @@ describe('Manifest', () => {
               '[HOTFIX] - chore${scope}: release${component} ${version}',
             packageName: 'my-package-name',
             includeComponentInTag: false,
+            prerelease: undefined,
           },
         },
         {
