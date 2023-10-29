@@ -5053,6 +5053,139 @@ describe('Manifest', () => {
       expect(releases[0].path).to.eql('.');
     });
 
+    it('should handle customized group pull request title', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release v3.3.0',
+            body: pullRequestBody('release-notes/multiple-with-root.txt'),
+            labels: ['autorelease: pending'],
+            files: [
+              'package.json',
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+              'packages/object-selector/package.json',
+              'packages/datastore-lock/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(JSON.stringify({name: '@google-automations/all'}))
+        )
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        )
+        .withArgs('packages/object-selector/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/object-selector'})
+          )
+        )
+        .withArgs('packages/datastore-lock/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/datastore-lock'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            component: '@google-automations/all',
+            includeComponentInTag: false,
+          },
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('3.2.0'),
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        },
+        {
+          groupPullRequestTitlePattern: 'chore: release v${version}',
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(5);
+      // 3.3.0
+      expect(releases[0].tag.toString()).to.eql('v3.3.0');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[0].path).to.eql('.');
+      expect(releases[0].name).to.eql('v3.3.0');
+      // @google-automations/bot-config-utils: 3.2.0
+      expect(releases[1].tag.toString()).to.eql('bot-config-utils-v3.2.0');
+      expect(releases[1].sha).to.eql('abc123');
+      expect(releases[1].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].path).to.eql('packages/bot-config-utils');
+      expect(releases[1].name).to.eql('bot-config-utils: v3.2.0');
+      // @google-automations/label-utils: 1.1.0
+      expect(releases[2].tag.toString()).to.eql('label-utils-v1.1.0');
+      expect(releases[2].sha).to.eql('abc123');
+      expect(releases[2].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[2].path).to.eql('packages/label-utils');
+      expect(releases[2].name).to.eql('label-utils: v1.1.0');
+      // @google-automations/object-selector: 1.1.0
+      expect(releases[3].tag.toString()).to.eql('object-selector-v1.1.0');
+      expect(releases[3].sha).to.eql('abc123');
+      expect(releases[3].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[3].path).to.eql('packages/object-selector');
+      expect(releases[3].name).to.eql('object-selector: v1.1.0');
+      // @google-automations/datastore-lock: 2.1.0
+      expect(releases[4].tag.toString()).to.eql('datastore-lock-v2.1.0');
+      expect(releases[4].sha).to.eql('abc123');
+      expect(releases[4].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[4].path).to.eql('packages/datastore-lock');
+      expect(releases[4].name).to.eql('datastore-lock: v2.1.0');
+    });
+
     it('should skip component releases for non-component configs', async () => {
       mockPullRequests(
         github,
@@ -5116,6 +5249,7 @@ describe('Manifest', () => {
               '[HOTFIX] - chore${scope}: release${component} ${version}',
             packageName: 'my-package-name',
             includeComponentInTag: false,
+            prerelease: undefined,
           },
         },
         {
