@@ -57,6 +57,7 @@ class Package extends LernaPackage {
 
 interface NodeWorkspaceOptions extends WorkspacePluginOptions {
   alwaysLinkLocal?: boolean;
+  updatePeerDependencies?: boolean;
 }
 
 /**
@@ -68,6 +69,7 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
  */
 export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
+  private updatePeerDependencies: boolean;
   private packageGraph?: PackageGraph;
   constructor(
     github: GitHub,
@@ -77,6 +79,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   ) {
     super(github, targetBranch, repositoryConfig, options);
     this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
+    this.updatePeerDependencies = options.updatePeerDependencies === true;
   }
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
@@ -136,7 +139,9 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     const allPackages = Array.from(packagesByPath.values());
     this.packageGraph = new PackageGraph(
       allPackages,
-      'allPlusPeerDependencies',
+      this.updatePeerDependencies
+        ? 'allPlusPeerDependencies'
+        : 'allDependencies',
       this.alwaysLinkLocal
     );
 
@@ -179,7 +184,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           resolved,
           depVersion.toString(),
           prefix,
-          true
+          this.updatePeerDependencies
         );
         this.logger.info(
           `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
@@ -259,7 +264,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           resolved,
           depVersion.toString(),
           prefix,
-          true
+          this.updatePeerDependencies
         );
         this.logger.info(
           `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
@@ -375,7 +380,9 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       ...(packageJson.dependencies ?? {}),
       ...(packageJson.devDependencies ?? {}),
       ...(packageJson.optionalDependencies ?? {}),
-      ...(packageJson.peerDependencies ?? {}),
+      ...(this.updatePeerDependencies
+        ? packageJson.peerDependencies ?? {}
+        : {}),
     };
   }
 }

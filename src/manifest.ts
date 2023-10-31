@@ -179,6 +179,7 @@ export interface ManifestOptions {
   bootstrapSha?: string;
   lastReleaseSha?: string;
   alwaysLinkLocal?: boolean;
+  updatePeerDependencies?: boolean;
   separatePullRequests?: boolean;
   plugins?: PluginType[];
   fork?: boolean;
@@ -240,6 +241,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'bootstrap-sha'?: string;
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
+  'update-peer-dependencies'?: boolean;
   plugins?: PluginType[];
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
@@ -314,6 +316,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -429,6 +433,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -1360,6 +1366,7 @@ async function parseConfig(
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
+    updatePeerDependencies: config['update-peer-dependencies'],
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],

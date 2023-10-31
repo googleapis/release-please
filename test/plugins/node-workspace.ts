@@ -371,7 +371,7 @@ describe('NodeWorkspace plugin', () => {
       const update3 = assertHasUpdate(updates, 'node3/CHANGELOG.md', Changelog);
       snapshot((update3.updater as Changelog).changelogEntry);
     });
-    it('should not ignore peer dependencies', async () => {
+    it('should ignore peer dependencies', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
           component: '@here/pkgA',
@@ -404,8 +404,87 @@ describe('NodeWorkspace plugin', () => {
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
       assertHasUpdate(updates, 'node1/package.json');
+      assertNoHasUpdate(updates, 'plugin1/package.json');
+      snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+    });
+  });
+  describe('with updatePeerDependencies: true', () => {
+    const options = {updatePeerDependencies: true};
+    it('should not ignore peer dependencies', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['node1/package.json', 'plugin1/package.json'],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      plugin = new NodeWorkspace(
+        github,
+        'main',
+        {
+          node1: {
+            releaseType: 'node',
+          },
+          plugin1: {
+            releaseType: 'node',
+          },
+        },
+        options
+      );
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'node1/package.json');
       assertHasUpdate(updates, 'plugin1/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
+  });
+  it('respects version prefix and updates peer dependencies', async () => {
+    const candidates: CandidateReleasePullRequest[] = [
+      buildMockCandidatePullRequest('plugin1', 'node', '4.4.4', {
+        component: '@here/plugin1',
+        updates: [
+          buildMockPackageUpdate(
+            'plugin1/package.json',
+            'plugin1/package.json'
+          ),
+        ],
+      }),
+      buildMockCandidatePullRequest('node1', 'node', '2.2.2', {
+        component: '@here/pkgA',
+        updates: [
+          buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+        ],
+      }),
+    ];
+    plugin = new NodeWorkspace(github, 'main', {
+      plugin1: {releaseType: 'node'},
+      node1: {releaseType: 'node'},
+    });
+    const newCandidates = await plugin.run(candidates);
+    expect(newCandidates).lengthOf(1);
+    const nodeCandidate = newCandidates.find(
+      candidate => candidate.config.releaseType === 'node'
+    );
+    expect(nodeCandidate).to.not.be.undefined;
+    const updates = nodeCandidate!.pullRequest.updates;
+    assertHasUpdate(updates, 'node1/package.json');
+
+    const update = assertHasUpdate(updates, 'plugin1/package.json', RawContent);
+    const updater = update.updater as RawContent;
+    snapshot(updater.rawContent);
   });
 });

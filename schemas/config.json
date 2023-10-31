@@ -244,6 +244,10 @@
           "description": "When using the `node-workspace` plugin, force all local dependencies to be linked.",
           "type": "boolean"
         },
+        "update-peer-dependencies": {
+          "description": "When using the `node-workspace` plugin, also bump peer dependency versions if they are modified.",
+          "type": "boolean"
+        },
         "plugins": {
           "description": "Plugins to apply to pull requests. Plugins can be added to perform extra release processing that cannot be achieved by an individual release strategy.",
           "type": "array",
@@ -379,6 +383,7 @@
     "bootstrap-sha": true,
     "last-release-sha": true,
     "always-link-local": true,
+    "update-peer-dependencies": true,
     "plugins": true,
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,
