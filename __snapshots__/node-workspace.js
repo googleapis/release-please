@@ -1,13 +1,3 @@
-exports['NodeWorkspace plugin respects version prefix and updates peer dependencies 1'] = `
-{
-  "name": "@here/plugin1",
-  "version": "4.4.4",
-  "peerDependencies": {
-    "@here/pkgA": "^3.3.3"
-  }
-}
-`
-
 exports['NodeWorkspace plugin run appends dependency notes to an updated module 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
@@ -185,6 +175,16 @@ Release notes for path: node4, releaseType: node
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['NodeWorkspace plugin with updatePeerDependencies: true respects version prefix and updates peer dependencies 1'] = `
+{
+  "name": "@here/plugin1",
+  "version": "4.4.4",
+  "peerDependencies": {
+    "@here/pkgA": "^2.2.2"
+  }
+}
 `
 
 exports['NodeWorkspace plugin with updatePeerDependencies: true should not ignore peer dependencies 1'] = `
