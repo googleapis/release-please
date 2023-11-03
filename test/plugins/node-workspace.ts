@@ -29,8 +29,8 @@ import {
   assertNoHasUpdate,
   buildMockCandidatePullRequest,
   buildGitHubFileRaw,
+  readFixture,
 } from '../helpers';
-import {RawContent} from '../../src/updaters/raw-content';
 import snapshot = require('snap-shot-it');
 import {ManifestPlugin} from '../../src/plugin';
 import {Changelog} from '../../src/updaters/changelog';
@@ -73,11 +73,43 @@ function buildMockChangelogUpdate(
   };
 }
 
-function assertHasVersionUpdate(update: Update, expectedVersion: string) {
-  expect(update.updater).instanceof(RawContent);
-  const updater = update.updater as RawContent;
-  const data = JSON.parse(updater.rawContent);
+/**
+ * Helper test to ensure that the file update exists and that
+ * the file is a json file with a .version equal to the provided
+ * version string.
+ *
+ * @param {Update[]} updates List of updates to search for
+ * @param {string} fixture Fixture name
+ * @param {string} expectedVersion Expected version string
+ */
+function assertHasVersionUpdate(
+  updates: Update[],
+  fixture: string,
+  expectedVersion: string
+) {
+  const update = assertHasUpdate(updates, fixture);
+  const originalContent = readFixture(fixturesPath, fixture);
+  const content = update.updater.updateContent(originalContent);
+  const data = JSON.parse(content);
   expect(data.version).to.eql(expectedVersion);
+}
+
+/**
+ * Helper test to snapshot the final contents of a file update.
+ *
+ * @param {Update[]} updates List of updates to search for
+ * @param {string} fixture Fixture name
+ */
+function snapshotUpdate(
+  updates: Update[],
+  file: string,
+  originalContent?: string
+) {
+  if (!originalContent) {
+    originalContent = readFixture(fixturesPath, file);
+  }
+  const update = assertHasUpdate(updates, file);
+  snapshot(update.updater.updateContent(originalContent));
 }
 
 describe('NodeWorkspace plugin', () => {
@@ -176,14 +208,7 @@ describe('NodeWorkspace plugin', () => {
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
       assertHasUpdate(updates, 'node1/package.json');
-
-      const update = assertHasUpdate(
-        updates,
-        'plugin1/package.json',
-        RawContent
-      );
-      const updater = update.updater as RawContent;
-      snapshot(updater.rawContent);
+      snapshotUpdate(updates, 'plugin1/package.json');
     });
     it('combines node packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
@@ -271,26 +296,11 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node1/package.json', RawContent),
-        '3.3.4'
-      );
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node2/package.json', RawContent),
-        '2.2.3'
-      );
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node3/package.json', RawContent),
-        '1.1.2'
-      );
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node4/package.json', RawContent),
-        '4.4.5'
-      );
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node5/package.json', RawContent),
-        '1.0.1'
-      );
+      assertHasVersionUpdate(updates, 'node1/package.json', '3.3.4');
+      assertHasVersionUpdate(updates, 'node2/package.json', '2.2.3');
+      assertHasVersionUpdate(updates, 'node3/package.json', '1.1.2');
+      assertHasVersionUpdate(updates, 'node4/package.json', '4.4.5');
+      assertHasVersionUpdate(updates, 'node5/package.json', '1.0.1');
       const updater = assertHasUpdate(
         updates,
         '.release-please-manifest.json',
@@ -322,7 +332,7 @@ describe('NodeWorkspace plugin', () => {
             buildMockPackageUpdate('node2/package.json', 'node2/package.json'),
             buildMockChangelogUpdate(
               'node2/CHANGELOG.md',
-              '3.3.4',
+              '2.2.3',
               existingNotes
             ),
           ],
@@ -350,18 +360,9 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node1/package.json', RawContent),
-        '3.3.4'
-      );
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node2/package.json', RawContent),
-        '2.2.3'
-      );
-      assertHasVersionUpdate(
-        assertHasUpdate(updates, 'node3/package.json', RawContent),
-        '1.1.2'
-      );
+      assertHasVersionUpdate(updates, 'node1/package.json', '3.3.4');
+      assertHasVersionUpdate(updates, 'node2/package.json', '2.2.3');
+      assertHasVersionUpdate(updates, 'node3/package.json', '1.1.2');
       assertNoHasUpdate(updates, 'node4/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
       const update = assertHasUpdate(updates, 'node1/CHANGELOG.md', Changelog);
