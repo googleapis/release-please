@@ -36,6 +36,9 @@ import {
   addPath,
 } from './workspace';
 import {PatchVersionUpdate} from '../versioning-strategy';
+import {Strategy} from '../strategy';
+import {Commit} from '../commit';
+import {Release} from '../release';
 
 class Package extends LernaPackage {
   constructor(
@@ -69,6 +72,10 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
 export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
   private packageGraph?: PackageGraph;
+
+  private strategiesByPath: Record<string, Strategy> = {};
+  private releasesByPath: Record<string, Release> = {};
+
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -232,10 +239,10 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     }
     return existingCandidate;
   }
-  protected newCandidate(
+  protected async newCandidate(
     pkg: Package,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest {
+  ): Promise<CandidateReleasePullRequest> {
     const graphPackage = this.packageGraph?.get(pkg.name);
     if (!graphPackage) {
       throw new Error(`Could not find graph package for ${pkg.name}`);
@@ -271,6 +278,16 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     );
     const packageJson = updatedPackage.toJSON() as PackageJson;
     const version = Version.parse(packageJson.version);
+
+    const strategy = this.strategiesByPath[updatedPackage.location];
+    const latestRelease = this.releasesByPath[updatedPackage.location];
+
+    const basePullRequest = strategy
+      ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
+          newVersion: version,
+        })
+      : undefined;
+
     const pullRequest: ReleasePullRequest = {
       title: PullRequestTitle.ofTargetBranch(this.targetBranch),
       body: new PullRequestBody([
@@ -278,13 +295,14 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           component: updatedPackage.name,
           version,
           notes: appendDependenciesSectionToChangelog(
-            '',
+            basePullRequest?.body.notes() ?? '',
             dependencyNotes,
             this.logger
           ),
         },
       ]),
       updates: [
+        ...(basePullRequest ? basePullRequest?.updates : []),
         {
           path: addPath(updatedPackage.location, 'package.json'),
           createIfMissing: false,
@@ -297,16 +315,17 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           createIfMissing: false,
           updater: new Changelog({
             version,
-            changelogEntry: appendDependenciesSectionToChangelog(
-              '',
-              dependencyNotes,
-              this.logger
-            ),
+            versionHeaderRegex: `\n###? v?[${version
+              .toString()
+              .replace('.', '.')}]`,
+            changelogEntry: dependencyNotes,
           }),
         },
       ],
       labels: [],
-      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName:
+        basePullRequest?.headRefName ??
+        BranchName.ofTargetBranch(this.targetBranch).toString(),
       version,
       draft: false,
     };
@@ -374,6 +393,18 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       ...(packageJson.devDependencies ?? {}),
       ...(packageJson.optionalDependencies ?? {}),
     };
+  }
+
+  async preconfigure(
+    strategiesByPath: Record<string, Strategy>,
+    _commitsByPath: Record<string, Commit[]>,
+    _releasesByPath: Record<string, Release>
+  ): Promise<Record<string, Strategy>> {
+    // Using preconfigure to siphon releases and strategies.
+    this.strategiesByPath = strategiesByPath;
+    this.releasesByPath = _releasesByPath;
+
+    return strategiesByPath;
   }
 }
 

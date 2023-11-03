@@ -24,6 +24,10 @@ export interface BuildReleaseOptions {
   groupPullRequestTitlePattern?: string;
 }
 
+export interface BumpReleaseOptions {
+  newVersion: Version;
+}
+
 /**
  * A strategy is responsible for determining which files are
  * necessary to update in a release pull request.
@@ -47,7 +51,8 @@ export interface Strategy {
     commits: Commit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels?: string[]
+    labels?: string[],
+    bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined>;
 
   /**

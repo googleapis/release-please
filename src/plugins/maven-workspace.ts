@@ -394,10 +394,10 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     }
     return existingCandidate;
   }
-  protected newCandidate(
+  protected async newCandidate(
     artifact: MavenArtifact,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest {
+  ): Promise<CandidateReleasePullRequest> {
     const version = updatedVersions.get(artifact.name);
     if (!version) {
       throw new Error(`Didn't find updated version for ${artifact.name}`);
