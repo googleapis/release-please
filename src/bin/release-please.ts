@@ -115,6 +115,7 @@ interface TaggingArgs {
   monorepoTags?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  pullRequestFooter?: string;
 }
 
 interface CreatePullRequestArgs
@@ -419,6 +420,10 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
     .option('pull-request-header', {
       describe: 'Header for release PR',
       type: 'string',
+    })
+    .option('pull-request-footer', {
+      describe: 'Footer for release PR',
+      type: 'string',
     });
 }
 
@@ -458,6 +463,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           changelogHost: argv.changelogHost,
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
           pullRequestHeader: argv.pullRequestHeader,
+          pullRequestFooter: argv.pullRequestFooter,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,

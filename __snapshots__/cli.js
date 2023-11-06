@@ -31,6 +31,7 @@ Options:
                                 branches              [boolean] [default: false]
   --pull-request-title-pattern  Title pattern to make release PR        [string]
   --pull-request-header         Header for release PR                   [string]
+  --pull-request-footer         Footer for release PR                   [string]
   --path                        release from path other than root directory
                                                                         [string]
   --component                   name of component release is being minted for
@@ -231,6 +232,7 @@ Options:
                                     branches          [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]
   --pull-request-header             Header for release PR               [string]
+  --pull-request-footer             Footer for release PR               [string]
   --path                            release from path other than root directory
                                                                         [string]
   --component                       name of component release is being minted
