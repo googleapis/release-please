@@ -130,7 +130,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       if (existingCandidate) {
         // if already has an pull request, update the changelog and update
         this.logger.info(
-          `Updating exising candidate pull request for ${this.packageNameFromPackage(
+          `Updating existing candidate pull request for ${this.packageNameFromPackage(
             pkg
           )}, path: ${existingCandidate.path}`
         );
