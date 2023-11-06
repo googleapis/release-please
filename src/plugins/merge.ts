@@ -29,6 +29,7 @@ import {GitHub} from '../github';
 interface MergeOptions {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  pullRequestFooter?: string;
   headBranchName?: string;
   forceMerge?: boolean;
 }
@@ -42,6 +43,7 @@ interface MergeOptions {
 export class Merge extends ManifestPlugin {
   private pullRequestTitlePattern?: string;
   private pullRequestHeader?: string;
+  private pullRequestFooter?: string;
   private headBranchName?: string;
   private forceMerge: boolean;
 
@@ -55,6 +57,7 @@ export class Merge extends ManifestPlugin {
     this.pullRequestTitlePattern =
       options.pullRequestTitlePattern ?? MANIFEST_PULL_REQUEST_TITLE_PATTERN;
     this.pullRequestHeader = options.pullRequestHeader;
+    this.pullRequestFooter = options.pullRequestFooter;
     this.headBranchName = options.headBranchName;
     this.forceMerge = options.forceMerge ?? false;
   }
@@ -108,6 +111,7 @@ export class Merge extends ManifestPlugin {
       body: new PullRequestBody(releaseData, {
         useComponents: true,
         header: this.pullRequestHeader,
+        footer: this.pullRequestFooter,
       }),
       updates,
       labels: Array.from(labels),

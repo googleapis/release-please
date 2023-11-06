@@ -1649,6 +1649,7 @@ describe('Manifest', () => {
             '.': {
               releaseType: 'simple',
               pullRequestHeader: 'No beep boop for you',
+              pullRequestFooter: 'No reminder for you',
             },
           },
           {
@@ -1660,6 +1661,9 @@ describe('Manifest', () => {
         const pullRequest = pullRequests[0];
         expect(pullRequest.body.header.toString()).to.eql(
           'No beep boop for you'
+        );
+        expect(pullRequest.body.footer.toString()).to.eql(
+          'No reminder for you'
         );
       });
     });
