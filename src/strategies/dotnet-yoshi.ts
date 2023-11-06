@@ -41,7 +41,7 @@ const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
 const DEFAULT_PULL_REQUEST_HEADER =
   ':robot: I have created a release *beep* *boop*';
 const DEFAULT_PULL_REQUEST_FOOTER =
-  'This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).'
+  'This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).';
 const RELEASE_NOTES_HEADER_PATTERN =
   /#{2,3} \[?(\d+\.\d+\.\d+-?[^\]]*)\]?.* \((\d{4}-\d{2}-\d{2})\)/;
 
