@@ -189,7 +189,7 @@ describe('NodeWorkspace plugin', () => {
             ),
           ],
         }),
-        buildMockCandidatePullRequest('node1', 'node', '2.2.2', {
+        buildMockCandidatePullRequest('node1', 'node', '3.3.3', {
           component: '@here/pkgA',
           updates: [
             buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
@@ -255,10 +255,10 @@ describe('NodeWorkspace plugin', () => {
       );
       expect(nodeCandidate).to.not.be.undefined;
       const updates = nodeCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'package.json');
-      assertHasUpdate(updates, 'node1/package.json');
-      assertHasUpdate(updates, 'node4/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+      snapshotUpdate(updates, 'package.json');
+      snapshotUpdate(updates, 'node1/package.json');
+      snapshotUpdate(updates, 'node4/package.json');
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
