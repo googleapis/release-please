@@ -120,6 +120,15 @@ option in the manifest configuration.
 By default, the pull request header is:
 `:robot: I have created a release *beep* *boop*`.
 
+### Pull Request Footer
+
+If you would like to customize the pull request footer, you can use the
+`--pull-request-footer` CLI option or the `pull-request-footer`
+option in the manifest configuration.
+
+By default, the pull request footer is:
+`This PR was generated with Release Please. See documentation.`.
+
 ## Release Lifecycle Labels
 
 By default, we open release pull requests with the `autorelease: pending`

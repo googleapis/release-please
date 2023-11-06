@@ -1662,6 +1662,28 @@ describe('Manifest', () => {
           'No beep boop for you'
         );
       });
+
+      it('allows customizing pull request footer', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+              pullRequestFooter: 'No reminder for you',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.body.footer.toString()).to.eql(
+          'No reminder for you'
+        );
+      });
     });
 
     it('should find the component from config', async () => {
