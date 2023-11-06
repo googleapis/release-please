@@ -33,6 +33,19 @@ export class PackageLockJson extends DefaultUpdater {
     parsed.version = this.version.toString();
     if (parsed.lockfileVersion === 2 || parsed.lockfileVersion === 3) {
       parsed.packages[''].version = this.version.toString();
+      this.versionsMap?.forEach((version, linkedPackage) => {
+        logger.info(
+          `updating from ${
+            parsed.packages[linkedPackage].version
+          } to ${version.toString()}`
+        );
+        const packageKey = Object.keys(parsed.packages).find(
+          p => parsed.packages[p].name === linkedPackage
+        );
+        if (!packageKey)
+          throw Error(`${packageKey} not found in ${parsed.packages}`);
+        parsed.packages[packageKey].version = version.toString();
+      });
     }
     if (this.versionsMap) {
       for (const [, obj] of Object.entries(parsed.packages)) {
