@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.2.0](https://github.com/googleapis/release-please/compare/v16.1.0...v16.2.0) (2023-11-08)
+
+
+### Features
+
+* Allow customizing PR body footer ([#2115](https://github.com/googleapis/release-please/issues/2115)) ([43014a1](https://github.com/googleapis/release-please/commit/43014a1f15d3640d67cb90cbf3047919facfa53e))
+
+
+### Bug Fixes
+
+* Correctly parse standalone prerelease PR body ([#2123](https://github.com/googleapis/release-please/issues/2123)) ([5ee9e3e](https://github.com/googleapis/release-please/commit/5ee9e3e9ae292dc4128717c3d5924da93b3bb670))
+* Set PR labels serially ([#2122](https://github.com/googleapis/release-please/issues/2122)) ([bf58911](https://github.com/googleapis/release-please/commit/bf58911d989f08abe3105309b6e6f918186e1125))
+
 ## [16.1.0](https://github.com/googleapis/release-please/compare/v16.0.0...v16.1.0) (2023-10-26)
 
 
