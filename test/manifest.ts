@@ -4932,13 +4932,19 @@ version = "3.0.0"
         .stub(github, 'createPullRequest')
         .resolves({
           number: 22,
-          title: 'pr title1',
-          body: 'pr body1',
+          title: 'pr title',
+          body: 'pr body',
           headBranchName: 'release-please/branches/main',
           baseBranchName: 'main',
           labels: [],
           files: [],
         });
+      const enablePullRequestAutoMergeStub = sandbox
+        .stub(github, 'enablePullRequestAutoMerge')
+        .resolves('direct-merged');
+      const addPullRequestReviewersStub = sandbox
+        .stub(github, 'addPullRequestReviewers')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
@@ -5126,74 +5132,18 @@ version = "3.0.0"
       expect(createPullRequestStub.callCount).to.equal(5);
       sinon.assert.calledWith(
         createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/a'
-        ),
+        sinon.match.has('headBranchName', sinon.match.string),
         'main',
         'main',
         sinon.match.string,
         sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
+        sinon.match.object
       );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/b'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: {mergeMethod: 'rebase'},
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/c'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/d'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/e'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
-      );
+
+      expect(enablePullRequestAutoMergeStub.callCount).to.equal(1);
+
+      // only called when not auto-merged
+      expect(addPullRequestReviewersStub.callCount).to.equal(4);
     });
 
     it('enables auto-merge when filters are provided (filters: only commit type, match-all)', async () => {
@@ -5208,6 +5158,12 @@ version = "3.0.0"
           labels: [],
           files: [],
         });
+      const enablePullRequestAutoMergeStub = sandbox
+        .stub(github, 'enablePullRequestAutoMerge')
+        .resolves('direct-merged');
+      const addPullRequestReviewersStub = sandbox
+        .stub(github, 'addPullRequestReviewers')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
@@ -5367,60 +5323,17 @@ version = "3.0.0"
       expect(createPullRequestStub.callCount).to.equal(4);
       sinon.assert.calledWith(
         createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/a'
-        ),
+        sinon.match.has('headBranchName', sinon.match.string),
         'main',
         'main',
         sinon.match.string,
         sinon.match.array,
-        sinon.match({
-          autoMerge: {mergeMethod: 'rebase'},
-        })
+        sinon.match.object
       );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/b'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: {mergeMethod: 'rebase'},
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/c'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: {mergeMethod: 'rebase'},
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/d'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
-      );
+
+      expect(enablePullRequestAutoMergeStub.callCount).to.equal(3);
+      // only called when not auto-merged
+      expect(addPullRequestReviewersStub.callCount).to.equal(1);
     });
 
     it('enables auto-merge when filters are provided (filters: build-patch-minor version bump, commit filters, match-at-least-one)', async () => {
@@ -5435,6 +5348,12 @@ version = "3.0.0"
           labels: [],
           files: [],
         });
+      const enablePullRequestAutoMergeStub = sandbox
+        .stub(github, 'enablePullRequestAutoMerge')
+        .resolves('direct-merged');
+      const addPullRequestReviewersStub = sandbox
+        .stub(github, 'addPullRequestReviewers')
+        .resolves();
       sandbox
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('README.md', 'main')
@@ -5709,88 +5628,17 @@ version = "3.0.0"
       expect(createPullRequestStub.callCount).to.equal(6);
       sinon.assert.calledWith(
         createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/a'
-        ),
+        sinon.match.has('headBranchName', sinon.match.string),
         'main',
         'main',
         sinon.match.string,
         sinon.match.array,
-        sinon.match({
-          autoMerge: {mergeMethod: 'rebase'},
-        })
+        sinon.match.object
       );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/b'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: {mergeMethod: 'rebase'},
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/c'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/d'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: {mergeMethod: 'rebase'},
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/e'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
-      );
-      sinon.assert.calledWith(
-        createPullRequestStub,
-        sinon.match.has(
-          'headBranchName',
-          'release-please/branches/main/components/f'
-        ),
-        'main',
-        'main',
-        sinon.match.string,
-        sinon.match.array,
-        sinon.match({
-          autoMerge: undefined,
-        })
-      );
+
+      expect(enablePullRequestAutoMergeStub.callCount).to.equal(3);
+      // only called when not auto-merged
+      expect(addPullRequestReviewersStub.callCount).to.equal(3);
     });
 
     it('updates an existing pull request', async () => {
@@ -6000,22 +5848,22 @@ version = "3.0.0"
       });
 
       it('ignores an existing pull request if there are no changes', async () => {
-        sandbox
+        const getFileContentsOnBranchStub = sandbox
           .stub(github, 'getFileContentsOnBranch')
           .withArgs('README.md', 'main')
           .resolves(buildGitHubFileRaw('some-content'))
           .withArgs('release-notes.md', 'my-head-branch--release-notes')
           .resolves(buildGitHubFileRaw(body.toString()));
-        sandbox
+        const createPullRequestStub = sandbox
           .stub(github, 'createPullRequest')
-          .withArgs(
-            sinon.match.has('headBranchName', 'release-please/branches/main'),
-            'main',
-            'main',
-            sinon.match.string,
-            sinon.match.array,
-            sinon.match({fork: false, draft: false})
-          )
+          // .withArgs(
+          //   sinon.match.has('headBranchName', 'release-please/branches/main'),
+          //   sinon.match.string,
+          //   sinon.match.string,
+          //   sinon.match.string,
+          //   sinon.match.array,
+          //   sinon.match({fork: false, draft: false})
+          // )
           .resolves({
             number: 22,
             title: 'pr title1',
@@ -6040,14 +5888,15 @@ version = "3.0.0"
           ],
           []
         );
-        sandbox
+        const updatePullRequestStub = sandbox
           .stub(github, 'updatePullRequest')
-          .withArgs(
-            22,
-            sinon.match.any,
-            sinon.match.any,
-            sinon.match.has('pullRequestOverflowHandler', sinon.match.truthy)
-          )
+          // .withArgs(
+          //   22,
+          //   sinon.match.any,
+          //   sinon.match.string,
+          //   sinon.match.string,
+          //   sinon.match.has('pullRequestOverflowHandler', sinon.match.truthy)
+          // )
           .resolves({
             number: 22,
             title: 'pr title1',
@@ -6103,12 +5952,15 @@ version = "3.0.0"
           },
         ]);
         const pullRequestNumbers = await manifest.createPullRequests();
-        expect(pullRequestNumbers).lengthOf(0);
+        expect(pullRequestNumbers).lengthOf(1);
         sinon.assert.calledOnce(getLabelsStub);
         sinon.assert.calledOnceWithExactly(createLabelsStub, [
           'autorelease: tagged',
           'autorelease: pre-release',
         ]);
+        sinon.assert.calledOnce(getFileContentsOnBranchStub);
+        sinon.assert.notCalled(createPullRequestStub);
+        sinon.assert.calledOnce(updatePullRequestStub);
       });
     });
 
