@@ -224,10 +224,6 @@ export type MergeMethod = 'merge' | 'squash' | 'rebase';
 interface CreatePullRequestOptions {
   fork?: boolean;
   draft?: boolean;
-  reviewers?: string[];
-  autoMerge?: {
-    mergeMethod: MergeMethod;
-  };
   /**
    * If the number of an existing pull request is passed, its HEAD branch and attributes (title, labels, etc) will be
    * updated instead of creating a new pull request.
@@ -238,10 +234,6 @@ interface CreatePullRequestOptions {
 interface UpdatePullRequestOptions {
   signoffUser?: string;
   fork?: boolean;
-  reviewers?: string[];
-  autoMerge?: {
-    mergeMethod: MergeMethod;
-  };
   pullRequestOverflowHandler?: PullRequestOverflowHandler;
 }
 
@@ -1338,40 +1330,6 @@ export class GitHub {
         pullRequest.labels
       );
 
-      // attempt to enable auto-merge
-      let directlyMerged = false;
-      if (options?.autoMerge) {
-        try {
-          const result = await this.enablePullRequestAutoMerge(
-            pullRequestNumber,
-            options.autoMerge.mergeMethod
-          );
-          directlyMerged = result === 'direct-merged';
-        } catch (e: unknown) {
-          this.logger.error(
-            isOctokitGraphqlResponseError(e) ? e.errors || [] : (e as {}),
-            'Failed to enable auto merge. Continuing.'
-          );
-        }
-      }
-
-      // assign reviewers
-      if (!directlyMerged && options?.reviewers) {
-        try {
-          await this.octokit.pulls.requestReviewers({
-            owner: this.repository.owner,
-            repo: this.repository.repo,
-            pull_number: pullRequestNumber,
-            reviewers: options.reviewers,
-          });
-        } catch (error: unknown) {
-          this.logger.error(
-            isOctokitRequestError(error) ? error.message : (error as {}),
-            'Failed to add reviewers. Continuing.'
-          );
-        }
-      }
-
       return await this.getPullRequest(pullRequestNumber);
     }
   );
@@ -1452,9 +1410,7 @@ export class GitHub {
         releasePullRequest.updates,
         {
           fork: options?.fork,
-          reviewers: options?.reviewers,
           existingPrNumber: number,
-          autoMerge: options?.autoMerge,
         }
       );
 
@@ -2399,42 +2355,74 @@ export class GitHub {
     this.logger.debug({response}, 'mutatePullrequestEnableAutoMerge');
   }
 
-  private async enablePullRequestAutoMerge(
+  async enablePullRequestAutoMerge(
     pullRequestNumber: number,
     mergeMethod: MergeMethod
-  ): Promise<'auto-merged' | 'direct-merged'> {
-    this.logger.debug('Enable PR auto-merge');
-    const prId = await this.queryPullRequestId(pullRequestNumber);
-    if (!prId) {
-      throw new Error(`No id found for pull request ${pullRequestNumber}`);
-    }
+  ): Promise<'auto-merged' | 'direct-merged' | 'none'> {
     try {
-      await this.mutatePullRequestEnableAutoMerge(prId, mergeMethod);
-      return 'auto-merged';
+      this.logger.debug('Enable PR auto-merge');
+      const prId = await this.queryPullRequestId(pullRequestNumber);
+      if (!prId) {
+        throw new Error(`No id found for pull request ${pullRequestNumber}`);
+      }
+      try {
+        await this.mutatePullRequestEnableAutoMerge(prId, mergeMethod);
+        return 'auto-merged';
+      } catch (e: unknown) {
+        if (
+          isOctokitGraphqlResponseError(e) &&
+          (e.errors || []).find(
+            err =>
+              err.type === 'UNPROCESSABLE' &&
+              (err.message.includes('Pull request is in clean status') ||
+                err.message.includes(
+                  'Protected branch rules not configured for this branch'
+                ))
+          )
+        ) {
+          this.logger.debug(
+            'PR can be merged directly, do it instead of via GitHub auto-merge'
+          );
+          await this.octokit.pulls.merge({
+            owner: this.repository.owner,
+            repo: this.repository.repo,
+            pull_number: pullRequestNumber,
+            merge_method: mergeMethod,
+          });
+          return 'direct-merged';
+        } else {
+          throw e;
+        }
+      }
     } catch (e: unknown) {
-      if (
-        isOctokitGraphqlResponseError(e) &&
-        (e.errors || []).find(
-          err =>
-            err.type === 'UNPROCESSABLE' &&
-            (err.message.includes('Pull request is in clean status') ||
-              err.message.includes(
-                'Protected branch rules not configured for this branch'
-              ))
-        )
-      ) {
-        this.logger.debug(
-          'PR can be merged directly, do it instead of via GitHub auto-merge'
-        );
-        await this.octokit.pulls.merge({
+      this.logger.error(
+        isOctokitGraphqlResponseError(e) ? e.errors || [] : (e as {}),
+        'Failed to enable auto merge. Continuing.'
+      );
+      return 'none';
+    }
+  }
+
+  async addPullRequestReviewers({
+    pullRequestNumber,
+    reviewers,
+  }: {
+    pullRequestNumber: number;
+    reviewers: string[];
+  }) {
+    if (reviewers) {
+      try {
+        await this.octokit.pulls.requestReviewers({
           owner: this.repository.owner,
           repo: this.repository.repo,
           pull_number: pullRequestNumber,
-          merge_method: mergeMethod,
+          reviewers,
         });
-        return 'direct-merged';
-      } else {
-        throw e;
+      } catch (error: unknown) {
+        this.logger.error(
+          isOctokitRequestError(error) ? error.message : (error as {}),
+          'Failed to add reviewers. Continuing.'
+        );
       }
     }
   }
