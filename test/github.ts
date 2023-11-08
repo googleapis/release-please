@@ -1372,18 +1372,6 @@ describe('GitHub', () => {
         })
         .reply(200);
 
-      const pullRequest: ReleasePullRequest = {
-        title: PullRequestTitle.ofTargetBranch('main', 'next'),
-        body: new PullRequestBody(mockReleaseData(1000), {
-          useComponents: true,
-        }),
-        labels: [],
-        headRefName: 'release-please--branches--main--changes--next',
-        draft: false,
-        updates: [],
-        conventionalCommits: [],
-      };
-
       const result = await github.enablePullRequestAutoMerge(123, 'rebase');
       expect(result).to.equal('direct-merged');
       sinon.assert.calledOnce(mutatePullRequestEnableAutoMergeStub);
