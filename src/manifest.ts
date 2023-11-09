@@ -1206,10 +1206,11 @@ export class Manifest {
       ) {
         // we've either tagged all releases or they were duplicates:
         // adjust tags on pullRequest
-        await Promise.all([
-          this.github.removeIssueLabels(this.labels, pullRequest.number),
-          this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-        ]);
+        await this.github.removeIssueLabels(this.labels, pullRequest.number);
+        await this.github.addIssueLabels(
+          this.releaseLabels,
+          pullRequest.number
+        );
       }
       if (githubReleases.length === 0) {
         // If all releases were duplicate, throw a duplicate error
@@ -1217,10 +1218,8 @@ export class Manifest {
       }
     } else {
       // adjust tags on pullRequest
-      await Promise.all([
-        this.github.removeIssueLabels(this.labels, pullRequest.number),
-        this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-      ]);
+      await this.github.removeIssueLabels(this.labels, pullRequest.number);
+      await this.github.addIssueLabels(this.releaseLabels, pullRequest.number);
     }
 
     return githubReleases;

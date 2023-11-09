@@ -95,6 +95,19 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].version?.toString()).to.eql('3.2.7');
       expect(releaseData[0].notes).matches(/^### \[3\.2\.7\]/);
     });
+    it('should parse standalone prerelease', () => {
+      const body = readFileSync(
+        resolve(fixturesPath, './single-prerelease.txt'),
+        'utf8'
+      );
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      const releaseData = pullRequestBody!.releaseData;
+      expect(releaseData).lengthOf(1);
+      expect(releaseData[0].component).to.be.undefined;
+      expect(releaseData[0].version?.toString()).to.eql('3.2.7-pre.0');
+      expect(releaseData[0].notes).matches(/^### \[3\.2\.7-pre\.0]/);
+    });
     it('should parse legacy PHP body', () => {
       const body = readFileSync(
         resolve(fixturesPath, './legacy-php-yoshi.txt'),
