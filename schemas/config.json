@@ -216,6 +216,23 @@
           "type": "string"
         }
       }
+    },
+    "WorkspaceOptions": {
+      "type": "object",
+      "properties": {
+        "updateAllPackages": {
+          "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
+          "type": "boolean"
+        },
+        "merge": {
+          "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+          "type": "boolean"
+        },
+        "considerAllArtifacts": {
+          "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+          "type": "boolean"
+        }
+      }
     }
   },
   "allOf": [
@@ -245,7 +262,7 @@
           "type": "string"
         },
         "always-link-local": {
-          "description": "When using the `node-workspace` plugin, force all local dependencies to be linked.",
+          "description": "[DEPRECATED] use `alwaysLinkLocal` in plugin options.",
           "type": "boolean"
         },
         "plugins": {
@@ -294,27 +311,41 @@
               {
                 "description": "Configuration for various `workspace` plugins.",
                 "type": "object",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/WorkspaceOptions"
+                  }
+                ],
                 "properties": {
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
                     "enum": [
                       "cargo-workspace",
-                      "maven-workspace",
+                      "maven-workspace"
+                    ]
+                  }
+                }
+              },
+              {
+                "description": "Configuration for various `workspace` plugins.",
+                "type": "object",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/WorkspaceOptions"
+                  }
+                ],
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": [
                       "node-workspace"
                     ]
                   },
-                  "updateAllPackages": {
-                    "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
-                    "type": "boolean"
-                  },
-                  "merge": {
-                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
-                    "type": "boolean"
-                  },
-                  "considerAllArtifacts": {
-                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
-                    "type": "boolean"
+                  "alwaysLinkLocal": {
+                    "type": "boolean",
+                    "description": "When using the `node-workspace` plugin, force all local dependencies to be linked."
                   }
                 }
               },
