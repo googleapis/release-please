@@ -69,7 +69,6 @@
     "@conventional-commits/parser": "^0.4.1",
     "@google-automations/git-file-utils": "^1.2.5",
     "@iarna/toml": "^3.0.0",
-    "@lerna-lite/core": "1.17.0",
     "@octokit/graphql": "^5.0.0",
     "@octokit/request": "^6.0.0",
     "@octokit/request-error": "^3.0.0",
