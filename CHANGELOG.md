@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.3.0](https://github.com/googleapis/release-please/compare/v16.2.0...v16.3.0) (2023-11-10)
+
+
+### Features
+
+* **deps:** Refactor node-workspace plugin to drop lerna-lite/core ([#2117](https://github.com/googleapis/release-please/issues/2117)) ([65fa72e](https://github.com/googleapis/release-please/commit/65fa72eb2f7931768d6aae5a45f04f037fe4f06a))
+
 ## [16.2.0](https://github.com/googleapis/release-please/compare/v16.1.0...v16.2.0) (2023-11-08)
 
 
