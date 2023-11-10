@@ -619,6 +619,64 @@ describe('Manifest', () => {
       const plugin = manifest.plugins[0] as MavenWorkspace;
       expect(plugin.considerAllArtifacts).to.be.true;
     });
+    it('should build node-workspace from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/node-workspace-plugins.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(NodeWorkspace);
+      const plugin = manifest.plugins[0] as NodeWorkspace;
+      expect(plugin.alwaysLinkLocal).to.be.false;
+    });
+    it('should build node-workspace from manifest with deprecated always-link-local', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/node-workspace-plugins-deprecated.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(NodeWorkspace);
+      const plugin = manifest.plugins[0] as NodeWorkspace;
+      expect(plugin.alwaysLinkLocal).to.be.false;
+    });
     it('should configure search depth from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,

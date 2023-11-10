@@ -67,7 +67,7 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
  * into a single node package.
  */
 export class NodeWorkspace extends WorkspacePlugin<Package> {
-  private alwaysLinkLocal: boolean;
+  readonly alwaysLinkLocal: boolean;
   private packageGraph?: PackageGraph;
   constructor(
     github: GitHub,

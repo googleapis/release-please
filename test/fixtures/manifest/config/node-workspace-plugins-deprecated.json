@@ -1,0 +1,20 @@
+{
+  "release-type": "node",
+  "always-link-local": false,
+  "plugins": [
+    {
+      "type": "node-workspace"
+    }
+  ],
+  "packages": {
+    "pkg1": {
+      "component": "pkg1"
+    },
+    "pkg2": {
+      "component": "pkg2"
+    },
+    "pkg3": {
+      "component": "pkg3"
+    }
+  }
+}
