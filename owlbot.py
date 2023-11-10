@@ -24,6 +24,7 @@ node.owlbot_main(templates_excludes=[
   '.prettierignore',
   '.prettierrc',
   '.nycrc',
+  '.kokoro/release/publish.cfg',
   '.kokoro/presubmit/node10/system-test.cfg',
   '.kokoro/continuous/node10/system-test.cfg',
   '.kokoro/system-test.sh',
