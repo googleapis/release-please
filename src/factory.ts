@@ -120,6 +120,7 @@ export async function buildStrategy(
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
     prereleaseType: options.prereleaseType,
+    prerelease: options.prerelease,
   });
   const changelogNotes = buildChangelogNotes({
     type: options.changelogType || 'default',
