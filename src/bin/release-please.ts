@@ -102,6 +102,7 @@ interface PullRequestStrategyArgs {
   changelogSections?: ChangelogSection[];
   changelogPath?: string;
   changelogHost?: string;
+  commitPartialPath?: string;
   versioningStrategy?: VersioningStrategyType;
 
   // for Ruby: TODO refactor to find version.rb like Python finds version.py
@@ -461,6 +462,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
           changelogHost: argv.changelogHost,
+          commitPartialPath: argv.commitPartialPath,
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
           pullRequestHeader: argv.pullRequestHeader,
           pullRequestFooter: argv.pullRequestFooter,

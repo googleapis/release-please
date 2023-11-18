@@ -86,11 +86,19 @@ interface GitHubCreateOptions {
 
 type CommitFilter = (commit: Commit) => boolean;
 
+interface GraphQLAuthor {
+  name: string;
+  email: string;
+}
+
 interface GraphQLCommit {
   sha: string;
   message: string;
   associatedPullRequests: {
     nodes: GraphQLPullRequest[];
+  };
+  authors: {
+    nodes: GraphQLAuthor[];
   };
 }
 
@@ -107,6 +115,11 @@ interface GraphQLPullRequest {
   };
   mergeCommit?: {
     oid: string;
+  };
+  commits: {
+    nodes: {
+      commit: GraphQLCommit;
+    }[];
   };
   files: {
     nodes: {
@@ -424,6 +437,24 @@ export class GitHub {
                           hasNextPage
                         }
                       }
+                      commits(first: 100) {
+                        nodes {
+                          commit {
+                            authors(first: 10) {
+                              nodes {
+                                email
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  authors(first: 10) {
+                    nodes {
+                      email
+                      name
                     }
                   }
                   sha: oid
@@ -475,9 +506,18 @@ export class GitHub {
         sha: graphCommit.sha,
         message: graphCommit.message,
       };
+
       const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
       });
+
+      const authors = pullRequest
+        ? pullRequest.commits.nodes.flatMap(node => node.commit.authors.nodes)
+        : graphCommit.authors.nodes;
+
+      const authorNameSet = new Set<string>(authors.map(author => author.name));
+      commit.authors = Array.from(authorNameSet);
+
       if (pullRequest) {
         const files = (pullRequest.files?.nodes || []).map(node => node.path);
         commit.pullRequest = {
