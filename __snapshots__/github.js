@@ -2,6 +2,23 @@ exports['GitHub commentOnIssue can create a comment 1'] = {
   "body": "This is a comment"
 }
 
+exports['GitHub commitsSince backfills commit files for pull requests rebased and merged 1'] = [
+  {
+    "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+    "message": "feat: feature-branch-rebase-merge commit 1",
+    "files": [
+      "abc"
+    ]
+  },
+  {
+    "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+    "message": "feat: feature-branch-rebase-merge commit 2",
+    "files": [
+      "def"
+    ]
+  }
+]
+
 exports['GitHub commitsSince backfills commit files for pull requests with lots of files 1'] = [
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",

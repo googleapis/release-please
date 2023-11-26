@@ -469,6 +469,18 @@ export class GitHub {
     }
     const history = response.repository.ref.target.history;
     const commits = (history.nodes || []) as GraphQLCommit[];
+    // Count the number of pull requests associated with each merge commit. This is
+    // used in the next step to make sure we only find pull requests with a
+    // merge commit that contain 1 merged commit.
+    const mergeCommitCount: Record<string, number> = {};
+    for (const commit of commits) {
+      for (const pr of commit.associatedPullRequests.nodes) {
+        if (pr.mergeCommit?.oid) {
+          mergeCommitCount[pr.mergeCommit.oid] ??= 0;
+          mergeCommitCount[pr.mergeCommit.oid]++;
+        }
+      }
+    }
     const commitData: Commit[] = [];
     for (const graphCommit of commits) {
       const commit: Commit = {
@@ -476,7 +488,17 @@ export class GitHub {
         message: graphCommit.message,
       };
       const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
-        return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
+        return (
+          // Only match the pull request with a merge commit if there is a
+          // single merged commit in the PR. This means merge commits and squash
+          // merges will be matched, but rebase merged PRs will only be matched
+          // if they contain a single commit. This is so PRs that are rebased
+          // and merged will have files backfilled from each commit instead of
+          // the whole PR.
+          pr.mergeCommit &&
+          pr.mergeCommit.oid === graphCommit.sha &&
+          mergeCommitCount[pr.mergeCommit.oid] === 1
+        );
       });
       if (pullRequest) {
         const files = (pullRequest.files?.nodes || []).map(node => node.path);
