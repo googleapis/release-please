@@ -6,6 +6,16 @@ exports['GitHub commitsSince backfills commit files for pull requests rebased an
   {
     "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
     "message": "feat: feature-branch-rebase-merge commit 1",
+    "pullRequest": {
+      "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+      "number": 7,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-rebase-merge",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": []
+    },
     "files": [
       "abc"
     ]
@@ -13,6 +23,16 @@ exports['GitHub commitsSince backfills commit files for pull requests rebased an
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
     "message": "feat: feature-branch-rebase-merge commit 2",
+    "pullRequest": {
+      "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+      "number": 7,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-rebase-merge",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": []
+    },
     "files": [
       "def"
     ]
