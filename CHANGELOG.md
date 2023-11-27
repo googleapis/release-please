@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.3.1](https://github.com/googleapis/release-please/compare/v16.3.0...v16.3.1) (2023-11-27)
+
+
+### Bug Fixes
+
+* Backfill files by commit for rebased PRs ([#2141](https://github.com/googleapis/release-please/issues/2141)) ([ee6d82f](https://github.com/googleapis/release-please/commit/ee6d82ffd27dd121fd0d73437456680d9d54dc98))
+* Pass prerelease to buildVersioningStrategy ([#2133](https://github.com/googleapis/release-please/issues/2133)) ([c9450df](https://github.com/googleapis/release-please/commit/c9450dffd7af3646a214d01a9b368ebab720be53))
+
 ## [16.3.0](https://github.com/googleapis/release-please/compare/v16.2.0...v16.3.0) (2023-11-10)
 
 
