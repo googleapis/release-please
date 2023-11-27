@@ -44,7 +44,6 @@ version given a list of parsed commits.
 | `always-bump-minor` | Always bump minor version |                                                                                                                                                                    |
 | `always-bump-major` | Always bump major version |                                                                                  
 | `service-pack`      | Designed for Java backport fixes. Uses Maven's specification for service pack versions (e.g. 1.2.3-sp.1)    |
-
 | `prerelease`      | Bumping prerelease number (eg. 1.2.0-beta01 to 1.2.0-beta02) or if prerelease type is set, using that in the prerelease part (eg. 1.2.1 to 1.3.0-beta)  |
 
 ### Adding additional versioning strategy types
