@@ -546,6 +546,39 @@ describe('GitHub', () => {
       snapshot(commitsSinceSha);
       req.done();
     });
+
+    it('backfills commit files for pull requests rebased and merged', async () => {
+      const graphql = JSON.parse(
+        readFileSync(resolve(fixturesPath, 'commits-since-rebase.json'), 'utf8')
+      );
+      req
+        .post('/graphql')
+        .reply(200, {
+          data: graphql,
+        })
+        .get(
+          '/repos/fake/fake/commits/b29149f890e6f76ee31ed128585744d4c598924c'
+        )
+        .reply(200, {files: [{filename: 'abc'}]})
+        .get(
+          '/repos/fake/fake/commits/27d7d7232e2e312d1380e906984f0823f5decf61'
+        )
+        .reply(200, {files: [{filename: 'def'}]});
+      const targetBranch = 'main';
+      const commitsSinceSha = await github.commitsSince(
+        targetBranch,
+        commit => {
+          // this commit is the 3rd most recent
+          return commit.sha === '2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5';
+        },
+        {backfillFiles: true}
+      );
+      expect(commitsSinceSha.length).to.eql(2);
+      expect(commitsSinceSha[0].files).to.eql(['abc']);
+      expect(commitsSinceSha[1].files).to.eql(['def']);
+      snapshot(commitsSinceSha);
+      req.done();
+    });
   });
 
   describe('mergeCommitIterator', () => {
