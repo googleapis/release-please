@@ -18,7 +18,11 @@ export {
   ReleaserConfig,
   ManifestOptions,
   PluginType,
+  CandidateRelease,
+  CreatedRelease,
 } from './manifest';
+export {ReleasePullRequest} from './release-pull-request';
+export {PullRequest} from './pull-request';
 export {Commit, ConventionalCommit} from './commit';
 export {Strategy} from './strategy';
 export {BaseStrategyOptions, BuildUpdatesOptions} from './strategies/base';
