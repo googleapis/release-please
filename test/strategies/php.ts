@@ -17,12 +17,13 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {PHP} from '../../src/strategies/php';
 import * as sinon from 'sinon';
-import {assertHasUpdate} from '../helpers';
+import {assertHasUpdate, buildGitHubFileRaw} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {RootComposerUpdatePackages} from '../../src/updaters/php/root-composer-update-packages';
+import {DefaultUpdater} from '../../src/updaters/default';
 
 const sandbox = sinon.createSandbox();
 
@@ -38,12 +39,17 @@ const COMMITS = [
 
 describe('PHP', () => {
   let github: GitHub;
+  let getFileStub: sinon.SinonStub;
   beforeEach(async () => {
     github = await GitHub.create({
       owner: 'googleapis',
       repo: 'php-test-repo',
       defaultBranch: 'main',
     });
+    getFileStub = sandbox.stub(github, 'getFileContentsOnBranch');
+    getFileStub
+      .withArgs('VERSION', 'main')
+      .resolves(buildGitHubFileRaw('1.2.3'));
   });
   afterEach(() => {
     sandbox.restore();
@@ -95,9 +101,10 @@ describe('PHP', () => {
         latestRelease
       );
       const updates = release!.updates;
-      expect(updates).lengthOf(2);
+      expect(updates).lengthOf(3);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(updates, 'VERSION', DefaultUpdater);
     });
   });
 });

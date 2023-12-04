@@ -17,6 +17,7 @@ import {Changelog} from '../updaters/changelog';
 // PHP Specific.
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
+import {DefaultUpdater} from '../updaters/default';
 import {Update} from '../update';
 import {VersionsMap} from '../version';
 
@@ -64,6 +65,21 @@ export class PHP extends BaseStrategy {
       updater: new RootComposerUpdatePackages({
         version,
         versionsMap,
+      }),
+    });
+
+    const contents = await this.github.getFileContentsOnBranch(
+      this.addPath('VERSION'),
+      this.targetBranch
+    );
+
+    // update VERSION file
+    updates.push({
+      path: this.addPath('VERSION'),
+      createIfMissing: false,
+      cachedFileContents: contents,
+      updater: new DefaultUpdater({
+        version,
       }),
     });
 
