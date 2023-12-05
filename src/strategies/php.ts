@@ -68,16 +68,10 @@ export class PHP extends BaseStrategy {
       }),
     });
 
-    const contents = await this.github.getFileContentsOnBranch(
-      this.addPath('VERSION'),
-      this.targetBranch
-    );
-
     // update VERSION file
     updates.push({
       path: this.addPath('VERSION'),
       createIfMissing: false,
-      cachedFileContents: contents,
       updater: new DefaultUpdater({
         version,
       }),

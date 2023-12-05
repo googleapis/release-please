@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {PHP} from '../../src/strategies/php';
 import * as sinon from 'sinon';
-import {assertHasUpdate, buildGitHubFileRaw} from '../helpers';
+import {assertHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -39,17 +39,12 @@ const COMMITS = [
 
 describe('PHP', () => {
   let github: GitHub;
-  let getFileStub: sinon.SinonStub;
   beforeEach(async () => {
     github = await GitHub.create({
       owner: 'googleapis',
       repo: 'php-test-repo',
       defaultBranch: 'main',
     });
-    getFileStub = sandbox.stub(github, 'getFileContentsOnBranch');
-    getFileStub
-      .withArgs('VERSION', 'main')
-      .resolves(buildGitHubFileRaw('1.2.3'));
   });
   afterEach(() => {
     sandbox.restore();
