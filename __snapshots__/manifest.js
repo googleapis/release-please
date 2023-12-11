@@ -117,7 +117,7 @@ exports['Manifest buildPullRequests should handle mixing componentless configs 1
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
-exports['Manifest buildPullRequests should handle multiple package repository 1'] = `
+exports['Manifest buildPullRequests with multiple packages should handle multiple package repository 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
 
