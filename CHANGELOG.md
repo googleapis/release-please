@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.5.0](https://github.com/googleapis/release-please/compare/v16.4.1...v16.5.0) (2023-12-11)
+
+
+### Features
+
+* export current release-please version as VERSION constant ([#2159](https://github.com/googleapis/release-please/issues/2159)) ([264af84](https://github.com/googleapis/release-please/commit/264af8412faa20b818516efba0bb847720fc0d2a))
+
 ## [16.4.1](https://github.com/googleapis/release-please/compare/v16.4.0...v16.4.1) (2023-12-11)
 
 
