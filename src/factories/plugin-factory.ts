@@ -41,6 +41,7 @@ export interface PluginFactoryOptions {
 
   // node options
   alwaysLinkLocal?: boolean;
+  updatePeerDependencies?: boolean;
 
   // workspace options
   updateAllPackages?: boolean;

@@ -55,6 +55,7 @@ interface Package {
 
 interface NodeWorkspaceOptions extends WorkspacePluginOptions {
   alwaysLinkLocal?: boolean;
+  updatePeerDependencies?: boolean;
 }
 
 /**
@@ -66,6 +67,7 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
  */
 export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
+  private updatePeerDependencies: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -74,6 +76,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   ) {
     super(github, targetBranch, repositoryConfig, options);
     this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
+    this.updatePeerDependencies = options.updatePeerDependencies === true;
   }
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
@@ -342,6 +345,9 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       ...(packageJson.dependencies ?? {}),
       ...(packageJson.devDependencies ?? {}),
       ...(packageJson.optionalDependencies ?? {}),
+      ...(this.updatePeerDependencies
+        ? packageJson.peerDependencies ?? {}
+        : {}),
     };
   }
 }
