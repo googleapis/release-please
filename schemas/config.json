@@ -411,7 +411,6 @@
     "bootstrap-sha": true,
     "last-release-sha": true,
     "always-link-local": true,
-    "update-peer-dependencies": true,
     "plugins": true,
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,
