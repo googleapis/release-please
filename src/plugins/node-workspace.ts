@@ -67,7 +67,7 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
  */
 export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
-  private updatePeerDependencies: boolean;
+  readonly updatePeerDependencies: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,

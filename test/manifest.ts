@@ -773,6 +773,36 @@ describe('Manifest', () => {
       ).to.eql('default');
     });
 
+    it('should read plugins from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/node-workspace-plugins.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(NodeWorkspace);
+      const workspacePlugin = manifest.plugins[0] as NodeWorkspace;
+      expect(workspacePlugin.updatePeerDependencies).to.be.true;
+    });
+
     it('should throw a configuration error for a missing manifest config', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
