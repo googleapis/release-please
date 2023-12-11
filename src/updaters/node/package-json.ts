@@ -14,10 +14,10 @@
 
 import {jsonStringify} from '../../util/json-stringify';
 import {logger as defaultLogger, Logger} from '../../util/logger';
+import {Version, VersionsMap} from '../../version';
 import {DefaultUpdater} from '../default';
-import {VersionsMap, Version} from '../../version';
 
-type LockFile = {
+export type PackageJsonDescriptor = {
   version: string;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
@@ -32,10 +32,11 @@ export class PackageJson extends DefaultUpdater {
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
+   * @param logger
    * @returns {string} The updated content
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    const parsed = JSON.parse(content) as LockFile;
+    const parsed = JSON.parse(content) as PackageJsonDescriptor;
     logger.info(`updating from ${parsed.version} to ${this.version}`);
     parsed.version = this.version.toString();
 
@@ -98,7 +99,7 @@ export function newVersionWithRange(
  *   where the key is the dependency name and the value is the dependency range
  * @param {VersionsMap} updatedVersions Map of new versions (without dependency range prefixes)
  */
-function updateDependencies(
+export function updateDependencies(
   dependencies: Record<string, string>,
   updatedVersions: VersionsMap
 ) {
@@ -106,8 +107,7 @@ function updateDependencies(
     const newVersion = updatedVersions.get(depName);
     if (newVersion) {
       const oldVersion = dependencies[depName];
-      const newVersionString = newVersionWithRange(oldVersion, newVersion);
-      dependencies[depName] = newVersionString;
+      dependencies[depName] = newVersionWithRange(oldVersion, newVersion);
     }
   }
 }

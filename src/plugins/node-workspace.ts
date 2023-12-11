@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {up} from 'inquirer/lib/utils/readline';
 import {GitHub} from '../github';
 import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
+import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {Version, VersionsMap} from '../version';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
@@ -75,7 +77,8 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     options: NodeWorkspaceOptions = {}
   ) {
     super(github, targetBranch, repositoryConfig, options);
-    this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
+
+    this.alwaysLinkLocal = options.alwaysLinkLocal !== false;
     this.updatePeerDependencies = options.updatePeerDependencies === true;
   }
   protected async buildAllPackages(
@@ -194,6 +197,13 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       existingCandidate.pullRequest.updates.map(update => {
         if (update.path === addPath(existingCandidate.path, 'package.json')) {
           update.updater = new CompositeUpdater(update.updater, updater);
+        } else if (
+          update.path === addPath(existingCandidate.path, 'package-lock.json')
+        ) {
+          update.updater = new PackageLockJson({
+            version: newVersion,
+            versionsMap: updatedVersions,
+          });
         } else if (update.updater instanceof Changelog) {
           if (dependencyNotes) {
             update.updater.changelogEntry =
@@ -303,7 +313,39 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     candidates: CandidateReleasePullRequest[],
     _updatedVersions: VersionsMap
   ): CandidateReleasePullRequest[] {
-    // NOP for node workspaces
+    if (candidates.length === 0) {
+      return candidates;
+    }
+
+    const [candidate] = candidates;
+
+    // check for root lock file in pull request
+    let hasRootLockFile: boolean | undefined;
+    for (let i = 0; i < candidate.pullRequest.updates.length; i++) {
+      if (
+        candidate.pullRequest.updates[i].path === '.package-lock.json' ||
+        candidate.pullRequest.updates[i].path === './package-lock.json' ||
+        candidate.pullRequest.updates[i].path === 'package-lock.json' ||
+        candidate.pullRequest.updates[i].path === '/package-lock.json'
+      ) {
+        hasRootLockFile = true;
+        break;
+      }
+    }
+
+    // if there is a root lock file, then there is no additional pull request update necessary.
+    if (hasRootLockFile) {
+      return candidates;
+    }
+
+    candidate.pullRequest.updates.push({
+      path: 'package-lock.json',
+      createIfMissing: false,
+      updater: new PackageLockJson({
+        versionsMap: _updatedVersions,
+      }),
+    });
+
     return candidates;
   }
 
