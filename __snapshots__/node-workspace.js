@@ -93,6 +93,37 @@ Release notes for path: ., releaseType: node
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['NodeWorkspace plugin run combines node packages 2'] = `
+{
+  "name": "@here/root",
+  "version": "5.5.6",
+  "dependencies": {
+    "@here/pkgA": "^3.3.4",
+    "@here/pkgD": "^4.4.5"
+  }
+}
+`
+
+exports['NodeWorkspace plugin run combines node packages 3'] = `
+{
+  "name": "@here/pkgA",
+  "version": "3.3.4",
+  "dependencies": {
+    "anotherExternal": "^4.3.1"
+  }
+}
+`
+
+exports['NodeWorkspace plugin run combines node packages 4'] = `
+{
+  "name": "@here/pkgD",
+  "version": "4.4.5",
+  "dependencies": {
+    "anotherExternal": "^4.3.1"
+  }
+}
+`
+
 exports['NodeWorkspace plugin run handles a single node package 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
