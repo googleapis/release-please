@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.4.1](https://github.com/googleapis/release-please/compare/v16.4.0...v16.4.1) (2023-12-11)
+
+
+### Bug Fixes
+
+* **node-workspace:** Add update-peer-dependencies option that also updates peer dependencies ([#2094](https://github.com/googleapis/release-please/issues/2094)) ([c84414a](https://github.com/googleapis/release-please/commit/c84414a3192cca65da4469c7559460624446c898))
+* pass pull request header and footer options to merge plugin ([#2143](https://github.com/googleapis/release-please/issues/2143)) ([e848100](https://github.com/googleapis/release-please/commit/e8481007981cf9fa3f476f65db4d3de807259e89))
+
 ## [16.4.0](https://github.com/googleapis/release-please/compare/v16.3.1...v16.4.0) (2023-12-05)
 
 
