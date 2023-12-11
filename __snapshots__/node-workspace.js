@@ -207,3 +207,36 @@ Release notes for path: node4, releaseType: node
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
+
+exports['NodeWorkspace plugin with updatePeerDependencies: true respects version prefix and updates peer dependencies 1'] = `
+{
+  "name": "@here/plugin1",
+  "version": "4.4.4",
+  "peerDependencies": {
+    "@here/pkgA": "^2.2.2"
+  }
+}
+`
+
+exports['NodeWorkspace plugin with updatePeerDependencies: true should not ignore peer dependencies 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 3.3.4</summary>
+
+Release notes for path: node1, releaseType: node
+</details>
+
+<details><summary>@here/plugin1: 4.4.5</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * peerDependencies
+    * @here/pkgA bumped from ^3.3.3 to ^3.3.4
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
