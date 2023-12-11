@@ -282,6 +282,14 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           }),
         },
         {
+          path: addPath(updatedPackage.path, 'package-lock.json'),
+          createIfMissing: false,
+          updater: new PackageJson({
+            version: newVersion,
+            versionsMap: updatedVersions,
+          }),
+        },
+        {
           path: addPath(updatedPackage.path, 'CHANGELOG.md'),
           createIfMissing: false,
           updater: new Changelog({
