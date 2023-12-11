@@ -1750,90 +1750,123 @@ describe('Manifest', () => {
       );
     });
 
-    it('should handle multiple package repository', async () => {
-      mockReleases(sandbox, github, [
-        {
-          id: 123456,
-          sha: 'abc123',
-          tagName: 'pkg1-v1.0.0',
-          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
-        },
-        {
-          id: 654321,
-          sha: 'def234',
-          tagName: 'pkg2-v0.2.3',
-          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
-        },
-      ]);
-      mockCommits(sandbox, github, [
-        {
-          sha: 'aaaaaa',
-          message: 'fix: some bugfix',
-          files: ['path/a/foo'],
-        },
-        {
-          sha: 'abc123',
-          message: 'chore: release main',
-          files: [],
-          pullRequest: {
-            headBranchName: 'release-please/branches/main',
-            baseBranchName: 'main',
-            number: 123,
-            title: 'chore: release main',
-            body: '',
-            labels: [],
-            files: [],
+    describe('with multiple packages', () => {
+      beforeEach(() => {
+        mockReleases(sandbox, github, [
+          {
+            id: 123456,
             sha: 'abc123',
+            tagName: 'pkg1-v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
           },
-        },
-        {
-          sha: 'bbbbbb',
-          message: 'fix: some bugfix',
-          files: ['path/b/foo'],
-        },
-        {
-          sha: 'cccccc',
-          message: 'fix: some bugfix',
-          files: ['path/a/foo'],
-        },
-        {
-          sha: 'def234',
-          message: 'chore: release main',
-          files: [],
-          pullRequest: {
-            headBranchName: 'release-please/branches/main',
-            baseBranchName: 'main',
-            number: 123,
-            title: 'chore: release main',
-            body: '',
-            labels: [],
-            files: [],
+          {
+            id: 654321,
             sha: 'def234',
+            tagName: 'pkg2-v0.2.3',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
           },
-        },
-      ]);
-      const manifest = new Manifest(
-        github,
-        'main',
-        {
-          'path/a': {
-            releaseType: 'simple',
-            component: 'pkg1',
+        ]);
+        mockCommits(sandbox, github, [
+          {
+            sha: 'aaaaaa',
+            message: 'fix: some bugfix',
+            files: ['path/a/foo'],
           },
-          'path/b': {
-            releaseType: 'simple',
-            component: 'pkg2',
+          {
+            sha: 'abc123',
+            message: 'chore: release main',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release main',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
           },
-        },
-        {
-          'path/a': Version.parse('1.0.0'),
-          'path/b': Version.parse('0.2.3'),
-        }
-      );
-      const pullRequests = await manifest.buildPullRequests();
-      expect(pullRequests).lengthOf(1);
-      expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
-      snapshot(dateSafe(pullRequests[0].body.toString()));
+          {
+            sha: 'bbbbbb',
+            message: 'fix: some bugfix',
+            files: ['path/b/foo'],
+          },
+          {
+            sha: 'cccccc',
+            message: 'fix: some bugfix',
+            files: ['path/a/foo'],
+          },
+          {
+            sha: 'def234',
+            message: 'chore: release main',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release main',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'def234',
+            },
+          },
+        ]);
+      });
+      it('should handle multiple package repository', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'simple',
+              component: 'pkg1',
+            },
+            'path/b': {
+              releaseType: 'simple',
+              component: 'pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
+        snapshot(dateSafe(pullRequests[0].body.toString()));
+      });
+
+      it('should handle pull request header/footer with multiple packages', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'simple',
+              component: 'pkg1',
+              pullRequestHeader: 'Header from pkg1',
+            },
+            'path/b': {
+              releaseType: 'simple',
+              component: 'pkg2',
+              pullRequestHeader: 'Header from pkg2',
+              pullRequestFooter: 'Footer from pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.body.header.toString()).to.eql('Header from pkg1');
+        expect(pullRequest.body.footer.toString()).to.eql('Footer from pkg2');
+      });
     });
 
     it('should allow creating multiple pull requests', async () => {
