@@ -565,6 +565,7 @@ export class GitHub {
         ref: sha,
       }
     )) {
+      // Paginate plugin doesn't have types for listing files on a commit
       const data = resp.data as any as {files: {filename: string}[]};
       for (const f of data.files || []) {
         if (f.filename) {
