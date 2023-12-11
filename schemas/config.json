@@ -248,10 +248,6 @@
           "description": "When using the `node-workspace` plugin, force all local dependencies to be linked.",
           "type": "boolean"
         },
-        "update-peer-dependencies": {
-          "description": "When using the `node-workspace` plugin, also bump peer dependency versions if they are modified.",
-          "type": "boolean"
-        },
         "plugins": {
           "description": "Plugins to apply to pull requests. Plugins can be added to perform extra release processing that cannot be achieved by an individual release strategy.",
           "type": "array",
@@ -304,7 +300,31 @@
                     "type": "string",
                     "enum": [
                       "cargo-workspace",
-                      "maven-workspace",
+                      "maven-workspace"
+                    ]
+                  },
+                  "updateAllPackages": {
+                    "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
+                    "type": "boolean"
+                  },
+                  "merge": {
+                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "considerAllArtifacts": {
+                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "description": "Configuration for various `workspace` plugins.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": [
                       "node-workspace"
                     ]
                   },
@@ -318,6 +338,10 @@
                   },
                   "considerAllArtifacts": {
                     "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "updatePeerDependencies": {
+                    "description": "Also bump peer dependency versions if they are modified. Defaults to `false`.",
                     "type": "boolean"
                   }
                 }
@@ -387,7 +411,6 @@
     "bootstrap-sha": true,
     "last-release-sha": true,
     "always-link-local": true,
-    "update-peer-dependencies": true,
     "plugins": true,
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,

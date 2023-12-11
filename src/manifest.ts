@@ -181,7 +181,6 @@ export interface ManifestOptions {
   bootstrapSha?: string;
   lastReleaseSha?: string;
   alwaysLinkLocal?: boolean;
-  updatePeerDependencies?: boolean;
   separatePullRequests?: boolean;
   plugins?: PluginType[];
   fork?: boolean;
@@ -224,6 +223,9 @@ export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
   considerAllArtifacts?: boolean;
 }
+export interface NodeWorkspacePluginConfig extends WorkspacePluginConfig {
+  updatePeerDependencies?: boolean;
+}
 export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
   groups: string[];
 }
@@ -233,7 +235,8 @@ export type PluginType =
   | GroupPriorityPluginConfig
   | LinkedVersionPluginConfig
   | SentenceCasePluginConfig
-  | WorkspacePluginConfig;
+  | WorkspacePluginConfig
+  | NodeWorkspacePluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -243,7 +246,6 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'bootstrap-sha'?: string;
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
-  'update-peer-dependencies'?: boolean;
   plugins?: PluginType[];
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
@@ -1391,7 +1393,6 @@ async function parseConfig(
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
-    updatePeerDependencies: config['update-peer-dependencies'],
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],

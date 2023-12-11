@@ -207,11 +207,6 @@ defaults (those are documented in comments)
   // absence defaults to true
   "always-link-local": false,
 
-  // when using the `node-workspace` plugin, update peer dependency fields
-  // that reference bumped packages.
-  // absence defaults to false, and peer dependency fields are not updated.
-  "update-peer-dependencies": true,
-
   // if true, create separate pull requests for each package instead of a
   // single manifest release pull request
   // absence defaults to false and one pull request will be raised
@@ -504,7 +499,18 @@ your local dependencies bumped if they are within the SemVer range, you can set 
 
 By default, the `node-workspace` plugin doesn't modify `peerDependencies` fields in
 package.json. If you would like version bumps to be also linked in `peerDependencies`
-fields, set `"update-peer-dependencies"` to `true` in your manifest config.
+fields, set `"updatePeerDependencies"` to `true` in your manifest plugin config.
+
+```
+{
+  "plugins": [
+    {
+      "type": "node-workspace",
+      "updatePeerDependencies": true
+    }
+  ]
+}
+```
 
 ### cargo-workspace
 
