@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {up} from 'inquirer/lib/utils/readline';
 import {GitHub} from '../github';
 import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import {PackageLockJson} from '../updaters/node/package-lock-json';

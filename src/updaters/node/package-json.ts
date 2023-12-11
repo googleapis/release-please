@@ -18,6 +18,9 @@ import {Version, VersionsMap} from '../../version';
 import {DefaultUpdater} from '../default';
 
 export type PackageJsonDescriptor = {
+  name?: string;
+  resolved?: string;
+  link?: boolean;
   version: string;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;

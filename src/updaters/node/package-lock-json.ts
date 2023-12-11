@@ -19,16 +19,10 @@ import {Version, VersionsMap} from '../../version';
 import {UpdateOptions} from '../default';
 import {PackageJsonDescriptor, updateDependencies} from './package-json';
 
-type PackageLockJsonDescriptor = Partial<PackageJsonDescriptor> & {
-  name?: string;
-  resolved?: string;
-  link?: boolean;
-};
-
 type LockFileV2 = {
   version: string;
   lockfileVersion?: number;
-  packages: Record<string, PackageLockJsonDescriptor>;
+  packages: Record<string, PackageJsonDescriptor>;
 };
 
 /**
