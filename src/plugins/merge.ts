@@ -26,7 +26,7 @@ import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
 import {GitHub} from '../github';
 
-interface MergeOptions {
+export interface MergeOptions {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;

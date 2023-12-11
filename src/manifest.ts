@@ -33,7 +33,7 @@ import {
 } from './factory';
 import {Release} from './release';
 import {Strategy} from './strategy';
-import {Merge} from './plugins/merge';
+import {MergeOptions, Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
   DuplicateReleaseError,
@@ -181,6 +181,7 @@ export interface ManifestOptions {
   bootstrapSha?: string;
   lastReleaseSha?: string;
   alwaysLinkLocal?: boolean;
+  updatePeerDependencies?: boolean;
   separatePullRequests?: boolean;
   plugins?: PluginType[];
   fork?: boolean;
@@ -242,6 +243,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'bootstrap-sha'?: string;
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
+  'update-peer-dependencies'?: boolean;
   plugins?: PluginType[];
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
@@ -316,6 +318,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -431,6 +435,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -749,10 +755,33 @@ export class Manifest {
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
+      const mergeOptions: MergeOptions = {
+        pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+      };
+      // Find the first repositoryConfig item that has a set value
+      // for the options that can be passed to the merge plugin
+      for (const path in this.repositoryConfig) {
+        const config = this.repositoryConfig[path];
+        if (
+          'pullRequestHeader' in config &&
+          !('pullRequestHeader' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestHeader = config.pullRequestHeader;
+        }
+        if (
+          'pullRequestFooter' in config &&
+          !('pullRequestFooter' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestFooter = config.pullRequestFooter;
+        }
+      }
       this.plugins.push(
-        new Merge(this.github, this.targetBranch, this.repositoryConfig, {
-          pullRequestTitlePattern: this.groupPullRequestTitlePattern,
-        })
+        new Merge(
+          this.github,
+          this.targetBranch,
+          this.repositoryConfig,
+          mergeOptions
+        )
       );
     }
 
@@ -1362,6 +1391,7 @@ async function parseConfig(
     bootstrapSha: config['bootstrap-sha'],
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
+    updatePeerDependencies: config['update-peer-dependencies'],
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
