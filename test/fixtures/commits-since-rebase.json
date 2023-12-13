@@ -1,0 +1,88 @@
+{
+  "repository": {
+    "ref": {
+      "target": {
+        "history": {
+          "nodes": [
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 7,
+                    "title": "feat: feature that will be rebase merged",
+                    "baseRefName": "main",
+                    "headRefName": "feature-branch-rebase-merge",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "b29149f890e6f76ee31ed128585744d4c598924c"
+                    },
+                    "files": {
+                      "nodes": []
+                    }
+                  }
+                ]
+              },
+              "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+              "message": "feat: feature-branch-rebase-merge commit 1"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 7,
+                    "title": "feat: feature that will be rebase merged",
+                    "baseRefName": "main",
+                    "headRefName": "feature-branch-rebase-merge",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "b29149f890e6f76ee31ed128585744d4c598924c"
+                    },
+                    "files": {
+                      "nodes": []
+                    }
+                  }
+                ]
+              },
+              "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+              "message": "feat: feature-branch-rebase-merge commit 2"
+            },
+            {
+              "associatedPullRequests": {
+                "nodes": [
+                  {
+                    "number": 6,
+                    "title": "feat: other pr",
+                    "baseRefName": "main",
+                    "headRefName": "feature-branch-other",
+                    "labels": {
+                      "nodes": []
+                    },
+                    "body": "",
+                    "mergeCommit": {
+                      "oid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5"
+                    },
+                    "files": {
+                      "nodes": []
+                    }
+                  }
+                ]
+              },
+              "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+              "message": "fix: feature-branch-other"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "e6daec403626c9987c7af0d97b34f324cd84320a 12"
+          }
+        }
+      }
+    }
+  }
+}

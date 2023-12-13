@@ -18,7 +18,11 @@ export {
   ReleaserConfig,
   ManifestOptions,
   PluginType,
+  CandidateRelease,
+  CreatedRelease,
 } from './manifest';
+export {ReleasePullRequest} from './release-pull-request';
+export {PullRequest} from './pull-request';
 export {Commit, ConventionalCommit} from './commit';
 export {Strategy} from './strategy';
 export {BaseStrategyOptions, BuildUpdatesOptions} from './strategies/base';
@@ -57,3 +61,7 @@ export {Logger, setLogger} from './util/logger';
 export {GitHub} from './github';
 export const configSchema = require('../../schemas/config.json');
 export const manifestSchema = require('../../schemas/manifest.json');
+
+// x-release-please-start-version
+export const VERSION = '16.5.0';
+// x-release-please-end
