@@ -364,12 +364,16 @@ describe('NodeWorkspace plugin', () => {
       assertHasVersionUpdate(updates, 'node2/package.json', '2.2.3');
       assertHasVersionUpdate(updates, 'node3/package.json', '1.1.2');
       assertNoHasUpdate(updates, 'node4/package.json');
+      console.log("THE BODY", nodeCandidate!.pullRequest.body.toString());
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
       const update = assertHasUpdate(updates, 'node1/CHANGELOG.md', Changelog);
+      console.log("CHANGELOG1", (update.updater as Changelog).changelogEntry);
       snapshot((update.updater as Changelog).changelogEntry);
       const update2 = assertHasUpdate(updates, 'node2/CHANGELOG.md', Changelog);
+      console.log("CHANGELOG2", (update2.updater as Changelog).changelogEntry);
       snapshot((update2.updater as Changelog).changelogEntry);
       const update3 = assertHasUpdate(updates, 'node3/CHANGELOG.md', Changelog);
+      console.log("CHANGELOG3", (update3.updater as Changelog).changelogEntry);
       snapshot((update3.updater as Changelog).changelogEntry);
     });
     it('should ignore peer dependencies', async () => {

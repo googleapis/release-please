@@ -300,7 +300,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
             versionHeaderRegex: `\n###? v?[${newVersion
               .toString()
               .replace('.', '.')}]`,
-            changelogEntry: dependencyNotes,
+            changelogEntry: appendDependenciesSectionToChangelog(
+              '',
+              dependencyNotes,
+              this.logger
+            ),
           }),
         },
       ],
