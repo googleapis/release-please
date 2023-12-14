@@ -703,13 +703,6 @@ describe('GitHub', () => {
   });
 
   describe('createRelease', () => {
-    let githubCreateReleaseSpy: sinon.SinonSpy;
-    beforeEach(async () => {
-      githubCreateReleaseSpy = sandbox.spy(
-        github['octokit'].repos,
-        'createRelease'
-      );
-    });
     it('should create a release with a package prefix', async () => {
       req
         .post('/repos/fake/fake/releases', body => {
@@ -732,16 +725,6 @@ describe('GitHub', () => {
         notes: 'Some release notes',
       });
       req.done();
-      sinon.assert.calledOnceWithExactly(githubCreateReleaseSpy, {
-        name: undefined,
-        owner: 'fake',
-        repo: 'fake',
-        tag_name: 'v1.2.3',
-        body: 'Some release notes',
-        target_commitish: 'abc123',
-        draft: false,
-        prerelease: false,
-      });
       expect(release).to.not.be.undefined;
       expect(release.id).to.eql(123456);
       expect(release.tagName).to.eql('v1.2.3');
@@ -837,16 +820,6 @@ describe('GitHub', () => {
         {draft: true}
       );
       req.done();
-      sinon.assert.calledOnceWithExactly(githubCreateReleaseSpy, {
-        name: undefined,
-        owner: 'fake',
-        repo: 'fake',
-        tag_name: 'v1.2.3',
-        body: 'Some release notes',
-        target_commitish: 'abc123',
-        draft: true,
-        prerelease: false,
-      });
       expect(release).to.not.be.undefined;
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');
@@ -877,16 +850,6 @@ describe('GitHub', () => {
         {prerelease: true}
       );
       req.done();
-      sinon.assert.calledOnceWithExactly(githubCreateReleaseSpy, {
-        name: undefined,
-        owner: 'fake',
-        repo: 'fake',
-        tag_name: 'v1.2.3',
-        body: 'Some release notes',
-        target_commitish: 'abc123',
-        draft: false,
-        prerelease: true,
-      });
       expect(release.id).to.eql(123456);
       expect(release.tagName).to.eql('v1.2.3');
       expect(release.sha).to.eql('abc123');

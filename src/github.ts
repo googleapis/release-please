@@ -558,14 +558,16 @@ export class GitHub {
     this.logger.debug(`Backfilling file list for commit: ${sha}`);
     const files: string[] = [];
     for await (const resp of this.octokit.paginate.iterator(
-      this.octokit.repos.getCommit,
+      'GET /repos/{owner}/{repo}/commits/{ref}',
       {
         owner: this.repository.owner,
         repo: this.repository.repo,
         ref: sha,
       }
     )) {
-      for (const f of resp.data.files || []) {
+      // Paginate plugin doesn't have types for listing files on a commit
+      const data = resp.data as any as {files: {filename: string}[]};
+      for (const f of data.files || []) {
         if (f.filename) {
           files.push(f.filename);
         }
@@ -702,7 +704,7 @@ export class GitHub {
     };
     let results = 0;
     for await (const {data: pulls} of this.octokit.paginate.iterator(
-      this.octokit.rest.pulls.list,
+      'GET /repos/{owner}/{repo}/pulls',
       {
         state: statusMap[status],
         owner: this.repository.owner,
@@ -927,7 +929,7 @@ export class GitHub {
     const maxResults = options.maxResults || Number.MAX_SAFE_INTEGER;
     let results = 0;
     for await (const response of this.octokit.paginate.iterator(
-      this.octokit.rest.repos.listTags,
+      'GET /repos/{owner}/{repo}/tags',
       {
         owner: this.repository.owner,
         repo: this.repository.repo,
