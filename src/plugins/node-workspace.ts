@@ -77,7 +77,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   ) {
     super(github, targetBranch, repositoryConfig, options);
 
-    this.alwaysLinkLocal = options.alwaysLinkLocal !== false;
+    this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
     this.updatePeerDependencies = options.updatePeerDependencies === true;
   }
   protected async buildAllPackages(
