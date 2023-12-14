@@ -12,20 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {PackageGraph} from '@lerna-lite/core';
-import {
-  Package as LernaPackage,
-  RawManifest as PackageJson,
-} from '@lerna-lite/core';
 import {GitHub} from '../github';
 import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import {Version, VersionsMap} from '../version';
-import {RawContent} from '../updaters/raw-content';
 import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {ReleasePullRequest} from '../release-pull-request';
 import {BranchName} from '../util/branch-name';
-import {jsonStringify} from '../util/json-stringify';
 import {Changelog} from '../updaters/changelog';
 import {
   WorkspacePlugin,
@@ -39,27 +32,33 @@ import {PatchVersionUpdate} from '../versioning-strategy';
 import {Strategy} from '../strategy';
 import {Commit} from '../commit';
 import {Release} from '../release';
+import {CompositeUpdater} from '../updaters/composite';
+import {PackageJson, newVersionWithRange} from '../updaters/node/package-json';
+import {Logger} from '../util/logger';
 
-class Package extends LernaPackage {
-  constructor(
-    public readonly rawContent: string,
-    location: string,
-    pkg?: PackageJson
-  ) {
-    super(pkg ?? JSON.parse(rawContent), location);
-  }
+interface ParsedPackageJson {
+  name: string;
+  version: string;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
+}
 
-  clone() {
-    return new Package(
-      this.rawContent,
-      this.location,
-      this.toJSON() as PackageJson
-    );
-  }
+interface Package {
+  path: string;
+  name: string;
+  version: string;
+  dependencies: Record<string, string>;
+  devDependencies: Record<string, string>;
+  peerDependencies: Record<string, string>;
+  optionalDependencies: Record<string, string>;
+  jsonContent: string;
 }
 
 interface NodeWorkspaceOptions extends WorkspacePluginOptions {
   alwaysLinkLocal?: boolean;
+  updatePeerDependencies?: boolean;
 }
 
 /**
@@ -71,11 +70,11 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
  */
 export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
-  private packageGraph?: PackageGraph;
 
   private strategiesByPath: Record<string, Strategy> = {};
   private releasesByPath: Record<string, Release> = {};
 
+  readonly updatePeerDependencies: boolean;
   constructor(
     github: GitHub,
     targetBranch: string,
@@ -84,6 +83,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   ) {
     super(github, targetBranch, repositoryConfig, options);
     this.alwaysLinkLocal = options.alwaysLinkLocal === false ? false : true;
+    this.updatePeerDependencies = options.updatePeerDependencies === true;
   }
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
@@ -112,22 +112,28 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         const packageUpdate = candidate.pullRequest.updates.find(
           update => update.path === packagePath
         );
-        if (packageUpdate?.cachedFileContents) {
-          const pkg = new Package(
-            packageUpdate.cachedFileContents.parsedContent,
-            candidate.path
-          );
-          packagesByPath.set(candidate.path, pkg);
-          candidatesByPackage[pkg.name] = candidate;
-        } else {
-          const contents = await this.github.getFileContentsOnBranch(
+        const contents =
+          packageUpdate?.cachedFileContents ??
+          (await this.github.getFileContentsOnBranch(
             packagePath,
             this.targetBranch
-          );
-          const pkg = new Package(contents.parsedContent, candidate.path);
-          packagesByPath.set(candidate.path, pkg);
-          candidatesByPackage[pkg.name] = candidate;
-        }
+          ));
+        const packageJson: ParsedPackageJson = JSON.parse(
+          contents.parsedContent
+        );
+        const pkg: Package = {
+          name: packageJson.name,
+          path,
+          version: packageJson.version,
+          dependencies: packageJson.dependencies || {},
+          devDependencies: packageJson.devDependencies || {},
+          peerDependencies: packageJson.peerDependencies || {},
+          optionalDependencies: packageJson.optionalDependencies || {},
+          jsonContent: contents.parsedContent,
+        };
+        packagesByPath.set(candidate.path, pkg);
+        candidatesByPackage[pkg.name] = candidate;
+        // }
       } else {
         const packagePath = addPath(path, 'package.json');
         this.logger.debug(
@@ -137,16 +143,23 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           packagePath,
           this.targetBranch
         );
-        packagesByPath.set(path, new Package(contents.parsedContent, path));
+        const packageJson: ParsedPackageJson = JSON.parse(
+          contents.parsedContent
+        );
+        const pkg: Package = {
+          name: packageJson.name,
+          path,
+          version: packageJson.version,
+          dependencies: packageJson.dependencies || {},
+          devDependencies: packageJson.devDependencies || {},
+          peerDependencies: packageJson.peerDependencies || {},
+          optionalDependencies: packageJson.optionalDependencies || {},
+          jsonContent: contents.parsedContent,
+        };
+        packagesByPath.set(path, pkg);
       }
     }
     const allPackages = Array.from(packagesByPath.values());
-    this.packageGraph = new PackageGraph(
-      allPackages,
-      'allDependencies',
-      this.alwaysLinkLocal
-    );
-
     return {
       allPackages,
       candidatesByPackage,
@@ -163,46 +176,31 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     pkg: Package,
     updatedVersions: VersionsMap
   ): CandidateReleasePullRequest {
-    const graphPackage = this.packageGraph?.get(pkg.name);
-    if (!graphPackage) {
-      throw new Error(`Could not find graph package for ${pkg.name}`);
-    }
-    const updatedPackage = pkg.clone();
     // Update version of the package
-    const newVersion = updatedVersions.get(updatedPackage.name);
-    if (newVersion) {
-      this.logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
-      updatedPackage.version = newVersion.toString();
+    const newVersion = updatedVersions.get(pkg.name);
+    if (!newVersion) {
+      throw new Error(`Didn't find updated version for ${pkg.name}`);
     }
-    // Update dependency versions
-    for (const [depName, resolved] of graphPackage.localDependencies) {
-      const depVersion = updatedVersions.get(depName);
-      if (depVersion && resolved.type !== 'directory') {
-        const currentVersion = this.combineDeps(pkg)?.[depName];
-        const prefix = currentVersion
-          ? this.detectRangePrefix(currentVersion)
-          : '';
-        updatedPackage.updateLocalDependency(
-          resolved,
-          depVersion.toString(),
-          prefix
-        );
-        this.logger.info(
-          `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
-        );
-      }
-    }
+    const updatedPackage = {
+      ...pkg,
+      version: newVersion.toString(),
+    };
+
+    const updater = new PackageJson({
+      version: newVersion,
+      versionsMap: updatedVersions,
+    });
     const dependencyNotes = getChangelogDepsNotes(
       pkg,
       updatedPackage,
-      updatedVersions
+      updatedVersions,
+      this.logger
     );
+
     existingCandidate.pullRequest.updates =
       existingCandidate.pullRequest.updates.map(update => {
         if (update.path === addPath(existingCandidate.path, 'package.json')) {
-          update.updater = new RawContent(
-            jsonStringify(updatedPackage.toJSON(), updatedPackage.rawContent)
-          );
+          update.updater = new CompositeUpdater(update.updater, updater);
         } else if (update.updater instanceof Changelog) {
           if (dependencyNotes) {
             update.updater.changelogEntry =
@@ -243,48 +241,31 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     pkg: Package,
     updatedVersions: VersionsMap
   ): Promise<CandidateReleasePullRequest> {
-    const graphPackage = this.packageGraph?.get(pkg.name);
-    if (!graphPackage) {
-      throw new Error(`Could not find graph package for ${pkg.name}`);
-    }
-    const updatedPackage = pkg.clone();
     // Update version of the package
-    const newVersion = updatedVersions.get(updatedPackage.name);
-    if (newVersion) {
-      this.logger.info(`Updating ${updatedPackage.name} to ${newVersion}`);
-      updatedPackage.version = newVersion.toString();
+    const newVersion = updatedVersions.get(pkg.name);
+    if (!newVersion) {
+      throw new Error(`Didn't find updated version for ${pkg.name}`);
     }
-    for (const [depName, resolved] of graphPackage.localDependencies) {
-      const depVersion = updatedVersions.get(depName);
-      if (depVersion && resolved.type !== 'directory') {
-        const currentVersion = this.combineDeps(pkg)?.[depName];
-        const prefix = currentVersion
-          ? this.detectRangePrefix(currentVersion)
-          : '';
-        updatedPackage.updateLocalDependency(
-          resolved,
-          depVersion.toString(),
-          prefix
-        );
-        this.logger.info(
-          `${pkg.name}.${depName} updated to ${prefix}${depVersion.toString()}`
-        );
-      }
-    }
+    const updatedPackage = {
+      ...pkg,
+      version: newVersion.toString(),
+    };
+
     const dependencyNotes = getChangelogDepsNotes(
       pkg,
       updatedPackage,
-      updatedVersions
+      updatedVersions,
+      this.logger
     );
-    const packageJson = updatedPackage.toJSON() as PackageJson;
-    const version = Version.parse(packageJson.version);
+    // const packageJson = updatedPackage.toJSON() as PackageJson;
+    // const version = Version.parse(packageJson.version);
 
-    const strategy = this.strategiesByPath[updatedPackage.location];
-    const latestRelease = this.releasesByPath[updatedPackage.location];
+    const strategy = this.strategiesByPath[updatedPackage.path];
+    const latestRelease = this.releasesByPath[updatedPackage.path];
 
     const basePullRequest = strategy
       ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
-          newVersion: version,
+          newVersion,
         })
       : undefined;
 
@@ -293,7 +274,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       body: new PullRequestBody([
         {
           component: updatedPackage.name,
-          version,
+          version: newVersion,
           notes: appendDependenciesSectionToChangelog(
             basePullRequest?.body.notes() ?? '',
             dependencyNotes,
@@ -304,18 +285,19 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       updates: [
         ...(basePullRequest ? basePullRequest?.updates : []),
         {
-          path: addPath(updatedPackage.location, 'package.json'),
+          path: addPath(updatedPackage.path, 'package.json'),
           createIfMissing: false,
-          updater: new RawContent(
-            jsonStringify(packageJson, updatedPackage.rawContent)
-          ),
+          updater: new PackageJson({
+            version: newVersion,
+            versionsMap: updatedVersions,
+          }),
         },
         {
-          path: addPath(updatedPackage.location, 'CHANGELOG.md'),
+          path: addPath(updatedPackage.path, 'CHANGELOG.md'),
           createIfMissing: false,
           updater: new Changelog({
-            version,
-            versionHeaderRegex: `\n###? v?[${version
+            version: newVersion,
+            versionHeaderRegex: `\n###? v?[${newVersion
               .toString()
               .replace('.', '.')}]`,
             changelogEntry: dependencyNotes,
@@ -326,11 +308,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       headRefName:
         basePullRequest?.headRefName ??
         BranchName.ofTargetBranch(this.targetBranch).toString(),
-      version,
+      version: newVersion,
       draft: false,
     };
     return {
-      path: updatedPackage.location,
+      path: updatedPackage.path,
       pullRequest,
       config: {
         releaseType: 'node',
@@ -376,15 +358,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   }
 
   protected pathFromPackage(pkg: Package): string {
-    return pkg.location;
-  }
-
-  private detectRangePrefix(version: string): string {
-    return (
-      Object.values(SUPPORTED_RANGE_PREFIXES).find(supportedRangePrefix =>
-        version.startsWith(supportedRangePrefix)
-      ) || ''
-    );
+    return pkg.path;
   }
 
   private combineDeps(packageJson: Package): Record<string, string> {
@@ -392,6 +366,9 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       ...(packageJson.dependencies ?? {}),
       ...(packageJson.devDependencies ?? {}),
       ...(packageJson.optionalDependencies ?? {}),
+      ...(this.updatePeerDependencies
+        ? packageJson.peerDependencies ?? {}
+        : {}),
     };
   }
 
@@ -408,19 +385,11 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
   }
 }
 
-enum SUPPORTED_RANGE_PREFIXES {
-  CARET = '^',
-  TILDE = '~',
-  GREATER_THAN = '>',
-  LESS_THAN = '<',
-  EQUAL_OR_GREATER_THAN = '>=',
-  EQUAL_OR_LESS_THAN = '<=',
-}
-
 function getChangelogDepsNotes(
   original: Package,
   updated: Package,
-  updateVersions: VersionsMap
+  updateVersions: VersionsMap,
+  logger: Logger
 ): string {
   let depUpdateNotes = '';
   type DT =
@@ -442,21 +411,20 @@ function getChangelogDepsNotes(
       continue;
     }
     for (const [depName, currentDepVer] of Object.entries(pkgDepTypes)) {
+      const newVersion = updateVersions.get(depName);
+      if (!newVersion) {
+        logger.debug(`${depName} was not bumped, ignoring`);
+        continue;
+      }
       const origDepVer = original[depType]?.[depName];
-      if (currentDepVer !== origDepVer) {
+      const newVersionString = newVersionWithRange(origDepVer, newVersion);
+      if (currentDepVer.startsWith('workspace:')) {
+        depUpdates.push(`\n    * ${depName} bumped to ${newVersionString}`);
+      } else if (newVersionString !== origDepVer) {
         depUpdates.push(
-          `\n    * ${depName} bumped from ${origDepVer} to ${currentDepVer}`
+          `\n    * ${depName} bumped from ${origDepVer} to ${newVersionString}`
         );
         //handle case when "workspace:" version is used
-      } else if (
-        currentDepVer.startsWith('workspace:') &&
-        updateVersions.get(depName) !== undefined
-      ) {
-        depUpdates.push(
-          `\n    * ${depName} bumped to ${updateVersions
-            .get(depName)
-            ?.toString()}`
-        );
       }
     }
     if (depUpdates.length > 0) {

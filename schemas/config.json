@@ -103,6 +103,10 @@
           "description": "Customize the release pull request header.",
           "type": "string"
         },
+        "pull-request-footer": {
+          "description": "Customize the release pull request footer.",
+          "type": "string"
+        },
         "separate-pull-requests": {
           "description": "Open a separate release pull request for each component. Defaults to `false`.",
           "type": "boolean"
@@ -296,7 +300,31 @@
                     "type": "string",
                     "enum": [
                       "cargo-workspace",
-                      "maven-workspace",
+                      "maven-workspace"
+                    ]
+                  },
+                  "updateAllPackages": {
+                    "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
+                    "type": "boolean"
+                  },
+                  "merge": {
+                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "considerAllArtifacts": {
+                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "description": "Configuration for various `workspace` plugins.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": [
                       "node-workspace"
                     ]
                   },
@@ -310,6 +338,10 @@
                   },
                   "considerAllArtifacts": {
                     "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "updatePeerDependencies": {
+                    "description": "Also bump peer dependency versions if they are modified. Defaults to `false`.",
                     "type": "boolean"
                   }
                 }
@@ -404,6 +436,7 @@
     "changelog-path": true,
     "pull-request-title-pattern": true,
     "pull-request-header": true,
+    "pull-request-footer": true,
     "separate-pull-requests": true,
     "tag-separator": true,
     "extra-files": true,

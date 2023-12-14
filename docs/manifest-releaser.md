@@ -495,6 +495,23 @@ your update pull request. If you don't agree with this behavior and would only l
 your local dependencies bumped if they are within the SemVer range, you can set the
 `"always-link-local"` option to `false` in your manifest config.
 
+#### Linking peer dependencies
+
+By default, the `node-workspace` plugin doesn't modify `peerDependencies` fields in
+package.json. If you would like version bumps to be also linked in `peerDependencies`
+fields, set `"updatePeerDependencies"` to `true` in your manifest plugin config.
+
+```
+{
+  "plugins": [
+    {
+      "type": "node-workspace",
+      "updatePeerDependencies": true
+    }
+  ]
+}
+```
+
 ### cargo-workspace
 
 The `cargo-workspace` plugin operates similarly to the `node-workspace` plugin,

@@ -33,7 +33,7 @@ import {
 } from './factory';
 import {Release} from './release';
 import {Strategy} from './strategy';
-import {Merge} from './plugins/merge';
+import {MergeOptions, Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
   DuplicateReleaseError,
@@ -108,6 +108,7 @@ export interface ReleaserConfig {
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  pullRequestFooter?: string;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
@@ -165,6 +166,7 @@ interface ReleaserConfigJson {
   'changelog-host'?: string;
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
+  'pull-request-footer'?: string;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -221,6 +223,9 @@ export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
   considerAllArtifacts?: boolean;
 }
+export interface NodeWorkspacePluginConfig extends WorkspacePluginConfig {
+  updatePeerDependencies?: boolean;
+}
 export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
   groups: string[];
 }
@@ -230,7 +235,8 @@ export type PluginType =
   | GroupPriorityPluginConfig
   | LinkedVersionPluginConfig
   | SentenceCasePluginConfig
-  | WorkspacePluginConfig;
+  | WorkspacePluginConfig
+  | NodeWorkspacePluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -264,7 +270,7 @@ const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
-interface CreatedRelease extends GitHubRelease {
+export interface CreatedRelease extends GitHubRelease {
   id: number;
   path: string;
   version: string;
@@ -314,6 +320,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -429,6 +437,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -747,10 +757,33 @@ export class Manifest {
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
+      const mergeOptions: MergeOptions = {
+        pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+      };
+      // Find the first repositoryConfig item that has a set value
+      // for the options that can be passed to the merge plugin
+      for (const path in this.repositoryConfig) {
+        const config = this.repositoryConfig[path];
+        if (
+          'pullRequestHeader' in config &&
+          !('pullRequestHeader' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestHeader = config.pullRequestHeader;
+        }
+        if (
+          'pullRequestFooter' in config &&
+          !('pullRequestFooter' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestFooter = config.pullRequestFooter;
+        }
+      }
       this.plugins.push(
-        new Merge(this.github, this.targetBranch, this.repositoryConfig, {
-          pullRequestTitlePattern: this.groupPullRequestTitlePattern,
-        })
+        new Merge(
+          this.github,
+          this.targetBranch,
+          this.repositoryConfig,
+          mergeOptions
+        )
       );
     }
 
@@ -1198,10 +1231,11 @@ export class Manifest {
       ) {
         // we've either tagged all releases or they were duplicates:
         // adjust tags on pullRequest
-        await Promise.all([
-          this.github.removeIssueLabels(this.labels, pullRequest.number),
-          this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-        ]);
+        await this.github.removeIssueLabels(this.labels, pullRequest.number);
+        await this.github.addIssueLabels(
+          this.releaseLabels,
+          pullRequest.number
+        );
       }
       if (githubReleases.length === 0) {
         // If all releases were duplicate, throw a duplicate error
@@ -1209,10 +1243,8 @@ export class Manifest {
       }
     } else {
       // adjust tags on pullRequest
-      await Promise.all([
-        this.github.removeIssueLabels(this.labels, pullRequest.number),
-        this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-      ]);
+      await this.github.removeIssueLabels(this.labels, pullRequest.number);
+      await this.github.addIssueLabels(this.releaseLabels, pullRequest.number);
     }
 
     return githubReleases;
@@ -1311,6 +1343,7 @@ function extractReleaserConfig(
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     pullRequestHeader: config['pull-request-header'],
+    pullRequestFooter: config['pull-request-footer'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1663,6 +1696,8 @@ function mergeReleaserConfig(
       defaultConfig.pullRequestTitlePattern,
     pullRequestHeader:
       pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
+    pullRequestFooter:
+      pathConfig.pullRequestFooter ?? defaultConfig.pullRequestFooter,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,

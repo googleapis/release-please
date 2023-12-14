@@ -93,6 +93,37 @@ Release notes for path: ., releaseType: node
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['NodeWorkspace plugin run combines node packages 2'] = `
+{
+  "name": "@here/root",
+  "version": "5.5.6",
+  "dependencies": {
+    "@here/pkgA": "^3.3.4",
+    "@here/pkgD": "^4.4.5"
+  }
+}
+`
+
+exports['NodeWorkspace plugin run combines node packages 3'] = `
+{
+  "name": "@here/pkgA",
+  "version": "3.3.4",
+  "dependencies": {
+    "anotherExternal": "^4.3.1"
+  }
+}
+`
+
+exports['NodeWorkspace plugin run combines node packages 4'] = `
+{
+  "name": "@here/pkgD",
+  "version": "4.4.5",
+  "dependencies": {
+    "anotherExternal": "^4.3.1"
+  }
+}
+`
+
 exports['NodeWorkspace plugin run handles a single node package 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
@@ -171,6 +202,39 @@ Release notes for path: node4, releaseType: node
 * The following workspace dependencies were updated
   * dependencies
     * @here/pkgA bumped to 3.3.4
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['NodeWorkspace plugin with updatePeerDependencies: true respects version prefix and updates peer dependencies 1'] = `
+{
+  "name": "@here/plugin1",
+  "version": "4.4.4",
+  "peerDependencies": {
+    "@here/pkgA": "^2.2.2"
+  }
+}
+`
+
+exports['NodeWorkspace plugin with updatePeerDependencies: true should not ignore peer dependencies 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 3.3.4</summary>
+
+Release notes for path: node1, releaseType: node
+</details>
+
+<details><summary>@here/plugin1: 4.4.5</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * peerDependencies
+    * @here/pkgA bumped from ^3.3.3 to ^3.3.4
 </details>
 
 ---

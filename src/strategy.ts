@@ -43,6 +43,10 @@ export interface Strategy {
    *   component if available.
    * @param {boolean} draft Optional. Whether or not to create the pull
    *   request as a draft. Defaults to `false`.
+   * @param {BumpReleaseOptions} bumpOnlyOptions Optional. Options, that when
+   * present, indicate a release should be created even if there are no
+   * conventional commits. This is used when a release is required for
+   * a dependency update with a workspace plugin.
    * @returns {ReleasePullRequest | undefined} The release pull request to
    *   open for this path/component. Returns undefined if we should not
    *   open a pull request.
