@@ -174,6 +174,9 @@ Release notes for path: node1, releaseType: node
 
 <details><summary>@here/pkgE: 1.0.1</summary>
 
+## 1.0.1 (1983-10-10)
+
+
 ### Dependencies
 
 * The following workspace dependencies were updated

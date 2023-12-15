@@ -424,6 +424,18 @@ describe('NodeWorkspace plugin', () => {
             path: 'node3',
             packageName: '@here/pkgC',
           }),
+          node4: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node4',
+            packageName: '@here/pkgD',
+          }),
+          node5: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node5',
+            packageName: '@here/pkgE',
+          }),
         },
         {},
         {
@@ -507,12 +519,6 @@ describe('NodeWorkspace plugin', () => {
             path: 'node2',
             packageName: '@here/pkgB',
             extraFiles: ['my-file'],
-          }),
-          node3: new Node({
-            github,
-            targetBranch: 'main',
-            path: 'node3',
-            packageName: '@here/pkgC',
           }),
         },
         {},
