@@ -38,6 +38,7 @@ import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest'
 import {Node} from '../../src/strategies/node';
 import {CompositeUpdater} from '../../src/updaters/composite';
 import {TagName} from '../../src/util/tag-name';
+import {Generic} from '../../src/updaters/generic';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -463,6 +464,76 @@ describe('NodeWorkspace plugin', () => {
       for (const changelogUpdater of compositeUpdater2.updaters) {
         snapshot((changelogUpdater as Changelog).changelogEntry);
       }
+    });
+    it('incorporates extra-files from strategy', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+            buildMockChangelogUpdate(
+              'node1/CHANGELOG.md',
+              '3.3.4',
+              'other notes'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'node1/package.json',
+          'node2/package.json',
+          'node3/package.json',
+          'node4/package.json',
+          'node5/package.json',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      await plugin.preconfigure(
+        {
+          node1: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node1',
+            packageName: '@here/pkgA',
+          }),
+          node2: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node2',
+            packageName: '@here/pkgB',
+            extraFiles: ['my-file'],
+          }),
+          node3: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node3',
+            packageName: '@here/pkgC',
+          }),
+        },
+        {},
+        {
+          node2: {
+            tag: new TagName(new Version(2, 2, 2), 'pkgB'),
+            sha: '',
+            notes: '',
+          },
+        }
+      );
+
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+
+      assertHasUpdate(updates, 'node2/my-file', Generic);
     });
     it('should ignore peer dependencies', async () => {
       const candidates: CandidateReleasePullRequest[] = [
