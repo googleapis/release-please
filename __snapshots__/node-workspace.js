@@ -138,6 +138,81 @@ Release notes for path: node1, releaseType: node
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['NodeWorkspace plugin run includes headers for packages with configured strategies 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 3.3.4</summary>
+
+Release notes for path: node1, releaseType: node
+</details>
+
+<details><summary>@here/pkgB: 2.2.3</summary>
+
+## 2.2.3 (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped from 3.3.3 to 3.3.4
+</details>
+
+<details><summary>@here/pkgC: 1.1.2</summary>
+
+## 1.1.2 (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgB bumped from 2.2.2 to 2.2.3
+</details>
+
+<details><summary>@here/pkgE: 1.0.1</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped to 3.3.4
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
+exports['NodeWorkspace plugin run includes headers for packages with configured strategies 2'] = `
+other notes
+`
+
+exports['NodeWorkspace plugin run includes headers for packages with configured strategies 3'] = `
+## 2.2.3 (2023-12-15)
+`
+
+exports['NodeWorkspace plugin run includes headers for packages with configured strategies 4'] = `
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped from 3.3.3 to 3.3.4
+`
+
+exports['NodeWorkspace plugin run includes headers for packages with configured strategies 5'] = `
+## 1.1.2 (2023-12-15)
+`
+
+exports['NodeWorkspace plugin run includes headers for packages with configured strategies 6'] = `
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgB bumped from 2.2.2 to 2.2.3
+`
+
 exports['NodeWorkspace plugin run respects version prefix 1'] = `
 {
   "name": "@here/plugin1",
