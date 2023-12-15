@@ -257,8 +257,6 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       updatedVersions,
       this.logger
     );
-    // const packageJson = updatedPackage.toJSON() as PackageJson;
-    // const version = Version.parse(packageJson.version);
 
     const strategy = this.strategiesByPath[updatedPackage.path];
     const latestRelease = this.releasesByPath[updatedPackage.path];
