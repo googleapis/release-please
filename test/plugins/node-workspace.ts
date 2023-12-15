@@ -37,6 +37,7 @@ import {Changelog} from '../../src/updaters/changelog';
 import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest';
 import {Node} from '../../src/strategies/node';
 import {CompositeUpdater} from '../../src/updaters/composite';
+import {TagName} from '../../src/util/tag-name';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -424,7 +425,13 @@ describe('NodeWorkspace plugin', () => {
           }),
         },
         {},
-        {}
+        {
+          node2: {
+            tag: new TagName(new Version(2, 2, 2), 'pkgB'),
+            sha: '',
+            notes: '',
+          },
+        }
       );
 
       const newCandidates = await plugin.run(candidates);
