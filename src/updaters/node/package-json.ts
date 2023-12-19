@@ -67,10 +67,10 @@ export class PackageJson extends DefaultUpdater {
 enum SUPPORTED_RANGE_PREFIXES {
   CARET = '^',
   TILDE = '~',
-  GREATER_THAN = '>',
-  LESS_THAN = '<',
   EQUAL_OR_GREATER_THAN = '>=',
   EQUAL_OR_LESS_THAN = '<=',
+  GREATER_THAN = '>',
+  LESS_THAN = '<',
 }
 function detectRangePrefix(version: string): string {
   return (
