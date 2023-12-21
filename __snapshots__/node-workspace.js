@@ -148,7 +148,7 @@ exports['NodeWorkspace plugin run includes headers for packages with configured 
 Release notes for path: node1, releaseType: node
 </details>
 
-<details><summary>@here/pkgB: 2.2.3</summary>
+<details><summary>pkgB: 2.2.3</summary>
 
 ## [2.2.3](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
 
@@ -160,7 +160,7 @@ Release notes for path: node1, releaseType: node
     * @here/pkgA bumped from 3.3.3 to 3.3.4
 </details>
 
-<details><summary>@here/pkgC: 1.1.2</summary>
+<details><summary>pkgC: 1.1.2</summary>
 
 ## 1.1.2 (1983-10-10)
 
@@ -172,7 +172,7 @@ Release notes for path: node1, releaseType: node
     * @here/pkgB bumped from 2.2.2 to 2.2.3
 </details>
 
-<details><summary>@here/pkgE: 1.0.1</summary>
+<details><summary>pkgE: 1.0.1</summary>
 
 ## 1.0.1 (1983-10-10)
 
@@ -193,10 +193,9 @@ other notes
 `
 
 exports['NodeWorkspace plugin run includes headers for packages with configured strategies 3'] = `
-## [2.2.3](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (2023-12-15)
-`
+## [2.2.3](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (2023-12-21)
 
-exports['NodeWorkspace plugin run includes headers for packages with configured strategies 4'] = `
+
 ### Dependencies
 
 * The following workspace dependencies were updated
@@ -204,11 +203,10 @@ exports['NodeWorkspace plugin run includes headers for packages with configured 
     * @here/pkgA bumped from 3.3.3 to 3.3.4
 `
 
-exports['NodeWorkspace plugin run includes headers for packages with configured strategies 5'] = `
-## 1.1.2 (2023-12-15)
-`
+exports['NodeWorkspace plugin run includes headers for packages with configured strategies 4'] = `
+## 1.1.2 (2023-12-21)
 
-exports['NodeWorkspace plugin run includes headers for packages with configured strategies 6'] = `
+
 ### Dependencies
 
 * The following workspace dependencies were updated

@@ -35,6 +35,7 @@ import {Release} from '../release';
 import {CompositeUpdater} from '../updaters/composite';
 import {PackageJson, newVersionWithRange} from '../updaters/node/package-json';
 import {Logger} from '../util/logger';
+import path from 'path';
 
 interface ParsedPackageJson {
   name: string;
@@ -267,6 +268,20 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         })
       : undefined;
 
+    if (basePullRequest) {
+      return this.updateCandidate(
+        {
+          path: pkg.path,
+          pullRequest: basePullRequest,
+          config: {
+            releaseType: 'node',
+          },
+        },
+        pkg,
+        updatedVersions
+      );
+    }
+
     const pullRequest: ReleasePullRequest = {
       title: PullRequestTitle.ofTargetBranch(this.targetBranch),
       body: new PullRequestBody([
@@ -274,14 +289,13 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           component: updatedPackage.name,
           version: newVersion,
           notes: appendDependenciesSectionToChangelog(
-            basePullRequest?.body.notes() ?? '',
+            '',
             dependencyNotes,
             this.logger
           ),
         },
       ]),
       updates: [
-        ...(basePullRequest ? basePullRequest?.updates : []),
         {
           path: addPath(updatedPackage.path, 'package.json'),
           createIfMissing: false,
@@ -295,9 +309,6 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           createIfMissing: false,
           updater: new Changelog({
             version: newVersion,
-            versionHeaderRegex: `\n###? v?[${newVersion
-              .toString()
-              .replace('.', '.')}]`,
             changelogEntry: appendDependenciesSectionToChangelog(
               '',
               dependencyNotes,
@@ -307,9 +318,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         },
       ],
       labels: [],
-      headRefName:
-        basePullRequest?.headRefName ??
-        BranchName.ofTargetBranch(this.targetBranch).toString(),
+      headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
       version: newVersion,
       draft: false,
     };

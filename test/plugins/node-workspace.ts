@@ -460,22 +460,20 @@ describe('NodeWorkspace plugin', () => {
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
       const update = assertHasUpdate(updates, 'node1/CHANGELOG.md', Changelog);
       snapshot((update.updater as Changelog).changelogEntry);
-      const compositeUpdater = assertHasUpdate(
+      const changelogUpdaterNode2 = assertHasUpdate(
         updates,
         'node2/CHANGELOG.md',
-        CompositeUpdater
-      ).updater as CompositeUpdater;
-      for (const changelogUpdater of compositeUpdater.updaters) {
-        snapshot((changelogUpdater as Changelog).changelogEntry);
-      }
-      const compositeUpdater2 = assertHasUpdate(
+        Changelog
+      ).updater as Changelog;
+      snapshot(changelogUpdaterNode2.changelogEntry);
+
+      const changelogUpdaterNode3 = assertHasUpdate(
         updates,
         'node3/CHANGELOG.md',
-        CompositeUpdater
-      ).updater as CompositeUpdater;
-      for (const changelogUpdater of compositeUpdater2.updaters) {
-        snapshot((changelogUpdater as Changelog).changelogEntry);
-      }
+        Changelog
+      ).updater as Changelog;
+
+      snapshot(changelogUpdaterNode3.changelogEntry);
     });
     it('incorporates extra-files from strategy', async () => {
       const candidates: CandidateReleasePullRequest[] = [
