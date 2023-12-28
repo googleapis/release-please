@@ -29,6 +29,7 @@ import {BranchName} from '../util/branch-name';
 import {PullRequestBody} from '../util/pull-request-body';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError} from '../errors';
+import {BumpReleaseOptions} from '../strategy';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -68,12 +69,13 @@ export class PHPYoshi extends BaseStrategy {
     commits: Commit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels: string[] = []
+    labels: string[] = [],
+    bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(
       parseConventionalCommits(commits, this.logger)
     );
-    if (conventionalCommits.length === 0) {
+    if (!bumpOnlyOptions && conventionalCommits.length === 0) {
       this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }

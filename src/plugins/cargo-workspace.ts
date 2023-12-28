@@ -233,10 +233,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     return existingCandidate;
   }
 
-  protected newCandidate(
+  protected async newCandidate(
     pkg: CrateInfo,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest {
+  ): Promise<CandidateReleasePullRequest> {
     const version = updatedVersions.get(pkg.name);
     if (!version) {
       throw new Error(`Didn't find updated version for ${pkg.name}`);
