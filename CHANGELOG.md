@@ -4,6 +4,15 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.5.1](https://github.com/googleapis/release-please/compare/v16.5.0...v16.5.1) (2023-12-18)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @google-automations/git-file-utils to v2 ([#2081](https://github.com/googleapis/release-please/issues/2081)) ([9b745d5](https://github.com/googleapis/release-please/commit/9b745d572ebc2d125538df3b13ddd6a3983841bb))
+* **deps:** update dependency xpath to ^0.0.34 ([#2169](https://github.com/googleapis/release-please/issues/2169)) ([3f7045e](https://github.com/googleapis/release-please/commit/3f7045ebbd800870659ccd0ae330b5b8f8daf47d))
+* **node:** correctly detect &gt;=, &lt;= over >, < when replacing version ranges ([#2171](https://github.com/googleapis/release-please/issues/2171)) ([47fe582](https://github.com/googleapis/release-please/commit/47fe582a373eb62471e2c7f39b58a5d982c8e3a6))
+
 ## [16.5.0](https://github.com/googleapis/release-please/compare/v16.4.1...v16.5.0) (2023-12-11)
 
 

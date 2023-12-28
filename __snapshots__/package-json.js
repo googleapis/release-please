@@ -41,7 +41,7 @@ exports['PackageJson updateContent updates dependency versions 1'] = `
 \t\t"foo": "~0.1.0"
 \t},
 \t"peerDependencies": {
-\t\t"bar": ">2.3.4"
+\t\t"bar": ">=2.3.4"
 \t},
 \t"files": [
 \t\t"lib",
