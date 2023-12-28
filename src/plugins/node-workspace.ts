@@ -30,6 +30,9 @@ import {
   addPath,
 } from './workspace';
 import {PatchVersionUpdate} from '../versioning-strategy';
+import {Strategy} from '../strategy';
+import {Commit} from '../commit';
+import {Release} from '../release';
 import {CompositeUpdater} from '../updaters/composite';
 import {PackageJson, newVersionWithRange} from '../updaters/node/package-json';
 import {Logger} from '../util/logger';
@@ -68,6 +71,10 @@ interface NodeWorkspaceOptions extends WorkspacePluginOptions {
  */
 export class NodeWorkspace extends WorkspacePlugin<Package> {
   private alwaysLinkLocal: boolean;
+
+  private strategiesByPath: Record<string, Strategy> = {};
+  private releasesByPath: Record<string, Release> = {};
+
   readonly updatePeerDependencies: boolean;
   constructor(
     github: GitHub,
@@ -239,10 +246,10 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     }
     return existingCandidate;
   }
-  protected newCandidate(
+  protected async newCandidate(
     pkg: Package,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest {
+  ): Promise<CandidateReleasePullRequest> {
     // Update version of the package
     const newVersion = updatedVersions.get(pkg.name);
     if (!newVersion) {
@@ -259,6 +266,30 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
       updatedVersions,
       this.logger
     );
+
+    const strategy = this.strategiesByPath[updatedPackage.path];
+    const latestRelease = this.releasesByPath[updatedPackage.path];
+
+    const basePullRequest = strategy
+      ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
+          newVersion,
+        })
+      : undefined;
+
+    if (basePullRequest) {
+      return this.updateCandidate(
+        {
+          path: pkg.path,
+          pullRequest: basePullRequest,
+          config: {
+            releaseType: 'node',
+          },
+        },
+        pkg,
+        updatedVersions
+      );
+    }
+
     const pullRequest: ReleasePullRequest = {
       title: PullRequestTitle.ofTargetBranch(this.targetBranch),
       body: new PullRequestBody([
@@ -398,6 +429,18 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
         ? packageJson.peerDependencies ?? {}
         : {}),
     };
+  }
+
+  async preconfigure(
+    strategiesByPath: Record<string, Strategy>,
+    _commitsByPath: Record<string, Commit[]>,
+    _releasesByPath: Record<string, Release>
+  ): Promise<Record<string, Strategy>> {
+    // Using preconfigure to siphon releases and strategies.
+    this.strategiesByPath = strategiesByPath;
+    this.releasesByPath = _releasesByPath;
+
+    return strategiesByPath;
   }
 }
 

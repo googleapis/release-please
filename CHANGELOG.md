@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.6.0](https://github.com/googleapis/release-please/compare/v16.5.1...v16.6.0) (2023-12-28)
+
+
+### Features
+
+* **node-workspace:** use configured strategies to build new dependent version bumps ([#2112](https://github.com/googleapis/release-please/issues/2112)) ([de4088b](https://github.com/googleapis/release-please/commit/de4088b15374f76596d252136152263c37cfefef))
+
 ## [16.5.1](https://github.com/googleapis/release-please/compare/v16.5.0...v16.5.1) (2023-12-18)
 
 

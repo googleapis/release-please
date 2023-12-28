@@ -154,7 +154,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
             pkg
           )}`
         );
-        const newCandidate = this.newCandidate(pkg, updatedVersions);
+        const newCandidate = await this.newCandidate(pkg, updatedVersions);
         if (newCandidatePaths.has(newCandidate.path)) {
           this.logger.info(
             `Already created new candidate for path: ${newCandidate.path}`
@@ -320,7 +320,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   protected abstract newCandidate(
     pkg: T,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest;
+  ): Promise<CandidateReleasePullRequest>;
 
   /**
    * Collect all packages being managed in this workspace.

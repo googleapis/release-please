@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy, BuildReleaseOptions} from '../strategy';
+import {Strategy, BuildReleaseOptions, BumpReleaseOptions} from '../strategy';
 import {GitHub} from '../github';
 import {VersioningStrategy} from '../versioning-strategy';
 import {Repository} from '../repository';
@@ -261,19 +261,19 @@ export abstract class BaseStrategy implements Strategy {
     commits: ConventionalCommit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels: string[] = []
+    labels: string[] = [],
+    bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(commits);
     this.logger.info(`Considering: ${conventionalCommits.length} commits`);
-    if (conventionalCommits.length === 0) {
+    if (!bumpOnlyOptions && conventionalCommits.length === 0) {
       this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }
 
-    const newVersion = await this.buildNewVersion(
-      conventionalCommits,
-      latestRelease
-    );
+    const newVersion =
+      bumpOnlyOptions?.newVersion ??
+      (await this.buildNewVersion(conventionalCommits, latestRelease));
     const versionsMap = await this.updateVersionsMap(
       await this.buildVersionsMap(conventionalCommits),
       conventionalCommits,
@@ -309,7 +309,7 @@ export abstract class BaseStrategy implements Strategy {
       latestRelease,
       commits
     );
-    if (this.changelogEmpty(releaseNotesBody)) {
+    if (!bumpOnlyOptions && this.changelogEmpty(releaseNotesBody)) {
       this.logger.info(
         `No user facing commits found since ${
           latestRelease ? latestRelease.sha : 'beginning of time'

@@ -35,6 +35,9 @@ import snapshot = require('snap-shot-it');
 import {ManifestPlugin} from '../../src/plugin';
 import {Changelog} from '../../src/updaters/changelog';
 import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest';
+import {Node} from '../../src/strategies/node';
+import {TagName} from '../../src/util/tag-name';
+import {Generic} from '../../src/updaters/generic';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -371,6 +374,169 @@ describe('NodeWorkspace plugin', () => {
       snapshot((update2.updater as Changelog).changelogEntry);
       const update3 = assertHasUpdate(updates, 'node3/CHANGELOG.md', Changelog);
       snapshot((update3.updater as Changelog).changelogEntry);
+    });
+    it('includes headers for packages with configured strategies', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+            buildMockChangelogUpdate(
+              'node1/CHANGELOG.md',
+              '3.3.4',
+              'other notes'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'node1/package.json',
+          'node2/package.json',
+          'node3/package.json',
+          'node4/package.json',
+          'node5/package.json',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      await plugin.preconfigure(
+        {
+          node1: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node1',
+            packageName: '@here/pkgA',
+          }),
+          node2: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node2',
+            packageName: '@here/pkgB',
+          }),
+          node3: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node3',
+            packageName: '@here/pkgC',
+          }),
+          node4: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node4',
+            packageName: '@here/pkgD',
+          }),
+          node5: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node5',
+            packageName: '@here/pkgE',
+          }),
+        },
+        {},
+        {
+          node2: {
+            tag: new TagName(new Version(2, 2, 2), 'pkgB'),
+            sha: '',
+            notes: '',
+          },
+        }
+      );
+
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasVersionUpdate(updates, 'node1/package.json', '3.3.4');
+      assertHasVersionUpdate(updates, 'node2/package.json', '2.2.3');
+      assertHasVersionUpdate(updates, 'node3/package.json', '1.1.2');
+      snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+      const update = assertHasUpdate(updates, 'node1/CHANGELOG.md', Changelog);
+      snapshot(dateSafe((update.updater as Changelog).changelogEntry));
+      const changelogUpdaterNode2 = assertHasUpdate(
+        updates,
+        'node2/CHANGELOG.md',
+        Changelog
+      ).updater as Changelog;
+      snapshot(dateSafe(changelogUpdaterNode2.changelogEntry));
+
+      const changelogUpdaterNode3 = assertHasUpdate(
+        updates,
+        'node3/CHANGELOG.md',
+        Changelog
+      ).updater as Changelog;
+
+      snapshot(dateSafe(changelogUpdaterNode3.changelogEntry));
+    });
+    it('incorporates extra-files from strategy', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+            buildMockChangelogUpdate(
+              'node1/CHANGELOG.md',
+              '3.3.4',
+              'other notes'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'node1/package.json',
+          'node2/package.json',
+          'node3/package.json',
+          'node4/package.json',
+          'node5/package.json',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      await plugin.preconfigure(
+        {
+          node1: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node1',
+            packageName: '@here/pkgA',
+          }),
+          node2: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node2',
+            packageName: '@here/pkgB',
+            extraFiles: ['my-file'],
+          }),
+        },
+        {},
+        {
+          node2: {
+            tag: new TagName(new Version(2, 2, 2), 'pkgB'),
+            sha: '',
+            notes: '',
+          },
+        }
+      );
+
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+
+      assertHasUpdate(updates, 'node2/my-file', Generic);
     });
     it('should ignore peer dependencies', async () => {
       const candidates: CandidateReleasePullRequest[] = [
