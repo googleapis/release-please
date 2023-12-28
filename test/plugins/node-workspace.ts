@@ -36,7 +36,6 @@ import {ManifestPlugin} from '../../src/plugin';
 import {Changelog} from '../../src/updaters/changelog';
 import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest';
 import {Node} from '../../src/strategies/node';
-import {CompositeUpdater} from '../../src/updaters/composite';
 import {TagName} from '../../src/util/tag-name';
 import {Generic} from '../../src/updaters/generic';
 
@@ -459,13 +458,13 @@ describe('NodeWorkspace plugin', () => {
       assertHasVersionUpdate(updates, 'node3/package.json', '1.1.2');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
       const update = assertHasUpdate(updates, 'node1/CHANGELOG.md', Changelog);
-      snapshot((update.updater as Changelog).changelogEntry);
+      snapshot(dateSafe((update.updater as Changelog).changelogEntry));
       const changelogUpdaterNode2 = assertHasUpdate(
         updates,
         'node2/CHANGELOG.md',
         Changelog
       ).updater as Changelog;
-      snapshot(changelogUpdaterNode2.changelogEntry);
+      snapshot(dateSafe(changelogUpdaterNode2.changelogEntry));
 
       const changelogUpdaterNode3 = assertHasUpdate(
         updates,
@@ -473,7 +472,7 @@ describe('NodeWorkspace plugin', () => {
         Changelog
       ).updater as Changelog;
 
-      snapshot(changelogUpdaterNode3.changelogEntry);
+      snapshot(dateSafe(changelogUpdaterNode3.changelogEntry));
     });
     it('incorporates extra-files from strategy', async () => {
       const candidates: CandidateReleasePullRequest[] = [

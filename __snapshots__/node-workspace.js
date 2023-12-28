@@ -193,7 +193,7 @@ other notes
 `
 
 exports['NodeWorkspace plugin run includes headers for packages with configured strategies 3'] = `
-## [2.2.3](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (2023-12-21)
+## [2.2.3](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
 
 
 ### Dependencies
@@ -204,7 +204,7 @@ exports['NodeWorkspace plugin run includes headers for packages with configured 
 `
 
 exports['NodeWorkspace plugin run includes headers for packages with configured strategies 4'] = `
-## 1.1.2 (2023-12-21)
+## 1.1.2 (1983-10-10)
 
 
 ### Dependencies

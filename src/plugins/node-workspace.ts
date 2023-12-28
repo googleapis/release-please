@@ -35,7 +35,6 @@ import {Release} from '../release';
 import {CompositeUpdater} from '../updaters/composite';
 import {PackageJson, newVersionWithRange} from '../updaters/node/package-json';
 import {Logger} from '../util/logger';
-import path from 'path';
 
 interface ParsedPackageJson {
   name: string;
