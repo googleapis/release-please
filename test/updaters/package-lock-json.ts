@@ -72,6 +72,7 @@ describe('PackageLockJson', () => {
       );
       const versionsMap = new Map();
       versionsMap.set('release-please-foo', new Version(2, 0, 0));
+      versionsMap.set('release-please-bar', new Version(3, 0, 0));
       const packageJson = new PackageLockJson({
         version: Version.parse('14.0.0'),
         versionsMap,

@@ -31,6 +31,7 @@ export class Node extends BaseStrategy {
   ): Promise<Update[]> {
     const updates: Update[] = [];
     const version = options.newVersion;
+    const versionsMap = options.versionsMap;
     const packageName = (await this.getPackageName()) ?? '';
     const lockFiles = ['package-lock.json', 'npm-shrinkwrap.json'];
     lockFiles.forEach(lockFile => {
@@ -39,6 +40,7 @@ export class Node extends BaseStrategy {
         createIfMissing: false,
         updater: new PackageLockJson({
           version,
+          versionsMap,
         }),
       });
     });
