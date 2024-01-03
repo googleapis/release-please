@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.7.0](https://github.com/googleapis/release-please/compare/v16.6.0...v16.7.0) (2024-01-03)
+
+
+### Features
+
+* **node-workspace:** add root package-lock.json ([#2162](https://github.com/googleapis/release-please/issues/2162)) ([8728d4a](https://github.com/googleapis/release-please/commit/8728d4ab53b46198b03e4f71875efee2e542d9af))
+
 ## [16.6.0](https://github.com/googleapis/release-please/compare/v16.5.1...v16.6.0) (2023-12-28)
 
 
