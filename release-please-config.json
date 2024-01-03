@@ -3,6 +3,10 @@
   "release-type": "node",
   "include-component-in-tag": false,
   "packages": {
-    ".": {}
+    ".": {
+      "extra-files": [
+        "src/index.ts"
+      ]
+    }
   }
 }
