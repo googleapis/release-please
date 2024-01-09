@@ -114,6 +114,7 @@ export class PHPYoshi extends BaseStrategy {
           splitCommits[directory]
         );
         versionsMap.set(composer.name, newVersion);
+        versionsMap.set('version', newVersion);
         const partialReleaseNotes = await this.changelogNotes.buildNotes(
           splitCommits[directory],
           {
