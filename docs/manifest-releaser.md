@@ -352,10 +352,10 @@ it fails to find a package's version in the last released manifest content. It
 will only consider version info it is missing for a configured package (thus
 handling the new package bootstrap case).
 
-### Using with GitHub Actions and Lerna
+### Using with GitHub Actions and Workspaces-Publish
 
-If you're using Release Please on a Node.js monorepo project that is also
-using [Lerna](https://github.com/lerna/lerna) you can set up a GitHub Action
+If you're using Release Please on a Node.js monorepo project,
+you can set up a GitHub Action in combination with [workspaces-publish](https://github.com/tada5hi/workspaces-publish) 
 to automate the creation of release PRs. An example `release-please.yml`
 similar to the [example for single packages](https://github.com/googleapis/release-please#automating-publication-to-npm)
 is shown below.
@@ -396,16 +396,15 @@ jobs:
         if: ${{ steps.release.outputs.releases_created }}
         run: |
           npm install
-          npx lerna bootstrap
 
       # Release Please has already incremented versions and published tags, so we just
       # need to publish all unpublished versions to NPM here
-      # See: https://github.com/lerna/lerna/tree/main/commands/publish#bump-from-package
+      # See: https://github.com/tada5hi/workspaces-publish
       - name: Publish to NPM
         if: ${{ steps.release.outputs.releases_created }}
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        run: npx lerna publish from-package --no-push --no-private --yes
+        run: npx workspaces-publish
 ```
 
 ### Releasing Root Path of Library (".")
