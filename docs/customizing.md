@@ -169,6 +169,7 @@ You can annotate a line (inline) via:
 * `x-release-please-major`
 * `x-release-please-minor`
 * `x-release-please-patch`
+* `x-version-update:<artifact-name>:current` or `x-version-update:<artifact-name>:released`
 
 For these annotations, we will try to replace the value on that line only.
 
@@ -178,8 +179,9 @@ You can annotate a block by starting with a line containing:
 * `x-release-please-start-major`
 * `x-release-please-start-minor`
 * `x-release-please-start-patch`
+* `x-version-update-start:<artifact-name>:current` or `x-version-update-start:<artifact-name>:released`
 
-and close the block with a line containing `x-release-please-end`. Within
+and close the block with a line containing `x-release-please-end` (or `x-version-update-end` if you are using `x-version-update-start`) . Within
 the block, we will attempt to replace version values.
 
 ## Updating arbitrary JSON files
