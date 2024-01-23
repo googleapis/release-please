@@ -115,6 +115,7 @@ export interface ReleaserConfig {
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
+  includeAllReleases?: boolean;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -499,7 +500,9 @@ export class Manifest {
    *
    * @returns {ReleasePullRequest[]} The candidate pull requests to open or update.
    */
-  async buildPullRequests(): Promise<ReleasePullRequest[]> {
+  async buildPullRequests(
+    includeAllReleases = false
+  ): Promise<ReleasePullRequest[]> {
     this.logger.info('Building pull requests');
     const pathsByComponent = await this.getPathsByComponent();
     const strategiesByPath = await this.getStrategiesByPath();
@@ -591,59 +594,104 @@ export class Manifest {
       );
     }
 
-    // iterate through commits and collect commits until we have
-    // seen all release commits
-    this.logger.info('Collecting commits since all latest releases');
     const commits: Commit[] = [];
-    this.logger.debug(`commit search depth: ${this.commitSearchDepth}`);
-    const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
-      maxResults: this.commitSearchDepth,
-      backfillFiles: true,
-    });
-    const releaseShas = new Set(Object.values(releaseShasByPath));
-    this.logger.debug(releaseShas);
-    const expectedShas = releaseShas.size;
-
-    // sha => release pull request
     const releasePullRequestsBySha: Record<string, PullRequest> = {};
-    let releaseCommitsFound = 0;
-    for await (const commit of commitGenerator) {
-      if (releaseShas.has(commit.sha)) {
-        if (commit.pullRequest) {
-          releasePullRequestsBySha[commit.sha] = commit.pullRequest;
-        } else {
-          this.logger.warn(
-            `Release SHA ${commit.sha} did not have an associated pull request`
-          );
-        }
-        releaseCommitsFound += 1;
-      }
-      if (this.lastReleaseSha && this.lastReleaseSha === commit.sha) {
+    if (includeAllReleases) {
+      for (const path in releasesByPath) {
+        const release = releasesByPath[path];
         this.logger.info(
-          `Using configured lastReleaseSha ${this.lastReleaseSha} as last commit.`
+          `Collecting commits between ${release.tag.version.toString()} and ${
+            this.targetBranch
+          } across all branches`
         );
-        break;
-      } else if (needsBootstrap && commit.sha === this.bootstrapSha) {
-        this.logger.info(
-          `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
+        const commitGenerator = this.github.diffCommitIterator(
+          this.targetBranch,
+          release.tag.toString(),
+          {
+            maxResults: this.commitSearchDepth,
+            backfillFiles: true,
+          }
         );
-        break;
-      } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
-        // found enough commits
-        break;
-      }
-      commits.push({
-        sha: commit.sha,
-        message: commit.message,
-        files: commit.files,
-        pullRequest: commit.pullRequest,
-      });
-    }
+        for await (const commit of commitGenerator) {
+          if (commit.pullRequest) {
+            releasePullRequestsBySha[commit.sha] = commit.pullRequest;
+          }
 
-    if (releaseCommitsFound < expectedShas) {
-      this.logger.warn(
-        `Expected ${expectedShas} commits, only found ${releaseCommitsFound}`
+          if (this.lastReleaseSha && this.lastReleaseSha === commit.sha) {
+            this.logger.info(
+              `Using configured lastReleaseSha ${this.lastReleaseSha} as last commit.`
+            );
+            break;
+          } else if (needsBootstrap && commit.sha === this.bootstrapSha) {
+            this.logger.info(
+              `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
+            );
+            break;
+          }
+
+          commits.push({
+            sha: commit.sha,
+            message: commit.message,
+            files: commit.files,
+            pullRequest: commit.pullRequest,
+          });
+        }
+      }
+    } else {
+      // iterate through commits and collect commits until we have
+      // seen all release commits
+      this.logger.info('Collecting commits since all latest releases');
+      this.logger.debug(`commit search depth: ${this.commitSearchDepth}`);
+      const commitGenerator = this.github.mergeCommitIterator(
+        this.targetBranch,
+        {
+          maxResults: this.commitSearchDepth,
+          backfillFiles: true,
+        }
       );
+      const releaseShas = new Set(Object.values(releaseShasByPath));
+      this.logger.debug(releaseShas);
+      const expectedShas = releaseShas.size;
+
+      // sha => release pull request
+      let releaseCommitsFound = 0;
+      for await (const commit of commitGenerator) {
+        if (releaseShas.has(commit.sha)) {
+          if (commit.pullRequest) {
+            releasePullRequestsBySha[commit.sha] = commit.pullRequest;
+          } else {
+            this.logger.warn(
+              `Release SHA ${commit.sha} did not have an associated pull request`
+            );
+          }
+          releaseCommitsFound += 1;
+        }
+        if (this.lastReleaseSha && this.lastReleaseSha === commit.sha) {
+          this.logger.info(
+            `Using configured lastReleaseSha ${this.lastReleaseSha} as last commit.`
+          );
+          break;
+        } else if (needsBootstrap && commit.sha === this.bootstrapSha) {
+          this.logger.info(
+            `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
+          );
+          break;
+        } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
+          // found enough commits
+          break;
+        }
+        commits.push({
+          sha: commit.sha,
+          message: commit.message,
+          files: commit.files,
+          pullRequest: commit.pullRequest,
+        });
+      }
+      if (releaseCommitsFound < expectedShas) {
+        this.logger.warn(
+          `Expected ${expectedShas} commits, only found ${releaseCommitsFound}`
+        );
+      }
     }
 
     // split commits by path
@@ -872,8 +920,12 @@ export class Manifest {
    *
    * @returns {PullRequest[]} Pull request numbers of release pull requests
    */
-  async createPullRequests(): Promise<(PullRequest | undefined)[]> {
-    const candidatePullRequests = await this.buildPullRequests();
+  async createPullRequests(
+    includeAllReleases = false
+  ): Promise<(PullRequest | undefined)[]> {
+    const candidatePullRequests = await this.buildPullRequests(
+      includeAllReleases
+    );
     if (candidatePullRequests.length === 0) {
       return [];
     }
@@ -1541,63 +1593,69 @@ async function latestReleaseVersion(
   const commitShas = new Set<string>();
 
   const candidateReleaseVersions: Version[] = [];
-  // only look at the last 250 or so commits to find the latest tag - we
-  // don't want to scan the entire repository history if this repo has never
-  // been released
-  const generator = github.mergeCommitIterator(targetBranch, {
-    maxResults: 250,
-  });
-  for await (const commitWithPullRequest of generator) {
-    commitShas.add(commitWithPullRequest.sha);
-    const mergedPullRequest = commitWithPullRequest.pullRequest;
-    if (!mergedPullRequest) {
-      logger.trace(
-        `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
-      );
-      continue;
-    }
 
-    const branchName = BranchName.parse(
-      mergedPullRequest.headBranchName,
-      logger
-    );
-    if (!branchName) {
-      logger.trace(
-        `skipping commit: ${commitWithPullRequest.sha} unrecognized branch name: ${mergedPullRequest.headBranchName}`
-      );
-      continue;
-    }
+  // no need to iterate recent commits when we know we're looking at
+  // all previous releases
+  if (!config.includeAllReleases) {
+    // only look at the last 250 or so commits to find the latest tag - we
+    // don't want to scan the entire repository history if this repo has never
+    // been released
+    const generator = github.mergeCommitIterator(targetBranch, {
+      maxResults: 250,
+    });
 
-    // If branchPrefix is specified, ensure it is found in the branch name.
-    // If branchPrefix is not specified, component should also be undefined.
-    if (branchName.getComponent() !== branchPrefix) {
-      logger.trace(
-        `skipping commit: ${
-          commitWithPullRequest.sha
-        } branch component ${branchName.getComponent()} doesn't match expected prefix: ${branchPrefix}`
-      );
-      continue;
-    }
+    for await (const commitWithPullRequest of generator) {
+      commitShas.add(commitWithPullRequest.sha);
+      const mergedPullRequest = commitWithPullRequest.pullRequest;
+      if (!mergedPullRequest) {
+        logger.trace(
+          `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
+        );
+        continue;
+      }
 
-    const pullRequestTitle = PullRequestTitle.parse(
-      mergedPullRequest.title,
-      config.pullRequestTitlePattern,
-      logger
-    );
-    if (!pullRequestTitle) {
-      logger.trace(
-        `skipping commit: ${commitWithPullRequest.sha} couldn't parse pull request title: ${mergedPullRequest.title}`
+      const branchName = BranchName.parse(
+        mergedPullRequest.headBranchName,
+        logger
       );
-      continue;
-    }
+      if (!branchName) {
+        logger.trace(
+          `skipping commit: ${commitWithPullRequest.sha} unrecognized branch name: ${mergedPullRequest.headBranchName}`
+        );
+        continue;
+      }
 
-    const version = pullRequestTitle.getVersion();
-    if (version && releaseFilter(version)) {
-      logger.debug(
-        `Found latest release pull request: ${mergedPullRequest.number} version: ${version}`
+      // If branchPrefix is specified, ensure it is found in the branch name.
+      // If branchPrefix is not specified, component should also be undefined.
+      if (branchName.getComponent() !== branchPrefix) {
+        logger.trace(
+          `skipping commit: ${
+            commitWithPullRequest.sha
+          } branch component ${branchName.getComponent()} doesn't match expected prefix: ${branchPrefix}`
+        );
+        continue;
+      }
+
+      const pullRequestTitle = PullRequestTitle.parse(
+        mergedPullRequest.title,
+        config.pullRequestTitlePattern,
+        logger
       );
-      candidateReleaseVersions.push(version);
-      break;
+      if (!pullRequestTitle) {
+        logger.trace(
+          `skipping commit: ${commitWithPullRequest.sha} couldn't parse pull request title: ${mergedPullRequest.title}`
+        );
+        continue;
+      }
+
+      const version = pullRequestTitle.getVersion();
+      if (version && releaseFilter(version)) {
+        logger.debug(
+          `Found latest release pull request: ${mergedPullRequest.number} version: ${version}`
+        );
+        candidateReleaseVersions.push(version);
+        break;
+      }
     }
   }
 
@@ -1612,7 +1670,7 @@ async function latestReleaseVersion(
 
     if (tagMatchesConfig(tagName, branchPrefix, config.includeComponentInTag)) {
       logger.debug(`found release for ${prefix}`, tagName.version);
-      if (!commitShas.has(release.sha)) {
+      if (!commitShas.has(release.sha) && !config.includeAllReleases) {
         logger.debug(
           `SHA not found in recent commits to branch ${targetBranch}, skipping`
         );

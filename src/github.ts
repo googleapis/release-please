@@ -548,6 +548,211 @@ export class GitHub {
   }
 
   /**
+   * Iterate through the comparison of commits between the latest tag and target branch, with a max number of results scanned.
+   *
+   * @param {string} targetBranch target branch of commit
+   * @param {string} latestVersionTag tag of the last release to compare targetBranch against
+   * @param {CommitIteratorOptions} options Query options
+   * @param {number} options.maxResults Limit the number of results searched.
+   *   Defaults to unlimited.
+   * @param {boolean} options.backfillFiles If set, use the REST API for
+   *   fetching the list of touched files in this commit. Defaults to `false`.
+   * @yields {Commit}
+   * @throws {GitHubAPIError} on an API error
+   */
+  async *diffCommitIterator(
+    targetBranch: string,
+    lastVersionTag: string,
+    options: CommitIteratorOptions = {}
+  ) {
+    const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
+    let cursor: string | undefined = undefined;
+    let results = 0;
+    while (results < maxResults) {
+      const response: CommitHistory | null = await this.diffCommitsGraphQL(
+        targetBranch,
+        lastVersionTag,
+        cursor,
+        options
+      );
+      // no response usually means that the branch can't be found
+      if (!response) {
+        break;
+      }
+      for (let i = 0; i < response.data.length; i++) {
+        results += 1;
+        yield response.data[i];
+      }
+      if (!response.pageInfo.hasNextPage) {
+        break;
+      }
+      cursor = response.pageInfo.endCursor;
+    }
+  }
+
+  private async diffCommitsGraphQL(
+    targetBranch: string,
+    lastVersionTag: string,
+    cursor?: string,
+    options: CommitIteratorOptions = {}
+  ): Promise<CommitHistory | null> {
+    this.logger.debug(
+      `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
+    );
+    const query = `query diffCommitsBetween($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $lastVersionTag: String!, $targetBranch: String!, $cursor: String) {
+  repository(name: $repo, owner: $owner) { 
+    ref(qualifiedName: $lastVersionTag) {
+      compare(headRef: $targetBranch) {
+        commits(first: $num, after: $cursor) {
+          nodes {
+            associatedPullRequests(first: 10) {
+              nodes {
+                number
+                title
+                baseRefName
+                headRefName
+                labels(first: 10) {
+                  nodes {
+                    name
+                  }
+                }
+                body
+                mergeCommit {
+                  oid
+                }
+                files(first: $maxFilesChanged) {
+                  nodes {
+                    path
+                  }
+                  pageInfo {
+                    endCursor
+                    hasNextPage
+                  }
+                }
+              }
+            }
+            sha: oid
+            message
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  }
+}`;
+    const params = {
+      cursor,
+      owner: this.repository.owner,
+      repo: this.repository.repo,
+      num: 25,
+      lastVersionTag,
+      targetBranch,
+      maxFilesChanged: 100, // max is 100
+    };
+    const response = await this.graphqlRequest({
+      query,
+      ...params,
+    });
+
+    if (!response) {
+      this.logger.warn(
+        `Did not receive a response for query: ${query}`,
+        params
+      );
+      return null;
+    }
+
+    // if the branch does exist, return null
+    if (!response.repository?.ref) {
+      this.logger.warn(
+        `Could not find commits for branch ${targetBranch} - it likely does not exist.`
+      );
+      return null;
+    }
+    const compare = response.repository.ref.compare.commits;
+    const commits = (compare.nodes || []) as GraphQLCommit[];
+    // Count the number of pull requests associated with each merge commit. This is
+    // used in the next step to make sure we only find pull requests with a
+    // merge commit that contain 1 merged commit.
+    const diffCommitCount: Record<string, number> = {};
+    for (const commit of commits) {
+      for (const pr of commit.associatedPullRequests.nodes) {
+        if (pr.mergeCommit?.oid) {
+          diffCommitCount[pr.mergeCommit.oid] ??= 0;
+          diffCommitCount[pr.mergeCommit.oid]++;
+        }
+      }
+    }
+    const commitData: Commit[] = [];
+    for (const graphCommit of commits) {
+      const commit: Commit = {
+        sha: graphCommit.sha,
+        message: graphCommit.message,
+      };
+      const mergePullRequest = graphCommit.associatedPullRequests.nodes.find(
+        pr => {
+          return (
+            // Only match the pull request with a merge commit if there is a
+            // single merged commit in the PR. This means merge commits and squash
+            // merges will be matched, but rebase merged PRs will only be matched
+            // if they contain a single commit. This is so PRs that are rebased
+            // and merged will have ßSfiles backfilled from each commit instead of
+            // the whole PR.
+            pr.mergeCommit &&
+            pr.mergeCommit.oid === graphCommit.sha &&
+            diffCommitCount[pr.mergeCommit.oid] === 1
+          );
+        }
+      );
+      const pullRequest =
+        mergePullRequest || graphCommit.associatedPullRequests.nodes[0];
+      if (pullRequest) {
+        commit.pullRequest = {
+          sha: commit.sha,
+          number: pullRequest.number,
+          baseBranchName: pullRequest.baseRefName,
+          headBranchName: pullRequest.headRefName,
+          title: pullRequest.title,
+          body: pullRequest.body,
+          labels: pullRequest.labels.nodes.map(node => node.name),
+          files: (pullRequest.files?.nodes || []).map(node => node.path),
+        };
+      }
+      if (mergePullRequest) {
+        if (
+          mergePullRequest.files?.pageInfo?.hasNextPage &&
+          options.backfillFiles
+        ) {
+          this.logger.info(
+            `PR #${mergePullRequest.number} has many files, backfilling`
+          );
+          commit.files = await this.getCommitFiles(graphCommit.sha);
+        } else {
+          // We cannot directly fetch files on commits via graphql, only provide file
+          // information for commits with associated pull requests
+          commit.files = (mergePullRequest.files?.nodes || []).map(
+            node => node.path
+          );
+        }
+      } else if (options.backfillFiles) {
+        // In this case, there is no squashed merge commit. This could be a simple
+        // merge commit, a rebase merge commit, or a direct commit to the branch.
+        // Fallback to fetching the list of commits from the REST API. In the future
+        // we can perhaps lazy load these.
+        commit.files = await this.getCommitFiles(graphCommit.sha);
+      }
+      commitData.push(commit);
+    }
+    return {
+      pageInfo: compare.pageInfo,
+      data: commitData,
+    };
+  }
+
+  /**
    * Get the list of file paths modified in a given commit.
    *
    * @param {string} sha The commit SHA
