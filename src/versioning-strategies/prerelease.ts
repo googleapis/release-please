@@ -17,7 +17,7 @@ import {Version} from '../version';
 import {ConventionalCommit} from '..';
 import {VersionUpdater, CustomVersionUpdate} from '../versioning-strategy';
 
-const PRERELEASE_PATTERN = /^(?<type>[a-z]+)(?<number>\d+)$/;
+const PRERELEASE_PATTERN = /^(?<type>[a-z]+)(?<dot>\.)?(?<number>\d+)$/;
 
 class PrereleasePatchVersionUpdate implements VersionUpdater {
   /**
@@ -36,7 +36,8 @@ class PrereleasePatchVersionUpdate implements VersionUpdater {
           numberLength,
           '0'
         );
-        const nextPrerelease = `${match.groups.type}${paddedNextPrereleaseNumber}`;
+        const maybeDot = match.groups.dot ? '.' : '';
+        const nextPrerelease = `${match.groups.type}${maybeDot}${paddedNextPrereleaseNumber}`;
         return new Version(
           version.major,
           version.minor,
@@ -84,7 +85,8 @@ class PrereleaseMinorVersionUpdate implements VersionUpdater {
           numberLength,
           '0'
         );
-        const nextPrerelease = `${match.groups.type}${paddedNextPrereleaseNumber}`;
+        const maybeDot = match.groups.dot ? '.' : '';
+        const nextPrerelease = `${match.groups.type}${maybeDot}${paddedNextPrereleaseNumber}`;
         return new Version(
           version.major,
           nextMinorNumber,
@@ -134,7 +136,8 @@ class PrereleaseMajorVersionUpdate implements VersionUpdater {
           numberLength,
           '0'
         );
-        const nextPrerelease = `${match.groups.type}${paddedNextPrereleaseNumber}`;
+        const maybeDot = match.groups.dot ? '.' : '';
+        const nextPrerelease = `${match.groups.type}${maybeDot}${paddedNextPrereleaseNumber}`;
         return new Version(
           nextMajorNumber,
           nextMinorNumber,
