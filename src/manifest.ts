@@ -598,7 +598,7 @@ export class Manifest {
     const releasePullRequestsBySha: Record<string, PullRequest> = {};
     // only consider commits across all branches when there has been a previous release
     // otherwise, there would be nothing to compare against
-    if (considerAllBranches && releasesByPath.length > 0) {
+    if (considerAllBranches && Object.keys(releasesByPath).length > 0) {
       for (const path in releasesByPath) {
         const release = releasesByPath[path];
         this.logger.info(
