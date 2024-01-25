@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.7.1](https://github.com/googleapis/release-please/compare/v16.7.0...v16.7.1) (2024-01-25)
+
+
+### Bug Fixes
+
+* **php-yoshi:** set "version" if it's in composer.json ([#2192](https://github.com/googleapis/release-please/issues/2192)) ([5e6186f](https://github.com/googleapis/release-please/commit/5e6186ff8c57435b293c64b84e63fd9a05c30f1c))
+
 ## [16.7.0](https://github.com/googleapis/release-please/compare/v16.6.0...v16.7.0) (2024-01-03)
 
 
