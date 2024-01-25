@@ -74,7 +74,7 @@ interface VersioningArgs {
   latestTagSha?: string;
   latestTagName?: string;
 
-  includeAllReleases?: boolean;
+  considerAllBranches?: boolean;
 }
 
 interface ManifestConfigArgs {
@@ -347,9 +347,9 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'Override the detected latest tag name',
       type: 'string',
     })
-    .option('include-all-releases', {
+    .option('consider-all-branches', {
       describe:
-        'Include release shas from all branches when determining latest release',
+        'Consider commits from all branches when determining changes for the latest release',
       default: false,
       type: 'boolean',
     })
@@ -479,7 +479,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           versionFile: argv.versionFile,
           includeComponentInTag: argv.monorepoTags,
           includeVInTag: argv.includeVInTags,
-          includeAllReleases: argv.includeAllReleases,
+          considerAllBranches: argv.considerAllBranches,
         },
         extractManifestOptions(argv),
         argv.path
@@ -499,7 +499,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
 
     if (argv.dryRun) {
       const pullRequests = await manifest.buildPullRequests(
-        argv.includeAllReleases
+        argv.considerAllBranches
       );
       console.log(`Would open ${pullRequests.length} pull requests`);
       console.log('fork:', manifest.fork);
@@ -536,7 +536,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
       }
     } else {
       const pullRequestNumbers = await manifest.createPullRequests(
-        argv.includeAllReleases
+        argv.considerAllBranches
       );
       console.log(pullRequestNumbers);
     }

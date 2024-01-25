@@ -115,7 +115,7 @@ export interface ReleaserConfig {
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
-  includeAllReleases?: boolean;
+  considerAllBranches?: boolean;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -501,7 +501,7 @@ export class Manifest {
    * @returns {ReleasePullRequest[]} The candidate pull requests to open or update.
    */
   async buildPullRequests(
-    includeAllReleases = false
+    considerAllBranches = false
   ): Promise<ReleasePullRequest[]> {
     this.logger.info('Building pull requests');
     const pathsByComponent = await this.getPathsByComponent();
@@ -596,7 +596,9 @@ export class Manifest {
 
     const commits: Commit[] = [];
     const releasePullRequestsBySha: Record<string, PullRequest> = {};
-    if (includeAllReleases) {
+    // only consider commits across all branches when there has been a previous release
+    // otherwise, there would be nothing to compare against
+    if (considerAllBranches && releasesByPath.length > 0) {
       for (const path in releasesByPath) {
         const release = releasesByPath[path];
         this.logger.info(
@@ -921,10 +923,10 @@ export class Manifest {
    * @returns {PullRequest[]} Pull request numbers of release pull requests
    */
   async createPullRequests(
-    includeAllReleases = false
+    considerAllBranches = false
   ): Promise<(PullRequest | undefined)[]> {
     const candidatePullRequests = await this.buildPullRequests(
-      includeAllReleases
+      considerAllBranches
     );
     if (candidatePullRequests.length === 0) {
       return [];
@@ -1596,7 +1598,7 @@ async function latestReleaseVersion(
 
   // no need to iterate recent commits when we know we're looking at
   // all previous releases
-  if (!config.includeAllReleases) {
+  if (!config.considerAllBranches) {
     // only look at the last 250 or so commits to find the latest tag - we
     // don't want to scan the entire repository history if this repo has never
     // been released
@@ -1670,7 +1672,7 @@ async function latestReleaseVersion(
 
     if (tagMatchesConfig(tagName, branchPrefix, config.includeComponentInTag)) {
       logger.debug(`found release for ${prefix}`, tagName.version);
-      if (!commitShas.has(release.sha) && !config.includeAllReleases) {
+      if (!commitShas.has(release.sha) && !config.considerAllBranches) {
         logger.debug(
           `SHA not found in recent commits to branch ${targetBranch}, skipping`
         );
