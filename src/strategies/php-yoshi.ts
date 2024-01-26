@@ -172,14 +172,11 @@ export class PHPYoshi extends BaseStrategy {
           version,
         }),
       });
-      const directoryVersion: VersionsMap = new Map();
-      directoryVersion.set('version', version);
       updates.push({
         path: this.addPath(`${directory}/composer.json`),
         createIfMissing: false,
         updater: new RootComposerUpdatePackages({
           version,
-          versionsMap: directoryVersion,
         }),
       });
       if (componentInfo.composer.extra?.component?.entry) {
