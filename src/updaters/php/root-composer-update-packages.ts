@@ -32,7 +32,7 @@ export class RootComposerUpdatePackages extends DefaultUpdater {
     }
     const parsed = JSON.parse(content);
     if (parsed['version']) {
-      let fromVersion: string = parsed['version'];
+      const fromVersion: string = parsed['version'];
       const toVersion = this.version.toString() || '1.0.0';
       parsed['version'] = toVersion;
       logger.info(`updating "version" from ${fromVersion} to ${toVersion}`);
