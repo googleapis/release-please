@@ -43,9 +43,7 @@ describe('composer-update-package.json', () => {
       const composer = new RootComposerUpdatePackages({
         version: Version.parse('1.0.0'),
       });
-      const newContent = composer.updateContent(
-        '{"version": "0.8.0"}'
-      );
+      const newContent = composer.updateContent('{"version": "0.8.0"}');
       expect(newContent).to.eql('{"version":"1.0.0"}');
       snapshot(newContent);
     });
@@ -53,9 +51,7 @@ describe('composer-update-package.json', () => {
       const composer = new RootComposerUpdatePackages({
         version: Version.parse('1.0.0'),
       });
-      const newContent = composer.updateContent(
-        '{}'
-      );
+      const newContent = composer.updateContent('{}');
       expect(newContent).to.eql('{}');
       snapshot(newContent);
     });
