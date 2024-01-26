@@ -31,6 +31,11 @@ export class RootComposerUpdatePackages extends DefaultUpdater {
       return content;
     }
     const parsed = JSON.parse(content);
+    if (parsed['version']) {
+      let fromVersion: string = parsed['version'];
+      parsed['version'] = this.version.toString();
+      logger.info(`updating "version" from ${fromVersion} to ${this.version.toString()}`);
+    }
     if (this.versionsMap) {
       for (const [key, version] of this.versionsMap.entries()) {
         const toVersion = version.toString() || '1.0.0';
