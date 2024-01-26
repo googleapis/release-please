@@ -47,7 +47,6 @@ export class PHP extends BaseStrategy {
     const updates: Update[] = [];
     const version = options.newVersion;
     const versionsMap: VersionsMap = new Map();
-    versionsMap.set('version', version);
 
     updates.push({
       path: this.addPath(this.changelogPath),
