@@ -26,15 +26,16 @@ export class RootComposerUpdatePackages extends DefaultUpdater {
    * @returns {string} The updated content
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    if (!this.versionsMap || this.versionsMap.size === 0) {
+    if (!this.version && (!this.versionsMap || this.versionsMap.size === 0)) {
       logger.info('no updates necessary');
       return content;
     }
     const parsed = JSON.parse(content);
     if (parsed['version']) {
       let fromVersion: string = parsed['version'];
-      parsed['version'] = this.version.toString();
-      logger.info(`updating "version" from ${fromVersion} to ${this.version.toString()}`);
+      const toVersion = this.version.toString() || '1.0.0';
+      parsed['version'] = toVersion;
+      logger.info(`updating "version" from ${fromVersion} to ${toVersion}`);
     }
     if (this.versionsMap) {
       for (const [key, version] of this.versionsMap.entries()) {
