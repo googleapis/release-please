@@ -64,7 +64,9 @@ describe('PHPYoshi', () => {
       .resolves(buildGitHubFileRaw('0.1.2'));
     getFileStub
       .withArgs('Client1/composer.json', 'main')
-      .resolves(buildGitHubFileRaw('{"name": "google/client1", "version": "1.2.3"}'));
+      .resolves(
+        buildGitHubFileRaw('{"name": "google/client1", "version": "1.2.3"}')
+      );
     getFileStub
       .withArgs('Client2/composer.json', 'main')
       .resolves(buildGitHubFileRaw('{"name": "google/client2"}'));
@@ -164,7 +166,11 @@ describe('PHPYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
-      assertHasUpdate(updates, 'Client1/composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(
+        updates,
+        'Client1/composer.json',
+        RootComposerUpdatePackages
+      );
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
       assertHasUpdate(updates, 'Client2/composer.json');
       assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
@@ -197,7 +203,11 @@ describe('PHPYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
-      assertHasUpdate(updates, 'Client1/composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(
+        updates,
+        'Client1/composer.json',
+        RootComposerUpdatePackages
+      );
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
       assertHasUpdate(updates, 'Client2/composer.json');
       assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
@@ -215,16 +225,18 @@ describe('PHPYoshi', () => {
         latestRelease
       );
       const updates = release!.updates;
-      assertHasUpdate(updates, 'Client1/composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(
+        updates,
+        'Client1/composer.json',
+        RootComposerUpdatePackages
+      );
       const client1Composer = updates.find(update => {
         return update.path === 'Client1/composer.json';
       });
       const newContent = client1Composer!.updater.updateContent(
         '{"name":"google/client1","version":"1.2.3"}'
       );
-      expect(newContent).to.eql(
-        '{"name":"google/client1","version":"1.2.4"}'
-      );
+      expect(newContent).to.eql('{"name":"google/client1","version":"1.2.4"}');
     });
   });
   describe('buildRelease', () => {
