@@ -16,6 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
+import {expect} from 'chai';
 import {RootComposerUpdatePackages} from '../../src/updaters/php/root-composer-update-packages';
 import {Version} from '../../src/version';
 
@@ -36,6 +37,22 @@ describe('composer-update-package.json', () => {
         versionsMap: versions,
       });
       const newContent = composer.updateContent(oldContent);
+      snapshot(newContent);
+    });
+    it('updates version in composer if it exists', async () => {
+      const composer = new RootComposerUpdatePackages({
+        version: Version.parse('1.0.0'),
+      });
+      const newContent = composer.updateContent('{"version": "0.8.0"}');
+      expect(newContent).to.eql('{"version":"1.0.0"}');
+      snapshot(newContent);
+    });
+    it('does not update version in composer if it does not exist', async () => {
+      const composer = new RootComposerUpdatePackages({
+        version: Version.parse('1.0.0'),
+      });
+      const newContent = composer.updateContent('{}');
+      expect(newContent).to.eql('{}');
       snapshot(newContent);
     });
   });
