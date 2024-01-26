@@ -114,7 +114,6 @@ export class PHPYoshi extends BaseStrategy {
           splitCommits[directory]
         );
         versionsMap.set(composer.name, newVersion);
-        versionsMap.set('version', newVersion);
         const partialReleaseNotes = await this.changelogNotes.buildNotes(
           splitCommits[directory],
           {
@@ -170,6 +169,13 @@ export class PHPYoshi extends BaseStrategy {
         createIfMissing: false,
         cachedFileContents: componentInfo.versionContents,
         updater: new DefaultUpdater({
+          version,
+        }),
+      });
+      updates.push({
+        path: this.addPath(`${directory}/composer.json`),
+        createIfMissing: false,
+        updater: new RootComposerUpdatePackages({
           version,
         }),
       });

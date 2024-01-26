@@ -64,7 +64,7 @@ describe('PHPYoshi', () => {
       .resolves(buildGitHubFileRaw('0.1.2'));
     getFileStub
       .withArgs('Client1/composer.json', 'main')
-      .resolves(buildGitHubFileRaw('{"name": "google/client1"}'));
+      .resolves(buildGitHubFileRaw('{"name": "google/client1", "version": "1.2.3"}'));
     getFileStub
       .withArgs('Client2/composer.json', 'main')
       .resolves(buildGitHubFileRaw('{"name": "google/client2"}'));
@@ -164,8 +164,11 @@ describe('PHPYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client1/composer.json', RootComposerUpdatePackages);
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client2/composer.json');
       assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client3/composer.json');
       assertHasUpdate(updates, 'Client3/src/Entry.php', PHPClientVersion);
     });
     it('ignores non client top level directories', async () => {
@@ -194,8 +197,11 @@ describe('PHPYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client1/composer.json', RootComposerUpdatePackages);
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client2/composer.json');
       assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client3/composer.json');
       assertHasUpdate(updates, 'Client3/src/Entry.php', PHPClientVersion);
     });
   });
