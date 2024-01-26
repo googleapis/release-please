@@ -204,6 +204,28 @@ describe('PHPYoshi', () => {
       assertHasUpdate(updates, 'Client3/composer.json');
       assertHasUpdate(updates, 'Client3/src/Entry.php', PHPClientVersion);
     });
+    it('updates component composer version', async () => {
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'Client1/composer.json', RootComposerUpdatePackages);
+      const client1Composer = updates.find(update => {
+        return update.path === 'Client1/composer.json';
+      });
+      const newContent = client1Composer!.updater.updateContent(
+        '{"name":"google/client1","version":"1.2.3"}'
+      );
+      expect(newContent).to.eql(
+        '{"name":"google/client1","version":"1.2.4"}'
+      );
+    });
   });
   describe('buildRelease', () => {
     it('parses the release notes', async () => {
