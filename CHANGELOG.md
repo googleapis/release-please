@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.8.0](https://github.com/googleapis/release-please/compare/v16.7.1...v16.8.0) (2024-01-26)
+
+
+### Features
+
+* set 'version' of composer.json in RootComposerUpdatePackages ([#2201](https://github.com/googleapis/release-please/issues/2201)) ([00ae8d1](https://github.com/googleapis/release-please/commit/00ae8d1c83ef711156f8bac6bde08d1fb80276de))
+
+
+### Bug Fixes
+
+* **php-yoshi:** do not add version to root version map ([#2199](https://github.com/googleapis/release-please/issues/2199)) ([32a972a](https://github.com/googleapis/release-please/commit/32a972aa9ce02fae6ea0aa99c63fcbfb0e03191a))
+
 ## [16.7.1](https://github.com/googleapis/release-please/compare/v16.7.0...v16.7.1) (2024-01-25)
 
 
