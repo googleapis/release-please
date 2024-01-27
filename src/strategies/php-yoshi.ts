@@ -172,6 +172,13 @@ export class PHPYoshi extends BaseStrategy {
           version,
         }),
       });
+      updates.push({
+        path: this.addPath(`${directory}/composer.json`),
+        createIfMissing: false,
+        updater: new RootComposerUpdatePackages({
+          version,
+        }),
+      });
       if (componentInfo.composer.extra?.component?.entry) {
         updates.push({
           path: this.addPath(
