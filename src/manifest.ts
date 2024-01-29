@@ -1282,9 +1282,7 @@ export class Manifest {
             draft: config.draft ?? this.draft,
             prerelease:
               hasPrereleaseLabel ||
-              (config.prerelease &&
-                (!!release.tag.version.preRelease ||
-                  release.tag.version.major === 0)),
+              (config.prerelease && !!release.tag.version.preRelease),
           });
         }
       }

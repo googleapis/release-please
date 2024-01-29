@@ -6908,7 +6908,7 @@ version = "3.0.0"
       );
     });
 
-    it('should build prerelease releases from pre-major', async () => {
+    it('should not build prerelease releases from pre-major', async () => {
       mockPullRequests(
         github,
         [],
@@ -6922,6 +6922,57 @@ version = "3.0.0"
               'release-notes/single-manifest-pre-major.txt'
             ),
             labels: ['autorelease: pending'],
+            files: [''],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-cloud/release-brancher'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            prerelease: true,
+          },
+        },
+        {
+          '.': Version.parse('0.1.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].name).to.eql('release-brancher: v0.2.0');
+      expect(releases[0].draft).to.be.undefined;
+      expect(releases[0].prerelease).to.be.false;
+      expect(releases[0].tag.toString()).to.eql('release-brancher-v0.2.0');
+    });
+
+    it('should build prerelease releases from pre-major if the pre-release label is applied', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody(
+              'release-notes/single-manifest-pre-major.txt'
+            ),
+            labels: ['autorelease: pending', 'autorelease: pre-release'],
             files: [''],
             sha: 'abc123',
           },
