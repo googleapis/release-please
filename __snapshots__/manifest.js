@@ -93,9 +93,9 @@ exports['Manifest buildPullRequests should handle mixing componentless configs 1
 ---
 
 
-<details><summary>1.0.1</summary>
+<details><summary>pkg1: 1.0.1</summary>
 
-## [1.0.1](https://github.com/fake-owner/fake-repo/compare/v1.0.0...v1.0.1) (1983-10-10)
+## [1.0.1](https://github.com/fake-owner/fake-repo/compare/pkg1-v1.0.0...v1.0.1) (1983-10-10)
 
 
 ### Bug Fixes
