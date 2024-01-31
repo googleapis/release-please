@@ -177,7 +177,7 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       type: 'string',
     })
     .option('repo-url', {
-      describe: 'GitHub URL to generate release for',
+      describe: 'GitHub URL to generate release for (in the format owner/repoName)',
       demand: true,
     })
     .option('dry-run', {
