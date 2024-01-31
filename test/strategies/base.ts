@@ -63,6 +63,20 @@ describe('Strategy', () => {
       const pullRequest = await strategy.buildReleasePullRequest([]);
       expect(pullRequest).to.be.undefined;
     });
+    it('skips component in release tag if ignored', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: false,
+      });
+      const commits = buildMockConventionalCommit(
+        'chore: relea\n\nRelease-As: 2.3.4'
+      );
+      const release = await strategy.buildReleasePullRequest(commits);
+      expect(release?.body.releaseData).to.not.include('google-cloud-automl');
+      expect(release?.title.component).to.include('google-cloud-automl');
+    });
     it('allows overriding initial version', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
