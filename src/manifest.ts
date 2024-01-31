@@ -1687,6 +1687,7 @@ export class Manifest {
           filter => `${filter.type}:${filter.scope ? filter.scope : '*'}`
         )
       );
+      // return true if every commit matches the filter - false otherwise
       if (conventionalCommitFilter!.matchBehaviour === 'match-all') {
         for (const commit of pullRequest.conventionalCommits) {
           if (
@@ -1700,11 +1701,12 @@ export class Manifest {
             );
             return false;
           }
-          return true;
         }
+        return true;
       } else if (
         conventionalCommitFilter!.matchBehaviour === 'match-at-least-one'
       ) {
+        // return true if any commit matches the filter - false otherwise
         for (const commit of pullRequest.conventionalCommits) {
           if (
             filterSet.has(`${commit.type}:${commit.scope}`) ||
@@ -1718,8 +1720,8 @@ export class Manifest {
             );
             return true;
           }
-          return false;
         }
+        return false;
       }
       return false;
     };

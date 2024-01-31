@@ -5056,6 +5056,38 @@ version = "3.0.0"
             body: new PullRequestBody([]),
             updates: [],
             labels: [],
+            headRefName: 'release-please/branches/main/components/b',
+            draft: false,
+            version: Version.parse('1.1.0'), // minor bump, match filter
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'fix', // type match filter
+                scope: 'api', // scope match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+              {
+                type: 'feat(client)', // type does not match filter
+                scope: 'api', // scope match filter
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(api): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
             headRefName: 'release-please/branches/main/components/c',
             draft: false,
             version: Version.parse('1.1.0'), // minor bump, match filter
@@ -5125,11 +5157,11 @@ version = "3.0.0"
 
       const pullRequestNumbers = await manifest.createPullRequests();
 
-      expect(pullRequestNumbers).lengthOf(5);
+      expect(pullRequestNumbers).lengthOf(6);
       sinon.assert.calledOnce(getLabelsStub);
       sinon.assert.calledOnce(createLabelsStub);
 
-      expect(createPullRequestStub.callCount).to.equal(5);
+      expect(createPullRequestStub.callCount).to.equal(6);
       sinon.assert.calledWith(
         createPullRequestStub,
         sinon.match.has('headBranchName', sinon.match.string),
@@ -5143,7 +5175,7 @@ version = "3.0.0"
       expect(enablePullRequestAutoMergeStub.callCount).to.equal(1);
 
       // only called when not auto-merged
-      expect(addPullRequestReviewersStub.callCount).to.equal(4);
+      expect(addPullRequestReviewersStub.callCount).to.equal(5);
     });
 
     it('enables auto-merge when filters are provided (filters: only commit type, match-all)', async () => {
@@ -5458,6 +5490,38 @@ version = "3.0.0"
             body: new PullRequestBody([]),
             updates: [],
             labels: [],
+            headRefName: 'release-please/branches/main/components/a',
+            draft: false,
+            version: Version.parse('1.0.1'), // version bump match filter
+            previousVersion: Version.parse('1.0.0'),
+            conventionalCommits: [
+              {
+                type: 'ci', // first type does not match filter
+                scope: 'something',
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'ci(something): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+              {
+                type: 'fix', // type match filter
+                scope: 'something',
+                notes: [],
+                references: [],
+                sha: 'commit123',
+                message: 'fix(something): something',
+                bareMessage: 'something',
+                breaking: false,
+              },
+            ],
+          },
+          {
+            title: PullRequestTitle.ofTargetBranch('main', 'main'),
+            body: new PullRequestBody([]),
+            updates: [],
+            labels: [],
             headRefName: 'release-please/branches/main/components/b',
             draft: false,
             version: Version.parse('1.1.0'), // version bump match filter
@@ -5621,11 +5685,11 @@ version = "3.0.0"
 
       const pullRequestNumbers = await manifest.createPullRequests();
 
-      expect(pullRequestNumbers).lengthOf(6);
+      expect(pullRequestNumbers).lengthOf(7);
       sinon.assert.calledOnce(getLabelsStub);
       sinon.assert.calledOnce(createLabelsStub);
 
-      expect(createPullRequestStub.callCount).to.equal(6);
+      expect(createPullRequestStub.callCount).to.equal(7);
       sinon.assert.calledWith(
         createPullRequestStub,
         sinon.match.has('headBranchName', sinon.match.string),
@@ -5636,7 +5700,7 @@ version = "3.0.0"
         sinon.match.object
       );
 
-      expect(enablePullRequestAutoMergeStub.callCount).to.equal(3);
+      expect(enablePullRequestAutoMergeStub.callCount).to.equal(4);
       // only called when not auto-merged
       expect(addPullRequestReviewersStub.callCount).to.equal(3);
     });
