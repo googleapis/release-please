@@ -49,4 +49,36 @@ describe('PackageLockJson', () => {
       snapshot(newContent.replace(/\r\n/g, '\n'));
     });
   });
+
+  describe('updateContent v3', () => {
+    it('updates the package version', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-lock-v3.json'),
+        'utf8'
+      );
+      const packageJson = new PackageLockJson({
+        version: Version.parse('14.0.0'),
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
+    });
+  });
+
+  describe('updateContent v3 monorepo', () => {
+    it('updates the package version', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-lock-v3-workspace.json'),
+        'utf8'
+      );
+      const versionsMap = new Map();
+      versionsMap.set('release-please-foo', new Version(2, 0, 0));
+      versionsMap.set('release-please-bar', new Version(3, 0, 0));
+      const packageJson = new PackageLockJson({
+        version: Version.parse('14.0.0'),
+        versionsMap,
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
+    });
+  });
 });

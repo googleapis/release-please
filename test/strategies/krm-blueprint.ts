@@ -15,7 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {KRMBlueprint} from '../../src/strategies/krm-blueprint';
 import {
-  buildMockCommit,
+  buildMockConventionalCommit,
   stubFilesFromFixtures,
   assertHasUpdate,
   assertNoHasUpdate,
@@ -36,7 +36,7 @@ const fixturesPath = './test/fixtures/strategies/krm-blueprint';
 describe('KRMBlueprint', () => {
   let github: GitHub;
   const commits = [
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];

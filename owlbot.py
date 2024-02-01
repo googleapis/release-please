@@ -12,24 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import synthtool.languages.node as node
-
-node.owlbot_main(templates_excludes=[
-  'README.md',
-  'CONTRIBUTING.md',
-  '.eslintignore',
-  '.eslintrc.json',
-  '.mocharc.js',
-  '.prettierignore',
-  '.prettierrc',
-  '.nycrc',
-  '.kokoro/presubmit/node10/system-test.cfg',
-  '.kokoro/continuous/node10/system-test.cfg',
-  '.kokoro/system-test.sh',
-  '.mocharc.js',
-  '.github/generated-files-bot.yml',
-  '.github/release-please.yml',
-  '.github/sync-repo-settings.yaml',
-  '.github/workflows/ci.yaml',
-])
+# Intentionally left blank. This is a standalone node repo.

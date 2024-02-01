@@ -21,6 +21,8 @@ import {
 } from '../helpers';
 import {DefaultChangelogNotes} from '../../src/changelog-notes/default';
 import {parseConventionalCommits} from '../../src/commit';
+import {PullRequestBody} from '../../src/util/pull-request-body';
+import {Version} from '../../src/version';
 
 describe('DefaultChangelogNotes', () => {
   const commits = [
@@ -135,6 +137,16 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.is.string;
         safeSnapshot(notes);
       });
+      it('should handle a breaking change with reference', async () => {
+        const commits = [buildMockCommit('fix!: some bugfix (#1234)')];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
+          parseConventionalCommits(commits),
+          notesOptions
+        );
+        expect(notes).to.is.string;
+        safeSnapshot(notes);
+      });
       it('should parse multiple commit messages from a single commit', async () => {
         const commits = [buildCommitFromFixture('multiple-messages')];
         const changelogNotes = new DefaultChangelogNotes();
@@ -157,6 +169,16 @@ describe('DefaultChangelogNotes', () => {
       });
       it('should handle bug links', async () => {
         const commits = [buildCommitFromFixture('bug-link')];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
+          parseConventionalCommits(commits),
+          notesOptions
+        );
+        expect(notes).to.is.string;
+        safeSnapshot(notes);
+      });
+      it('should handle inline bug links', async () => {
+        const commits = [buildMockCommit('fix: some bugfix (#1234)')];
         const changelogNotes = new DefaultChangelogNotes();
         const notes = await changelogNotes.buildNotes(
           parseConventionalCommits(commits),
@@ -261,6 +283,35 @@ describe('DefaultChangelogNotes', () => {
       //   expect(notes).to.is.string;
       //   safeSnapshot(notes);
       // });
+    });
+  });
+  describe('pull request compatibility', () => {
+    it('should build parseable notes', async () => {
+      const notesOptions = {
+        owner: 'googleapis',
+        repository: 'java-asset',
+        version: '1.2.3',
+        previousTag: 'v1.2.2',
+        currentTag: 'v1.2.3',
+        targetBranch: 'main',
+      };
+      const changelogNotes = new DefaultChangelogNotes();
+      const notes = await changelogNotes.buildNotes(commits, notesOptions);
+      const pullRequestBody = new PullRequestBody([
+        {
+          version: Version.parse('1.2.3'),
+          notes,
+        },
+      ]);
+      const pullRequestBodyContent = pullRequestBody.toString();
+      const parsedPullRequestBody = PullRequestBody.parse(
+        pullRequestBodyContent
+      );
+      expect(parsedPullRequestBody).to.not.be.undefined;
+      expect(parsedPullRequestBody!.releaseData).lengthOf(1);
+      expect(parsedPullRequestBody!.releaseData[0].version?.toString()).to.eql(
+        '1.2.3'
+      );
     });
   });
 });

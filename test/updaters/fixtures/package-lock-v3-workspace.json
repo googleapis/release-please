@@ -1,0 +1,31 @@
+{
+  "name": "release-please",
+  "version": "11.1.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "release-please",
+      "version": "11.1.0"
+    },
+    "node_modules/release-please-foo": {
+      "resolved": "packages/foo",
+      "link": true
+    },
+    "node_modules/release-please-bar": {
+      "resolved": "packages/bar",
+      "link": true
+    },
+    "packages/foo": {
+      "name": "release-please-foo",
+      "version": "1.0.0",
+      "dependencies": {
+          "release-please-bar": "1.0.0"
+      }
+    },
+    "packages/bar": {
+      "name": "release-please-bar",
+      "version": "1.0.0"
+    }
+  }
+}

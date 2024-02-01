@@ -25,10 +25,13 @@ export class GitHubChangelogNotes implements ChangelogNotes {
     _commits: ConventionalCommit[],
     options: BuildNotesOptions
   ): Promise<string> {
-    return await this.github.generateReleaseNotes(
+    const body = await this.github.generateReleaseNotes(
       options.currentTag,
       options.targetBranch,
       options.previousTag
     );
+    const date = new Date().toLocaleDateString('en-CA');
+    const header = `## ${options.version} (${date})`;
+    return `${header}\n\n${body}`;
   }
 }

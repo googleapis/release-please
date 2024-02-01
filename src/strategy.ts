@@ -20,6 +20,14 @@ import {VersioningStrategy} from './versioning-strategy';
 import {ChangelogNotes} from './changelog-notes';
 import {Version} from './version';
 
+export interface BuildReleaseOptions {
+  groupPullRequestTitlePattern?: string;
+}
+
+export interface BumpReleaseOptions {
+  newVersion: Version;
+}
+
 /**
  * A strategy is responsible for determining which files are
  * necessary to update in a release pull request.
@@ -35,6 +43,10 @@ export interface Strategy {
    *   component if available.
    * @param {boolean} draft Optional. Whether or not to create the pull
    *   request as a draft. Defaults to `false`.
+   * @param {BumpReleaseOptions} bumpOnlyOptions Optional. Options, that when
+   * present, indicate a release should be created even if there are no
+   * conventional commits. This is used when a release is required for
+   * a dependency update with a workspace plugin.
    * @returns {ReleasePullRequest | undefined} The release pull request to
    *   open for this path/component. Returns undefined if we should not
    *   open a pull request.
@@ -43,15 +55,30 @@ export interface Strategy {
     commits: Commit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels?: string[]
+    labels?: string[],
+    bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined>;
 
   /**
    * Given a merged pull request, build the candidate release.
    * @param {PullRequest} mergedPullRequest The merged release pull request.
    * @returns {Release} The candidate release.
+   * @deprecated Use buildReleases() instead.
    */
-  buildRelease(mergedPullRequest: PullRequest): Promise<Release | undefined>;
+  buildRelease(
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
+  ): Promise<Release | undefined>;
+
+  /**
+   * Given a merged pull request, build the candidate releases.
+   * @param {PullRequest} mergedPullRequest The merged release pull request.
+   * @returns {Release} The candidate release.
+   */
+  buildReleases(
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
+  ): Promise<Release[]>;
 
   /**
    * Return the component for this strategy. This may be a computed field.

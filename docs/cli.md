@@ -51,6 +51,7 @@ Extra options:
 | `--versioning-strategy` | [`VersioningStrategyType`](/docs/customizing.md#versioning-strategies) | Override method of determining SemVer version bumps based on commits. Defaults to `default` |
 | `--bump-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the minor version for breaking changes for versions < 1.0.0 |
 | `--bump-patch-for-minor-pre-major` | `boolean` | Configuration option for the versioning strategy. If set, will bump the patch version for features for versions < 1.0.0 |
+| `--prerelease-type` | `string` | Configuration option for the prerelese versioning strategy. If prerelease strategy used and type set, will set the prerelese part of the version to the provided value in case prerelease part is not present. |
 | `--draft` | `boolean` | If set, create releases as drafts |
 | `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--draft-pull-request` | `boolean` | If set, create pull requests as drafts |
@@ -62,6 +63,7 @@ Extra options:
 | `--changelog-host` | `string` | Host for commit hyperlinks in the changelog. Defaults to `https://github.com` |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
+| `--pull-request-footer` | `string` | Override the pull request footer. Defaults to `This PR was generated with Release Please. See documentation.` |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
 
@@ -101,6 +103,7 @@ need to specify your release options:
 | `--versioning-strategy` | VersioningStrategy | Override method of determining SemVer version bumps based on commits. Defaults to `default` |
 | `--bump-minor-pre-major` | boolean | Configuration option for the versioning strategy. If set, will bump the minor version for breaking changes for versions < 1.0.0 |
 | `--bump-patch-for-minor-pre-major` | boolean | Configuration option for the versioning strategy. If set, will bump the patch version for features for versions < 1.0.0 |
+| `--prerelease-type` | `string` | Configuration option for the prerelese versioning strategy. If prerelease strategy used and type set, will set the prerelese part of the version to the provided value in case prerelease part is not present. |
 | `--draft-pull-request` | boolean | If set, create pull requests as drafts |
 | `--label` | string | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |`autorelease: tagged` |
 | `--changelog-path` | `string` | Override the path to the managed CHANGELOG. Defaults to `CHANGELOG.md` |
@@ -110,6 +113,7 @@ need to specify your release options:
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
+| `--pull-request-footer` | `string` | Override the pull request footer. Defaults to `This PR was generated with Release Please. See documentation.` |
 | `--signoff` | string | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
 | `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
@@ -150,6 +154,7 @@ need to specify your release options:
 | `--monorepo-tags` | boolean | Add prefix to tags and branches, allowing multiple libraries to be released from the same repository |
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
+| `--pull-request-footer` | `string` | Override the pull request footer. Defaults to `This PR was generated with Release Please. See documentation.` |
 | `--draft` | `boolean` | If set, create releases as drafts |
 | `--prerelease` | `boolean` | If set, create releases that are pre-major or pre-release version marked as pre-release on Github|
 | `--label` | `string` | Comma-separated list of labels to apply to the release pull requests. Defaults to `autorelease: pending` |

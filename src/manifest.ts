@@ -15,7 +15,7 @@
 import {ChangelogSection} from './changelog-notes';
 import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
-import {Commit} from './commit';
+import {Commit, parseConventionalCommits} from './commit';
 import {PullRequest} from './pull-request';
 import {logger as defaultLogger, Logger} from './util/logger';
 import {CommitSplit} from './util/commit-split';
@@ -33,7 +33,7 @@ import {
 } from './factory';
 import {Release} from './release';
 import {Strategy} from './strategy';
-import {Merge} from './plugins/merge';
+import {MergeOptions, Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
   DuplicateReleaseError,
@@ -46,6 +46,7 @@ import {
   FilePullRequestOverflowHandler,
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
+import {CommitExclude} from './util/commit-exclude';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -70,12 +71,19 @@ type ExtraPomFile = {
   path: string;
   glob?: boolean;
 };
+type ExtraTomlFile = {
+  type: 'toml';
+  path: string;
+  jsonpath: string;
+  glob?: boolean;
+};
 export type ExtraFile =
   | string
   | ExtraJsonFile
   | ExtraYamlFile
   | ExtraXmlFile
-  | ExtraPomFile;
+  | ExtraPomFile
+  | ExtraTomlFile;
 /**
  * These are configurations provided to each strategy per-path.
  */
@@ -86,6 +94,7 @@ export interface ReleaserConfig {
   versioning?: VersioningStrategyType;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  prereleaseType?: string;
 
   // Strategy options
   releaseAs?: string;
@@ -99,6 +108,7 @@ export interface ReleaserConfig {
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  pullRequestFooter?: string;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
@@ -118,6 +128,8 @@ export interface ReleaserConfig {
   extraFiles?: ExtraFile[];
   snapshotLabels?: string[];
   skipSnapshot?: boolean;
+  // Manifest only
+  excludePaths?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -138,6 +150,7 @@ interface ReleaserConfigJson {
   versioning?: VersioningStrategyType;
   'bump-minor-pre-major'?: boolean;
   'bump-patch-for-minor-pre-major'?: boolean;
+  'prerelease-type'?: string;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
@@ -153,6 +166,7 @@ interface ReleaserConfigJson {
   'changelog-host'?: string;
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
+  'pull-request-footer'?: string;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -160,6 +174,7 @@ interface ReleaserConfigJson {
   'snapshot-label'?: string; // Java-only
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
+  'exclude-paths'?: string[]; // manifest-only
 }
 
 export interface ManifestOptions {
@@ -208,6 +223,9 @@ export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
   considerAllArtifacts?: boolean;
 }
+export interface NodeWorkspacePluginConfig extends WorkspacePluginConfig {
+  updatePeerDependencies?: boolean;
+}
 export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
   groups: string[];
 }
@@ -217,7 +235,8 @@ export type PluginType =
   | GroupPriorityPluginConfig
   | LinkedVersionPluginConfig
   | SentenceCasePluginConfig
-  | WorkspacePluginConfig;
+  | WorkspacePluginConfig
+  | NodeWorkspacePluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -251,7 +270,7 @@ const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
-interface CreatedRelease extends GitHubRelease {
+export interface CreatedRelease extends GitHubRelease {
   id: number;
   path: string;
   version: string;
@@ -301,6 +320,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -416,6 +437,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -533,7 +556,6 @@ export class Manifest {
       }
     }
 
-    const needsBootstrap = releasesFound < expectedReleases;
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -553,6 +575,9 @@ export class Manifest {
         releasesFound++;
       }
     }
+
+    const needsBootstrap = releasesFound < expectedReleases;
+
     if (releasesFound < expectedReleases) {
       this.logger.warn(
         `Expected ${expectedReleases} releases, only found ${releasesFound}`
@@ -631,13 +656,15 @@ export class Manifest {
     const splitCommits = cs.split(commits);
 
     // limit paths to ones since the last release
-    const commitsPerPath: Record<string, Commit[]> = {};
+    let commitsPerPath: Record<string, Commit[]> = {};
     for (const path in this.repositoryConfig) {
       commitsPerPath[path] = commitsAfterSha(
         path === ROOT_PROJECT_PATH ? commits : splitCommits[path],
         releaseShasByPath[path]
       );
     }
+    const commitExclude = new CommitExclude(this.repositoryConfig);
+    commitsPerPath = commitExclude.excludeCommits(commitsPerPath);
 
     // backfill latest release tags from manifest
     for (const path in this.repositoryConfig) {
@@ -678,7 +705,10 @@ export class Manifest {
       );
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
-      let pathCommits = commitsPerPath[path];
+      let pathCommits = parseConventionalCommits(
+        commitsPerPath[path],
+        this.logger
+      );
       // The processCommits hook can be implemented by plugins to
       // post-process commits. This can be used to perform cleanup, e.g,, sentence
       // casing all commit messages:
@@ -728,12 +758,32 @@ export class Manifest {
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
+      const mergeOptions: MergeOptions = {
+        pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+      };
+      // Find the first repositoryConfig item that has a set value
+      // for the options that can be passed to the merge plugin
+      for (const path in this.repositoryConfig) {
+        const config = this.repositoryConfig[path];
+        if (
+          'pullRequestHeader' in config &&
+          !('pullRequestHeader' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestHeader = config.pullRequestHeader;
+        }
+        if (
+          'pullRequestFooter' in config &&
+          !('pullRequestFooter' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestFooter = config.pullRequestFooter;
+        }
+      }
       this.plugins.push(
         new Merge(
           this.github,
           this.targetBranch,
           this.repositoryConfig,
-          this.groupPullRequestTitlePattern
+          mergeOptions
         )
       );
     }
@@ -786,6 +836,34 @@ export class Manifest {
           sha: foundTag.sha,
           notes: '',
         };
+      } else {
+        if (
+          strategiesByPath[ROOT_PROJECT_PATH] &&
+          this.repositoryConfig[path].skipGithubRelease
+        ) {
+          this.logger.debug('could not find release, checking root package');
+          const rootComponent = await strategiesByPath[
+            ROOT_PROJECT_PATH
+          ].getComponent();
+          const rootTag = new TagName(
+            expectedVersion,
+            rootComponent,
+            this.repositoryConfig[ROOT_PROJECT_PATH].tagSeparator,
+            this.repositoryConfig[ROOT_PROJECT_PATH].includeVInTag
+          );
+          const foundTag = allTags[rootTag.toString()];
+          if (foundTag) {
+            this.logger.debug(
+              `found rootTag: ${foundTag.name} ${foundTag.sha}`
+            );
+            releasesByPath[path] = {
+              name: foundTag.name,
+              tag: rootTag,
+              sha: foundTag.sha,
+              notes: '',
+            };
+          }
+        }
       }
     }
     return releasesByPath;
@@ -1061,7 +1139,7 @@ export class Manifest {
 
     // Find merged release pull requests
     const generator = await this.findMergedReleasePullRequests();
-    const releases: CandidateRelease[] = [];
+    const candidateReleases: CandidateRelease[] = [];
     for await (const pullRequest of generator) {
       for (const path in this.repositoryConfig) {
         const config = this.repositoryConfig[path];
@@ -1069,9 +1147,11 @@ export class Manifest {
         this.logger.debug(`type: ${config.releaseType}`);
         this.logger.debug(`targetBranch: ${this.targetBranch}`);
         const strategy = strategiesByPath[path];
-        const release = await strategy.buildRelease(pullRequest);
-        if (release) {
-          releases.push({
+        const releases = await strategy.buildReleases(pullRequest, {
+          groupPullRequestTitlePattern: this.groupPullRequestTitlePattern,
+        });
+        for (const release of releases) {
+          candidateReleases.push({
             ...release,
             path,
             pullRequest,
@@ -1081,13 +1161,11 @@ export class Manifest {
               (!!release.tag.version.preRelease ||
                 release.tag.version.major === 0),
           });
-        } else {
-          this.logger.info(`No release necessary for path: ${path}`);
         }
       }
     }
 
-    return releases;
+    return candidateReleases;
   }
 
   /**
@@ -1116,7 +1194,7 @@ export class Manifest {
           releasesByPullRequest[pullNumber],
           pullRequestsByNumber[pullNumber]
         );
-        resultReleases.concat(releases);
+        resultReleases.push(...releases);
       }
       return resultReleases;
     } else {
@@ -1163,10 +1241,11 @@ export class Manifest {
       ) {
         // we've either tagged all releases or they were duplicates:
         // adjust tags on pullRequest
-        await Promise.all([
-          this.github.removeIssueLabels(this.labels, pullRequest.number),
-          this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-        ]);
+        await this.github.removeIssueLabels(this.labels, pullRequest.number);
+        await this.github.addIssueLabels(
+          this.releaseLabels,
+          pullRequest.number
+        );
       }
       if (githubReleases.length === 0) {
         // If all releases were duplicate, throw a duplicate error
@@ -1174,10 +1253,8 @@ export class Manifest {
       }
     } else {
       // adjust tags on pullRequest
-      await Promise.all([
-        this.github.removeIssueLabels(this.labels, pullRequest.number),
-        this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-      ]);
+      await this.github.removeIssueLabels(this.labels, pullRequest.number);
+      await this.github.addIssueLabels(this.releaseLabels, pullRequest.number);
     }
 
     return githubReleases;
@@ -1257,6 +1334,7 @@ function extractReleaserConfig(
     releaseType: config['release-type'],
     bumpMinorPreMajor: config['bump-minor-pre-major'],
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
+    prereleaseType: config['prerelease-type'],
     versioning: config['versioning'],
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
@@ -1275,6 +1353,7 @@ function extractReleaserConfig(
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     pullRequestHeader: config['pull-request-header'],
+    pullRequestFooter: config['pull-request-footer'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1282,6 +1361,7 @@ function extractReleaserConfig(
     extraLabels: config['extra-label']?.split(','),
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
+    excludePaths: config['exclude-paths'],
   };
 }
 
@@ -1481,6 +1561,9 @@ async function latestReleaseVersion(
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
     if (!mergedPullRequest) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
+      );
       continue;
     }
 
@@ -1489,12 +1572,20 @@ async function latestReleaseVersion(
       logger
     );
     if (!branchName) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} unrecognized branch name: ${mergedPullRequest.headBranchName}`
+      );
       continue;
     }
 
     // If branchPrefix is specified, ensure it is found in the branch name.
     // If branchPrefix is not specified, component should also be undefined.
     if (branchName.getComponent() !== branchPrefix) {
+      logger.trace(
+        `skipping commit: ${
+          commitWithPullRequest.sha
+        } branch component ${branchName.getComponent()} doesn't match expected prefix: ${branchPrefix}`
+      );
       continue;
     }
 
@@ -1504,6 +1595,9 @@ async function latestReleaseVersion(
       logger
     );
     if (!pullRequestTitle) {
+      logger.trace(
+        `skipping commit: ${commitWithPullRequest.sha} couldn't parse pull request title: ${mergedPullRequest.title}`
+      );
       continue;
     }
 
@@ -1587,6 +1681,7 @@ function mergeReleaserConfig(
     bumpPatchForMinorPreMajor:
       pathConfig.bumpPatchForMinorPreMajor ??
       defaultConfig.bumpPatchForMinorPreMajor,
+    prereleaseType: pathConfig.prereleaseType ?? defaultConfig.prereleaseType,
     versioning: pathConfig.versioning ?? defaultConfig.versioning,
     changelogSections:
       pathConfig.changelogSections ?? defaultConfig.changelogSections,
@@ -1611,11 +1706,14 @@ function mergeReleaserConfig(
       defaultConfig.pullRequestTitlePattern,
     pullRequestHeader:
       pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
+    pullRequestFooter:
+      pathConfig.pullRequestFooter ?? defaultConfig.pullRequestFooter,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
+    excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
   };
 }
 

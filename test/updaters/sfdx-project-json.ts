@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,26 +16,33 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
-import {PHPManifest} from '../../src/updaters/php/php-manifest';
 import {Version} from '../../src/version';
+import {
+  SfdxProjectJson,
+  SfdxProjectFile,
+} from '../../src/updaters/sfdx/sfdx-project-json';
+import {expect} from 'chai';
 
-const fixturesPath = './test/updaters/fixtures/php';
+const fixturesPath = './test/updaters/fixtures/';
 
-describe('PHPManifest', () => {
+describe('SfdxProjectJson', () => {
   describe('updateContent', () => {
-    it('update version in docs manifest', async () => {
-      const versions = new Map<string, Version>();
-      versions.set('google/access-context-manager', Version.parse('0.2.0'));
+    it('updates version in sfdx-project.json', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './manifest.json'),
+        resolve(fixturesPath, 'sfdx-project.json'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const composer = new PHPManifest({
-        version: Version.parse('0.8.0'),
+      const versions = new Map<string, Version>();
+      const pom = new SfdxProjectJson({
         versionsMap: versions,
+        version: Version.parse('v2.3.4'),
       });
-      const newContent = composer.updateContent(oldContent);
+      const newContent = pom.updateContent(oldContent);
       snapshot(newContent);
+      const parsedNewContent = JSON.parse(newContent) as SfdxProjectFile;
+      expect(parsedNewContent.packageDirectories[0].versionNumber).to.equal(
+        '2.3.4.NEXT'
+      );
     });
   });
 });

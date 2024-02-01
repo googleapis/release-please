@@ -4,6 +4,423 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.8.0](https://github.com/googleapis/release-please/compare/v16.7.1...v16.8.0) (2024-01-26)
+
+
+### Features
+
+* set 'version' of composer.json in RootComposerUpdatePackages ([#2201](https://github.com/googleapis/release-please/issues/2201)) ([00ae8d1](https://github.com/googleapis/release-please/commit/00ae8d1c83ef711156f8bac6bde08d1fb80276de))
+
+
+### Bug Fixes
+
+* **php-yoshi:** do not add version to root version map ([#2199](https://github.com/googleapis/release-please/issues/2199)) ([32a972a](https://github.com/googleapis/release-please/commit/32a972aa9ce02fae6ea0aa99c63fcbfb0e03191a))
+
+## [16.7.1](https://github.com/googleapis/release-please/compare/v16.7.0...v16.7.1) (2024-01-25)
+
+
+### Bug Fixes
+
+* **php-yoshi:** set "version" if it's in composer.json ([#2192](https://github.com/googleapis/release-please/issues/2192)) ([5e6186f](https://github.com/googleapis/release-please/commit/5e6186ff8c57435b293c64b84e63fd9a05c30f1c))
+
+## [16.7.0](https://github.com/googleapis/release-please/compare/v16.6.0...v16.7.0) (2024-01-03)
+
+
+### Features
+
+* **node-workspace:** add root package-lock.json ([#2162](https://github.com/googleapis/release-please/issues/2162)) ([8728d4a](https://github.com/googleapis/release-please/commit/8728d4ab53b46198b03e4f71875efee2e542d9af))
+
+## [16.6.0](https://github.com/googleapis/release-please/compare/v16.5.1...v16.6.0) (2023-12-28)
+
+
+### Features
+
+* **node-workspace:** use configured strategies to build new dependent version bumps ([#2112](https://github.com/googleapis/release-please/issues/2112)) ([de4088b](https://github.com/googleapis/release-please/commit/de4088b15374f76596d252136152263c37cfefef))
+
+## [16.5.1](https://github.com/googleapis/release-please/compare/v16.5.0...v16.5.1) (2023-12-18)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @google-automations/git-file-utils to v2 ([#2081](https://github.com/googleapis/release-please/issues/2081)) ([9b745d5](https://github.com/googleapis/release-please/commit/9b745d572ebc2d125538df3b13ddd6a3983841bb))
+* **deps:** update dependency xpath to ^0.0.34 ([#2169](https://github.com/googleapis/release-please/issues/2169)) ([3f7045e](https://github.com/googleapis/release-please/commit/3f7045ebbd800870659ccd0ae330b5b8f8daf47d))
+* **node:** correctly detect &gt;=, &lt;= over >, < when replacing version ranges ([#2171](https://github.com/googleapis/release-please/issues/2171)) ([47fe582](https://github.com/googleapis/release-please/commit/47fe582a373eb62471e2c7f39b58a5d982c8e3a6))
+
+## [16.5.0](https://github.com/googleapis/release-please/compare/v16.4.1...v16.5.0) (2023-12-11)
+
+
+### Features
+
+* export current release-please version as VERSION constant ([#2159](https://github.com/googleapis/release-please/issues/2159)) ([264af84](https://github.com/googleapis/release-please/commit/264af8412faa20b818516efba0bb847720fc0d2a))
+
+## [16.4.1](https://github.com/googleapis/release-please/compare/v16.4.0...v16.4.1) (2023-12-11)
+
+
+### Bug Fixes
+
+* **node-workspace:** Add update-peer-dependencies option that also updates peer dependencies ([#2094](https://github.com/googleapis/release-please/issues/2094)) ([c84414a](https://github.com/googleapis/release-please/commit/c84414a3192cca65da4469c7559460624446c898))
+* pass pull request header and footer options to merge plugin ([#2143](https://github.com/googleapis/release-please/issues/2143)) ([e848100](https://github.com/googleapis/release-please/commit/e8481007981cf9fa3f476f65db4d3de807259e89))
+
+## [16.4.0](https://github.com/googleapis/release-please/compare/v16.3.1...v16.4.0) (2023-12-05)
+
+
+### Features
+
+* **types:** Export types exposed by Manifest for use downstream ([#2147](https://github.com/googleapis/release-please/issues/2147)) ([b259d70](https://github.com/googleapis/release-please/commit/b259d70270bd1c4358267aeff07de6aaaeddd9b9))
+* Update VERSION file in PHP repo if it exists ([#2153](https://github.com/googleapis/release-please/issues/2153)) ([a7d3b73](https://github.com/googleapis/release-please/commit/a7d3b73e605d0425b4a54a11ff2723a3075b4d3c))
+
+## [16.3.1](https://github.com/googleapis/release-please/compare/v16.3.0...v16.3.1) (2023-11-27)
+
+
+### Bug Fixes
+
+* Backfill files by commit for rebased PRs ([#2141](https://github.com/googleapis/release-please/issues/2141)) ([ee6d82f](https://github.com/googleapis/release-please/commit/ee6d82ffd27dd121fd0d73437456680d9d54dc98))
+* Pass prerelease to buildVersioningStrategy ([#2133](https://github.com/googleapis/release-please/issues/2133)) ([c9450df](https://github.com/googleapis/release-please/commit/c9450dffd7af3646a214d01a9b368ebab720be53))
+
+## [16.3.0](https://github.com/googleapis/release-please/compare/v16.2.0...v16.3.0) (2023-11-10)
+
+
+### Features
+
+* **deps:** Refactor node-workspace plugin to drop lerna-lite/core ([#2117](https://github.com/googleapis/release-please/issues/2117)) ([65fa72e](https://github.com/googleapis/release-please/commit/65fa72eb2f7931768d6aae5a45f04f037fe4f06a))
+
+## [16.2.0](https://github.com/googleapis/release-please/compare/v16.1.0...v16.2.0) (2023-11-08)
+
+
+### Features
+
+* Allow customizing PR body footer ([#2115](https://github.com/googleapis/release-please/issues/2115)) ([43014a1](https://github.com/googleapis/release-please/commit/43014a1f15d3640d67cb90cbf3047919facfa53e))
+
+
+### Bug Fixes
+
+* Correctly parse standalone prerelease PR body ([#2123](https://github.com/googleapis/release-please/issues/2123)) ([5ee9e3e](https://github.com/googleapis/release-please/commit/5ee9e3e9ae292dc4128717c3d5924da93b3bb670))
+* Set PR labels serially ([#2122](https://github.com/googleapis/release-please/issues/2122)) ([bf58911](https://github.com/googleapis/release-please/commit/bf58911d989f08abe3105309b6e6f918186e1125))
+
+## [16.1.0](https://github.com/googleapis/release-please/compare/v16.0.0...v16.1.0) (2023-10-26)
+
+
+### Features
+
+* Implement custom prerelease type ([#2083](https://github.com/googleapis/release-please/issues/2083)) ([97b0542](https://github.com/googleapis/release-please/commit/97b05421168316a23592897c8853893adf08d24c))
+* Update package-lock.json workspace entry versions ([#2088](https://github.com/googleapis/release-please/issues/2088)) ([dbb11bc](https://github.com/googleapis/release-please/commit/dbb11bc62d6c8135b5b168354e8f235398ffab03)), closes [#1993](https://github.com/googleapis/release-please/issues/1993)
+
+
+### Bug Fixes
+
+* Releasable units should use version from pull-request body ([#2102](https://github.com/googleapis/release-please/issues/2102)) ([db035b7](https://github.com/googleapis/release-please/commit/db035b798f33c5ce0ddf2a43dcf2458c170c8fe3)), closes [#2101](https://github.com/googleapis/release-please/issues/2101)
+
+## [16.0.0](https://github.com/googleapis/release-please/compare/v15.13.0...v16.0.0) (2023-09-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* require node 18+ ([#2069](https://github.com/googleapis/release-please/issues/2069))
+
+### Features
+
+* Fallback to root package version if package ignores github release ([#1935](https://github.com/googleapis/release-please/issues/1935)) ([0e11d4c](https://github.com/googleapis/release-please/commit/0e11d4c019f1e33cd713a237e037f31397d5371a))
+* Require node 18+ ([#2069](https://github.com/googleapis/release-please/issues/2069)) ([5a50247](https://github.com/googleapis/release-please/commit/5a5024727b93d0ba557b6f7ee5c6c1bab8d723d6))
+* Support pnpm workspaces ([#2058](https://github.com/googleapis/release-please/issues/2058)) ([13cba14](https://github.com/googleapis/release-please/commit/13cba14225cb836c74199d726a996f83122fab07))
+* Use default updaters based on file extension ([#2072](https://github.com/googleapis/release-please/issues/2072)) ([1ee162b](https://github.com/googleapis/release-please/commit/1ee162b3344e986afd09275f6762624e4a49faae))
+
+
+### Bug Fixes
+
+* **deps:** Bump semver dependency version ([#2068](https://github.com/googleapis/release-please/issues/2068)) ([cd0bd85](https://github.com/googleapis/release-please/commit/cd0bd853ac23087e5d5348c22f032fe0e533451d))
+* **deps:** Replace lerna dependency with lerna-lite ([13cba14](https://github.com/googleapis/release-please/commit/13cba14225cb836c74199d726a996f83122fab07))
+* **deps:** Upgrade http-proxy-agent to v7 ([#2071](https://github.com/googleapis/release-please/issues/2071)) ([cc50a34](https://github.com/googleapis/release-please/commit/cc50a34dee16115c07e574b05552678108f9e0c3))
+* **deps:** Upgrade https-proxy-agent to v7 ([cc50a34](https://github.com/googleapis/release-please/commit/cc50a34dee16115c07e574b05552678108f9e0c3))
+
+## [15.13.0](https://github.com/googleapis/release-please/compare/v15.12.0...v15.13.0) (2023-08-18)
+
+
+### Features
+
+* Adds metadata versioning for terraform modules ([#2041](https://github.com/googleapis/release-please/issues/2041)) ([49b33c7](https://github.com/googleapis/release-please/commit/49b33c73b2571699ad8362f8b6b934154a6ce375))
+
+## [15.12.0](https://github.com/googleapis/release-please/compare/v15.11.2...v15.12.0) (2023-07-11)
+
+
+### Features
+
+* Add PrereleaseVersioningStrategy ([#1981](https://github.com/googleapis/release-please/issues/1981)) ([b070888](https://github.com/googleapis/release-please/commit/b070888f25eff6e28c25014bcf67d6f9d47b9717))
+
+## [15.11.2](https://github.com/googleapis/release-please/compare/v15.11.1...v15.11.2) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency conventional-changelog-conventionalcommits to v6 ([#1974](https://github.com/googleapis/release-please/issues/1974)) ([1998564](https://github.com/googleapis/release-please/commit/1998564555c472f4eb850cdcec99a009dd76f8ca))
+* **deps:** Update dependency conventional-changelog-writer to v6 ([#1975](https://github.com/googleapis/release-please/issues/1975)) ([a6aa293](https://github.com/googleapis/release-please/commit/a6aa293932200dd004024b8c8f6b458c2fa8f570))
+
+## [15.11.1](https://github.com/googleapis/release-please/compare/v15.11.0...v15.11.1) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency conventional-commits-filter to v3 ([#1976](https://github.com/googleapis/release-please/issues/1976)) ([20b8f34](https://github.com/googleapis/release-please/commit/20b8f345624f2a7e639df1a50ebda2719f9c2423))
+* **python:** Warn on dynamic pyproject.toml versioning ([#1983](https://github.com/googleapis/release-please/issues/1983)) ([5ee5baa](https://github.com/googleapis/release-please/commit/5ee5baa0932d3435034b96183fed308eaf47ef73))
+
+## [15.11.0](https://github.com/googleapis/release-please/compare/v15.10.5...v15.11.0) (2023-05-31)
+
+
+### Features
+
+* **node:** Support package-lock.json version 3 ([#1940](https://github.com/googleapis/release-please/issues/1940)) ([77d80fb](https://github.com/googleapis/release-please/commit/77d80fb0c324cfadb91fd4a7ec656b2eb8eaeccb)), closes [#1939](https://github.com/googleapis/release-please/issues/1939)
+
+
+### Bug Fixes
+
+* **helm:** Maintain any existing comments in Chart.yaml ([#1968](https://github.com/googleapis/release-please/issues/1968)) ([77de40e](https://github.com/googleapis/release-please/commit/77de40e6f8ceaac87d90948c0d7fa618dcd01163))
+
+## [15.10.5](https://github.com/googleapis/release-please/compare/v15.10.4...v15.10.5) (2023-05-26)
+
+
+### Bug Fixes
+
+* Allow configuring multiple, separate linked-versions plugins ([#1961](https://github.com/googleapis/release-please/issues/1961)) ([a3fac52](https://github.com/googleapis/release-please/commit/a3fac52b909bf62cfd934c48d139cc3cae9d37f1))
+* **php-yoshi:** Remove manifest.json, Version.php, and ServiceBuilder.php ([#1949](https://github.com/googleapis/release-please/issues/1949)) ([09fb84b](https://github.com/googleapis/release-please/commit/09fb84b9244649622b556a78a8b03f664213bcb7))
+
+## [15.10.4](https://github.com/googleapis/release-please/compare/v15.10.3...v15.10.4) (2023-04-19)
+
+
+### Bug Fixes
+
+* Add more trace logging when searching for latest release version ([#1922](https://github.com/googleapis/release-please/issues/1922)) ([c33cc81](https://github.com/googleapis/release-please/commit/c33cc8112fc366242182bcb3a28015c488f6140b))
+
+## [15.10.3](https://github.com/googleapis/release-please/compare/v15.10.2...v15.10.3) (2023-04-11)
+
+
+### Bug Fixes
+
+* NeedsBootstrap computation also considers tags ([#1915](https://github.com/googleapis/release-please/issues/1915)) ([2773b6e](https://github.com/googleapis/release-please/commit/2773b6e8ae6bf7bd98adb89ed0eb702a1705b27b))
+
+## [15.10.2](https://github.com/googleapis/release-please/compare/v15.10.1...v15.10.2) (2023-04-11)
+
+
+### Bug Fixes
+
+* **github-changelog-notes:** Prepend header to create parseable release notes ([#1912](https://github.com/googleapis/release-please/issues/1912)) ([3f53d40](https://github.com/googleapis/release-please/commit/3f53d40c8c3f927fffdf8973128e12450703a6e4))
+
+## [15.10.1](https://github.com/googleapis/release-please/compare/v15.10.0...v15.10.1) (2023-04-10)
+
+
+### Bug Fixes
+
+* **xml:** Preserve trailing newline if the xml file had one ([#1911](https://github.com/googleapis/release-please/issues/1911)) ([b899da6](https://github.com/googleapis/release-please/commit/b899da6637a5152fc13be5b89688c5f70c85563d))
+
+## [15.10.0](https://github.com/googleapis/release-please/compare/v15.9.3...v15.10.0) (2023-04-10)
+
+
+### Features
+
+* Allow excluding file paths to filter out commits ([#1875](https://github.com/googleapis/release-please/issues/1875)) ([a9bed82](https://github.com/googleapis/release-please/commit/a9bed8232ccaa192fb004953e34c49279d3c779f))
+
+## [15.9.3](https://github.com/googleapis/release-please/compare/v15.9.2...v15.9.3) (2023-04-10)
+
+
+### Bug Fixes
+
+* **python:** Handle large version numbers in setup.cfg ([#1906](https://github.com/googleapis/release-please/issues/1906)) ([9a7b11f](https://github.com/googleapis/release-please/commit/9a7b11f4d0797222fd65e871d4ba9f488a72d1d9))
+
+## [15.9.2](https://github.com/googleapis/release-please/compare/v15.9.1...v15.9.2) (2023-03-28)
+
+
+### Bug Fixes
+
+* **cargo-workspace:** Find workspace modules on the target branch ([#1889](https://github.com/googleapis/release-please/issues/1889)) ([9647941](https://github.com/googleapis/release-please/commit/96479413fd5fe9d1c546d829e70bfaf99b36661a))
+
+## [15.9.1](https://github.com/googleapis/release-please/compare/v15.9.0...v15.9.1) (2023-03-14)
+
+
+### Bug Fixes
+
+* **cargo-workspace:** Validate Cargo.toml version field ([#1877](https://github.com/googleapis/release-please/issues/1877)) ([0303e2e](https://github.com/googleapis/release-please/commit/0303e2eb9fb082bd9657baa117961d8567eba7e6))
+
+## [15.9.0](https://github.com/googleapis/release-please/compare/v15.8.2...v15.9.0) (2023-03-14)
+
+
+### Features
+
+* Support for "@" sign in component name ([#1873](https://github.com/googleapis/release-please/issues/1873)) ([d3b2f2f](https://github.com/googleapis/release-please/commit/d3b2f2f72c5aada66d3297d38b26d4aa3661177c))
+
+
+### Bug Fixes
+
+* Allow linked-versions to skip merging pull requests ([#1779](https://github.com/googleapis/release-please/issues/1779)) ([dc48b55](https://github.com/googleapis/release-please/commit/dc48b55b459754493513da30f68dc2588d3e30d4))
+* **refactor:** Rename Salesforce to sfdx ([#1829](https://github.com/googleapis/release-please/issues/1829)) ([122820d](https://github.com/googleapis/release-please/commit/122820d5a38a401e1bbdc4878b02f94cf405ad0e))
+
+## [15.8.2](https://github.com/googleapis/release-please/compare/v15.8.1...v15.8.2) (2023-03-13)
+
+
+### Bug Fixes
+
+* **cargo-workspaces:** Expand globs in crate paths ([#1852](https://github.com/googleapis/release-please/issues/1852)) ([0179f25](https://github.com/googleapis/release-please/commit/0179f25bf3bed7bca71c3cbdae6cc5a892954fe7))
+
+## [15.8.1](https://github.com/googleapis/release-please/compare/v15.8.0...v15.8.1) (2023-03-07)
+
+
+### Bug Fixes
+
+* **sequential-calls:** Use push instead of concat when returning releases ([#1865](https://github.com/googleapis/release-please/issues/1865)) ([1026c73](https://github.com/googleapis/release-please/commit/1026c7366a94b4dbfa567580613bcf31a991a516))
+
+## [15.8.0](https://github.com/googleapis/release-please/compare/v15.7.0...v15.8.0) (2023-02-15)
+
+
+### Features
+
+* Scan readme files in java-yoshi-mono-repo strategy ([#1853](https://github.com/googleapis/release-please/issues/1853)) ([635cc7d](https://github.com/googleapis/release-please/commit/635cc7d03820d539f470c151db410dd2a8d29eae))
+
+
+### Bug Fixes
+
+* Github issues link ([#1849](https://github.com/googleapis/release-please/issues/1849)) ([68e6759](https://github.com/googleapis/release-please/commit/68e67591bbae5db51ce0ce7591898a2adf49be96))
+
+## [15.7.0](https://github.com/googleapis/release-please/compare/v15.6.0...v15.7.0) (2023-02-07)
+
+
+### Features
+
+* **changelog.json:** Implement changelog.json for python ([#1841](https://github.com/googleapis/release-please/issues/1841)) ([52594b1](https://github.com/googleapis/release-please/commit/52594b194fdd0ae516776128e6511d5e4cd21518))
+
+## [15.6.0](https://github.com/googleapis/release-please/compare/v15.5.1...v15.6.0) (2023-02-01)
+
+
+### Features
+
+* **changelog.json:** Add pr suffix to issues array ([#1839](https://github.com/googleapis/release-please/issues/1839)) ([fdd75ef](https://github.com/googleapis/release-please/commit/fdd75efbc276d432f1d9d54f1790f4852a4aa3f7))
+
+## [15.5.1](https://github.com/googleapis/release-please/compare/v15.5.0...v15.5.1) (2023-01-30)
+
+
+### Bug Fixes
+
+* Support TOML up to v1.0.0-rc.1 spec. ([#1837](https://github.com/googleapis/release-please/issues/1837)) ([a3d94ee](https://github.com/googleapis/release-please/commit/a3d94eec209e00b6f513caa379096d082af7a72b))
+
+## [15.5.0](https://github.com/googleapis/release-please/compare/v15.4.0...v15.5.0) (2023-01-27)
+
+
+### Features
+
+* Add generic TOML updater ([#1833](https://github.com/googleapis/release-please/issues/1833)) ([2768a4c](https://github.com/googleapis/release-please/commit/2768a4cfe131ac8493447a8c7512c623c200df34))
+* Add toml generic updater option to extra-files schema ([#1835](https://github.com/googleapis/release-please/issues/1835)) ([9240f71](https://github.com/googleapis/release-please/commit/9240f71c21f077b240d2ce186456fb23b50dfd89))
+
+## [15.4.0](https://github.com/googleapis/release-please/compare/v15.3.1...v15.4.0) (2023-01-26)
+
+
+### Features
+
+* **changelog.json:** Include referenced issues/prs ([#1830](https://github.com/googleapis/release-please/issues/1830)) ([bacbbb5](https://github.com/googleapis/release-please/commit/bacbbb52ad802d42af1ffb40e8c616cc6c6601a6))
+
+## [15.3.1](https://github.com/googleapis/release-please/compare/v15.3.0...v15.3.1) (2023-01-26)
+
+
+### Bug Fixes
+
+* Filter changelog.json commits based on changelog sections ([#1827](https://github.com/googleapis/release-please/issues/1827)) ([844aacd](https://github.com/googleapis/release-please/commit/844aacd76434ae288ee3ac9b2061dd9406e99bd8))
+
+## [15.3.0](https://github.com/googleapis/release-please/compare/v15.2.0...v15.3.0) (2023-01-25)
+
+
+### Features
+
+* Add Salesforce strategy ([#1815](https://github.com/googleapis/release-please/issues/1815)) ([25b518f](https://github.com/googleapis/release-please/commit/25b518f4f34afcd749968d021f4eed99222a328a))
+* Add support for yarn workspace versions ([#1819](https://github.com/googleapis/release-please/issues/1819)) ([8b0cc7d](https://github.com/googleapis/release-please/commit/8b0cc7d7d203609c95e9e7cfbef4f0faedd3f46d))
+* **java-monorepo:** Switch to using .repo-metadata.json ([#1820](https://github.com/googleapis/release-please/issues/1820)) ([6cc85db](https://github.com/googleapis/release-please/commit/6cc85dbb95ade1c38c354a567a02b8a41d729a72))
+* **node:** Add support for changelog.json in Node ([#1823](https://github.com/googleapis/release-please/issues/1823)) ([d3e3bd3](https://github.com/googleapis/release-please/commit/d3e3bd3b102195befb051457f9a837ff47388157))
+
+## [15.2.0](https://github.com/googleapis/release-please/compare/v15.1.2...v15.2.0) (2023-01-23)
+
+
+### Features
+
+* **cli:** Add ability to dynamically load release-please plugin ([#1811](https://github.com/googleapis/release-please/issues/1811)) ([609383b](https://github.com/googleapis/release-please/commit/609383be5a05bb0107b489314b4bcd7615ddafd9))
+* Export Strategy interface so external packages can implement ([609383b](https://github.com/googleapis/release-please/commit/609383be5a05bb0107b489314b4bcd7615ddafd9))
+* Introduce ChangelogJson updater ([#1808](https://github.com/googleapis/release-please/issues/1808)) ([fe3a979](https://github.com/googleapis/release-please/commit/fe3a979a1c228610612aa2d6c303d408be956e2e))
+* Introduce JavaYoshiMonoRepo strategy ([#1810](https://github.com/googleapis/release-please/issues/1810)) ([2d14307](https://github.com/googleapis/release-please/commit/2d143077a545b92e1d9de923ab81ae1e12b7a468))
+
+## [15.1.2](https://github.com/googleapis/release-please/compare/v15.1.1...v15.1.2) (2023-01-17)
+
+
+### Bug Fixes
+
+* **ruby:** Gemfile.lock should not update when gem name is empty ([#1805](https://github.com/googleapis/release-please/issues/1805)) ([b54d499](https://github.com/googleapis/release-please/commit/b54d499a6b38e13175402fbd7eb7be75094d5014))
+
+## [15.1.1](https://github.com/googleapis/release-please/compare/v15.1.0...v15.1.1) (2023-01-06)
+
+
+### Bug Fixes
+
+* **deps:** Update @google-automations/git-file-utils to 1.2.5 ([89f363e](https://github.com/googleapis/release-please/commit/89f363e015bb3a5a7e738232352db70e4d336d86))
+* **deps:** Update code-suggester to 4.2.0 ([#1799](https://github.com/googleapis/release-please/issues/1799)) ([89f363e](https://github.com/googleapis/release-please/commit/89f363e015bb3a5a7e738232352db70e4d336d86))
+
+## [15.1.0](https://github.com/googleapis/release-please/compare/v15.0.0...v15.1.0) (2023-01-05)
+
+
+### Features
+
+* **ruby:** Add Gemfile.Lock updater ([#1790](https://github.com/googleapis/release-please/issues/1790)) ([9baf736](https://github.com/googleapis/release-please/commit/9baf736aa424bf3dcf0f05009e5cf8c9ef05fd69))
+
+
+### Bug Fixes
+
+* **java-yoshi:** Throw MissingRequiredFile error if no versions.txt found ([#1794](https://github.com/googleapis/release-please/issues/1794)) ([542d412](https://github.com/googleapis/release-please/commit/542d412307ea8d6350908aeb7efaf9db9e3d03f9))
+
+## [15.0.0](https://github.com/googleapis/release-please/compare/v14.17.5...v15.0.0) (2022-12-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* Strategies can parse multiple releases from single release PR ([#1775](https://github.com/googleapis/release-please/issues/1775))
+* Parse conventional commits in manifest ([#1772](https://github.com/googleapis/release-please/issues/1772))
+
+### Features
+
+* Strategies can parse multiple releases from single release PR ([#1775](https://github.com/googleapis/release-please/issues/1775)) ([b565f85](https://github.com/googleapis/release-please/commit/b565f85b64a431be1d62f8e682c183c4c1f1c631))
+
+
+### Code Refactoring
+
+* Parse conventional commits in manifest ([#1772](https://github.com/googleapis/release-please/issues/1772)) ([3391d3b](https://github.com/googleapis/release-please/commit/3391d3bc916ad07102bbb3873b93aeac6e13977c))
+
+## [14.17.5](https://github.com/googleapis/release-please/compare/v14.17.4...v14.17.5) (2022-12-08)
+
+
+### Bug Fixes
+
+* **expo:** Android version now correctly builds as a number ([#1770](https://github.com/googleapis/release-please/issues/1770)) ([d54483b](https://github.com/googleapis/release-please/commit/d54483be6d307aea75797f6a5bcfa6679b64088f))
+
+## [14.17.4](https://github.com/googleapis/release-please/compare/v14.17.3...v14.17.4) (2022-12-01)
+
+
+### Bug Fixes
+
+* Pass group-pull-request-title-pattern to strategies to parse releases ([#1760](https://github.com/googleapis/release-please/issues/1760)) ([f7601e4](https://github.com/googleapis/release-please/commit/f7601e423a267861fb86a441d1835ddf6da07a83))
+
+## [14.17.3](https://github.com/googleapis/release-please/compare/v14.17.2...v14.17.3) (2022-11-26)
+
+
+### Bug Fixes
+
+* Handle incrementing ruby patch versions larger than 1 digit ([#1762](https://github.com/googleapis/release-please/issues/1762)) ([7ad300e](https://github.com/googleapis/release-please/commit/7ad300e97a79acf4c3dbe0b9af8586eb32ab81cf))
+
+## [14.17.2](https://github.com/googleapis/release-please/compare/v14.17.1...v14.17.2) (2022-11-22)
+
+
+### Bug Fixes
+
+* Handle issue links in BREAKING_CHANGE notes section ([#1757](https://github.com/googleapis/release-please/issues/1757)) ([cd8c04b](https://github.com/googleapis/release-please/commit/cd8c04b4d7a67116b31baff60279fa6d719c73a0))
+
+## [14.17.1](https://github.com/googleapis/release-please/compare/v14.17.0...v14.17.1) (2022-11-22)
+
+
+### Bug Fixes
+
+* **dart:** Throw MissingRequiredFileError if pubspec.yaml is missing ([#1756](https://github.com/googleapis/release-please/issues/1756)) ([ada9fd6](https://github.com/googleapis/release-please/commit/ada9fd6db42aa6db0db52b8a81aa7f70b064e914))
+* **helm:** throw MissingRequiredFileError if Chart.yaml is missing ([ada9fd6](https://github.com/googleapis/release-please/commit/ada9fd6db42aa6db0db52b8a81aa7f70b064e914))
+* **node-workspace:** Maintain the dependency version prefix in newCandidate ([#1748](https://github.com/googleapis/release-please/issues/1748)) ([909d310](https://github.com/googleapis/release-please/commit/909d310defdf24adfd4858bbe1604668c14ef77f))
+
 ## [14.17.0](https://github.com/googleapis/release-please/compare/v14.16.0...v14.17.0) (2022-11-11)
 
 

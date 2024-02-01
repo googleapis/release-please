@@ -18,7 +18,7 @@ import {GitHub} from '../../src/github';
 import {RubyYoshi} from '../../src/strategies/ruby-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, safeSnapshot} from '../helpers';
-import {buildMockCommit} from '../helpers';
+import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -27,15 +27,15 @@ import {VersionRB} from '../../src/updaters/ruby/version-rb';
 const sandbox = sinon.createSandbox();
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0 (#1234)',
     ['path1/foo.rb']
   ),
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
     ['path1/foo.rb', 'path2/bar.rb']
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('RubyYoshi', () => {

@@ -15,7 +15,7 @@
 import {ManifestPlugin} from '../plugin';
 import {GitHub} from '../github';
 import {RepositoryConfig} from '../manifest';
-import {Commit} from '../commit';
+import {ConventionalCommit} from '../commit';
 
 // A list of words that should not be converted to uppercase:
 const SPECIAL_WORDS = ['gRPC', 'npm'];
@@ -43,9 +43,13 @@ export class SentenceCase extends ManifestPlugin {
    * @param {Commit[]} commits The set of commits that will feed into release pull request.
    * @returns {Commit[]} The modified commit objects.
    */
-  processCommits(commits: Commit[]): Commit[] {
+  processCommits(commits: ConventionalCommit[]): ConventionalCommit[] {
     this.logger.info(`SentenceCase processing ${commits.length} commits`);
     for (const commit of commits) {
+      // The parsed conventional commit message, without the type:
+      console.info(commit.bareMessage);
+      commit.bareMessage = this.toUpperCase(commit.bareMessage);
+
       // Check whether commit is in conventional commit format, if it is
       // we'll split the string by type and description:
       if (commit.message.includes(':')) {

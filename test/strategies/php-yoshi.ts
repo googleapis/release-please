@@ -18,12 +18,11 @@ import {GitHub} from '../../src/github';
 import {PHPYoshi} from '../../src/strategies/php-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, buildGitHubFileRaw, dateSafe} from '../helpers';
-import {buildMockCommit} from '../helpers';
+import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {RootComposerUpdatePackages} from '../../src/updaters/php/root-composer-update-packages';
-import {PHPManifest} from '../../src/updaters/php/php-manifest';
 import {PHPClientVersion} from '../../src/updaters/php/php-client-version';
 import {DefaultUpdater} from '../../src/updaters/default';
 import snapshot = require('snap-shot-it');
@@ -37,15 +36,15 @@ describe('PHPYoshi', () => {
   let github: GitHub;
   let getFileStub: sinon.SinonStub;
   const commits = [
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
       ['Client1/foo.php']
     ),
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
       ['Client2/foo.php', 'Client3/bar.php']
     ),
-    buildMockCommit('misc: update common templates'),
+    ...buildMockConventionalCommit('misc: update common templates'),
   ];
   beforeEach(async () => {
     github = await GitHub.create({
@@ -65,7 +64,9 @@ describe('PHPYoshi', () => {
       .resolves(buildGitHubFileRaw('0.1.2'));
     getFileStub
       .withArgs('Client1/composer.json', 'main')
-      .resolves(buildGitHubFileRaw('{"name": "google/client1"}'));
+      .resolves(
+        buildGitHubFileRaw('{"name": "google/client1", "version": "1.2.3"}')
+      );
     getFileStub
       .withArgs('Client2/composer.json', 'main')
       .resolves(buildGitHubFileRaw('{"name": "google/client2"}'));
@@ -152,9 +153,6 @@ describe('PHPYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
-      assertHasUpdate(updates, 'docs/manifest.json', PHPManifest);
-      assertHasUpdate(updates, 'src/Version.php', PHPClientVersion);
-      assertHasUpdate(updates, 'src/ServiceBuilder.php', PHPClientVersion);
     });
     it('finds touched components', async () => {
       const strategy = new PHPYoshi({
@@ -168,8 +166,15 @@ describe('PHPYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
+      assertHasUpdate(
+        updates,
+        'Client1/composer.json',
+        RootComposerUpdatePackages
+      );
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client2/composer.json');
       assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client3/composer.json');
       assertHasUpdate(updates, 'Client3/src/Entry.php', PHPClientVersion);
     });
     it('ignores non client top level directories', async () => {
@@ -179,15 +184,15 @@ describe('PHPYoshi', () => {
       });
       const latestRelease = undefined;
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0',
           ['Client1/foo.php', '.git/release-please.yml']
         ),
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0',
           ['Client2/foo.php', 'Client3/bar.php']
         ),
-        buildMockCommit('misc: update common templates'),
+        ...buildMockConventionalCommit('misc: update common templates'),
       ];
       getFileStub
         .withArgs('.git/VERSION', 'main')
@@ -198,9 +203,40 @@ describe('PHPYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'Client1/VERSION', DefaultUpdater);
+      assertHasUpdate(
+        updates,
+        'Client1/composer.json',
+        RootComposerUpdatePackages
+      );
       assertHasUpdate(updates, 'Client2/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client2/composer.json');
       assertHasUpdate(updates, 'Client3/VERSION', DefaultUpdater);
+      assertHasUpdate(updates, 'Client3/composer.json');
       assertHasUpdate(updates, 'Client3/src/Entry.php', PHPClientVersion);
+    });
+    it('updates component composer version', async () => {
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertHasUpdate(
+        updates,
+        'Client1/composer.json',
+        RootComposerUpdatePackages
+      );
+      const client1Composer = updates.find(update => {
+        return update.path === 'Client1/composer.json';
+      });
+      const newContent = client1Composer!.updater.updateContent(
+        '{"name":"google/client1","version":"1.2.3"}'
+      );
+      expect(newContent).to.eql('{"name":"google/client1","version":"1.2.4"}');
     });
   });
   describe('buildRelease', () => {

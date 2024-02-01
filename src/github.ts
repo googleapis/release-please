@@ -224,16 +224,11 @@ export class GitHub {
     }
 
     const {host, port} = defaultProxy;
-
-    return new URL(baseUrl).protocol.replace(':', '') === 'http'
-      ? new HttpProxyAgent({
-          host,
-          port,
-        })
-      : new HttpsProxyAgent({
-          host,
-          port,
-        });
+    if (new URL(baseUrl).protocol.replace(':', '') === 'http') {
+      return new HttpProxyAgent(`http://${host}:${port}`);
+    } else {
+      return new HttpsProxyAgent(`https://${host}:${port}`);
+    }
   }
 
   /**
@@ -474,17 +469,42 @@ export class GitHub {
     }
     const history = response.repository.ref.target.history;
     const commits = (history.nodes || []) as GraphQLCommit[];
+    // Count the number of pull requests associated with each merge commit. This is
+    // used in the next step to make sure we only find pull requests with a
+    // merge commit that contain 1 merged commit.
+    const mergeCommitCount: Record<string, number> = {};
+    for (const commit of commits) {
+      for (const pr of commit.associatedPullRequests.nodes) {
+        if (pr.mergeCommit?.oid) {
+          mergeCommitCount[pr.mergeCommit.oid] ??= 0;
+          mergeCommitCount[pr.mergeCommit.oid]++;
+        }
+      }
+    }
     const commitData: Commit[] = [];
     for (const graphCommit of commits) {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
       };
-      const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
-        return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
-      });
+      const mergePullRequest = graphCommit.associatedPullRequests.nodes.find(
+        pr => {
+          return (
+            // Only match the pull request with a merge commit if there is a
+            // single merged commit in the PR. This means merge commits and squash
+            // merges will be matched, but rebase merged PRs will only be matched
+            // if they contain a single commit. This is so PRs that are rebased
+            // and merged will have ßSfiles backfilled from each commit instead of
+            // the whole PR.
+            pr.mergeCommit &&
+            pr.mergeCommit.oid === graphCommit.sha &&
+            mergeCommitCount[pr.mergeCommit.oid] === 1
+          );
+        }
+      );
+      const pullRequest =
+        mergePullRequest || graphCommit.associatedPullRequests.nodes[0];
       if (pullRequest) {
-        const files = (pullRequest.files?.nodes || []).map(node => node.path);
         commit.pullRequest = {
           sha: commit.sha,
           number: pullRequest.number,
@@ -493,17 +513,24 @@ export class GitHub {
           title: pullRequest.title,
           body: pullRequest.body,
           labels: pullRequest.labels.nodes.map(node => node.name),
-          files,
+          files: (pullRequest.files?.nodes || []).map(node => node.path),
         };
-        if (pullRequest.files?.pageInfo?.hasNextPage && options.backfillFiles) {
+      }
+      if (mergePullRequest) {
+        if (
+          mergePullRequest.files?.pageInfo?.hasNextPage &&
+          options.backfillFiles
+        ) {
           this.logger.info(
-            `PR #${pullRequest.number} has many files, backfilling`
+            `PR #${mergePullRequest.number} has many files, backfilling`
           );
           commit.files = await this.getCommitFiles(graphCommit.sha);
         } else {
           // We cannot directly fetch files on commits via graphql, only provide file
           // information for commits with associated pull requests
-          commit.files = files;
+          commit.files = (mergePullRequest.files?.nodes || []).map(
+            node => node.path
+          );
         }
       } else if (options.backfillFiles) {
         // In this case, there is no squashed merge commit. This could be a simple
@@ -531,14 +558,16 @@ export class GitHub {
     this.logger.debug(`Backfilling file list for commit: ${sha}`);
     const files: string[] = [];
     for await (const resp of this.octokit.paginate.iterator(
-      this.octokit.repos.getCommit,
+      'GET /repos/{owner}/{repo}/commits/{ref}',
       {
         owner: this.repository.owner,
         repo: this.repository.repo,
         ref: sha,
       }
     )) {
-      for (const f of resp.data.files || []) {
+      // Paginate plugin doesn't have types for listing files on a commit
+      const data = resp.data as any as {files: {filename: string}[]};
+      for (const f of data.files || []) {
         if (f.filename) {
           files.push(f.filename);
         }
@@ -675,7 +704,7 @@ export class GitHub {
     };
     let results = 0;
     for await (const {data: pulls} of this.octokit.paginate.iterator(
-      this.octokit.rest.pulls.list,
+      'GET /repos/{owner}/{repo}/pulls',
       {
         state: statusMap[status],
         owner: this.repository.owner,
@@ -900,7 +929,7 @@ export class GitHub {
     const maxResults = options.maxResults || Number.MAX_SAFE_INTEGER;
     let results = 0;
     for await (const response of this.octokit.paginate.iterator(
-      this.octokit.rest.repos.listTags,
+      'GET /repos/{owner}/{repo}/tags',
       {
         owner: this.repository.owner,
         repo: this.repository.repo,
@@ -1401,7 +1430,7 @@ export class GitHub {
   commentOnIssue = wrapAsync(
     async (comment: string, number: number): Promise<string> => {
       this.logger.debug(
-        `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issue/${number}`
+        `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issues/${number}`
       );
       const resp = await this.octokit.issues.createComment({
         owner: this.repository.owner,

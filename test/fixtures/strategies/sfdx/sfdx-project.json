@@ -1,0 +1,9 @@
+{
+  "packageDirectories": [
+    {
+      "default": true,
+      "versionNumber": "1.0.0.NEXT"
+    }
+  ],
+  "name": "sfdx-test-repo"
+}

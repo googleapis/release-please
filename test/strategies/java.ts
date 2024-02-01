@@ -20,13 +20,14 @@ import {
   assertHasUpdate,
   assertHasUpdates,
   assertNoHasUpdate,
-  buildMockCommit,
+  buildMockConventionalCommit,
 } from '../helpers';
 import {expect} from 'chai';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 import {Changelog} from '../../src/updaters/changelog';
 import {DEFAULT_LABELS, DEFAULT_SNAPSHOT_LABELS} from '../../src/manifest';
+import {CompositeUpdater} from '../../src/updaters/composite';
 import {Generic} from '../../src/updaters/generic';
 import {JavaReleased} from '../../src/updaters/java/java-released';
 
@@ -47,13 +48,13 @@ describe('Java', () => {
   describe('buildReleasePullRequest', () => {
     describe('for default component', () => {
       const COMMITS_NO_SNAPSHOT = [
-        buildMockCommit('fix(deps): update dependency'),
-        buildMockCommit('fix(deps): update dependency'),
-        buildMockCommit('chore: update common templates'),
+        ...buildMockConventionalCommit('fix(deps): update dependency'),
+        ...buildMockConventionalCommit('fix(deps): update dependency'),
+        ...buildMockConventionalCommit('chore: update common templates'),
       ];
       const COMMITS_WITH_SNAPSHOT = [
         ...COMMITS_NO_SNAPSHOT,
-        buildMockCommit('chore(main): release 2.3.4-SNAPSHOT'),
+        ...buildMockConventionalCommit('chore(main): release 2.3.4-SNAPSHOT'),
       ];
 
       it('returns release PR changes with defaultInitialVersion', async () => {
@@ -192,7 +193,9 @@ describe('Java', () => {
         };
         const release = await strategy.buildReleasePullRequest(
           [
-            buildMockCommit('chore(main): release other 2.3.4-SNAPSHOT'),
+            ...buildMockConventionalCommit(
+              'chore(main): release other 2.3.4-SNAPSHOT'
+            ),
             ...COMMITS_NO_SNAPSHOT,
           ],
           latestRelease
@@ -260,7 +263,7 @@ describe('Java', () => {
 
         const updates = release!.updates;
         assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-        assertHasUpdates(updates, 'pom.xml', JavaReleased, Generic);
+        assertHasUpdates(updates, 'pom.xml', JavaReleased, CompositeUpdater);
         assertHasUpdates(updates, 'foo/bar.java', JavaReleased, Generic);
       });
 
@@ -284,20 +287,26 @@ describe('Java', () => {
         const updates = release!.updates;
         assertNoHasUpdate(updates, 'CHANGELOG.md');
         assertHasUpdate(updates, 'foo/bar.java', Generic);
-        assertHasUpdate(updates, 'pom.xml', Generic);
+        assertHasUpdate(updates, 'pom.xml', CompositeUpdater);
       });
     });
 
     describe('with includeComponentInTag', () => {
       const COMMITS_NO_SNAPSHOT = [
-        buildMockCommit('fix(deps): update dependency'),
-        buildMockCommit('fix(deps): update dependency'),
-        buildMockCommit('chore: update common templates'),
-        buildMockCommit('chore(main): release other-sample 13.3.5'),
+        ...buildMockConventionalCommit('fix(deps): update dependency'),
+        ...buildMockConventionalCommit('fix(deps): update dependency'),
+        ...buildMockConventionalCommit('chore: update common templates'),
+        ...buildMockConventionalCommit(
+          'chore(main): release other-sample 13.3.5'
+        ),
       ];
       const COMMITS_WITH_SNAPSHOT = COMMITS_NO_SNAPSHOT.concat(
-        buildMockCommit('chore(main): release other-sample 13.3.6-SNAPSHOT'),
-        buildMockCommit('chore(main): release test-sample 2.3.4-SNAPSHOT')
+        ...buildMockConventionalCommit(
+          'chore(main): release other-sample 13.3.6-SNAPSHOT'
+        ),
+        ...buildMockConventionalCommit(
+          'chore(main): release test-sample 2.3.4-SNAPSHOT'
+        )
       );
 
       it('returns release PR changes with defaultInitialVersion', async () => {

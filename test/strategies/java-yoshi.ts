@@ -22,25 +22,26 @@ import {
   assertHasUpdate,
   assertNoHasUpdate,
 } from '../helpers';
-import {buildMockCommit} from '../helpers';
+import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {JavaUpdate} from '../../src/updaters/java/java-update';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
 import {CompositeUpdater} from '../../src/updaters/composite';
+import {FileNotFoundError, MissingRequiredFileError} from '../../src/errors';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/java-yoshi';
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
   ),
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('JavaYoshi', () => {
@@ -134,7 +135,9 @@ describe('JavaYoshi', () => {
     });
     it('handles promotion to 1.0.0', async () => {
       const commits = [
-        buildMockCommit('feat: promote to 1.0.0\n\nRelease-As: 1.0.0'),
+        ...buildMockConventionalCommit(
+          'feat: promote to 1.0.0\n\nRelease-As: 1.0.0'
+        ),
       ];
       const expectedVersion = '1.0.0';
       const strategy = new JavaYoshi({
@@ -177,6 +180,34 @@ describe('JavaYoshi', () => {
       expect(
         versionsMap.get('grpc-google-cloud-trace-v1beta1')?.toString()
       ).to.eql('0.74.0');
+    });
+    it('throws on missing required versions.txt', async () => {
+      const strategy = new JavaYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'main')
+        .throws(new FileNotFoundError('versions.txt'));
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      let failed = false;
+      try {
+        await strategy.buildReleasePullRequest(COMMITS, latestRelease);
+      } catch (e) {
+        expect(e).instanceof(MissingRequiredFileError);
+        failed = true;
+      }
+      expect(failed).to.be.true;
     });
   });
   describe('buildUpdates', () => {

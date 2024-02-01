@@ -15,7 +15,7 @@
 import {describe, it, afterEach, beforeEach} from 'mocha';
 import {Expo} from '../../src/strategies/expo';
 import {
-  buildMockCommit,
+  buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
 } from '../helpers';
@@ -38,7 +38,7 @@ const expoFixturesPath = './test/fixtures/strategies/expo';
 describe('Expo', () => {
   let github: GitHub;
   const commits = [
-    buildMockCommit(
+    ...buildMockConventionalCommit(
       'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
     ),
   ];
@@ -126,7 +126,7 @@ describe('Expo', () => {
         github,
       });
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
         ),
       ];
@@ -159,7 +159,7 @@ describe('Expo', () => {
         component: 'abc-123',
       });
       const commits = [
-        buildMockCommit(
+        ...buildMockConventionalCommit(
           'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
         ),
       ];

@@ -17,23 +17,24 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {TerraformModule} from '../../src/strategies/terraform-module';
 import * as sinon from 'sinon';
-import {assertHasUpdate, buildMockCommit} from '../helpers';
+import {assertHasUpdate, buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {ReadMe} from '../../src/updaters/terraform/readme';
 import {ModuleVersion} from '../../src/updaters/terraform/module-version';
+import {MetadataVersion} from '../../src/updaters/terraform/metadata-version';
 
 const sandbox = sinon.createSandbox();
 
 const COMMITS = [
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
   ),
-  buildMockCommit(
+  ...buildMockConventionalCommit(
     'fix(deps): update dependency com.google.cloud:google-cloud-spanner to v1.50.0'
   ),
-  buildMockCommit('chore: update common templates'),
+  ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
 describe('TerraformModule', () => {
@@ -120,6 +121,9 @@ describe('TerraformModule', () => {
       findFilesStub
         .withArgs('versions.tf.tmpl', 'main', '.')
         .resolves(['path1/versions.tf.tmpl', 'path2/versions.tf.tmpl']);
+      findFilesStub
+        .withArgs('metadata.yaml', 'main', '.')
+        .resolves(['path1/metadata.yaml', 'path2/metadata.yaml']);
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
         COMMITS,
@@ -134,6 +138,8 @@ describe('TerraformModule', () => {
       assertHasUpdate(updates, 'path2/versions.tf', ModuleVersion);
       assertHasUpdate(updates, 'path1/versions.tf.tmpl', ModuleVersion);
       assertHasUpdate(updates, 'path2/versions.tf.tmpl', ModuleVersion);
+      assertHasUpdate(updates, 'path1/metadata.yaml', MetadataVersion);
+      assertHasUpdate(updates, 'path2/metadata.yaml', MetadataVersion);
     });
   });
 });

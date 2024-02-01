@@ -130,7 +130,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       if (existingCandidate) {
         // if already has an pull request, update the changelog and update
         this.logger.info(
-          `Updating exising candidate pull request for ${this.packageNameFromPackage(
+          `Updating existing candidate pull request for ${this.packageNameFromPackage(
             pkg
           )}, path: ${existingCandidate.path}`
         );
@@ -154,7 +154,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
             pkg
           )}`
         );
-        const newCandidate = this.newCandidate(pkg, updatedVersions);
+        const newCandidate = await this.newCandidate(pkg, updatedVersions);
         if (newCandidatePaths.has(newCandidate.path)) {
           this.logger.info(
             `Already created new candidate for path: ${newCandidate.path}`
@@ -320,7 +320,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   protected abstract newCandidate(
     pkg: T,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest;
+  ): Promise<CandidateReleasePullRequest>;
 
   /**
    * Collect all packages being managed in this workspace.

@@ -63,6 +63,7 @@ interface ManifestArgs {
 interface VersioningArgs {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  prereleaseType?: string;
   releaseAs?: string;
 
   // only for Ruby: TODO replace with generic bootstrap option
@@ -114,6 +115,7 @@ interface TaggingArgs {
   monorepoTags?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  pullRequestFooter?: string;
 }
 
 interface CreatePullRequestArgs
@@ -275,6 +277,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       default: false,
       type: 'boolean',
     })
+    .option('prerelease-type', {
+      describe: 'type of the prerelease, e.g., alpha',
+      type: 'string',
+    })
     .option('extra-files', {
       describe: 'extra files for the strategy to consider',
       type: 'string',
@@ -414,6 +420,10 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
     .option('pull-request-header', {
       describe: 'Header for release PR',
       type: 'string',
+    })
+    .option('pull-request-footer', {
+      describe: 'Footer for release PR',
+      type: 'string',
     });
 }
 
@@ -447,11 +457,13 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           draftPullRequest: argv.draftPullRequest,
           bumpMinorPreMajor: argv.bumpMinorPreMajor,
           bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
+          prereleaseType: argv.prereleaseType,
           changelogPath: argv.changelogPath,
           changelogType: argv.changelogType,
           changelogHost: argv.changelogHost,
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
           pullRequestHeader: argv.pullRequestHeader,
+          pullRequestFooter: argv.pullRequestFooter,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,
@@ -711,6 +723,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       draftPullRequest: argv.draftPullRequest,
       bumpMinorPreMajor: argv.bumpMinorPreMajor,
       bumpPatchForMinorPreMajor: argv.bumpPatchForMinorPreMajor,
+      prereleaseType: argv.prereleaseType,
       changelogPath: argv.changelogPath,
       changelogHost: argv.changelogHost,
       changelogSections: argv.changelogSections,
@@ -818,6 +831,28 @@ export const parser = yargs
       setLogger(new CheckpointLogger(true, true));
     } else if (argv.debug) {
       setLogger(new CheckpointLogger(true));
+    }
+  })
+  .option('plugin', {
+    describe: 'load plugin named release-please-<plugin-name>',
+    type: 'array',
+    default: [],
+  })
+  .middleware(argv => {
+    for (const pluginName of argv.plugin) {
+      console.log(`requiring plugin: ${pluginName}`);
+      try {
+        const plugin = require(pluginName.toString());
+        if (plugin?.init) {
+          console.log(`loading plugin: ${pluginName}`);
+        } else {
+          console.warn(
+            `plugin: ${pluginName} did not have an init() function.`
+          );
+        }
+      } catch (e) {
+        console.warn(`failed to require plugin: ${pluginName}:`, e);
+      }
     }
   })
   .demandCommand(1)

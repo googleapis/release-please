@@ -20,12 +20,18 @@ import {Update} from '../../src/update';
 import {GitHub} from '../../src/github';
 import {PullRequestBody} from '../../src/util/pull-request-body';
 import snapshot = require('snap-shot-it');
-import {dateSafe, assertHasUpdate} from '../helpers';
+import {
+  dateSafe,
+  assertHasUpdate,
+  assertHasUpdates,
+  buildMockConventionalCommit,
+} from '../helpers';
 import {GenericJson} from '../../src/updaters/generic-json';
 import {Generic} from '../../src/updaters/generic';
 import {GenericXml} from '../../src/updaters/generic-xml';
 import {PomXml} from '../../src/updaters/java/pom-xml';
 import {GenericYaml} from '../../src/updaters/generic-yaml';
+import {GenericToml} from '../../src/updaters/generic-toml';
 
 const sandbox = sinon.createSandbox();
 
@@ -63,12 +69,9 @@ describe('Strategy', () => {
         github,
         component: 'google-cloud-automl',
       });
-      const commits = [
-        {
-          sha: 'abc123',
-          message: 'chore: initial commit\n\nRelease-As: 2.3.4',
-        },
-      ];
+      const commits = buildMockConventionalCommit(
+        'chore: initial commit\n\nRelease-As: 2.3.4'
+      );
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       expect(pullRequest).to.not.be.undefined;
       expect(pullRequest?.version?.toString()).to.eql('2.3.4');
@@ -81,12 +84,7 @@ describe('Strategy', () => {
         component: 'google-cloud-automl',
         initialVersion: '0.1.0',
       });
-      const commits = [
-        {
-          sha: 'abc123',
-          message: 'feat: initial commit',
-        },
-      ];
+      const commits = buildMockConventionalCommit('feat: initial commit');
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       expect(pullRequest).to.not.be.undefined;
       expect(pullRequest?.version?.toString()).to.eql('0.1.0');
@@ -100,7 +98,7 @@ describe('Strategy', () => {
         extraFiles: ['0', 'foo/1.~csv', 'foo/2.bak', 'foo/baz/bar/', '/3.java'],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        buildMockConventionalCommit('fix: a bugfix'),
         undefined
       );
       expect(pullRequest).to.exist;
@@ -115,6 +113,70 @@ describe('Strategy', () => {
         ])
         .and.not.include('foo/baz/bar/', 'expected file but got directory');
     });
+    it('updates extra JSON files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['manifest.json'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'manifest.json', GenericJson, Generic);
+    });
+    it('updates extra YAML files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['pubspec.yaml'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'pubspec.yaml', GenericYaml, Generic);
+    });
+    it('updates extra TOML files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['foo.toml'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'foo.toml', GenericToml, Generic);
+    });
+    it('updates extra Xml files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['pom.xml'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'pom.xml', GenericXml, Generic);
+    });
     it('updates extra JSON files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',
@@ -123,7 +185,7 @@ describe('Strategy', () => {
         extraFiles: ['0', {type: 'json', path: '/3.json', jsonpath: '$.foo'}],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        buildMockConventionalCommit('fix: a bugfix'),
         undefined
       );
       expect(pullRequest).to.exist;
@@ -140,7 +202,7 @@ describe('Strategy', () => {
         extraFiles: ['0', {type: 'yaml', path: '/3.yaml', jsonpath: '$.foo'}],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        buildMockConventionalCommit('fix: a bugfix'),
         undefined
       );
       expect(pullRequest).to.exist;
@@ -148,6 +210,23 @@ describe('Strategy', () => {
       expect(updates).to.be.an('array');
       assertHasUpdate(updates!, '0', Generic);
       assertHasUpdate(updates!, '3.yaml', GenericYaml);
+    });
+    it('updates extra TOML files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['0', {type: 'toml', path: '/3.toml', jsonpath: '$.foo'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, '3.toml', GenericToml);
     });
     it('updates extra Xml files', async () => {
       const strategy = new TestStrategy({
@@ -157,7 +236,7 @@ describe('Strategy', () => {
         extraFiles: ['0', {type: 'xml', path: '/3.xml', xpath: '$.foo'}],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        buildMockConventionalCommit('fix: a bugfix'),
         undefined
       );
       expect(pullRequest).to.exist;
@@ -174,7 +253,7 @@ describe('Strategy', () => {
         extraFiles: ['0', {type: 'pom', path: '/3.xml'}],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        buildMockConventionalCommit('fix: a bugfix'),
         undefined
       );
       expect(pullRequest).to.exist;
@@ -202,7 +281,7 @@ describe('Strategy', () => {
         ],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        buildMockConventionalCommit('fix: a bugfix'),
         undefined
       );
       expect(pullRequest).to.exist;
@@ -219,12 +298,7 @@ describe('Strategy', () => {
         component: 'google-cloud-automl',
         changelogHost: 'https://example.com',
       });
-      const commits = [
-        {
-          sha: 'abc5566',
-          message: 'fix: a bugfix',
-        },
-      ];
+      const commits = buildMockConventionalCommit('fix: a bugfix');
       const pullRequest = await strategy.buildReleasePullRequest(commits);
       expect(pullRequest).to.exist;
       expect(pullRequest?.body.toString()).to.have.string(
@@ -253,7 +327,7 @@ describe('Strategy', () => {
             extraFiles: [file],
           });
           await strategy.buildReleasePullRequest(
-            [{sha: 'aaa', message: 'fix: a bugfix'}],
+            buildMockConventionalCommit('fix: a bugfix'),
             undefined
           );
           expect.fail(`expected [addPath] to reject path: ${file}`);
@@ -273,7 +347,7 @@ describe('Strategy', () => {
         extraLabels: ['foo', 'bar'],
       });
       const pullRequest = await strategy.buildReleasePullRequest(
-        [{sha: 'aaa', message: 'fix: a bugfix'}],
+        buildMockConventionalCommit('fix: a bugfix'),
         undefined
       );
       expect(pullRequest).to.exist;

@@ -839,6 +839,32 @@ describe('CLI', () => {
         sinon.assert.calledOnce(createPullRequestsStub);
       });
 
+      it('handles --prerelease-type', async () => {
+        await parser.parseAsync(
+          'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --prerelease-type=alpha'
+        );
+
+        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+          owner: 'googleapis',
+          repo: 'release-please-cli',
+          token: undefined,
+          apiUrl: 'https://api.github.com',
+          graphqlUrl: 'https://api.github.com',
+        });
+        sinon.assert.calledOnceWithExactly(
+          fromConfigStub,
+          fakeGitHub,
+          'main',
+          sinon.match({
+            releaseType: 'java-yoshi',
+            prereleaseType: 'alpha',
+          }),
+          sinon.match.any,
+          undefined
+        );
+        sinon.assert.calledOnce(createPullRequestsStub);
+      });
+
       it('handles java --extra-files', async () => {
         await parser.parseAsync(
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --extra-files=foo/bar.java,asdf/qwer.java'

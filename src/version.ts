@@ -82,6 +82,10 @@ export class Version {
     const buildPart = this.build ? `+${this.build}` : '';
     return `${this.major}.${this.minor}.${this.patch}${preReleasePart}${buildPart}`;
   }
+
+  get isPreMajor(): boolean {
+    return this.major < 1;
+  }
 }
 
 export type VersionsMap = Map<string, Version>;

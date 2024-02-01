@@ -16,6 +16,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
+import {expect} from 'chai';
 import {VersionRB} from '../../src/updaters/ruby/version-rb';
 import {Version} from '../../src/version';
 
@@ -23,6 +24,37 @@ const fixturesPath = './test/updaters/fixtures';
 
 describe('version.rb', () => {
   describe('updateContent', () => {
+    // newVersion, existingContent, expected, shouldUpdate, description
+    const testTable: [string, string, string, boolean, string][] = [
+      ['0.2.0', "'0.1.0'", "'0.2.0'", true, 'single quotes'],
+      ['0.2.0', '"0.1.0"', '"0.2.0"', true, 'double quotes'],
+      ['0.2.0', '"0.1.0"', '"0.2.0"', true, 'minor'],
+      ['0.2.1', '"0.2.0"', '"0.2.1"', true, 'patch'],
+      ['0.2.11', '"0.2.10"', '"0.2.11"', true, 'long patch'],
+      ['1.0.0-alpha1', '"0.9.0"', '"1.0.0-alpha1"', true, 'prerelease'],
+      ['1.0.0-beta', '"1.0.0-alpha1"', '"1.0.0-beta"', true, 'prerelease bump'],
+      ['1.0.0', '"1.0.0.beta"', '"1.0.0"', true, 'major'],
+      ['1.0.1', '"1.0.0"', '"1.0.1"', true, 'major patch'],
+      ['1.0.0', '"1.0"', '"1.0"', false, 'ignored'],
+      ['1.0.0', 'something', 'something', false, 'random text'],
+      ['1.0.0', "'0.1'", "'0.1'", false, 'invalid version single quoted'],
+      ['1.0.0', '"0.1"', '"0.1"', false, 'invalid version double quoted'],
+    ];
+
+    testTable.forEach(
+      ([newVersion, existingContent, expected, shouldUpdate, description]) => {
+        it(`should ${
+          shouldUpdate ? 'update' : 'not update'
+        } for ${description}`, () => {
+          const version = new VersionRB({
+            version: Version.parse(newVersion),
+          });
+          const result = version.updateContent(existingContent);
+          expect(result).to.equal(expected);
+        });
+      }
+    );
+
     it('updates version in version.rb', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './version.rb'),
@@ -44,6 +76,30 @@ describe('version.rb', () => {
         .replace(/"/g, "'");
       const version = new VersionRB({
         version: Version.parse('0.6.0'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
+    it('updates long patch versions in version.rb', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './version-with-long-patch.rb'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new VersionRB({
+        version: Version.parse('0.6.11'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
+    it('updates prerelease versions in version.rb', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './version-with-prerelease.rb'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const version = new VersionRB({
+        version: Version.parse('10.0.0-alpha1'),
       });
       const newContent = version.updateContent(oldContent);
       snapshot(newContent);

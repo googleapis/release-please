@@ -17,7 +17,7 @@ import {Version} from '../version';
 import {BaseStrategy, BaseStrategyOptions, BuildUpdatesOptions} from './base';
 import {Changelog} from '../updaters/changelog';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
-import {Commit} from '../commit';
+import {ConventionalCommit} from '../commit';
 import {Release} from '../release';
 import {ReleasePullRequest} from '../release-pull-request';
 import {PullRequestTitle} from '../util/pull-request-title';
@@ -30,6 +30,7 @@ import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
 import {JavaReleased} from '../updaters/java/java-released';
 import {mergeUpdates} from '../updaters/composite';
 import {logger as defaultLogger} from '../util/logger';
+import {BumpReleaseOptions} from '../strategy';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -74,10 +75,11 @@ export class Java extends BaseStrategy {
   }
 
   async buildReleasePullRequest(
-    commits: Commit[],
+    commits: ConventionalCommit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels: string[] = []
+    labels: string[] = [],
+    _bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined> {
     if (await this.needsSnapshot(commits, latestRelease)) {
       this.logger.info('Repository needs a snapshot bump.');
@@ -135,6 +137,7 @@ export class Java extends BaseStrategy {
       versionsMap,
       changelogEntry: notes,
       isSnapshot: true,
+      commits: [],
     });
     const updatesWithExtras = mergeUpdates(
       updates.concat(...(await this.extraFileUpdates(newVersion, versionsMap)))
@@ -156,7 +159,7 @@ export class Java extends BaseStrategy {
   }
 
   protected async needsSnapshot(
-    commits: Commit[],
+    commits: ConventionalCommit[],
     latestRelease?: Release
   ): Promise<boolean> {
     if (this.skipSnapshot) {

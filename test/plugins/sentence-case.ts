@@ -16,6 +16,7 @@ import {SentenceCase} from '../../src/plugins/sentence-case';
 import {expect} from 'chai';
 
 import {GitHub} from '../../src/github';
+import {buildMockConventionalCommit} from '../helpers';
 
 describe('SentenceCase Plugin', () => {
   let github: GitHub;
@@ -30,14 +31,8 @@ describe('SentenceCase Plugin', () => {
     it('converts description to sentence case', async () => {
       const plugin = new SentenceCase(github, 'main', {});
       const commits = await plugin.processCommits([
-        {
-          sha: 'abc123',
-          message: 'fix: hello world',
-        },
-        {
-          sha: 'abc123',
-          message: 'fix: Goodnight moon',
-        },
+        ...buildMockConventionalCommit('fix: hello world'),
+        ...buildMockConventionalCommit('fix: Goodnight moon'),
       ]);
       expect(commits[0].message).to.equal('fix: Hello world');
       expect(commits[1].message).to.equal('fix: Goodnight moon');
@@ -45,14 +40,8 @@ describe('SentenceCase Plugin', () => {
     it('leaves reserved words lowercase', async () => {
       const plugin = new SentenceCase(github, 'main', {});
       const commits = await plugin.processCommits([
-        {
-          sha: 'abc123',
-          message: 'feat: gRPC can now handle proxies',
-        },
-        {
-          sha: 'abc123',
-          message: 'fix: npm now rocks',
-        },
+        ...buildMockConventionalCommit('feat: gRPC can now handle proxies'),
+        ...buildMockConventionalCommit('fix: npm now rocks'),
       ]);
       expect(commits[0].message).to.equal('feat: gRPC can now handle proxies');
       expect(commits[1].message).to.equal('fix: npm now rocks');
@@ -60,14 +49,8 @@ describe('SentenceCase Plugin', () => {
     it('handles sentences with now breaks', async () => {
       const plugin = new SentenceCase(github, 'main', {});
       const commits = await plugin.processCommits([
-        {
-          sha: 'abc123',
-          message: 'feat: beep-boop-hello',
-        },
-        {
-          sha: 'abc123',
-          message: 'fix:log4j.foo.bar',
-        },
+        ...buildMockConventionalCommit('feat: beep-boop-hello'),
+        ...buildMockConventionalCommit('fix:log4j.foo.bar'),
       ]);
       expect(commits[0].message).to.equal('feat: Beep-boop-hello');
       expect(commits[1].message).to.equal('fix: Log4j.foo.bar');
@@ -76,14 +59,8 @@ describe('SentenceCase Plugin', () => {
   it('allows a custom list of specialWords to be provided', async () => {
     const plugin = new SentenceCase(github, 'main', {}, ['hello']);
     const commits = await plugin.processCommits([
-      {
-        sha: 'abc123',
-        message: 'fix: hello world',
-      },
-      {
-        sha: 'abc123',
-        message: 'fix: Goodnight moon',
-      },
+      ...buildMockConventionalCommit('fix: hello world'),
+      ...buildMockConventionalCommit('fix: Goodnight moon'),
     ]);
     expect(commits[0].message).to.equal('fix: hello world');
     expect(commits[1].message).to.equal('fix: Goodnight moon');
@@ -91,24 +68,20 @@ describe('SentenceCase Plugin', () => {
   it('handles subject with multiple : characters', async () => {
     const plugin = new SentenceCase(github, 'main', {}, []);
     const commits = await plugin.processCommits([
-      {
-        sha: 'abc123',
-        message: 'fix: hello world:goodnight moon',
-      },
+      ...buildMockConventionalCommit('abc123'),
+      ...buildMockConventionalCommit('fix: hello world:goodnight moon'),
     ]);
     expect(commits[0].message).to.equal('fix: Hello world:goodnight moon');
   });
   it('handles commit with no :', async () => {
     const plugin = new SentenceCase(github, 'main', {}, []);
     const commits = await plugin.processCommits([
-      {
-        sha: 'abc123',
-        message: 'hello world goodnight moon',
-      },
+      ...buildMockConventionalCommit('hello world goodnight moon'),
     ]);
     // Ensure there's no exception, a commit without a <type> is not
     // a conventional commit, and will not show up in CHANGELOG. We
     // Do not bother sentence-casing:
-    expect(commits[0].message).to.equal('hello world goodnight moon');
+    console.info(commits);
+    expect(commits.length).to.equal(0);
   });
 });

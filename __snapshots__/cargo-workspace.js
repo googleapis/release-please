@@ -140,6 +140,25 @@ Release notes for path: packages/rustA, releaseType: rust
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['CargoWorkspace plugin run handles glob paths 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 1.1.2</summary>
+
+Release notes for path: packages/rustA, releaseType: rust
+</details>
+
+<details><summary>@here/pkgD: 4.4.5</summary>
+
+Release notes for path: packages/rustD, releaseType: rust
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['CargoWorkspace plugin run skips component if not touched 1'] = `
 :robot: I have created a release *beep* *boop*
 ---

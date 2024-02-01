@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {readFileSync, readdirSync, statSync} from 'fs';
+import {readFileSync, readdirSync, statSync, existsSync} from 'fs';
 import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
@@ -20,7 +20,11 @@ import * as snapshot from 'snap-shot-it';
 import * as suggester from 'code-suggester';
 import {CreatePullRequestUserOptions} from 'code-suggester/build/src/types';
 import {Octokit} from '@octokit/rest';
-import {Commit} from '../src/commit';
+import {
+  Commit,
+  ConventionalCommit,
+  parseConventionalCommits,
+} from '../src/commit';
 import {GitHub, GitHubTag, GitHubRelease} from '../src/github';
 import {Update} from '../src/update';
 import {expect} from 'chai';
@@ -110,6 +114,35 @@ export function readPOJO(name: string): object {
   return JSON.parse(content);
 }
 
+/**
+ * Reads a fixture file as a string or returns empty string if the fixture
+ * does not exist.
+ */
+export function readFixture(fixturesPath: string, fixture: string): string {
+  const file = resolve(fixturesPath, fixture);
+  if (!existsSync(file)) {
+    return '';
+  }
+  return readFileSync(resolve(fixturesPath, fixture), 'utf8');
+}
+
+export function buildMockConventionalCommit(
+  message: string,
+  files: string[] = []
+): ConventionalCommit[] {
+  return parseConventionalCommits([
+    {
+      // Ensure SHA is same on Windows with replace:
+      sha: crypto
+        .createHash('md5')
+        .update(message.replace(/\r\n/g, '\n'))
+        .digest('hex'),
+      message,
+      files: files,
+    },
+  ]);
+}
+
 export function buildMockCommit(message: string, files: string[] = []): Commit {
   return {
     // Ensure SHA is same on Windows with replace:
@@ -121,6 +154,7 @@ export function buildMockCommit(message: string, files: string[] = []): Commit {
     files: files,
   };
 }
+
 export function buildGitHubFileContent(
   fixturesPath: string,
   fixture: string
@@ -374,6 +408,19 @@ export function mockTags(
     }
   }
   return sandbox.stub(github, 'tagIterator').returns(fakeGenerator());
+}
+
+export function mockPullRequests(
+  sandbox: sinon.SinonSandbox,
+  github: GitHub,
+  pullRequests: PullRequest[]
+): sinon.SinonStub {
+  async function* fakeGenerator() {
+    for (const pullRequest of pullRequests) {
+      yield pullRequest;
+    }
+  }
+  return sandbox.stub(github, 'pullRequestIterator').returns(fakeGenerator());
 }
 
 export function mockReleaseData(count: number): ReleaseData[] {

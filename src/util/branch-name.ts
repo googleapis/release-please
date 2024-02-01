@@ -28,6 +28,7 @@ function getAllResourceNames(): BranchNameType[] {
   return [
     AutoreleaseBranchName,
     ComponentBranchName,
+    GroupBranchName,
     DefaultBranchName,
     V12ComponentBranchName,
     V12DefaultBranchName,
@@ -76,6 +77,13 @@ export class BranchName {
   ): BranchName {
     return new ComponentBranchName(
       `${RELEASE_PLEASE}--branches--${targetBranch}--components--${component}`
+    );
+  }
+  static ofGroupTargetBranch(group: string, targetBranch: string): BranchName {
+    return new GroupBranchName(
+      `${RELEASE_PLEASE}--branches--${targetBranch}--groups--${safeBranchName(
+        group
+      )}`
     );
   }
   constructor(_branchName: string) {}
@@ -210,4 +218,29 @@ class ComponentBranchName extends BranchName {
   toString(): string {
     return `${RELEASE_PLEASE}--branches--${this.targetBranch}--components--${this.component}`;
   }
+}
+
+const GROUP_PATTERN = `^${RELEASE_PLEASE}--branches--(?<branch>.+)--groups--(?<group>.+)$`;
+class GroupBranchName extends BranchName {
+  static matches(branchName: string): boolean {
+    return !!branchName.match(GROUP_PATTERN);
+  }
+  constructor(branchName: string) {
+    super(branchName);
+    const match = branchName.match(GROUP_PATTERN);
+    if (match?.groups) {
+      this.targetBranch = match.groups['branch'];
+      this.component = match.groups['group'];
+    }
+  }
+  toString(): string {
+    return `${RELEASE_PLEASE}--branches--${this.targetBranch}--groups--${this.component}`;
+  }
+}
+
+function safeBranchName(branchName: string): string {
+  // convert disallowed characters in branch names, replacing them with '-'.
+  // replace multiple consecutive '-' with a single '-' to avoid interfering with
+  // our regexes for parsing the branch names
+  return branchName.replace(/[^\w\d]/g, '-').replace(/-+/g, '-');
 }

@@ -41,6 +41,7 @@ export interface PluginFactoryOptions {
 
   // node options
   alwaysLinkLocal?: boolean;
+  updatePeerDependencies?: boolean;
 
   // workspace options
   updateAllPackages?: boolean;
@@ -58,7 +59,11 @@ const pluginFactories: Record<string, PluginBuilder> = {
       options.targetBranch,
       options.repositoryConfig,
       (options.type as LinkedVersionPluginConfig).groupName,
-      (options.type as LinkedVersionPluginConfig).components
+      (options.type as LinkedVersionPluginConfig).components,
+      {
+        ...options,
+        ...(options.type as WorkspacePluginOptions),
+      }
     ),
   'cargo-workspace': options =>
     new CargoWorkspace(

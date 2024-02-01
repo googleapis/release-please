@@ -75,6 +75,12 @@ describe('LinkedVersions plugin', () => {
         tagName: 'pkg3-v0.2.3',
         url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg3-v0.2.3',
       },
+      {
+        id: 4,
+        sha: 'abc123',
+        tagName: 'pkg4-v1.0.0',
+        url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+      },
     ]);
     mockCommits(sandbox, github, [
       {
@@ -264,5 +270,80 @@ describe('LinkedVersions plugin', () => {
     for (const pullRequest of pullRequests) {
       safeSnapshot(pullRequest.body.toString());
     }
+  });
+  it('should allow multiple groups of linked versions', async () => {
+    const manifest = new Manifest(
+      github,
+      'target-branch',
+      {
+        'path/a': {
+          releaseType: 'simple',
+          component: 'pkg1',
+        },
+        'path/b': {
+          releaseType: 'simple',
+          component: 'pkg2',
+        },
+        'path/c': {
+          releaseType: 'simple',
+          component: 'pkg3',
+        },
+        'path/d': {
+          releaseType: 'simple',
+          component: 'pkg4',
+        },
+      },
+      {
+        'path/a': Version.parse('1.0.0'),
+        'path/b': Version.parse('0.2.3'),
+        'path/c': Version.parse('0.2.3'),
+        'path/d': Version.parse('1.0.0'),
+      },
+      {
+        separatePullRequests: true,
+        plugins: [
+          {
+            type: 'linked-versions',
+            groupName: 'group name',
+            components: ['pkg2', 'pkg3'],
+          },
+          {
+            type: 'linked-versions',
+            groupName: 'second group name',
+            components: ['pkg1', 'pkg4'],
+          },
+        ],
+      }
+    );
+    const pullRequests = await manifest.buildPullRequests();
+    expect(pullRequests).lengthOf(2);
+    const groupPullRequest1 = pullRequests[1];
+    const packageData1 = groupPullRequest1.body.releaseData.find(
+      data => data.component === 'pkg1'
+    );
+    expect(packageData1).to.not.be.undefined;
+    const packageData4 = groupPullRequest1.body.releaseData.find(
+      data => data.component === 'pkg4'
+    );
+    expect(packageData4).to.not.be.undefined;
+    safeSnapshot(groupPullRequest1.body.toString());
+
+    const groupPullRequest2 = pullRequests[0];
+    const packageData2 = groupPullRequest2.body.releaseData.find(
+      data => data.component === 'pkg2'
+    );
+    expect(packageData2).to.not.be.undefined;
+    const packageData3 = groupPullRequest2.body.releaseData.find(
+      data => data.component === 'pkg3'
+    );
+    expect(packageData3).to.not.be.undefined;
+    expect(packageData2?.version).to.eql(packageData3?.version);
+    safeSnapshot(groupPullRequest2.body.toString());
+
+    expect(groupPullRequest1.headRefName).not.to.eql(
+      groupPullRequest2.headRefName
+    );
+    expect(groupPullRequest1.headRefName).to.not.include(' ');
+    expect(groupPullRequest2.headRefName).to.not.include(' ');
   });
 });

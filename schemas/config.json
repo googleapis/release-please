@@ -20,6 +20,10 @@
           "description": "Feature changes only bump semver patch if version < 1.0.0",
           "type": "boolean"
         },
+        "prerelease-type": {
+          "description": "Configuration option for the prerelese versioning strategy. If prerelease strategy used and type set, will set the prerelese part of the version to the provided value in case prerelease part is not present.",
+          "type": "string"
+        },
         "versioning": {
           "description": "Versioning strategy. Defaults to `default`",
           "type": "string"
@@ -99,6 +103,10 @@
           "description": "Customize the release pull request header.",
           "type": "string"
         },
+        "pull-request-footer": {
+          "description": "Customize the release pull request footer.",
+          "type": "string"
+        },
         "separate-pull-requests": {
           "description": "Open a separate release pull request for each component. Defaults to `false`.",
           "type": "boolean"
@@ -117,12 +125,12 @@
                 "type": "string"
               },
               {
-                "description": "An extra JSON on YAML file with a targeted update via jsonpath.",
+                "description": "An extra JSON, YAML, or TOML file with a targeted update via jsonpath.",
                 "type": "object",
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["json", "yaml"]
+                    "enum": ["json", "toml", "yaml"]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -182,6 +190,13 @@
                 "required": ["type", "path"]
               }
             ]
+          }
+        },
+        "exclude-paths": {
+          "description": "Path of commits to be excluded from parsing. If all files from commit belong to one of the paths it will be skipped",
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         },
         "version-file": {
@@ -283,7 +298,10 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["cargo-workspace", "maven-workspace", "node-workspace"]
+                    "enum": [
+                      "cargo-workspace",
+                      "maven-workspace"
+                    ]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -295,6 +313,35 @@
                   },
                   "considerAllArtifacts": {
                     "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "description": "Configuration for various `workspace` plugins.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The name of the plugin.",
+                    "type": "string",
+                    "enum": [
+                      "node-workspace"
+                    ]
+                  },
+                  "updateAllPackages": {
+                    "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
+                    "type": "boolean"
+                  },
+                  "merge": {
+                    "description": "Whether to merge in-scope pull requests into a combined release pull request. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "considerAllArtifacts": {
+                    "description": "Whether to analyze all packages in the workspace for cross-component version bumping. This currently only works for the maven-workspace plugin. Defaults to `true`.",
+                    "type": "boolean"
+                  },
+                  "updatePeerDependencies": {
+                    "description": "Also bump peer dependency versions if they are modified. Defaults to `false`.",
                     "type": "boolean"
                   }
                 }
@@ -389,11 +436,13 @@
     "changelog-path": true,
     "pull-request-title-pattern": true,
     "pull-request-header": true,
+    "pull-request-footer": true,
     "separate-pull-requests": true,
     "tag-separator": true,
     "extra-files": true,
     "version-file": true,
     "snapshot-label": true,
-    "initial-version": true
+    "initial-version": true,
+    "exclude-paths": true
   }
 }

@@ -24,7 +24,7 @@ export interface AppJson {
       buildNumber?: string;
     };
     android?: {
-      versionCode?: string;
+      versionCode?: number;
     };
   };
 }
@@ -86,7 +86,7 @@ export class AppJson extends DefaultUpdater {
       logger.info(
         `updating Android version from ${parsed.expo.android.versionCode} to ${versionCode}`
       );
-      parsed.expo.android.versionCode = versionCode.toString();
+      parsed.expo.android.versionCode = versionCode;
     }
 
     return jsonStringify(parsed, content);

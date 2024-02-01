@@ -58,7 +58,13 @@ interface MavenWorkspacePluginOptions extends WorkspacePluginOptions {
   considerAllArtifacts?: boolean;
 }
 
-const JAVA_RELEASE_TYPES = new Set(['java', 'java-bom', 'java-yoshi', 'maven']);
+const JAVA_RELEASE_TYPES = new Set([
+  'java',
+  'java-bom',
+  'java-yoshi',
+  'java-yoshi-mono-repo',
+  'maven',
+]);
 const XPATH_PROJECT_GROUP =
   '/*[local-name()="project"]/*[local-name()="groupId"]';
 const XPATH_PROJECT_ARTIFACT =
@@ -388,10 +394,10 @@ export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
     }
     return existingCandidate;
   }
-  protected newCandidate(
+  protected async newCandidate(
     artifact: MavenArtifact,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest {
+  ): Promise<CandidateReleasePullRequest> {
     const version = updatedVersions.get(artifact.name);
     if (!version) {
       throw new Error(`Didn't find updated version for ${artifact.name}`);

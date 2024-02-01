@@ -37,6 +37,7 @@ import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import {CargoLock} from '../updaters/rust/cargo-lock';
+import {ConfigurationError} from '../errors';
 
 interface CrateInfo {
   /**
@@ -100,8 +101,16 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
     const allCrates: CrateInfo[] = [];
     const candidatesByPackage: Record<string, CandidateReleasePullRequest> = {};
-    const members = cargoManifest.workspace.members;
+
+    const members = (
+      await Promise.all(
+        cargoManifest.workspace.members.map(member =>
+          this.github.findFilesByGlobAndRef(member, this.targetBranch)
+        )
+      )
+    ).flat();
     members.push(ROOT_PROJECT_PATH);
+
     for (const path of members) {
       const manifestPath = addPath(path, 'Cargo.toml');
       this.logger.info(`looking for candidate with path: ${path}`);
@@ -129,8 +138,16 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
       const version = manifest.package?.version;
       if (!version) {
-        throw new Error(
-          `package manifest at ${manifestPath} is missing [package.version]`
+        throw new ConfigurationError(
+          `package manifest at ${manifestPath} is missing [package.version]`,
+          'cargo-workspace',
+          `${this.github.repository.owner}/${this.github.repository.repo}`
+        );
+      } else if (typeof version !== 'string') {
+        throw new ConfigurationError(
+          `package manifest at ${manifestPath} has an invalid [package.version]`,
+          'cargo-workspace',
+          `${this.github.repository.owner}/${this.github.repository.repo}`
         );
       }
       allCrates.push({
@@ -216,10 +233,10 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     return existingCandidate;
   }
 
-  protected newCandidate(
+  protected async newCandidate(
     pkg: CrateInfo,
     updatedVersions: VersionsMap
-  ): CandidateReleasePullRequest {
+  ): Promise<CandidateReleasePullRequest> {
     const version = updatedVersions.get(pkg.name);
     if (!version) {
       throw new Error(`Didn't find updated version for ${pkg.name}`);

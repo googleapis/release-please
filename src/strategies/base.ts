@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy} from '../strategy';
+import {Strategy, BuildReleaseOptions, BumpReleaseOptions} from '../strategy';
 import {GitHub} from '../github';
 import {VersioningStrategy} from '../versioning-strategy';
 import {Repository} from '../repository';
@@ -25,7 +25,7 @@ import {
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
 import {Update} from '../update';
-import {ConventionalCommit, Commit, parseConventionalCommits} from '../commit';
+import {ConventionalCommit, Commit} from '../commit';
 import {Version, VersionsMap} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
@@ -35,17 +35,19 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {BranchName} from '../util/branch-name';
 import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {PullRequest} from '../pull-request';
-import {mergeUpdates} from '../updaters/composite';
+import {CompositeUpdater, mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
+import {GenericToml} from '../updaters/generic-toml';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
 export interface BuildUpdatesOptions {
   changelogEntry: string;
+  commits?: ConventionalCommit[];
   newVersion: Version;
   versionsMap: VersionsMap;
   latestVersion?: Version;
@@ -73,6 +75,7 @@ export interface BaseStrategyOptions {
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  pullRequestFooter?: string;
   extraFiles?: ExtraFile[];
   versionFile?: string;
   snapshotLabels?: string[]; // Java-only
@@ -105,6 +108,7 @@ export abstract class BaseStrategy implements Strategy {
   protected initialVersion?: string;
   readonly pullRequestTitlePattern?: string;
   readonly pullRequestHeader?: string;
+  readonly pullRequestFooter?: string;
   readonly extraFiles: ExtraFile[];
   readonly extraLabels: string[];
 
@@ -137,6 +141,7 @@ export abstract class BaseStrategy implements Strategy {
     this.includeVInTag = options.includeVInTag ?? true;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
+    this.pullRequestFooter = options.pullRequestFooter;
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
@@ -220,7 +225,8 @@ export abstract class BaseStrategy implements Strategy {
     releaseNotesBody: string,
     _conventionalCommits: ConventionalCommit[],
     _latestRelease?: Release,
-    pullRequestHeader?: string
+    pullRequestHeader?: string,
+    pullRequestFooter?: string
   ): Promise<PullRequestBody> {
     return new PullRequestBody(
       [
@@ -230,7 +236,10 @@ export abstract class BaseStrategy implements Strategy {
           notes: releaseNotesBody,
         },
       ],
-      {header: pullRequestHeader}
+      {
+        header: pullRequestHeader,
+        footer: pullRequestFooter,
+      }
     );
   }
 
@@ -246,24 +255,22 @@ export abstract class BaseStrategy implements Strategy {
    *   open a pull request.
    */
   async buildReleasePullRequest(
-    commits: Commit[],
+    commits: ConventionalCommit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels: string[] = []
+    labels: string[] = [],
+    bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined> {
-    const conventionalCommits = await this.postProcessCommits(
-      parseConventionalCommits(commits, this.logger)
-    );
+    const conventionalCommits = await this.postProcessCommits(commits);
     this.logger.info(`Considering: ${conventionalCommits.length} commits`);
-    if (conventionalCommits.length === 0) {
+    if (!bumpOnlyOptions && conventionalCommits.length === 0) {
       this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }
 
-    const newVersion = await this.buildNewVersion(
-      conventionalCommits,
-      latestRelease
-    );
+    const newVersion =
+      bumpOnlyOptions?.newVersion ??
+      (await this.buildNewVersion(conventionalCommits, latestRelease));
     const versionsMap = await this.updateVersionsMap(
       await this.buildVersionsMap(conventionalCommits),
       conventionalCommits,
@@ -299,7 +306,7 @@ export abstract class BaseStrategy implements Strategy {
       latestRelease,
       commits
     );
-    if (this.changelogEmpty(releaseNotesBody)) {
+    if (!bumpOnlyOptions && this.changelogEmpty(releaseNotesBody)) {
       this.logger.info(
         `No user facing commits found since ${
           latestRelease ? latestRelease.sha : 'beginning of time'
@@ -312,6 +319,7 @@ export abstract class BaseStrategy implements Strategy {
       newVersion,
       versionsMap,
       latestVersion: latestRelease?.tag.version,
+      commits: conventionalCommits,
     });
     const updatesWithExtras = mergeUpdates(
       updates.concat(...(await this.extraFileUpdates(newVersion, versionsMap)))
@@ -322,7 +330,8 @@ export abstract class BaseStrategy implements Strategy {
       releaseNotesBody,
       conventionalCommits,
       latestRelease,
-      this.pullRequestHeader
+      this.pullRequestHeader,
+      this.pullRequestFooter
     );
 
     return {
@@ -395,6 +404,13 @@ export abstract class BaseStrategy implements Strategy {
                 updater: new GenericYaml(extraFile.jsonpath, version),
               });
               break;
+            case 'toml':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new GenericToml(extraFile.jsonpath, version),
+              });
+              break;
             case 'xml':
               extraFileUpdates.push({
                 path: this.addPath(path),
@@ -417,6 +433,43 @@ export abstract class BaseStrategy implements Strategy {
               );
           }
         }
+      } else if (extraFile.endsWith('.json')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new CompositeUpdater(
+            new GenericJson('$.version', version),
+            new Generic({version, versionsMap})
+          ),
+        });
+      } else if (extraFile.endsWith('.yaml') || extraFile.endsWith('.yml')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new CompositeUpdater(
+            new GenericYaml('$.version', version),
+            new Generic({version, versionsMap})
+          ),
+        });
+      } else if (extraFile.endsWith('.toml')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new CompositeUpdater(
+            new GenericToml('$.version', version),
+            new Generic({version, versionsMap})
+          ),
+        });
+      } else if (extraFile.endsWith('.xml')) {
+        extraFileUpdates.push({
+          path: this.addPath(extraFile),
+          createIfMissing: false,
+          updater: new CompositeUpdater(
+            // Updates "version" element that is a child of the root element.
+            new GenericXml('/*/version', version),
+            new Generic({version, versionsMap})
+          ),
+        });
       } else {
         extraFileUpdates.push({
           path: this.addPath(extraFile),
@@ -495,9 +548,11 @@ export abstract class BaseStrategy implements Strategy {
    * Given a merged pull request, build the candidate release.
    * @param {PullRequest} mergedPullRequest The merged release pull request.
    * @returns {Release} The candidate release.
+   * @deprecated Use buildReleases() instead.
    */
   async buildRelease(
-    mergedPullRequest: PullRequest
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
   ): Promise<Release | undefined> {
     if (this.skipGitHubRelease) {
       this.logger.info('Release skipped from strategy config');
@@ -507,6 +562,9 @@ export abstract class BaseStrategy implements Strategy {
       this.logger.error('Pull request should have been merged');
       return;
     }
+    const mergedTitlePattern =
+      options?.groupPullRequestTitlePattern ??
+      MANIFEST_PULL_REQUEST_TITLE_PATTERN;
 
     const pullRequestTitle =
       PullRequestTitle.parse(
@@ -516,7 +574,7 @@ export abstract class BaseStrategy implements Strategy {
       ) ||
       PullRequestTitle.parse(
         mergedPullRequest.title,
-        MANIFEST_PULL_REQUEST_TITLE_PATTERN,
+        mergedTitlePattern,
         this.logger
       );
     if (!pullRequestTitle) {
@@ -579,7 +637,15 @@ export abstract class BaseStrategy implements Strategy {
     if (notes === undefined) {
       this.logger.warn('Failed to find release notes');
     }
-    const version = pullRequestTitle.getVersion() || releaseData?.version;
+
+    let version: Version | undefined = pullRequestTitle.getVersion();
+    if (
+      !version ||
+      (pullRequestBody.releaseData.length > 1 && releaseData?.version)
+    ) {
+      // prioritize pull-request body version for multi-component releases
+      version = releaseData?.version;
+    }
     if (!version) {
       this.logger.error('Pull request should have included version');
       return;
@@ -606,6 +672,22 @@ export abstract class BaseStrategy implements Strategy {
       notes: notes || '',
       sha: mergedPullRequest.sha,
     };
+  }
+
+  /**
+   * Given a merged pull request, build the candidate releases.
+   * @param {PullRequest} mergedPullRequest The merged release pull request.
+   * @returns {Release} The candidate release.
+   */
+  async buildReleases(
+    mergedPullRequest: PullRequest,
+    options?: BuildReleaseOptions
+  ): Promise<Release[]> {
+    const release = await this.buildRelease(mergedPullRequest, options);
+    if (release) {
+      return [release];
+    }
+    return [];
   }
 
   isPublishedVersion(_version: Version): boolean {

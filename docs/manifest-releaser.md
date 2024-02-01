@@ -172,6 +172,9 @@ defaults (those are documented in comments)
   // absence defaults to false
   "bump-patch-for-minor-pre-major": true,
 
+  // setting the type of prerelease in case of prerelease strategy
+  "prerelease-type": "beta",
+
   // set default conventional commit => changelog sections mapping/appearance.
   // absence defaults to https://git.io/JqCZL
   "changelog-sections": [...],
@@ -239,7 +242,7 @@ defaults (those are documented in comments)
   // large numbers of packages at once.
   // absence defaults to false, causing calls to be issued concurrently.
   "sequential-calls": false,
-  
+
 
   // per package configuration: at least one entry required.
   // the key is the relative path from the repo root to the folder that contains
@@ -262,7 +265,10 @@ defaults (those are documented in comments)
     ".": {
       // overrides release-type for node
       "release-type": "node",
+      // exclude commits from that path from processing
+      "exclude-paths": ["path/to/myPyPkgA"]
     },
+
     // path segment should be relative to repository root
     "path/to/myJSPkgA": {
       // overrides release-type for node
@@ -279,10 +285,10 @@ defaults (those are documented in comments)
       "release-as": "3.2.1"
     },
 
-    "path/to/my-rust-crate", {
+    "path/to/my-rust-crate": {
       // override release-type for rust
       "release-type": "rust"
-    }
+    },
 
     "path/to/myPyPkgA": {
       // when a default release-as is set, this is how you revert to using
@@ -295,13 +301,39 @@ defaults (those are documented in comments)
       // our change log is located at path/to/myPyPkgA/docs/CHANGES.rst
       "changelog-path": "docs/CHANGES.rst"
     },
-    "path/to/github-enterprise-package", {
+
+    "path/to/github-enterprise-package": {
       // override changelog host for github enterprise package
       "changelog-host": "https://example.com"
     }
   }
 
 }
+```
+
+## Subsequent Versions
+
+release-please tries to determine the next release based on the previous tagged
+release. The default search tag looks like:
+
+```sh
+<component-name>-v<release-version>
+```
+
+In your specific tagging scheme, your tags could like `v<release-version>`. And
+this will result in an error like:
+
+```sh
+❯ looking for tagName: <component>-v<release-version>
+⚠ Expected 1 releases, only found 0
+```
+
+To fix this, component can be removed from tagName being searched using the
+`include-component-in-tag` property. Setting this to `false` will change the
+tagName to:
+
+```sh
+v<release-version>
 ```
 
 ## Manifest
@@ -333,6 +365,11 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
 name: Run Release Please
 jobs:
   release-please:
@@ -457,6 +494,23 @@ When using the `node-workspace` tool, breaking versions bumps will be included i
 your update pull request. If you don't agree with this behavior and would only like
 your local dependencies bumped if they are within the SemVer range, you can set the
 `"always-link-local"` option to `false` in your manifest config.
+
+#### Linking peer dependencies
+
+By default, the `node-workspace` plugin doesn't modify `peerDependencies` fields in
+package.json. If you would like version bumps to be also linked in `peerDependencies`
+fields, set `"updatePeerDependencies"` to `true` in your manifest plugin config.
+
+```
+{
+  "plugins": [
+    {
+      "type": "node-workspace",
+      "updatePeerDependencies": true
+    }
+  ]
+}
+```
 
 ### cargo-workspace
 

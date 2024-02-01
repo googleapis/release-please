@@ -504,6 +504,37 @@ describe('Manifest', () => {
         'lang: nodejs',
       ]);
     });
+    it('should read exclude paths from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/exclude-paths.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].excludePaths).to.deep.equal([
+        'path-root-ignore',
+      ]);
+      expect(manifest.repositoryConfig['node-lib'].excludePaths).to.deep.equal([
+        'path-ignore',
+      ]);
+    });
     it('should build simple plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
@@ -740,6 +771,36 @@ describe('Manifest', () => {
       expect(
         manifest.repositoryConfig['packages/bot-config-utils'].versioning
       ).to.eql('default');
+    });
+
+    it('should read plugins from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/node-workspace-plugins.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.plugins).lengthOf(1);
+      expect(manifest.plugins[0]).instanceOf(NodeWorkspace);
+      const workspacePlugin = manifest.plugins[0] as NodeWorkspace;
+      expect(workspacePlugin.updatePeerDependencies).to.be.true;
     });
 
     it('should throw a configuration error for a missing manifest config', async () => {
@@ -1631,6 +1692,28 @@ describe('Manifest', () => {
           'No beep boop for you'
         );
       });
+
+      it('allows customizing pull request footer', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+              pullRequestFooter: 'No reminder for you',
+            },
+          },
+          {
+            '.': Version.parse('1.0.0'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.body.footer.toString()).to.eql(
+          'No reminder for you'
+        );
+      });
     });
 
     it('should find the component from config', async () => {
@@ -1697,90 +1780,123 @@ describe('Manifest', () => {
       );
     });
 
-    it('should handle multiple package repository', async () => {
-      mockReleases(sandbox, github, [
-        {
-          id: 123456,
-          sha: 'abc123',
-          tagName: 'pkg1-v1.0.0',
-          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
-        },
-        {
-          id: 654321,
-          sha: 'def234',
-          tagName: 'pkg2-v0.2.3',
-          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
-        },
-      ]);
-      mockCommits(sandbox, github, [
-        {
-          sha: 'aaaaaa',
-          message: 'fix: some bugfix',
-          files: ['path/a/foo'],
-        },
-        {
-          sha: 'abc123',
-          message: 'chore: release main',
-          files: [],
-          pullRequest: {
-            headBranchName: 'release-please/branches/main',
-            baseBranchName: 'main',
-            number: 123,
-            title: 'chore: release main',
-            body: '',
-            labels: [],
-            files: [],
+    describe('with multiple packages', () => {
+      beforeEach(() => {
+        mockReleases(sandbox, github, [
+          {
+            id: 123456,
             sha: 'abc123',
+            tagName: 'pkg1-v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
           },
-        },
-        {
-          sha: 'bbbbbb',
-          message: 'fix: some bugfix',
-          files: ['path/b/foo'],
-        },
-        {
-          sha: 'cccccc',
-          message: 'fix: some bugfix',
-          files: ['path/a/foo'],
-        },
-        {
-          sha: 'def234',
-          message: 'chore: release main',
-          files: [],
-          pullRequest: {
-            headBranchName: 'release-please/branches/main',
-            baseBranchName: 'main',
-            number: 123,
-            title: 'chore: release main',
-            body: '',
-            labels: [],
-            files: [],
+          {
+            id: 654321,
             sha: 'def234',
+            tagName: 'pkg2-v0.2.3',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
           },
-        },
-      ]);
-      const manifest = new Manifest(
-        github,
-        'main',
-        {
-          'path/a': {
-            releaseType: 'simple',
-            component: 'pkg1',
+        ]);
+        mockCommits(sandbox, github, [
+          {
+            sha: 'aaaaaa',
+            message: 'fix: some bugfix',
+            files: ['path/a/foo'],
           },
-          'path/b': {
-            releaseType: 'simple',
-            component: 'pkg2',
+          {
+            sha: 'abc123',
+            message: 'chore: release main',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release main',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'abc123',
+            },
           },
-        },
-        {
-          'path/a': Version.parse('1.0.0'),
-          'path/b': Version.parse('0.2.3'),
-        }
-      );
-      const pullRequests = await manifest.buildPullRequests();
-      expect(pullRequests).lengthOf(1);
-      expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
-      snapshot(dateSafe(pullRequests[0].body.toString()));
+          {
+            sha: 'bbbbbb',
+            message: 'fix: some bugfix',
+            files: ['path/b/foo'],
+          },
+          {
+            sha: 'cccccc',
+            message: 'fix: some bugfix',
+            files: ['path/a/foo'],
+          },
+          {
+            sha: 'def234',
+            message: 'chore: release main',
+            files: [],
+            pullRequest: {
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              number: 123,
+              title: 'chore: release main',
+              body: '',
+              labels: [],
+              files: [],
+              sha: 'def234',
+            },
+          },
+        ]);
+      });
+      it('should handle multiple package repository', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'simple',
+              component: 'pkg1',
+            },
+            'path/b': {
+              releaseType: 'simple',
+              component: 'pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        expect(pullRequests[0].labels).to.eql(['autorelease: pending']);
+        snapshot(dateSafe(pullRequests[0].body.toString()));
+      });
+
+      it('should handle pull request header/footer with multiple packages', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'simple',
+              component: 'pkg1',
+              pullRequestHeader: 'Header from pkg1',
+            },
+            'path/b': {
+              releaseType: 'simple',
+              component: 'pkg2',
+              pullRequestHeader: 'Header from pkg2',
+              pullRequestFooter: 'Footer from pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.body.header.toString()).to.eql('Header from pkg1');
+        expect(pullRequest.body.footer.toString()).to.eql('Footer from pkg2');
+      });
     });
 
     it('should allow creating multiple pull requests', async () => {
@@ -2724,7 +2840,7 @@ describe('Manifest', () => {
         mockCommits(sandbox, github, [
           {
             sha: 'aaaaaa',
-            message: 'fix: some bugfix',
+            message: 'fix: some bugfix\nfix:another fix',
             files: ['path/a/foo'],
           },
           {
@@ -2854,14 +2970,13 @@ describe('Manifest', () => {
       });
 
       it('should apply plugin hook "processCommits"', async () => {
-        const mockPlugin = sandbox.createStubInstance(SentenceCase);
-        mockPlugin.run.returnsArg(0);
-        mockPlugin.preconfigure.returnsArg(0);
-        mockPlugin.processCommits.returnsArg(0);
+        const spyPlugin = sinon.spy(new SentenceCase(github, 'main', {}));
         sandbox
           .stub(pluginFactory, 'buildPlugin')
           .withArgs(sinon.match.has('type', 'sentence-case'))
-          .returns(mockPlugin);
+          // TS compiler is having issues with sinon.spy.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .returns(spyPlugin as any as InstanceType<typeof SentenceCase>);
         const manifest = new Manifest(
           github,
           'main',
@@ -2881,7 +2996,34 @@ describe('Manifest', () => {
         );
         const pullRequests = await manifest.buildPullRequests();
         expect(pullRequests).not.empty;
-        sinon.assert.calledOnce(mockPlugin.processCommits);
+        // This assertion verifies that conventional commit parsing
+        // was applied before calling the processCommits plugin hook:
+        sinon.assert.calledWith(spyPlugin.processCommits, [
+          {
+            sha: 'aaaaaa',
+            message: 'fix: Another fix',
+            files: ['path/a/foo'],
+            pullRequest: undefined,
+            type: 'fix',
+            scope: null,
+            bareMessage: 'Another fix',
+            notes: [],
+            references: [],
+            breaking: false,
+          },
+          {
+            sha: 'aaaaaa',
+            message: 'fix: Some bugfix',
+            files: ['path/a/foo'],
+            pullRequest: undefined,
+            type: 'fix',
+            scope: null,
+            bareMessage: 'Some bugfix',
+            notes: [],
+            references: [],
+            breaking: false,
+          },
+        ]);
       });
     });
 
@@ -4996,6 +5138,139 @@ describe('Manifest', () => {
       expect(releases[0].path).to.eql('.');
     });
 
+    it('should handle customized group pull request title', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release v3.3.0',
+            body: pullRequestBody('release-notes/multiple-with-root.txt'),
+            labels: ['autorelease: pending'],
+            files: [
+              'package.json',
+              'packages/bot-config-utils/package.json',
+              'packages/label-utils/package.json',
+              'packages/object-selector/package.json',
+              'packages/datastore-lock/package.json',
+            ],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(JSON.stringify({name: '@google-automations/all'}))
+        )
+        .withArgs('packages/bot-config-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/bot-config-utils'})
+          )
+        )
+        .withArgs('packages/label-utils/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/label-utils'})
+          )
+        )
+        .withArgs('packages/object-selector/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/object-selector'})
+          )
+        )
+        .withArgs('packages/datastore-lock/package.json', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            JSON.stringify({name: '@google-automations/datastore-lock'})
+          )
+        );
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'node',
+            component: '@google-automations/all',
+            includeComponentInTag: false,
+          },
+          'packages/bot-config-utils': {
+            releaseType: 'node',
+          },
+          'packages/label-utils': {
+            releaseType: 'node',
+          },
+          'packages/object-selector': {
+            releaseType: 'node',
+          },
+          'packages/datastore-lock': {
+            releaseType: 'node',
+          },
+        },
+        {
+          '.': Version.parse('3.2.0'),
+          'packages/bot-config-utils': Version.parse('3.1.4'),
+          'packages/label-utils': Version.parse('1.0.1'),
+          'packages/object-selector': Version.parse('1.0.2'),
+          'packages/datastore-lock': Version.parse('2.0.0'),
+        },
+        {
+          groupPullRequestTitlePattern: 'chore: release v${version}',
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(5);
+      // 3.3.0
+      expect(releases[0].tag.toString()).to.eql('v3.3.0');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[0].path).to.eql('.');
+      expect(releases[0].name).to.eql('v3.3.0');
+      // @google-automations/bot-config-utils: 3.2.0
+      expect(releases[1].tag.toString()).to.eql('bot-config-utils-v3.2.0');
+      expect(releases[1].sha).to.eql('abc123');
+      expect(releases[1].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[1].path).to.eql('packages/bot-config-utils');
+      expect(releases[1].name).to.eql('bot-config-utils: v3.2.0');
+      // @google-automations/label-utils: 1.1.0
+      expect(releases[2].tag.toString()).to.eql('label-utils-v1.1.0');
+      expect(releases[2].sha).to.eql('abc123');
+      expect(releases[2].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[2].path).to.eql('packages/label-utils');
+      expect(releases[2].name).to.eql('label-utils: v1.1.0');
+      // @google-automations/object-selector: 1.1.0
+      expect(releases[3].tag.toString()).to.eql('object-selector-v1.1.0');
+      expect(releases[3].sha).to.eql('abc123');
+      expect(releases[3].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[3].path).to.eql('packages/object-selector');
+      expect(releases[3].name).to.eql('object-selector: v1.1.0');
+      // @google-automations/datastore-lock: 2.1.0
+      expect(releases[4].tag.toString()).to.eql('datastore-lock-v2.1.0');
+      expect(releases[4].sha).to.eql('abc123');
+      expect(releases[4].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### Features'));
+      expect(releases[4].path).to.eql('packages/datastore-lock');
+      expect(releases[4].name).to.eql('datastore-lock: v2.1.0');
+    });
+
     it('should skip component releases for non-component configs', async () => {
       mockPullRequests(
         github,
@@ -5059,6 +5334,7 @@ describe('Manifest', () => {
               '[HOTFIX] - chore${scope}: release${component} ${version}',
             packageName: 'my-package-name',
             includeComponentInTag: false,
+            prerelease: undefined,
           },
         },
         {
