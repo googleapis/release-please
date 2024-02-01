@@ -160,6 +160,9 @@ export abstract class BaseStrategy implements Strategy {
    * @returns {string}
    */
   async getComponent(): Promise<string | undefined> {
+    // if (!this.includeComponentInTag) {
+    //   return '';
+    // }
     return this.component || (await this.getDefaultComponent());
   }
 
@@ -621,7 +624,7 @@ export abstract class BaseStrategy implements Strategy {
       releaseData = pullRequestBody.releaseData.find(datum => {
         return (
           this.normalizeComponent(datum.component) ===
-          this.normalizeComponent(component)
+          this.normalizeComponent(this.includeComponentInTag ? component : '')
         );
       });
 

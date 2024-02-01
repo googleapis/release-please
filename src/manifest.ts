@@ -675,7 +675,9 @@ export class Manifest {
       ) {
         const version = this.releasedVersions[path];
         const strategy = strategiesByPath[path];
-        const component = await strategy.getComponent();
+        const component = this.modifyComponentIfNotIncludedInTag(
+          await strategy.getComponent()
+        );
         this.logger.info(
           `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
         );
@@ -809,7 +811,9 @@ export class Manifest {
         this.logger.warn(`No version for path ${path}`);
         continue;
       }
-      const component = await strategiesByPath[path].getComponent();
+      const component = this.modifyComponentIfNotIncludedInTag(
+        await strategiesByPath[path].getComponent()
+      );
       const expectedTag = new TagName(
         expectedVersion,
         component,
@@ -832,9 +836,9 @@ export class Manifest {
           this.repositoryConfig[path].skipGithubRelease
         ) {
           this.logger.debug('could not find release, checking root package');
-          const rootComponent = await strategiesByPath[
-            ROOT_PROJECT_PATH
-          ].getComponent();
+          const rootComponent = this.modifyComponentIfNotIncludedInTag(
+            await strategiesByPath[ROOT_PROJECT_PATH].getComponent()
+          );
           const rootTag = new TagName(
             expectedVersion,
             rootComponent,
@@ -1291,13 +1295,29 @@ export class Manifest {
     return this._strategiesByPath;
   }
 
+  private modifyComponentIfNotIncludedInTag(component: string | undefined) {
+    if (component) {
+      for (const property in this.repositoryConfig) {
+        if (
+          this.repositoryConfig[property]?.component === component &&
+          this.repositoryConfig[property]?.includeComponentInTag === false
+        ) {
+          component = '';
+        }
+      }
+    }
+    return component;
+  }
   private async getPathsByComponent(): Promise<Record<string, string>> {
     if (!this._pathsByComponent) {
       this._pathsByComponent = {};
       const strategiesByPath = await this.getStrategiesByPath();
       for (const path in this.repositoryConfig) {
         const strategy = strategiesByPath[path];
-        const component = (await strategy.getComponent()) || '';
+        const component =
+          this.modifyComponentIfNotIncludedInTag(
+            await strategy.getComponent()
+          ) || '';
         if (this._pathsByComponent[component]) {
           this.logger.warn(
             `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`
