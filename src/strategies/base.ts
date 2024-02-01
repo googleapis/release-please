@@ -160,9 +160,7 @@ export abstract class BaseStrategy implements Strategy {
    * @returns {string}
    */
   async getComponent(): Promise<string | undefined> {
-    return !this.includeComponentInTag
-      ? this.component
-      : await this.getDefaultComponent();
+    return this.component ?? (await this.getDefaultComponent());
   }
 
   async getDefaultComponent(): Promise<string | undefined> {
