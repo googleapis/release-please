@@ -18,6 +18,7 @@ import {
   BuildNotesOptions,
 } from '../changelog-notes';
 import {ConventionalCommit} from '../commit';
+import {logger} from '../util/logger';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalChangelogWriter = require('conventional-changelog-writer');
@@ -73,35 +74,48 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       this.headerPartial || preset.writerOpts.headerPartial;
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
-    const changelogCommits = commits.map(commit => {
-      const notes = commit.notes
-        .filter(note => note.title === 'BREAKING CHANGE')
-        .map(note =>
-          replaceIssueLink(
-            note,
-            context.host,
-            context.owner,
-            context.repository
-          )
-        );
-      return {
-        body: '', // commit.body,
-        subject: htmlEscape(commit.bareMessage),
-        type: commit.type,
-        scope: commit.scope,
-        notes,
-        references: commit.references,
-        mentions: [],
-        merge: null,
-        revert: null,
-        header: commit.message,
-        footer: commit.notes
-          .filter(note => note.title === 'RELEASE AS')
-          .map(note => `Release-As: ${note.text}`)
-          .join('\n'),
-        hash: commit.sha,
-      };
-    });
+    const changelogCommits = commits
+      // Filter out commits that are just release commits, they shouldn't be part of the changelog
+      .filter(commit => {
+        const shouldIgnore = commit.message
+          .trim()
+          .startsWith('chore: release ');
+        if (shouldIgnore) {
+          logger.debug(
+            `changelog: ignoring commit '${commit.message}' (${commit.sha})`
+          );
+        }
+        return !shouldIgnore;
+      })
+      .map(commit => {
+        const notes = commit.notes
+          .filter(note => note.title === 'BREAKING CHANGE')
+          .map(note =>
+            replaceIssueLink(
+              note,
+              context.host,
+              context.owner,
+              context.repository
+            )
+          );
+        return {
+          body: '', // commit.body,
+          subject: htmlEscape(commit.bareMessage),
+          type: commit.type,
+          scope: commit.scope,
+          notes,
+          references: commit.references,
+          mentions: [],
+          merge: null,
+          revert: null,
+          header: commit.message,
+          footer: commit.notes
+            .filter(note => note.title === 'RELEASE AS')
+            .map(note => `Release-As: ${note.text}`)
+            .join('\n'),
+          hash: commit.sha,
+        };
+      });
 
     const result = conventionalChangelogWriter
       .parseArray(changelogCommits, context, preset.writerOpts)

@@ -127,6 +127,39 @@ describe('DefaultChangelogNotes', () => {
       expect(notes).to.is.string;
       safeSnapshot(notes);
     });
+    it('should ignore "chore: release" commits', async () => {
+      const commits = [
+        {
+          sha: 'sha1',
+          message: 'chore: some chore',
+          files: ['path1/file1.rb'],
+          type: 'chore',
+          scope: null,
+          bareMessage: 'some chore',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+        {
+          sha: 'sha2',
+          message: 'chore: release main',
+          files: ['path1/file1.rb'],
+          type: 'chore',
+          scope: null,
+          bareMessage: 'release main',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const changelogNotes = new DefaultChangelogNotes();
+      const notes = await changelogNotes.buildNotes(commits, {
+        ...notesOptions,
+        changelogSections: [{type: 'chore', section: 'Chores', hidden: false}],
+      });
+      expect(notes).to.is.string;
+      safeSnapshot(notes);
+    });
     describe('with commit parsing', () => {
       it('should handle a breaking change', async () => {
         const commits = [buildMockCommit('fix!: some bugfix')];
