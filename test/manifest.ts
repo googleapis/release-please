@@ -5057,8 +5057,7 @@ describe('Manifest', () => {
         [],
         [
           {
-            headBranchName:
-              'release-please--branches--main--components',
+            headBranchName: 'release-please--branches--main--components',
             baseBranchName: 'main',
             number: 1234,
             title: 'chore(main): release v1.3.1',
