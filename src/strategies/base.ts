@@ -173,6 +173,9 @@ export abstract class BaseStrategy implements Strategy {
   }
 
   async getBranchComponent(): Promise<string | undefined> {
+    if (!this.includeComponentInTag) {
+      return '';
+    }
     return this.component || (await this.getDefaultComponent());
   }
 

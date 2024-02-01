@@ -3487,7 +3487,7 @@ describe('Manifest', () => {
         );
         const mainPullRequest = pullRequests[1];
         expect(mainPullRequest.headRefName).to.eql(
-          'release-please--branches--main--components--d'
+          'release-please--branches--main'
         );
       });
     });
@@ -4667,7 +4667,7 @@ describe('Manifest', () => {
         [],
         [
           {
-            headBranchName: 'release-please--branches--main--components--foo',
+            headBranchName: 'release-please--branches--main',
             baseBranchName: 'main',
             number: 1234,
             title: 'chore(main): release 3.2.7',
@@ -5058,7 +5058,7 @@ describe('Manifest', () => {
         [
           {
             headBranchName:
-              'release-please--branches--main--components--release-brancher',
+              'release-please--branches--main--components',
             baseBranchName: 'main',
             number: 1234,
             title: 'chore(main): release v1.3.1',
@@ -5313,7 +5313,7 @@ describe('Manifest', () => {
         [
           {
             headBranchName:
-              'release-please--branches--hotfix/v3.1.0-bug--components--my-package-name',
+              'release-please--branches--hotfix/v3.1.0-bug--components',
             baseBranchName: 'hotfix/v3.1.0-bug',
             number: 1234,
             title: '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1',
