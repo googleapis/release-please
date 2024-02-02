@@ -1969,6 +1969,60 @@ describe('Manifest', () => {
       snapshot(dateSafe(pullRequests[0].body.toString()));
     });
 
+    it('should ignore multiple package release commits', async () => {
+      mockReleases(sandbox, github, [
+        {
+          id: 123456,
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          id: 654321,
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
+        },
+      ]);
+      mockCommits(sandbox, github, [
+        {
+          sha: 'def234',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release main',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.0'),
+          'path/b': Version.parse('0.2.3'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests([], []);
+      expect(pullRequests).lengthOf(0);
+    });
+
     it('should allow creating multiple pull requests', async () => {
       mockReleases(sandbox, github, [
         {

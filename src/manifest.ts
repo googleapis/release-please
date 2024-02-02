@@ -742,7 +742,12 @@ export class Manifest {
     // Filter out commits that are just release commits for multiple packages
     for (const [path, commits] of Object.entries(commitsPerPath)) {
       commitsPerPath[path] = commits.filter(commit => {
-        if (commit.message.trim().startsWith('chore: release ')) {
+        if (
+          commit.pullRequest?.baseBranchName &&
+          commit.message
+            .trim()
+            .startsWith(`chore: release ${commit.pullRequest.baseBranchName}`)
+        ) {
           this.logger.debug(
             `ignoring release commit for multi-packages PR: '${commit.message}' (${commit.sha})`
           );
