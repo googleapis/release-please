@@ -260,6 +260,9 @@ defaults (those are documented in comments)
   //                     Defaults to "https://github.com". E.g. for a commit of
   //                     "abc123", it's hyperlink in changelog is
   //                     https://github.com/<org>/<repo>/commit/abc123
+  // - "include-component-in-tag": Include component name in tagName.
+  //                               Defaults to true. E.g. set to false to
+  //                               change tag name to "v<release-version>"
   "packages": {
     // `.` is a special case for handling to root of the repository
     ".": {
