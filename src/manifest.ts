@@ -738,6 +738,20 @@ export class Manifest {
         releaseShasByPath[path]
       );
     }
+
+    // Filter out commits that are just release commits for multiple packages
+    for (const [path, commits] of Object.entries(commitsPerPath)) {
+      commitsPerPath[path] = commits.filter(commit => {
+        if (commit.message.trim().startsWith('chore: release ')) {
+          this.logger.debug(
+            `ignoring release commit for multi-packages PR: '${commit.message}' (${commit.sha})`
+          );
+          return false;
+        }
+        return true;
+      });
+    }
+
     const commitExclude = new CommitExclude(this.repositoryConfig);
     commitsPerPath = commitExclude.excludeCommits(commitsPerPath);
 
