@@ -120,7 +120,6 @@ export class Merge extends ManifestPlugin {
         this.headBranchName ??
         (this.packageName
           ? BranchName.ofComponentTargetBranch(
-              // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
               this.packageName,
               this.targetBranch
             ).toString()
