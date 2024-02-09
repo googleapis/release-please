@@ -29,6 +29,7 @@ import {
   mockTags,
   assertNoHasUpdate,
   mockReleaseData,
+  stubFilesFromFixtures,
 } from './helpers';
 import {expect} from 'chai';
 import * as assert from 'assert';
@@ -5518,6 +5519,147 @@ describe('Manifest', () => {
         .and.satisfy((msg: string) => msg.startsWith('### Features'));
       expect(releases[3].path).to.eql('packages/datastore-lock');
       expect(releases[3].name).to.eql('datastore-lock: v2.1.0');
+    });
+
+    it('should handle skipped component in single manifest PR', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main--components--foo',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody('release-notes/single.txt'),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        targetBranch: 'main',
+        fixturePath: 'unused',
+        files: [],
+        inlineFiles: [
+          [
+            'foo/package.json',
+            '{"name": "@namespace/foo", "version": "3.2.6"}',
+          ],
+          [
+            'bar/package.json',
+            '{"name": "@namespace/bar", "version": "1.0.0"}',
+          ],
+        ],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          foo: {
+            releaseType: 'node',
+            includeComponentInTag: false,
+          },
+          bar: {
+            releaseType: 'node',
+            includeComponentInTag: true,
+          },
+        },
+        {
+          foo: Version.parse('3.2.6'),
+          bar: Version.parse('1.0.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(1);
+      expect(releases[0].tag.toString()).to.eql('v3.2.7');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+      expect(releases[0].path).to.eql('foo');
+      expect(releases[0].name).to.eql('v3.2.7');
+      expect(releases[0].draft).to.be.undefined;
+      expect(releases[0].prerelease).to.be.undefined;
+    });
+
+    it('should handle skipped component in multiple manifest PR', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please--branches--main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: pullRequestBody(
+              'release-notes/multiple-with-no-component.txt'
+            ),
+            labels: ['autorelease: pending'],
+            files: [],
+            sha: 'abc123',
+          },
+        ]
+      );
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        targetBranch: 'main',
+        fixturePath: 'unused',
+        files: [],
+        inlineFiles: [
+          [
+            'foo/package.json',
+            '{"name": "@namespace/foo", "version": "3.2.6"}',
+          ],
+          [
+            'bar/package.json',
+            '{"name": "@namespace/bar", "version": "1.0.0"}',
+          ],
+        ],
+      });
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          foo: {
+            releaseType: 'node',
+            includeComponentInTag: false,
+          },
+          bar: {
+            releaseType: 'node',
+            includeComponentInTag: true,
+          },
+        },
+        {
+          foo: Version.parse('3.2.6'),
+          bar: Version.parse('1.0.0'),
+        }
+      );
+      const releases = await manifest.buildReleases();
+      expect(releases).lengthOf(2);
+      expect(releases[0].tag.toString()).to.eql('v3.2.7');
+      expect(releases[0].sha).to.eql('abc123');
+      expect(releases[0].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### [3.2.7]'));
+      expect(releases[0].path).to.eql('foo');
+      expect(releases[0].name).to.eql('v3.2.7');
+      expect(releases[0].draft).to.be.undefined;
+      expect(releases[0].prerelease).to.be.undefined;
+      expect(releases[1].tag.toString()).to.eql('bar-v1.0.1');
+      expect(releases[1].sha).to.eql('abc123');
+      expect(releases[1].notes)
+        .to.be.a('string')
+        .and.satisfy((msg: string) => msg.startsWith('### [1.0.1]'));
+      expect(releases[1].path).to.eql('bar');
+      expect(releases[1].name).to.eql('bar: v1.0.1');
+      expect(releases[1].draft).to.be.undefined;
+      expect(releases[1].prerelease).to.be.undefined;
     });
   });
 

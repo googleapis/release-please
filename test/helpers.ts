@@ -42,6 +42,7 @@ import {CompositeUpdater} from '../src/updaters/composite';
 import {PullRequestOverflowHandler} from '../src/util/pull-request-overflow-handler';
 import {ReleasePullRequest} from '../src/release-pull-request';
 import {PullRequest} from '../src/pull-request';
+import {FileNotFoundError} from '../src/errors';
 
 export function stubSuggesterWithSnapshot(
   sandbox: sinon.SinonSandbox,
@@ -236,7 +237,7 @@ export function stubFilesFromFixtures(options: StubFiles) {
   for (const [file, content] of inlineFiles) {
     stub.withArgs(file, targetBranch).resolves(buildGitHubFileRaw(content));
   }
-  stub.rejects(Object.assign(Error('not found'), {status: 404}));
+  stub.rejects(new FileNotFoundError('somepath'));
 }
 
 // get list of files in a directory

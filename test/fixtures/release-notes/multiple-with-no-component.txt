@@ -1,0 +1,26 @@
+:robot: I have created a release \*beep\* \*boop\*
+---
+<details><summary>3.2.7</summary>
+
+### [3.2.7](https://www.github.com/googleapis/java-asset/compare/v3.2.6...v3.2.7) (2021-10-20)
+
+
+### Dependencies
+
+* update dependency com.google.api.grpc:proto-google-cloud-orgpolicy-v1 to v2.0.6 ([#980](https://www.github.com/googleapis/java-asset/issues/980)) ([710bb59](https://www.github.com/googleapis/java-asset/commit/710bb59c17da57f1104a84f8e44ada7c7fc9a59f))
+* update dependency com.google.api.grpc:proto-google-cloud-os-config-v1 to v2.2.2 ([#981](https://www.github.com/googleapis/java-asset/issues/981)) ([5495310](https://www.github.com/googleapis/java-asset/commit/5495310b7abf3a3dfa6878fc20e12ac3f268c93f))
+</details>
+<details><summary>bar: 1.0.1</summary>
+
+
+### [1.0.1](https://www.github.com/googleapis/java-asset/compare/bar-v1.0.0...vbar-v1.0.1) (2021-10-20)
+
+
+### Dependencies
+
+* update dependency com.google.api.grpc:proto-google-cloud-orgpolicy-v1 to v2.0.6 ([#980](https://www.github.com/googleapis/java-asset/issues/980)) ([710bb59](https://www.github.com/googleapis/java-asset/commit/710bb59c17da57f1104a84f8e44ada7c7fc9a59f))
+* update dependency com.google.api.grpc:proto-google-cloud-os-config-v1 to v2.2.2 ([#981](https://www.github.com/googleapis/java-asset/issues/981)) ([5495310](https://www.github.com/googleapis/java-asset/commit/5495310b7abf3a3dfa6878fc20e12ac3f268c93f))
+</details>
+
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
