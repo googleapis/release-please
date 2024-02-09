@@ -97,6 +97,53 @@ describe('Merge plugin', () => {
       assertHasUpdate(updates, 'path1/foo', CompositeUpdater);
       assertHasUpdate(updates, 'path2/foo', RawContent);
       snapshot(dateSafe(candidate!.pullRequest.body.toString()));
+      expect(
+        newCandidates[0].pullRequest.headRefName ===
+          'release-please--branches--main'
+      );
+    });
+
+    it('merges multiple pull requests into an aggregate and uses packageName as default for branch name if present', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('python', 'python', '1.0.0', {
+          component: 'python-pkg',
+          updates: [
+            {
+              path: 'path1/foo',
+              createIfMissing: false,
+              updater: new RawContent('foo'),
+            },
+          ],
+        }),
+        buildMockCandidatePullRequest('node', 'node', '3.3.4', {
+          component: '@here/pkgA',
+          updates: [
+            {
+              path: 'path1/foo',
+              createIfMissing: false,
+              updater: new RawContent('bar'),
+            },
+            {
+              path: 'path2/foo',
+              createIfMissing: false,
+              updater: new RawContent('asdf'),
+            },
+          ],
+        }),
+      ];
+      const plugin = new Merge(github, 'main', {}, {packageName: '@here/pkgA'});
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const candidate = newCandidates[0];
+      const updates = candidate!.pullRequest.updates;
+      expect(updates).lengthOf(2);
+      assertHasUpdate(updates, 'path1/foo', CompositeUpdater);
+      assertHasUpdate(updates, 'path2/foo', RawContent);
+      snapshot(dateSafe(candidate!.pullRequest.body.toString()));
+      expect(
+        newCandidates[0].pullRequest.headRefName ===
+          'release-please--branches--main--components--@here/pkgA'
+      );
     });
 
     it('merges multiple pull requests as a draft', async () => {

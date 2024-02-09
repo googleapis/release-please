@@ -776,6 +776,9 @@ export class Manifest {
         ) {
           mergeOptions.pullRequestFooter = config.pullRequestFooter;
         }
+        if ('packageName' in config) {
+          mergeOptions.packageName = config.packageName;
+        }
       }
       this.plugins.push(
         new Merge(

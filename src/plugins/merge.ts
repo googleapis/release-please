@@ -27,6 +27,7 @@ import {mergeUpdates} from '../updaters/composite';
 import {GitHub} from '../github';
 
 export interface MergeOptions {
+  packageName?: string;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
@@ -46,6 +47,7 @@ export class Merge extends ManifestPlugin {
   private pullRequestFooter?: string;
   private headBranchName?: string;
   private forceMerge: boolean;
+  private packageName: string;
 
   constructor(
     github: GitHub,
@@ -60,6 +62,7 @@ export class Merge extends ManifestPlugin {
     this.pullRequestFooter = options.pullRequestFooter;
     this.headBranchName = options.headBranchName;
     this.forceMerge = options.forceMerge ?? false;
+    this.packageName = options.packageName ?? '';
   }
 
   async run(
@@ -83,7 +86,6 @@ export class Merge extends ManifestPlugin {
       },
       [[], []]
     );
-
     const releaseData: ReleaseData[] = [];
     const labels = new Set<string>();
     let rawUpdates: Update[] = [];
@@ -100,7 +102,6 @@ export class Merge extends ManifestPlugin {
       }
     }
     const updates = mergeUpdates(rawUpdates);
-
     const pullRequest = {
       title: PullRequestTitle.ofComponentTargetBranchVersion(
         rootRelease?.pullRequest.title.component,
@@ -117,7 +118,13 @@ export class Merge extends ManifestPlugin {
       labels: Array.from(labels),
       headRefName:
         this.headBranchName ??
-        BranchName.ofTargetBranch(this.targetBranch).toString(),
+        (this.packageName
+          ? BranchName.ofComponentTargetBranch(
+              // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+              this.packageName,
+              this.targetBranch
+            ).toString()
+          : BranchName.ofTargetBranch(this.targetBranch).toString()),
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
     };
 
