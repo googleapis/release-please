@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "prerelease": true,
+  "include-component-in-tag": false,
+  "packages": {
+    "packages/bot-config-utils": {
+    },
+    "packages/cron-utils": {
+    }
+  }
+}

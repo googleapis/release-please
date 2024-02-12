@@ -1,0 +1,7 @@
+{
+  "extends": "https://example.com",
+  "packages": {
+    "packages/bot-config-utils": {
+    }
+  }
+}

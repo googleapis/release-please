@@ -733,7 +733,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       versionFile: argv.versionFile,
     };
     if (argv.dryRun) {
-      const pullRequest = await await bootstrapper.buildPullRequest(
+      const pullRequest = await bootstrapper.buildPullRequest(
         path,
         releaserConfig
       );

@@ -47,6 +47,7 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
+import {applyExtends} from './util/apply-extends';
 
 type ExtraJsonFile = {
   type: 'json';
@@ -1372,7 +1373,8 @@ async function parseConfig(
   onlyPath?: string,
   releaseAs?: string
 ): Promise<{config: RepositoryConfig; options: ManifestOptions}> {
-  const config = await fetchManifestConfig(github, configFile, branch);
+  const rawConfig = await fetchManifestConfig(github, configFile, branch);
+  const config = await applyExtends(rawConfig, github, branch);
   const defaultConfig = extractReleaserConfig(config);
   const repositoryConfig: RepositoryConfig = {};
   for (const path in config.packages) {

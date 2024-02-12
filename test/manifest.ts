@@ -190,6 +190,114 @@ describe('Manifest', () => {
       expect(Object.keys(manifest.repositoryConfig)).lengthOf(8);
       expect(Object.keys(manifest.releasedVersions)).lengthOf(8);
     });
+
+    describe('should handle `extends`', () => {
+      it('processes local (same repo) references', async () => {
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
+        );
+        getFileContentsStub
+          .withArgs('config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+          )
+          .withArgs('release-please-config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/config/config-with-local-extends.json'
+            )
+          )
+          .withArgs('.release-please-manifest.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/versions/versions.json'
+            )
+          );
+        const manifest = await Manifest.fromManifest(
+          github,
+          github.repository.defaultBranch
+        );
+        expect(
+          manifest.repositoryConfig['packages/bot-config-utils'].prerelease
+        ).to.be.undefined;
+        expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      });
+      it('processes remote github-hosted references', async () => {
+        nock('https://raw.githubusercontent.com/')
+          .get('/owner/repo/main/release-please-config.json')
+          .reply(
+            200,
+            readFileSync(
+              resolve(fixturesPath, 'manifest/config/config-remote.json')
+            )
+          );
+
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
+        );
+        getFileContentsStub
+          .withArgs('release-please-config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/config/config-with-remote-extends.json'
+            )
+          )
+          .withArgs('.release-please-manifest.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/versions/versions.json'
+            )
+          );
+        const manifest = await Manifest.fromManifest(
+          github,
+          github.repository.defaultBranch
+        );
+        expect(
+          manifest.repositoryConfig['packages/bot-config-utils'].prerelease
+        ).to.be.true;
+        expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      });
+      it('throws error otherwise', async () => {
+        const getFileContentsStub = sandbox.stub(
+          github,
+          'getFileContentsOnBranch'
+        );
+        getFileContentsStub
+          .withArgs('release-please-config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/config/config-with-broken-extends.json'
+            )
+          )
+          .withArgs('.release-please-manifest.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/versions/versions.json'
+            )
+          );
+
+        try {
+          await Manifest.fromManifest(
+            github,
+            github.repository.defaultBranch
+          );
+          expect(true).to.be.false;
+        } catch (e: any) {
+          expect(e.message).to.eql(
+            "unsupported 'extends' argument: https://example.com"
+          );
+        }
+      });
+    });
+
     it('should limit manifest loading to the given path', async () => {
       const getFileContentsStub = sandbox.stub(
         github,

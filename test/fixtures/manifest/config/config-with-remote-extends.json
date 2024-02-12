@@ -1,0 +1,7 @@
+{
+  "extends": "owner/repo/main",
+  "packages": {
+    "packages/bot-config-utils": {
+    }
+  }
+}
