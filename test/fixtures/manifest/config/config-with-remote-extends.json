@@ -1,5 +1,5 @@
 {
-  "extends": "owner/repo/main",
+  "extends": "owner/repo@main",
   "packages": {
     "packages/bot-config-utils": {
     }

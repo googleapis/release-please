@@ -285,14 +285,11 @@ describe('Manifest', () => {
           );
 
         try {
-          await Manifest.fromManifest(
-            github,
-            github.repository.defaultBranch
-          );
+          await Manifest.fromManifest(github, github.repository.defaultBranch);
           expect(true).to.be.false;
         } catch (e: any) {
           expect(e.message).to.eql(
-            "unsupported 'extends' argument: https://example.com"
+            "config: unsupported 'extends' argument: https://example.com"
           );
         }
       });

@@ -16,6 +16,14 @@ import {populate} from '@topoconfig/extends';
 import {type ManifestConfig, DEFAULT_RELEASE_PLEASE_CONFIG} from '../manifest';
 import type {GitHub} from '../github';
 import {http} from './http-api';
+import * as path from 'path';
+
+type GhResource = {
+  repo: string;
+  owner: string;
+  branch: string;
+  file: string;
+};
 
 export const applyExtends = async (
   config: ManifestConfig,
@@ -23,28 +31,72 @@ export const applyExtends = async (
   branch: string
 ): Promise<ManifestConfig> => {
   return populate(config, {
-    resolve(id: string) {
-      if (id.startsWith('./')) {
-        return id.slice(2);
-      }
-
-      const [_, owner, repo, _branch = branch] =
-        /^([a-z0-9_-]+)\/(\.?[a-z0-9_-]+)(?:\/([a-z0-9_-]+))?$/i.exec(id) || [];
-      if (_) {
-        return `https://raw.githubusercontent.com/${owner}/${repo}/${_branch}/${DEFAULT_RELEASE_PLEASE_CONFIG}`;
-      }
-
-      throw new Error(`unsupported 'extends' argument: ${id}`);
+    resolve({id}) {
+      return resolveRef(id, branch);
     },
-    async load(id, _, base) {
-      if (base.startsWith('https:')) {
-        return http.getJson<ManifestConfig>(`${base}/${id}`);
+    async load({resolved, cwd}) {
+      if (cwd.startsWith('https:')) {
+        return http.getJson<ManifestConfig>(`${cwd}/${resolved}`);
       }
-
-      return github.getFileJson<ManifestConfig>(id, branch);
+      return github.getFileJson<ManifestConfig>(resolved, branch);
     },
-    parse(v) {
-      return v;
+    parse({contents}) {
+      return contents;
     },
   });
+};
+
+export const resolveRef = (id: string, branch: string): string => {
+  if (id.startsWith('./')) {
+    return id.slice(2);
+  }
+
+  const ref = parseGithubRef(id, branch);
+  if (!ref) {
+    throw new Error(`config: unsupported 'extends' argument: ${id}`);
+  }
+
+  const {owner, repo, branch: _branch, file} = ref;
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${_branch}/${file}`;
+};
+
+// https://github.com/googleapis/release-please/pull/2222#discussion_r1486658546
+// owner/repo/path/to/file.json@branchOrSha
+// owner/repo:path/to/file.json@branchOrSha
+const githubRefPattern =
+  /^([a-z0-9_-]+)\/(\.?[a-z0-9_-]+)(?:[/:]([a-z0-9/._-]+))?(?:@([a-z0-9._-]+))?$/i;
+
+// https://docs.renovatebot.com/config-presets/#github
+const renovateLikePattern =
+  /^github>([a-z0-9_-]+)\/(\.?[a-z0-9_-]+)(?::([a-z0-9/._-]+))?(?:#([a-z0-9._-]+))?$/i;
+
+export const parseGithubRef = (
+  input: string,
+  branch: string
+): GhResource | undefined => {
+  const [
+    _,
+    owner,
+    repo,
+    _file = DEFAULT_RELEASE_PLEASE_CONFIG,
+    _branch = branch,
+  ] =
+    [githubRefPattern, renovateLikePattern]
+      .map(re => re.exec(input))
+      .find(Boolean) || [];
+
+  if (!_) {
+    return;
+  }
+
+  const file = _file.endsWith('/')
+    ? _file + DEFAULT_RELEASE_PLEASE_CONFIG
+    : _file + (path.extname(_file) ? '' : '.json');
+
+  return {
+    owner,
+    repo,
+    file,
+    branch: _branch,
+  };
 };
