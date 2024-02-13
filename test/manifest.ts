@@ -40,6 +40,7 @@ import * as pluginFactory from '../src/factories/plugin-factory';
 import {SentenceCase} from '../src/plugins/sentence-case';
 import {NodeWorkspace} from '../src/plugins/node-workspace';
 import {CargoWorkspace} from '../src/plugins/cargo-workspace';
+import {http} from '../src/util/http-api';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {RawContent} from '../src/updaters/raw-content';
@@ -226,12 +227,17 @@ describe('Manifest', () => {
         expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
       });
       it('processes remote github-hosted references', async () => {
-        nock('https://raw.githubusercontent.com/')
-          .get('/owner/repo/main/release-please-config.json')
-          .reply(
-            200,
-            readFileSync(
-              resolve(fixturesPath, 'manifest/config/config-remote.json')
+        const getJsonStub = sandbox.stub(http, 'getJson');
+        getJsonStub
+          .withArgs(
+            'https://raw.githubusercontent.com/owner/repo/main/release-please-config.json'
+          )
+          .resolves(
+            JSON.parse(
+              readFileSync(
+                resolve(fixturesPath, 'manifest/config/config-remote.json'),
+                'utf8'
+              )
             )
           );
 

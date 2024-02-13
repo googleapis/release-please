@@ -12,26 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as https from 'https';
-
-// Hmmm... no-experimental-fetch flag is used. Ok
-// (await fetch(url)).json()
+// We need this wrapper just to apply mocks in tests.
 export const http = {
   async getJson<T = any>(url: string): Promise<T> {
-    return new Promise((resolve, reject) => {
-      https
-        .get(url, res => {
-          let data = '';
-          res.on('data', chunk => {
-            data += chunk;
-          });
-          res.on('end', () => {
-            resolve(JSON.parse(data));
-          });
-        })
-        .on('error', err => {
-          reject(err.message);
-        });
-    });
+    return (await fetch(url)).json();
   },
 };
