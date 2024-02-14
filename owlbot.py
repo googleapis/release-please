@@ -12,12 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import synthtool.languages.node as node
-
-node.owlbot_main(templates_excludes=[
-    ".github/ISSUE_TEMPLATE/bug_report.md",
-    ".github/ISSUE_TEMPLATE/config.yml",
-    ".github/ISSUE_TEMPLATE/feature_request.md",
-    ".github/ISSUE_TEMPLATE/question.md",
-    ".github/ISSUE_TEMPLATE/support_request.md",
-])
+# Intentionally left blank. This is a standalone node repo.
