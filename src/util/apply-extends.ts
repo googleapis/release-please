@@ -64,11 +64,11 @@ export const resolveRef = (id: string, branch: string): string => {
 // owner/repo/path/to/file.json@branchOrSha
 // owner/repo:path/to/file.json@branchOrSha
 const githubRefPattern =
-  /^([a-z0-9_-]+)\/(\.?[a-z0-9_-]+)(?:[/:]([a-z0-9/._-]+))?(?:@([a-z0-9._-]+))?$/i;
+  /^([\w-]+)\/(\.?[\w-]+)(?:[/:]([\w./-]+))?(?:@([\w.-]+))?$/i;
 
 // https://docs.renovatebot.com/config-presets/#github
 const renovateLikePattern =
-  /^github>([a-z0-9_-]+)\/(\.?[a-z0-9_-]+)(?::([a-z0-9/._-]+))?(?:#([a-z0-9._-]+))?$/i;
+  /^github>([\w-]+)\/(\.?[\w-]+)(?::([\w./-]+))?(?:#([\w.-]+))?$/i;
 
 export const parseGithubRef = (
   input: string,
@@ -80,10 +80,7 @@ export const parseGithubRef = (
     repo,
     _file = DEFAULT_RELEASE_PLEASE_CONFIG,
     _branch = branch,
-  ] =
-    [githubRefPattern, renovateLikePattern]
-      .map(re => re.exec(input))
-      .find(Boolean) || [];
+  ] = githubRefPattern.exec(input) || renovateLikePattern.exec(input) || [];
 
   if (!_) {
     return;
