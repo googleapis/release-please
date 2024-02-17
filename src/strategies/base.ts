@@ -393,6 +393,13 @@ export abstract class BaseStrategy implements Strategy {
         const paths = await this.extraFilePaths(extraFile);
         for (const path of paths) {
           switch (extraFile.type) {
+            case 'generic':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new Generic({version, versionsMap}),
+              });
+              break;
             case 'json':
               extraFileUpdates.push({
                 path: this.addPath(path),
