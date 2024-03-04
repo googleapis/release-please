@@ -1,4 +1,5 @@
 {
+  "commitMessagePrefix": "deps",
   "extends": [
     "config:base",
     "docker:disable",
