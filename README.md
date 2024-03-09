@@ -275,3 +275,7 @@ For common issues and help troubleshooting your configuration, see [Troubleshoot
 Apache Version 2.0
 
 See [LICENSE](https://github.com/googleapis/release-please/blob/main/LICENSE)
+
+## Disclaimer
+
+This is not an official Google product.

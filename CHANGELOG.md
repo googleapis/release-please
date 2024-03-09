@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.9.0](https://github.com/googleapis/release-please/compare/v16.8.0...v16.9.0) (2024-02-14)
+
+
+### Features
+
+* **docs:** remove reference to support contracts ([#2224](https://github.com/googleapis/release-please/issues/2224)) ([9bcb7cd](https://github.com/googleapis/release-please/commit/9bcb7cd9d2901ad859f9f109444df95ccb7b7d6d))
+
 ## [16.8.0](https://github.com/googleapis/release-please/compare/v16.7.1...v16.8.0) (2024-01-26)
 
 
