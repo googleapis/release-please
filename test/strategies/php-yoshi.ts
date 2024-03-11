@@ -153,6 +153,7 @@ describe('PHPYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(updates, 'VERSION', DefaultUpdater);
     });
     it('finds touched components', async () => {
       const strategy = new PHPYoshi({
