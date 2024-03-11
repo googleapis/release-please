@@ -48,6 +48,11 @@ import {
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
 
+type ExtraGenericFile = {
+  type: 'generic';
+  path: string;
+  glob?: boolean;
+};
 type ExtraJsonFile = {
   type: 'json';
   path: string;
@@ -79,6 +84,7 @@ type ExtraTomlFile = {
 };
 export type ExtraFile =
   | string
+  | ExtraGenericFile
   | ExtraJsonFile
   | ExtraYamlFile
   | ExtraXmlFile
