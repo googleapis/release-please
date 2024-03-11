@@ -250,6 +250,15 @@ export class PHPYoshi extends BaseStrategy {
       }),
     });
 
+    // update VERSION file
+    updates.push({
+      path: this.addPath('VERSION'),
+      createIfMissing: false,
+      updater: new DefaultUpdater({
+        version,
+      }),
+    });
+
     // update the aggregate package information in the root composer.json
     updates.push({
       path: this.addPath('composer.json'),
