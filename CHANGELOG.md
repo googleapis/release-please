@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.10.0](https://github.com/googleapis/release-please/compare/v16.9.0...v16.10.0) (2024-03-11)
+
+
+### Features
+
+* add support for `bazel` ([#2239](https://github.com/googleapis/release-please/issues/2239)) ([b12904a](https://github.com/googleapis/release-please/commit/b12904adbf74a62bc486843153db6d5033ffd902))
+* update VERSION file in php-yoshi repo if it exists ([#2228](https://github.com/googleapis/release-please/issues/2228)) ([378367b](https://github.com/googleapis/release-please/commit/378367b65f02a77e7b1eb21fcd4e3f43e2b89531))
+
+
+### Bug Fixes
+
+* allow forcing generic updater for extra-files ([#2227](https://github.com/googleapis/release-please/issues/2227)) ([144c1fd](https://github.com/googleapis/release-please/commit/144c1fd52394af1f4a6caaaaa2a266a94aa9a0b8))
+
 ## [16.9.0](https://github.com/googleapis/release-please/compare/v16.8.0...v16.9.0) (2024-02-14)
 
 
