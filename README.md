@@ -182,6 +182,7 @@ Release Please automates releases for the following flavors of repositories:
 
 | release type        | description |
 |---------------------|---------------------------------------------------------|
+| `bazel`             | [A Bazel module, with a MODULE.bazel and a CHANGELOG.md](https://bazel.build/external/module) |
 | `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
 | `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
 | `go`                | A repository with a CHANGELOG.md |
