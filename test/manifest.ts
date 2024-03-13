@@ -888,6 +888,34 @@ describe('Manifest', () => {
         }
       );
     });
+    it('should consider draft-pull-requests', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/draft-pull-request.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].draftPullRequest).to.be.true;
+      expect(manifest.repositoryConfig['node-packages'].draftPullRequest).to.be
+        .false;
+    });
   });
 
   describe('fromConfig', () => {
