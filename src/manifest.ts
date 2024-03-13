@@ -1688,6 +1688,8 @@ function mergeReleaserConfig(
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
     draft: pathConfig.draft ?? defaultConfig.draft,
+    draftPullRequest:
+      pathConfig.draftPullRequest ?? defaultConfig.draftPullRequest,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
     component: pathConfig.component ?? defaultConfig.component,
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
