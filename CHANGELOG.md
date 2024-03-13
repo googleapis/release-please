@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.10.1](https://github.com/googleapis/release-please/compare/v16.10.0...v16.10.1) (2024-03-13)
+
+
+### Bug Fixes
+
+* draft-pull-requests config ([#2241](https://github.com/googleapis/release-please/issues/2241)) ([7028527](https://github.com/googleapis/release-please/commit/702852709d9f1efb7bfccf451bc961f0e5a144ac))
+
 ## [16.10.0](https://github.com/googleapis/release-please/compare/v16.9.0...v16.10.0) (2024-03-11)
 
 
