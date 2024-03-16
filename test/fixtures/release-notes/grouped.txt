@@ -2,7 +2,7 @@
 ---
 
 
-<details><summary>1.0.1</summary>
+<details><summary>base: 1.0.1</summary>
 
 ## [1.0.1](https://github.com/testOwner/testRepo/compare/v1.0.0...v1.0.1) (2022-07-16)
 
