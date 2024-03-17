@@ -229,6 +229,10 @@
           "type": "string",
           "format": "uri-reference"
         },
+        "extends": {
+          "description": "Path to the config preset to base from",
+          "type": "string"
+        },
         "packages": {
           "description": "Per-path component configuration.",
           "type": "object",
@@ -407,6 +411,7 @@
   ],
   "properties": {
     "$schema": true,
+    "extends": true,
     "packages": true,
     "bootstrap-sha": true,
     "last-release-sha": true,

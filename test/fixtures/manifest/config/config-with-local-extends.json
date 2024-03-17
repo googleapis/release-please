@@ -1,0 +1,7 @@
+{
+  "extends": "./config.json",
+  "packages": {
+    "packages/bot-config-utils": {
+    }
+  }
+}
