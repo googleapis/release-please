@@ -38,6 +38,7 @@ import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest'
 import {Node} from '../../src/strategies/node';
 import {TagName} from '../../src/util/tag-name';
 import {Generic} from '../../src/updaters/generic';
+import {PrereleaseVersioningStrategy} from '../../src/versioning-strategies/prerelease';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/node-workspace';
@@ -312,6 +313,122 @@ describe('NodeWorkspace plugin', () => {
       expect(updater.versionsMap?.get('node2')?.toString()).to.eql('2.2.3');
       expect(updater.versionsMap?.get('node3')?.toString()).to.eql('1.1.2');
       expect(updater.versionsMap?.get('node5')?.toString()).to.eql('1.0.1');
+      snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+    });
+    it('walks dependency tree and updates previously untouched packages (prerelease)', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('node1', 'node', '3.3.4-beta', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate('node1/package.json', 'node1/package.json'),
+          ],
+        }),
+        buildMockCandidatePullRequest('node4', 'node', '4.4.5-beta', {
+          component: '@here/pkgD',
+          updates: [
+            buildMockPackageUpdate('node4/package.json', 'node4/package.json'),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'node1/package.json',
+          'node2/package.json',
+          'node3/package.json',
+          'node4/package.json',
+          'node5/package.json',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+
+      await plugin.preconfigure(
+        {
+          node1: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node1',
+            packageName: '@here/pkgA',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prereleaseType: 'beta',
+            }),
+          }),
+          node2: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node2',
+            packageName: '@here/pkgB',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prereleaseType: 'beta',
+            }),
+          }),
+          node3: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node3',
+            packageName: '@here/pkgC',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prereleaseType: 'beta',
+            }),
+          }),
+          node4: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node4',
+            packageName: '@here/pkgD',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prereleaseType: 'beta',
+            }),
+          }),
+          node5: new Node({
+            github,
+            targetBranch: 'main',
+            path: 'node5',
+            packageName: '@here/pkgE',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prereleaseType: 'beta',
+            }),
+          }),
+        },
+        {},
+        {
+          node2: {
+            tag: new TagName(new Version(2, 2, 2, 'beta'), 'pkgB'),
+            sha: '',
+            notes: '',
+          },
+        }
+      );
+
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const nodeCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'node'
+      );
+      expect(nodeCandidate).to.not.be.undefined;
+      const updates = nodeCandidate!.pullRequest.updates;
+      assertHasVersionUpdate(updates, 'node1/package.json', '3.3.4-beta');
+      assertHasVersionUpdate(updates, 'node2/package.json', '2.2.3-beta');
+      assertHasVersionUpdate(updates, 'node3/package.json', '1.1.2-beta');
+      assertHasVersionUpdate(updates, 'node4/package.json', '4.4.5-beta');
+      assertHasVersionUpdate(updates, 'node5/package.json', '1.0.1-beta');
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('node2')?.toString()).to.eql(
+        '2.2.3-beta'
+      );
+      expect(updater.versionsMap?.get('node3')?.toString()).to.eql(
+        '1.1.2-beta'
+      );
+      expect(updater.versionsMap?.get('node5')?.toString()).to.eql(
+        '1.0.1-beta'
+      );
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
     it('appends dependency notes to an updated module', async () => {

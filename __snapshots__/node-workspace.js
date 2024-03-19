@@ -238,6 +238,61 @@ Release notes for path: node1, releaseType: node
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['NodeWorkspace plugin run walks dependency tree and updates previously untouched packages (prerelease) 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>@here/pkgA: 3.3.4-beta</summary>
+
+Release notes for path: node1, releaseType: node
+</details>
+
+<details><summary>pkgB: 2.2.3-beta</summary>
+
+## [2.2.3-beta](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2-beta...pkgB-v2.2.3-beta) (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped from 3.3.3 to 3.3.4-beta
+</details>
+
+<details><summary>pkgC: 1.1.2-beta</summary>
+
+## 1.1.2-beta (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgB bumped from 2.2.2 to 2.2.3-beta
+</details>
+
+<details><summary>@here/pkgD: 4.4.5-beta</summary>
+
+Release notes for path: node4, releaseType: node
+</details>
+
+<details><summary>pkgE: 1.0.1-beta</summary>
+
+## 1.0.1-beta (1983-10-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @here/pkgA bumped to 3.3.4-beta
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['NodeWorkspace plugin run walks dependency tree and updates previously untouched packages 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
