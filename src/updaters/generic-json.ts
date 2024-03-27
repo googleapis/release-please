@@ -18,6 +18,9 @@ import * as jp from 'jsonpath';
 import {jsonStringify} from '../util/json-stringify';
 import {logger as defaultLogger, Logger} from '../util/logger';
 
+const VERSION_REGEX =
+  /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[\w.]+))?(\+(?<build>[-\w.]+))?/;
+
 export class GenericJson implements Updater {
   readonly jsonpath: string;
   readonly version: Version;
@@ -33,8 +36,16 @@ export class GenericJson implements Updater {
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
     const data = JSON.parse(content);
-    const nodes = jp.apply(data, this.jsonpath, _val => {
-      return this.version.toString();
+    const nodes = jp.apply(data, this.jsonpath, value => {
+      if (typeof value !== 'string') {
+        logger.warn(`No string in ${this.jsonpath}. Skipping.`);
+        return value;
+      }
+      if (!value.match(VERSION_REGEX)) {
+        logger.warn(`No version found in ${this.jsonpath}. Skipping.`);
+        return value;
+      }
+      return value.replace(VERSION_REGEX, this.version.toString());
     });
     if (!nodes) {
       logger.warn(`No entries modified in ${this.jsonpath}`);
