@@ -168,7 +168,7 @@ devDependencies:
     version: 7.3.13
   '@types/sinon':
     specifier: ^10.0.17
-    version: 10.0.17
+    version: 10.0.20
   '@types/xmldom':
     specifier: ^0.1.31
     version: 0.1.31
@@ -794,14 +794,14 @@ packages:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
     dev: true
 
-  /@types/sinon@10.0.17:
-    resolution: {integrity: sha512-+6ILpcixQ0Ma3dHMTLv4rSycbDXkDljgKL+E0nI2RUxxhYTFyPSjt6RVMxh7jUshvyVcBvicb0Ktj+lAJcjgeA==}
+  /@types/sinon@10.0.20:
+    resolution: {integrity: sha512-2APKKruFNCAZgx3daAyACGzWuJ028VVCUDk6o2rw/Z4PXT0ogwdV4KUegW0MwVs0Zu59auPXbbuBJHF12Sx1Eg==}
     dependencies:
-      '@types/sinonjs__fake-timers': 8.1.3
+      '@types/sinonjs__fake-timers': 8.1.5
     dev: true
 
-  /@types/sinonjs__fake-timers@8.1.3:
-    resolution: {integrity: sha512-4g+2YyWe0Ve+LBh+WUm1697PD0Kdi6coG1eU0YjQbwx61AZ8XbEpL1zIT6WjuUKrCMCROpEaYQPDjBnDouBVAQ==}
+  /@types/sinonjs__fake-timers@8.1.5:
+    resolution: {integrity: sha512-mQkU2jY8jJEF7YHjHvsQO8+3ughTL1mcnn96igfhONmR+fUPSKIkefQYpSe8bsly2Ep7oQbn/6VG5/9/0qcArQ==}
     dev: true
 
   /@types/unist@2.0.6:
