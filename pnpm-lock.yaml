@@ -144,7 +144,7 @@ devDependencies:
     version: 0.2.4
   '@types/lerna__collect-updates':
     specifier: ^5.1.0
-    version: 5.1.0
+    version: 5.1.3
   '@types/lerna__package':
     specifier: ^5.1.0
     version: 5.1.0
@@ -717,19 +717,21 @@ packages:
     resolution: {integrity: sha512-K3hxB8Blw0qgW6ExKgMbXQv2UPZBoE2GqLpVY+yr7nMD2Pq86lsuIzyAaiQ7eMqFL5B6di6pxSkogLJEyEHoGA==}
     dev: true
 
-  /@types/lerna__child-process@5.1.0:
-    resolution: {integrity: sha512-wo8OXA8wChEQzNzES6HgRAlMnkputtZAgZ1fsd1oyX0hVoOZl2Kq5h9qSZ6iRFYtxsRMbXUhwLfg0vy9fGWUVQ==}
+  /@types/lerna__child-process@5.1.4:
+    resolution: {integrity: sha512-QVi1gsxEYqlVL8AdvTlI8L47l35sGqz3sCZSyUj85I2CLnP5FRzSVQzDgbfeT0GNKfFJ/9w/Jkcm3F9gh1Ra6g==}
     dependencies:
       '@types/lerna__package': 5.1.0
+      '@types/node': 18.11.18
       execa: 5.1.1
     dev: true
 
-  /@types/lerna__collect-updates@5.1.0:
-    resolution: {integrity: sha512-28MmGHN3cW3YkcfFAHTIeWI5pF7TVHBKmM8eQD3h51QbrAKcVojIwxu1MlZSq+D/MqafZvMr48hIAyd6CZxeMA==}
+  /@types/lerna__collect-updates@5.1.3:
+    resolution: {integrity: sha512-pa2xX3yrarbm0TQQF9w/Ob8Szx4oCjDXRik2MyMAY4/y+/QsgrtStBGHHaxxbuArnsnsnCasg0i36WcehZd5Cg==}
     dependencies:
-      '@types/lerna__child-process': 5.1.0
+      '@types/lerna__child-process': 5.1.4
       '@types/lerna__package': 5.1.0
       '@types/lerna__package-graph': 5.1.0
+      '@types/node': 18.11.18
     dev: true
 
   /@types/lerna__package-graph@5.1.0:
