@@ -6,7 +6,7 @@
     ":automergePr",
     ":automergePatch",
     ":automergeMinor",
-    ":automergeRequireAllStatusCheck",
+    ":automergeRequireAllStatusChecks",
     ":enableVulnerabilityAlerts"
   ],
   "dependencyDashboard": true,
