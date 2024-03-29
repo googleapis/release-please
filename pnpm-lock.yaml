@@ -135,7 +135,7 @@ devDependencies:
     version: 5.0.2
   '@types/iarna__toml':
     specifier: ^2.0.1
-    version: 2.0.2
+    version: 2.0.5
   '@types/js-yaml':
     specifier: ^4.0.0
     version: 4.0.9
@@ -695,8 +695,8 @@ packages:
     resolution: {integrity: sha512-uw8eYMIReOwstQ0QKF0sICefSy8cNO/v7gOTiIy9SbwuHyEecJUm7qlgueOO5S1udZ5I/irVydHVwMchgzbKTg==}
     dev: true
 
-  /@types/iarna__toml@2.0.2:
-    resolution: {integrity: sha512-Q3obxKhBLVVbEQ8zsAmsQVobAAZhi8dFFFjF0q5xKXiaHvH8IkSxcbM27e46M9feUMieR03SPpmp5CtaNzpdBg==}
+  /@types/iarna__toml@2.0.5:
+    resolution: {integrity: sha512-I55y+SxI0ayM4MBU6yfGJGmi4wRll6wtSeKiFYAZj+Z5Q1DVbMgBSVDYY+xQZbjIlLs/pN4fidnvR8faDrmxPg==}
     dependencies:
       '@types/node': 18.11.18
     dev: true
