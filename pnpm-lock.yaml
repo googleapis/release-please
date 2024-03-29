@@ -198,7 +198,7 @@ devDependencies:
     version: 9.2.2
   nock:
     specifier: ^13.0.0
-    version: 13.3.0
+    version: 13.3.8
   sinon:
     specifier: 16.0.0
     version: 16.0.0
@@ -2853,13 +2853,12 @@ packages:
       path-to-regexp: 1.8.0
     dev: true
 
-  /nock@13.3.0:
-    resolution: {integrity: sha512-HHqYQ6mBeiMc+N038w8LkMpDCRquCHWeNmN3v6645P3NhN2+qXOBqvPqo7Rt1VyCMzKhJ733wZqw5B7cQVFNPg==}
+  /nock@13.3.8:
+    resolution: {integrity: sha512-96yVFal0c/W1lG7mmfRe7eO+hovrhJYd2obzzOZ90f6fjpeU/XNvd9cYHZKZAQJumDfhXgoTpkpJ9pvMj+hqHw==}
     engines: {node: '>= 10.13'}
     dependencies:
       debug: 4.3.4
       json-stringify-safe: 5.0.1
-      lodash: 4.17.21
       propagate: 2.0.1
     transitivePeerDependencies:
       - supports-color
