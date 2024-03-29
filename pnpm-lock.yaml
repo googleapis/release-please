@@ -132,7 +132,7 @@ devDependencies:
     version: 4.3.14
   '@types/diff':
     specifier: ^5.0.2
-    version: 5.0.2
+    version: 5.0.9
   '@types/iarna__toml':
     specifier: ^2.0.1
     version: 2.0.5
@@ -691,8 +691,8 @@ packages:
     resolution: {integrity: sha512-Wj71sXE4Q4AkGdG9Tvq1u/fquNz9EdG4LIJMwVVII7ashjD/8cf8fyIfJAjRr6YcsXnSE8cOGQPq1gqeR8z+3w==}
     dev: true
 
-  /@types/diff@5.0.2:
-    resolution: {integrity: sha512-uw8eYMIReOwstQ0QKF0sICefSy8cNO/v7gOTiIy9SbwuHyEecJUm7qlgueOO5S1udZ5I/irVydHVwMchgzbKTg==}
+  /@types/diff@5.0.9:
+    resolution: {integrity: sha512-RWVEhh/zGXpAVF/ZChwNnv7r4rvqzJ7lYNSmZSVTxjV0PBLf6Qu7RNg+SUtkpzxmiNkjCx0Xn2tPp7FIkshJwQ==}
     dev: true
 
   /@types/iarna__toml@2.0.5:
