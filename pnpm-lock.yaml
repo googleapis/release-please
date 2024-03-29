@@ -118,7 +118,7 @@ dependencies:
     version: 0.0.32
   yaml:
     specifier: ^2.2.2
-    version: 2.3.4
+    version: 2.4.1
   yargs:
     specifier: ^17.0.0
     version: 17.7.2
@@ -3906,9 +3906,10 @@ packages:
   /yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
 
-  /yaml@2.3.4:
-    resolution: {integrity: sha512-8aAvwVUSHpfEqTQ4w/KMlf3HcRdt50E5ODIQJBw1fQ5RL34xabzxtUlzTXVqc4rkZsPbvrXKWnABCD7kWSmocA==}
+  /yaml@2.4.1:
+    resolution: {integrity: sha512-pIXzoImaqmfOrL7teGUBt/T7ZDnyeGBWyXQBvOVhLkWLN37GXv8NMLK406UY6dS51JfcQHsmcW5cJ441bHg6Lg==}
     engines: {node: '>= 14'}
+    hasBin: true
     dev: false
 
   /yargs-parser@20.2.4:
