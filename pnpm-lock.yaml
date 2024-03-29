@@ -171,7 +171,7 @@ devDependencies:
     version: 10.0.20
   '@types/xmldom':
     specifier: ^0.1.31
-    version: 0.1.31
+    version: 0.1.34
   '@types/yargs':
     specifier: ^17.0.0
     version: 17.0.20
@@ -808,8 +808,8 @@ packages:
     resolution: {integrity: sha512-PBjIUxZHOuj0R15/xuwJYjFi+KZdNFrehocChv4g5hu6aFroHue8m0lBP0POdK2nKzbw0cgV1mws8+V/JAcEkQ==}
     dev: false
 
-  /@types/xmldom@0.1.31:
-    resolution: {integrity: sha512-bVy7s0nvaR5D1mT1a8ZkByHWNOGb6Vn4yi5TWhEdmyKlAG+08SA7Md6+jH+tYmMLueAwNeWvHHpeKrr6S4c4BA==}
+  /@types/xmldom@0.1.34:
+    resolution: {integrity: sha512-7eZFfxI9XHYjJJuugddV6N5YNeXgQE1lArWOcd1eCOKWb/FGs5SIjacSYuEJuwhsGS3gy4RuZ5EUIcqYscuPDA==}
     dev: true
 
   /@types/yargs-parser@21.0.0:
