@@ -58,7 +58,7 @@ dependencies:
     version: 4.1.2
   code-suggester:
     specifier: ^4.2.0
-    version: 4.2.0
+    version: 4.3.3
   conventional-changelog-conventionalcommits:
     specifier: ^6.0.0
     version: 6.1.0
@@ -1325,8 +1325,8 @@ packages:
       strip-ansi: 6.0.1
       wrap-ansi: 7.0.0
 
-  /code-suggester@4.2.0:
-    resolution: {integrity: sha512-XqPYs9XOaLidTArPmKJnCU3aWiiiC+/i2mfLS/VPp07BJA1fptb0ZS+H6LnWSF4jV9tTYAjCmB8ru9uM5SiybA==}
+  /code-suggester@4.3.3:
+    resolution: {integrity: sha512-cNyJBkjM3w78shs2RdXhCJ5M2pWYHuDdHQi0whKqiw5fdMvDs7sHLvfZUC7mR9klNpwOlkJgX+UbF/ZGXvCyYg==}
     engines: {node: '>=14.0.0'}
     hasBin: true
     dependencies:
@@ -1335,7 +1335,7 @@ packages:
       async-retry: 1.3.3
       diff: 5.2.0
       glob: 7.2.3
-      parse-diff: 0.10.0
+      parse-diff: 0.11.1
       yargs: 16.2.0
     transitivePeerDependencies:
       - encoding
@@ -3055,8 +3055,8 @@ packages:
       callsites: 3.1.0
     dev: true
 
-  /parse-diff@0.10.0:
-    resolution: {integrity: sha512-7ZnB7HXPl2WdTtSGGzMFuCIzpmaxrDsLwKZp2AQRQVlmL9MUnCHESAmrbKKD5g+ItFJiCN2YPfPyMjWeJV/JoA==}
+  /parse-diff@0.11.1:
+    resolution: {integrity: sha512-Oq4j8LAOPOcssanQkIjxosjATBIEJhCxMCxPhMu+Ci4wdNmAEdx0O+a7gzbR2PyKXgKPvRLIN5g224+dJAsKHA==}
     dev: false
 
   /parse-github-repo-url@1.4.1:
