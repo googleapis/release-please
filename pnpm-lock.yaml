@@ -174,7 +174,7 @@ devDependencies:
     version: 0.1.34
   '@types/yargs':
     specifier: ^17.0.0
-    version: 17.0.20
+    version: 17.0.32
   ajv:
     specifier: ^8.11.0
     version: 8.12.0
@@ -812,19 +812,19 @@ packages:
     resolution: {integrity: sha512-7eZFfxI9XHYjJJuugddV6N5YNeXgQE1lArWOcd1eCOKWb/FGs5SIjacSYuEJuwhsGS3gy4RuZ5EUIcqYscuPDA==}
     dev: true
 
-  /@types/yargs-parser@21.0.0:
-    resolution: {integrity: sha512-iO9ZQHkZxHn4mSakYV0vFHAVDyEOIJQrV2uZ06HxEPcx+mt8swXoZHIbaaJ2crJYFfErySgktuTZ3BeLz+XmFA==}
+  /@types/yargs-parser@21.0.3:
+    resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
 
-  /@types/yargs@16.0.5:
-    resolution: {integrity: sha512-AxO/ADJOBFJScHbWhq2xAhlWP24rY4aCEG/NFaMvbT3X2MgRsLjhjQwsn0Zi5zn0LG9jUhCCZMeX9Dkuw6k+vQ==}
+  /@types/yargs@16.0.9:
+    resolution: {integrity: sha512-tHhzvkFXZQeTECenFoRljLBYPZJ7jAVxqqtEI0qTLOmuultnFp4I9yKE17vTuhf7BkhCu7I4XuemPgikDVuYqA==}
     dependencies:
-      '@types/yargs-parser': 21.0.0
+      '@types/yargs-parser': 21.0.3
     dev: false
 
-  /@types/yargs@17.0.20:
-    resolution: {integrity: sha512-eknWrTHofQuPk2iuqDm1waA7V6xPlbgBoaaXEgYkClhLOnB0TtbW+srJaOToAgawPxPlHQzwypFA2bhZaUGP5A==}
+  /@types/yargs@17.0.32:
+    resolution: {integrity: sha512-xQ67Yc/laOG5uMfX/093MRlGGCIBzZMarVa+gfNKJxWAIgykYpVGkBdbqEzGDDfCrVUj6Hiff4mTZ5BA6TmAog==}
     dependencies:
-      '@types/yargs-parser': 21.0.0
+      '@types/yargs-parser': 21.0.3
     dev: true
 
   /@typescript-eslint/eslint-plugin@5.62.0(@typescript-eslint/parser@5.62.0)(eslint@8.45.0)(typescript@5.2.2):
@@ -1333,7 +1333,7 @@ packages:
     hasBin: true
     dependencies:
       '@octokit/rest': 19.0.5
-      '@types/yargs': 16.0.5
+      '@types/yargs': 16.0.9
       async-retry: 1.3.3
       diff: 5.1.0
       glob: 7.2.3
