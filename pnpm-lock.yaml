@@ -49,7 +49,7 @@ dependencies:
     version: 19.0.5
   '@types/npm-package-arg':
     specifier: ^6.1.0
-    version: 6.1.1
+    version: 6.1.4
   '@xmldom/xmldom':
     specifier: ^0.8.4
     version: 0.8.6
@@ -738,13 +738,13 @@ packages:
     resolution: {integrity: sha512-/n50KTl3cjvjF70th6DXsAicYV+MBGkjcRuVZn1cAeQivAg5TS9aYiUWuGY1S6v7i8FdPF+Ysf5YYUvniZmyIQ==}
     dependencies:
       '@types/lerna__package': 5.1.0
-      '@types/npm-package-arg': 6.1.1
+      '@types/npm-package-arg': 6.1.4
     dev: true
 
   /@types/lerna__package@5.1.0:
     resolution: {integrity: sha512-afNRkz6zwZZRR/5JRZ48R2t7kekQcX2Dq0JMvnsh0NiAVOdP9PYghNGhwiIdBau3cFmdU7wwxXupWAnzC4rZSQ==}
     dependencies:
-      '@types/npm-package-arg': 6.1.1
+      '@types/npm-package-arg': 6.1.4
     dev: true
 
   /@types/lerna__query-graph@5.1.3:
@@ -787,8 +787,8 @@ packages:
   /@types/normalize-package-data@2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
 
-  /@types/npm-package-arg@6.1.1:
-    resolution: {integrity: sha512-452/1Kp9IdM/oR10AyqAgZOxUt7eLbm+EMJ194L6oarMYdZNiFIFAOJ7IIr0OrZXTySgfHjJezh2oiyk2kc3ag==}
+  /@types/npm-package-arg@6.1.4:
+    resolution: {integrity: sha512-vDgdbMy2QXHnAruzlv68pUtXCjmqUk3WrBAsRboRovsOmxbfn/WiYCjmecyKjGztnMps5dWp4Uq2prp+Ilo17Q==}
 
   /@types/semver@7.3.13:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
