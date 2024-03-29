@@ -1,14 +1,12 @@
 name: Create GitHub releases
 
 on:
-  pull_request:
-    types:
-      - closed
-      - labeled
+  push:
+    branches:
+      - main
 
 jobs:
   create-releases:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
 
     steps:
@@ -50,10 +48,3 @@ jobs:
           git add -f ./build
           git diff --cached --exit-code || git commit -m "Build sources"
           git push origin release
-
-      - name: Create github release
-        run: |
-          pnpm start github-release \
-                --token=${{ secrets.GITHUB_TOKEN }} \
-                --repo-url=${{ github.repository }} \
-                --target-branch=release
