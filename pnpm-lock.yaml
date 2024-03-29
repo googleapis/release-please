@@ -150,7 +150,7 @@ devDependencies:
     version: 5.1.3
   '@types/lerna__package-graph':
     specifier: ^5.1.0
-    version: 5.1.0
+    version: 5.1.3
   '@types/lerna__run-topologically':
     specifier: ^5.1.0
     version: 5.1.3
@@ -726,12 +726,12 @@ packages:
     dependencies:
       '@types/lerna__child-process': 5.1.4
       '@types/lerna__package': 5.1.3
-      '@types/lerna__package-graph': 5.1.0
+      '@types/lerna__package-graph': 5.1.3
       '@types/node': 18.19.26
     dev: true
 
-  /@types/lerna__package-graph@5.1.0:
-    resolution: {integrity: sha512-/n50KTl3cjvjF70th6DXsAicYV+MBGkjcRuVZn1cAeQivAg5TS9aYiUWuGY1S6v7i8FdPF+Ysf5YYUvniZmyIQ==}
+  /@types/lerna__package-graph@5.1.3:
+    resolution: {integrity: sha512-trVWbv9MdxIllJA15QQWawh/vlO2GByUH03NQNlxVAon36imsKTL3npzIIc7tNfIVv40nQC5UExMMjefmGiZ8w==}
     dependencies:
       '@types/lerna__package': 5.1.3
       '@types/npm-package-arg': 6.1.4
@@ -747,7 +747,7 @@ packages:
     resolution: {integrity: sha512-oEwdvOAnil2MIND9a8pCUtFlZbJAgrAZp7DAWtCV7gjCrgRn9Kcn29U9KNuoc2HIoMVjsy8Is05tfY/BxQKK3g==}
     dependencies:
       '@types/lerna__package': 5.1.3
-      '@types/lerna__package-graph': 5.1.0
+      '@types/lerna__package-graph': 5.1.3
     dev: true
 
   /@types/lerna__run-topologically@5.1.3:
