@@ -159,7 +159,7 @@ devDependencies:
     version: 9.1.1
   '@types/node':
     specifier: ^18.0.0
-    version: 18.19.26
+    version: 18.19.28
   '@types/node-fetch':
     specifier: ^2.6.4
     version: 2.6.11
@@ -207,7 +207,7 @@ devDependencies:
     version: 7.9.10
   ts-node:
     specifier: ^10.9.1
-    version: 10.9.2(@types/node@18.19.26)(typescript@5.4.3)
+    version: 10.9.2(@types/node@18.19.28)(typescript@5.4.3)
   tslib:
     specifier: ^2.6.2
     version: 2.6.2
@@ -694,7 +694,7 @@ packages:
   /@types/iarna__toml@2.0.5:
     resolution: {integrity: sha512-I55y+SxI0ayM4MBU6yfGJGmi4wRll6wtSeKiFYAZj+Z5Q1DVbMgBSVDYY+xQZbjIlLs/pN4fidnvR8faDrmxPg==}
     dependencies:
-      '@types/node': 18.19.26
+      '@types/node': 18.19.28
     dev: true
 
   /@types/istanbul-lib-coverage@2.0.6:
@@ -717,7 +717,7 @@ packages:
     resolution: {integrity: sha512-QVi1gsxEYqlVL8AdvTlI8L47l35sGqz3sCZSyUj85I2CLnP5FRzSVQzDgbfeT0GNKfFJ/9w/Jkcm3F9gh1Ra6g==}
     dependencies:
       '@types/lerna__package': 5.1.3
-      '@types/node': 18.19.26
+      '@types/node': 18.19.28
       execa: 5.1.1
     dev: true
 
@@ -727,7 +727,7 @@ packages:
       '@types/lerna__child-process': 5.1.4
       '@types/lerna__package': 5.1.3
       '@types/lerna__package-graph': 5.1.3
-      '@types/node': 18.19.26
+      '@types/node': 18.19.28
     dev: true
 
   /@types/lerna__package-graph@5.1.3:
@@ -772,12 +772,12 @@ packages:
   /@types/node-fetch@2.6.11:
     resolution: {integrity: sha512-24xFj9R5+rfQJLRyM56qh+wnVSYhyXC2tkoBndtY0U+vubqNsYXGjufB2nn8Q6gt0LrARwL6UBtMCSVCwl4B1g==}
     dependencies:
-      '@types/node': 18.19.26
+      '@types/node': 18.19.28
       form-data: 4.0.0
     dev: true
 
-  /@types/node@18.19.26:
-    resolution: {integrity: sha512-+wiMJsIwLOYCvUqSdKTrfkS8mpTp+MPINe6+Np4TAGFWWRWiBQ5kSq9nZGCSPkzx9mvT+uEukzpX4MOSCydcvw==}
+  /@types/node@18.19.28:
+    resolution: {integrity: sha512-J5cOGD9n4x3YGgVuaND6khm5x07MMdAKkRyXnjVR6KFhLMNh2yONGiP7Z+4+tBOt5mK+GvDTiacTOVGGpqiecw==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -3618,7 +3618,7 @@ packages:
     resolution: {integrity: sha512-c1PTsA3tYrIsLGkJkzHF+w9F2EyxfXGo4UyJc4pFL++FMjnq0HJS69T3M7d//gKrFKwy429bouPescbjecU+Zw==}
     engines: {node: '>=8'}
 
-  /ts-node@10.9.2(@types/node@18.19.26)(typescript@5.4.3):
+  /ts-node@10.9.2(@types/node@18.19.28)(typescript@5.4.3):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
     peerDependencies:
@@ -3637,7 +3637,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 18.19.26
+      '@types/node': 18.19.28
       acorn: 8.11.3
       acorn-walk: 8.3.2
       arg: 4.1.3
