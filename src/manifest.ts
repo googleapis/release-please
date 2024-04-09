@@ -1571,7 +1571,7 @@ async function latestReleaseVersion(
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
-    if (!mergedPullRequest) {
+    if (!mergedPullRequest?.mergeCommitOid) {
       logger.trace(
         `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
       );
