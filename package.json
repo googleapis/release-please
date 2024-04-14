@@ -5,7 +5,7 @@
   "main": "./build/src/index.js",
   "types": "build/src/index.d.ts",
   "bin": "./build/src/bin/release-please.js",
-  "packageManager": "pnpm@8.15.6",
+  "packageManager": "pnpm@8.15.7",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8"
