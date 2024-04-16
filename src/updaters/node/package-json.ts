@@ -15,7 +15,7 @@
 import {jsonStringify} from '../../util/json-stringify';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 import {Version, VersionsMap} from '../../version';
-import {DefaultUpdater} from '../default';
+import {DefaultUpdater, UpdateOptions} from '../default';
 
 export type PackageJsonDescriptor = {
   name?: string;
@@ -28,10 +28,20 @@ export type PackageJsonDescriptor = {
   optionalDependencies?: Record<string, string>;
 };
 
+export interface PackageJsonOptions extends UpdateOptions {
+  updatePeerDependencies?: boolean;
+}
+
 /**
  * This updates a Node.js package.json file's main version.
  */
 export class PackageJson extends DefaultUpdater {
+  private updatePeerDependencies = false;
+
+  constructor(options: PackageJsonOptions) {
+    super(options);
+    this.updatePeerDependencies = options.updatePeerDependencies || false;
+  }
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
@@ -52,7 +62,7 @@ export class PackageJson extends DefaultUpdater {
       if (parsed.devDependencies) {
         updateDependencies(parsed.devDependencies, this.versionsMap);
       }
-      if (parsed.peerDependencies) {
+      if (parsed.peerDependencies && this.updatePeerDependencies) {
         updateDependencies(parsed.peerDependencies, this.versionsMap);
       }
       if (parsed.optionalDependencies) {
