@@ -311,6 +311,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           updater: new PackageJson({
             version: newVersion,
             versionsMap: updatedVersions,
+            updatePeerDependencies: this.updatePeerDependencies,
           }),
         },
         {
@@ -319,6 +320,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
           updater: new PackageJson({
             version: newVersion,
             versionsMap: updatedVersions,
+            updatePeerDependencies: this.updatePeerDependencies,
           }),
         },
         {
