@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.10.2](https://github.com/googleapis/release-please/compare/v16.10.1...v16.10.2) (2024-04-16)
+
+
+### Bug Fixes
+
+* disable updating peer dependencies when updatePeerDependencies is false ([#2270](https://github.com/googleapis/release-please/issues/2270)) ([2d80f12](https://github.com/googleapis/release-please/commit/2d80f128def8f1dc4b1b7a70b094ed6039ccd073))
+* respect signoff in config ([#2247](https://github.com/googleapis/release-please/issues/2247)) ([d7d3958](https://github.com/googleapis/release-please/commit/d7d395814f9f261218a54103b7105f2af1f2c426))
+
 ## [16.10.1](https://github.com/googleapis/release-please/compare/v16.10.0...v16.10.1) (2024-03-13)
 
 
