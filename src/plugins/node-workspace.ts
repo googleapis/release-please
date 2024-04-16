@@ -191,6 +191,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
     const updater = new PackageJson({
       version: newVersion,
       versionsMap: updatedVersions,
+      updatePeerDependencies: this.updatePeerDependencies,
     });
     const dependencyNotes = getChangelogDepsNotes(
       pkg,
