@@ -92,7 +92,12 @@ export class PHPYoshi extends BaseStrategy {
     const versionsMap: VersionsMap = new Map();
     const directoryVersionContents: Record<string, ComponentInfo> = {};
     const component = await this.getComponent();
-    const newVersionTag = new TagName(newVersion, component);
+    const newVersionTag = new TagName(
+      newVersion,
+      component,
+      this.tagSeparator,
+      this.includeVInTag
+    );
     let releaseNotesBody = `## ${newVersion.toString()}`;
     for (const directory of topLevelDirectories) {
       try {
