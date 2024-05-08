@@ -26,6 +26,7 @@ import {
 import {PythonFileWithVersion} from '../updaters/python/python-file-with-version';
 import {FileNotFoundError} from '../errors';
 import {filterCommits} from '../util/filter-commits';
+import {PythonReadme} from '../updaters/python/python-readme';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -75,6 +76,14 @@ export class Python extends BaseStrategy {
       path: this.addPath('setup.py'),
       createIfMissing: false,
       updater: new SetupPy({
+        version,
+      }),
+    });
+
+    updates.push({
+      path: this.addPath('README.md'),
+      createIfMissing: false,
+      updater: new PythonReadme({
         version,
       }),
     });

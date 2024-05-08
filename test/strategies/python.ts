@@ -28,6 +28,8 @@ import {SetupPy} from '../../src/updaters/python/setup-py';
 import {Changelog} from '../../src/updaters/changelog';
 import {ChangelogJson} from '../../src/updaters/changelog-json';
 import snapshot = require('snap-shot-it');
+import {PullRequestBody} from '../../src/util/pull-request-body';
+import {PythonReadme} from '../../src/updaters/python/python-readme';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/strategies/python';
@@ -162,6 +164,39 @@ describe('Python', () => {
       });
       const updates = release!.updates;
       assertHasUpdate(updates, 'pyproject.toml', PyProjectToml);
+    });
+
+    it('finds and updates a README.md', async () => {
+      const strategy = new Python({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(
+          buildGitHubFileContent(
+            './test/updaters/fixtures',
+            'README-python-pre.md'
+          )
+        );
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease: await strategy.buildRelease({
+          title: 'chore(main): release v1.2.3',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          number: 1234,
+          body: new PullRequestBody([]).toString(),
+          labels: [],
+          files: [],
+          sha: 'abc123',
+        }),
+      });
+      const updates = release!.updates;
+
+      assertHasUpdate(updates, 'README.md', PythonReadme);
     });
 
     it('finds and updates a version.py file', async () => {
