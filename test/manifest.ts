@@ -5722,7 +5722,7 @@ describe('Manifest', () => {
       expect(releases[3]!.sha).to.eql('abc123');
       expect(releases[3]!.notes).to.be.string;
       expect(releases[3]!.path).to.eql('packages/datastore-lock');
-      sinon.assert.callCount(commentStub, 4);
+      sinon.assert.callCount(commentStub, 1);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
         ['autorelease: tagged'],
@@ -6200,7 +6200,7 @@ describe('Manifest', () => {
       expect(releases[2]!.sha).to.eql('abc123');
       expect(releases[2]!.notes).to.be.string;
       expect(releases[2]!.path).to.eql('packages/datastore-lock');
-      sinon.assert.callCount(commentStub, 3);
+      sinon.assert.callCount(commentStub, 1);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
         ['autorelease: tagged'],
