@@ -47,7 +47,7 @@
                 "type": "boolean"
               }
             },
-            "required": ["type", "section"]
+            "required": ["type"]
           }
         },
         "release-as": {
