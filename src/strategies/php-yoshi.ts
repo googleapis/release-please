@@ -295,7 +295,6 @@ function parseVersionOverrides(body: string): {[key: string]: string} {
         const [directory, version] = line.split(':');
         versionOverrides[directory.trim()] = version.trim();
       });
-      return versionOverrides;
     }
   }
   return versionOverrides;
