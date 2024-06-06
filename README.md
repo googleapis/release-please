@@ -207,7 +207,7 @@ There are a variety of ways you can deploy release-please:
 
 ### GitHub Action (recommended)
 
-The easiest way to run Release Please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for installation and configuration instructions.
+The easiest way to run Release Please is as a GitHub action. Please see [googleapis/release-please-action](https://github.com/googleapis/release-please-action) for installation and configuration instructions.
 
 ### Running as CLI
 
