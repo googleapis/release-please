@@ -1219,7 +1219,10 @@ export class Manifest {
     );
     const duplicateReleases: DuplicateReleaseError[] = [];
     const githubReleases: CreatedRelease[] = [];
+    let error: unknown | undefined;
     for (const release of releases) {
+      // stop releasing once we hit an error
+      if (error) continue;
       try {
         githubReleases.push(await this.createRelease(release));
       } catch (err) {
@@ -1227,9 +1230,22 @@ export class Manifest {
           this.logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
           duplicateReleases.push(err);
         } else {
-          throw err;
+          error = err;
         }
       }
+    }
+
+    if (githubReleases.length > 0) {
+      // comment on pull request about the successful releases
+      const releaseList = githubReleases
+        .map(({tagName, url}) => `- [${tagName}](${url})`)
+        .join('\n');
+      const comment = `:robot: Created releases:\n${releaseList}\n:sunflower:`;
+      await this.github.commentOnIssue(comment, pullRequest.number);
+    }
+
+    if (error) {
+      throw error;
     }
 
     if (duplicateReleases.length > 0) {
@@ -1265,10 +1281,6 @@ export class Manifest {
       draft: release.draft,
       prerelease: release.prerelease,
     });
-
-    // comment on pull request
-    const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
-    await this.github.commentOnIssue(comment, release.pullRequest.number);
 
     return {
       ...githubRelease,
