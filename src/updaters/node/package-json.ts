@@ -105,6 +105,7 @@ export function newVersionWithRange(
   }
   return newVersion.toString();
 }
+export const NPM_PROTOCOL_REGEXP = /^[a-z]+:/;
 /**
  * Helper function to update dependency versions for all new versions specified
  * in the updated versions map. Note that this mutates the existing input.
@@ -117,9 +118,12 @@ export function updateDependencies(
   updatedVersions: VersionsMap
 ) {
   for (const depName of Object.keys(dependencies)) {
+    const oldVersion = dependencies[depName];
+    if (NPM_PROTOCOL_REGEXP.test(oldVersion)) {
+      continue;
+    }
     const newVersion = updatedVersions.get(depName);
     if (newVersion) {
-      const oldVersion = dependencies[depName];
       dependencies[depName] = newVersionWithRange(oldVersion, newVersion);
     }
   }

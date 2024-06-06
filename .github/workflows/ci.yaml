@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: google-github-actions/release-please-action
+          repository: googleapis/release-please-action
           ref: main
       - uses: actions/setup-node@v3
         with:
