@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.11.0](https://github.com/googleapis/release-please/compare/v16.10.2...v16.11.0) (2024-06-06)
+
+
+### Features
+
+* **php-yoshi:** support BEGIN_VERSION_OVERRIDE in php-yoshi ([#2300](https://github.com/googleapis/release-please/issues/2300)) ([b9d4544](https://github.com/googleapis/release-please/commit/b9d454470053866d1c89ee30110d23f1818dee60))
+
 ## [16.10.2](https://github.com/googleapis/release-please/compare/v16.10.1...v16.10.2) (2024-04-16)
 
 
