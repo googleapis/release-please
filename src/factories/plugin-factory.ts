@@ -54,25 +54,6 @@ export interface PluginFactoryOptions {
 
 export type PluginBuilder = (options: PluginFactoryOptions) => ManifestPlugin;
 
-function merge(options: PluginFactoryOptions): boolean | undefined {
-  // NOTE: linked-versions had already have a different behavior when this code wrote
-  // see test/plugins/compatibility/linked-versions-workspace.ts
-  if (typeof options.type === 'string' && options.type !== 'linked-versions') {
-    return !options.separatePullRequests;
-  }
-  if (typeof options.type !== 'string') {
-    const type = options.type as
-      | LinkedVersionPluginConfig
-      | WorkspacePluginConfig;
-    if (typeof type.merge === 'undefined' && type.type !== 'linked-versions') {
-      return !options.separatePullRequests;
-    }
-    return type.merge;
-  }
-  // return undefined due to relying on the default behavior of the plugin constructor
-  return undefined;
-}
-
 const pluginFactories: Record<string, PluginBuilder> = {
   'linked-versions': options =>
     new LinkedVersions(
@@ -84,7 +65,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
-        merge: merge(options),
+        merge: determineMerge(options),
       }
     ),
   'cargo-workspace': options =>
@@ -95,7 +76,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
-        merge: merge(options),
+        merge: determineMerge(options),
       }
     ),
   'node-workspace': options =>
@@ -106,7 +87,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
-        merge: merge(options),
+        merge: determineMerge(options),
       }
     ),
   'maven-workspace': options =>
@@ -117,7 +98,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
-        merge: merge(options),
+        merge: determineMerge(options),
       }
     ),
   'sentence-case': options =>
@@ -173,4 +154,25 @@ export function unregisterPlugin(name: string) {
 
 export function getPluginTypes(): readonly VersioningStrategyType[] {
   return Object.keys(pluginFactories).sort();
+}
+
+export function determineMerge(
+  options: PluginFactoryOptions
+): boolean | undefined {
+  // NOTE: linked-versions had already have a different behavior when this code wrote
+  // see test/plugins/compatibility/linked-versions-workspace.ts
+  if (typeof options.type === 'string' && options.type !== 'linked-versions') {
+    return !options.separatePullRequests;
+  }
+  if (typeof options.type !== 'string') {
+    const type = options.type as
+      | LinkedVersionPluginConfig
+      | WorkspacePluginConfig;
+    if (typeof type.merge === 'undefined' && type.type !== 'linked-versions') {
+      return !options.separatePullRequests;
+    }
+    return type.merge;
+  }
+  // return undefined due to relying on the default behavior of the plugin constructor
+  return undefined;
 }
