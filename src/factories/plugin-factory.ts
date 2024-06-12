@@ -18,7 +18,7 @@ import {
   RepositoryConfig,
   SentenceCasePluginConfig,
   GroupPriorityPluginConfig,
-  hasMergeTypePlugin,
+  WorkspacePluginConfig,
 } from '../manifest';
 import {GitHub} from '../github';
 import {ManifestPlugin} from '../plugin';
@@ -55,15 +55,19 @@ export interface PluginFactoryOptions {
 export type PluginBuilder = (options: PluginFactoryOptions) => ManifestPlugin;
 
 function merge(options: PluginFactoryOptions): boolean | undefined {
-  if (hasMergeTypePlugin(options.type)) {
-    if (
-      typeof options.type.merge === 'undefined' &&
-      // NOTE: linked-versions had already have a different behavior when this code wrote
-      options.type.type !== 'linked-versions'
-    ) {
+  // NOTE: linked-versions had already have a different behavior when this code wrote
+  // see test/plugins/compatibility/linked-versions-workspace.ts
+  if (typeof options.type === 'string' && options.type !== 'linked-versions') {
+    return !options.separatePullRequests;
+  }
+  if (typeof options.type !== 'string') {
+    const type = options.type as
+      | LinkedVersionPluginConfig
+      | WorkspacePluginConfig;
+    if (typeof type.merge === 'undefined' && type.type !== 'linked-versions') {
       return !options.separatePullRequests;
     }
-    return options.type.merge;
+    return type.merge;
   }
   // return undefined due to relying on the default behavior of the plugin constructor
   return undefined;

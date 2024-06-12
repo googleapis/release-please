@@ -246,12 +246,6 @@ export type PluginType =
   | WorkspacePluginConfig
   | NodeWorkspacePluginConfig;
 
-export function hasMergeTypePlugin(
-  type: PluginType
-): type is LinkedVersionPluginConfig | WorkspacePluginConfig {
-  return typeof type === 'object';
-}
-
 /**
  * This is the schema of the manifest config json
  */
