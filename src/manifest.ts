@@ -246,6 +246,12 @@ export type PluginType =
   | WorkspacePluginConfig
   | NodeWorkspacePluginConfig;
 
+export function hasMergeTypePlugin(
+  type: PluginType
+): type is LinkedVersionPluginConfig | WorkspacePluginConfig {
+  return typeof type === 'object';
+}
+
 /**
  * This is the schema of the manifest config json
  */
@@ -387,6 +393,7 @@ export class Manifest {
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
+        separatePullRequests: this.separatePullRequests,
       })
     );
     this.pullRequestOverflowHandler = new FilePullRequestOverflowHandler(

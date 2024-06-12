@@ -18,6 +18,7 @@ import {
   RepositoryConfig,
   SentenceCasePluginConfig,
   GroupPriorityPluginConfig,
+  hasMergeTypePlugin,
 } from '../manifest';
 import {GitHub} from '../github';
 import {ManifestPlugin} from '../plugin';
@@ -38,6 +39,7 @@ export interface PluginFactoryOptions {
   targetBranch: string;
   repositoryConfig: RepositoryConfig;
   manifestPath: string;
+  separatePullRequests: boolean;
 
   // node options
   alwaysLinkLocal?: boolean;
@@ -52,6 +54,21 @@ export interface PluginFactoryOptions {
 
 export type PluginBuilder = (options: PluginFactoryOptions) => ManifestPlugin;
 
+function merge(options: PluginFactoryOptions): boolean | undefined {
+  if (hasMergeTypePlugin(options.type)) {
+    if (
+      typeof options.type.merge === 'undefined' &&
+      // NOTE: linked-versions had already have a different behavior when this code wrote
+      options.type.type !== 'linked-versions'
+    ) {
+      return !options.separatePullRequests;
+    }
+    return options.type.merge;
+  }
+  // return undefined due to relying on the default behavior of the plugin constructor
+  return undefined;
+}
+
 const pluginFactories: Record<string, PluginBuilder> = {
   'linked-versions': options =>
     new LinkedVersions(
@@ -63,6 +80,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
+        merge: merge(options),
       }
     ),
   'cargo-workspace': options =>
@@ -73,6 +91,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
+        merge: merge(options),
       }
     ),
   'node-workspace': options =>
@@ -83,6 +102,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
+        merge: merge(options),
       }
     ),
   'maven-workspace': options =>
@@ -93,6 +113,7 @@ const pluginFactories: Record<string, PluginBuilder> = {
       {
         ...options,
         ...(options.type as WorkspacePluginOptions),
+        merge: merge(options),
       }
     ),
   'sentence-case': options =>
