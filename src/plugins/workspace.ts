@@ -78,7 +78,6 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
       (collection, candidate) => {
         if (!candidate.pullRequest.version) {
           this.logger.warn('pull request missing version', candidate);
-          return collection;
         }
         if (this.inScope(candidate)) {
           collection[0].push(candidate);
