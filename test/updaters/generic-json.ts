@@ -45,12 +45,39 @@ describe('GenericJson', () => {
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
+    it('updates substring in matching entry', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './renovate-shared-preset.json'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new GenericJson('$.extends.*', Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
     it('ignores non-matching entry', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './esy.json'),
         'utf8'
       ).replace(/\r\n/g, '\n');
       const updater = new GenericJson('$.nonExistent', Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      expect(newContent).to.eql(oldContent);
+    });
+    it('ignore array entry', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './renovate-shared-preset.json'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new GenericJson('$.extends', Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      expect(newContent).to.eql(oldContent);
+    });
+    it('ignore non-matching string', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './esy.json'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new GenericJson('$.author', Version.parse('v2.3.4'));
       const newContent = updater.updateContent(oldContent);
       expect(newContent).to.eql(oldContent);
     });
