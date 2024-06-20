@@ -71,7 +71,9 @@ export class CommitSplit {
    * with a set of tracked package paths, then only consider paths for
    * configured components. If `includeEmpty` is configured, then a commit
    * that does not touch any files will be applied to all components'
-   * commits.
+   * commits. If a commit contains `Component: ...` footer(s), it will be
+   * included in those components as well any package paths it touches.
+   *
    * @param {Commit[]} commits The commits to split
    * @returns {Record<string, Commit[]>} Commits indexed by component path
    */
@@ -106,6 +108,7 @@ export class CommitSplit {
         if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
         splitCommits[pkgName].push(commit);
       }
+      // todo: handle 'Component: ...' commit footers
       if (commit.files.length === 0 && this.includeEmpty) {
         if (this.packagePaths) {
           for (const pkgName of this.packagePaths) {
