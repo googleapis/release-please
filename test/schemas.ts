@@ -47,6 +47,7 @@ describe('schemas', () => {
       it(`validates ${manifestFile}`, () => {
         const config = require(resolve(fixturesPath, 'config', manifestFile));
         const result = configValidator(config);
+        console.log('!!!error', result, 'errors=', configValidator.errors);
         expect(result).to.be.true;
         expect(configValidator.errors).to.be.null;
       });
