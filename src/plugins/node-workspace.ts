@@ -29,13 +29,13 @@ import {
   appendDependenciesSectionToChangelog,
   addPath,
 } from './workspace';
-import {PatchVersionUpdate} from '../versioning-strategy';
 import {Strategy} from '../strategy';
 import {Commit} from '../commit';
 import {Release} from '../release';
 import {CompositeUpdater} from '../updaters/composite';
 import {PackageJson, newVersionWithRange} from '../updaters/node/package-json';
 import {Logger} from '../util/logger';
+import {PatchVersionUpdate} from '../versioning-strategy';
 
 interface ParsedPackageJson {
   name: string;
@@ -170,6 +170,9 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
   protected bumpVersion(pkg: Package): Version {
     const version = Version.parse(pkg.version);
+    const strategy = this.strategiesByPath[pkg.path];
+
+    if (strategy) return strategy.versioningStrategy.bump(version, []);
     return new PatchVersionUpdate().bump(version);
   }
 
