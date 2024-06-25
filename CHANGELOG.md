@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.12.0](https://github.com/googleapis/release-please/compare/v16.11.0...v16.12.0) (2024-06-06)
+
+
+### Features
+
+* issue a combined PR comment for all releases ([#2286](https://github.com/googleapis/release-please/issues/2286)) ([719fdf5](https://github.com/googleapis/release-please/commit/719fdf565e9f92694e7e38edee1eadcd62334681)), closes [#2285](https://github.com/googleapis/release-please/issues/2285)
+
+
+### Bug Fixes
+
+* **node:** do not update versions of packages installed using a protocol ([#2281](https://github.com/googleapis/release-please/issues/2281)) ([eeb1411](https://github.com/googleapis/release-please/commit/eeb14111849aefa7024f754121f2c05a4e9ab1ea)), closes [#2173](https://github.com/googleapis/release-please/issues/2173)
+
 ## [16.11.0](https://github.com/googleapis/release-please/compare/v16.10.2...v16.11.0) (2024-06-06)
 
 
