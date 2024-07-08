@@ -144,7 +144,8 @@ describe('Plugin compatibility', () => {
               components: ['primary', 'pkgA'],
             },
           ],
-          groupPullRequestTitlePattern: 'chore: Release${component} ${version}',
+          groupPullRequestTitlePattern:
+            'chore: Release ${component} ${version}',
         }
       );
       const pullRequests = await manifest.buildPullRequests();

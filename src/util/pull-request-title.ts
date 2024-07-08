@@ -20,7 +20,7 @@ import {Version} from '../version';
 // or instance methods/properties.
 
 const DEFAULT_PR_TITLE_PATTERN =
-  'chore${scope}: release${component} ${version}';
+  'chore${scope}: release ${component} ${version}';
 export function generateMatchPattern(
   pullRequestTitlePattern?: string,
   logger: Logger = defaultLogger
@@ -47,7 +47,7 @@ export function generateMatchPattern(
       .replace('(', '\\(')
       .replace(')', '\\)')
       .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
-      .replace('${component}', ' ?(?<component>@?[\\w-./]*)?')
+      .replace('${component}', '?(?<component>@?[\\w-./]*)?')
       .replace('${version}', 'v?(?<version>[0-9].*)')
       .replace('${branch}', '(?<branch>[\\w-./]+)?')}$`
   );
@@ -160,6 +160,16 @@ export class PullRequestTitle {
     const scope = this.targetBranch ? `(${this.targetBranch})` : '';
     const component = this.component ? `${this.component}` : '';
     const version = this.version ?? '';
+    if (!component) {
+      console.log(
+        '"component" is empty, removing component from title pattern.'
+      );
+      this.pullRequestTitlePattern = this.pullRequestTitlePattern.replace(
+        '${component} ',
+        ''
+      );
+    }
+
     return this.pullRequestTitlePattern
       .replace('${scope}', scope)
       .replace('${component}', component)
