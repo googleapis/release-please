@@ -158,7 +158,7 @@ export class PullRequestTitle {
 
   toString(): string {
     const scope = this.targetBranch ? `(${this.targetBranch})` : '';
-    const component = this.component ? ` ${this.component}` : '';
+    const component = this.component ? `${this.component}` : '';
     const version = this.version ?? '';
     return this.pullRequestTitlePattern
       .replace('${scope}', scope)
