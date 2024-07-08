@@ -146,7 +146,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
         const name = 'chore: 🔖 release 1.2.3';
         const pullRequestTitle = PullRequestTitle.parse(
           name,
-          'chore${scope}: 🔖 release${component} ${version}'
+          'chore${scope}: 🔖 release ${component} ${version}'
         );
         expect(pullRequestTitle).to.not.be.undefined;
         expect(pullRequestTitle?.getTargetBranch()).to.be.undefined;
@@ -169,7 +169,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
         const name = 'chore: 🔖 release storage v1.2.3';
         const pullRequestTitle = PullRequestTitle.parse(
           name,
-          'chore${scope}: 🔖 release${component} ${version}'
+          'chore${scope}: 🔖 release ${component} ${version}'
         );
         expect(pullRequestTitle).to.not.be.undefined;
         expect(pullRequestTitle?.getTargetBranch()).to.be.undefined;
@@ -194,7 +194,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       const name = 'chore(main): 🔖 release storage v1.2.3';
       const pullRequestTitle = PullRequestTitle.parse(
         name,
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(pullRequestTitle).to.not.be.undefined;
       expect(pullRequestTitle?.getTargetBranch()).to.eql('main');
@@ -206,7 +206,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       const name = 'chore(main): 🔖 release @example/storage v1.2.3';
       const pullRequestTitle = PullRequestTitle.parse(
         name,
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(pullRequestTitle).to.not.be.undefined;
       expect(pullRequestTitle?.getComponent()).to.eql('@example/storage');
@@ -215,7 +215,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
     it('fails to parse', () => {
       const pullRequestTitle = PullRequestTitle.parse(
         'release-foo',
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(pullRequestTitle).to.be.undefined;
     });
@@ -249,7 +249,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
     it('builds the autorelease versioned branch name', () => {
       const pullRequestTitle = PullRequestTitle.ofVersion(
         Version.parse('1.2.3'),
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(pullRequestTitle.toString()).to.eql('chore: 🔖 release 1.2.3');
     });
@@ -259,7 +259,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       const pullRequestTitle = PullRequestTitle.ofComponentVersion(
         'storage',
         Version.parse('1.2.3'),
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(pullRequestTitle.toString()).to.eql(
         'chore: 🔖 release storage 1.2.3'
@@ -271,7 +271,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
       const pullRequestTitle = PullRequestTitle.ofTargetBranchVersion(
         'main',
         Version.parse('1.2.3'),
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(pullRequestTitle.toString()).to.eql(
         'chore(main): 🔖 release 1.2.3'
@@ -284,7 +284,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
         'foo',
         'main',
         Version.parse('1.2.3'),
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(pullRequestTitle.toString()).to.eql(
         'chore(main): 🔖 release foo 1.2.3'
@@ -294,7 +294,7 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
   describe('generateMatchPattern', () => {
     it('return matchPattern with custom Pattern', () => {
       const matchPattern = generateMatchPattern(
-        'chore${scope}: 🔖 release${component} ${version}'
+        'chore${scope}: 🔖 release ${component} ${version}'
       );
       expect(matchPattern).to.eql(
         /^chore(\((?<branch>[\w-./]+)\))?: 🔖 release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/

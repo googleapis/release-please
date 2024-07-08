@@ -37,7 +37,7 @@ const CHANGELOG_SECTIONS = [
 ];
 const DEFAULT_CHANGELOG_PATH = 'docs/history.md';
 const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
-  'Release${component} version ${version}';
+  'Release ${component} version ${version}';
 const DEFAULT_PULL_REQUEST_HEADER =
   ':robot: I have created a release *beep* *boop*';
 const DEFAULT_PULL_REQUEST_FOOTER =
