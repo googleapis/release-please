@@ -199,6 +199,13 @@
             "type": "string"
           }
         },
+        "additional-paths": {
+          "description": "Path of commits, from outside the package, to be included in parsing.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "version-file": {
           "description": "Path to the specialize version file. Used by `ruby` and `simple` strategies.",
           "type": "string"
@@ -443,6 +450,7 @@
     "version-file": true,
     "snapshot-label": true,
     "initial-version": true,
-    "exclude-paths": true
+    "exclude-paths": true,
+    "additional-paths": true
   }
 }
