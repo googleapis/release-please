@@ -535,6 +535,34 @@ describe('Manifest', () => {
         'path-ignore',
       ]);
     });
+    it('should read additional paths from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/additional-paths.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(
+        manifest.repositoryConfig['apps/my-app'].additionalPaths
+      ).to.deep.equal(['libs/my-lib']);
+    });
     it('should build simple plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
