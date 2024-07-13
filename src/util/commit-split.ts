@@ -14,7 +14,7 @@
 
 import {Commit} from '../commit';
 import {ROOT_PROJECT_PATH} from '../manifest';
-import {normalizePaths} from './commit-utils';
+import {normalizePath, normalizePaths} from './commit-utils';
 
 export interface CommitSplitOptions {
   // Include empty git commits: each empty commit is included
@@ -58,7 +58,7 @@ export class CommitSplit {
       this.packagePaths = Object.fromEntries(
         Object.entries(opts.packagePaths)
           .map(([path, additionalPaths]) => [
-            normalizePaths([path]).pop(),
+            normalizePath(path),
             normalizePaths(additionalPaths),
           ])
           .filter(([path]) => {
