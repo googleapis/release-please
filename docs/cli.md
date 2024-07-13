@@ -64,7 +64,7 @@ Extra options:
 | `--pull-request-title-pattern` | `string` | Override the pull request title pattern. Defaults to `chore${scope}: release${component} ${version}` |
 | `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--pull-request-footer` | `string` | Override the pull request footer. Defaults to `This PR was generated with Release Please. See documentation.` |
-| `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
+| `--extra-files` | `string[]` | Extra file paths for the release strategy to update |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
 
 ## Creating/updating release PRs
@@ -115,7 +115,7 @@ need to specify your release options:
 | `--pull-request-header` | `string` | Override the pull request header. Defaults to `:robot: I have created a release *beep* *boop*` |
 | `--pull-request-footer` | `string` | Override the pull request footer. Defaults to `This PR was generated with Release Please. See documentation.` |
 | `--signoff` | string | Add [`Signed-off-by`](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) line at the end of the commit log message using the user and email provided. (format "Name \<email@example.com\>") |
-| `--extra-files` | `string[]` | Extra file paths for the release strategy to consider |
+| `--extra-files` | `string[]` | Extra file paths for the release strategy to update |
 | `--version-file` | `string` | Ruby only. Path to the `version.rb` file |
 | `--skip-labeling` | `boolean` | If set, labels will not be applied to pull requests |
 | `--include-v-in-tags` | `boolean` | Include "v" in tag versions. Defaults to `true`. |
