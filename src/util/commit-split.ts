@@ -39,7 +39,7 @@ export interface CommitSplitOptions {
   //
   // NOTE: GitHub API always returns paths using the `/` separator, regardless
   // of what platform the client code is running on
-  packagePaths?: string[];
+  packagePaths?: Record<string, string[]>;
 }
 
 /**
@@ -50,19 +50,24 @@ export interface CommitSplitOptions {
  */
 export class CommitSplit {
   includeEmpty: boolean;
-  packagePaths?: string[];
+  packagePaths?: Record<string, string[]>;
   constructor(opts?: CommitSplitOptions) {
     opts = opts || {};
     this.includeEmpty = !!opts.includeEmpty;
     if (opts.packagePaths) {
-      const paths: string[] = normalizePaths(opts.packagePaths);
-      this.packagePaths = paths
-        .filter(path => {
-          // The special "." path, representing the root of the module, should be
-          // ignored by commit-split as it is assigned all commits in manifest.ts
-          return path !== ROOT_PROJECT_PATH;
-        })
-        .sort((a, b) => b.length - a.length); // sort by longest paths first
+      this.packagePaths = Object.fromEntries(
+        Object.entries(opts.packagePaths)
+          .map(([path, additionalPaths]) => [
+            normalizePaths([path]).pop(),
+            normalizePaths(additionalPaths),
+          ])
+          .filter(([path]) => {
+            // The special "." path, representing the root of the module, should be
+            // ignored by commit-split as it is assigned all commits in manifest.ts
+            return path !== ROOT_PROJECT_PATH;
+          })
+          .sort(([a], [b]) => b.length - a.length) // sort by longest paths first
+      );
     }
   }
 
@@ -93,10 +98,14 @@ export class CommitSplit {
         // in this edge-case we should not attempt to update the path.
         if (splitPath.length === 1) continue;
 
-        let pkgName;
+        let pkgName: string | undefined;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
-          pkgName = this.packagePaths.find(p => file.indexOf(`${p}/`) === 0);
+          pkgName = Object.entries(this.packagePaths).find(
+            ([path, additionalPaths]) =>
+              file.indexOf(`${path}/`) === 0 ||
+              additionalPaths.some(path => file.indexOf(`${path}/`) === 0)
+          )?.[0];
         } else {
           // track paths by top level folder
           pkgName = splitPath[0];
@@ -108,7 +117,7 @@ export class CommitSplit {
       }
       if (commit.files.length === 0 && this.includeEmpty) {
         if (this.packagePaths) {
-          for (const pkgName of this.packagePaths) {
+          for (const pkgName of Object.keys(this.packagePaths)) {
             splitCommits[pkgName] = splitCommits[pkgName] || [];
             splitCommits[pkgName].push(commit);
           }

@@ -660,7 +660,12 @@ export class Manifest {
     this.logger.info(`Splitting ${commits.length} commits by path`);
     const cs = new CommitSplit({
       includeEmpty: true,
-      packagePaths: Object.keys(this.repositoryConfig),
+      packagePaths: Object.fromEntries(
+        Object.entries(this.repositoryConfig).map(([path, config]) => [
+          path,
+          config.additionalPaths || [],
+        ])
+      ),
     });
     const splitCommits = cs.split(commits);
 
