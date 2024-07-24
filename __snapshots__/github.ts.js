@@ -451,7 +451,7 @@ exports['GitHub createRelease should raise a RequestError for other validation e
   "target_commitish": "abc123"
 }
 
-exports['GitHub enablePullRequestAutoMerge merges release PR directly when an auto-merge given but "protected branch rules not configured for this branch" 1'] = {
+exports['GitHub enablePullRequestAutoMerge does nothing when an auto-merge given but PR in "clean status" 1'] = {
   "query": "query pullRequestId($owner: String!, $repo: String!, $pullRequestNumber: Int!) {\n        repository(name: $repo, owner: $owner) {\n          pullRequest(number: $pullRequestNumber) {\n            id\n          }\n        }\n      }",
   "variables": {
     "owner": "fake",
@@ -460,7 +460,7 @@ exports['GitHub enablePullRequestAutoMerge merges release PR directly when an au
   }
 }
 
-exports['GitHub enablePullRequestAutoMerge merges release PR directly when an auto-merge given but PR in "clean status" 1'] = {
+exports['GitHub enablePullRequestAutoMerge merges release PR directly when an auto-merge given but "protected branch rules not configured for this branch" 1'] = {
   "query": "query pullRequestId($owner: String!, $repo: String!, $pullRequestNumber: Int!) {\n        repository(name: $repo, owner: $owner) {\n          pullRequest(number: $pullRequestNumber) {\n            id\n          }\n        }\n      }",
   "variables": {
     "owner": "fake",

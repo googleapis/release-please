@@ -1271,7 +1271,7 @@ describe('GitHub', () => {
       req.done();
     });
 
-    it('merges release PR directly when an auto-merge given but PR in "clean status"', async () => {
+    it('does nothing when an auto-merge given but PR in "clean status"', async () => {
       const mutatePullRequestEnableAutoMergeStub = sandbox
         .stub(github, <any>'mutatePullRequestEnableAutoMerge') // eslint-disable-line @typescript-eslint/no-explicit-any
         .throws(
@@ -1312,14 +1312,10 @@ describe('GitHub', () => {
               },
             },
           },
-        })
-        .put('/repos/fake/fake/pulls/123/merge', {
-          merge_method: 'rebase',
-        })
-        .reply(200);
+        });
 
       const result = await github.enablePullRequestAutoMerge(123, 'rebase');
-      expect(result).to.equal('direct-merged');
+      expect(result).to.equal('none');
       sinon.assert.calledOnce(mutatePullRequestEnableAutoMergeStub);
       req.done();
     });
@@ -1366,14 +1362,10 @@ describe('GitHub', () => {
               },
             },
           },
-        })
-        .put('/repos/fake/fake/pulls/123/merge', {
-          merge_method: 'rebase',
-        })
-        .reply(200);
+        });
 
       const result = await github.enablePullRequestAutoMerge(123, 'rebase');
-      expect(result).to.equal('direct-merged');
+      expect(result).to.equal('none');
       sinon.assert.calledOnce(mutatePullRequestEnableAutoMergeStub);
       req.done();
     });

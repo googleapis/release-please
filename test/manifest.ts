@@ -4995,7 +4995,7 @@ version = "3.0.0"
         });
       const enablePullRequestAutoMergeStub = sandbox
         .stub(github, 'enablePullRequestAutoMerge')
-        .resolves('direct-merged');
+        .resolves('none');
       const addPullRequestReviewersStub = sandbox
         .stub(github, 'addPullRequestReviewers')
         .resolves();
@@ -5228,8 +5228,7 @@ version = "3.0.0"
 
       expect(enablePullRequestAutoMergeStub.callCount).to.equal(1);
 
-      // only called when not auto-merged
-      expect(addPullRequestReviewersStub.callCount).to.equal(5);
+      expect(addPullRequestReviewersStub.callCount).to.equal(6);
     });
 
     it('enables auto-merge when filters are provided (filters: only commit type, match-all)', async () => {
@@ -5246,7 +5245,7 @@ version = "3.0.0"
         });
       const enablePullRequestAutoMergeStub = sandbox
         .stub(github, 'enablePullRequestAutoMerge')
-        .resolves('direct-merged');
+        .resolves('none');
       const addPullRequestReviewersStub = sandbox
         .stub(github, 'addPullRequestReviewers')
         .resolves();
@@ -5418,8 +5417,7 @@ version = "3.0.0"
       );
 
       expect(enablePullRequestAutoMergeStub.callCount).to.equal(3);
-      // only called when not auto-merged
-      expect(addPullRequestReviewersStub.callCount).to.equal(1);
+      expect(addPullRequestReviewersStub.callCount).to.equal(4);
     });
 
     it('enables auto-merge when filters are provided (filters: build-patch-minor version bump, commit filters, match-at-least-one)', async () => {
@@ -5436,7 +5434,7 @@ version = "3.0.0"
         });
       const enablePullRequestAutoMergeStub = sandbox
         .stub(github, 'enablePullRequestAutoMerge')
-        .resolves('direct-merged');
+        .resolves('none');
       const addPullRequestReviewersStub = sandbox
         .stub(github, 'addPullRequestReviewers')
         .resolves();
@@ -5755,8 +5753,7 @@ version = "3.0.0"
       );
 
       expect(enablePullRequestAutoMergeStub.callCount).to.equal(4);
-      // only called when not auto-merged
-      expect(addPullRequestReviewersStub.callCount).to.equal(3);
+      expect(addPullRequestReviewersStub.callCount).to.equal(7);
     });
 
     it('updates an existing pull request', async () => {
