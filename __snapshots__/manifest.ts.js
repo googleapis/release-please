@@ -11,10 +11,15 @@ exports['Manifest buildPullRequests should allow creating multiple pull requests
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['Manifest buildPullRequests should allow creating multiple pull requests 2'] = `
@@ -30,10 +35,15 @@ exports['Manifest buildPullRequests should allow creating multiple pull requests
 * some bugfix ([bbbbbb](https://github.com/fake-owner/fake-repo/commit/bbbbbb))
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['Manifest buildPullRequests should allow customizing pull request title with root package 1'] = `
@@ -62,10 +72,15 @@ exports['Manifest buildPullRequests should allow customizing pull request title 
 </details>
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['Manifest buildPullRequests should allow overriding commit message 1'] = `
@@ -81,10 +96,15 @@ exports['Manifest buildPullRequests should allow overriding commit message 1'] =
 * real fix message ([def456](https://github.com/fake-owner/fake-repo/commit/def456))
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['Manifest buildPullRequests should handle mixing componentless configs 1'] = `
@@ -113,10 +133,15 @@ exports['Manifest buildPullRequests should handle mixing componentless configs 1
 </details>
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['Manifest buildPullRequests should handle multiple package repository 1'] = `
@@ -145,10 +170,15 @@ exports['Manifest buildPullRequests should handle multiple package repository 1'
 </details>
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['Manifest buildPullRequests should report issue via PR comment if labeled as custom version but version not found in title 1'] = `

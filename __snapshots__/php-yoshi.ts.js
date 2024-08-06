@@ -752,10 +752,15 @@ exports['PHPYoshi buildReleasePullRequest includes misc commits 1'] = `
 </details>
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['PHPYoshi buildReleasePullRequest returns release PR changes with defaultInitialVersion 1'] = `
@@ -796,10 +801,15 @@ exports['PHPYoshi buildReleasePullRequest returns release PR changes with defaul
 </details>
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
 
 exports['PHPYoshi buildReleasePullRequest returns release PR changes with semver patch bump 1'] = `
@@ -840,8 +850,13 @@ exports['PHPYoshi buildReleasePullRequest returns release PR changes with semver
 </details>
 
 ---
-This Pull Request has been generated automatically as part of [Stainless](https://stainlessapi.com/)'s release process.
-For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request ([see details](https://github.com/stainless-api/release-please/#linear-git-commit-history-use-squash-merge)).
+This pull request is managed by Stainless's [GitHub App](https://github.com/apps/stainless-app).
 
-_More technical details can be found at [stainless-api/release-please](https://github.com/stainless-api/release-please)_.
+The [semver version number](https://semver.org/#semantic-versioning-specification-semver) is based on included [commit messages](https://www.conventionalcommits.org/en/v1.0.0/). Alternatively, you can manually set the version number in the title of this pull request.
+
+For a better experience, it is recommended to use either rebase-merge or squash-merge when merging this pull request.
+
+🔗 Stainless [website](https://www.stainlessapi.com)
+📚 Read the [docs](https://app.stainlessapi.com/docs)
+🙋 [Reach out](mailto:support@stainlessapi.com) for help or questions
 `
