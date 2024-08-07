@@ -199,7 +199,7 @@ force the [Generic](/src/updaters/generic.ts) updater, you must use type
 
 ## Updating arbitrary JSON files
 
-For files with the `.xml` extension, the `version` property is updated.
+For files with the `.json` extension, the `version` property is updated.
 
 For most release strategies, you can provide additional files to update
 using the [GenericJson](/src/updaters/generic-json.ts) updater. You can
