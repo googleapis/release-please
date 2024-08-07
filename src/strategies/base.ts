@@ -104,7 +104,7 @@ export abstract class BaseStrategy implements Strategy {
   protected targetBranch: string;
   protected repository: Repository;
   protected changelogPath: string;
-  protected changelogHost?: string;
+  protected changelogHost: string;
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
   protected skipChangelog: boolean;
@@ -139,7 +139,7 @@ export abstract class BaseStrategy implements Strategy {
     this.targetBranch = options.targetBranch;
     this.repository = options.github.repository;
     this.changelogPath = options.changelogPath || DEFAULT_CHANGELOG_PATH;
-    this.changelogHost = options.changelogHost;
+    this.changelogHost = options.changelogHost || options.github.serverUrl;
     this.changelogSections = options.changelogSections;
     this.tagSeparator = options.tagSeparator;
     this.skipGitHubRelease = options.skipGitHubRelease || false;

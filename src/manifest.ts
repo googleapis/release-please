@@ -1085,7 +1085,7 @@ export class Manifest {
     // If unchanged, no need to push updates
     if (existing.body === pullRequest.body.toString()) {
       this.logger.info(
-        `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
+        `PR ${this.github.serverUrl}/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
       );
       return undefined;
     }
@@ -1100,7 +1100,7 @@ export class Manifest {
     // If unchanged, no need to push updates
     if (snoozed.body === pullRequest.body.toString()) {
       this.logger.info(
-        `PR https://github.com/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
+        `PR ${this.github.serverUrl}/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
       );
       return undefined;
     }
