@@ -18,12 +18,12 @@ import {
   BuildNotesOptions,
 } from '../changelog-notes';
 import {ConventionalCommit} from '../commit';
+import { DEFAULT_GITHUB_SERVER_URL } from '../util/github-server';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalChangelogWriter = require('conventional-changelog-writer');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const presetFactory = require('conventional-changelog-conventionalcommits');
-const DEFAULT_HOST = 'https://github.com';
 
 interface DefaultChangelogNotesOptions {
   commitPartial?: string;
@@ -53,7 +53,7 @@ export class DefaultChangelogNotes implements ChangelogNotes {
     options: BuildNotesOptions
   ): Promise<string> {
     const context = {
-      host: options.host || DEFAULT_HOST,
+      host: options.host || DEFAULT_GITHUB_SERVER_URL,
       owner: options.owner,
       repository: options.repository,
       version: options.version,

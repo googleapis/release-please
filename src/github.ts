@@ -50,6 +50,7 @@ import {Logger} from 'code-suggester/build/src/types';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
+import {DEFAULT_GITHUB_SERVER_URL} from './util/github-server';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -1430,7 +1431,7 @@ export class GitHub {
   commentOnIssue = wrapAsync(
     async (comment: string, number: number): Promise<string> => {
       this.logger.debug(
-        `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issues/${number}`
+        `adding comment to ${DEFAULT_GITHUB_SERVER_URL}/${this.repository.owner}/${this.repository.repo}/issues/${number}`
       );
       const resp = await this.octokit.issues.createComment({
         owner: this.repository.owner,
