@@ -43,6 +43,9 @@ exports['GitHub commitsSince backfills commit files for pull requests with lots 
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -63,6 +66,9 @@ exports['GitHub commitsSince backfills commit files without pull requests 1'] = 
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -71,9 +77,13 @@ exports['GitHub commitsSince backfills commit files without pull requests 1'] = 
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   }
 ]
 
@@ -81,6 +91,9 @@ exports['GitHub commitsSince finds commits up until a condition 1'] = [
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -89,9 +102,13 @@ exports['GitHub commitsSince finds commits up until a condition 1'] = [
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   }
 ]
 
@@ -99,6 +116,9 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -107,13 +127,20 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   },
   {
     "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
     "message": "feat: feature-branch-plain-merge commit 2",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
       "number": 7,
@@ -122,13 +149,20 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   },
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
     "message": "feat: feature-branch-plain-merge commit 1",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
       "number": 7,
@@ -137,9 +171,13 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   }
 ]
 
@@ -147,6 +185,9 @@ exports['GitHub commitsSince limits pagination 1'] = [
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -155,43 +196,34 @@ exports['GitHub commitsSince limits pagination 1'] = [
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   },
   {
     "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
     "message": "feat: feature-branch-plain-merge commit 2",
-    "pullRequest": {
-      "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
-      "number": 7,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-plain-merge",
-      "title": "feat: feature that will be plain merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
     "message": "feat: feature-branch-plain-merge commit 1",
-    "pullRequest": {
-      "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
-      "number": 7,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-plain-merge",
-      "title": "feat: feature that will be plain merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
     "message": "fix: feature-branch-merge fix 1",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
       "number": 6,
@@ -200,58 +232,41 @@ exports['GitHub commitsSince limits pagination 1'] = [
       "title": "feat: feature that will be rebase merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   },
   {
     "sha": "a257514a541d483425118d973674b1ce006a5489",
     "message": "chore: feature-branch-merge lint",
-    "pullRequest": {
-      "sha": "a257514a541d483425118d973674b1ce006a5489",
-      "number": 6,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
     "message": "feat: feature-branch-merge commit 2",
-    "pullRequest": {
-      "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
-      "number": 6,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "520b6f42551c86002197d033564a76a3f99b0019",
     "message": "feat: feature-branch-merge commit 1",
-    "pullRequest": {
-      "sha": "520b6f42551c86002197d033564a76a3f99b0019",
-      "number": 6,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
     "message": "chore(main): release 0.1.1-SNAPSHOT (#3)",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
       "number": 3,
@@ -262,13 +277,28 @@ exports['GitHub commitsSince limits pagination 1'] = [
       "labels": [
         "type: process"
       ],
-      "files": []
+      "files": [
+        "module1/pom.xml",
+        "module2/pom.xml",
+        "module3/pom.xml",
+        "pom.xml",
+        "versions.txt"
+      ]
     },
-    "files": []
+    "files": [
+      "module1/pom.xml",
+      "module2/pom.xml",
+      "module3/pom.xml",
+      "pom.xml",
+      "versions.txt"
+    ]
   },
   {
     "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
     "message": "feat: feature-branch that will be squash merged (#2)\n\n* feat: feature-branch commit 1\r\n\r\n* feat: feature-branch commit 2\r\n\r\n* chore: fix lint\r\n\r\n* fix: feature-branch fix 1",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
       "number": 2,
@@ -283,7 +313,10 @@ exports['GitHub commitsSince limits pagination 1'] = [
   },
   {
     "sha": "0cda26c2e7776748072ba5a24302474947b3ebbd",
-    "message": "build: add release-please bot"
+    "message": "build: add release-please bot",
+    "authors": [
+      "Jeff Ching"
+    ]
   }
 ]
 
@@ -291,6 +324,9 @@ exports['GitHub commitsSince paginates through commits 1'] = [
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -299,43 +335,34 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   },
   {
     "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
     "message": "feat: feature-branch-plain-merge commit 2",
-    "pullRequest": {
-      "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
-      "number": 7,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-plain-merge",
-      "title": "feat: feature that will be plain merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
     "message": "feat: feature-branch-plain-merge commit 1",
-    "pullRequest": {
-      "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
-      "number": 7,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-plain-merge",
-      "title": "feat: feature that will be plain merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
     "message": "fix: feature-branch-merge fix 1",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
       "number": 6,
@@ -344,58 +371,41 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "title": "feat: feature that will be rebase merged",
       "body": "",
       "labels": [],
-      "files": []
+      "files": [
+        "README.md"
+      ]
     },
-    "files": []
+    "files": [
+      "README.md"
+    ]
   },
   {
     "sha": "a257514a541d483425118d973674b1ce006a5489",
     "message": "chore: feature-branch-merge lint",
-    "pullRequest": {
-      "sha": "a257514a541d483425118d973674b1ce006a5489",
-      "number": 6,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
     "message": "feat: feature-branch-merge commit 2",
-    "pullRequest": {
-      "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
-      "number": 6,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "520b6f42551c86002197d033564a76a3f99b0019",
     "message": "feat: feature-branch-merge commit 1",
-    "pullRequest": {
-      "sha": "520b6f42551c86002197d033564a76a3f99b0019",
-      "number": 6,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": []
+    "authors": [
+      "Jeff Ching"
+    ],
   },
   {
     "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
     "message": "chore(main): release 0.1.1-SNAPSHOT (#3)",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
       "number": 3,
@@ -406,13 +416,28 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "labels": [
         "type: process"
       ],
-      "files": []
+      "files": [
+        "module1/pom.xml",
+        "module2/pom.xml",
+        "module3/pom.xml",
+        "pom.xml",
+        "versions.txt"
+      ]
     },
-    "files": []
+    "files": [
+      "module1/pom.xml",
+      "module2/pom.xml",
+      "module3/pom.xml",
+      "pom.xml",
+      "versions.txt"
+    ]
   },
   {
     "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
     "message": "feat: feature-branch that will be squash merged (#2)\n\n* feat: feature-branch commit 1\r\n\r\n* feat: feature-branch commit 2\r\n\r\n* chore: fix lint\r\n\r\n* fix: feature-branch fix 1",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e86984fb22ccc5eafb6c3d815851ade3463193da",
       "number": 2,
@@ -427,11 +452,17 @@ exports['GitHub commitsSince paginates through commits 1'] = [
   },
   {
     "sha": "0cda26c2e7776748072ba5a24302474947b3ebbd",
-    "message": "build: add release-please bot"
+    "message": "build: add release-please bot",
+    "authors": [
+      "Jeff Ching"
+    ]
   },
   {
     "sha": "959ee48c95f254300eb040c46ebdc8248317efe4",
     "message": "Release v0.1.0 (#1)",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "959ee48c95f254300eb040c46ebdc8248317efe4",
       "number": 1,
@@ -442,9 +473,21 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "labels": [
         "autorelease: tagged"
       ],
-      "files": []
+      "files": [
+        "module1/pom.xml",
+        "module2/pom.xml",
+        "module3/pom.xml",
+        "pom.xml",
+        "versions.txt"
+      ]
     },
-    "files": []
+    "files": [
+      "module1/pom.xml",
+      "module2/pom.xml",
+      "module3/pom.xml",
+      "pom.xml",
+      "versions.txt"
+    ]
   }
 ]
 
@@ -526,6 +569,9 @@ exports['GitHub mergeCommitIterator handles merged pull requests without files 1
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
     "message": "Merge pull request #7 from chingor13/feature-branch-plain-merge\n\nfeat: feature that will be plain merged",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "number": 7,
@@ -541,6 +587,9 @@ exports['GitHub mergeCommitIterator handles merged pull requests without files 1
   {
     "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
     "message": "feat: feature-branch-plain-merge commit 2",
+    "authors": [
+      "Jeff Ching"
+    ],
     "pullRequest": {
       "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
       "number": 7,
