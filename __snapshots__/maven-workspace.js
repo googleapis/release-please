@@ -122,6 +122,28 @@ Release notes for path: maven4, releaseType: maven
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
 
+exports['MavenWorkspace plugin run respects strategy versioning strategy 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>multi1-sub1: 2.3.0</summary>
+
+Release notes for path: multi1/sub1, releaseType: java-yoshi
+</details>
+
+<details><summary>com.google.example:my-bom: 1.3.0</summary>
+
+### Dependencies
+
+* The following workspace dependencies were updated
+    * com.google.example:multi1-sub1 bumped to 2.3.0
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
+
 exports['MavenWorkspace plugin run skips pom files not configured for release 1'] = `
 :robot: I have created a release *beep* *boop*
 ---
