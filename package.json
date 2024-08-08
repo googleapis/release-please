@@ -23,7 +23,8 @@
   "files": [
     "build/src",
     "templates",
-    "schemas"
+    "schemas",
+    "build/schemas"
   ],
   "repository": "stainless-api/release-please",
   "keywords": [
