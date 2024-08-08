@@ -77,6 +77,7 @@ function releaserConfigToJsonConfig(
     'pull-request-header': config.pullRequestHeader,
     'pull-request-footer': config.pullRequestFooter,
     'separate-pull-requests': config.separatePullRequests,
+    'always-update': config.alwaysUpdate,
     'tag-separator': config.tagSeparator,
     'extra-files': config.extraFiles,
     'version-file': config.versionFile,
