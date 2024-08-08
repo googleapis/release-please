@@ -23,6 +23,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {RootComposerUpdatePackages} from '../../src/updaters/php/root-composer-update-packages';
+import {DefaultUpdater} from '../../src/updaters/default';
 
 const sandbox = sinon.createSandbox();
 
@@ -95,9 +96,10 @@ describe('PHP', () => {
         latestRelease
       );
       const updates = release!.updates;
-      expect(updates).lengthOf(2);
+      expect(updates).lengthOf(3);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(updates, 'VERSION', DefaultUpdater);
     });
   });
 });

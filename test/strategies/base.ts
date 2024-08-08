@@ -23,6 +23,7 @@ import snapshot = require('snap-shot-it');
 import {
   dateSafe,
   assertHasUpdate,
+  assertHasUpdates,
   buildMockConventionalCommit,
 } from '../helpers';
 import {GenericJson} from '../../src/updaters/generic-json';
@@ -111,6 +112,87 @@ describe('Strategy', () => {
           'foo/baz/bar',
         ])
         .and.not.include('foo/baz/bar/', 'expected file but got directory');
+    });
+    it('updates extra JSON files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['manifest.json'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'manifest.json', GenericJson, Generic);
+    });
+    it('updates extra YAML files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['pubspec.yaml'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'pubspec.yaml', GenericYaml, Generic);
+    });
+    it('updates extra TOML files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['foo.toml'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'foo.toml', GenericToml, Generic);
+    });
+    it('updates extra Xml files with default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['pom.xml'],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdates(updates!, 'pom.xml', GenericXml, Generic);
+    });
+    it('updates extra generic files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['0', {type: 'generic', path: '/1.yml'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, '1.yml', Generic);
     });
     it('updates extra JSON files', async () => {
       const strategy = new TestStrategy({

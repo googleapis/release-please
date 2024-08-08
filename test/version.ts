@@ -150,4 +150,12 @@ describe('Version', () => {
       ]);
     });
   });
+  describe('isPreMajor', () => {
+    it('should return true for versions < 1.0.0', () => {
+      expect(Version.parse('0.1.0').isPreMajor).to.be.true;
+    });
+    it('should return false for versions >= 1.0.0', () => {
+      expect(Version.parse('1.0.0').isPreMajor).to.be.false;
+    });
+  });
 });

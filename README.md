@@ -63,7 +63,7 @@ A linear git history makes it much easier to:
   change introduced a bug
 * Control the release-please changelog - when you merge a PR, you may have
   commit messages that make sense within the scope of the PR, but don't
-  make sense when merged in the main branch. For example, you make have
+  make sense when merged in the main branch. For example, you may have
   `feat: introduce feature A` and then `fix: some bugfix introduced in
   the first commit`. The `fix` commit is actually irrelevant to the release
   notes as there was never a bug experienced in the main branch.
@@ -139,6 +139,8 @@ recommend using squash-merge instead](#linear-git-commit-history-use-squash-merg
 
 ## Release Please bot does not create a release PR. Why?
 
+### Step 1: Ensure releasable units are merged
+
 Release Please creates a release pull request after it notices the default branch
 contains "releasable units" since the last release.
 A releasable unit is a commit to the branch with one of the following
@@ -147,6 +149,26 @@ prefixes: "feat", "fix", and "deps".
 
 Some languages have their specific releasable unit configuration. For example,
 "docs" is a prefix for releasable units in Java and Python.
+
+### Step 2: Ensure no `autorelease: pending` or `autorelease: triggered` label in an old PR
+
+Check existing pull requests labelled with `autorelease: pending` or
+`autorelease: triggered` label.
+Due to GitHub API failures, it's possible that the tag was not removed
+correctly upon a previous release and Release Please thinks that the previous release is
+still pending.
+If you're certain that there's no pending release, remove the
+`autorelease: pending` or `autorelease: triggered` label.
+
+For the GitHub application users, Release Please will not create a new pull request
+if there's an existing pull request labeled as `autorelease: pending`.
+To confirm this case, search for a pull request with the label.
+(It's very likely it's the latest release pull request.)
+If you find a release pull request with the label and it is not going to be released
+(or already released), then remove the `autorelease: pending` label and re-run Release
+Please.
+
+### Step 3: Rerun Release Please
 
 If you think Release Please missed creating a release PR after a pull request
 with a releasable unit has been merged, please re-run `release-please`. If you are using
@@ -160,6 +182,7 @@ Release Please automates releases for the following flavors of repositories:
 
 | release type        | description |
 |---------------------|---------------------------------------------------------|
+| `bazel`             | [A Bazel module, with a MODULE.bazel and a CHANGELOG.md](https://bazel.build/external/module) |
 | `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
 | `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
 | `go`                | A repository with a CHANGELOG.md |
@@ -168,12 +191,12 @@ Release Please automates releases for the following flavors of repositories:
 | `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
 | `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](docs/java.md) |
 | `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
-| `expo`              | [An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md](https://github.com/yargs/yargs) |
+| `expo`              | An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md |
 | `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | `php`               | A repository with a composer.json and a CHANGELOG.md |
 | `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
 | `ruby`              | A repository with a version.rb and a CHANGELOG.md |
-| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace) and a CHANGELOG.md |
+| `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace, although note that workspaces require a [manifest driven release](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) and the "cargo-workspace" plugin) and a CHANGELOG.md |
 | `sfdx`              | A repository with a [sfdx-project.json](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) and a CHANGELOG.md |
 | `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
@@ -184,7 +207,7 @@ There are a variety of ways you can deploy release-please:
 
 ### GitHub Action (recommended)
 
-The easiest way to run Release Please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for installation and configuration instructions.
+The easiest way to run Release Please is as a GitHub action. Please see [googleapis/release-please-action](https://github.com/googleapis/release-please-action) for installation and configuration instructions.
 
 ### Running as CLI
 
@@ -253,3 +276,7 @@ For common issues and help troubleshooting your configuration, see [Troubleshoot
 Apache Version 2.0
 
 See [LICENSE](https://github.com/googleapis/release-please/blob/main/LICENSE)
+
+## Disclaimer
+
+This is not an official Google product.

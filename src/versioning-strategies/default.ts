@@ -24,7 +24,7 @@ import {ConventionalCommit} from '../commit';
 import {Version} from '../version';
 import {logger as defaultLogger, Logger} from '../util/logger';
 
-interface DefaultVersioningStrategyOptions {
+export interface DefaultVersioningStrategyOptions {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
   logger?: Logger;
@@ -89,13 +89,13 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
     }
 
     if (breaking > 0) {
-      if (version.major < 1 && this.bumpMinorPreMajor) {
+      if (version.isPreMajor && this.bumpMinorPreMajor) {
         return new MinorVersionUpdate();
       } else {
         return new MajorVersionUpdate();
       }
     } else if (features > 0) {
-      if (version.major < 1 && this.bumpPatchForMinorPreMajor) {
+      if (version.isPreMajor && this.bumpPatchForMinorPreMajor) {
         return new PatchVersionUpdate();
       } else {
         return new MinorVersionUpdate();

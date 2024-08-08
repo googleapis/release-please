@@ -40,6 +40,8 @@ const DEFAULT_PULL_REQUEST_TITLE_PATTERN =
   'Release${component} version ${version}';
 const DEFAULT_PULL_REQUEST_HEADER =
   ':robot: I have created a release *beep* *boop*';
+const DEFAULT_PULL_REQUEST_FOOTER =
+  'This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).';
 const RELEASE_NOTES_HEADER_PATTERN =
   /#{2,3} \[?(\d+\.\d+\.\d+-?[^\]]*)\]?.* \((\d{4}-\d{2}-\d{2})\)/;
 
@@ -61,6 +63,8 @@ export class DotnetYoshi extends BaseStrategy {
       options.pullRequestTitlePattern ?? DEFAULT_PULL_REQUEST_TITLE_PATTERN;
     options.pullRequestHeader =
       options.pullRequestHeader ?? DEFAULT_PULL_REQUEST_HEADER;
+    options.pullRequestFooter =
+      options.pullRequestFooter ?? DEFAULT_PULL_REQUEST_FOOTER;
     options.includeVInTag = options.includeVInTag ?? false;
     super(options);
   }

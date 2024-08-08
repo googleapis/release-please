@@ -1,0 +1,9 @@
+{
+    "draft-pull-request": true,
+    "packages": {
+        ".": {},
+        "node-packages": {
+            "draft-pull-request": false
+        }
+    }
+}

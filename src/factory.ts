@@ -12,12 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Strategy} from './strategy';
+import {ConfigurationError, GitHubAPIError} from './errors';
+import {buildChangelogNotes} from './factories/changelog-notes-factory';
+import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
+import {GitHub} from './github';
+import {ReleaserConfig} from './manifest';
+import {BaseStrategyOptions} from './strategies/base';
+import {Bazel} from './strategies/bazel';
+import {Dart} from './strategies/dart';
+import {DotnetYoshi} from './strategies/dotnet-yoshi';
+import {Elixir} from './strategies/elixir';
+import {Expo} from './strategies/expo';
 import {Go} from './strategies/go';
 import {GoYoshi} from './strategies/go-yoshi';
+import {Helm} from './strategies/helm';
+import {Java} from './strategies/java';
 import {JavaYoshi} from './strategies/java-yoshi';
 import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
 import {KRMBlueprint} from './strategies/krm-blueprint';
+import {Maven} from './strategies/maven';
+import {Node} from './strategies/node';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
@@ -28,25 +42,12 @@ import {Rust} from './strategies/rust';
 import {Sfdx} from './strategies/sfdx';
 import {Simple} from './strategies/simple';
 import {TerraformModule} from './strategies/terraform-module';
-import {Helm} from './strategies/helm';
-import {Elixir} from './strategies/elixir';
-import {Dart} from './strategies/dart';
-import {Node} from './strategies/node';
-import {Expo} from './strategies/expo';
-import {GitHub} from './github';
-import {ReleaserConfig} from './manifest';
+import {Strategy} from './strategy';
 import {AlwaysBumpPatch} from './versioning-strategies/always-bump-patch';
-import {ServicePackVersioningStrategy} from './versioning-strategies/service-pack';
 import {DependencyManifest} from './versioning-strategies/dependency-manifest';
-import {BaseStrategyOptions} from './strategies/base';
-import {DotnetYoshi} from './strategies/dotnet-yoshi';
-import {Java} from './strategies/java';
-import {Maven} from './strategies/maven';
-import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
-import {buildChangelogNotes} from './factories/changelog-notes-factory';
-import {ConfigurationError, GitHubAPIError} from './errors';
 import {logger} from './util/logger';
 import {FileNotFoundError} from '@google-automations/git-file-utils';
+import {ServicePackVersioningStrategy} from './versioning-strategies/service-pack';
 
 export * from './factories/changelog-notes-factory';
 export * from './factories/plugin-factory';
@@ -109,6 +110,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   helm: options => new Helm(options),
   elixir: options => new Elixir(options),
   dart: options => new Dart(options),
+  bazel: options => new Bazel(options),
 };
 
 async function getCommitPartialContent(
@@ -141,6 +143,8 @@ export async function buildStrategy(
     type: options.versioning,
     bumpMinorPreMajor: options.bumpMinorPreMajor,
     bumpPatchForMinorPreMajor: options.bumpPatchForMinorPreMajor,
+    prereleaseType: options.prereleaseType,
+    prerelease: options.prerelease,
   });
   const commitPartial = await getCommitPartialContent(options);
   const changelogNotes = buildChangelogNotes({

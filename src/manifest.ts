@@ -33,7 +33,7 @@ import {
 } from './factory';
 import {Release} from './release';
 import {Strategy} from './strategy';
-import {Merge} from './plugins/merge';
+import {MergeOptions, Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
   DuplicateReleaseError,
@@ -48,6 +48,11 @@ import {
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
 
+type ExtraGenericFile = {
+  type: 'generic';
+  path: string;
+  glob?: boolean;
+};
 type ExtraJsonFile = {
   type: 'json';
   path: string;
@@ -79,6 +84,7 @@ type ExtraTomlFile = {
 };
 export type ExtraFile =
   | string
+  | ExtraGenericFile
   | ExtraJsonFile
   | ExtraYamlFile
   | ExtraXmlFile
@@ -94,6 +100,7 @@ export interface ReleaserConfig {
   versioning?: VersioningStrategyType;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  prereleaseType?: string;
 
   // Strategy options
   releaseAs?: string;
@@ -107,12 +114,14 @@ export interface ReleaserConfig {
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  pullRequestFooter?: string;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
+  signoff?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -149,9 +158,11 @@ interface ReleaserConfigJson {
   versioning?: VersioningStrategyType;
   'bump-minor-pre-major'?: boolean;
   'bump-patch-for-minor-pre-major'?: boolean;
+  'prerelease-type'?: string;
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
+  signoff?: string;
   draft?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
@@ -165,6 +176,7 @@ interface ReleaserConfigJson {
   'commit-partial-path'?: string;
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
+  'pull-request-footer'?: string;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -221,6 +233,9 @@ export interface WorkspacePluginConfig extends ConfigurablePluginType {
   merge?: boolean;
   considerAllArtifacts?: boolean;
 }
+export interface NodeWorkspacePluginConfig extends WorkspacePluginConfig {
+  updatePeerDependencies?: boolean;
+}
 export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
   groups: string[];
 }
@@ -230,7 +245,8 @@ export type PluginType =
   | GroupPriorityPluginConfig
   | LinkedVersionPluginConfig
   | SentenceCasePluginConfig
-  | WorkspacePluginConfig;
+  | WorkspacePluginConfig
+  | NodeWorkspacePluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -264,7 +280,7 @@ const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
-interface CreatedRelease extends GitHubRelease {
+export interface CreatedRelease extends GitHubRelease {
   id: number;
   path: string;
   version: string;
@@ -314,6 +330,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -429,6 +447,8 @@ export class Manifest {
    * @param {string} manifestOptions.bootstrapSha If provided, use this SHA
    *   as the point to consider commits after
    * @param {boolean} manifestOptions.alwaysLinkLocal Option for the node-workspace
+   *   plugin
+   * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
@@ -748,10 +768,33 @@ export class Manifest {
     // Combine pull requests into 1 unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
+      const mergeOptions: MergeOptions = {
+        pullRequestTitlePattern: this.groupPullRequestTitlePattern,
+      };
+      // Find the first repositoryConfig item that has a set value
+      // for the options that can be passed to the merge plugin
+      for (const path in this.repositoryConfig) {
+        const config = this.repositoryConfig[path];
+        if (
+          'pullRequestHeader' in config &&
+          !('pullRequestHeader' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestHeader = config.pullRequestHeader;
+        }
+        if (
+          'pullRequestFooter' in config &&
+          !('pullRequestFooter' in mergeOptions)
+        ) {
+          mergeOptions.pullRequestFooter = config.pullRequestFooter;
+        }
+      }
       this.plugins.push(
-        new Merge(this.github, this.targetBranch, this.repositoryConfig, {
-          pullRequestTitlePattern: this.groupPullRequestTitlePattern,
-        })
+        new Merge(
+          this.github,
+          this.targetBranch,
+          this.repositoryConfig,
+          mergeOptions
+        )
       );
     }
 
@@ -794,6 +837,34 @@ export class Manifest {
           sha: foundTag.sha,
           notes: '',
         };
+      } else {
+        if (
+          strategiesByPath[ROOT_PROJECT_PATH] &&
+          this.repositoryConfig[path].skipGithubRelease
+        ) {
+          this.logger.debug('could not find release, checking root package');
+          const rootComponent = await strategiesByPath[
+            ROOT_PROJECT_PATH
+          ].getComponent();
+          const rootTag = new TagName(
+            expectedVersion,
+            rootComponent,
+            this.repositoryConfig[ROOT_PROJECT_PATH].tagSeparator,
+            this.repositoryConfig[ROOT_PROJECT_PATH].includeVInTag
+          );
+          const foundTag = allTags[rootTag.toString()];
+          if (foundTag) {
+            this.logger.debug(
+              `found rootTag: ${foundTag.name} ${foundTag.sha}`
+            );
+            releasesByPath[path] = {
+              name: foundTag.name,
+              tag: rootTag,
+              sha: foundTag.sha,
+              notes: '',
+            };
+          }
+        }
       }
     }
     return releasesByPath;
@@ -1151,7 +1222,10 @@ export class Manifest {
     );
     const duplicateReleases: DuplicateReleaseError[] = [];
     const githubReleases: CreatedRelease[] = [];
+    let error: unknown | undefined;
     for (const release of releases) {
+      // stop releasing once we hit an error
+      if (error) continue;
       try {
         githubReleases.push(await this.createRelease(release));
       } catch (err) {
@@ -1159,9 +1233,22 @@ export class Manifest {
           this.logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
           duplicateReleases.push(err);
         } else {
-          throw err;
+          error = err;
         }
       }
+    }
+
+    if (githubReleases.length > 0) {
+      // comment on pull request about the successful releases
+      const releaseList = githubReleases
+        .map(({tagName, url}) => `- [${tagName}](${url})`)
+        .join('\n');
+      const comment = `:robot: Created releases:\n${releaseList}\n:sunflower:`;
+      await this.github.commentOnIssue(comment, pullRequest.number);
+    }
+
+    if (error) {
+      throw error;
     }
 
     if (duplicateReleases.length > 0) {
@@ -1171,10 +1258,11 @@ export class Manifest {
       ) {
         // we've either tagged all releases or they were duplicates:
         // adjust tags on pullRequest
-        await Promise.all([
-          this.github.removeIssueLabels(this.labels, pullRequest.number),
-          this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-        ]);
+        await this.github.removeIssueLabels(this.labels, pullRequest.number);
+        await this.github.addIssueLabels(
+          this.releaseLabels,
+          pullRequest.number
+        );
       }
       if (githubReleases.length === 0) {
         // If all releases were duplicate, throw a duplicate error
@@ -1182,10 +1270,8 @@ export class Manifest {
       }
     } else {
       // adjust tags on pullRequest
-      await Promise.all([
-        this.github.removeIssueLabels(this.labels, pullRequest.number),
-        this.github.addIssueLabels(this.releaseLabels, pullRequest.number),
-      ]);
+      await this.github.removeIssueLabels(this.labels, pullRequest.number);
+      await this.github.addIssueLabels(this.releaseLabels, pullRequest.number);
     }
 
     return githubReleases;
@@ -1198,10 +1284,6 @@ export class Manifest {
       draft: release.draft,
       prerelease: release.prerelease,
     });
-
-    // comment on pull request
-    const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
-    await this.github.commentOnIssue(comment, release.pullRequest.number);
 
     return {
       ...githubRelease,
@@ -1265,6 +1347,7 @@ function extractReleaserConfig(
     releaseType: config['release-type'],
     bumpMinorPreMajor: config['bump-minor-pre-major'],
     bumpPatchForMinorPreMajor: config['bump-patch-for-minor-pre-major'],
+    prereleaseType: config['prerelease-type'],
     versioning: config['versioning'],
     changelogSections: config['changelog-sections'],
     changelogPath: config['changelog-path'],
@@ -1284,6 +1367,7 @@ function extractReleaserConfig(
     changelogType: config['changelog-type'],
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     pullRequestHeader: config['pull-request-header'],
+    pullRequestFooter: config['pull-request-footer'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1292,6 +1376,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    signoff: config['signoff'],
   };
 }
 
@@ -1611,6 +1696,7 @@ function mergeReleaserConfig(
     bumpPatchForMinorPreMajor:
       pathConfig.bumpPatchForMinorPreMajor ??
       defaultConfig.bumpPatchForMinorPreMajor,
+    prereleaseType: pathConfig.prereleaseType ?? defaultConfig.prereleaseType,
     versioning: pathConfig.versioning ?? defaultConfig.versioning,
     changelogSections:
       pathConfig.changelogSections ?? defaultConfig.changelogSections,
@@ -1623,6 +1709,8 @@ function mergeReleaserConfig(
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
     draft: pathConfig.draft ?? defaultConfig.draft,
+    draftPullRequest:
+      pathConfig.draftPullRequest ?? defaultConfig.draftPullRequest,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
     component: pathConfig.component ?? defaultConfig.component,
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
@@ -1637,6 +1725,8 @@ function mergeReleaserConfig(
       defaultConfig.pullRequestTitlePattern,
     pullRequestHeader:
       pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
+    pullRequestFooter:
+      pathConfig.pullRequestFooter ?? defaultConfig.pullRequestFooter,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,

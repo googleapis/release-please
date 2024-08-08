@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {readFileSync, readdirSync, statSync} from 'fs';
+import {readFileSync, readdirSync, statSync, existsSync} from 'fs';
 import {resolve, posix} from 'path';
 import * as crypto from 'crypto';
 import * as sinon from 'sinon';
@@ -112,6 +112,18 @@ export function readPOJO(name: string): object {
     'utf8'
   );
   return JSON.parse(content);
+}
+
+/**
+ * Reads a fixture file as a string or returns empty string if the fixture
+ * does not exist.
+ */
+export function readFixture(fixturesPath: string, fixture: string): string {
+  const file = resolve(fixturesPath, fixture);
+  if (!existsSync(file)) {
+    return '';
+  }
+  return readFileSync(resolve(fixturesPath, fixture), 'utf8');
 }
 
 export function buildMockConventionalCommit(

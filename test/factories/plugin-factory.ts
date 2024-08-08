@@ -25,6 +25,7 @@ import {LinkedVersions} from '../../src/plugins/linked-versions';
 import {ManifestPlugin} from '../../src/plugin';
 import {GitHub} from '../../src';
 import {GroupPriority} from '../../src/plugins/group-priority';
+import {NodeWorkspace} from '../../src/plugins/node-workspace';
 
 describe('PluginFactory', () => {
   let github: GitHub;
@@ -96,6 +97,20 @@ describe('PluginFactory', () => {
       });
       expect(plugin).to.not.be.undefined;
       expect(plugin).instanceof(GroupPriority);
+    });
+    it('should build workspace options', () => {
+      const plugin = buildPlugin({
+        github,
+        type: {
+          type: 'node-workspace',
+          updatePeerDependencies: true,
+        },
+        targetBranch: 'target-branch',
+        repositoryConfig,
+        manifestPath: '.manifest.json',
+      });
+      expect(plugin).to.not.be.undefined;
+      expect(plugin).instanceof(NodeWorkspace);
     });
   });
   describe('getPluginTypes', () => {

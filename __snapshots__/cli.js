@@ -31,6 +31,7 @@ Options:
                                 branches              [boolean] [default: false]
   --pull-request-title-pattern  Title pattern to make release PR        [string]
   --pull-request-header         Header for release PR                   [string]
+  --pull-request-footer         Footer for release PR                   [string]
   --path                        release from path other than root directory
                                                                         [string]
   --component                   name of component release is being minted for
@@ -39,8 +40,8 @@ Options:
                                                                         [string]
   --release-type                what type of repo is a release being created
                                 for?
-   [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
-                  "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
+  [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi",
+          "helm", "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
        "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
       "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
                                                    "simple", "terraform-module"]
@@ -188,6 +189,7 @@ Options:
                                     the minor for non-breaking changes prior to
                                     the first major release
                                                       [boolean] [default: false]
+  --prerelease-type                 type of the prerelease, e.g., alpha [string]
   --extra-files                     extra files for the strategy to consider
                                                                         [string]
   --version-file                    path to version file to update, e.g.,
@@ -196,7 +198,7 @@ Options:
                                     generated?        [boolean] [default: false]
   --versioning-strategy             strategy used for bumping versions
         [choices: "always-bump-major", "always-bump-minor", "always-bump-patch",
-                                 "default", "service-pack"] [default: "default"]
+                   "default", "prerelease", "service-pack"] [default: "default"]
   --changelog-path                  where can the CHANGELOG be found in the
                                     project?  [string] [default: "CHANGELOG.md"]
   --changelog-type                  type of changelog to build
@@ -230,6 +232,7 @@ Options:
                                     branches          [boolean] [default: false]
   --pull-request-title-pattern      Title pattern to make release PR    [string]
   --pull-request-header             Header for release PR               [string]
+  --pull-request-footer             Footer for release PR               [string]
   --path                            release from path other than root directory
                                                                         [string]
   --component                       name of component release is being minted
@@ -238,8 +241,8 @@ Options:
                                                                         [string]
   --release-type                    what type of repo is a release being created
                                     for?
-   [choices: "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi", "helm",
-                  "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
+  [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi",
+          "helm", "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
        "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
       "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
                                                    "simple", "terraform-module"]

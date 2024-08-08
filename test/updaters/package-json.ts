@@ -17,7 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {PackageJson} from '../../src/updaters/node/package-json';
-import {Version} from '../../src/version';
+import {Version, VersionsMap} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -30,6 +30,63 @@ describe('PackageJson', () => {
       );
       const packageJson = new PackageJson({
         version: Version.parse('14.0.0'),
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
+    });
+
+    it('updates dependency versions', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-with-dependencies.json'),
+        'utf8'
+      );
+      const versionsMap: VersionsMap = new Map();
+      versionsMap.set('camelcase', Version.parse('6.0.0'));
+      versionsMap.set('chai', Version.parse('4.2.1'));
+      versionsMap.set('foo', Version.parse('0.1.0'));
+      versionsMap.set('bar', Version.parse('2.3.4'));
+      const packageJson = new PackageJson({
+        version: Version.parse('14.0.0'),
+        versionsMap,
+        updatePeerDependencies: true,
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
+    });
+
+    it('does not update versions of dependencies that are protocols', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-with-protocol-dependencies.json'),
+        'utf8'
+      );
+      const versionsMap: VersionsMap = new Map();
+      versionsMap.set('nyc', Version.parse('6.0.0'));
+      versionsMap.set('standard', Version.parse('4.2.1'));
+      versionsMap.set('decamelize', Version.parse('4.4.4'));
+      versionsMap.set('foo', Version.parse('0.1.0'));
+      versionsMap.set('bar', Version.parse('2.3.4'));
+      const packageJson = new PackageJson({
+        version: Version.parse('14.0.0'),
+        versionsMap,
+        updatePeerDependencies: true,
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      snapshot(newContent.replace(/\r\n/g, '\n'));
+    });
+
+    it('does not update peer dependencies by default', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-with-dependencies.json'),
+        'utf8'
+      );
+      const versionsMap: VersionsMap = new Map();
+      versionsMap.set('camelcase', Version.parse('6.0.0'));
+      versionsMap.set('chai', Version.parse('4.2.1'));
+      versionsMap.set('foo', Version.parse('0.1.0'));
+      versionsMap.set('bar', Version.parse('2.3.4'));
+      const packageJson = new PackageJson({
+        version: Version.parse('14.0.0'),
+        versionsMap,
       });
       const newContent = packageJson.updateContent(oldContent);
       snapshot(newContent.replace(/\r\n/g, '\n'));

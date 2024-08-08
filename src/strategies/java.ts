@@ -30,6 +30,7 @@ import {DEFAULT_SNAPSHOT_LABELS} from '../manifest';
 import {JavaReleased} from '../updaters/java/java-released';
 import {mergeUpdates} from '../updaters/composite';
 import {logger as defaultLogger} from '../util/logger';
+import {BumpReleaseOptions} from '../strategy';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -77,7 +78,8 @@ export class Java extends BaseStrategy {
     commits: ConventionalCommit[],
     latestRelease?: Release,
     draft?: boolean,
-    labels: string[] = []
+    labels: string[] = [],
+    _bumpOnlyOptions?: BumpReleaseOptions
   ): Promise<ReleasePullRequest | undefined> {
     if (await this.needsSnapshot(commits, latestRelease)) {
       this.logger.info('Repository needs a snapshot bump.');

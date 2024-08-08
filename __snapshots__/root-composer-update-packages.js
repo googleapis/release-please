@@ -1,3 +1,7 @@
+exports['composer-update-package.json updateContent does not update version in composer if it does not exist 1'] = `
+{}
+`
+
 exports['composer-update-package.json updateContent updates all versions in root composer file 1'] = `
 {
     "name": "google/cloud",
@@ -255,4 +259,8 @@ exports['composer-update-package.json updateContent updates all versions in root
     }
 }
 
+`
+
+exports['composer-update-package.json updateContent updates version in composer if it exists 1'] = `
+{"version":"1.0.0"}
 `

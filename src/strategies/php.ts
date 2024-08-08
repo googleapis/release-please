@@ -17,6 +17,7 @@ import {Changelog} from '../updaters/changelog';
 // PHP Specific.
 import {RootComposerUpdatePackages} from '../updaters/php/root-composer-update-packages';
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
+import {DefaultUpdater} from '../updaters/default';
 import {Update} from '../update';
 import {VersionsMap} from '../version';
 
@@ -46,7 +47,6 @@ export class PHP extends BaseStrategy {
     const updates: Update[] = [];
     const version = options.newVersion;
     const versionsMap: VersionsMap = new Map();
-    versionsMap.set('version', version);
 
     updates.push({
       path: this.addPath(this.changelogPath),
@@ -64,6 +64,15 @@ export class PHP extends BaseStrategy {
       updater: new RootComposerUpdatePackages({
         version,
         versionsMap,
+      }),
+    });
+
+    // update VERSION file
+    updates.push({
+      path: this.addPath('VERSION'),
+      createIfMissing: false,
+      updater: new DefaultUpdater({
+        version,
       }),
     });
 
