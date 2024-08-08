@@ -188,6 +188,25 @@
                   }
                 },
                 "required": ["type", "path"]
+              },
+              {
+                "description": "An extra arbitrary file that includes release-please generic updater's annotation.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["generic"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  }
+                },
+                "required": ["type", "path"]
               }
             ]
           }
