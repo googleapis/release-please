@@ -46,3 +46,14 @@ exports['GenericJson updateContent updates matching entry 1'] = `
 }
 
 `
+
+exports['GenericJson updateContent updates substring in matching entry 1'] = `
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>abc/foo:xyz/sub#2.3.4",
+    "github>abc/bar:xyz/sub#2.3.4"
+  ]
+}
+
+`
