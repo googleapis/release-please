@@ -25,6 +25,7 @@ const SCHEMA_URL =
 
 interface ManifestConfigFile extends ManifestConfig {
   $schema?: string;
+  extends?: string;
 }
 
 export class ReleasePleaseConfig implements Updater {
