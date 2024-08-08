@@ -62,7 +62,7 @@ accept your pull requests.
    The below command should be run from the root of the source code:
 
    ```
-   node build/src/bin/release-please.js release-pr \
+   npm run compile && node build/src/bin/release-please.js release-pr \
    --token=$GITHUB_TOKEN \
    --repo-url=<owner>/<repo> [extra options]
    ```

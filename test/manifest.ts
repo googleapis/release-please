@@ -1423,6 +1423,7 @@ describe('Manifest', () => {
             title: 'chore: release 1.2.3',
             headBranchName: 'release-please/branches/main',
             baseBranchName: 'main',
+            mergeCommitOid: 'abc123',
             number: 123,
             body: '',
             labels: [],
