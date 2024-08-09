@@ -2358,7 +2358,7 @@ export class GitHub {
   async enablePullRequestAutoMerge(
     pullRequestNumber: number,
     mergeMethod: MergeMethod
-  ): Promise<'auto-merged' | 'none'> {
+  ): Promise<'auto-merged' | 'direct-merged' | 'none'> {
     try {
       this.logger.debug('Enable PR auto-merge');
       const prId = await this.queryPullRequestId(pullRequestNumber);
@@ -2381,9 +2381,15 @@ export class GitHub {
           )
         ) {
           this.logger.debug(
-            'Auto-merge cannot be enabled - user probably has auto-merge disabled for their repo'
+            'PR can be merged directly, do it instead of via GitHub auto-merge'
           );
-          return 'none';
+          await this.octokit.pulls.merge({
+            owner: this.repository.owner,
+            repo: this.repository.repo,
+            pull_number: pullRequestNumber,
+            merge_method: mergeMethod,
+          });
+          return 'direct-merged';
         } else {
           throw e;
         }

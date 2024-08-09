@@ -1121,18 +1121,22 @@ export class Manifest {
       }
     );
 
+    let directlyMerged = false;
     const autoMerge = this.pullRequestAutoMergeOption(pullRequest);
     if (autoMerge) {
-      await this.github.enablePullRequestAutoMerge(
+      const result = await this.github.enablePullRequestAutoMerge(
         newPullRequest.number,
         autoMerge.mergeMethod
       );
+      directlyMerged = result === 'direct-merged';
     }
 
-    this.github.addPullRequestReviewers({
-      pullRequestNumber: newPullRequest.number,
-      reviewers: this.reviewers,
-    });
+    if (!directlyMerged) {
+      this.github.addPullRequestReviewers({
+        pullRequestNumber: newPullRequest.number,
+        reviewers: this.reviewers,
+      });
+    }
 
     return newPullRequest;
   }
@@ -1165,18 +1169,22 @@ export class Manifest {
       }
     );
 
+    let directlyMerged = false;
     const autoMerge = this.pullRequestAutoMergeOption(pullRequest);
     if (autoMerge) {
-      await this.github.enablePullRequestAutoMerge(
+      const result = await this.github.enablePullRequestAutoMerge(
         updatedPullRequest.number,
         autoMerge.mergeMethod
       );
+      directlyMerged = result === 'direct-merged';
     }
 
-    this.github.addPullRequestReviewers({
-      pullRequestNumber: updatedPullRequest.number,
-      reviewers: this.reviewers,
-    });
+    if (!directlyMerged) {
+      this.github.addPullRequestReviewers({
+        pullRequestNumber: updatedPullRequest.number,
+        reviewers: this.reviewers,
+      });
+    }
 
     return updatedPullRequest;
   }
@@ -1207,18 +1215,22 @@ export class Manifest {
     // TODO: consider leaving the snooze label
     await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
 
+    let directlyMerged = false;
     const autoMerge = this.pullRequestAutoMergeOption(pullRequest);
     if (autoMerge) {
-      await this.github.enablePullRequestAutoMerge(
+      const result = await this.github.enablePullRequestAutoMerge(
         updatedPullRequest.number,
         autoMerge.mergeMethod
       );
+      directlyMerged = result === 'direct-merged';
     }
 
-    this.github.addPullRequestReviewers({
-      pullRequestNumber: updatedPullRequest.number,
-      reviewers: this.reviewers,
-    });
+    if (!directlyMerged) {
+      this.github.addPullRequestReviewers({
+        pullRequestNumber: updatedPullRequest.number,
+        reviewers: this.reviewers,
+      });
+    }
 
     return updatedPullRequest;
   }
