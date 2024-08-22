@@ -46,7 +46,7 @@ describe('CommitSplit', () => {
   });
   it('uses path prefixes', () => {
     const commitSplit = new CommitSplit({
-      packagePaths: ['pkg5', 'pkg6/pkg5'],
+      packagePaths: {pkg5: [], 'pkg6/pkg5': []},
     });
     const splitCommits = commitSplit.split(commits);
     expect(splitCommits['pkg1']).to.be.undefined;
@@ -70,7 +70,7 @@ describe('CommitSplit', () => {
       },
     ];
     const commitSplit = new CommitSplit({
-      packagePaths: ['core', 'core/subpackage'],
+      packagePaths: {core: [], 'core/subpackage': []},
     });
     const splitCommits = commitSplit.split(commits);
     expect(splitCommits['core']).lengthOf(1);
@@ -90,7 +90,7 @@ describe('CommitSplit', () => {
     it('should separate commits with limited list of paths', () => {
       const commitSplit = new CommitSplit({
         includeEmpty: true,
-        packagePaths: ['pkg1', 'pkg4'],
+        packagePaths: {pkg1: [], pkg4: []},
       });
       const splitCommits = commitSplit.split(commits);
       expect(splitCommits['pkg1']).lengthOf(3);
@@ -114,7 +114,7 @@ describe('CommitSplit', () => {
     it('should separate commits with limited list of paths', () => {
       const commitSplit = new CommitSplit({
         includeEmpty: false,
-        packagePaths: ['pkg1', 'pkg4'],
+        packagePaths: {pkg1: [], pkg4: []},
       });
       const splitCommits = commitSplit.split(commits);
       expect(splitCommits['pkg1']).lengthOf(2);

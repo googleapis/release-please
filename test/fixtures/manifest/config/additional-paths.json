@@ -1,0 +1,8 @@
+{
+  "release-type": "simple",
+  "packages": {
+    "apps/my-app": {
+      "additional-paths": ["libs/my-lib"]
+    }
+  }
+}
