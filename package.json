@@ -5,10 +5,10 @@
   "main": "./build/src/index.js",
   "types": "build/src/index.d.ts",
   "bin": "./build/src/bin/release-please.js",
-  "packageManager": "pnpm@8.15.8",
+  "packageManager": "pnpm@9.7.0",
   "engines": {
     "node": ">=18.0.0",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",
