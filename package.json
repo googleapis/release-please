@@ -54,7 +54,7 @@
     "@types/lerna__package-graph": "^5.1.0",
     "@types/lerna__run-topologically": "^5.1.0",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "18.19.44",
     "@types/node-fetch": "^2.6.4",
     "@types/semver": "^7.0.0",
     "@types/sinon": "^10.0.17",
