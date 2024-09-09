@@ -130,7 +130,7 @@ export class Merge extends ManifestPlugin {
       candidates.map(candidate => candidate.config.releaseType)
     );
     const releaseType =
-      releaseTypes.size === 1 ? releaseTypes.values().next().value : 'simple';
+      releaseTypes.size === 1 ? releaseTypes.values().next().value! : 'simple';
     return [
       {
         path: ROOT_PROJECT_PATH,
