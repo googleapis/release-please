@@ -28,7 +28,6 @@ export function generateMatchPattern(
   componentNoSpace?: boolean,
   logger: Logger = defaultLogger
 ): RegExp {
-  console.log(`componentNoSpace-generateMatch: ${componentNoSpace}`)
   if (
     pullRequestTitlePattern &&
     pullRequestTitlePattern.search(/\$\{scope\}/) === -1
