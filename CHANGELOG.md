@@ -4,6 +4,16 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.12.2](https://github.com/googleapis/release-please/compare/v16.12.1...v16.12.2) (2024-09-11)
+
+
+### Bug Fixes
+
+* debug log error message of unparsed commits ([#2326](https://github.com/googleapis/release-please/issues/2326)) ([83eb3e4](https://github.com/googleapis/release-please/commit/83eb3e4ead56ad6ef77be57050ba9a4770ae9d20))
+* **deps:** update dependency diff to v7 ([#2372](https://github.com/googleapis/release-please/issues/2372)) ([1491ab6](https://github.com/googleapis/release-please/commit/1491ab69deb445d9909590d2c0e54afc9e77f2eb))
+* support-node-workspace-plugin-prerelease ([#2249](https://github.com/googleapis/release-please/issues/2249)) ([88dc416](https://github.com/googleapis/release-please/commit/88dc41604cb3e1fc764491f246407b00514a6c89))
+* use strategies for rust workspace plugin ([#2320](https://github.com/googleapis/release-please/issues/2320)) ([427db6d](https://github.com/googleapis/release-please/commit/427db6d668d29608fa0c2b9a3fea80a90215ab9f))
+
 ## [16.12.1](https://github.com/googleapis/release-please/compare/v16.12.0...v16.12.1) (2024-09-11)
 
 
