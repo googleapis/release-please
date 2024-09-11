@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.12.3](https://github.com/googleapis/release-please/compare/v16.12.2...v16.12.3) (2024-09-11)
+
+
+### Bug Fixes
+
+* add expo project example ([#2251](https://github.com/googleapis/release-please/issues/2251)) ([9dbe7c6](https://github.com/googleapis/release-please/commit/9dbe7c66dead97cdc536ef7cd024d5637e5d217a))
+
 ## [16.12.2](https://github.com/googleapis/release-please/compare/v16.12.1...v16.12.2) (2024-09-11)
 
 
