@@ -166,18 +166,6 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[2].scope).to.equal('utils');
   });
 
-  it('parses multiple commits from a single message', async () => {
-    const commits = [buildCommitFromFixture('multiple-commits-single-message')];
-    const conventionalCommits = parseConventionalCommits(commits);
-    expect(conventionalCommits).lengthOf(3);
-    expect(conventionalCommits[0].type).to.equal('feat');
-    expect(conventionalCommits[0].scope).is.null;
-    expect(conventionalCommits[1].type).to.equal('fix');
-    expect(conventionalCommits[1].scope).to.equal('utils');
-    expect(conventionalCommits[2].type).to.equal('feat');
-    expect(conventionalCommits[2].scope).to.equal('utils');
-  });
-
   // Refs: #1257
   it('removes content before and after BREAKING CHANGE in body', async () => {
     const commits = [buildCommitFromFixture('1257-breaking-change')];
