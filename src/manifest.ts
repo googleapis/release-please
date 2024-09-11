@@ -790,7 +790,10 @@ export class Manifest {
         ) {
           mergeOptions.pullRequestFooter = config.pullRequestFooter;
         }
-        if ('componentNoSpace' in config && !('componentNoSpace' in mergeOptions)) {
+        if (
+          'componentNoSpace' in config &&
+          !('componentNoSpace' in mergeOptions)
+        ) {
           mergeOptions.componentNoSpace = config.componentNoSpace;
         }
       }

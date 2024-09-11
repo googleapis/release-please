@@ -30,7 +30,7 @@ export interface MergeOptions {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
-  componentNoSpace?: boolean,
+  componentNoSpace?: boolean;
   headBranchName?: string;
   forceMerge?: boolean;
 }
