@@ -47,7 +47,7 @@ Create a minimal `release-please-config.json`, e.g., for a single JS package:
 }
 ```
 
-> n.b. `path/to/pkg` should be a directory and not a file.
+> Note: `path/to/pkg` should be a directory and not a file.
 
 Create an empty `.release-please-manifest.json`. For example:
 ```shell
