@@ -1239,7 +1239,7 @@ export class Manifest {
       const releaseList = githubReleases
         .map(({tagName, url}) => `- [${tagName}](${url})`)
         .join('\n');
-      const comment = `:robot: Created releases:\n${releaseList}\n:sunflower:`;
+      const comment = `🤖 Created releases:\n\n${releaseList}\n\n:sunflower:`;
       await this.github.commentOnIssue(comment, pullRequest.number);
     }
 
