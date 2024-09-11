@@ -186,6 +186,7 @@ export class Java extends BaseStrategy {
         PullRequestTitle.parse(
           commit.pullRequest?.title || commit.message,
           this.pullRequestTitlePattern,
+          this.componentNoSpace,
           this.logger
         )
       )

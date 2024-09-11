@@ -76,6 +76,7 @@ export interface BaseStrategyOptions {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
+  componentNoSpace?: boolean;
   extraFiles?: ExtraFile[];
   versionFile?: string;
   snapshotLabels?: string[]; // Java-only
@@ -109,6 +110,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly pullRequestTitlePattern?: string;
   readonly pullRequestHeader?: string;
   readonly pullRequestFooter?: string;
+  readonly componentNoSpace?: boolean;
   readonly extraFiles: ExtraFile[];
   readonly extraLabels: string[];
 
@@ -142,6 +144,7 @@ export abstract class BaseStrategy implements Strategy {
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
     this.pullRequestFooter = options.pullRequestFooter;
+    this.componentNoSpace = options.componentNoSpace;
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
@@ -292,11 +295,16 @@ export abstract class BaseStrategy implements Strategy {
       'pull request title pattern:',
       this.pullRequestTitlePattern
     );
+    this.logger.debug(
+      'componentNoSpace:',
+      this.componentNoSpace
+    );
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,
       newVersion,
-      this.pullRequestTitlePattern
+      this.pullRequestTitlePattern,
+      this.componentNoSpace
     );
     const branchComponent = await this.getBranchComponent();
     const branchName = branchComponent
@@ -580,11 +588,13 @@ export abstract class BaseStrategy implements Strategy {
       PullRequestTitle.parse(
         mergedPullRequest.title,
         this.pullRequestTitlePattern,
+        this.componentNoSpace,
         this.logger
       ) ||
       PullRequestTitle.parse(
         mergedPullRequest.title,
         mergedTitlePattern,
+        this.componentNoSpace,
         this.logger
       );
     if (!pullRequestTitle) {
