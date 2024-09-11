@@ -47,7 +47,13 @@ Create a minimal `release-please-config.json`, e.g., for a single JS package:
 }
 ```
 
-Create an empty `.release-please-manifest.json`
+> Note: `path/to/pkg` should be a directory and not a file.
+
+Create an empty `.release-please-manifest.json`. For example:
+```shell
+echo "{}" > .release-please-manifest.json
+```
+
 
 Commit/push/merge these to your remote GitHub repo (using either the repo's
 default branch or a test branch in which case you'll use the `--target-branch`
@@ -269,7 +275,7 @@ defaults (those are documented in comments)
       "exclude-paths": ["path/to/myPyPkgA"]
     },
 
-    // path segment should be relative to repository root
+    // path segment should be a folder relative to repository root
     "path/to/myJSPkgA": {
       // overrides release-type for node
       "release-type": "node",

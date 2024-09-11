@@ -1,6 +1,6 @@
 {
   "name": "release-please",
-  "version": "16.12.0",
+  "version": "16.12.1",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
@@ -81,7 +81,7 @@
     "conventional-changelog-writer": "^6.0.0",
     "conventional-commits-filter": "^3.0.0",
     "detect-indent": "^6.1.0",
-    "diff": "^5.0.0",
+    "diff": "^7.0.0",
     "figures": "^3.0.0",
     "http-proxy-agent": "^7.0.0",
     "https-proxy-agent": "^7.0.0",
