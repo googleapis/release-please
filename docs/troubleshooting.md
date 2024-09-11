@@ -107,3 +107,6 @@ more API calls (which is one reason a manifest config is preferred).
 3. Iterate through the latest tags and compare against commit
    SHAs seen in the last 250 commits on the branch. This is to
    ensure that the tag happened on this target branch.
+
+### What if my release PR is merged with `autorelease:closed`?
+The release PR will be tagged with `autorelease:closed` on closing of the PR, but it will not be tagged with `autorelease:pending` on re-opening of the PR. Hence if a release PR was accidentally closed and re-opened before merging to main, release-please wouldn't be triggred. In such case, please manually remove `autorelease:closed`, add `autorelease: pending` and `release-please:force-run` to the release PR to force re-trigger the release process. See https://github.com/googleapis/google-cloud-java/pull/10615 for example.

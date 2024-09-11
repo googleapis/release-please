@@ -2,43 +2,6 @@ exports['GitHub commentOnIssue can create a comment 1'] = {
   "body": "This is a comment"
 }
 
-exports['GitHub commitsSince backfills commit files for pull requests rebased and merged 1'] = [
-  {
-    "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
-    "message": "feat: feature-branch-rebase-merge commit 1",
-    "pullRequest": {
-      "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
-      "number": 7,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-rebase-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": [
-      "abc"
-    ]
-  },
-  {
-    "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
-    "message": "feat: feature-branch-rebase-merge commit 2",
-    "pullRequest": {
-      "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
-      "number": 7,
-      "baseBranchName": "main",
-      "headBranchName": "feature-branch-rebase-merge",
-      "title": "feat: feature that will be rebase merged",
-      "body": "",
-      "labels": [],
-      "files": []
-    },
-    "files": [
-      "def"
-    ]
-  }
-]
-
 exports['GitHub commitsSince backfills commit files for pull requests with lots of files 1'] = [
   {
     "sha": "e6daec403626c9987c7af0d97b34f324cd84320a",
@@ -51,6 +14,7 @@ exports['GitHub commitsSince backfills commit files for pull requests with lots 
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
@@ -74,6 +38,7 @@ exports['GitHub commitsSince backfills commit files without pull requests 1'] = 
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
@@ -99,6 +64,7 @@ exports['GitHub commitsSince finds commits up until a condition 1'] = [
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
@@ -124,6 +90,7 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
@@ -146,6 +113,7 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "b29149f890e6f76ee31ed128585744d4c598924c",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
@@ -168,6 +136,7 @@ exports['GitHub commitsSince finds first commit of a multi-commit merge pull req
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "27d7d7232e2e312d1380e906984f0823f5decf61",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
@@ -193,16 +162,14 @@ exports['GitHub commitsSince limits pagination 1'] = [
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
       "files": [
         "README.md"
       ]
-    },
-    "files": [
-      "README.md"
-    ]
+    }
   },
   {
     "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
@@ -210,6 +177,19 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+      "number": 7,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
+      "title": "feat: feature that will be plain merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
@@ -217,6 +197,19 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+      "number": 7,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
+      "title": "feat: feature that will be plain merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
@@ -229,16 +222,14 @@ exports['GitHub commitsSince limits pagination 1'] = [
       "number": 6,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
       "title": "feat: feature that will be rebase merged",
       "body": "",
       "labels": [],
       "files": [
         "README.md"
       ]
-    },
-    "files": [
-      "README.md"
-    ]
+    }
   },
   {
     "sha": "a257514a541d483425118d973674b1ce006a5489",
@@ -246,6 +237,19 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "a257514a541d483425118d973674b1ce006a5489",
+      "number": 6,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
@@ -253,6 +257,19 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
+      "number": 6,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "520b6f42551c86002197d033564a76a3f99b0019",
@@ -260,6 +277,19 @@ exports['GitHub commitsSince limits pagination 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "520b6f42551c86002197d033564a76a3f99b0019",
+      "number": 6,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
@@ -272,6 +302,7 @@ exports['GitHub commitsSince limits pagination 1'] = [
       "number": 3,
       "baseBranchName": "main",
       "headBranchName": "release-please/branches/main",
+      "mergeCommitOid": "9dda1a331d311d0a7643015cc9e6802548c8d943",
       "title": "chore(main): release 0.1.1-SNAPSHOT",
       "body": ":robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
       "labels": [
@@ -304,6 +335,7 @@ exports['GitHub commitsSince limits pagination 1'] = [
       "number": 2,
       "baseBranchName": "main",
       "headBranchName": "feature-branch",
+      "mergeCommitOid": "e86984fb22ccc5eafb6c3d815851ade3463193da",
       "title": "feat: feature-branch that will be squash merged",
       "body": "",
       "labels": [],
@@ -332,16 +364,14 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
       "files": [
         "README.md"
       ]
-    },
-    "files": [
-      "README.md"
-    ]
+    }
   },
   {
     "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
@@ -349,6 +379,19 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "b29149f890e6f76ee31ed128585744d4c598924c",
+      "number": 7,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
+      "title": "feat: feature that will be plain merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
@@ -356,6 +399,19 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "27d7d7232e2e312d1380e906984f0823f5decf61",
+      "number": 7,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
+      "title": "feat: feature that will be plain merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
@@ -368,16 +424,14 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "number": 6,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
       "title": "feat: feature that will be rebase merged",
       "body": "",
       "labels": [],
       "files": [
         "README.md"
       ]
-    },
-    "files": [
-      "README.md"
-    ]
+    }
   },
   {
     "sha": "a257514a541d483425118d973674b1ce006a5489",
@@ -385,6 +439,19 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "a257514a541d483425118d973674b1ce006a5489",
+      "number": 6,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
@@ -392,6 +459,19 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "b6a8ab1a50106cfb03f22c2cdaf7abfdcccce088",
+      "number": 6,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "520b6f42551c86002197d033564a76a3f99b0019",
@@ -399,6 +479,19 @@ exports['GitHub commitsSince paginates through commits 1'] = [
     "authors": [
       "Jeff Ching"
     ],
+    "pullRequest": {
+      "sha": "520b6f42551c86002197d033564a76a3f99b0019",
+      "number": 6,
+      "baseBranchName": "main",
+      "headBranchName": "feature-branch-merge",
+      "mergeCommitOid": "2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5",
+      "title": "feat: feature that will be rebase merged",
+      "body": "",
+      "labels": [],
+      "files": [
+        "README.md"
+      ]
+    }
   },
   {
     "sha": "9dda1a331d311d0a7643015cc9e6802548c8d943",
@@ -411,6 +504,7 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "number": 3,
       "baseBranchName": "main",
       "headBranchName": "release-please/branches/main",
+      "mergeCommitOid": "9dda1a331d311d0a7643015cc9e6802548c8d943",
       "title": "chore(main): release 0.1.1-SNAPSHOT",
       "body": ":robot: I have created a release \\*beep\\* \\*boop\\* \n---\n### Updating meta-information for bleeding-edge SNAPSHOT release.\n---\n\n\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
       "labels": [
@@ -443,6 +537,7 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "number": 2,
       "baseBranchName": "main",
       "headBranchName": "feature-branch",
+      "mergeCommitOid": "e86984fb22ccc5eafb6c3d815851ade3463193da",
       "title": "feat: feature-branch that will be squash merged",
       "body": "",
       "labels": [],
@@ -468,6 +563,7 @@ exports['GitHub commitsSince paginates through commits 1'] = [
       "number": 1,
       "baseBranchName": "main",
       "headBranchName": "release-release-please-test-v0.1.0",
+      "mergeCommitOid": "959ee48c95f254300eb040c46ebdc8248317efe4",
       "title": "Release release-please-test v0.1.0",
       "body": "This pull request was generated using releasetool.\n\n02-03-2021 11:56 PST\n\n### New Features\n- feat: initial commit\n\n### Internal / Testing Changes\n- build: add java structure",
       "labels": [
@@ -577,6 +673,7 @@ exports['GitHub mergeCommitIterator handles merged pull requests without files 1
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "e6daec403626c9987c7af0d97b34f324cd84320a",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],
@@ -595,6 +692,7 @@ exports['GitHub mergeCommitIterator handles merged pull requests without files 1
       "number": 7,
       "baseBranchName": "main",
       "headBranchName": "feature-branch-plain-merge",
+      "mergeCommitOid": "b29149f890e6f76ee31ed128585744d4c598924c",
       "title": "feat: feature that will be plain merged",
       "body": "",
       "labels": [],

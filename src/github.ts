@@ -551,6 +551,7 @@ export class GitHub {
           number: pullRequest.number,
           baseBranchName: pullRequest.baseRefName,
           headBranchName: pullRequest.headRefName,
+          mergeCommitOid: pullRequest.mergeCommit?.oid,
           title: pullRequest.title,
           body: pullRequest.body,
           labels: pullRequest.labels.nodes.map(node => node.name),
