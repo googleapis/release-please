@@ -790,6 +790,9 @@ export class Manifest {
         ) {
           mergeOptions.pullRequestFooter = config.pullRequestFooter;
         }
+        if ('componentNoSpace' in config && !('componentNoSpace' in mergeOptions)) {
+          mergeOptions.componentNoSpace = config.componentNoSpace;
+        }
       }
       this.plugins.push(
         new Merge(
