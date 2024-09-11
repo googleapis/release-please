@@ -74,7 +74,7 @@
     "@octokit/request-error": "^3.0.0",
     "@octokit/rest": "^19.0.0",
     "@types/npm-package-arg": "^6.1.0",
-    "@xmldom/xmldom": "^0.8.4",
+    "@xmldom/xmldom": "^0.9.0",
     "chalk": "^4.0.0",
     "code-suggester": "^4.2.0",
     "conventional-changelog-conventionalcommits": "^6.0.0",
