@@ -741,6 +741,36 @@ describe('Manifest', () => {
       ).to.eql('docs/bar.md');
     });
 
+    it('should read commit partial from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/commit-partial.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(manifest.repositoryConfig['.'].changelogType).to.eql('default');
+      expect(manifest.repositoryConfig['.'].commitPartialPath).to.eql(
+        '.release-please-commit-partial.hbs'
+      );
+    });
+
     it('should read versioning type from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
@@ -3033,6 +3063,7 @@ describe('Manifest', () => {
             message: 'fix: Another fix',
             files: ['path/a/foo'],
             pullRequest: undefined,
+            authors: undefined,
             type: 'fix',
             scope: null,
             bareMessage: 'Another fix',
@@ -3045,6 +3076,7 @@ describe('Manifest', () => {
             message: 'fix: Some bugfix',
             files: ['path/a/foo'],
             pullRequest: undefined,
+            authors: undefined,
             type: 'fix',
             scope: null,
             bareMessage: 'Some bugfix',

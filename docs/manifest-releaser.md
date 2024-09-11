@@ -189,6 +189,11 @@ defaults (those are documented in comments)
   // absence defaults to https://github.com
   "changelog-host": "https://example.com",
 
+  // For a custom commit format, provide a path to a `.hbs`
+  // Refer to the default conventional-changelog-writer template:
+  // https://github.com/conventional-changelog/conventional-changelog/blob/83773c5e1a8874ea9809ca9db1dff60b7df1daae/packages/conventional-changelog-conventionalcommits/templates/commit.hbs
+  "commit-partial-path": "path/to/my-file.hbs",
+
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
   // absence defaults to false and Releases are created as already Published.

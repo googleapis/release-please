@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {ConfigurationError} from './errors';
+import {ConfigurationError, GitHubAPIError} from './errors';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
 import {GitHub} from './github';
@@ -45,6 +45,8 @@ import {TerraformModule} from './strategies/terraform-module';
 import {Strategy} from './strategy';
 import {AlwaysBumpPatch} from './versioning-strategies/always-bump-patch';
 import {DependencyManifest} from './versioning-strategies/dependency-manifest';
+import {logger} from './util/logger';
+import {FileNotFoundError} from '@google-automations/git-file-utils';
 import {ServicePackVersioningStrategy} from './versioning-strategies/service-pack';
 
 export * from './factories/changelog-notes-factory';
@@ -111,6 +113,26 @@ const releasers: Record<string, ReleaseBuilder> = {
   bazel: options => new Bazel(options),
 };
 
+async function getCommitPartialContent(
+  options: StrategyFactoryOptions
+): Promise<string | undefined> {
+  if (!options?.commitPartialPath) {
+    logger.warn("'commit-partial-path' did not exist");
+    return undefined;
+  }
+  try {
+    const file = await options.github.getFileContents(
+      options.commitPartialPath
+    );
+    return file.parsedContent;
+  } catch (err) {
+    if (err instanceof GitHubAPIError || err instanceof FileNotFoundError) {
+      logger.warn(`Error retrieving ${options.commitPartialPath}: ${err}`);
+    }
+    return undefined;
+  }
+}
+
 export async function buildStrategy(
   options: StrategyFactoryOptions
 ): Promise<Strategy> {
@@ -124,10 +146,12 @@ export async function buildStrategy(
     prereleaseType: options.prereleaseType,
     prerelease: options.prerelease,
   });
+  const commitPartial = await getCommitPartialContent(options);
   const changelogNotes = buildChangelogNotes({
     type: options.changelogType || 'default',
     github: options.github,
     changelogSections: options.changelogSections,
+    commitPartial,
   });
   const strategyOptions: BaseStrategyOptions = {
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub

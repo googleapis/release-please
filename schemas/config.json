@@ -95,6 +95,10 @@
           "description": "Path to the file that tracks release note changes. Defaults to `CHANGELOG.md`.",
           "type": "string"
         },
+        "commit-partial-path": {
+          "description": "Provide a path to a `.hbs` file for custom commit format.",
+          "type": "string"
+        },
         "pull-request-title-pattern": {
           "description": "Customize the release pull request title.",
           "type": "string"
@@ -458,6 +462,7 @@
     "changelog-type": true,
     "changelog-host": true,
     "changelog-path": true,
+    "commit-partial-path": true,
     "pull-request-title-pattern": true,
     "pull-request-header": true,
     "pull-request-footer": true,
