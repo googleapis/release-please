@@ -396,6 +396,10 @@
             ]
           }
         },
+        "signoff": {
+          "description": "Text to be used as Signed-off-by in the commit.",
+          "type": "string"
+        },
         "group-pull-request-title-pattern": {
           "description": "When grouping multiple release pull requests use this pattern for the title.",
           "type": "string"
@@ -431,6 +435,7 @@
     "last-release-sha": true,
     "always-link-local": true,
     "plugins": true,
+    "signoff": true,
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,
     "commit-search-depth": true,
