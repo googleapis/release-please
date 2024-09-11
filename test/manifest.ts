@@ -1423,6 +1423,7 @@ describe('Manifest', () => {
             title: 'chore: release 1.2.3',
             headBranchName: 'release-please/branches/main',
             baseBranchName: 'main',
+            mergeCommitOid: 'abc123',
             number: 123,
             body: '',
             labels: [],
@@ -5722,7 +5723,7 @@ describe('Manifest', () => {
       expect(releases[3]!.sha).to.eql('abc123');
       expect(releases[3]!.notes).to.be.string;
       expect(releases[3]!.path).to.eql('packages/datastore-lock');
-      sinon.assert.callCount(commentStub, 4);
+      sinon.assert.callCount(commentStub, 1);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
         ['autorelease: tagged'],
@@ -6200,7 +6201,7 @@ describe('Manifest', () => {
       expect(releases[2]!.sha).to.eql('abc123');
       expect(releases[2]!.notes).to.be.string;
       expect(releases[2]!.path).to.eql('packages/datastore-lock');
-      sinon.assert.callCount(commentStub, 3);
+      sinon.assert.callCount(commentStub, 1);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
         ['autorelease: tagged'],

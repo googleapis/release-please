@@ -398,6 +398,7 @@ export function parseConventionalCommits(
             commit.message.split('\n')[0]
           }`
         );
+        logger.debug(`error message: ${_err}`);
       }
     }
   }
