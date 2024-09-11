@@ -192,6 +192,25 @@
                   }
                 },
                 "required": ["type", "path"]
+              },
+              {
+                "description": "An extra arbitrary file that includes release-please generic updater's annotation.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["generic"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  }
+                },
+                "required": ["type", "path"]
               }
             ]
           }
@@ -381,6 +400,10 @@
             ]
           }
         },
+        "signoff": {
+          "description": "Text to be used as Signed-off-by in the commit.",
+          "type": "string"
+        },
         "group-pull-request-title-pattern": {
           "description": "When grouping multiple release pull requests use this pattern for the title.",
           "type": "string"
@@ -416,6 +439,7 @@
     "last-release-sha": true,
     "always-link-local": true,
     "plugins": true,
+    "signoff": true,
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,
     "commit-search-depth": true,
