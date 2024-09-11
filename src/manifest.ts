@@ -121,7 +121,6 @@ export interface ReleaserConfig {
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
-  signoff?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -161,7 +160,6 @@ interface ReleaserConfigJson {
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
-  signoff?: string;
   draft?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
@@ -255,6 +253,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
   plugins?: PluginType[];
+  signoff?: string;
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
@@ -1224,7 +1223,10 @@ export class Manifest {
     );
     const duplicateReleases: DuplicateReleaseError[] = [];
     const githubReleases: CreatedRelease[] = [];
+    let error: unknown | undefined;
     for (const release of releases) {
+      // stop releasing once we hit an error
+      if (error) continue;
       try {
         githubReleases.push(await this.createRelease(release));
       } catch (err) {
@@ -1232,9 +1234,22 @@ export class Manifest {
           this.logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
           duplicateReleases.push(err);
         } else {
-          throw err;
+          error = err;
         }
       }
+    }
+
+    if (githubReleases.length > 0) {
+      // comment on pull request about the successful releases
+      const releaseList = githubReleases
+        .map(({tagName, url}) => `- [${tagName}](${url})`)
+        .join('\n');
+      const comment = `🤖 Created releases:\n\n${releaseList}\n\n:sunflower:`;
+      await this.github.commentOnIssue(comment, pullRequest.number);
+    }
+
+    if (error) {
+      throw error;
     }
 
     if (duplicateReleases.length > 0) {
@@ -1270,10 +1285,6 @@ export class Manifest {
       draft: release.draft,
       prerelease: release.prerelease,
     });
-
-    // comment on pull request
-    const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
-    await this.github.commentOnIssue(comment, release.pullRequest.number);
 
     return {
       ...githubRelease,
@@ -1365,7 +1376,6 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
-    signoff: config['signoff'],
   };
 }
 
@@ -1410,6 +1420,7 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
+    signoff: config['signoff'],
     labels: configLabel?.split(','),
     releaseLabels: configReleaseLabel?.split(','),
     snapshotLabels: configSnapshotLabel?.split(','),
