@@ -3,6 +3,7 @@ on:
     branches:
       - main
   pull_request:
+  merge_group:
 name: ci
 jobs:
   test:
