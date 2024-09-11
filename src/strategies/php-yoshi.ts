@@ -80,6 +80,15 @@ export class PHPYoshi extends BaseStrategy {
       return undefined;
     }
 
+    const versionOverrides: {[key: string]: string} = {};
+    commits.forEach(commit => {
+      Object.entries(
+        parseVersionOverrides(commit.pullRequest?.body || '')
+      ).forEach(([directory, version]) => {
+        versionOverrides[directory] = version;
+      });
+    });
+
     const newVersion = latestRelease
       ? await this.versioningStrategy.bump(
           latestRelease.tag.version,
@@ -100,7 +109,6 @@ export class PHPYoshi extends BaseStrategy {
           this.addPath(`${directory}/VERSION`),
           this.targetBranch
         );
-        const version = Version.parse(contents.parsedContent);
         const composer = await this.github.getFileJson<ComposerJson>(
           this.addPath(`${directory}/composer.json`),
           this.targetBranch
@@ -109,10 +117,12 @@ export class PHPYoshi extends BaseStrategy {
           versionContents: contents,
           composer,
         };
-        const newVersion = await this.versioningStrategy.bump(
-          version,
-          splitCommits[directory]
-        );
+        const newVersion = versionOverrides[directory]
+          ? Version.parse(versionOverrides[directory])
+          : await this.versioningStrategy.bump(
+              Version.parse(contents.parsedContent),
+              splitCommits[directory]
+            );
         versionsMap.set(composer.name, newVersion);
         const partialReleaseNotes = await this.changelogNotes.buildNotes(
           splitCommits[directory],
@@ -271,6 +281,23 @@ export class PHPYoshi extends BaseStrategy {
 
     return updates;
   }
+}
+
+function parseVersionOverrides(body: string): {[key: string]: string} {
+  // look for 'BEGIN_VERSION_OVERRIDE' section of pull request body
+  const versionOverrides: {[key: string]: string} = {};
+  if (body) {
+    const overrideMessage = (body.split('BEGIN_VERSION_OVERRIDE')[1] || '')
+      .split('END_VERSION_OVERRIDE')[0]
+      .trim();
+    if (overrideMessage) {
+      overrideMessage.split('\n').forEach(line => {
+        const [directory, version] = line.split(':');
+        versionOverrides[directory.trim()] = version.trim();
+      });
+    }
+  }
+  return versionOverrides;
 }
 
 function updatePHPChangelogEntry(

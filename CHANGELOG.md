@@ -4,6 +4,33 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.12.0](https://github.com/googleapis/release-please/compare/v16.11.0...v16.12.0) (2024-06-06)
+
+
+### Features
+
+* issue a combined PR comment for all releases ([#2286](https://github.com/googleapis/release-please/issues/2286)) ([719fdf5](https://github.com/googleapis/release-please/commit/719fdf565e9f92694e7e38edee1eadcd62334681)), closes [#2285](https://github.com/googleapis/release-please/issues/2285)
+
+
+### Bug Fixes
+
+* **node:** do not update versions of packages installed using a protocol ([#2281](https://github.com/googleapis/release-please/issues/2281)) ([eeb1411](https://github.com/googleapis/release-please/commit/eeb14111849aefa7024f754121f2c05a4e9ab1ea)), closes [#2173](https://github.com/googleapis/release-please/issues/2173)
+
+## [16.11.0](https://github.com/googleapis/release-please/compare/v16.10.2...v16.11.0) (2024-06-06)
+
+
+### Features
+
+* **php-yoshi:** support BEGIN_VERSION_OVERRIDE in php-yoshi ([#2300](https://github.com/googleapis/release-please/issues/2300)) ([b9d4544](https://github.com/googleapis/release-please/commit/b9d454470053866d1c89ee30110d23f1818dee60))
+
+## [16.10.2](https://github.com/googleapis/release-please/compare/v16.10.1...v16.10.2) (2024-04-16)
+
+
+### Bug Fixes
+
+* disable updating peer dependencies when updatePeerDependencies is false ([#2270](https://github.com/googleapis/release-please/issues/2270)) ([2d80f12](https://github.com/googleapis/release-please/commit/2d80f128def8f1dc4b1b7a70b094ed6039ccd073))
+* respect signoff in config ([#2247](https://github.com/googleapis/release-please/issues/2247)) ([d7d3958](https://github.com/googleapis/release-please/commit/d7d395814f9f261218a54103b7105f2af1f2c426))
+
 ## [16.10.1](https://github.com/googleapis/release-please/compare/v16.10.0...v16.10.1) (2024-03-13)
 
 
