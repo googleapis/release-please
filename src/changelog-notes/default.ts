@@ -123,5 +123,7 @@ function replaceIssueLink(
 }
 
 function htmlEscape(message: string): string {
-  return message.replace('<', '&lt;').replace('>', '&gt;');
+  return message.replace(/``[^`].*[^`]``|`[^`]*`|<|>/g, match =>
+    match.length > 1 ? match : match === '<' ? '&lt;' : '&gt;'
+  );
 }

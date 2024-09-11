@@ -48,6 +48,11 @@ import {
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
 
+type ExtraGenericFile = {
+  type: 'generic';
+  path: string;
+  glob?: boolean;
+};
 type ExtraJsonFile = {
   type: 'json';
   path: string;
@@ -79,6 +84,7 @@ type ExtraTomlFile = {
 };
 export type ExtraFile =
   | string
+  | ExtraGenericFile
   | ExtraJsonFile
   | ExtraYamlFile
   | ExtraXmlFile
@@ -247,6 +253,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
   plugins?: PluginType[];
+  signoff?: string;
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
@@ -680,7 +687,12 @@ export class Manifest {
           `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
         );
         releasesByPath[path] = {
-          tag: new TagName(version, component),
+          tag: new TagName(
+            version,
+            component,
+            this.repositoryConfig[path].tagSeparator,
+            this.repositoryConfig[path].includeVInTag
+          ),
           sha: '',
           notes: '',
         };
@@ -1211,7 +1223,10 @@ export class Manifest {
     );
     const duplicateReleases: DuplicateReleaseError[] = [];
     const githubReleases: CreatedRelease[] = [];
+    let error: unknown | undefined;
     for (const release of releases) {
+      // stop releasing once we hit an error
+      if (error) continue;
       try {
         githubReleases.push(await this.createRelease(release));
       } catch (err) {
@@ -1219,9 +1234,22 @@ export class Manifest {
           this.logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
           duplicateReleases.push(err);
         } else {
-          throw err;
+          error = err;
         }
       }
+    }
+
+    if (githubReleases.length > 0) {
+      // comment on pull request about the successful releases
+      const releaseList = githubReleases
+        .map(({tagName, url}) => `- [${tagName}](${url})`)
+        .join('\n');
+      const comment = `🤖 Created releases:\n\n${releaseList}\n\n:sunflower:`;
+      await this.github.commentOnIssue(comment, pullRequest.number);
+    }
+
+    if (error) {
+      throw error;
     }
 
     if (duplicateReleases.length > 0) {
@@ -1257,10 +1285,6 @@ export class Manifest {
       draft: release.draft,
       prerelease: release.prerelease,
     });
-
-    // comment on pull request
-    const comment = `:robot: Release is at ${githubRelease.url} :sunflower:`;
-    await this.github.commentOnIssue(comment, release.pullRequest.number);
 
     return {
       ...githubRelease,
@@ -1396,6 +1420,7 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
+    signoff: config['signoff'],
     labels: configLabel?.split(','),
     releaseLabels: configReleaseLabel?.split(','),
     snapshotLabels: configSnapshotLabel?.split(','),
@@ -1550,7 +1575,7 @@ async function latestReleaseVersion(
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
-    if (!mergedPullRequest) {
+    if (!mergedPullRequest?.mergeCommitOid) {
       logger.trace(
         `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
       );
@@ -1682,6 +1707,8 @@ function mergeReleaserConfig(
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
     draft: pathConfig.draft ?? defaultConfig.draft,
+    draftPullRequest:
+      pathConfig.draftPullRequest ?? defaultConfig.draftPullRequest,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
     component: pathConfig.component ?? defaultConfig.component,
     packageName: pathConfig.packageName ?? defaultConfig.packageName,

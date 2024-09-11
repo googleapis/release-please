@@ -182,9 +182,24 @@ You can annotate a block by starting with a line containing:
 and close the block with a line containing `x-release-please-end`. Within
 the block, we will attempt to replace version values.
 
+Default updaters are applied depending on the file extension. If you want to
+force the [Generic](/src/updaters/generic.ts) updater, you must use type
+`"generic"`.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "generic",
+      "path": "path/to/file.yml"
+    }
+  ]
+}
+```
+
 ## Updating arbitrary JSON files
 
-For files with the `.xml` extension, the `version` property is updated.
+For files with the `.json` extension, the `version` property is updated.
 
 For most release strategies, you can provide additional files to update
 using the [GenericJson](/src/updaters/generic-json.ts) updater. You can

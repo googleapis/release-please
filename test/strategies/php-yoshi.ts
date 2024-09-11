@@ -18,7 +18,7 @@ import {GitHub} from '../../src/github';
 import {PHPYoshi} from '../../src/strategies/php-yoshi';
 import * as sinon from 'sinon';
 import {assertHasUpdate, buildGitHubFileRaw, dateSafe} from '../helpers';
-import {buildMockConventionalCommit} from '../helpers';
+import {buildMockConventionalCommit, buildMockCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -29,6 +29,7 @@ import snapshot = require('snap-shot-it');
 import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {FileNotFoundError} from '../../src/errors';
+import {parseConventionalCommits} from '../../src/commit';
 
 const sandbox = sinon.createSandbox();
 
@@ -153,6 +154,7 @@ describe('PHPYoshi', () => {
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(updates, 'VERSION', DefaultUpdater);
     });
     it('finds touched components', async () => {
       const strategy = new PHPYoshi({
@@ -237,6 +239,34 @@ describe('PHPYoshi', () => {
         '{"name":"google/client1","version":"1.2.3"}'
       );
       expect(newContent).to.eql('{"name":"google/client1","version":"1.2.4"}');
+    });
+    it('can override the version from BEGIN_VERSION_OVERRIDE body', async () => {
+      const commit = buildMockCommit('chore: some commit');
+      const body =
+        'BEGIN_VERSION_OVERRIDE\nClient1: 1.3.0\nClient2: 2.0.0-RC1\nEND_VERSION_OVERRIDE';
+      commit.pullRequest = {
+        headBranchName: 'fix-something',
+        baseBranchName: 'main',
+        number: 123,
+        title: 'chore: some commit',
+        labels: [],
+        files: [],
+        body,
+      };
+      // Add a commit with a version override
+      commits.push(...parseConventionalCommits([commit]));
+
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+      });
+
+      const release = await strategy.buildReleasePullRequest(commits);
+      const updates = release!.updates;
+      const client1Version = assertHasUpdate(updates, 'Client1/VERSION');
+      const client2Version = assertHasUpdate(updates, 'Client2/VERSION');
+      expect(client1Version.updater.updateContent('')).to.eql('1.3.0\n');
+      expect(client2Version.updater.updateContent('')).to.eql('2.0.0-RC1\n');
     });
   });
   describe('buildRelease', () => {

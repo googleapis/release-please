@@ -177,6 +177,23 @@ describe('Strategy', () => {
       expect(updates).to.be.an('array');
       assertHasUpdates(updates!, 'pom.xml', GenericXml, Generic);
     });
+    it('updates extra generic files', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        extraFiles: ['0', {type: 'generic', path: '/1.yml'}],
+      });
+      const pullRequest = await strategy.buildReleasePullRequest(
+        buildMockConventionalCommit('fix: a bugfix'),
+        undefined
+      );
+      expect(pullRequest).to.exist;
+      const updates = pullRequest?.updates;
+      expect(updates).to.be.an('array');
+      assertHasUpdate(updates!, '0', Generic);
+      assertHasUpdate(updates!, '1.yml', Generic);
+    });
     it('updates extra JSON files', async () => {
       const strategy = new TestStrategy({
         targetBranch: 'main',

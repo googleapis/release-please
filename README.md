@@ -182,6 +182,7 @@ Release Please automates releases for the following flavors of repositories:
 
 | release type        | description |
 |---------------------|---------------------------------------------------------|
+| `bazel`             | [A Bazel module, with a MODULE.bazel and a CHANGELOG.md](https://bazel.build/external/module) |
 | `dart`              | A repository with a pubspec.yaml and a CHANGELOG.md |
 | `elixir`            | A repository with a mix.exs and a CHANGELOG.md |
 | `go`                | A repository with a CHANGELOG.md |
@@ -206,7 +207,7 @@ There are a variety of ways you can deploy release-please:
 
 ### GitHub Action (recommended)
 
-The easiest way to run Release Please is as a GitHub action. Please see [google-github-actions/release-please-action](https://github.com/google-github-actions/release-please-action) for installation and configuration instructions.
+The easiest way to run Release Please is as a GitHub action. Please see [googleapis/release-please-action](https://github.com/googleapis/release-please-action) for installation and configuration instructions.
 
 ### Running as CLI
 
@@ -275,3 +276,7 @@ For common issues and help troubleshooting your configuration, see [Troubleshoot
 Apache Version 2.0
 
 See [LICENSE](https://github.com/googleapis/release-please/blob/main/LICENSE)
+
+## Disclaimer
+
+This is not an official Google product.
