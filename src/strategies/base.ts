@@ -295,10 +295,7 @@ export abstract class BaseStrategy implements Strategy {
       'pull request title pattern:',
       this.pullRequestTitlePattern
     );
-    this.logger.debug(
-      'componentNoSpace:',
-      this.componentNoSpace
-    );
+    this.logger.debug('componentNoSpace:', this.componentNoSpace);
     const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
       component || '',
       this.targetBranch,

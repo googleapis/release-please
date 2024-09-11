@@ -2548,40 +2548,40 @@ describe('Manifest', () => {
         },
       ]);
       const manifest = new Manifest(
-          github,
-          'main',
-          {
-            '.': {
-              releaseType: 'simple',
-              component: 'root',
-              componentNoSpace: true
-            },
-            'path/a': {
-              releaseType: 'simple',
-              component: 'pkg1',
-              componentNoSpace: true
-            },
-            'path/b': {
-              releaseType: 'simple',
-              component: 'pkg2',
-              componentNoSpace: true
-            },
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            component: 'root',
+            componentNoSpace: true,
           },
-          {
-            '.': Version.parse('1.2.1'),
-            'path/a': Version.parse('1.0.1'),
-            'path/b': Version.parse('0.2.3'),
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+            componentNoSpace: true,
           },
-          {
-            groupPullRequestTitlePattern:
-                'chore${scope}: release ${component} v${version}',
-          }
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+            componentNoSpace: true,
+          },
+        },
+        {
+          '.': Version.parse('1.2.1'),
+          'path/a': Version.parse('1.0.1'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          groupPullRequestTitlePattern:
+            'chore${scope}: release ${component} v${version}',
+        }
       );
       const pullRequests = await manifest.buildPullRequests();
       expect(pullRequests).lengthOf(1);
       const pullRequest = pullRequests[0];
       expect(pullRequest.title.toString()).to.eql(
-          'chore(main): release root v1.2.2'
+        'chore(main): release root v1.2.2'
       );
       snapshot(dateSafe(pullRequest.body.toString()));
     });
@@ -2750,28 +2750,28 @@ describe('Manifest', () => {
         },
       ]);
       const manifest = new Manifest(
-          github,
-          'main',
-          {
-            'path/a': {
-              releaseType: 'simple',
-              component: 'pkg1',
-              componentNoSpace: true
-            },
-            'path/b': {
-              releaseType: 'simple',
-              component: 'pkg2',
-              componentNoSpace: true
-            },
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+            componentNoSpace: true,
           },
-          {
-            'path/a': Version.parse('1.0.1'),
-            'path/b': Version.parse('0.2.3'),
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+            componentNoSpace: true,
           },
-          {
-            groupPullRequestTitlePattern:
-                'chore${scope}: release ${component} v${version}',
-          }
+        },
+        {
+          'path/a': Version.parse('1.0.1'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          groupPullRequestTitlePattern:
+            'chore${scope}: release ${component} v${version}',
+        }
       );
       const pullRequests = await manifest.buildPullRequests();
       expect(pullRequests).lengthOf(1);

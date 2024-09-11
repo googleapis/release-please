@@ -427,9 +427,10 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
       type: 'string',
     })
     .option('component-no-space', {
-      describe: 'release-please automatically adds ` ` (space) in front of parsed ${component}. Should this be disabled?',
+      describe:
+        'release-please automatically adds ` ` (space) in front of parsed ${component}. Should this be disabled?',
       type: 'boolean',
-      default: false
+      default: false,
     });
 }
 

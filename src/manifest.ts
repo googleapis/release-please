@@ -1728,7 +1728,8 @@ function mergeReleaserConfig(
       pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
     pullRequestFooter:
       pathConfig.pullRequestFooter ?? defaultConfig.pullRequestFooter,
-    componentNoSpace: pathConfig.componentNoSpace ?? defaultConfig.componentNoSpace,
+    componentNoSpace:
+      pathConfig.componentNoSpace ?? defaultConfig.componentNoSpace,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,

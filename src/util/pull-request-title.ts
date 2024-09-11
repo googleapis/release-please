@@ -50,7 +50,12 @@ export function generateMatchPattern(
       .replace('(', '\\(')
       .replace(')', '\\)')
       .replace('${scope}', '(\\((?<branch>[\\w-./]+)\\))?')
-      .replace('${component}', componentNoSpace === true ? '?(?<component>@?[\\w-./]*)?' : ' ?(?<component>@?[\\w-./]*)?')
+      .replace(
+        '${component}',
+        componentNoSpace === true
+          ? '?(?<component>@?[\\w-./]*)?'
+          : ' ?(?<component>@?[\\w-./]*)?'
+      )
       .replace('${version}', 'v?(?<version>[0-9].*)')
       .replace('${branch}', '(?<branch>[\\w-./]+)?')}$`
   );
@@ -69,7 +74,7 @@ export class PullRequestTitle {
     component?: string;
     targetBranch?: string;
     pullRequestTitlePattern?: string;
-    componentNoSpace?: boolean
+    componentNoSpace?: boolean;
     logger?: Logger;
   }) {
     this.version = opts.version;
@@ -91,7 +96,11 @@ export class PullRequestTitle {
     componentNoSpace?: boolean,
     logger: Logger = defaultLogger
   ): PullRequestTitle | undefined {
-    const matchPattern = generateMatchPattern(pullRequestTitlePattern, componentNoSpace, logger);
+    const matchPattern = generateMatchPattern(
+      pullRequestTitlePattern,
+      componentNoSpace,
+      logger
+    );
     const match = title.match(matchPattern);
     if (match?.groups) {
       return new PullRequestTitle({
@@ -114,14 +123,23 @@ export class PullRequestTitle {
     pullRequestTitlePattern?: string,
     componentNoSpace?: boolean
   ): PullRequestTitle {
-    return new PullRequestTitle({version, component, pullRequestTitlePattern, componentNoSpace});
+    return new PullRequestTitle({
+      version,
+      component,
+      pullRequestTitlePattern,
+      componentNoSpace,
+    });
   }
   static ofVersion(
     version: Version,
     pullRequestTitlePattern?: string,
     componentNoSpace?: boolean
   ): PullRequestTitle {
-    return new PullRequestTitle({version, pullRequestTitlePattern, componentNoSpace});
+    return new PullRequestTitle({
+      version,
+      pullRequestTitlePattern,
+      componentNoSpace,
+    });
   }
   static ofTargetBranchVersion(
     targetBranch: string,
@@ -133,7 +151,7 @@ export class PullRequestTitle {
       version,
       targetBranch,
       pullRequestTitlePattern,
-      componentNoSpace
+      componentNoSpace,
     });
   }
   static ofComponentTargetBranchVersion(
@@ -148,7 +166,7 @@ export class PullRequestTitle {
       component,
       targetBranch,
       pullRequestTitlePattern,
-      componentNoSpace
+      componentNoSpace,
     });
   }
   static ofTargetBranch(
@@ -159,7 +177,7 @@ export class PullRequestTitle {
     return new PullRequestTitle({
       targetBranch,
       pullRequestTitlePattern,
-      componentNoSpace
+      componentNoSpace,
     });
   }
 
@@ -175,11 +193,23 @@ export class PullRequestTitle {
 
   toString(): string {
     const scope = this.targetBranch ? `(${this.targetBranch})` : '';
-    const component = this.componentNoSpace === true ? (this.component ? `${this.component}` : '') : (this.component ? ` ${this.component}` : '');
+    const component =
+      this.componentNoSpace === true
+        ? this.component
+          ? `${this.component}`
+          : ''
+        : this.component
+        ? ` ${this.component}`
+        : '';
     const version = this.version ?? '';
     if (this.componentNoSpace === true && !component) {
-      console.log('`component` is empty. Removing component from title pattern..');
-      this.pullRequestTitlePattern = this.pullRequestTitlePattern.replace('${component} ', '');
+      console.log(
+        '`component` is empty. Removing component from title pattern..'
+      );
+      this.pullRequestTitlePattern = this.pullRequestTitlePattern.replace(
+        '${component} ',
+        ''
+      );
     }
 
     return this.pullRequestTitlePattern
