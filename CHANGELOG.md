@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.13.0](https://github.com/googleapis/release-please/compare/v16.12.2...v16.13.0) (2024-09-16)
+
+
+### Features
+
+* Introduce `componentNoSpace` parameter (Removes whitespace character from `${component}` title pattern)  ([#2330](https://github.com/googleapis/release-please/issues/2330)) ([0a2d5c6](https://github.com/googleapis/release-please/commit/0a2d5c6fc53feb01ad66b937bb39c20fa4ba53b0))
+
 ## [16.12.2](https://github.com/googleapis/release-please/compare/v16.12.1...v16.12.2) (2024-09-11)
 
 
