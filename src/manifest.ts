@@ -115,6 +115,7 @@ export interface ReleaserConfig {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
+  componentNoSpace?: boolean;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
@@ -173,6 +174,7 @@ interface ReleaserConfigJson {
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
   'pull-request-footer'?: string;
+  'component-no-space'?: boolean;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -788,6 +790,12 @@ export class Manifest {
         ) {
           mergeOptions.pullRequestFooter = config.pullRequestFooter;
         }
+        if (
+          'componentNoSpace' in config &&
+          !('componentNoSpace' in mergeOptions)
+        ) {
+          mergeOptions.componentNoSpace = config.componentNoSpace;
+        }
       }
       this.plugins.push(
         new Merge(
@@ -1368,6 +1376,7 @@ function extractReleaserConfig(
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     pullRequestHeader: config['pull-request-header'],
     pullRequestFooter: config['pull-request-footer'],
+    componentNoSpace: config['component-no-space'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1541,7 +1550,6 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * @param {string} targetBranch Name of the scanned branch.
  * @param releaseFilter Validator function for release version. Used to filter-out SNAPSHOT releases for Java strategy.
  * @param {string} prefix Limit the release to a specific component.
- * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
   github: GitHub,
@@ -1607,6 +1615,7 @@ async function latestReleaseVersion(
     const pullRequestTitle = PullRequestTitle.parse(
       mergedPullRequest.title,
       config.pullRequestTitlePattern,
+      config.componentNoSpace,
       logger
     );
     if (!pullRequestTitle) {
@@ -1725,6 +1734,8 @@ function mergeReleaserConfig(
       pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
     pullRequestFooter:
       pathConfig.pullRequestFooter ?? defaultConfig.pullRequestFooter,
+    componentNoSpace:
+      pathConfig.componentNoSpace ?? defaultConfig.componentNoSpace,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,

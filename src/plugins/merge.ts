@@ -30,6 +30,7 @@ export interface MergeOptions {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
+  componentNoSpace?: boolean;
   headBranchName?: string;
   forceMerge?: boolean;
 }
@@ -44,6 +45,7 @@ export class Merge extends ManifestPlugin {
   private pullRequestTitlePattern?: string;
   private pullRequestHeader?: string;
   private pullRequestFooter?: string;
+  private componentNoSpace?: boolean;
   private headBranchName?: string;
   private forceMerge: boolean;
 
@@ -58,6 +60,7 @@ export class Merge extends ManifestPlugin {
       options.pullRequestTitlePattern ?? MANIFEST_PULL_REQUEST_TITLE_PATTERN;
     this.pullRequestHeader = options.pullRequestHeader;
     this.pullRequestFooter = options.pullRequestFooter;
+    this.componentNoSpace = options.componentNoSpace;
     this.headBranchName = options.headBranchName;
     this.forceMerge = options.forceMerge ?? false;
   }
@@ -106,7 +109,8 @@ export class Merge extends ManifestPlugin {
         rootRelease?.pullRequest.title.component,
         this.targetBranch,
         rootRelease?.pullRequest.title.version,
-        this.pullRequestTitlePattern
+        this.pullRequestTitlePattern,
+        this.componentNoSpace
       ),
       body: new PullRequestBody(releaseData, {
         useComponents: true,

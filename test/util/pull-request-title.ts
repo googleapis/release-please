@@ -139,7 +139,7 @@ describe('PullRequestTitle', () => {
   });
 });
 
-describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
+describe('PullRequestTitle with custom pullRequestTitlePattern with SPACE in component', () => {
   describe('parse', () => {
     describe('autorelease branch name', () => {
       it('parses a versioned branch name', () => {
@@ -318,5 +318,183 @@ describe('PullRequestTitle with custom pullRequestTitlePattern', () => {
     //     generateMatchPattern('chore${scope}: 🔖 release${component}')
     //   ).to.throw("pullRequestTitlePattern miss the part of '${version}'");
     // });
+  });
+});
+
+describe('PullRequestTitle with custom pullRequestTitlePattern without SPACE in component', () => {
+  describe('parse', () => {
+    describe('autorelease branch name', () => {
+      it('parses a versioned branch name', () => {
+        const name = 'chore: 🔖 release 1.2.3';
+        const pullRequestTitle = PullRequestTitle.parse(
+          name,
+          'chore${scope}: 🔖 release ${component} ${version}',
+          true
+        );
+        expect(pullRequestTitle).to.not.be.undefined;
+        expect(pullRequestTitle?.getTargetBranch()).to.be.undefined;
+        expect(pullRequestTitle?.getComponent()).to.be.undefined;
+        expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
+        expect(pullRequestTitle?.toString()).to.eql(name);
+      });
+      it('parses a versioned branch name with v', () => {
+        const name = 'chore: 🔖 release v1.2.3';
+        const pullRequestTitle = PullRequestTitle.parse(
+          name,
+          'chore${scope}: 🔖 release ${component} ${version}',
+          true
+        );
+        expect(pullRequestTitle).to.not.be.undefined;
+        expect(pullRequestTitle?.getTargetBranch()).to.be.undefined;
+        expect(pullRequestTitle?.getComponent()).to.be.undefined;
+        expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
+      });
+      it('parses a versioned branch name with component', () => {
+        const name = 'chore: 🔖 release storage v1.2.3';
+        const pullRequestTitle = PullRequestTitle.parse(
+          name,
+          'chore${scope}: 🔖 release ${component} ${version}',
+          true
+        );
+        expect(pullRequestTitle).to.not.be.undefined;
+        expect(pullRequestTitle?.getTargetBranch()).to.be.undefined;
+        expect(pullRequestTitle?.getComponent()).to.eql('storage');
+        expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
+      });
+    });
+
+    it('parses a target branch', () => {
+      const name = 'chore(main): 🔖 release v1.2.3';
+      const pullRequestTitle = PullRequestTitle.parse(
+        name,
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('main');
+      expect(pullRequestTitle?.getComponent()).to.be.undefined;
+      expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
+    });
+    it('parses a target branch and component', () => {
+      const name = 'chore(main): 🔖 release storage v1.2.3';
+      const pullRequestTitle = PullRequestTitle.parse(
+        name,
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('main');
+      expect(pullRequestTitle?.getComponent()).to.eql('storage');
+      expect(pullRequestTitle?.getVersion()?.toString()).to.eql('1.2.3');
+    });
+    it('parses a component with @ sign prefix', () => {
+      const name = 'chore(main): 🔖 release @example/storage v1.2.3';
+      const pullRequestTitle = PullRequestTitle.parse(
+        name,
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getComponent()).to.eql('@example/storage');
+    });
+    it('fails to parse', () => {
+      const pullRequestTitle = PullRequestTitle.parse(
+        'release-foo',
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle).to.be.undefined;
+    });
+    it('parses a manifest title', () => {
+      const name = 'chore: release main';
+      const pullRequestTitle = PullRequestTitle.parse(
+        name,
+        MANIFEST_PULL_REQUEST_TITLE_PATTERN,
+        true
+      );
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('main');
+      expect(pullRequestTitle?.getComponent()).to.be.undefined;
+      expect(pullRequestTitle?.getVersion()).to.be.undefined;
+    });
+    it('parses a complex title and pattern', () => {
+      const pullRequestTitle = PullRequestTitle.parse(
+        '[HOTFIX] - chore(hotfix/v3.1.0-bug): release 3.1.0-hotfix1 (@example/storage)',
+        '[HOTFIX] - chore${scope}: release ${version} (${component})',
+        true
+      );
+      expect(pullRequestTitle).to.not.be.undefined;
+      expect(pullRequestTitle?.getTargetBranch()).to.eql('hotfix/v3.1.0-bug');
+      expect(pullRequestTitle?.getVersion()?.toString()).to.eql(
+        '3.1.0-hotfix1'
+      );
+      expect(pullRequestTitle?.getComponent()).to.eql('@example/storage');
+    });
+  });
+
+  describe('ofVersion', () => {
+    it('builds the autorelease versioned branch name', () => {
+      const pullRequestTitle = PullRequestTitle.ofVersion(
+        Version.parse('1.2.3'),
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle.toString()).to.eql('chore: 🔖 release 1.2.3');
+    });
+  });
+
+  describe('ofComponentVersion', () => {
+    it('builds the autorelease versioned branch name with component', () => {
+      const pullRequestTitle = PullRequestTitle.ofComponentVersion(
+        'storage',
+        Version.parse('1.2.3'),
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle.toString()).to.eql(
+        'chore: 🔖 release storage 1.2.3'
+      );
+    });
+  });
+
+  describe('ofTargetBranch', () => {
+    it('builds branch name with only target branch', () => {
+      const pullRequestTitle = PullRequestTitle.ofTargetBranchVersion(
+        'main',
+        Version.parse('1.2.3'),
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle.toString()).to.eql(
+        'chore(main): 🔖 release 1.2.3'
+      );
+    });
+  });
+
+  describe('ofComponentTargetBranch', () => {
+    it('builds branch name with target branch and component', () => {
+      const pullRequestTitle = PullRequestTitle.ofComponentTargetBranchVersion(
+        'foo',
+        'main',
+        Version.parse('1.2.3'),
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(pullRequestTitle.toString()).to.eql(
+        'chore(main): 🔖 release foo 1.2.3'
+      );
+    });
+  });
+
+  describe('generateMatchPattern', () => {
+    it('return matchPattern with custom Pattern', () => {
+      const matchPattern = generateMatchPattern(
+        'chore${scope}: 🔖 release ${component} ${version}',
+        true
+      );
+      expect(matchPattern).to.eql(
+        /^chore(\((?<branch>[\w-./]+)\))?: 🔖 release ?(?<component>@?[\w-./]*)? v?(?<version>[0-9].*)$/
+      );
+    });
   });
 });
