@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.14.0](https://github.com/googleapis/release-please/compare/v16.13.0...v16.14.0) (2024-09-17)
+
+
+### Features
+
+* handle multiple commits in a single message ([#2358](https://github.com/googleapis/release-please/issues/2358)) ([ec41c38](https://github.com/googleapis/release-please/commit/ec41c38422fc23c6671f4ee7e4f09e9e120ab751))
+
 ## [16.13.0](https://github.com/googleapis/release-please/compare/v16.12.2...v16.13.0) (2024-09-16)
 
 
