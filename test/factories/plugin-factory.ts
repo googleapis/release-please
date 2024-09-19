@@ -19,7 +19,6 @@ import {
   getPluginTypes,
   registerPlugin,
   unregisterPlugin,
-  determineMerge,
 } from '../../src/factories/plugin-factory';
 import {expect} from 'chai';
 import {LinkedVersions} from '../../src/plugins/linked-versions';
@@ -175,74 +174,6 @@ describe('PluginFactory', () => {
 
       const allTypes = getPluginTypes();
       expect(allTypes).to.contain(pluginType);
-    });
-  });
-  describe('determineMerge', () => {
-    const pluginOptions = {
-      github,
-      repositoryConfig: {},
-      targetBranch: 'main',
-      manifestPath: '.manifest.json',
-    };
-    it('should return false', () => {
-      const separatePullRequests = true;
-
-      expect(
-        determineMerge({
-          ...pluginOptions,
-          separatePullRequests,
-          type: 'node-workspace',
-        })
-      ).to.be.false;
-
-      expect(
-        determineMerge({
-          ...pluginOptions,
-          separatePullRequests,
-          type: {
-            type: 'maven-workspace',
-          },
-        })
-      ).to.be.false;
-    });
-    it('should return true', () => {
-      expect(
-        determineMerge({
-          ...pluginOptions,
-          separatePullRequests: false,
-          type: 'cargo-workspace',
-        })
-      ).to.be.true;
-
-      expect(
-        determineMerge({
-          ...pluginOptions,
-          separatePullRequests: true,
-          type: {
-            type: 'node-workspace',
-            merge: true,
-          },
-        })
-      ).to.be.true;
-    });
-    it('should return undefined', () => {
-      expect(
-        determineMerge({
-          ...pluginOptions,
-          separatePullRequests: true,
-          type: 'linked-versions',
-        })
-      ).to.be.undefined;
-
-      expect(
-        determineMerge({
-          ...pluginOptions,
-          separatePullRequests: true,
-          type: {
-            type: 'linked-versions',
-          },
-        })
-      ).to.be.undefined;
     });
   });
 });
