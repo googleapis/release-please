@@ -38,7 +38,7 @@ export interface PluginFactoryOptions {
   targetBranch: string;
   repositoryConfig: RepositoryConfig;
   manifestPath: string;
-  separatePullRequests: boolean;
+  separatePullRequests?: boolean;
 
   // node options
   alwaysLinkLocal?: boolean;
@@ -124,6 +124,9 @@ const pluginFactories: Record<string, PluginBuilder> = {
 };
 
 export function buildPlugin(options: PluginFactoryOptions): ManifestPlugin {
+  if (!options.separatePullRequests) {
+    options.separatePullRequests = false;
+  }
   if (typeof options.type === 'object') {
     const builder = pluginFactories[options.type.type];
     if (builder) {
