@@ -134,7 +134,7 @@ importers:
         version: 4.3.19
       '@types/diff':
         specifier: ^5.0.2
-        version: 5.2.1
+        version: 5.2.2
       '@types/iarna__toml':
         specifier: ^2.0.1
         version: 2.0.5
@@ -470,8 +470,8 @@ packages:
   '@types/chai@4.3.19':
     resolution: {integrity: sha512-2hHHvQBVE2FiSK4eN0Br6snX9MtolHaTo/batnLjlGRhoQzlCL61iVpxoqO7SfFyOw+P/pwv+0zNHzKoGWz9Cw==}
 
-  '@types/diff@5.2.1':
-    resolution: {integrity: sha512-uxpcuwWJGhe2AR1g8hD9F5OYGCqjqWnBUQFD8gMZsDbv8oPHzxJF6iMO6n8Tk0AdzlxoaaoQhOYlIg/PukVU8g==}
+  '@types/diff@5.2.2':
+    resolution: {integrity: sha512-qVqLpd49rmJA2nZzLVsmfS/aiiBpfVE95dHhPVwG0NmSBAt+riPxnj53wq2oBq5m4Q2RF1IWFEUpnZTgrQZfEQ==}
 
   '@types/iarna__toml@2.0.5':
     resolution: {integrity: sha512-I55y+SxI0ayM4MBU6yfGJGmi4wRll6wtSeKiFYAZj+Z5Q1DVbMgBSVDYY+xQZbjIlLs/pN4fidnvR8faDrmxPg==}
@@ -2711,7 +2711,7 @@ snapshots:
 
   '@types/chai@4.3.19': {}
 
-  '@types/diff@5.2.1': {}
+  '@types/diff@5.2.2': {}
 
   '@types/iarna__toml@2.0.5':
     dependencies:
