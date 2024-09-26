@@ -16,6 +16,7 @@
 import {Changelog} from '../updaters/changelog';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
+import {GithubImportsGo} from '../updaters/go/github-imports-go';
 
 export class Go extends BaseStrategy {
   protected async buildUpdates(
@@ -32,6 +33,21 @@ export class Go extends BaseStrategy {
         changelogEntry: options.changelogEntry,
       }),
     });
+
+    const allFiles = await this.github.findFilesByGlobAndRef(
+      '**/*.go',
+      this.changesBranch
+    );
+
+    for (const file of allFiles) {
+      updates.push({
+        path: this.addPath(file),
+        createIfMissing: true,
+        updater: new GithubImportsGo({
+          version,
+        }),
+      });
+    }
 
     return updates;
   }

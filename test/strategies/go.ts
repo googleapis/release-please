@@ -17,11 +17,12 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Go} from '../../src/strategies/go';
 import * as sinon from 'sinon';
-import {assertHasUpdate} from '../helpers';
+import {assertHasUpdate, buildGitHubFileContent} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
+import {GithubImportsGo} from '../../src/updaters/go/github-imports-go';
 
 const sandbox = sinon.createSandbox();
 
@@ -43,6 +44,10 @@ describe('Go', () => {
       repo: 'go-test-repo',
       defaultBranch: 'main',
     });
+
+    sandbox
+      .stub(github, 'findFilesByGlobAndRef')
+      .resolves(['file-with-imports-v2.go']);
   });
   afterEach(() => {
     sandbox.restore();
@@ -95,6 +100,30 @@ describe('Go', () => {
       });
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+    });
+
+    it('finds and updates a go file with an import', async () => {
+      const strategy = new Go({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(
+          buildGitHubFileContent(
+            './test/updaters/fixtures',
+            'file-with-imports-v2.go'
+          )
+        );
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'file-with-imports-v2.go', GithubImportsGo);
     });
   });
 });

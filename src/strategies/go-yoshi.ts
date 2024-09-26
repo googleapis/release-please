@@ -21,6 +21,7 @@ import {TagName} from '../util/tag-name';
 import {Release} from '../release';
 import {VersionGo} from '../updaters/go/version-go';
 import {dirname} from 'path';
+import {GithubImportsGo} from '../updaters/go/github-imports-go';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -69,6 +70,21 @@ export class GoYoshi extends BaseStrategy {
         version,
       }),
     });
+
+    const allFiles = await this.github.findFilesByGlobAndRef(
+      '**/*.go',
+      this.changesBranch
+    );
+
+    for (const file of allFiles) {
+      updates.push({
+        path: this.addPath(file),
+        createIfMissing: false,
+        updater: new GithubImportsGo({
+          version,
+        }),
+      });
+    }
 
     return updates;
   }
