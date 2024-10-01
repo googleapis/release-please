@@ -9,7 +9,7 @@
     <CodeAnalysisRuleSet>..\..\..\grpc.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0" PrivateAssets="All" />
+    <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1" PrivateAssets="All" />
     <PackageReference Include="Google.Api.Gax.Grpc.GrpcCore" Version="[3.5.0, 4.0.0)" />
     <PackageReference Include="Google.LongRunning" Version="[2.3.0, 3.0.0)" />
     <PackageReference Include="Grpc.Core" Version="[2.38.1, 3.0.0)" PrivateAssets="None" />
