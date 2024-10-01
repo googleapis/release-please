@@ -57,7 +57,7 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[1].scope).is.null;
   });
 
-  it('can parse multiple commits skipping line breaks', async () => {
+  it('can parse multiple commit messages requires 2 line breaks', async () => {
     const commits = [buildCommitFromFixture('dependabot')];
     const conventionalCommits = parseConventionalCommits(commits);
     expect(conventionalCommits).lengthOf(1);
