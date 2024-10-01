@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.14.1](https://github.com/googleapis/release-please/compare/v16.14.0...v16.14.1) (2024-10-01)
+
+
+### Bug Fixes
+
+* **deps:** replace jsonpath with jsonpath-plus ([#2391](https://github.com/googleapis/release-please/issues/2391)) ([47db9b5](https://github.com/googleapis/release-please/commit/47db9b5ce447fdc71a169c94e58480b525210679))
+* when parsing multiple messages from a single commit, require 2 newlines ([#2390](https://github.com/googleapis/release-please/issues/2390)) ([bb5e69b](https://github.com/googleapis/release-please/commit/bb5e69b958c9dd4818c30315ae99d3ecc7e41fa1))
+
 ## [16.14.0](https://github.com/googleapis/release-please/compare/v16.13.0...v16.14.0) (2024-09-17)
 
 
