@@ -57,6 +57,14 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[1].scope).is.null;
   });
 
+  it('can parse multiple commit messages requires 2 line breaks', async () => {
+    const commits = [buildCommitFromFixture('dependabot')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('fix');
+    expect(conventionalCommits[0].scope).is.null;
+  });
+
   it('handles BREAKING CHANGE body', async () => {
     const commits = [buildCommitFromFixture('breaking-body')];
     const conventionalCommits = parseConventionalCommits(commits);
