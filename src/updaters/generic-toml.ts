@@ -14,7 +14,7 @@
 
 import {Updater} from '../update';
 import {Version} from '../version';
-import * as jp from 'jsonpath';
+import {JSONPath} from 'jsonpath-plus';
 import {parseWith, replaceTomlValue} from '../util/toml-edit';
 import * as toml from '@iarna/toml';
 import {logger as defaultLogger, Logger} from '../util/logger';
@@ -48,7 +48,12 @@ export class GenericToml implements Updater {
       return content;
     }
 
-    const paths = jp.paths(data, this.jsonpath);
+    const pointers: string[] = JSONPath({
+      path: this.jsonpath,
+      json: data,
+      resultType: 'pointer',
+    });
+    const paths = pointers.map(pointer => pointer.split('/').filter(Boolean));
     if (!paths || paths.length === 0) {
       logger.warn(`No entries modified in ${this.jsonpath}`);
       return content;
