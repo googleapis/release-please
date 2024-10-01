@@ -14,7 +14,7 @@
 
 import {Updater} from '../update';
 import {Version} from '../version';
-import * as jp from 'jsonpath';
+import {JSONPath} from 'jsonpath-plus';
 import {jsonStringify} from '../util/json-stringify';
 import {logger as defaultLogger, Logger} from '../util/logger';
 
@@ -36,21 +36,25 @@ export class GenericJson implements Updater {
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
     const data = JSON.parse(content);
-    const nodes = jp.apply(data, this.jsonpath, value => {
-      if (typeof value !== 'string') {
-        logger.warn(`No string in ${this.jsonpath}. Skipping.`);
-        return value;
-      }
-      if (!value.match(VERSION_REGEX)) {
-        logger.warn(`No version found in ${this.jsonpath}. Skipping.`);
-        return value;
-      }
-      return value.replace(VERSION_REGEX, this.version.toString());
+    JSONPath({
+      resultType: 'all',
+      path: this.jsonpath,
+      json: data,
+      callback: (payload, _payloadType, _fullPayload) => {
+        if (typeof payload.value !== 'string') {
+          logger.warn(`No string in ${this.jsonpath}. Skipping.`);
+          return payload;
+        }
+        if (!payload.value.match(VERSION_REGEX)) {
+          logger.warn(`No version found in ${this.jsonpath}. Skipping.`);
+          return payload;
+        }
+        payload.parent[payload.parentProperty] = payload.parent[
+          payload.parentProperty
+        ].replace(VERSION_REGEX, this.version.toString());
+        return payload;
+      },
     });
-    if (!nodes) {
-      logger.warn(`No entries modified in ${this.jsonpath}`);
-      return content;
-    }
     return jsonStringify(data, content);
   }
 }
