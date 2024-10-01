@@ -71,12 +71,18 @@ export class GoYoshi extends BaseStrategy {
       }),
     });
 
-    const allFiles = await this.github.findFilesByGlobAndRef(
+    const goFiles = await this.github.findFilesByGlobAndRef(
       '**/*.go',
       this.changesBranch
     );
 
-    for (const file of allFiles) {
+    // handle code snippets in markdown files as well
+    const mdFiles = await this.github.findFilesByGlobAndRef(
+      '**/*.md',
+      this.changesBranch
+    );
+
+    for (const file of [...goFiles, ...mdFiles]) {
       updates.push({
         path: this.addPath(file),
         createIfMissing: false,

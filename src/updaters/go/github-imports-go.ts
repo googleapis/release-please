@@ -7,9 +7,11 @@ export class GithubImportsGo extends DefaultUpdater {
     }
 
     return content.replace(
-      /"github\.com\/([^/]+)\/([^/]+)(\/v([1-9]\d*))?\/(.+)"/g,
-      (_, user, repo, __, ___, path) =>
-        `"github.com/${user}/${repo}/v${this.version.major.toString()}/${path}"`
+      /"(https:\/\/pkg.go.dev\/)?github\.com\/([^/]+)\/([^/]+)(\/v([1-9]\d*))?(\/[^"]+)?"/g,
+      (_, prefix, user, repo, ___, ____, path) =>
+        `"${prefix ?? ''}github.com/${user}/${repo}${
+          this.version.major < 2 ? '' : '/v' + this.version.major.toString()
+        }${path ?? ''}"`
     );
   }
 }

@@ -15,4 +15,5 @@ import (
 	"github.com/cloudflare/cloudflare-go/internal/requestconfig"
 	"github.com/cloudflare/cloudflare-go/option"
 	"github.com/cloudflare/cloudflare-go/shared"
+	"github.com/cloudflare/cloudflare-go"
 )

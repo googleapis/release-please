@@ -47,7 +47,10 @@ describe('Go', () => {
 
     sandbox
       .stub(github, 'findFilesByGlobAndRef')
-      .resolves(['file-with-imports-v2.go']);
+      .withArgs('**/*.go', 'main')
+      .resolves(['file-with-imports-v2.go'])
+      .withArgs('**/*.md', 'main')
+      .resolves([]);
   });
   afterEach(() => {
     sandbox.restore();
