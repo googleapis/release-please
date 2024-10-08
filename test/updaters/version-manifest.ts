@@ -75,7 +75,24 @@ describe('VersionManifest', () => {
       const versions = new Map<string, Version>();
       versions.set('google-cloud-trace', Version.parse('0.109.0'));
       versions.set('grpc-google-cloud-trace-v1', Version.parse('0.74.0'));
-      versions.set('trace', Version.parse('0.0.3'))
+      const javaAuthVersions = new VersionsManifest({
+        versionsMap: versions,
+        version: Version.parse('1.2.3'),
+      });
+      const newContent = javaAuthVersions.updateContent(oldContent);
+      snapshot(newContent);
+    });
+  });
+
+  describe('updateContent', () => {
+    it('updates versions.txt with a version prefix', async () => {
+      const oldContent = readFileSync(
+          resolve(fixturesPath, './versions-prefix.txt'),
+          'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      versions.set('google-cloud-trace', Version.parse('2.3.4'));
+      versions.set('trace', Version.parse('3.4.5'))
       const javaAuthVersions = new VersionsManifest({
         versionsMap: versions,
         version: Version.parse('1.2.3'),
