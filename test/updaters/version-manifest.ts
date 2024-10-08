@@ -87,8 +87,8 @@ describe('VersionManifest', () => {
   describe('updateContent', () => {
     it('updates versions.txt with a version prefix', async () => {
       const oldContent = readFileSync(
-          resolve(fixturesPath, './versions-prefix.txt'),
-          'utf8'
+        resolve(fixturesPath, './versions-prefix.txt'),
+        'utf8'
       ).replace(/\r\n/g, '\n');
       const versions = new Map<string, Version>();
       versions.set('google-cloud-trace', Version.parse('2.3.4'));
