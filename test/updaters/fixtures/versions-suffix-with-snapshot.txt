@@ -1,5 +1,5 @@
 # Format:
 # module:released-version:current-version
 
-google-cloud-admin:2.3.4:2.3.4
-admin:3.4.5:3.4.5
+google-cloud-admin:2.3.5:2.3.5
+admin:3.4.2:3.4.2

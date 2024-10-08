@@ -1,9 +1,17 @@
-exports['VersionManifest updateContent updates versions.txt with a version prefix 1'] = `
+exports['VersionManifest updateContent updates versions.txt with an artifact id is another ones suffix with snapshot 1'] = `
 # Format:
 # module:released-version:current-version
 
 google-cloud-admin:2.3.4:2.3.4
 admin:3.4.5:3.4.5
+`
+
+exports['VersionManifest updateContent updates versions.txt with an artifact id is another ones suffix without snapshot 1'] = `
+# Format:
+# module:released-version:current-version
+
+google-cloud-admin:2.3.6:2.3.6
+admin:3.4.3:3.4.3
 `
 
 exports['VersionManifest updateContent updates versions.txt with snapshot released version 1'] = `
