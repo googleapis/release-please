@@ -6,3 +6,4 @@ grpc-google-cloud-trace-v1:0.73.1-SNAPSHOT:0.73.1-SNAPSHOT
 grpc-google-cloud-trace-v2:0.73.1-SNAPSHOT:0.73.1-SNAPSHOT
 proto-google-cloud-trace-v1:0.73.1-SNAPSHOT:0.73.1-SNAPSHOT
 proto-google-cloud-trace-v2:0.73.1-SNAPSHOT:0.73.1-SNAPSHOT
+trace:0.0.2-SNAPSHOT:0.0.2-SNAPSHOT

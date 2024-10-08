@@ -75,6 +75,7 @@ describe('VersionManifest', () => {
       const versions = new Map<string, Version>();
       versions.set('google-cloud-trace', Version.parse('0.109.0'));
       versions.set('grpc-google-cloud-trace-v1', Version.parse('0.74.0'));
+      versions.set('trace', Version.parse('0.0.3'))
       const javaAuthVersions = new VersionsManifest({
         versionsMap: versions,
         version: Version.parse('1.2.3'),
