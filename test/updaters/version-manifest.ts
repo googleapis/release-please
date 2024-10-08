@@ -92,7 +92,7 @@ describe('VersionManifest', () => {
       ).replace(/\r\n/g, '\n');
       const versions = new Map<string, Version>();
       versions.set('google-cloud-trace', Version.parse('2.3.4'));
-      versions.set('trace', Version.parse('3.4.5'))
+      versions.set('trace', Version.parse('3.4.5'));
       const javaAuthVersions = new VersionsManifest({
         versionsMap: versions,
         version: Version.parse('1.2.3'),
