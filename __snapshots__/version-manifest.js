@@ -1,3 +1,11 @@
+exports['VersionManifest updateContent updates versions.txt with a version prefix 1'] = `
+# Format:
+# module:released-version:current-version
+
+google-cloud-admin:2.3.4:2.3.4
+admin:3.4.5:3.4.5
+`
+
 exports['VersionManifest updateContent updates versions.txt with snapshot released version 1'] = `
 # Format:
 # module:released-version:current-version
