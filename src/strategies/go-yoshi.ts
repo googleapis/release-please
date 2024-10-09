@@ -97,6 +97,7 @@ export class GoYoshi extends BaseStrategy {
         createIfMissing: false,
         updater: new GithubImportsGo({
           version,
+          repository: this.repository,
         }),
       });
     }

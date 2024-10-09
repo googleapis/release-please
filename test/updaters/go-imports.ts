@@ -26,6 +26,10 @@ describe('GithubImportsGo', () => {
 
     it('makes no changes if the old version has a major version of 1 and the new version also has a major version of 1', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('1.0.0'),
       });
       expect(importsUpdater.updateContent(v1File)).to.equal(v1File);
@@ -33,6 +37,10 @@ describe('GithubImportsGo', () => {
 
     it('updates the version in the imports if the old version has a major version of 1 and the new version has a major version of 2', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('2.0.0'),
       });
       expect(importsUpdater.updateContent(v1File)).to.equal(v2File);
@@ -40,6 +48,10 @@ describe('GithubImportsGo', () => {
 
     it('makes no changes if the old version has a major version of 2 and the new version also has a major version of 2', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('2.0.0'),
       });
       expect(importsUpdater.updateContent(v2File)).to.equal(v2File);
@@ -47,6 +59,10 @@ describe('GithubImportsGo', () => {
 
     it('updates the version in the imports if the old version has a major version of 2 and the new version has a major version of 3', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('3.0.0'),
       });
       expect(importsUpdater.updateContent(v2File)).to.equal(v3File);
@@ -71,6 +87,10 @@ describe('GithubImportsGo', () => {
 
     it('makes no changes if the old version has a major version of 1 and the new version also has a major version of 1', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('1.0.0'),
       });
       expect(importsUpdater.updateContent(v1MdFile)).to.equal(v1MdFile);
@@ -78,6 +98,10 @@ describe('GithubImportsGo', () => {
 
     it('updates the version in the imports if the old version has a major version of 1 and the new version has a major version of 2', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('2.0.0'),
       });
       expect(importsUpdater.updateContent(v1MdFile)).to.equal(v2MdFile);
@@ -85,6 +109,10 @@ describe('GithubImportsGo', () => {
 
     it('makes no changes if the old version has a major version of 2 and the new version also has a major version of 2', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('2.0.0'),
       });
       expect(importsUpdater.updateContent(v2MdFile)).to.equal(v2MdFile);
@@ -92,6 +120,10 @@ describe('GithubImportsGo', () => {
 
     it('updates the version in the imports if the old version has a major version of 2 and the new version has a major version of 3', async () => {
       const importsUpdater = new GithubImportsGo({
+        repository: {
+          owner: 'cloudflare',
+          repo: 'cloudflare-go',
+        },
         version: Version.parse('3.0.0'),
       });
       expect(importsUpdater.updateContent(v2MdFile)).to.equal(v3MdFile);

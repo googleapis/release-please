@@ -60,6 +60,7 @@ export class Go extends BaseStrategy {
         createIfMissing: true,
         updater: new GithubImportsGo({
           version,
+          repository: this.repository,
         }),
       });
     }
