@@ -17,6 +17,7 @@ import {Changelog} from '../updaters/changelog';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {GithubImportsGo} from '../updaters/go/github-imports-go';
+import {GoModUpdater} from '../updaters/go/go-mod';
 
 export class Go extends BaseStrategy {
   protected async buildUpdates(
@@ -31,6 +32,14 @@ export class Go extends BaseStrategy {
       updater: new Changelog({
         version,
         changelogEntry: options.changelogEntry,
+      }),
+    });
+
+    updates.push({
+      path: this.addPath('go.mod'),
+      createIfMissing: false,
+      updater: new GoModUpdater({
+        version,
       }),
     });
 

@@ -23,6 +23,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {GithubImportsGo} from '../../src/updaters/go/github-imports-go';
+import {GoModUpdater} from '../../src/updaters/go/go-mod';
 
 const sandbox = sinon.createSandbox();
 
@@ -115,7 +116,7 @@ describe('Go', () => {
         .stub(github, 'getFileContentsOnBranch')
         .resolves(
           buildGitHubFileContent(
-            './test/updaters/fixtures',
+            './test/updaters/fixtures/go',
             'file-with-imports-v2.go'
           )
         );
@@ -127,6 +128,29 @@ describe('Go', () => {
       });
       const updates = release!.updates;
       assertHasUpdate(updates, 'file-with-imports-v2.go', GithubImportsGo);
+    });
+    it('finds and updates a go.mod file', async () => {
+      const strategy = new Go({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(
+          buildGitHubFileContent(
+            './test/updaters/fixtures/go',
+            'file-with-imports-v2.go'
+          )
+        );
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'go.mod', GoModUpdater);
     });
   });
 });

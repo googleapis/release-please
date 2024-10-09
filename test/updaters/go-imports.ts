@@ -5,7 +5,7 @@ import {expect} from 'chai';
 import {Version} from '../../src/version';
 import {GithubImportsGo} from '../../src/updaters/go/github-imports-go';
 
-const fixturesPath = './test/updaters/fixtures';
+const fixturesPath = './test/updaters/fixtures/go';
 
 describe('GithubImportsGo', () => {
   describe('.go files', () => {

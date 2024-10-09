@@ -25,6 +25,7 @@ import {Changelog} from '../../src/updaters/changelog';
 import snapshot = require('snap-shot-it');
 import {VersionGo} from '../../src/updaters/go/version-go';
 import {GithubImportsGo} from '../../src/updaters/go/github-imports-go';
+import {GoModUpdater} from '../../src/updaters/go/go-mod';
 
 const sandbox = sinon.createSandbox();
 
@@ -116,7 +117,7 @@ describe('GoYoshi', () => {
         .stub(github, 'getFileContentsOnBranch')
         .resolves(
           buildGitHubFileContent(
-            './test/updaters/fixtures',
+            './test/updaters/fixtures/go',
             'file-with-imports-v2.go'
           )
         );
@@ -128,6 +129,30 @@ describe('GoYoshi', () => {
       });
       const updates = release!.updates;
       assertHasUpdate(updates, 'file-with-imports-v2.go', GithubImportsGo);
+    });
+
+    it('finds and updates a go.mod file', async () => {
+      const strategy = new GoYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'iam',
+      });
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .resolves(
+          buildGitHubFileContent(
+            './test/updaters/fixtures/go',
+            'file-with-imports-v2.go'
+          )
+        );
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest({
+        commits: COMMITS,
+        latestRelease,
+      });
+      const updates = release!.updates;
+      assertHasUpdate(updates, 'go.mod', GoModUpdater);
     });
   });
   describe('buildReleasePullRequest', () => {

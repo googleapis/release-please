@@ -22,6 +22,7 @@ import {Release} from '../release';
 import {VersionGo} from '../updaters/go/version-go';
 import {dirname} from 'path';
 import {GithubImportsGo} from '../updaters/go/github-imports-go';
+import {GoModUpdater} from '../updaters/go/go-mod';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
@@ -67,6 +68,14 @@ export class GoYoshi extends BaseStrategy {
       path: this.addPath('internal/version.go'),
       createIfMissing: false,
       updater: new VersionGo({
+        version,
+      }),
+    });
+
+    updates.push({
+      path: this.addPath('go.mod'),
+      createIfMissing: false,
+      updater: new GoModUpdater({
         version,
       }),
     });
