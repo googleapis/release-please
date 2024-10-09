@@ -1,0 +1,9 @@
+fix: some fix
+
+Example:
+
+```
+page.on('request', (request) => {})
+```
+
+Fixes #123
