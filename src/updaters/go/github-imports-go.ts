@@ -17,7 +17,7 @@ export class GithubImportsGo extends DefaultUpdater {
 
     return content.replace(
       new RegExp(
-        `"(https://pkg.go.dev/)?github.com/${this.repository.owner}/${this.repository.repo}(/v([1-9]\\d*))?(/[^"\\r?\\n]+)?"`,
+        `"(https://pkg.go.dev/)?github.com/${this.repository.owner}/${this.repository.repo}(/v([1-9]\\d*))?([^"\\r\\n]+)?"`,
         'g'
       ),
       (_, prefix, __, ___, path) =>
