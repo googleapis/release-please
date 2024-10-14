@@ -1294,10 +1294,7 @@ export class GitHub {
           owner: this.repository.owner,
         },
         message,
-        true,
-        {
-          filesPerCommit: 1000000, // set a really high limit to effectively put all of the files in one commit
-        }
+        true
       );
 
       // create pull request, unless one already exists
