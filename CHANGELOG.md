@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.14.3](https://github.com/googleapis/release-please/compare/v16.14.2...v16.14.3) (2024-10-15)
+
+
+### Bug Fixes
+
+* **deps:** bump jsonpath-plus from 9.0.0 to 10.0.0 ([ab989e4](https://github.com/googleapis/release-please/commit/ab989e41032ab6eca2938ea46521792440fb0882))
+
 ## [16.14.2](https://github.com/googleapis/release-please/compare/v16.14.1...v16.14.2) (2024-10-08)
 
 
