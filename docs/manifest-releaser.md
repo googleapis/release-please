@@ -218,6 +218,13 @@ defaults (those are documented in comments)
   // absence defaults to false and one pull request will be raised
   "separate-pull-requests": false,
 
+  // if true, always update existing pull requests when changes are added,
+  // instead of only when the release notes change.
+  // This option may increase the number of API calls used, but can be useful
+  // if pull requests must not be out-of-date with the base branch.
+  // absence defaults to false
+  "always-update": true,
+
   // sets the manifest pull request title for when releasing multiple packages
   // grouped together in the one pull request.
   // This option has no effect when `separate-pull-requests` is `true`.
