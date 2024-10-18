@@ -221,6 +221,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
+          'go.workspace',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
@@ -293,6 +294,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
+          'go.workspace',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
@@ -351,6 +353,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
+          'go.workspace',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',

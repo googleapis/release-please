@@ -35,3 +35,17 @@ Release notes for path: packages/goB, releaseType: go
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
 `
+
+exports['GoWorkspace plugin run skips component if not touched 1'] = `
+:robot: I have created a release *beep* *boop*
+---
+
+
+<details><summary>example.com/packages/goB: 2.3.0</summary>
+
+Release notes for path: packages/goB, releaseType: go
+</details>
+
+---
+This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
+`
