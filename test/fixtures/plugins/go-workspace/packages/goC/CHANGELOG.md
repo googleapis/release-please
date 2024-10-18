@@ -1,5 +1,5 @@
 # Changelog
 
-## [1.2.2](foo)
+## [3.3.3](foo)
 
 Foo bar

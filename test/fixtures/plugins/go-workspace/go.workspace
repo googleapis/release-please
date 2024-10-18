@@ -1,4 +1,5 @@
-libs/lib-a
-libs/lib-b
-apps/app-a
-apps/app-b
+packages/goA
+packages/goB
+packages/goC
+packages/goD
+packages/goE

@@ -53,16 +53,16 @@ describe('GoWorkspace plugin', () => {
       defaultBranch: 'main',
     });
     plugin = new GoWorkspace(github, 'main', {
-      'libs/lib-a': {
+      'packages/goA': {
         releaseType: 'go',
       },
-      'libs/lib-b': {
+      'packages/goB': {
         releaseType: 'go',
       },
-      'apps/app-c': {
+      'packages/goC': {
         releaseType: 'go',
       },
-      'apps/app-d': {
+      'packages/goD': {
         releaseType: 'go',
       },
     });
@@ -85,12 +85,12 @@ describe('GoWorkspace plugin', () => {
     it('handles a single go package', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
-        buildMockCandidatePullRequest('libs/lib-a', 'go', '1.1.2', {
-          component: 'example.com/libs/lib-a',
+        buildMockCandidatePullRequest('packages/goA', 'go', '1.1.2', {
+          component: 'example.com/packages/goA',
           updates: [
             buildMockPackageUpdate(
-              'libs/lib-a/go.mod',
-              'libs/lib-a/go.mod',
+              'packages/goA/go.mod',
+              'packages/goA/go.mod',
               '1.1.1'
             )
           ],
@@ -102,25 +102,25 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
-          'libs/lib-a/go.mod',
-          'libs/lib-a/CHANGELOG.md',
+          'packages/goA/go.mod',
+          'packages/goA/CHANGELOG.md',
         ],
         flatten: false,
         targetBranch: 'main',
-        inlineFiles: [['go.workspace', 'libs/lib-a\n']],
+        inlineFiles: [['go.workspace', 'packages/goA\n']],
       });
       plugin = new GoWorkspace(github, 'main', {
         python: {
           releaseType: 'python',
         },
-        'libs/lib-a': {
+        'packages/goA': {
           releaseType: 'go',
         },
       });
       sandbox
         .stub(github, 'findFilesByGlobAndRef')
-        .withArgs('libs/lib-a', 'main')
-        .resolves(['libs/lib-a']);
+        .withArgs('packages/goA', 'main')
+        .resolves(['packages/goA']);
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).lengthOf(2);
       const goCandidate = newCandidates.find(
@@ -128,21 +128,250 @@ describe('GoWorkspace plugin', () => {
       );
       expect(goCandidate).to.not.be.undefined;
       const updates = goCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'libs/lib-a/go.mod');
+      assertHasUpdate(updates, 'packages/goA/go.mod');
       snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
     });
     it('handles glob paths', async () => {
-      // libs/*
-      assert.fail('not implemented');
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/goA', 'go', '1.1.2', {
+          component: 'example.com/packages/goA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goA/go.mod',
+              'packages/goA/go.mod',
+              '1.1.1'
+            )
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/goB', 'go', '2.2.3', {
+          component: 'example.com/packages/goB',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goB/go.mod',
+              'packages/goB/go.mod',
+              '2.2.2'
+            )
+          ],
+        }),
+      ];
+
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'packages/goA/go.mod',
+          'packages/goB/go.mod',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+        inlineFiles: [['go.workspace', 'libs/*\n']],
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('libs/*', 'main')
+        .resolves(['packages/goA', 'packages/goB']);
+      plugin = new GoWorkspace(github, 'main', {
+        'packages/goA': {
+          releaseType: 'go',
+        },
+        'packages/goB': {
+          releaseType: 'go',
+        },
+      });
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const goCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'go'
+      );
+      expect(goCandidate).to.not.be.undefined;
+      const updates = goCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'packages/goA/go.mod');
+      assertHasUpdate(updates, 'packages/goB/go.mod');
+      snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
-      assert.fail('not implemented');
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/goA', 'go', '1.1.2', {
+          component: 'example.com/packages/goA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goA/go.mod',
+              'packages/goA/go.mod',
+              '1.1.1'
+            )
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/goD', 'go', '4.4.5', {
+          component: 'example.com/packages/goD',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goD/go.mod',
+              'packages/goD/go.mod',
+              '4.4.4'
+            )
+          ],
+        }),
+      ];
+
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'packages/goA/go.mod',
+          'packages/goB/go.mod',
+          'packages/goC/go.mod',
+          'packages/goD/go.mod',
+          'packages/goE/go.mod',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/goA', 'main')
+        .resolves(['packages/goA'])
+        .withArgs('packages/goB', 'main')
+        .resolves(['packages/goB'])
+        .withArgs('packages/goC', 'main')
+        .resolves(['packages/goC'])
+        .withArgs('packages/goD', 'main')
+        .resolves(['packages/goD'])
+        .withArgs('packages/goE', 'main')
+        .resolves(['packages/goE']);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const goCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'go'
+      );
+      expect(goCandidate).to.not.be.undefined;
+      const updates = goCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'packages/goA/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goB/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goC/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goD/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goE/go.mod', RawContent);
+      snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
     });
     it('appends dependency notes to an updated module', async () => {
-      assert.fail('not implemented');
+      const existingNotes =
+        '### Dependencies\n\n* update dependency foo/bar to 1.2.3';
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/goA', 'go', '1.1.2', {
+          component: 'example.com/packages/goA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goA/go.mod',
+              'packages/goA/go.mod',
+              '1.1.1'
+            )
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/goB', 'go', '2.2.3', {
+          component: 'example.com/packages/goB',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goB/go.mod',
+              'packages/goB/go.mod',
+              '2.2.2'
+            )
+          ],
+          notes: existingNotes,
+        }),
+      ];
+
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'packages/goA/go.mod',
+          'packages/goB/go.mod',
+          'packages/goC/go.mod',
+          'packages/goD/go.mod',
+          'packages/goE/go.mod',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/goA', 'main')
+        .resolves(['packages/goA'])
+        .withArgs('packages/goB', 'main')
+        .resolves(['packages/goB'])
+        .withArgs('packages/goC', 'main')
+        .resolves(['packages/goC'])
+        .withArgs('packages/goD', 'main')
+        .resolves(['packages/goD'])
+        .withArgs('packages/goE', 'main')
+        .resolves(['packages/goE']);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const goCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'go'
+      );
+      expect(goCandidate).to.not.be.undefined;
+      const updates = goCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'packages/goA/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goB/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goC/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goE/go.mod', RawContent);
+      snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
     });
     it('skips component if not touched', async () => {
-      assert.fail('not implemented');
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/goB', 'go', '2.3.0', {
+          component: 'example.com/packages/goB',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goB/go.mod',
+              'packages/goB/go.mod',
+              '2.2.2'
+            )
+          ],
+        }),
+      ];
+
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'packages/goA/go.mod',
+          'packages/goB/go.mod',
+          'packages/goC/go.mod',
+          'packages/goD/go.mod',
+          'packages/goE/go.mod',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/goA', 'main')
+        .resolves(['packages/goA'])
+        .withArgs('packages/goB', 'main')
+        .resolves(['packages/goB'])
+        .withArgs('packages/goC', 'main')
+        .resolves(['packages/goC'])
+        .withArgs('packages/goD', 'main')
+        .resolves(['packages/goD'])
+        .withArgs('packages/goE', 'main')
+        .resolves(['packages/goE']);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const goCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'go'
+      );
+      expect(goCandidate).to.not.be.undefined;
+      const updates = goCandidate!.pullRequest.updates;
+      // goA is not touched and does not have a dependency on goD
+      assertNoHasUpdate(updates, 'packages/goA/go.mod');
+      assertNoHasUpdate(updates, 'packages/goE/go.mod');
+      assertHasUpdate(updates, 'packages/goB/go.mod', RawContent);
+      snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
     });
   });
 });

@@ -21,12 +21,12 @@ import { Release } from '../release';
 
 interface GoModInfo {
   /**
-   * e.g. `libs/go-a`
+   * e.g. `packages/goA`
    */
   path: string;
 
   /**
-   * e.g. `example.com/libs/go-a`
+   * e.g. `example.com/packages/goA`
    */
   name: string;
 
@@ -36,7 +36,7 @@ interface GoModInfo {
   version: string;
 
   /**
-   * e.g. `libs/go-a/go.mod`
+   * e.g. `packages/goA/go.mod`
    */
   modPath: string;
 
