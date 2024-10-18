@@ -1,4 +1,4 @@
-import { CandidateReleasePullRequest, ROOT_PROJECT_PATH } from '../manifest';
+import {CandidateReleasePullRequest} from '../manifest';
 import {
   WorkspacePlugin,
   DependencyGraph,
@@ -6,18 +6,18 @@ import {
   addPath,
   appendDependenciesSectionToChangelog,
 } from './workspace';
-import { parseGoWorkspace } from '../updaters/go/common';
-import { VersionsMap, Version } from '../version';
-import { GoMod } from '../updaters/go/go-mod';
-import { RawContent } from '../updaters/raw-content';
-import { Changelog } from '../updaters/changelog';
-import { ReleasePullRequest } from '../release-pull-request';
-import { PullRequestTitle } from '../util/pull-request-title';
-import { PullRequestBody } from '../util/pull-request-body';
-import { BranchName } from '../util/branch-name';
-import { PatchVersionUpdate } from '../versioning-strategy';
-import { Strategy } from '../strategy';
-import { Release } from '../release';
+import {parseGoWorkspace} from '../updaters/go/common';
+import {VersionsMap, Version} from '../version';
+import {GoMod} from '../updaters/go/go-mod';
+import {RawContent} from '../updaters/raw-content';
+import {Changelog} from '../updaters/changelog';
+import {ReleasePullRequest} from '../release-pull-request';
+import {PullRequestTitle} from '../util/pull-request-title';
+import {PullRequestBody} from '../util/pull-request-body';
+import {BranchName} from '../util/branch-name';
+import {PatchVersionUpdate} from '../versioning-strategy';
+import {Strategy} from '../strategy';
+import {Release} from '../release';
 
 interface GoModInfo {
   /**
@@ -79,7 +79,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
     const dependencyNotes = getChangelogDepsNotes(
       pkg.modContent,
       updatedContent
-    )
+    );
 
     existingCandidate.pullRequest.updates =
       existingCandidate.pullRequest.updates.map(update => {
@@ -132,19 +132,22 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       versionsMap: updatedVersions,
     });
     const updatedContent = updater.updateContent(pkg.modContent);
-    const dependencyNotes = getChangelogDepsNotes(pkg.modContent, updatedContent);
+    const dependencyNotes = getChangelogDepsNotes(
+      pkg.modContent,
+      updatedContent
+    );
 
     const updatedPackage = {
       ...pkg,
       version: version.toString(),
-    }
+    };
 
     const strategy = this.strategiesByPath[updatedPackage.path];
     const latestRelease = this.releasesByPath[updatedPackage.path];
     const basePullRequest = strategy
       ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
-        newVersion: version,
-      })
+          newVersion: version,
+        })
       : undefined;
 
     if (basePullRequest) {
@@ -193,7 +196,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
       version,
       draft: false,
-    }
+    };
     return {
       path: pkg.path,
       pullRequest,
@@ -224,7 +227,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       this.logger.warn(
         "go-workspace plugin used, but top-level go.workspace isn't a go workspace"
       );
-      return { allPackages: [], candidatesByPackage: {} };
+      return {allPackages: [], candidatesByPackage: {}};
     }
 
     const allPackages: GoModInfo[] = [];
@@ -237,8 +240,6 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
         )
       )
     ).flat();
-    // TODO not needed I think...
-    // members.push(ROOT_PROJECT_PATH);
 
     for (const path of members) {
       const goModPath = addPath(path, 'go.mod');
@@ -246,9 +247,8 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       const candidate = candidates.find(c => c.path === path);
       // get original content of the module
       const moduleContent =
-        candidate?.pullRequest.updates.find(
-          update => update.path === goModPath
-        )?.cachedFileContents ||
+        candidate?.pullRequest.updates.find(update => update.path === goModPath)
+          ?.cachedFileContents ||
         (await this.github.getFileContentsOnBranch(
           goModPath,
           this.targetBranch
@@ -258,9 +258,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       // e.g. module example.com/application/appname
       const moduleMatch = moduleContent.parsedContent.match(/module (.+)/);
       if (!moduleMatch) {
-        this.logger.warn(
-          `package at ${path} is missing a module declaration`
-        );
+        this.logger.warn(`package at ${path} is missing a module declaration`);
         continue;
       }
       const packageName = moduleMatch[1];
@@ -299,8 +297,8 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
 
     return {
       allPackages,
-      candidatesByPackage
-    }
+      candidatesByPackage,
+    };
   }
 
   /**
@@ -312,9 +310,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
   protected async buildGraph(
     allPackages: GoModInfo[]
   ): Promise<DependencyGraph<GoModInfo>> {
-    const workspacePackageNames = new Set(
-      allPackages.map(pkg => pkg.name)
-    );
+    const workspacePackageNames = new Set(allPackages.map(pkg => pkg.name));
     const graph = new Map<string, DependencyNode<GoModInfo>>();
 
     // Parses a go.mod file and returns a list of dependencies
@@ -372,7 +368,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
 
   protected postProcessCandidates(
     candidates: CandidateReleasePullRequest[],
-    updatedVersions: VersionsMap
+    _: VersionsMap
   ): CandidateReleasePullRequest[] {
     // Nothing to do at this time
     return candidates;
@@ -410,7 +406,9 @@ function getChangelogDepsNotes(
     if (!originalVersion) {
       notes.push(`* ${name} added ${updatedVersion}`);
     } else if (originalVersion !== updatedVersion) {
-      notes.push(`* ${name} bumped from ${originalVersion} to ${updatedVersion}`);
+      notes.push(
+        `* ${name} bumped from ${originalVersion} to ${updatedVersion}`
+      );
     }
   }
 
@@ -431,5 +429,5 @@ function getChangelogDepsNotes(
     return `* The following workspace dependencies were updated${depUpdateNotes}`;
   }
 
-  return ""
+  return '';
 }

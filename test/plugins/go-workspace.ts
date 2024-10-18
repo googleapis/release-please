@@ -1,8 +1,8 @@
-import { describe, it, afterEach, beforeEach } from 'mocha';
+import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
-import { GitHub } from '../../src/github';
-import { CandidateReleasePullRequest } from '../../src/manifest';
-import { Update } from '../../src/update';
+import {GitHub} from '../../src/github';
+import {CandidateReleasePullRequest} from '../../src/manifest';
+import {Update} from '../../src/update';
 import {
   buildGitHubFileContent,
   buildMockCandidatePullRequest,
@@ -11,13 +11,13 @@ import {
   stubFilesFromFixtures,
   assertNoHasUpdate,
 } from '../helpers';
-import { Version } from '../../src/version';
-import { ManifestPlugin } from '../../src/plugin';
-import { GoWorkspace } from '../../src/plugins/go-workspace';
-import { expect } from 'chai';
+import {Version} from '../../src/version';
+import {ManifestPlugin} from '../../src/plugin';
+import {GoWorkspace} from '../../src/plugins/go-workspace';
+import {expect} from 'chai';
 import snapshot = require('snap-shot-it');
-import { RawContent } from '../../src/updaters/raw-content';
-import { GoMod } from '../../src/updaters/go/go-mod';
+import {RawContent} from '../../src/updaters/raw-content';
+import {GoMod} from '../../src/updaters/go/go-mod';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/go-workspace';
@@ -67,8 +67,8 @@ describe('GoWorkspace plugin', () => {
   });
   describe('run', () => {
     // TODO implement or remove these two
-    it('rejects if not a workspace', async () => { });
-    it('rejects if no workspace members', async () => { });
+    it('rejects if not a workspace', async () => {});
+    it('rejects if no workspace members', async () => {});
 
     it('does nothing for non-go strategies', async () => {
       const candidates: CandidateReleasePullRequest[] = [
@@ -87,7 +87,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goA/go.mod',
               'packages/goA/go.mod',
               '1.1.1'
-            )
+            ),
           ],
         }),
       ];
@@ -96,10 +96,7 @@ describe('GoWorkspace plugin', () => {
         sandbox,
         github,
         fixturePath: fixturesPath,
-        files: [
-          'packages/goA/go.mod',
-          'packages/goA/CHANGELOG.md',
-        ],
+        files: ['packages/goA/go.mod', 'packages/goA/CHANGELOG.md'],
         flatten: false,
         targetBranch: 'main',
         inlineFiles: [['go.workspace', 'packages/goA\n']],
@@ -135,7 +132,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goA/go.mod',
               'packages/goA/go.mod',
               '1.1.1'
-            )
+            ),
           ],
         }),
         buildMockCandidatePullRequest('packages/goB', 'go', '4.4.5', {
@@ -145,7 +142,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goB/go.mod',
               'packages/goB/go.mod',
               '2.2.2'
-            )
+            ),
           ],
         }),
       ];
@@ -196,7 +193,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goA/go.mod',
               'packages/goA/go.mod',
               '1.1.1'
-            )
+            ),
           ],
         }),
         buildMockCandidatePullRequest('packages/goD', 'go', '4.4.5', {
@@ -206,7 +203,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goD/go.mod',
               'packages/goD/go.mod',
               '4.4.4'
-            )
+            ),
           ],
         }),
       ];
@@ -269,7 +266,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goA/go.mod',
               'packages/goA/go.mod',
               '1.1.1'
-            )
+            ),
           ],
         }),
         buildMockCandidatePullRequest('packages/goB', 'go', '2.2.3', {
@@ -279,7 +276,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goB/go.mod',
               'packages/goB/go.mod',
               '2.2.2'
-            )
+            ),
           ],
           notes: existingNotes,
         }),
@@ -340,7 +337,7 @@ describe('GoWorkspace plugin', () => {
               'packages/goB/go.mod',
               'packages/goB/go.mod',
               '2.2.2'
-            )
+            ),
           ],
         }),
       ];

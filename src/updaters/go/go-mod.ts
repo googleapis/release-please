@@ -20,7 +20,7 @@ export class GoMod extends DefaultUpdater {
     for (const [pkgName, pkgVersion] of this.versionsMap) {
       // Is the dep in the go.mod file?
       const deps = payload.match(
-        new RegExp(`${pkgName} v[0-9]+\.[0-9]+\.[0-9]`)
+        new RegExp(`${pkgName} v[0-9]+\\.[0-9]+\\.[0-9]`)
       );
 
       if (!deps) {
