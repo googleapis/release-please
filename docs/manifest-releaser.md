@@ -154,7 +154,7 @@ defaults (those are documented in comments)
 
   // see Plugins section below
   // absence defaults to [] (i.e. no plugins)
-  "plugins": ["node-workspace", "cargo-workspace"],
+  "plugins": ["node-workspace", "cargo-workspace", "go-workspace"],
 
   // optional top-level defaults that can be overridden per package:
 
@@ -533,6 +533,10 @@ with the manifest releaser (`manifest-pr` / `manifest-release` commands), it
 does _not_ update the dependencies, and the `cargo-workspace` plug-in must be
 used to update dependencies and bump all dependents — this is the recommended
 way of managing a Rust monorepo with release-please.
+
+### go-workspaace
+
+TODO write something
 
 ### maven-workspace
 

@@ -323,7 +323,8 @@
                     "type": "string",
                     "enum": [
                       "cargo-workspace",
-                      "maven-workspace"
+                      "maven-workspace",
+                      "go-workspace"
                     ]
                   },
                   "updateAllPackages": {

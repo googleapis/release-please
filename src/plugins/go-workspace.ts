@@ -1,5 +1,4 @@
-
-import { CandidateReleasePullRequest, ROOT_PROJECT_PATH } from '../manifest';
+import {CandidateReleasePullRequest, ROOT_PROJECT_PATH} from '../manifest';
 import {
   WorkspacePlugin,
   DependencyGraph,
@@ -15,20 +14,20 @@ import {
   CargoDependency,
   TargetDependencies,
 } from '../updaters/rust/common';
-import { parseGoWorkspace } from '../updaters/go/common';
-import { VersionsMap, Version } from '../version';
-import { GoMod } from '../updaters/go/go-mod';
-import { RawContent } from '../updaters/raw-content';
-import { Changelog } from '../updaters/changelog';
-import { ReleasePullRequest } from '../release-pull-request';
-import { PullRequestTitle } from '../util/pull-request-title';
-import { PullRequestBody } from '../util/pull-request-body';
-import { BranchName } from '../util/branch-name';
-import { PatchVersionUpdate } from '../versioning-strategy';
-import { ConfigurationError } from '../errors';
-import { Strategy } from '../strategy';
-import { Commit } from '../commit';
-import { Release } from '../release';
+import {parseGoWorkspace} from '../updaters/go/common';
+import {VersionsMap, Version} from '../version';
+import {GoMod} from '../updaters/go/go-mod';
+import {RawContent} from '../updaters/raw-content';
+import {Changelog} from '../updaters/changelog';
+import {ReleasePullRequest} from '../release-pull-request';
+import {PullRequestTitle} from '../util/pull-request-title';
+import {PullRequestBody} from '../util/pull-request-body';
+import {BranchName} from '../util/branch-name';
+import {PatchVersionUpdate} from '../versioning-strategy';
+import {ConfigurationError} from '../errors';
+import {Strategy} from '../strategy';
+import {Commit} from '../commit';
+import {Release} from '../release';
 
 interface GoModInfo {
   /**
@@ -76,26 +75,26 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
   protected updateCandidate(
     existingCandidate: CandidateReleasePullRequest,
     pkg: GoModInfo,
-    updatedVersions: VersionsMap,
+    updatedVersions: VersionsMap
   ): CandidateReleasePullRequest {
     throw new Error('Method not implemented.');
   }
 
   protected newCandidate(
     pkg: GoModInfo,
-    updatedVersions: VersionsMap,
+    updatedVersions: VersionsMap
   ): Promise<CandidateReleasePullRequest> {
     throw new Error('Method not implemented.');
   }
 
   protected buildAllPackages(
-    candidates: CandidateReleasePullRequest[],
+    candidates: CandidateReleasePullRequest[]
   ): Promise<AllPackages<GoModInfo>> {
     throw new Error('Method not implemented.');
   }
 
   protected buildGraph(
-    allPackages: GoModInfo[],
+    allPackages: GoModInfo[]
   ): Promise<DependencyGraph<GoModInfo>> {
     throw new Error('Method not implemented.');
   }
@@ -114,7 +113,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
 
   protected postProcessCandidates(
     candidates: CandidateReleasePullRequest[],
-    updatedVersions: VersionsMap,
+    updatedVersions: VersionsMap
   ): CandidateReleasePullRequest[] {
     throw new Error('Method not implemented.');
   }

@@ -40,6 +40,7 @@ describe('PluginFactory', () => {
   describe('buildPlugin', () => {
     const simplePluginTypes: PluginType[] = [
       'cargo-workspace',
+      'go-workspace',
       'maven-workspace',
       'node-workspace',
     ];
@@ -122,6 +123,7 @@ describe('PluginFactory', () => {
     it('should return default types', () => {
       const defaultTypes: PluginType[] = [
         'cargo-workspace',
+        'go-workspace',
         'node-workspace',
         'linked-versions',
       ];
