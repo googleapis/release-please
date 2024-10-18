@@ -385,22 +385,27 @@ function getChangelogDepsNotes(
   for (const [name, updatedVersion] of updatedDeps.entries()) {
     const originalVersion = originalDeps.get(name);
     if (!originalVersion) {
-      notes.push(`* Added dependency ${name} v${updatedVersion}`);
+      notes.push(`* ${name} added ${updatedVersion}`);
     } else if (originalVersion !== updatedVersion) {
-      notes.push(`* Updated dependency ${name} from v${originalVersion} to v${updatedVersion}`);
+      notes.push(`* ${name} bumped from ${originalVersion} to ${updatedVersion}`);
     }
   }
 
   // Find removed dependencies
   for (const name of originalDeps.keys()) {
     if (!updatedDeps.has(name)) {
-      notes.push(`* Removed dependency ${name}`);
+      notes.push(`* ${name} removed`);
     }
   }
 
+  let depUpdateNotes = '';
+
   if (notes.length > 0) {
-    // TODO formatting
-    return notes.join('\n');
+    for (const note of notes) {
+      depUpdateNotes += `\n  ${note}`;
+    }
+
+    return `* The following workspace dependencies were updated${depUpdateNotes}`;
   }
 
   return ""
