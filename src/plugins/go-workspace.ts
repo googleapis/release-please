@@ -316,20 +316,43 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       allPackages.map(pkg => pkg.name)
     );
     const graph = new Map<string, DependencyNode<GoModInfo>>();
-    for (const modInfo of allPackages) {
-      const deps = modInfo.modContent.match(
-        /(.+) v([0-9]+\.[0-9]+\.[0-9]+)/g
-      );
 
-      const workspaceDeps = deps?.filter(dep => {
-        const [depName] = dep.split(' ');
-        return workspacePackageNames.has(depName);
-      });
+    // Parses a go.mod file and returns a list of dependencies
+    const parseDependencies = (content: string): string[] => {
+      const depRegex = /(\S+)\s+v?(\d+\.\d+\.\d+)/gm;
+      const deps: string[] = [];
+      let match;
+      while ((match = depRegex.exec(content)) !== null) {
+        const [_, name] = match;
+        deps.push(name);
+      }
+      return deps;
+    };
 
-      graph.set(modInfo.name, {
-        deps: workspaceDeps || [],
+    const addDependencies = (pkgName: string, modInfo: GoModInfo) => {
+      const deps = parseDependencies(modInfo.modContent);
+      // Direct dependencies that are also in the workspace
+      const workspaceDeps = deps.filter(dep => workspacePackageNames.has(dep));
+      graph.set(pkgName, {
+        deps: workspaceDeps,
         value: modInfo,
       });
+
+      for (const dep of workspaceDeps) {
+        // If the dependency is not already in the graph, add it and its dependencies
+        if (!graph.has(dep)) {
+          const depInfo = allPackages.find(pkg => pkg.name === dep);
+          if (depInfo) {
+            addDependencies(dep, depInfo);
+          }
+        }
+      }
+    };
+
+    for (const modInfo of allPackages) {
+      if (!graph.has(modInfo.name)) {
+        addDependencies(modInfo.name, modInfo);
+      }
     }
 
     return graph;

@@ -10,7 +10,6 @@ import {
   dateSafe,
   stubFilesFromFixtures,
   assertNoHasUpdate,
-  safeSnapshot,
 } from '../helpers';
 import { Version } from '../../src/version';
 import { ManifestPlugin } from '../../src/plugin';
@@ -18,11 +17,7 @@ import { GoWorkspace } from '../../src/plugins/go-workspace';
 import { expect } from 'chai';
 import snapshot = require('snap-shot-it');
 import { RawContent } from '../../src/updaters/raw-content';
-import { parseGoWorkspace } from '../../src/updaters/go/common';
-import { ConfigurationError } from '../../src/errors';
-import assert = require('assert');
 import { GoMod } from '../../src/updaters/go/go-mod';
-import { log } from 'console';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/go-workspace';
@@ -255,6 +250,7 @@ describe('GoWorkspace plugin', () => {
       );
       expect(goCandidate).to.not.be.undefined;
       const updates = goCandidate!.pullRequest.updates;
+      // Check that transitive dependencies are updated
       assertHasUpdate(updates, 'packages/goA/go.mod', RawContent);
       assertHasUpdate(updates, 'packages/goB/go.mod', RawContent);
       assertHasUpdate(updates, 'packages/goC/go.mod', RawContent);
@@ -328,6 +324,7 @@ describe('GoWorkspace plugin', () => {
       );
       expect(goCandidate).to.not.be.undefined;
       const updates = goCandidate!.pullRequest.updates;
+      // Also checks transitive dependencies are updated
       assertHasUpdate(updates, 'packages/goA/go.mod', RawContent);
       assertHasUpdate(updates, 'packages/goB/go.mod', RawContent);
       assertHasUpdate(updates, 'packages/goC/go.mod', RawContent);
