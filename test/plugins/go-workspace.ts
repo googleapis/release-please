@@ -143,7 +143,7 @@ describe('GoWorkspace plugin', () => {
             )
           ],
         }),
-        buildMockCandidatePullRequest('packages/goB', 'go', '2.2.3', {
+        buildMockCandidatePullRequest('packages/goB', 'go', '4.4.5', {
           component: 'example.com/packages/goB',
           updates: [
             buildMockPackageUpdate(
@@ -161,15 +161,17 @@ describe('GoWorkspace plugin', () => {
         fixturePath: fixturesPath,
         files: [
           'packages/goA/go.mod',
+          'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
+          'packages/goB/CHANGELOG.md',
         ],
         flatten: false,
         targetBranch: 'main',
-        inlineFiles: [['go.workspace', 'libs/*\n']],
+        inlineFiles: [['go.workspace', 'packages/*\n']],
       });
       sandbox
         .stub(github, 'findFilesByGlobAndRef')
-        .withArgs('libs/*', 'main')
+        .withArgs('packages/*', 'main')
         .resolves(['packages/goA', 'packages/goB']);
       plugin = new GoWorkspace(github, 'main', {
         'packages/goA': {
@@ -220,10 +222,15 @@ describe('GoWorkspace plugin', () => {
         fixturePath: fixturesPath,
         files: [
           'packages/goA/go.mod',
+          'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
+          'packages/goB/CHANGELOG.md',
           'packages/goC/go.mod',
+          'packages/goC/CHANGELOG.md',
           'packages/goD/go.mod',
+          'packages/goD/CHANGELOG.md',
           'packages/goE/go.mod',
+          'packages/goE/CHANGELOG.md',
         ],
         flatten: false,
         targetBranch: 'main',
@@ -287,10 +294,15 @@ describe('GoWorkspace plugin', () => {
         fixturePath: fixturesPath,
         files: [
           'packages/goA/go.mod',
+          'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
+          'packages/goB/CHANGELOG.md',
           'packages/goC/go.mod',
+          'packages/goC/CHANGELOG.md',
           'packages/goD/go.mod',
+          'packages/goD/CHANGELOG.md',
           'packages/goE/go.mod',
+          'packages/goE/CHANGELOG.md',
         ],
         flatten: false,
         targetBranch: 'main',
@@ -340,10 +352,15 @@ describe('GoWorkspace plugin', () => {
         fixturePath: fixturesPath,
         files: [
           'packages/goA/go.mod',
+          'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
+          'packages/goB/CHANGELOG.md',
           'packages/goC/go.mod',
+          'packages/goC/CHANGELOG.md',
           'packages/goD/go.mod',
+          'packages/goD/CHANGELOG.md',
           'packages/goE/go.mod',
+          'packages/goE/CHANGELOG.md',
         ],
         flatten: false,
         targetBranch: 'main',
