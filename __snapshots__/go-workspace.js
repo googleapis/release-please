@@ -29,7 +29,8 @@ Release notes for path: packages/goB, releaseType: go
 
 ### Dependencies
 
-* Updated dependency example.com/packages/goA from v1.1.1 to v1.1.2
+* The following workspace dependencies were updated
+  * example.com/packages/goA bumped from 1.1.1 to 1.1.2
 </details>
 
 ---
