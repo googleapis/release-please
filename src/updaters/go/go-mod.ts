@@ -1,5 +1,5 @@
-import { logger as defaultLogger, Logger } from '../../util/logger';
-import { DefaultUpdater } from '../default';
+import {logger as defaultLogger, Logger} from '../../util/logger';
+import {DefaultUpdater} from '../default';
 
 /**
  * Updates `go.mod` files, preserving formatting and comments.
@@ -31,10 +31,7 @@ export class GoMod extends DefaultUpdater {
         const oldVersion = dep.split(' ')[1];
         logger.info(`updating ${pkgName} from ${oldVersion} to ${pkgVersion}`);
 
-        payload = payload.replace(
-          dep,
-          `${pkgName} ${pkgVersion}`
-        );
+        payload = payload.replace(dep, `${pkgName} ${pkgVersion}`);
       }
     }
 

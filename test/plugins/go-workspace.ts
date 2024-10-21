@@ -1,8 +1,8 @@
-import { describe, it, afterEach, beforeEach } from 'mocha';
+import {describe, it, afterEach, beforeEach} from 'mocha';
 import * as sinon from 'sinon';
-import { GitHub } from '../../src/github';
-import { CandidateReleasePullRequest } from '../../src/manifest';
-import { Update } from '../../src/update';
+import {GitHub} from '../../src/github';
+import {CandidateReleasePullRequest} from '../../src/manifest';
+import {Update} from '../../src/update';
 import {
   buildGitHubFileContent,
   buildMockCandidatePullRequest,
@@ -11,13 +11,13 @@ import {
   stubFilesFromFixtures,
   assertNoHasUpdate,
 } from '../helpers';
-import { Version } from '../../src/version';
-import { ManifestPlugin } from '../../src/plugin';
-import { GoWorkspace } from '../../src/plugins/go-workspace';
-import { expect } from 'chai';
+import {Version} from '../../src/version';
+import {ManifestPlugin} from '../../src/plugin';
+import {GoWorkspace} from '../../src/plugins/go-workspace';
+import {expect} from 'chai';
 import snapshot = require('snap-shot-it');
-import { RawContent } from '../../src/updaters/raw-content';
-import { GoMod } from '../../src/updaters/go/go-mod';
+import {RawContent} from '../../src/updaters/raw-content';
+import {GoMod} from '../../src/updaters/go/go-mod';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/go-workspace';
@@ -95,7 +95,9 @@ describe('GoWorkspace plugin', () => {
         files: ['packages/goA/go.mod', 'packages/goA/CHANGELOG.md'],
         flatten: false,
         targetBranch: 'main',
-        inlineFiles: [['go.work', 'go 1.23.1\nuse ./packages/..//packages/goA\n']],
+        inlineFiles: [
+          ['go.work', 'go 1.23.1\nuse ./packages/..//packages/goA\n'],
+        ],
       });
       plugin = new GoWorkspace(github, 'main', {
         python: {

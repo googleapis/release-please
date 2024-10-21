@@ -21,7 +21,8 @@ use ./packages/goE
 
 */
 export function parseGoWorkspace(content: string): GoWorkspace {
-  const lines = content.split('\n')
+  const lines = content
+    .split('\n')
     .filter(line => line !== '')
     .filter(line => !line.startsWith('//'));
 
@@ -55,5 +56,5 @@ export function parseGoWorkspace(content: string): GoWorkspace {
     }
   }
 
-  return { members };
+  return {members};
 }

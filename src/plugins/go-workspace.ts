@@ -1,4 +1,4 @@
-import { CandidateReleasePullRequest } from '../manifest';
+import {CandidateReleasePullRequest} from '../manifest';
 import {
   WorkspacePlugin,
   DependencyGraph,
@@ -6,18 +6,18 @@ import {
   addPath,
   appendDependenciesSectionToChangelog,
 } from './workspace';
-import { parseGoWorkspace } from '../updaters/go/common';
-import { VersionsMap, Version } from '../version';
-import { GoMod } from '../updaters/go/go-mod';
-import { RawContent } from '../updaters/raw-content';
-import { Changelog } from '../updaters/changelog';
-import { ReleasePullRequest } from '../release-pull-request';
-import { PullRequestTitle } from '../util/pull-request-title';
-import { PullRequestBody } from '../util/pull-request-body';
-import { BranchName } from '../util/branch-name';
-import { PatchVersionUpdate } from '../versioning-strategy';
-import { Strategy } from '../strategy';
-import { Release } from '../release';
+import {parseGoWorkspace} from '../updaters/go/common';
+import {VersionsMap, Version} from '../version';
+import {GoMod} from '../updaters/go/go-mod';
+import {RawContent} from '../updaters/raw-content';
+import {Changelog} from '../updaters/changelog';
+import {ReleasePullRequest} from '../release-pull-request';
+import {PullRequestTitle} from '../util/pull-request-title';
+import {PullRequestBody} from '../util/pull-request-body';
+import {BranchName} from '../util/branch-name';
+import {PatchVersionUpdate} from '../versioning-strategy';
+import {Strategy} from '../strategy';
+import {Release} from '../release';
 
 interface GoModInfo {
   /**
@@ -146,8 +146,8 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
     const latestRelease = this.releasesByPath[updatedPackage.path];
     const basePullRequest = strategy
       ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
-        newVersion: version,
-      })
+          newVersion: version,
+        })
       : undefined;
 
     if (basePullRequest) {
@@ -227,7 +227,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       this.logger.warn(
         "go-workspace plugin used, but could not find use directive(s) 'go.work' file"
       );
-      return { allPackages: [], candidatesByPackage: {} };
+      return {allPackages: [], candidatesByPackage: {}};
     }
 
     const allPackages: GoModInfo[] = [];

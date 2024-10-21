@@ -1,10 +1,10 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
-import { describe, it } from 'mocha';
-import { expect } from 'chai';
-import { Version } from '../../src/version';
-import { GoMod } from '../../src/updaters/go/go-mod';
+import {describe, it} from 'mocha';
+import {expect} from 'chai';
+import {Version} from '../../src/version';
+import {GoMod} from '../../src/updaters/go/go-mod';
 
 const fixturesPath = './test/updaters/fixtures/go';
 
