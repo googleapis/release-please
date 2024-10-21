@@ -63,7 +63,7 @@ interface GoModInfo {
 export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
   private strategiesByPath: Record<string, Strategy> = {};
   private releasesByPath: Record<string, Release> = {};
-  private releaseManifestPath: string;
+  private readonly releaseManifestPath: string;
 
   constructor(
     github: GitHub,
@@ -154,30 +154,30 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
     pkg: GoModInfo,
     updatedVersions: VersionsMap
   ): Promise<CandidateReleasePullRequest> {
-    const version = updatedVersions.get(pkg.name);
-    if (!version) {
+    const newVersion = updatedVersions.get(pkg.name);
+    if (!newVersion) {
       throw new Error(`Didn't find updated version for ${pkg.name}`);
     }
-    const updater = new GoMod({
-      version,
+    const goModUpdater = new GoMod({
+      version: newVersion,
       versionsMap: updatedVersions,
     });
-    const updatedContent = updater.updateContent(pkg.modContent);
+    const updatedGoModContent = goModUpdater.updateContent(pkg.modContent);
     const dependencyNotes = getChangelogDepsNotes(
       pkg.modContent,
-      updatedContent
+      updatedGoModContent
     );
 
     const updatedPackage = {
       ...pkg,
-      version: version.toString(),
+      version: newVersion.toString(),
     };
 
     const strategy = this.strategiesByPath[updatedPackage.path];
     const latestRelease = this.releasesByPath[updatedPackage.path];
     const basePullRequest = strategy
       ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
-          newVersion: version,
+          newVersion: newVersion,
         })
       : undefined;
 
@@ -199,8 +199,8 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       title: PullRequestTitle.ofTargetBranch(this.targetBranch),
       body: new PullRequestBody([
         {
-          component: pkg.name,
-          version,
+          component: updatedPackage.name,
+          version: newVersion,
           notes: appendDependenciesSectionToChangelog(
             '',
             dependencyNotes,
@@ -210,26 +210,26 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       ]),
       updates: [
         {
-          path: addPath(pkg.path, 'go.mod'),
+          path: addPath(updatedPackage.path, 'go.mod'),
           createIfMissing: false,
-          updater: new RawContent(updatedContent),
+          updater: new RawContent(updatedGoModContent),
         },
         {
-          path: addPath(pkg.path, 'CHANGELOG.md'),
+          path: addPath(updatedPackage.path, 'CHANGELOG.md'),
           createIfMissing: false,
           updater: new Changelog({
-            version,
+            version: newVersion,
             changelogEntry: dependencyNotes,
           }),
         },
       ],
       labels: [],
       headRefName: BranchName.ofTargetBranch(this.targetBranch).toString(),
-      version,
+      version: newVersion,
       draft: false,
     };
     return {
-      path: pkg.path,
+      path: updatedPackage.path,
       pullRequest,
       config: {
         releaseType: 'go',
