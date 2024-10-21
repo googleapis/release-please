@@ -1,6 +1,11 @@
-import {CandidateReleasePullRequest} from '../manifest';
+import {
+  CandidateReleasePullRequest,
+  RepositoryConfig,
+  DEFAULT_RELEASE_PLEASE_MANIFEST,
+} from '../manifest';
 import {
   WorkspacePlugin,
+  WorkspacePluginOptions,
   DependencyGraph,
   DependencyNode,
   addPath,
@@ -18,6 +23,8 @@ import {BranchName} from '../util/branch-name';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import {Strategy} from '../strategy';
 import {Release} from '../release';
+import {GitHub} from '../github';
+import {Commit} from '../commit';
 
 interface GoModInfo {
   /**
@@ -56,6 +63,30 @@ interface GoModInfo {
 export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
   private strategiesByPath: Record<string, Strategy> = {};
   private releasesByPath: Record<string, Release> = {};
+  private releaseManifestPath: string;
+
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    options: WorkspacePluginOptions = {}
+  ) {
+    super(github, targetBranch, repositoryConfig, options);
+    this.releaseManifestPath =
+      options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
+  }
+
+  async preconfigure(
+    strategiesByPath: Record<string, Strategy>,
+    _commitsByPath: Record<string, Commit[]>,
+    _releasesByPath: Record<string, Release>
+  ): Promise<Record<string, Strategy>> {
+    // Using preconfigure to siphon releases and strategies.
+    this.strategiesByPath = strategiesByPath;
+    this.releasesByPath = _releasesByPath;
+
+    return strategiesByPath;
+  }
 
   protected bumpVersion(pkg: GoModInfo): Version {
     const version = Version.parse(pkg.version);
@@ -241,6 +272,13 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       )
     ).flat();
 
+    // Read the json file at releaseManifestPath
+    const manifestContent = await this.github.getFileContentsOnBranch(
+      this.releaseManifestPath,
+      this.targetBranch
+    );
+    const manifest = JSON.parse(manifestContent.parsedContent);
+
     for (const path of members) {
       const goModPath = addPath(path, 'go.mod');
       this.logger.info(`looking for candidate with path: ${path}`);
@@ -254,32 +292,24 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
           this.targetBranch
         ));
 
+      // Get path from the manifest
+      const version = manifest[path];
+      if (!version) {
+        this.logger.warn(
+          `package at ${path} not found in manifest at ${this.releaseManifestPath}`
+        );
+        continue;
+      }
+
       // Package name is defined by module in moduleContent
       // e.g. module example.com/application/appname
-      const moduleMatch = moduleContent.parsedContent.match(/module (.+)/);
+      const modulePattern = /module (.+)/;
+      const moduleMatch = modulePattern.exec(moduleContent.parsedContent);
       if (!moduleMatch) {
         this.logger.warn(`package at ${path} is missing a module declaration`);
         continue;
       }
       const packageName = moduleMatch[1];
-
-      const changelogPath = addPath(path, 'CHANGELOG.md');
-      // Read the changelog content
-      // Find the first version mentioned and use as the latest version
-      const changelogContent = await this.github.getFileContentsOnBranch(
-        changelogPath,
-        this.targetBranch
-      );
-      // Use a regular regex matcher to find the first line in the changelog
-      const versionPattern = /## \[(\d+.\d+.\d+)\]/;
-      const versionMatch = versionPattern.exec(changelogContent.parsedContent);
-      if (!versionMatch) {
-        this.logger.warn(
-          `package at ${path} is missing a version in the changelog`
-        );
-        continue;
-      }
-      const version = versionMatch[1];
 
       if (candidate) {
         candidatesByPackage[packageName] = candidate;

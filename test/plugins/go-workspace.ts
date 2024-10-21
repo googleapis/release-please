@@ -97,6 +97,7 @@ describe('GoWorkspace plugin', () => {
         targetBranch: 'main',
         inlineFiles: [
           ['go.work', 'go 1.23.1\nuse ./packages/..//packages/goA\n'],
+          ['.release-please-manifest.json', '{"packages/goA": "1.1.1"}'],
         ],
       });
       plugin = new GoWorkspace(github, 'main', {
@@ -150,6 +151,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
+          '.release-please-manifest.json',
           'go.work',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
@@ -224,6 +226,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
+          '.release-please-manifest.json',
           'go.work',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
@@ -284,6 +287,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
+          '.release-please-manifest.json',
           'go.work',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
