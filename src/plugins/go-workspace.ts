@@ -315,7 +315,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
 
     // Parses a go.mod file and returns a list of dependencies
     const parseDependencies = (content: string): string[] => {
-      const depRegex = /(\S+)\s+v?(\d+\.\d+\.\d+)/gm;
+      const depRegex = /(\S+)\s+v(\d+\.\d+\.\d+)/gm;
       const deps: string[] = [];
       let match;
       while ((match = depRegex.exec(content)) !== null) {
