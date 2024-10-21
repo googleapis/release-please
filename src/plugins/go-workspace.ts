@@ -270,10 +270,9 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
         changelogPath,
         this.targetBranch
       );
-      // Use a regular regex matcher
-      const versionMatch = changelogContent.parsedContent.match(
-        /## \[([0-9]+\.[0-9]+\.[0-9]+)\]/
-      );
+      // Use a regular regex matcher to find the first line in the changelog
+      const versionPattern = /## \[(\d+.\d+.\d+)\]/;
+      const versionMatch = versionPattern.exec(changelogContent.parsedContent);
       if (!versionMatch) {
         this.logger.warn(
           `package at ${path} is missing a version in the changelog`
