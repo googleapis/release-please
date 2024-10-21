@@ -76,20 +76,11 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
       options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
   }
 
-  async preconfigure(
-    strategiesByPath: Record<string, Strategy>,
-    _commitsByPath: Record<string, Commit[]>,
-    _releasesByPath: Record<string, Release>
-  ): Promise<Record<string, Strategy>> {
-    // Using preconfigure to siphon releases and strategies.
-    this.strategiesByPath = strategiesByPath;
-    this.releasesByPath = _releasesByPath;
-
-    return strategiesByPath;
-  }
-
   protected bumpVersion(pkg: GoModInfo): Version {
     const version = Version.parse(pkg.version);
+    const strategy = this.strategiesByPath[pkg.path];
+
+    if (strategy) return strategy.versioningStrategy.bump(version, []);
     return new PatchVersionUpdate().bump(version);
   }
 
@@ -175,6 +166,7 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
 
     const strategy = this.strategiesByPath[updatedPackage.path];
     const latestRelease = this.releasesByPath[updatedPackage.path];
+
     const basePullRequest = strategy
       ? await strategy.buildReleasePullRequest([], latestRelease, false, [], {
           newVersion: newVersion,
@@ -401,6 +393,18 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
   ): CandidateReleasePullRequest[] {
     // Nothing to do at this time
     return candidates;
+  }
+
+  async preconfigure(
+    strategiesByPath: Record<string, Strategy>,
+    _commitsByPath: Record<string, Commit[]>,
+    _releasesByPath: Record<string, Release>
+  ): Promise<Record<string, Strategy>> {
+    // Using preconfigure to siphon releases and strategies.
+    this.strategiesByPath = strategiesByPath;
+    this.releasesByPath = _releasesByPath;
+
+    return strategiesByPath;
   }
 }
 
