@@ -1,5 +1,5 @@
-import {logger as defaultLogger, Logger} from '../../util/logger';
-import {DefaultUpdater} from '../default';
+import { logger as defaultLogger, Logger } from '../../util/logger';
+import { DefaultUpdater } from '../default';
 
 /**
  * Updates `go.mod` files, preserving formatting and comments.
@@ -18,25 +18,24 @@ export class GoMod extends DefaultUpdater {
     }
 
     for (const [pkgName, pkgVersion] of this.versionsMap) {
+      const regex = new RegExp(`${pkgName} v\\d+\\.\\d+\\.\\d+`, 'g');
       // Is the dep in the go.mod file?
-      const deps = payload.match(
-        new RegExp(`${pkgName} v[0-9]+\\.[0-9]+\\.[0-9]`)
-      );
+      const deps = regex.exec(payload);
 
       if (!deps) {
         logger.info(`skipping ${pkgName} (not found in go.mod)`);
         continue;
       }
 
-      // Split deps[0] into the package name and version
-      const dep = deps[0].split(' ');
+      for (const dep of deps) {
+        const oldVersion = dep.split(' ')[1];
+        logger.info(`updating ${pkgName} from ${oldVersion} to ${pkgVersion}`);
 
-      logger.info(`updating ${pkgName} from ${dep[1]} to ${pkgVersion}`);
-
-      payload = payload.replace(
-        new RegExp(`${pkgName} ${dep[1]}`),
-        `${pkgName} ${pkgVersion}`
-      );
+        payload = payload.replace(
+          dep,
+          `${pkgName} ${pkgVersion}`
+        );
+      }
     }
 
     return payload;
