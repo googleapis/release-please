@@ -1,8 +1,8 @@
-import {describe, it, afterEach, beforeEach} from 'mocha';
+import { describe, it, afterEach, beforeEach } from 'mocha';
 import * as sinon from 'sinon';
-import {GitHub} from '../../src/github';
-import {CandidateReleasePullRequest} from '../../src/manifest';
-import {Update} from '../../src/update';
+import { GitHub } from '../../src/github';
+import { CandidateReleasePullRequest } from '../../src/manifest';
+import { Update } from '../../src/update';
 import {
   buildGitHubFileContent,
   buildMockCandidatePullRequest,
@@ -11,13 +11,13 @@ import {
   stubFilesFromFixtures,
   assertNoHasUpdate,
 } from '../helpers';
-import {Version} from '../../src/version';
-import {ManifestPlugin} from '../../src/plugin';
-import {GoWorkspace} from '../../src/plugins/go-workspace';
-import {expect} from 'chai';
+import { Version } from '../../src/version';
+import { ManifestPlugin } from '../../src/plugin';
+import { GoWorkspace } from '../../src/plugins/go-workspace';
+import { expect } from 'chai';
 import snapshot = require('snap-shot-it');
-import {RawContent} from '../../src/updaters/raw-content';
-import {GoMod} from '../../src/updaters/go/go-mod';
+import { RawContent } from '../../src/updaters/raw-content';
+import { GoMod } from '../../src/updaters/go/go-mod';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/go-workspace';
@@ -66,10 +66,6 @@ describe('GoWorkspace plugin', () => {
     sandbox.restore();
   });
   describe('run', () => {
-    // TODO implement or remove these two
-    it('rejects if not a workspace', async () => {});
-    it('rejects if no workspace members', async () => {});
-
     it('does nothing for non-go strategies', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
@@ -77,7 +73,7 @@ describe('GoWorkspace plugin', () => {
       const newCandidates = await plugin.run(candidates);
       expect(newCandidates).to.eql(candidates);
     });
-    it('handles a single go package', async () => {
+    it('handles a single go package and normalizes path', async () => {
       const candidates: CandidateReleasePullRequest[] = [
         buildMockCandidatePullRequest('python', 'python', '1.0.0'),
         buildMockCandidatePullRequest('packages/goA', 'go', '1.1.2', {
@@ -99,7 +95,7 @@ describe('GoWorkspace plugin', () => {
         files: ['packages/goA/go.mod', 'packages/goA/CHANGELOG.md'],
         flatten: false,
         targetBranch: 'main',
-        inlineFiles: [['go.workspace', 'packages/goA\n']],
+        inlineFiles: [['go.work', 'go 1.23.1\nuse ./packages/..//packages/goA\n']],
       });
       plugin = new GoWorkspace(github, 'main', {
         python: {
@@ -121,67 +117,6 @@ describe('GoWorkspace plugin', () => {
       expect(goCandidate).to.not.be.undefined;
       const updates = goCandidate!.pullRequest.updates;
       assertHasUpdate(updates, 'packages/goA/go.mod');
-      snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
-    });
-    it('handles glob paths', async () => {
-      const candidates: CandidateReleasePullRequest[] = [
-        buildMockCandidatePullRequest('packages/goA', 'go', '1.1.2', {
-          component: 'example.com/packages/goA',
-          updates: [
-            buildMockPackageUpdate(
-              'packages/goA/go.mod',
-              'packages/goA/go.mod',
-              '1.1.1'
-            ),
-          ],
-        }),
-        buildMockCandidatePullRequest('packages/goB', 'go', '4.4.5', {
-          component: 'example.com/packages/goB',
-          updates: [
-            buildMockPackageUpdate(
-              'packages/goB/go.mod',
-              'packages/goB/go.mod',
-              '2.2.2'
-            ),
-          ],
-        }),
-      ];
-
-      stubFilesFromFixtures({
-        sandbox,
-        github,
-        fixturePath: fixturesPath,
-        files: [
-          'packages/goA/go.mod',
-          'packages/goA/CHANGELOG.md',
-          'packages/goB/go.mod',
-          'packages/goB/CHANGELOG.md',
-        ],
-        flatten: false,
-        targetBranch: 'main',
-        inlineFiles: [['go.workspace', 'packages/*\n']],
-      });
-      sandbox
-        .stub(github, 'findFilesByGlobAndRef')
-        .withArgs('packages/*', 'main')
-        .resolves(['packages/goA', 'packages/goB']);
-      plugin = new GoWorkspace(github, 'main', {
-        'packages/goA': {
-          releaseType: 'go',
-        },
-        'packages/goB': {
-          releaseType: 'go',
-        },
-      });
-      const newCandidates = await plugin.run(candidates);
-      expect(newCandidates).lengthOf(1);
-      const goCandidate = newCandidates.find(
-        candidate => candidate.config.releaseType === 'go'
-      );
-      expect(goCandidate).to.not.be.undefined;
-      const updates = goCandidate!.pullRequest.updates;
-      assertHasUpdate(updates, 'packages/goA/go.mod');
-      assertHasUpdate(updates, 'packages/goB/go.mod');
       snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
@@ -213,7 +148,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
-          'go.workspace',
+          'go.work',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
@@ -287,7 +222,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
-          'go.workspace',
+          'go.work',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
@@ -347,7 +282,7 @@ describe('GoWorkspace plugin', () => {
         github,
         fixturePath: fixturesPath,
         files: [
-          'go.workspace',
+          'go.work',
           'packages/goA/go.mod',
           'packages/goA/CHANGELOG.md',
           'packages/goB/go.mod',
