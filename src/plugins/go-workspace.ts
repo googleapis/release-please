@@ -67,6 +67,10 @@ interface GoModInfo {
   modContent: string;
 }
 
+interface GoWorkspaceOptions extends WorkspacePluginOptions {
+  goWorkFile?: string;
+}
+
 /**
  * The plugin analyzes a go workspace and will bump dependencies
  * of managed packages if those dependencies are being updated.
@@ -78,16 +82,18 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
   private strategiesByPath: Record<string, Strategy> = {};
   private releasesByPath: Record<string, Release> = {};
   private readonly releaseManifestPath: string;
+  private readonly goWorkPath: string;
 
   constructor(
     github: GitHub,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
-    options: WorkspacePluginOptions = {}
+    options: GoWorkspaceOptions = {}
   ) {
     super(github, targetBranch, repositoryConfig, options);
     this.releaseManifestPath =
       options.manifestPath ?? DEFAULT_RELEASE_PLEASE_MANIFEST;
+    this.goWorkPath = options.goWorkFile || 'go.work';
   }
 
   protected bumpVersion(pkg: GoModInfo): Version {
@@ -256,14 +262,12 @@ export class GoWorkspace extends WorkspacePlugin<GoModInfo> {
     candidatesByPackage: Record<string, CandidateReleasePullRequest>;
   }> {
     const goWorkspaceContent = await this.github.getFileContentsOnBranch(
-      'go.work',
+      this.goWorkPath,
       this.targetBranch
     );
     const goWorkspace = parseGoWorkspace(goWorkspaceContent.parsedContent);
     if (!goWorkspace?.members) {
-      this.logger.warn(
-        "go-workspace plugin used, but could not find use directive(s) 'go.work' file"
-      );
+      this.logger.warn('go-workspace plugin used, but found no use directives');
       return {allPackages: [], candidatesByPackage: {}};
     }
 

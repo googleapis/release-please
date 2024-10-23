@@ -542,6 +542,22 @@ all modules in a workspace and updates any modules that depends
 (directly or transitively) on the changed module. The workspace dependencies in
 `go.mod` files are updated accordingly.
 
+#### go.work in a non-default location
+
+By default, the `go.work` file is expected to be in the root. Set `"goWorkFile"`
+to a custom path to use a file in a different location.
+
+```
+{
+  "plugins": [
+    {
+      "type": "go-workspace",
+      "goWorkFile": "/path/to/filename"
+    }
+  ]
+}
+```
+
 ### maven-workspace
 
 The `maven-workspace` plugin operates similarly to the `node-workspace` plugin,

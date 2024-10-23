@@ -49,6 +49,9 @@ export interface PluginFactoryOptions {
   updateAllPackages?: boolean;
   considerAllArtifacts?: boolean;
 
+  // go options
+  goWorkFile?: string;
+
   logger?: Logger;
 }
 

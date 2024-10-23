@@ -342,5 +342,103 @@ describe('GoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/goB/go.mod', RawContent);
       snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
     });
+    it('uses go-work-file config value', async () => {
+      const options = {goWorkFile: 'some/go.work.file'};
+      plugin = new GoWorkspace(
+        github,
+        'main',
+        {
+          'packages/goA': {
+            releaseType: 'go',
+          },
+          'packages/goB': {
+            releaseType: 'go',
+          },
+          'packages/goC': {
+            releaseType: 'go',
+          },
+          'packages/goD': {
+            releaseType: 'go',
+          },
+        },
+        options
+      );
+
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/goA', 'go', '1.1.2', {
+          component: 'example.com/packages/goA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goA/go.mod',
+              'packages/goA/go.mod',
+              '1.1.1'
+            ),
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/goD', 'go', '4.4.5', {
+          component: 'example.com/packages/goD',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/goD/go.mod',
+              'packages/goD/go.mod',
+              '4.4.4'
+            ),
+          ],
+        }),
+      ];
+
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          '.release-please-manifest.json',
+          'packages/goA/go.mod',
+          'packages/goA/CHANGELOG.md',
+          'packages/goB/go.mod',
+          'packages/goB/CHANGELOG.md',
+          'packages/goC/go.mod',
+          'packages/goC/CHANGELOG.md',
+          'packages/goD/go.mod',
+          'packages/goD/CHANGELOG.md',
+          'packages/goE/go.mod',
+          'packages/goE/CHANGELOG.md',
+        ],
+        inlineFiles: [
+          [
+            'some/go.work.file',
+            'go 1.23.1\nuse ./packages/goA\n\nuse ./packages/goB\nuse ./packages/goC\nuse ./packages/goD\nuse ./packages/goE\n',
+          ],
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/goA', 'main')
+        .resolves(['packages/goA'])
+        .withArgs('packages/goB', 'main')
+        .resolves(['packages/goB'])
+        .withArgs('packages/goC', 'main')
+        .resolves(['packages/goC'])
+        .withArgs('packages/goD', 'main')
+        .resolves(['packages/goD'])
+        .withArgs('packages/goE', 'main')
+        .resolves(['packages/goE']);
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const goCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'go'
+      );
+      expect(goCandidate).to.not.be.undefined;
+      const updates = goCandidate!.pullRequest.updates;
+      // Check that transitive dependencies are updated
+      assertHasUpdate(updates, 'packages/goA/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goB/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goC/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goD/go.mod', RawContent);
+      assertHasUpdate(updates, 'packages/goE/go.mod', RawContent);
+      snapshot(dateSafe(goCandidate!.pullRequest.body.toString()));
+    });
   });
 });
