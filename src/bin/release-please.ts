@@ -609,6 +609,13 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
       }
     } else {
       const releaseNumbers = await manifest.createReleases();
+      if (argv.json){
+        writeFile(argv.json.toString(), JSON.stringify(releaseNumbers, null, 2), (err) => {
+          if (err) {
+            console.error("Error writing file:", err);
+          }
+        });
+      }
       console.log(releaseNumbers);
     }
   },
