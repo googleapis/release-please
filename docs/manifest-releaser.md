@@ -406,7 +406,7 @@ jobs:
 
       # Release Please has already incremented versions and published tags, so we just
       # need to publish all unpublished versions to NPM here
-      # See: https://github.com/lerna/lerna/tree/main/commands/publish#bump-from-package
+      # See: https://github.com/lerna/lerna/tree/main/libs/commands/publish#bump-from-package
       - name: Publish to NPM
         if: ${{ steps.release.outputs.releases_created }}
         env:
