@@ -542,7 +542,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
         writeFile(
           argv.json.toString(),
           JSON.stringify(pullRequestNumbers, null, 2),
-          (err) => {
+          err => {
             if (err) {
               console.error('Error writing file:', err);
             }
@@ -614,12 +614,16 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
       }
     } else {
       const releaseNumbers = await manifest.createReleases();
-      if (argv.json){
-        writeFile(argv.json.toString(), JSON.stringify(releaseNumbers, null, 2), (err) => {
-          if (err) {
-            console.error("Error writing file:", err);
+      if (argv.json) {
+        writeFile(
+	  argv.json.toString(),
+          JSON.stringify(releaseNumbers, null, 2),
+          err => {
+            if (err) {
+              console.error('Error writing file:', err);
+            }
           }
-        });
+        );
       }
       console.log(releaseNumbers);
     }
