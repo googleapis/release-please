@@ -1471,7 +1471,7 @@ export class GitHub {
         contentText,
         this.logger
       );
-      if (updatedContent) {
+      if (updatedContent !== contentText) {
         changes.set(update.path, {
           content: updatedContent,
           originalContent: content?.parsedContent || null,
