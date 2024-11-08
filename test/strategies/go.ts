@@ -37,6 +37,8 @@ const COMMITS = [
   ...buildMockConventionalCommit('chore: update common templates'),
 ];
 
+const BREAKING_CHANGE = buildMockConventionalCommit('feat!: breaking change');
+
 describe('Go', () => {
   let github: GitHub;
   beforeEach(async () => {
@@ -121,9 +123,13 @@ describe('Go', () => {
           )
         );
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const latestRelease = undefined;
+      const latestRelease = {
+        tag: new TagName(Version.parse('1.0.0'), 'some-go-package'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
       const release = await strategy.buildReleasePullRequest({
-        commits: COMMITS,
+        commits: [...COMMITS, ...BREAKING_CHANGE],
         latestRelease,
       });
       const updates = release!.updates;
@@ -144,9 +150,13 @@ describe('Go', () => {
           )
         );
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
-      const latestRelease = undefined;
+      const latestRelease = {
+        tag: new TagName(Version.parse('1.0.0'), 'some-go-package'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
       const release = await strategy.buildReleasePullRequest({
-        commits: COMMITS,
+        commits: [...COMMITS, ...BREAKING_CHANGE],
         latestRelease,
       });
       const updates = release!.updates;

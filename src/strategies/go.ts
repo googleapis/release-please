@@ -35,34 +35,36 @@ export class Go extends BaseStrategy {
       }),
     });
 
-    updates.push({
-      path: this.addPath('go.mod'),
-      createIfMissing: false,
-      updater: new GoModUpdater({
-        version,
-      }),
-    });
-
-    const goFiles = await this.github.findFilesByGlobAndRef(
-      '**/*.go',
-      this.changesBranch
-    );
-
-    // handle code snippets in markdown files as well
-    const mdFiles = await this.github.findFilesByGlobAndRef(
-      '**/*.md',
-      this.changesBranch
-    );
-
-    for (const file of [...goFiles, ...mdFiles]) {
+    if (version.major >= 2 && options.latestVersion?.major !== version.major) {
       updates.push({
-        path: this.addPath(file),
-        createIfMissing: true,
-        updater: new GithubImportsGo({
+        path: this.addPath('go.mod'),
+        createIfMissing: false,
+        updater: new GoModUpdater({
           version,
-          repository: this.repository,
         }),
       });
+
+      const goFiles = await this.github.findFilesByGlobAndRef(
+        '**/*.go',
+        this.changesBranch
+      );
+
+      // handle code snippets in markdown files as well
+      const mdFiles = await this.github.findFilesByGlobAndRef(
+        '**/*.md',
+        this.changesBranch
+      );
+
+      for (const file of [...goFiles, ...mdFiles]) {
+        updates.push({
+          path: this.addPath(file),
+          createIfMissing: true,
+          updater: new GithubImportsGo({
+            version,
+            repository: this.repository,
+          }),
+        });
+      }
     }
 
     return updates;
