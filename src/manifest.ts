@@ -47,7 +47,6 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
-import {DEFAULT_GITHUB_SERVER_URL} from './util/github-server';
 
 type ExtraGenericFile = {
   type: 'generic';
@@ -1052,7 +1051,7 @@ export class Manifest {
     // If unchanged, no need to push updates
     if (existing.body === pullRequest.body.toString()) {
       this.logger.info(
-        `PR ${DEFAULT_GITHUB_SERVER_URL}/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
+        `PR ${this.github.serverUrl}/${this.repository.owner}/${this.repository.repo}/pull/${existing.number} remained the same`
       );
       return undefined;
     }
@@ -1077,7 +1076,7 @@ export class Manifest {
     // If unchanged, no need to push updates
     if (snoozed.body === pullRequest.body.toString()) {
       this.logger.info(
-        `PR ${DEFAULT_GITHUB_SERVER_URL}/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
+        `PR ${this.github.serverUrl}/${this.repository.owner}/${this.repository.repo}/pull/${snoozed.number} remained the same`
       );
       return undefined;
     }

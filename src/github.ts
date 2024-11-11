@@ -29,6 +29,7 @@ import {
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 const MAX_SLEEP_SECONDS = 20;
+export const GH_SERVER_URL = 'https://github.com';
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
@@ -50,7 +51,6 @@ import {Logger} from 'code-suggester/build/src/types';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
-import {DEFAULT_GITHUB_SERVER_URL} from './util/github-server';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -63,6 +63,7 @@ export interface OctokitAPIs {
 }
 
 export interface GitHubOptions {
+  serverUrl: string;
   repository: Repository;
   octokitAPIs: OctokitAPIs;
   logger?: Logger;
@@ -77,6 +78,7 @@ interface GitHubCreateOptions {
   owner: string;
   repo: string;
   defaultBranch?: string;
+  serverUrl?: string;
   apiUrl?: string;
   graphqlUrl?: string;
   octokitAPIs?: OctokitAPIs;
@@ -209,8 +211,10 @@ export class GitHub {
   private graphql: Function;
   private fileCache: RepositoryFileCache;
   private logger: Logger;
+  readonly serverUrl: string;
 
   private constructor(options: GitHubOptions) {
+    this.serverUrl = options.serverUrl;
     this.repository = options.repository;
     this.octokit = options.octokitAPIs.octokit;
     this.request = options.octokitAPIs.request;
@@ -247,6 +251,7 @@ export class GitHub {
    * @param {string} token Optional. A GitHub API token used for authentication.
    */
   static async create(options: GitHubCreateOptions): Promise<GitHub> {
+    const serverUrl = options.serverUrl ?? GH_SERVER_URL;
     const apiUrl = options.apiUrl ?? GH_API_URL;
     const graphqlUrl = options.graphqlUrl ?? GH_GRAPHQL_URL;
     const releasePleaseVersion = require('../../package.json').version;
@@ -278,6 +283,7 @@ export class GitHub {
       }),
     };
     const opts = {
+      serverUrl,
       repository: {
         owner: options.owner,
         repo: options.repo,
@@ -1431,7 +1437,7 @@ export class GitHub {
   commentOnIssue = wrapAsync(
     async (comment: string, number: number): Promise<string> => {
       this.logger.debug(
-        `adding comment to ${DEFAULT_GITHUB_SERVER_URL}/${this.repository.owner}/${this.repository.repo}/issues/${number}`
+        `adding comment to ${this.serverUrl}/${this.repository.owner}/${this.repository.repo}/issues/${number}`
       );
       const resp = await this.octokit.issues.createComment({
         owner: this.repository.owner,

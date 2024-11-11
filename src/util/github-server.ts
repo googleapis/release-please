@@ -1,1 +1,0 @@
-export const DEFAULT_GITHUB_SERVER_URL = process.env.GITHUB_SERVER_URL || 'https://github.com';
