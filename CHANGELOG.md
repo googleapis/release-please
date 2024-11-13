@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.15.0](https://github.com/googleapis/release-please/compare/v16.14.4...v16.15.0) (2024-11-13)
+
+
+### Features
+
+* add `always-update` option to push to always push to release branch ([72d40df](https://github.com/googleapis/release-please/commit/72d40df677b08fd52654a4c3b320649f63b9c635))
+
 ## [16.14.4](https://github.com/googleapis/release-please/compare/v16.14.3...v16.14.4) (2024-11-12)
 
 
