@@ -202,6 +202,7 @@ export interface ManifestOptions {
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
+  alwaysUpdate?: boolean;
   groupPullRequestTitlePattern?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
@@ -264,6 +265,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
   'sequential-calls'?: boolean;
+  'always-update'?: boolean;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -299,6 +301,7 @@ export class Manifest {
   readonly releasedVersions: ReleasedVersions;
   private targetBranch: string;
   private separatePullRequests: boolean;
+  private alwaysUpdate: boolean;
   readonly fork: boolean;
   private signoffUser?: string;
   private labels: string[];
@@ -339,6 +342,8 @@ export class Manifest {
    * @param {string} manifestOptions.goWorkFile Option for the go-workspace plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
+   * @param {boolean} manifestOptions.alwaysUpdate If true, always updates pull requests instead of
+   *   only when the release notes change
    * @param {PluginType[]} manifestOptions.plugins Any plugins to use for this repository
    * @param {boolean} manifestOptions.fork If true, create pull requests from a fork. Defaults
    *   to `false`
@@ -366,6 +371,7 @@ export class Manifest {
     this.separatePullRequests =
       manifestOptions?.separatePullRequests ??
       Object.keys(repositoryConfig).length === 1;
+    this.alwaysUpdate = manifestOptions?.alwaysUpdate || false;
     this.fork = manifestOptions?.fork || false;
     this.signoffUser = manifestOptions?.signoff;
     this.releaseLabels =
@@ -1022,7 +1028,9 @@ export class Manifest {
         openPullRequest.headBranchName === pullRequest.headRefName
     );
     if (existing) {
-      return await this.maybeUpdateExistingPullRequest(existing, pullRequest);
+      return this.alwaysUpdate
+        ? await this.updateExistingPullRequest(existing, pullRequest)
+        : await this.maybeUpdateExistingPullRequest(existing, pullRequest);
     }
 
     // look for closed, snoozed pull request
@@ -1031,7 +1039,9 @@ export class Manifest {
         openPullRequest.headBranchName === pullRequest.headRefName
     );
     if (snoozed) {
-      return await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
+      return this.alwaysUpdate
+        ? await this.updateExistingPullRequest(snoozed, pullRequest)
+        : await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
     }
 
     const body = await this.pullRequestOverflowHandler.handleOverflow(
@@ -1074,20 +1084,10 @@ export class Manifest {
       );
       return undefined;
     }
-    const updatedPullRequest = await this.github.updatePullRequest(
-      existing.number,
-      pullRequest,
-      this.targetBranch,
-      {
-        fork: this.fork,
-        signoffUser: this.signoffUser,
-        pullRequestOverflowHandler: this.pullRequestOverflowHandler,
-      }
-    );
-    return updatedPullRequest;
+    return await this.updateExistingPullRequest(existing, pullRequest);
   }
 
-  /// only update an snoozed pull request if it has release note changes
+  /// only update a snoozed pull request if it has release note changes
   private async maybeUpdateSnoozedPullRequest(
     snoozed: PullRequest,
     pullRequest: ReleasePullRequest
@@ -1099,8 +1099,22 @@ export class Manifest {
       );
       return undefined;
     }
-    const updatedPullRequest = await this.github.updatePullRequest(
-      snoozed.number,
+    const updatedPullRequest = await this.updateExistingPullRequest(
+      snoozed,
+      pullRequest
+    );
+    // TODO: consider leaving the snooze label
+    await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
+    return updatedPullRequest;
+  }
+
+  /// force an update to an existing pull request
+  private async updateExistingPullRequest(
+    existing: PullRequest,
+    pullRequest: ReleasePullRequest
+  ): Promise<PullRequest> {
+    return await this.github.updatePullRequest(
+      existing.number,
       pullRequest,
       this.targetBranch,
       {
@@ -1109,9 +1123,6 @@ export class Manifest {
         pullRequestOverflowHandler: this.pullRequestOverflowHandler,
       }
     );
-    // TODO: consider leaving the snooze label
-    await this.github.removeIssueLabels([SNOOZE_LABEL], snoozed.number);
-    return updatedPullRequest;
   }
 
   private async *findMergedReleasePullRequests() {
@@ -1434,6 +1445,7 @@ async function parseConfig(
     lastReleaseSha: config['last-release-sha'],
     alwaysLinkLocal: config['always-link-local'],
     separatePullRequests: config['separate-pull-requests'],
+    alwaysUpdate: config['always-update'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
     signoff: config['signoff'],

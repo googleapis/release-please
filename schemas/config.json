@@ -111,6 +111,10 @@
           "description": "Open a separate release pull request for each component. Defaults to `false`.",
           "type": "boolean"
         },
+        "always-update": {
+          "description": "Always update the pull request with the latest changes. Defaults to `false`.",
+          "type": "boolean"
+        },
         "tag-separator": {
           "description": "Customize the separator between the component and version in the GitHub tag.",
           "type": "string"
@@ -475,6 +479,7 @@
     "pull-request-header": true,
     "pull-request-footer": true,
     "separate-pull-requests": true,
+    "always-update": true,
     "tag-separator": true,
     "extra-files": true,
     "version-file": true,

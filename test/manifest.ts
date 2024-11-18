@@ -4332,6 +4332,89 @@ describe('Manifest', () => {
         const pullRequestNumbers = await manifest.createPullRequests();
         expect(pullRequestNumbers).lengthOf(0);
       });
+
+      it('updates an existing pull request without changes if set to always update', async function () {
+        sandbox
+          .stub(github, 'getFileContentsOnBranch')
+          .withArgs('README.md', 'main')
+          .resolves(buildGitHubFileRaw('some-content'))
+          .withArgs('release-notes.md', 'my-head-branch--release-notes')
+          .resolves(buildGitHubFileRaw(body.toString()));
+        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+        mockPullRequests(
+          github,
+          [
+            {
+              number: 22,
+              title: 'pr title1',
+              body: pullRequestBody('release-notes/overflow.txt'),
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              labels: ['autorelease: pending'],
+              files: [],
+            },
+          ],
+          []
+        );
+        sandbox
+          .stub(github, 'updatePullRequest')
+          .withArgs(
+            22,
+            sinon.match.any,
+            sinon.match.any,
+            sinon.match.has('pullRequestOverflowHandler', sinon.match.truthy)
+          )
+          .resolves({
+            number: 22,
+            title: 'pr title1',
+            body: 'pr body1',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: [],
+            files: [],
+          });
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'node',
+              component: 'pkg1',
+            },
+            'path/b': {
+              releaseType: 'node',
+              component: 'pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          },
+          {
+            separatePullRequests: true,
+            alwaysUpdate: true,
+            plugins: ['node-workspace'],
+          }
+        );
+        sandbox.stub(manifest, 'buildPullRequests').resolves([
+          {
+            title: PullRequestTitle.ofTargetBranch('main'),
+            body,
+            updates: [
+              {
+                path: 'README.md',
+                createIfMissing: false,
+                updater: new RawContent('some raw content'),
+              },
+            ],
+            labels: [],
+            headRefName: 'release-please/branches/main',
+            draft: false,
+          },
+        ]);
+        const pullRequestNumbers = await manifest.createPullRequests();
+        expect(pullRequestNumbers).lengthOf(1);
+      });
     });
 
     it('updates an existing snapshot pull request', async function () {
