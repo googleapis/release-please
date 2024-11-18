@@ -18,6 +18,7 @@ package com.google.cloud.example;
 public final class Version {
   // {x-release-please-start-version}
   public static String VERSION = "1.2.3-SNAPSHOT";
+  public static String VERSION = "v1.2.3-SNAPSHOT";
   // {x-release-please-end}
 
   // {x-release-please-start-date}
@@ -27,10 +28,12 @@ public final class Version {
   // {x-release-please-start-version-date}
   public static String NEW_DATE = "01-01-0100";
   public static String NEW_VERSION = "3.2.0-SNAPSHOT";
+  public static String NEW_VERSION_V = "v3.2.0-SNAPSHOT";
   // {x-release-please-end}
 
   // {x-release-please-start-major}
   public static String MAJOR = "1";
+  public static String MAJOR_V = "v1";
   // {x-release-please-end}
 
   // {x-release-please-start-minor}
@@ -43,6 +46,7 @@ public final class Version {
 
   public static String INLINE_VERSION = "1.2.3-SNAPSHOT"; // {x-release-please-version}
   public static String INLINE_MAJOR = "1"; // {x-release-please-major}
+  public static String INLINE_MAJOR_V = "v1"; // {x-release-please-major}
   public static String INLINE_MINOR = "2"; // {x-release-please-minor}
   public static String INLINE_PATCH = "3"; // {x-release-please-patch}
 
