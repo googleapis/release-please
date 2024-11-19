@@ -67,26 +67,6 @@ export class R extends BaseStrategy {
     return updates;
   }
 
-  protected async getPackageNameFromDescription(): Promise<string | null> {
-    try {
-      const descriptionContent = (
-        await this.github.getFileContentsOnBranch(
-          this.addPath('DESCRIPTION'),
-          this.targetBranch
-        )
-      ).parsedContent;
-
-      const match = descriptionContent.match(/^Package:\s*(.+)\s*$/m);
-      return match ? match[1] : null;
-    } catch (e) {
-      if (e instanceof FileNotFoundError) {
-        return null;
-      } else {
-        throw e;
-      }
-    }
-  }
-
   protected initialReleaseVersion(): Version {
     return Version.parse('0.1.0');
   }
