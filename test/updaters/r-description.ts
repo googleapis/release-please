@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
-import { describe, it } from 'mocha';
-import { DescriptionUpdater } from '../../src/updaters/r/description';
-import { Version } from '../../src/version';
+import {describe, it} from 'mocha';
+import {DescriptionUpdater} from '../../src/updaters/r/description';
+import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 

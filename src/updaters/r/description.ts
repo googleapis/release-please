@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { DefaultUpdater } from '../default';
+import {DefaultUpdater} from '../default';
 
 /**
  * Updates the DESCRIPTION file of an R package.

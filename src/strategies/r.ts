@@ -12,27 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions } from './base';
-import { Update } from '../update';
-import { News } from '../updaters/r/news';
-import { Version } from '../version';
-import { DescriptionUpdater } from '../updaters/r/description';
-import { FileNotFoundError } from '../errors';
-import { filterCommits } from '../util/filter-commits';
+import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
+import {Update} from '../update';
+import {News} from '../updaters/r/news';
+import {Version} from '../version';
+import {DescriptionUpdater} from '../updaters/r/description';
+import {FileNotFoundError} from '../errors';
 
 const CHANGELOG_SECTIONS = [
-  { type: 'feat', section: 'Features' },
-  { type: 'fix', section: 'Bug Fixes' },
-  { type: 'perf', section: 'Performance Improvements' },
-  { type: 'deps', section: 'Dependencies' },
-  { type: 'revert', section: 'Reverts' },
-  { type: 'docs', section: 'Documentation' },
-  { type: 'style', section: 'Styles', hidden: true },
-  { type: 'chore', section: 'Miscellaneous Chores', hidden: true },
-  { type: 'refactor', section: 'Code Refactoring', hidden: true },
-  { type: 'test', section: 'Tests', hidden: true },
-  { type: 'build', section: 'Build System', hidden: true },
-  { type: 'ci', section: 'Continuous Integration', hidden: true },
+  {type: 'feat', section: 'Features'},
+  {type: 'fix', section: 'Bug Fixes'},
+  {type: 'perf', section: 'Performance Improvements'},
+  {type: 'deps', section: 'Dependencies'},
+  {type: 'revert', section: 'Reverts'},
+  {type: 'docs', section: 'Documentation'},
+  {type: 'style', section: 'Styles', hidden: true},
+  {type: 'chore', section: 'Miscellaneous Chores', hidden: true},
+  {type: 'refactor', section: 'Code Refactoring', hidden: true},
+  {type: 'test', section: 'Tests', hidden: true},
+  {type: 'build', section: 'Build System', hidden: true},
+  {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
 export class R extends BaseStrategy {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { DefaultUpdater, UpdateOptions } from '../default';
+import {DefaultUpdater, UpdateOptions} from '../default';
 
 interface ChangelogOptions extends UpdateOptions {
   changelogEntry: string;
@@ -39,9 +39,7 @@ export class News extends DefaultUpdater {
     const lastEntryIndex = content.search(this.versionHeaderRegex);
     if (lastEntryIndex === -1) {
       if (content) {
-        return `${this.changelogEntry}\n\n${adjustHeaders(
-          content
-        ).trim()}\n`;
+        return `${this.changelogEntry}\n\n${adjustHeaders(content).trim()}\n`;
       } else {
         return `${this.changelogEntry}\n`;
       }

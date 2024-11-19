@@ -7,11 +7,8 @@ import {
   buildMockConventionalCommit,
 } from '../helpers';
 import {News} from '../../src/updaters/r/news';
-import {Generic} from '../../src/updaters/generic';
 import {DescriptionUpdater} from '../../src/updaters/r/description';
 import {R} from '../../src/strategies/r';
-import {TagName} from '../../src/util/tag-name';
-import {Version} from '../../src/version';
 import {expect} from 'chai';
 
 const sandbox = sinon.createSandbox();
