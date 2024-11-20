@@ -346,6 +346,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'Override the detected latest tag name',
       type: 'string',
     })
+    .option('date-format', {
+      describe: 'format in strftime format for updating dates',
+      default: 'string',
+    })
     .middleware(_argv => {
       const argv = _argv as CreatePullRequestArgs;
 

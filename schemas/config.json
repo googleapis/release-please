@@ -119,6 +119,10 @@
           "description": "Customize the separator between the component and version in the GitHub tag.",
           "type": "string"
         },
+        "date-format": {
+          "description": "Date format given as a strftime expression for the generic strategy.",
+          "type": "string"
+        },
         "extra-files": {
           "description": "Specify extra generic files to replace versions.",
           "type": "array",
@@ -476,6 +480,7 @@
     "separate-pull-requests": true,
     "always-update": true,
     "tag-separator": true,
+    "date-format": true,
     "extra-files": true,
     "version-file": true,
     "snapshot-label": true,

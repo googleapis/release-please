@@ -82,6 +82,7 @@ function releaserConfigToJsonConfig(
     'extra-files': config.extraFiles,
     'version-file': config.versionFile,
     'snapshot-label': config.snapshotLabels?.join(','), // Java-only
+    'date-format': config.dateFormat,
   };
   return jsonConfig;
 }
