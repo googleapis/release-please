@@ -17,7 +17,6 @@ import {Update} from '../update';
 import {News} from '../updaters/r/news';
 import {Version} from '../version';
 import {DescriptionUpdater} from '../updaters/r/description';
-import {FileNotFoundError} from '../errors';
 
 const CHANGELOG_SECTIONS = [
   {type: 'feat', section: 'Features'},
