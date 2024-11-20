@@ -36,6 +36,7 @@ import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
 import {Python} from './strategies/python';
+import {R} from './strategies/r';
 import {Ruby} from './strategies/ruby';
 import {RubyYoshi} from './strategies/ruby-yoshi';
 import {Rust} from './strategies/rust';
@@ -98,6 +99,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   php: options => new PHP(options),
   'php-yoshi': options => new PHPYoshi(options),
   python: options => new Python(options),
+  r: options => new R(options),
   ruby: options => new Ruby(options),
   'ruby-yoshi': options => new RubyYoshi(options),
   rust: options => new Rust(options),
