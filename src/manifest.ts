@@ -56,6 +56,7 @@ type ExtraGenericFile = {
 type ExtraShaFile = {
   type: 'sha';
   path: string;
+  glob?: boolean;
 };
 type ExtraJsonFile = {
   type: 'json';
