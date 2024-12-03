@@ -55,9 +55,9 @@ export class GenericSha extends DefaultUpdater {
    */
   private getLatestCommitSha(): string {
     // fetch the latest commit SHA from GitHub Actions environment variable
-    const sha = process.env.GITHUB_CURRENT_SHA;
+    const sha = process.env.GITHUB_SOURCE_SHA;
     if (!sha) {
-      throw new Error('GITHUB_SHA is not available. Make sure this is run in a GitHub Actions environment.');
+      throw new Error('GITHUB_SOURCE_SHA is not available. Make sure this is run in a GitHub Actions environment.');
     }
     return sha;
   }
