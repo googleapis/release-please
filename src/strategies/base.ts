@@ -39,6 +39,7 @@ import {CompositeUpdater, mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
+import {GenericSha} from '../updaters/generic-sha';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
 import {GenericToml} from '../updaters/generic-toml';
@@ -403,6 +404,13 @@ export abstract class BaseStrategy implements Strategy {
                 path: this.addPath(path),
                 createIfMissing: false,
                 updater: new Generic({version, versionsMap}),
+              });
+              break;
+            case 'sha':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new GenericSha({version, versionsMap}),
               });
               break;
             case 'json':

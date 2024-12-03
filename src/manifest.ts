@@ -53,6 +53,10 @@ type ExtraGenericFile = {
   path: string;
   glob?: boolean;
 };
+type ExtraShaFile = {
+  type: 'sha';
+  path: string;
+};
 type ExtraJsonFile = {
   type: 'json';
   path: string;
@@ -85,6 +89,7 @@ type ExtraTomlFile = {
 export type ExtraFile =
   | string
   | ExtraGenericFile
+  | ExtraShaFile
   | ExtraJsonFile
   | ExtraYamlFile
   | ExtraXmlFile

@@ -211,6 +211,21 @@
                   }
                 },
                 "required": ["type", "path"]
+              },
+              {
+                "description": "An extra arbitrary file that includes release-please sha updater's annotation.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["sha"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "path"]
               }
             ]
           }
