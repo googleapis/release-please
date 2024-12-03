@@ -45,7 +45,7 @@
     "@types/inquirer": "^9.0.3",
     "@types/js-yaml": "^4.0.0",
     "@types/jsonpath": "^0.2.0",
-    "@types/mocha": "^9.0.0",
+    "@types/mocha": "^10.0.0",
     "@types/node": "^18.0.0",
     "@types/npmlog": "^7.0.0",
     "@types/pino": "^7.0.0",
