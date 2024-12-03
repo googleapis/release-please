@@ -21,7 +21,7 @@ const INLINE_UPDATE_REGEX = /x-release-please-(?<scope>sha)/;
 const BLOCK_START_REGEX = /x-release-please-start-sha/;
 const BLOCK_END_REGEX = /x-release-please-end/;
 
-type BlockScope = 'sha' | 'version';;
+type BlockScope = 'sha' | 'version';
 
 /**
  * Options for the Generic updater for commit SHAs.
@@ -71,7 +71,6 @@ export class GenericSha extends DefaultUpdater {
     content: string | undefined,
     logger: Logger = defaultLogger
   ): string {
-    logger.debug(`updateContent: ${content}`)
     if (!content) {
       return '';
     }
@@ -84,12 +83,7 @@ export class GenericSha extends DefaultUpdater {
     function replaceContent(line: string, scope: BlockScope, sha: string, version: string) {
       switch (scope) {
         case 'sha':
-          // replace commit SHA with the latest commit SHA
-          newLines.push(line.replace(COMMIT_SHA_REGEX, sha));
-          return;
-        case 'version':
-          // replace version numbers (e.g., # v1.0.0) with the new version
-          newLines.push(line.replace(VERSION_REGEX, `# v${version}`));
+            newLines.push(line.replace(COMMIT_SHA_REGEX, sha).replace(VERSION_REGEX, `# v${version}`))
           return;
         default:
           logger.warn(`unknown block scope: ${scope}`);
@@ -119,7 +113,7 @@ export class GenericSha extends DefaultUpdater {
           if (match.groups?.scope) {
             blockScope = match.groups.scope as BlockScope;
           } else {
-            blockScope = 'version'; // default to 'version' scope
+            blockScope = 'sha'; // default to 'sha' scope
           }
         }
         newLines.push(line);
