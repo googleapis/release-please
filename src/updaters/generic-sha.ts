@@ -89,7 +89,7 @@ export class GenericSha extends DefaultUpdater {
           return;
         case 'version':
           // replace version numbers (e.g., # v1.0.0) with the new version
-          newLines.push(line.replace(VERSION_REGEX, `# ${version}`));
+          newLines.push(line.replace(VERSION_REGEX, `# v${version}`));
           return;
         default:
           logger.warn(`unknown block scope: ${scope}`);
