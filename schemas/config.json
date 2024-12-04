@@ -82,6 +82,10 @@
           "description": "When tagging a release, include `v` in the tag. Defaults to `false`.",
           "type": "boolean"
         },
+        "tag-head-sha": {
+          "description": "Tag head sha of the PR with the change. Defaults to `false`.",
+          "type": "boolean"
+        },
         "changelog-type": {
           "description": "The type of changelog to use. Defaults to `default`.",
           "type": "string",
@@ -496,6 +500,7 @@
     "snapshot-label": true,
     "initial-version": true,
     "exclude-paths": true,
-    "component-no-space": false
+    "component-no-space": false,
+    "tag-head-sha": false
   }
 }

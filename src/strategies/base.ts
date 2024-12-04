@@ -85,6 +85,7 @@ export interface BaseStrategyOptions {
   logger?: Logger;
   initialVersion?: string;
   extraLabels?: string[];
+  tagHeadSha?: boolean;
 }
 
 /**
@@ -114,6 +115,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly componentNoSpace?: boolean;
   readonly extraFiles: ExtraFile[];
   readonly extraLabels: string[];
+  readonly tagHeadSha?: boolean;
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -149,6 +151,7 @@ export abstract class BaseStrategy implements Strategy {
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
+    this.tagHeadSha = options.tagHeadSha;
   }
 
   /**
@@ -691,11 +694,18 @@ export abstract class BaseStrategy implements Strategy {
       component && this.includeComponentInTag
         ? `${component}: v${version.toString()}`
         : `v${version.toString()}`;
+    const githubSourceSha = process.env.GITHUB_SOURCE_SHA;
+    var newSha = ''
+    if (this.tagHeadSha && githubSourceSha !== undefined) {
+      newSha = githubSourceSha
+    } else {
+      newSha = mergedPullRequest.sha
+    }
     return {
       name: releaseName,
       tag,
       notes: notes || '',
-      sha: mergedPullRequest.sha,
+      sha: newSha,
     };
   }
 
