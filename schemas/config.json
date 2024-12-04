@@ -501,6 +501,6 @@
     "initial-version": true,
     "exclude-paths": true,
     "component-no-space": false,
-    "tag-head-sha": false
+    "tag-head-sha": true
   }
 }
