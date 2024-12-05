@@ -696,7 +696,7 @@ export abstract class BaseStrategy implements Strategy {
         : `v${version.toString()}`;
     const githubSourceSha = process.env.GITHUB_SOURCE_SHA;
     var newSha = ''
-    if (this.tagHeadSha && githubSourceSha !== undefined) {
+    if (githubSourceSha !== undefined) {
       newSha = githubSourceSha
     } else {
       newSha = mergedPullRequest.sha
