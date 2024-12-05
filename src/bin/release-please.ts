@@ -485,7 +485,6 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           versionFile: argv.versionFile,
           includeComponentInTag: argv.monorepoTags,
           includeVInTag: argv.includeVInTags,
-          tagHeadSha: argv.tagHeadSha,
         },
         extractManifestOptions(argv),
         argv.path
