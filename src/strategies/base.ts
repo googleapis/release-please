@@ -39,6 +39,7 @@ import {CompositeUpdater, mergeUpdates} from '../updaters/composite';
 import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
+import {GenericSha} from '../updaters/generic-sha';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
 import {GenericToml} from '../updaters/generic-toml';
@@ -84,6 +85,7 @@ export interface BaseStrategyOptions {
   logger?: Logger;
   initialVersion?: string;
   extraLabels?: string[];
+  tagHeadSha?: boolean;
 }
 
 /**
@@ -113,6 +115,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly componentNoSpace?: boolean;
   readonly extraFiles: ExtraFile[];
   readonly extraLabels: string[];
+  readonly tagHeadSha?: boolean;
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -148,6 +151,7 @@ export abstract class BaseStrategy implements Strategy {
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
+    this.tagHeadSha = options.tagHeadSha;
   }
 
   /**
@@ -403,6 +407,13 @@ export abstract class BaseStrategy implements Strategy {
                 path: this.addPath(path),
                 createIfMissing: false,
                 updater: new Generic({version, versionsMap}),
+              });
+              break;
+            case 'sha':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new GenericSha({version, versionsMap}),
               });
               break;
             case 'json':
@@ -683,11 +694,19 @@ export abstract class BaseStrategy implements Strategy {
       component && this.includeComponentInTag
         ? `${component}: v${version.toString()}`
         : `v${version.toString()}`;
+    const githubSourceSha = process.env.GITHUB_SOURCE_SHA;
+    var newSha = ''
+    if (githubSourceSha !== undefined) {
+      newSha = githubSourceSha
+    } else {
+      newSha = mergedPullRequest.sha
+    }
+    this.logger.info(`tag-head-sha: ${this.tagHeadSha}, SHA used: ${newSha}`)
     return {
       name: releaseName,
       tag,
       notes: notes || '',
-      sha: mergedPullRequest.sha,
+      sha: newSha,
     };
   }
 

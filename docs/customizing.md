@@ -203,6 +203,33 @@ force the [Generic](/src/updaters/generic.ts) updater, you must use type
 }
 ```
 
+If you want to use the [GenericSha](/src/updaters/generic-sha.ts) updater, you must use type
+`"sha"`. This updater updates your commit sha reference, together with your version (if exists).
+
+You can annotate a line (inline) via:
+
+* `x-release-please-sha`
+
+For these annotations, we will try to replace the value on that line only.
+
+You can annotate a block by starting with a line containing:
+
+* `x-release-please-start-sha`
+
+and close the block with a line containing `x-release-please-end`. Within
+the block, we will attempt to replace version values.
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "sha",
+      "path": "path/to/file.yml"
+    }
+  ]
+}
+```
+
 ## Updating arbitrary JSON files
 
 For files with the `.json` extension, the `version` property is updated.

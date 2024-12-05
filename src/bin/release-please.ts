@@ -431,6 +431,12 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
         'release-please automatically adds ` ` (space) in front of parsed ${component}. Should this be disabled?',
       type: 'boolean',
       default: false,
+    })
+    .option('tag-head-sha', {
+      describe:
+        'tag the head of the branch with the updated code - not the squashed commit',
+      type: 'boolean',
+      default: false,
     });
 }
 
