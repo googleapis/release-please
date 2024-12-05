@@ -1765,6 +1765,7 @@ function mergeReleaserConfig(
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    tagHeadSha: pathConfig.tagHeadSha ?? defaultConfig.tagHeadSha,
   };
 }
 
