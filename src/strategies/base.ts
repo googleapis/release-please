@@ -701,6 +701,7 @@ export abstract class BaseStrategy implements Strategy {
     } else {
       newSha = mergedPullRequest.sha
     }
+    this.logger.info(`tag-head-sha: ${this.tagHeadSha}, SHA used: ${newSha}`)
     return {
       name: releaseName,
       tag,
