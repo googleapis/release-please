@@ -24,7 +24,7 @@
           "description": "Configuration option for the prerelease versioning strategy. If prerelease strategy used and type set, will set the prerelease part of the version to the provided value in case prerelease part is not present.",
           "type": "string"
         },
-        "versioning": {
+        "versioning-strategy": {
           "description": "Versioning strategy. Defaults to `default`",
           "type": "string"
         },
