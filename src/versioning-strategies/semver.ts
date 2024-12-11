@@ -1,33 +1,30 @@
 import * as semver from 'semver';
 import {Version} from '../version';
 import {VersionUpdater} from '../versioning-strategy';
+import {ConventionalCommit} from '../commit';
 
-interface Commit {
-  type: string;
-  breaking: boolean;
-}
-
-const inc = (version: string, type: semver.ReleaseType, _tag?: string) => {
+const inc = (version: string, release: semver.ReleaseType, _preid?: string) => {
   const parsed = new semver.SemVer(version);
-  const implicitTag =
+  const implicitPreid =
     parsed.prerelease.length > 1 ? parsed.prerelease[0]?.toString() : undefined;
-  const tag = _tag || implicitTag;
-  const next = new semver.SemVer(version).inc(type, tag);
+  const preid = _preid || implicitPreid;
+  const next = new semver.SemVer(version).inc(release, preid);
+  if (!parsed.prerelease.length) {
+    return next.format();
+  }
   const isFreshMajor = parsed.minor === 0 && parsed.patch === 0;
   const isFreshMinor = parsed.patch === 0;
-  if (
-    parsed.prerelease.length &&
-    next.prerelease.length &&
-    ((type === 'premajor' && isFreshMajor) ||
-      (type === 'preminor' && isFreshMinor) ||
-      type === 'prepatch')
-  ) {
-    return semver.inc(version, 'prerelease', tag);
+  const shouldPrerelease =
+    (release === 'premajor' && isFreshMajor) ||
+    (release === 'preminor' && isFreshMinor) ||
+    release === 'prepatch';
+  if (shouldPrerelease) {
+    return semver.inc(version, 'prerelease', preid);
   }
-  return semver.inc(version, type, tag);
+  return next.format();
 };
 
-const parseCommits = (commits: Commit[]) => {
+const parseCommits = (commits: ConventionalCommit[]) => {
   let release: semver.ReleaseType = 'patch';
   for (const commit of commits) {
     if (commit.breaking) {
@@ -40,24 +37,38 @@ const parseCommits = (commits: Commit[]) => {
   return release;
 };
 
+type SemverOptions = {prerelease?: boolean; prereleaseType?: string};
+
+class SemverVersioningStrategyNested {
+  constructor(
+    public options: SemverOptions,
+    public version: Version,
+    public commits: ConventionalCommit[]
+  ) {}
+
+  bump() {
+    return new SemverVersioningStrategy(this.options).bump(
+      this.version,
+      this.commits
+    );
+  }
+}
+
 class SemverVersioningStrategy {
-  options: {prerelease?: boolean; prereleaseType?: string};
+  options: SemverOptions;
 
   constructor(options: {prerelease?: boolean; prereleaseType?: string}) {
     this.options = options;
   }
 
-  determineReleaseType(_version: Version, _commits: Commit[]): VersionUpdater {
-    const options = this.options;
-    class Shell implements VersionUpdater {
-      bump(_version: Version) {
-        return new SemverVersioningStrategy(options).bump(_version, _commits);
-      }
-    }
-    return new Shell();
+  determineReleaseType(
+    version: Version,
+    commits: ConventionalCommit[]
+  ): VersionUpdater {
+    return new SemverVersioningStrategyNested(this.options, version, commits);
   }
 
-  bump(currentVersion: Version, commits: Commit[]): Version {
+  bump(currentVersion: Version, commits: ConventionalCommit[]): Version {
     const prerelease = this.options.prerelease;
     const tag = this.options.prereleaseType;
     const releaseType = parseCommits(commits);
