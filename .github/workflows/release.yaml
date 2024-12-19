@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Clean
+        run: rm -rf ./build
+
       - name: Compile
         run: pnpm build
 
