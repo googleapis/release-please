@@ -37,7 +37,7 @@ interface Change {
 }
 
 /**
- * Maintians a machine readable CHANGELOG in chnagelog.json.
+ * Maintains a machine readable CHANGELOG in chnagelog.json.
  * See: https://gist.github.com/bcoe/50ef0a0024bbf107cd5bc0adbdc04758
  */
 export class ChangelogJson extends DefaultUpdater {
