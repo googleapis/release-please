@@ -1,0 +1,9 @@
+go 1.23.1
+
+use (
+	./packages/goA
+	./packages/goB
+	./packages/goC
+	./packages/goD
+	./packages/goE
+)
