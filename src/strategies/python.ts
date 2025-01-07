@@ -105,7 +105,15 @@ export class Python extends BaseStrategy {
     if (!projectName) {
       this.logger.warn('No project/component found.');
     } else {
-      [projectName, projectName.replace(/-/g, '_')]
+      if (this.versionFile) {
+        const versionFilePath = this.addPath(this.versionFile);
+        updates.push({
+          path: versionFilePath,
+          createIfMissing: true,
+          updater: new PythonFileWithVersion({version}),
+        });
+      } else {
+        [projectName, projectName.replace(/-/g, '_')]
         .flatMap(packageName => [
           `${packageName}/__init__.py`,
           `src/${packageName}/__init__.py`,
@@ -117,6 +125,7 @@ export class Python extends BaseStrategy {
             updater: new PythonFileWithVersion({version}),
           })
         );
+      }
     }
 
     // There should be only one version.py, but foreach in case that is incorrect

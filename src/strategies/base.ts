@@ -113,6 +113,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly componentNoSpace?: boolean;
   readonly extraFiles: ExtraFile[];
   readonly extraLabels: string[];
+  readonly versionFile?: string;
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -148,6 +149,7 @@ export abstract class BaseStrategy implements Strategy {
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
+    this.versionFile = options.versionFile;
   }
 
   /**
