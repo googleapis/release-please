@@ -90,6 +90,18 @@ describe('parseConventionalCommits', () => {
     expect(conventionalCommits[0].references[0].action).to.eql('Fixes');
   });
 
+  it('parse commits with code examples', async () => {
+    const commits = [buildCommitFromFixture('bug-with-code')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.eql('fix');
+    expect(conventionalCommits[0].breaking).to.be.false;
+    expect(conventionalCommits[0].references).lengthOf(1);
+    expect(conventionalCommits[0].references[0].prefix).to.eql('#');
+    expect(conventionalCommits[0].references[0].issue).to.eql('123');
+    expect(conventionalCommits[0].references[0].action).to.eql('Fixes');
+  });
+
   it('captures git trailers', async () => {
     const commits = [buildCommitFromFixture('git-trailers-with-breaking')];
     const conventionalCommits = parseConventionalCommits(commits);
