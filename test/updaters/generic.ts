@@ -36,5 +36,18 @@ describe('Generic', () => {
       const newContent = pom.updateContent(oldContent);
       snapshot(newContent);
     });
+    it('can update multiple occurances of a versions per line', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './README-java-multiple-versions-per-lint.md'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      const updater = new Generic({
+        versionsMap: versions,
+        version: Version.parse('0.1.0-alpha.9'),
+      });
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
