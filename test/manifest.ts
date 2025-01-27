@@ -1675,6 +1675,39 @@ describe('Manifest', () => {
         );
       });
 
+      it('should identify prerelease bumps as such', async () => {
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            '.': {
+              releaseType: 'simple',
+              versioning: 'prerelease',
+            },
+          },
+          {
+            '.': Version.parse('0.1.0-alpha.28'),
+          }
+        );
+        const pullRequests = await manifest.buildPullRequests([], []);
+        expect(pullRequests).lengthOf(1);
+        const pullRequest = pullRequests[0];
+        expect(pullRequest.version?.toString()).to.eql('0.1.0-alpha.29');
+        expect(pullRequest.previousVersion?.toString()).to.eql(
+          '0.1.0-alpha.28'
+        );
+        expect(
+          pullRequest.version!.compareBump(pullRequest.previousVersion!)
+        ).to.eql('preRelease');
+        // simple release type updates the changelog and version.txt
+        assertHasUpdate(pullRequest.updates, 'CHANGELOG.md');
+        assertHasUpdate(pullRequest.updates, 'version.txt');
+        assertHasUpdate(pullRequest.updates, '.release-please-manifest.json');
+        expect(pullRequest.headRefName).to.eql(
+          'release-please--branches--main'
+        );
+      });
+
       it('should honour the manifestFile argument in Manifest.fromManifest', async () => {
         const getFileContentsStub = sandbox
           .stub(github, 'getFileContentsOnBranch')

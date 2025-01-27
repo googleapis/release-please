@@ -83,7 +83,9 @@ export class Version {
     return `${this.major}.${this.minor}.${this.patch}${preReleasePart}${buildPart}`;
   }
 
-  compareBump(other: Version): 'major' | 'minor' | 'patch' | 'build' | 'none' {
+  compareBump(
+    other: Version
+  ): 'major' | 'minor' | 'patch' | 'build' | 'preRelease' | 'none' {
     if (this.major !== other.major) {
       return 'major';
     }
@@ -95,6 +97,9 @@ export class Version {
     }
     if (this.build !== other.build) {
       return 'build';
+    }
+    if (this.preRelease !== other.preRelease) {
+      return 'preRelease';
     }
     return 'none';
   }
