@@ -86,6 +86,7 @@ interface ManifestConfigArgs {
 interface ReleaseArgs {
   draft?: boolean;
   prerelease?: boolean;
+  forcePrerelease?: boolean;
   releaseLabel?: string;
   prereleaseLabel?: string;
   snapshotLabel?: string;
@@ -580,6 +581,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
           packageName: argv.packageName,
           draft: argv.draft,
           prerelease: argv.prerelease,
+          forcePrerelease: argv.forcePrerelease,
           includeComponentInTag: argv.monorepoTags,
           includeVInTag: argv.includeVInTags,
         },

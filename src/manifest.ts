@@ -104,6 +104,7 @@ export interface ReleaserConfig {
   skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release
   draft?: boolean;
   prerelease?: boolean;
+  forcePrerelease?: boolean;
   draftPullRequest?: boolean;
   component?: string;
   packageName?: string;
@@ -159,6 +160,7 @@ interface ReleaserConfigJson {
   'skip-github-release'?: boolean;
   draft?: boolean;
   prerelease?: boolean;
+  forcePrerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
   'release-label'?: string;
@@ -200,6 +202,7 @@ export interface ManifestOptions {
   sequentialCalls?: boolean;
   draft?: boolean;
   prerelease?: boolean;
+  forcePrerelease?: boolean;
   draftPullRequest?: boolean;
   groupPullRequestTitlePattern?: string;
   releaseSearchDepth?: number;
@@ -1301,6 +1304,7 @@ export class Manifest {
             draft: config.draft ?? this.draft,
             prerelease:
               hasPrereleaseLabel ||
+              config.forcePrerelease ||
               (config.prerelease && !!release.tag.version.preRelease),
           });
         }
@@ -2136,6 +2140,8 @@ function mergeReleaserConfig(
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
     draft: pathConfig.draft ?? defaultConfig.draft,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,
+    forcePrerelease:
+      pathConfig.forcePrerelease ?? defaultConfig.forcePrerelease,
     component: pathConfig.component ?? defaultConfig.component,
     packageName: pathConfig.packageName ?? defaultConfig.packageName,
     versionFile: pathConfig.versionFile ?? defaultConfig.versionFile,
