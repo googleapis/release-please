@@ -55,5 +55,21 @@ describe('go.mod', () => {
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
+    it('updates a commit dependency', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './go.mod'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updatedVersions = new Map();
+      updatedVersions.set('example.com/car/dar', Version.parse('v0.1.2'));
+
+      const updater = new GoMod({
+        version: Version.parse('v2.3.4'),
+        versionsMap: updatedVersions,
+      });
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+      expect(newContent).to.include('example.com/car/dar v0.1.2 // indirect');
+    });
   });
 });
