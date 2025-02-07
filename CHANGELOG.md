@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.16.0](https://github.com/googleapis/release-please/compare/v16.15.0...v16.16.0) (2025-02-07)
+
+
+### Features
+
+* add strategy for R packages ([#2436](https://github.com/googleapis/release-please/issues/2436)) ([2b5ff3b](https://github.com/googleapis/release-please/commit/2b5ff3b5d7b5c8546bb112149908e150e9eba680))
+
 ## [16.15.0](https://github.com/googleapis/release-please/compare/v16.14.4...v16.15.0) (2024-11-13)
 
 
