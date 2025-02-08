@@ -18,6 +18,7 @@ import {logger as defaultLogger, Logger} from '../util/logger';
 
 const VERSION_REGEX =
   /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[\w.]+))?(\+(?<build>[-\w.]+))?/;
+const MAJOR_VERSION_REGEX = /\d+\b/
 const SINGLE_VERSION_REGEX = /\b\d+\b/;
 const INLINE_UPDATE_REGEX =
   /x-release-please-(?<scope>major|minor|patch|version)/;
@@ -91,7 +92,7 @@ export class Generic extends DefaultUpdater {
     function replaceVersion(line: string, scope: BlockScope, version: Version) {
       switch (scope) {
         case 'major':
-          newLines.push(line.replace(SINGLE_VERSION_REGEX, `${version.major}`));
+          newLines.push(line.replace(MAJOR_VERSION_REGEX, `${version.major}`));
           return;
         case 'minor':
           newLines.push(line.replace(SINGLE_VERSION_REGEX, `${version.minor}`));
