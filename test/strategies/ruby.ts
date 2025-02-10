@@ -97,9 +97,19 @@ describe('Ruby', () => {
         latestRelease,
       });
       const updates = release!.updates;
-      expect(updates).lengthOf(3);
+      expect(updates).lengthOf(5);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/google/cloud/automl/version.rb', VersionRB);
+      assertHasUpdate(
+        updates,
+        'sig/lib/google/cloud/automl/version.rbs',
+        VersionRB
+      );
+      assertHasUpdate(
+        updates,
+        'rbi/lib/google/cloud/automl/version.rbi',
+        VersionRB
+      );
       assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
     });
     it('allows overriding version file', async () => {
@@ -115,9 +125,11 @@ describe('Ruby', () => {
         latestRelease,
       });
       const updates = release!.updates;
-      expect(updates).lengthOf(3);
+      expect(updates).lengthOf(5);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/foo/version.rb', VersionRB);
+      assertHasUpdate(updates, 'sig/lib/foo/version.rbs', VersionRB);
+      assertHasUpdate(updates, 'rbi/lib/foo/version.rbi', VersionRB);
       assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
     });
     // TODO: add tests for tag separator

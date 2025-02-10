@@ -50,8 +50,25 @@ export class Ruby extends BaseStrategy {
     const versionFile: string = this.versionFile
       ? this.versionFile
       : `lib/${(this.component || '').replace(/-/g, '/')}/version.rb`;
+
     updates.push({
       path: this.addPath(versionFile),
+      createIfMissing: false,
+      updater: new VersionRB({
+        version,
+      }),
+    });
+
+    updates.push({
+      path: `rbi/${versionFile}i`,
+      createIfMissing: false,
+      updater: new VersionRB({
+        version,
+      }),
+    });
+
+    updates.push({
+      path: `sig/${versionFile}s`,
       createIfMissing: false,
       updater: new VersionRB({
         version,
@@ -63,7 +80,11 @@ export class Ruby extends BaseStrategy {
       createIfMissing: false,
       updater: new GemfileLock({
         version,
-        gemName: this.component || '',
+        gemName:
+          this.component ||
+          // grab the gem name from the version file path if it's not provided via the component
+          this.versionFile.match(/lib\/(.*)\/version.rb/)?.[1] ||
+          '',
       }),
     });
 
