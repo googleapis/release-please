@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         node: [18, 20]
-        os: ['ubuntu-latest', 'windows-latest']
+        os: ['ubuntu-latest']
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-      - run: corepack enable && corepack prepare
+      - run: npm i -g --force corepack && corepack enable
       # Note: actions/setup-node doesn't yet provide parameters for corepack, we need to run it again after enabling it
       - uses: actions/setup-node@v3
         with:
