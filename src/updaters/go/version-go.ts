@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ import {DefaultUpdater} from '../default';
 export class VersionGo extends DefaultUpdater {
   updateContent(content: string): string {
     return content.replace(
-      /const Version = "[0-9]+\.[0-9]+\.[0-9](-\w+)?"/,
+      /const Version = "\d+\.\d+\.\d\S*"/,
       `const Version = "${this.version.toString()}"`
     );
   }

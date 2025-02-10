@@ -23,6 +23,7 @@ import {GitHub} from '../github';
 import {ManifestPlugin} from '../plugin';
 import {LinkedVersions} from '../plugins/linked-versions';
 import {CargoWorkspace} from '../plugins/cargo-workspace';
+import {GoWorkspace} from '../plugins/go-workspace';
 import {NodeWorkspace} from '../plugins/node-workspace';
 import {VersioningStrategyType} from './versioning-strategy-factory';
 import {MavenWorkspace} from '../plugins/maven-workspace';
@@ -48,6 +49,9 @@ export interface PluginFactoryOptions {
   updateAllPackages?: boolean;
   considerAllArtifacts?: boolean;
 
+  // go options
+  goWorkFile?: string;
+
   logger?: Logger;
 }
 
@@ -70,6 +74,19 @@ const pluginFactories: Record<string, PluginBuilder> = {
     ),
   'cargo-workspace': options =>
     new CargoWorkspace(
+      options.github,
+      options.targetBranch,
+      options.repositoryConfig,
+      {
+        ...options,
+        ...(options.type as WorkspacePluginOptions),
+        merge:
+          (options.type as WorkspacePluginOptions).merge ??
+          !options.separatePullRequests,
+      }
+    ),
+  'go-workspace': options =>
+    new GoWorkspace(
       options.github,
       options.targetBranch,
       options.repositoryConfig,
