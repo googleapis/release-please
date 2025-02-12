@@ -21,6 +21,15 @@ public final class Version {
   public static String VERSION = "2.3.4";
   // {x-release-please-end}
 
+  // {x-release-please-start-date}
+  public static String DATE = "01-12-2023";
+  // {x-release-please-end}
+ 
+  // {x-release-please-start-version-date}
+  public static String NEW_DATE = "01-12-2023";
+  public static String NEW_VERSION = "2.3.4";
+  // {x-release-please-end}
+
   // {x-release-please-start-major}
   public static String MAJOR = "2";
   // {x-release-please-end}
@@ -37,6 +46,9 @@ public final class Version {
   public static String INLINE_MAJOR = "2"; // {x-release-please-major}
   public static String INLINE_MINOR = "3"; // {x-release-please-minor}
   public static String INLINE_PATCH = "4"; // {x-release-please-patch}
+
+  public static String RELEASE_DATE = "01-12-2023"; // {x-release-please-date}
+  public static String RELEASE_INFO = "v2.3.4 01-12-2023"; // {x-release-please-version-date}
 }
 
 `
