@@ -36,7 +36,7 @@ import {BranchName} from '../util/branch-name';
 import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {PullRequest} from '../pull-request';
 import {CompositeUpdater, mergeUpdates} from '../updaters/composite';
-import {Generic} from '../updaters/generic';
+import {DEFAULT_DATE_FORMAT, Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
@@ -150,7 +150,7 @@ export abstract class BaseStrategy implements Strategy {
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
-    this.dateFormat = options.dateFormat || '%Y-%m-%d';
+    this.dateFormat = options.dateFormat || DEFAULT_DATE_FORMAT;
   }
 
   /**

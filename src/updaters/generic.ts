@@ -25,6 +25,7 @@ const BLOCK_START_REGEX =
   /x-release-please-start-(?<scope>major|minor|patch|version-date|version|date)/;
 const BLOCK_END_REGEX = /x-release-please-end/;
 const DATE_FORMAT_REGEX = /%[Ymd]/g;
+export const DEFAULT_DATE_FORMAT = '%Y-%m-%d';
 
 type BlockScope =
   | 'major'
@@ -86,7 +87,7 @@ export class Generic extends DefaultUpdater {
     this.blockStartRegex = options.blockStartRegex ?? BLOCK_START_REGEX;
     this.blockEndRegex = options.blockEndRegex ?? BLOCK_END_REGEX;
     this.date = options.date ?? new Date();
-    this.dateFormat = options.dateFormat ?? '%Y-%m-%d';
+    this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
   }
 
   /**
