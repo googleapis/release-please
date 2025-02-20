@@ -122,6 +122,7 @@ export interface ReleaserConfig {
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
+  dateFormat?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -183,6 +184,7 @@ interface ReleaserConfigJson {
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
+  'date-format'?: string;
 }
 
 export interface ManifestOptions {
@@ -207,6 +209,7 @@ export interface ManifestOptions {
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   logger?: Logger;
+  dateFormat?: string;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -1397,6 +1400,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    dateFormat: config['date-format'],
   };
 }
 
@@ -1755,6 +1759,7 @@ function mergeReleaserConfig(
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    dateFormat: pathConfig.dateFormat ?? defaultConfig.dateFormat,
   };
 }
 

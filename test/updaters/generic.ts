@@ -29,9 +29,12 @@ describe('Generic', () => {
         'utf8'
       ).replace(/\r\n/g, '\n');
       const versions = new Map<string, Version>();
+      const currentDate = new Date(Date.parse('2023-12-01'));
       const pom = new Generic({
         versionsMap: versions,
         version: Version.parse('v2.3.4'),
+        date: currentDate,
+        dateFormat: '%d-%m-%Y',
       });
       const newContent = pom.updateContent(oldContent);
       snapshot(newContent);
