@@ -82,6 +82,10 @@
           "description": "When tagging a release, include `v` in the tag. Defaults to `false`.",
           "type": "boolean"
         },
+        "tag-head-sha": {
+          "description": "Tag head sha of the PR with the change. Defaults to `false`.",
+          "type": "boolean"
+        },
         "changelog-type": {
           "description": "The type of changelog to use. Defaults to `default`.",
           "type": "string",
@@ -208,6 +212,21 @@
                   "glob": {
                     "description": "Whether to treat the path as a glob. Defaults to `false`.",
                     "type": "boolean"
+                  }
+                },
+                "required": ["type", "path"]
+              },
+              {
+                "description": "An extra arbitrary file that includes release-please sha updater's annotation.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["sha"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
                   }
                 },
                 "required": ["type", "path"]
@@ -481,6 +500,7 @@
     "snapshot-label": true,
     "initial-version": true,
     "exclude-paths": true,
-    "component-no-space": false
+    "component-no-space": false,
+    "tag-head-sha": true
   }
 }

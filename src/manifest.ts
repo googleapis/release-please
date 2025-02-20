@@ -53,6 +53,11 @@ type ExtraGenericFile = {
   path: string;
   glob?: boolean;
 };
+type ExtraShaFile = {
+  type: 'sha';
+  path: string;
+  glob?: boolean;
+};
 type ExtraJsonFile = {
   type: 'json';
   path: string;
@@ -85,6 +90,7 @@ type ExtraTomlFile = {
 export type ExtraFile =
   | string
   | ExtraGenericFile
+  | ExtraShaFile
   | ExtraJsonFile
   | ExtraYamlFile
   | ExtraXmlFile
@@ -137,6 +143,8 @@ export interface ReleaserConfig {
   skipSnapshot?: boolean;
   // Manifest only
   excludePaths?: string[];
+
+  tagHeadSha?: boolean;
 }
 
 export interface CandidateReleasePullRequest {
@@ -183,6 +191,7 @@ interface ReleaserConfigJson {
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
+  'tag-head-sha'?: boolean;
 }
 
 export interface ManifestOptions {
@@ -1397,6 +1406,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    tagHeadSha: config['tag-head-sha'],
   };
 }
 
@@ -1755,6 +1765,7 @@ function mergeReleaserConfig(
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    tagHeadSha: pathConfig.tagHeadSha ?? defaultConfig.tagHeadSha,
   };
 }
 
