@@ -217,7 +217,7 @@ Options:
   --latest-tag-name                 Override the detected latest tag name
                                                                         [string]
   --date-format                     format in strftime format for updating dates
-                                                             [default: "string"]
+                                                                        [string]
   --label                           comma-separated list of labels to add to
                                     from release PR
                                                [default: "autorelease: pending"]
