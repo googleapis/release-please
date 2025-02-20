@@ -348,7 +348,7 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
     })
     .option('date-format', {
       describe: 'format in strftime format for updating dates',
-      default: 'string',
+      type: 'string',
     })
     .middleware(_argv => {
       const argv = _argv as CreatePullRequestArgs;
