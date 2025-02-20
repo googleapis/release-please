@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.17.0](https://github.com/googleapis/release-please/compare/v16.16.0...v16.17.0) (2025-02-20)
+
+
+### Features
+
+* allow date updating in generic strategy ([#2440](https://github.com/googleapis/release-please/issues/2440)) ([3099091](https://github.com/googleapis/release-please/commit/3099091bb6787e49fe36e289db36ac01a71af2c3))
+
 ## [16.16.0](https://github.com/googleapis/release-please/compare/v16.15.0...v16.16.0) (2025-02-19)
 
 
