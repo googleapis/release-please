@@ -194,7 +194,7 @@ Release Please automates releases for the following flavors of repositories:
 | `expo`              | [An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md](https://github.com/dmi3y/expo-release-please-example) |
 | `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | `php`               | A repository with a composer.json and a CHANGELOG.md |
-| `python`            | [A Python repository, with a setup.py, setup.cfg, CHANGELOG.md](https://github.com/googleapis/python-storage) and optionally a pyproject.toml and a &lt;project&gt;/\_\_init\_\_.py |
+| `python`            | [A Python repository with a pyproject.toml, &lt;project&gt;/\_\_init\_\_.py, CHANGELOG.md or optionally a [setup.py, setup.cfg](https://github.com/googleapis/python-storage) |
 | `R`               | A repository with a DESCRIPTION and a NEWS.md |
 | `ruby`              | A repository with a version.rb and a CHANGELOG.md |
 | `rust`              | A Rust repository, with a Cargo.toml (either as a crate or workspace, although note that workspaces require a [manifest driven release](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md) and the "cargo-workspace" plugin) and a CHANGELOG.md |
