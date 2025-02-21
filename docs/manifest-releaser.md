@@ -154,7 +154,7 @@ defaults (those are documented in comments)
 
   // see Plugins section below
   // absence defaults to [] (i.e. no plugins)
-  "plugins": ["node-workspace", "cargo-workspace"],
+  "plugins": ["node-workspace", "cargo-workspace", "go-workspace"],
 
   // optional top-level defaults that can be overridden per package:
 
@@ -540,6 +540,30 @@ with the manifest releaser (`manifest-pr` / `manifest-release` commands), it
 does _not_ update the dependencies, and the `cargo-workspace` plug-in must be
 used to update dependencies and bump all dependents — this is the recommended
 way of managing a Rust monorepo with release-please.
+
+### go-workspace
+
+The `go-workspace` plugin operates similarly to the `node-workspace` and
+`cargo-workspace` plugins, but on a Go workspace. It builds a dependency graph of
+all modules in a workspace and updates any modules that depends
+(directly or transitively) on the changed module. The workspace dependencies in
+`go.mod` files are updated accordingly.
+
+#### go.work in a non-default location
+
+By default, the `go.work` file is expected to be in the root. Set `"goWorkFile"`
+to a custom path to use a file in a different location.
+
+```
+{
+  "plugins": [
+    {
+      "type": "go-workspace",
+      "goWorkFile": "/path/to/filename"
+    }
+  ]
+}
+```
 
 ### maven-workspace
 
