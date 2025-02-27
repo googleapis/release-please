@@ -55,6 +55,7 @@ import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
 import {MavenWorkspace} from '../src/plugins/maven-workspace';
+import {GoWorkspace} from '../src/plugins/go-workspace';
 
 nock.disableNetConnect();
 
@@ -556,9 +557,10 @@ describe('Manifest', () => {
         github,
         github.repository.defaultBranch
       );
-      expect(manifest.plugins).lengthOf(2);
+      expect(manifest.plugins).lengthOf(3);
       expect(manifest.plugins[0]).instanceOf(NodeWorkspace);
       expect(manifest.plugins[1]).instanceOf(CargoWorkspace);
+      expect(manifest.plugins[2]).instanceOf(GoWorkspace);
     });
     it('should build complex plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(

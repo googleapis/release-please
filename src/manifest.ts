@@ -238,6 +238,9 @@ export interface WorkspacePluginConfig extends ConfigurablePluginType {
 export interface NodeWorkspacePluginConfig extends WorkspacePluginConfig {
   updatePeerDependencies?: boolean;
 }
+export interface GoWorkspacePluginConfig extends WorkspacePluginConfig {
+  goWorkFile?: string;
+}
 export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
   groups: string[];
 }
@@ -248,7 +251,8 @@ export type PluginType =
   | LinkedVersionPluginConfig
   | SentenceCasePluginConfig
   | WorkspacePluginConfig
-  | NodeWorkspacePluginConfig;
+  | NodeWorkspacePluginConfig
+  | GoWorkspacePluginConfig;
 
 /**
  * This is the schema of the manifest config json
@@ -339,6 +343,7 @@ export class Manifest {
    *   plugin
    * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
+   * @param {string} manifestOptions.goWorkFile Option for the go-workspace plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
    * @param {boolean} manifestOptions.alwaysUpdate If true, always updates pull requests instead of
@@ -460,6 +465,7 @@ export class Manifest {
    *   plugin
    * @param {boolean} manifestOptions.updatePeerDependencies Option for the node-workspace
    *   plugin
+   * @param {string} manifestOptions.goWorkFile Option for the go-workspace plugin
    * @param {boolean} manifestOptions.separatePullRequests If true, create separate pull
    *   requests instead of a single manifest release pull request
    * @param {PluginType[]} manifestOptions.plugins Any plugins to use for this repository

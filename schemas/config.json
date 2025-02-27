@@ -331,7 +331,8 @@
                     "type": "string",
                     "enum": [
                       "cargo-workspace",
-                      "maven-workspace"
+                      "maven-workspace",
+                      "go-workspace"
                     ]
                   },
                   "updateAllPackages": {
@@ -374,6 +375,10 @@
                   "updatePeerDependencies": {
                     "description": "Also bump peer dependency versions if they are modified. Defaults to `false`.",
                     "type": "boolean"
+                  },
+                  "goWorkFile": {
+                    "description": "Path to the go.work file. Defaults to `go.work`.",
+                    "type": "string"
                   }
                 }
               },
