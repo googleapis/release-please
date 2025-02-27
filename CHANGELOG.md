@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.18.0](https://github.com/googleapis/release-please/compare/v16.17.0...v16.18.0) (2025-02-27)
+
+
+### Features
+
+* Manifest.createRelease to return PR numbers ([#2491](https://github.com/googleapis/release-please/issues/2491)) ([0f07691](https://github.com/googleapis/release-please/commit/0f076910c719b8dc8563936039b0708567811049))
+
 ## [16.17.0](https://github.com/googleapis/release-please/compare/v16.16.0...v16.17.0) (2025-02-20)
 
 
