@@ -70,7 +70,7 @@
     "@google-automations/git-file-utils": "^2.0.0",
     "@iarna/toml": "^3.0.0",
     "@octokit/graphql": "^5.0.0",
-    "@octokit/request": "^6.0.0",
+    "@octokit/request": "^8.0.0",
     "@octokit/request-error": "^3.0.0",
     "@octokit/rest": "^19.0.0",
     "@types/npm-package-arg": "^6.1.0",
