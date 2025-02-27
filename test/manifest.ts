@@ -5906,6 +5906,7 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.eql('some release notes');
       expect(releases[0]!.path).to.eql('.');
+      expect(releases[0]!.prNumber).to.eql(1234);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -6012,18 +6013,22 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
       expect(releases[0]!.path).to.eql('packages/bot-config-utils');
+      expect(releases[0]!.prNumber).to.eql(1234);
       expect(releases[1]!.tagName).to.eql('label-utils-v1.1.0');
       expect(releases[1]!.sha).to.eql('abc123');
       expect(releases[1]!.notes).to.be.string;
       expect(releases[1]!.path).to.eql('packages/label-utils');
+      expect(releases[1]!.prNumber).to.eql(1234);
       expect(releases[2]!.tagName).to.eql('object-selector-v1.1.0');
       expect(releases[2]!.sha).to.eql('abc123');
       expect(releases[2]!.notes).to.be.string;
       expect(releases[2]!.path).to.eql('packages/object-selector');
+      expect(releases[2]!.prNumber).to.eql(1234);
       expect(releases[3]!.tagName).to.eql('datastore-lock-v2.1.0');
       expect(releases[3]!.sha).to.eql('abc123');
       expect(releases[3]!.notes).to.be.string;
       expect(releases[3]!.path).to.eql('packages/datastore-lock');
+      expect(releases[3]!.prNumber).to.eql(1234);
       sinon.assert.callCount(commentStub, 1);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -6080,6 +6085,7 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
       expect(releases[0]!.path).to.eql('.');
+      expect(releases[0]!.prNumber).to.eql(1234);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,

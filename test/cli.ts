@@ -368,6 +368,7 @@ describe('CLI', () => {
             major: 1,
             minor: 2,
             patch: 3,
+            prNumber: 123,
           },
         ]);
     });
@@ -1178,6 +1179,7 @@ describe('CLI', () => {
               major: 1,
               minor: 2,
               patch: 3,
+              prNumber: 123,
             },
           ]);
       });
@@ -1352,6 +1354,7 @@ describe('CLI', () => {
               major: 1,
               minor: 2,
               patch: 3,
+              prNumber: 123,
             },
           ]);
       });
