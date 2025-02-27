@@ -41,6 +41,7 @@ import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {Commit} from '../src/commit';
 import {mockReleaseData, MockPullRequestOverflowHandler} from './helpers';
+const fetch = require('node-fetch');
 
 const fixturesPath = './test/fixtures';
 const sandbox = sinon.createSandbox();
@@ -65,6 +66,7 @@ describe('GitHub', () => {
       owner: 'fake',
       repo: 'fake',
       defaultBranch: 'main',
+      fetch,
     });
 
     // This shared nock will take care of some common requests.
@@ -80,6 +82,7 @@ describe('GitHub', () => {
         owner: 'some-owner',
         repo: 'some-repo',
         defaultBranch: 'some-branch',
+        fetch,
       });
       expect(github.repository.defaultBranch).to.eql('some-branch');
     });
@@ -91,6 +94,7 @@ describe('GitHub', () => {
       const github = await GitHub.create({
         owner: 'some-owner',
         repo: 'some-repo',
+        fetch,
       });
 
       expect(github.repository.defaultBranch).to.eql('some-branch-from-api');

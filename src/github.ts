@@ -82,6 +82,7 @@ interface GitHubCreateOptions {
   token?: string;
   logger?: Logger;
   proxy?: ProxyOption;
+  fetch?: any;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -255,6 +256,7 @@ export class GitHub {
         auth: options.token,
         request: {
           agent: this.createDefaultAgent(apiUrl, options.proxy),
+          fetch: options.fetch,
         },
       }),
       request: request.defaults({
@@ -263,11 +265,13 @@ export class GitHub {
           'user-agent': `release-please/${releasePleaseVersion}`,
           Authorization: `token ${options.token}`,
         },
+        fetch: options.fetch,
       }),
       graphql: graphql.defaults({
         baseUrl: graphqlUrl,
         request: {
           agent: this.createDefaultAgent(graphqlUrl, options.proxy),
+          fetch: options.fetch,
         },
         headers: {
           'user-agent': `release-please/${releasePleaseVersion}`,

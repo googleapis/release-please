@@ -20,6 +20,7 @@ import {PullRequestBody} from '../../src/util/pull-request-body';
 import {Version} from '../../src/version';
 import {GitHubChangelogNotes} from '../../src/changelog-notes/github';
 import {GitHub} from '../../src/github';
+const fetch = require('node-fetch');
 
 nock.disableNetConnect();
 
@@ -75,6 +76,7 @@ describe('GitHubChangelogNotes', () => {
         repo: 'fake-repo',
         defaultBranch: 'main',
         token: 'fake-token',
+        fetch,
       });
       nock('https://api.github.com/')
         .post('/repos/fake-owner/fake-repo/releases/generate-notes')
