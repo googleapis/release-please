@@ -1,4 +1,4 @@
-// Copyright 2020 Google LLC
+// Copyright 2020-2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import {Changelog} from '../updaters/changelog';
 import {ReadMe} from '../updaters/terraform/readme';
 import {ModuleVersion} from '../updaters/terraform/module-version';
 import {MetadataVersion} from '../updaters/terraform/metadata-version';
+import {ExampleVersion} from '../updaters/terraform/example-version';
 import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {Version} from '../version';
@@ -106,6 +107,24 @@ export class TerraformModule extends BaseStrategy {
         }),
       });
     });
+
+    // Update module examples to current candidate version.
+    const exampleFiles = await this.github.findFilesByExtensionAndRef(
+      'tf',
+      this.targetBranch,
+      this.path + 'examples/'
+    );
+
+    exampleFiles.forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new ExampleVersion({
+          version,
+        }),
+      });
+    });
+
     return updates;
   }
 
