@@ -445,7 +445,7 @@ export class GitHub {
       repo: this.repository.repo,
       num: 25,
       targetBranch,
-      maxFilesChanged: 100, // max is 100
+      maxFilesChanged: 50, // max is 100
     };
     const response = await this.graphqlRequest({
       query,
