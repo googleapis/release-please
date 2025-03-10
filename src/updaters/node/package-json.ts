@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {jsonStringify} from '../../util/json-stringify';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
-
-type LockFile = {version: string};
 
 /**
  * This updates a Node.js package.json file's main version.
@@ -28,9 +25,7 @@ export class PackageJson extends DefaultUpdater {
    * @returns {string} The updated content
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    const parsed = JSON.parse(content) as LockFile;
-    logger.info(`updating from ${parsed.version} to ${this.version}`);
-    parsed.version = this.version.toString();
-    return jsonStringify(parsed, content);
+    logger.info(`updating to ${this.version}`);
+    return content.replace(/"version": ".*"/, `"version": "${this.version}"`);
   }
 }

@@ -18,6 +18,7 @@ import snapshot = require('snap-shot-it');
 import {describe, it} from 'mocha';
 import {PackageJson} from '../../src/updaters/node/package-json';
 import {Version} from '../../src/version';
+import {expect} from 'chai';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -33,6 +34,20 @@ describe('PackageJson', () => {
       });
       const newContent = packageJson.updateContent(oldContent);
       snapshot(newContent.replace(/\r\n/g, '\n'));
+    });
+
+    it('does not reformat the content', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './package-formatting.json'),
+        'utf8'
+      );
+      const packageJson = new PackageJson({
+        version: Version.parse('0.1.1'),
+      });
+      const newContent = packageJson.updateContent(oldContent);
+      expect(
+        oldContent.replace('"version": "0.1.0"', '"version": "0.1.1"')
+      ).to.eq(newContent);
     });
   });
 });
