@@ -55,6 +55,7 @@ import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
 import {MavenWorkspace} from '../src/plugins/maven-workspace';
+const fetch = require('node-fetch');
 
 nock.disableNetConnect();
 
@@ -159,6 +160,7 @@ describe('Manifest', () => {
       repo: 'fake-repo',
       defaultBranch: 'main',
       token: 'fake-token',
+      fetch,
     });
   });
   afterEach(() => {
