@@ -63,7 +63,7 @@
     "mocha": "^9.2.2",
     "nock": "^13.0.0",
     "node-fetch": "^2.6.0",
-    "sinon": "18.0.1",
+    "sinon": "19.0.2",
     "snap-shot-it": "^7.0.0"
   },
   "dependencies": {
