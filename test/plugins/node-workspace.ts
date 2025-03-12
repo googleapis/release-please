@@ -181,6 +181,12 @@ describe('NodeWorkspace plugin', () => {
       const updates = nodeCandidate!.pullRequest.updates;
       assertHasUpdate(updates, 'node1/package.json');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('node1')?.toString()).to.eql('3.3.4');
     });
     it('respects version prefix', async () => {
       const candidates: CandidateReleasePullRequest[] = [
@@ -263,6 +269,15 @@ describe('NodeWorkspace plugin', () => {
       snapshotUpdate(updates, 'package.json');
       snapshotUpdate(updates, 'node1/package.json');
       snapshotUpdate(updates, 'node4/package.json');
+
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('node1')?.toString()).to.eql('3.3.4');
+      expect(updater.versionsMap?.get('node4')?.toString()).to.eql('4.4.5');
+      expect(updater.versionsMap?.get('.')?.toString()).to.eql('5.5.6');
     });
     it('walks dependency tree and updates previously untouched packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
@@ -310,8 +325,10 @@ describe('NodeWorkspace plugin', () => {
         '.release-please-manifest.json',
         ReleasePleaseManifest
       ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('node1')?.toString()).to.eql('3.3.4');
       expect(updater.versionsMap?.get('node2')?.toString()).to.eql('2.2.3');
       expect(updater.versionsMap?.get('node3')?.toString()).to.eql('1.1.2');
+      expect(updater.versionsMap?.get('node4')?.toString()).to.eql('4.4.5');
       expect(updater.versionsMap?.get('node5')?.toString()).to.eql('1.0.1');
       snapshot(dateSafe(nodeCandidate!.pullRequest.body.toString()));
     });
