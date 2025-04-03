@@ -1235,24 +1235,6 @@ export class GitHub {
       )
         .toString()
         .slice(0, MAX_ISSUE_BODY_SIZE);
-      const prNumber = await createPullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title,
-        branch: releasePullRequest.headRefName,
-        description: body,
-        primary: targetBranch,
-        force: true,
-        fork: options?.fork === false ? false : true,
-        message,
-        logger: this.logger,
-        draft: releasePullRequest.draft,
-      });
-      if (prNumber !== number) {
-        this.logger.warn(
-          `updated code for ${prNumber}, but update requested for ${number}`
-        );
-      }
       const response = await this.octokit.pulls.update({
         owner: this.repository.owner,
         repo: this.repository.repo,
