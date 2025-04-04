@@ -33,6 +33,7 @@ import {ChangelogJson} from '../../src/updaters/changelog-json';
 import * as assert from 'assert';
 import {MissingRequiredFileError, FileNotFoundError} from '../../src/errors';
 import snapshot = require('snap-shot-it');
+import {McpServer} from '../../src/updaters/node/mcp-server';
 
 nock.disableNetConnect();
 const sandbox = sinon.createSandbox();
@@ -244,6 +245,7 @@ describe('Node', () => {
       const updater = update.updater as SamplesPackageJson;
       expect(updater.packageName).to.equal('google-cloud-automl-pkg');
       assertHasUpdate(updates, 'package.json', PackageJson);
+      assertHasUpdate(updates, 'packages/mcp-server/src/server.ts', McpServer);
     });
   });
 });

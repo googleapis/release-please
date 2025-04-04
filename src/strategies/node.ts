@@ -22,6 +22,7 @@ import {PackageJson} from '../updaters/node/package-json';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError, MissingRequiredFileError} from '../errors';
 import {filterCommits} from '../util/filter-commits';
+import {McpServer} from '../updaters/node/mcp-server';
 
 export class Node extends BaseStrategy {
   private pkgJsonContents?: GitHubFileContents;
@@ -66,6 +67,14 @@ export class Node extends BaseStrategy {
       createIfMissing: false,
       cachedFileContents: this.pkgJsonContents,
       updater: new PackageJson({
+        version,
+      }),
+    });
+
+    updates.push({
+      path: this.addPath('packages/mcp-server/src/server.ts'),
+      createIfMissing: false,
+      updater: new McpServer({
         version,
       }),
     });
