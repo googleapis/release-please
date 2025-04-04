@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {readFileSync} from 'fs';
-import {resolve} from 'path';
-import snapshot = require('snap-shot-it');
-import {describe, it} from 'mocha';
 import {expect} from 'chai';
+import {readFileSync} from 'fs';
+import {describe, it} from 'mocha';
+import {resolve} from 'path';
 import {VersionRB} from '../../src/updaters/ruby/version-rb';
 import {Version} from '../../src/version';
+import snapshot = require('snap-shot-it');
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -31,8 +31,14 @@ describe('version.rb', () => {
       ['0.2.0', '"0.1.0"', '"0.2.0"', true, 'minor'],
       ['0.2.1', '"0.2.0"', '"0.2.1"', true, 'patch'],
       ['0.2.11', '"0.2.10"', '"0.2.11"', true, 'long patch'],
-      ['1.0.0-alpha1', '"0.9.0"', '"1.0.0-alpha1"', true, 'prerelease'],
-      ['1.0.0-beta', '"1.0.0-alpha1"', '"1.0.0-beta"', true, 'prerelease bump'],
+      ['1.0.0-alpha1', '"0.9.0"', '"1.0.0.pre.alpha1"', true, 'prerelease'],
+      [
+        '1.0.0-beta',
+        '"1.0.0-alpha1"',
+        '"1.0.0.pre.beta"',
+        true,
+        'prerelease bump',
+      ],
       ['1.0.0', '"1.0.0.beta"', '"1.0.0"', true, 'major'],
       ['1.0.1', '"1.0.0"', '"1.0.1"', true, 'major patch'],
       ['1.0.0', '"1.0"', '"1.0"', false, 'ignored'],

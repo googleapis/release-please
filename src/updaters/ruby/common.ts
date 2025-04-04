@@ -28,14 +28,16 @@ export const RUBY_VERSION_REGEX = /((\d+).(\d)+.(\d+)(.\w+.*)?)/g;
  */
 export function stringifyRubyVersion(
   version: Version,
-  useDotPrePreleaseSeperator = false
+  useDotPrePreleaseSeperator = true
 ) {
   if (!useDotPrePreleaseSeperator) {
     return version.toString();
   }
 
   return `${version.major}.${version.minor}.${version.patch}${
-    version.preRelease ? `.${version.preRelease}` : ''
+    version.preRelease
+      ? `.pre.${version.preRelease.replace(/^[.-]|[.-]$/g, '')}`
+      : ''
   }`;
 }
 

@@ -67,7 +67,7 @@ exports['version.rb updateContent updates prerelease versions in version.rb 1'] 
 module Google
   module Cloud
     module Bigtable
-      VERSION = "10.0.0-alpha1".freeze
+      VERSION = "10.0.0.pre.alpha1".freeze
     end
   end
 end
