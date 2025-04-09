@@ -42,6 +42,7 @@ import {Generic} from '../updaters/generic';
 import {GenericJson} from '../updaters/generic-json';
 import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
+import {RubyReadMeUpdater} from '../updaters/ruby/readme';
 import {GenericYaml} from '../updaters/generic-yaml';
 import {GenericToml} from '../updaters/generic-toml';
 import {FileNotFoundError} from '../errors';
@@ -551,6 +552,13 @@ If you instead want to use the version number \`${newVersion}\` generated from c
                 path: this.addPath(path),
                 createIfMissing: false,
                 updater: new PomXml(version),
+              });
+              break;
+            case 'ruby-readme':
+              extraFileUpdates.push({
+                path: this.addPath(path),
+                createIfMissing: false,
+                updater: new RubyReadMeUpdater({version}),
               });
               break;
             default:
