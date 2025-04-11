@@ -46,6 +46,7 @@ exports['DefaultChangelogNotes buildNotes should handle BREAKING CHANGE notes 1'
 ### ⚠ BREAKING CHANGES
 
 * some bugfix
+* **Migration:** migration note
 
 ### Bug Fixes
 

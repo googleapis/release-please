@@ -262,6 +262,15 @@ describe('parseConventionalCommits', () => {
   //   expect(conventionalCommits[0].type).to.equal('docs');
   //   expect(conventionalCommits[0].scope).is.null;
   // });
+
+  it('handles migration messages', async () => {
+    const commits = [buildCommitFromFixture('migration-message')];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits[0].notes[1].title).to.eql('Migration');
+    expect(conventionalCommits[0].notes[1].text).to.eql(
+      '**Migration:** my message'
+    );
+  });
 });
 
 function assertHasCommit(

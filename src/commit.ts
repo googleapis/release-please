@@ -116,9 +116,30 @@ function toConventionalChangelogFormat(
 
   // [<any body-text except pre-footer>]
   if (body) {
+    const migrationMessage: parser.Note = {
+      title: 'Migration',
+      text: '',
+    };
+    let hasMigration = false;
     visit(body, ['text', 'newline'], (node: parser.Text) => {
       headerCommit.body += node.value;
+      if (node.value.includes('# Migration')) {
+        hasMigration = true;
+      }
+      if (hasMigration) {
+        migrationMessage.text += node.value;
+      }
     });
+    if (migrationMessage.text !== '') {
+      // remove leading # Migration\n
+      migrationMessage.text = migrationMessage.text
+        .split('\n')
+        .slice(1)
+        .join('\n')
+        .trim();
+      migrationMessage.text = '**Migration:** ' + migrationMessage.text;
+      headerCommit.notes.push(migrationMessage);
+    }
   }
 
   // Extract BREAKING CHANGE notes, regardless of whether they fall in
@@ -169,7 +190,7 @@ function toConventionalChangelogFormat(
       }
     }
   );
-  if (breaking.text !== '') headerCommit.notes.push(breaking);
+  if (breaking.text !== '') headerCommit.notes.unshift(breaking);
 
   // Populates references array from footers:
   // references: [{

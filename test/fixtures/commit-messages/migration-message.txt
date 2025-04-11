@@ -1,0 +1,8 @@
+refactor(sdk)!: change how path parameters are passed to resource methods
+
+We’ve changed the shape of how API path parameters (\`/api/pipes/{pipeId}\`)
+are passed to SDK methods (\`client.pipes.get(…)\`).
+
+# Migration
+
+my message
