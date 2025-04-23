@@ -17,9 +17,9 @@ import {jsonStringify} from '../../util/json-stringify';
 import {DefaultUpdater} from '../default';
 
 /**
- * Updates a skin.json
+ * Updates a extension.json
  */
-export class MediaWikiSkinJson extends DefaultUpdater {
+export class MediaWikiExtensionJson extends DefaultUpdater {
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content

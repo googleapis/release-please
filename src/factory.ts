@@ -32,6 +32,7 @@ import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
 import {KRMBlueprint} from './strategies/krm-blueprint';
 import {Maven} from './strategies/maven';
 import {MediaWikiSkin} from './strategies/mediawiki-skin';
+import {MediaWikiExtension} from './strategies/mediawiki-extension';
 import {Node} from './strategies/node';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';

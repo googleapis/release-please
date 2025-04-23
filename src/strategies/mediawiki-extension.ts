@@ -14,7 +14,7 @@
 
 // Generic
 import {Changelog} from '../updaters/changelog';
-// MediaWiki Skin Specific.
+// MediaWiki Extension Specific.
 import {MediaWikiExtensionJson} from '../updaters/php/mediawiki-extension-json';
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {DefaultUpdater} from '../updaters/default';
@@ -35,7 +35,7 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
-export class MediaWikiSkin extends BaseStrategy {
+export class MediaWikiExtension extends BaseStrategy {
   constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     super(options);
@@ -59,7 +59,7 @@ export class MediaWikiSkin extends BaseStrategy {
 
     // update composer.json
     updates.push({
-      path: this.addPath('skin.json'),
+      path: this.addPath('extension.json'),
       createIfMissing: false,
       updater: new MediaWikiExtensionJson({
         version,
