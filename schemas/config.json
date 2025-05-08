@@ -493,7 +493,7 @@
     "snapshot-label": true,
     "initial-version": true,
     "exclude-paths": true,
-    "additional-paths": true,
-    "component-no-space": false
+    "component-no-space": false,
+    "additional-paths": true
   }
 }
