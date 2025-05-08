@@ -123,4 +123,17 @@ describe('CommitSplit', () => {
       expect(splitCommits['pkg4']).to.be.undefined;
     });
   });
+
+  describe('handles a commit which belongs to multiple components', () => {
+    it('should share commits', () => {
+      const commitSplit = new CommitSplit({
+        includeEmpty: false,
+        // both pkg7 and pkg8 depend on pkg1
+        packagePaths: {pkg7: ['pkg1'], pkg8: ['pkg1']},
+      });
+      const splitCommits = commitSplit.split(commits);
+      expect(splitCommits['pkg7']).lengthOf(2);
+      expect(splitCommits['pkg8']).lengthOf(2);
+    });
+  });
 });

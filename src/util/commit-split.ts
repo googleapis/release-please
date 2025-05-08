@@ -98,23 +98,47 @@ export class CommitSplit {
         // in this edge-case we should not attempt to update the path.
         if (splitPath.length === 1) continue;
 
-        let pkgName: string | undefined;
+        // first assign the file to the primary package.
+        // Each file can match at most one primary package name.
+        // These are sorted by longest path first, so the first
+        // match is the most specific. ie there are two packages ["core", "core/lib"]
+        // then the file "core/lib/foo.txt" should be assigned to "core/lib" and not "core".
+        let primaryPkgName;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
-          pkgName = Object.entries(this.packagePaths).find(
-            ([path, additionalPaths]) =>
-              file.indexOf(`${path}/`) === 0 ||
-              additionalPaths.some(path => file.indexOf(`${path}/`) === 0)
+          primaryPkgName = Object.entries(this.packagePaths).find(
+            ([p]) => file.indexOf(`${p}/`) === 0
           )?.[0];
         } else {
           // track paths by top level folder
-          pkgName = splitPath[0];
+          primaryPkgName = splitPath[0];
         }
-        if (!pkgName || dedupe.has(pkgName)) continue;
-        else dedupe.add(pkgName);
-        if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
-        splitCommits[pkgName].push(commit);
+        if (!primaryPkgName || dedupe.has(primaryPkgName)) continue;
+        else dedupe.add(primaryPkgName);
+        if (!splitCommits[primaryPkgName]) splitCommits[primaryPkgName] = [];
+        splitCommits[primaryPkgName].push(commit);
       }
+
+      // next assign the file packages based on their additional paths.
+      // It's possible to have multiple packages match the same file here.
+      let additionalPkgNames: string[] = [];
+      commit.files.forEach(file => {
+        if (this.packagePaths) {
+          Object.entries(this.packagePaths).forEach(
+            ([pkgName, additionalPaths]) => {
+              if (
+                additionalPaths.some(path => file.indexOf(`${path}/`) === 0)
+              ) {
+                if (dedupe.has(pkgName)) return;
+                additionalPkgNames.push(pkgName);
+                if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
+                splitCommits[pkgName].push(commit);
+              }
+            }
+          );
+        }
+      });
+
       if (commit.files.length === 0 && this.includeEmpty) {
         if (this.packagePaths) {
           for (const pkgName of Object.keys(this.packagePaths)) {
