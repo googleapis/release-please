@@ -98,10 +98,10 @@ export class CommitSplit {
         // in this edge-case we should not attempt to update the path.
         if (splitPath.length === 1) continue;
 
-        // first assign the file to the primary package.
-        // Each file can match at most one primary package name.
-        // These are sorted by longest path first, so the first
-        // match is the most specific. ie there are two packages ["core", "core/lib"]
+        // first match the file to a primary package.
+        // Each file can match at most one primary package.
+        // Files are sorted by longest path first, so the first
+        // match will be the most specific. ie if there are two packages: ["core", "core/lib"]
         // then the file "core/lib/foo.txt" should be assigned to "core/lib" and not "core".
         let primaryPkgName;
         if (this.packagePaths) {
@@ -119,8 +119,10 @@ export class CommitSplit {
         splitCommits[primaryPkgName].push(commit);
       }
 
-      // next assign the file packages based on their additional paths.
-      // It's possible to have multiple packages match the same file here.
+      // next assign the file to additional packages based on their additional paths.
+      // This is for cases where someone has specified dependencies outside of the
+      // package directory. For example, if both packages "foo" and "bar" have additional
+      // path "shared", then commits to "shared/foo.txt" should be assigned to both packages.
       let additionalPkgNames: string[] = [];
       commit.files.forEach(file => {
         if (this.packagePaths) {
