@@ -55,6 +55,7 @@ import {RequestError} from '@octokit/request-error';
 import * as nock from 'nock';
 import {LinkedVersions} from '../src/plugins/linked-versions';
 import {MavenWorkspace} from '../src/plugins/maven-workspace';
+const fetch = require('node-fetch');
 
 nock.disableNetConnect();
 
@@ -159,6 +160,7 @@ describe('Manifest', () => {
       repo: 'fake-repo',
       defaultBranch: 'main',
       token: 'fake-token',
+      fetch,
     });
   });
   afterEach(() => {
@@ -1451,6 +1453,7 @@ describe('Manifest', () => {
             title: 'chore: release 1.2.3',
             headBranchName: 'release-please/branches/main',
             baseBranchName: 'main',
+            mergeCommitOid: 'abc123',
             number: 123,
             body: '',
             labels: [],
@@ -2378,7 +2381,7 @@ describe('Manifest', () => {
       expect(pullRequests[0].version?.toString()).to.eql('1.0.0');
     });
 
-    it('should allow customizing pull request title with root package', async () => {
+    it('should allow customizing pull request title with root package with SPACE in component', async () => {
       mockReleases(sandbox, github, [
         {
           id: 1,
@@ -2494,7 +2497,126 @@ describe('Manifest', () => {
       snapshot(dateSafe(pullRequest.body.toString()));
     });
 
-    it('should allow customizing pull request title without root package', async () => {
+    it('should allow customizing pull request title with root package without SPACE in component', async () => {
+      mockReleases(sandbox, github, [
+        {
+          id: 1,
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          id: 2,
+          sha: 'abc123',
+          tagName: 'root-v1.2.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/root-v1.2.0',
+        },
+        {
+          id: 3,
+          sha: 'def234',
+          tagName: 'pkg1-v1.0.1',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.1',
+        },
+        {
+          id: 4,
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
+        },
+        {
+          id: 5,
+          sha: 'def234',
+          tagName: 'root-v1.2.1',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/root-v1.2.1',
+        },
+      ]);
+      mockCommits(sandbox, github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release v1.2.1',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.1',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'simple',
+            component: 'root',
+            componentNoSpace: true,
+          },
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+            componentNoSpace: true,
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+            componentNoSpace: true,
+          },
+        },
+        {
+          '.': Version.parse('1.2.1'),
+          'path/a': Version.parse('1.0.1'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          groupPullRequestTitlePattern:
+            'chore${scope}: release ${component} v${version}',
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.title.toString()).to.eql(
+        'chore(main): release root v1.2.2'
+      );
+      snapshot(dateSafe(pullRequest.body.toString()));
+    });
+
+    it('should allow customizing pull request title without root package with space', async () => {
       mockReleases(sandbox, github, [
         {
           id: 1,
@@ -2582,6 +2704,103 @@ describe('Manifest', () => {
         {
           groupPullRequestTitlePattern:
             'chore${scope}: release${component} v${version}',
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      expect(pullRequests[0].title.toString()).to.eql('chore(main): release v');
+    });
+
+    it('should allow customizing pull request title without root package without space', async () => {
+      mockReleases(sandbox, github, [
+        {
+          id: 1,
+          sha: 'abc123',
+          tagName: 'pkg1-v1.0.0',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.0',
+        },
+        {
+          id: 2,
+          sha: 'def234',
+          tagName: 'pkg1-v1.0.1',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg1-v1.0.1',
+        },
+        {
+          id: 3,
+          sha: 'def234',
+          tagName: 'pkg2-v0.2.3',
+          url: 'https://github.com/fake-owner/fake-repo/releases/tag/pkg2-v0.2.3',
+        },
+      ]);
+      mockCommits(sandbox, github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.0',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+        {
+          sha: 'bbbbbb',
+          message: 'fix: some bugfix',
+          files: ['path/b/foo'],
+        },
+        {
+          sha: 'cccccc',
+          message: 'fix: some bugfix',
+          files: ['path/a/foo'],
+        },
+        {
+          sha: 'def234',
+          message: 'chore: release v1.2.1',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release v1.2.1',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'def234',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'path/a': {
+            releaseType: 'simple',
+            component: 'pkg1',
+            componentNoSpace: true,
+          },
+          'path/b': {
+            releaseType: 'simple',
+            component: 'pkg2',
+            componentNoSpace: true,
+          },
+        },
+        {
+          'path/a': Version.parse('1.0.1'),
+          'path/b': Version.parse('0.2.3'),
+        },
+        {
+          groupPullRequestTitlePattern:
+            'chore${scope}: release ${component} v${version}',
         }
       );
       const pullRequests = await manifest.buildPullRequests();
@@ -4194,6 +4413,89 @@ describe('Manifest', () => {
         const pullRequestNumbers = await manifest.createPullRequests();
         expect(pullRequestNumbers).lengthOf(0);
       });
+
+      it('updates an existing pull request without changes if set to always update', async function () {
+        sandbox
+          .stub(github, 'getFileContentsOnBranch')
+          .withArgs('README.md', 'main')
+          .resolves(buildGitHubFileRaw('some-content'))
+          .withArgs('release-notes.md', 'my-head-branch--release-notes')
+          .resolves(buildGitHubFileRaw(body.toString()));
+        stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
+        mockPullRequests(
+          github,
+          [
+            {
+              number: 22,
+              title: 'pr title1',
+              body: pullRequestBody('release-notes/overflow.txt'),
+              headBranchName: 'release-please/branches/main',
+              baseBranchName: 'main',
+              labels: ['autorelease: pending'],
+              files: [],
+            },
+          ],
+          []
+        );
+        sandbox
+          .stub(github, 'updatePullRequest')
+          .withArgs(
+            22,
+            sinon.match.any,
+            sinon.match.any,
+            sinon.match.has('pullRequestOverflowHandler', sinon.match.truthy)
+          )
+          .resolves({
+            number: 22,
+            title: 'pr title1',
+            body: 'pr body1',
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            labels: [],
+            files: [],
+          });
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'path/a': {
+              releaseType: 'node',
+              component: 'pkg1',
+            },
+            'path/b': {
+              releaseType: 'node',
+              component: 'pkg2',
+            },
+          },
+          {
+            'path/a': Version.parse('1.0.0'),
+            'path/b': Version.parse('0.2.3'),
+          },
+          {
+            separatePullRequests: true,
+            alwaysUpdate: true,
+            plugins: ['node-workspace'],
+          }
+        );
+        sandbox.stub(manifest, 'buildPullRequests').resolves([
+          {
+            title: PullRequestTitle.ofTargetBranch('main'),
+            body,
+            updates: [
+              {
+                path: 'README.md',
+                createIfMissing: false,
+                updater: new RawContent('some raw content'),
+              },
+            ],
+            labels: [],
+            headRefName: 'release-please/branches/main',
+            draft: false,
+          },
+        ]);
+        const pullRequestNumbers = await manifest.createPullRequests();
+        expect(pullRequestNumbers).lengthOf(1);
+      });
     });
 
     it('updates an existing snapshot pull request', async function () {
@@ -5685,6 +5987,7 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.eql('some release notes');
       expect(releases[0]!.path).to.eql('.');
+      expect(releases[0]!.prNumber).to.eql(1234);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -5791,18 +6094,22 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
       expect(releases[0]!.path).to.eql('packages/bot-config-utils');
+      expect(releases[0]!.prNumber).to.eql(1234);
       expect(releases[1]!.tagName).to.eql('label-utils-v1.1.0');
       expect(releases[1]!.sha).to.eql('abc123');
       expect(releases[1]!.notes).to.be.string;
       expect(releases[1]!.path).to.eql('packages/label-utils');
+      expect(releases[1]!.prNumber).to.eql(1234);
       expect(releases[2]!.tagName).to.eql('object-selector-v1.1.0');
       expect(releases[2]!.sha).to.eql('abc123');
       expect(releases[2]!.notes).to.be.string;
       expect(releases[2]!.path).to.eql('packages/object-selector');
+      expect(releases[2]!.prNumber).to.eql(1234);
       expect(releases[3]!.tagName).to.eql('datastore-lock-v2.1.0');
       expect(releases[3]!.sha).to.eql('abc123');
       expect(releases[3]!.notes).to.be.string;
       expect(releases[3]!.path).to.eql('packages/datastore-lock');
+      expect(releases[3]!.prNumber).to.eql(1234);
       sinon.assert.callCount(commentStub, 1);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,
@@ -5859,6 +6166,7 @@ describe('Manifest', () => {
       expect(releases[0]!.sha).to.eql('abc123');
       expect(releases[0]!.notes).to.be.string;
       expect(releases[0]!.path).to.eql('.');
+      expect(releases[0]!.prNumber).to.eql(1234);
       sinon.assert.calledOnce(commentStub);
       sinon.assert.calledOnceWithExactly(
         addLabelsStub,

@@ -47,7 +47,13 @@ Create a minimal `release-please-config.json`, e.g., for a single JS package:
 }
 ```
 
-Create an empty `.release-please-manifest.json`
+> Note: `path/to/pkg` should be a directory and not a file.
+
+Create an empty `.release-please-manifest.json`. For example:
+```shell
+echo "{}" > .release-please-manifest.json
+```
+
 
 Commit/push/merge these to your remote GitHub repo (using either the repo's
 default branch or a test branch in which case you'll use the `--target-branch`
@@ -212,6 +218,13 @@ defaults (those are documented in comments)
   // absence defaults to false and one pull request will be raised
   "separate-pull-requests": false,
 
+  // if true, always update existing pull requests when changes are added,
+  // instead of only when the release notes change.
+  // This option may increase the number of API calls used, but can be useful
+  // if pull requests must not be out-of-date with the base branch.
+  // absence defaults to false
+  "always-update": true,
+
   // sets the manifest pull request title for when releasing multiple packages
   // grouped together in the one pull request.
   // This option has no effect when `separate-pull-requests` is `true`.
@@ -267,11 +280,9 @@ defaults (those are documented in comments)
       "release-type": "node",
       // exclude commits from that path from processing
       "exclude-paths": ["path/to/myPyPkgA"]
-      // include commits from that path in processing
-      "additional-paths": ["path/to/externalPkgB"]
     },
 
-    // path segment should be relative to repository root
+    // path segment should be a folder relative to repository root
     "path/to/myJSPkgA": {
       // overrides release-type for node
       "release-type": "node",

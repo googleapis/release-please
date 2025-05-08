@@ -76,11 +76,13 @@ function releaserConfigToJsonConfig(
     'pull-request-title-pattern': config.pullRequestTitlePattern,
     'pull-request-header': config.pullRequestHeader,
     'pull-request-footer': config.pullRequestFooter,
+    'component-no-space': config.componentNoSpace,
     'separate-pull-requests': config.separatePullRequests,
     'tag-separator': config.tagSeparator,
     'extra-files': config.extraFiles,
     'version-file': config.versionFile,
     'snapshot-label': config.snapshotLabels?.join(','), // Java-only
+    'date-format': config.dateFormat,
   };
   return jsonConfig;
 }

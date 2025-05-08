@@ -1,0 +1,12 @@
+feat: adds v4 UUID to crypto
+
+This adds support for v4 UUIDs to the library.
+
+fix(utils): unicode no longer throws exception
+
+- some more stuff
+
+feat(utils): update encode to support unicode
+
+- does stuff
+- more stuff

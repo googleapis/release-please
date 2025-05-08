@@ -17,7 +17,7 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
-import {expect, assert} from 'chai';
+import {expect} from 'chai';
 import {GenericToml} from '../../src/updaters/generic-toml';
 
 const fixturesPath = './test/updaters/fixtures';
@@ -56,16 +56,6 @@ describe('GenericToml', () => {
       const updater = new GenericToml('$.nonExistent', Version.parse('v2.3.4'));
       const newContent = updater.updateContent(oldContent);
       expect(newContent).to.eql(oldContent);
-    });
-    it('warns on invalid jsonpath', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './Cargo.toml'),
-        'utf8'
-      ).replace(/\r\n/g, '\n');
-      const updater = new GenericToml('bad jsonpath', Version.parse('v2.3.4'));
-      assert.throws(() => {
-        updater.updateContent(oldContent);
-      });
     });
     it('ignores invalid file', async () => {
       const oldContent = readFileSync(

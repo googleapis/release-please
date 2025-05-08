@@ -111,8 +111,16 @@
           "description": "Open a separate release pull request for each component. Defaults to `false`.",
           "type": "boolean"
         },
+        "always-update": {
+          "description": "Always update the pull request with the latest changes. Defaults to `false`.",
+          "type": "boolean"
+        },
         "tag-separator": {
           "description": "Customize the separator between the component and version in the GitHub tag.",
+          "type": "string"
+        },
+        "date-format": {
+          "description": "Date format given as a strftime expression for the generic strategy.",
           "type": "string"
         },
         "extra-files": {
@@ -188,6 +196,25 @@
                   }
                 },
                 "required": ["type", "path"]
+              },
+              {
+                "description": "An extra arbitrary file that includes release-please generic updater's annotation.",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The file format type.",
+                    "enum": ["generic"]
+                  },
+                  "path": {
+                    "description": "The path to the file.",
+                    "type": "string"
+                  },
+                  "glob": {
+                    "description": "Whether to treat the path as a glob. Defaults to `false`.",
+                    "type": "boolean"
+                  }
+                },
+                "required": ["type", "path"]
               }
             ]
           }
@@ -221,6 +248,10 @@
         "initial-version": {
           "description": "Releases the initial library with a specified version",
           "type": "string"
+        },
+        "component-no-space": {
+          "description": "release-please automatically adds ` ` (space) in front of parsed ${component}. This option indicates whether that behaviour should be disabled. Defaults to `false`",
+          "type": "boolean"
         }
       }
     }
@@ -384,6 +415,10 @@
             ]
           }
         },
+        "signoff": {
+          "description": "Text to be used as Signed-off-by in the commit.",
+          "type": "string"
+        },
         "group-pull-request-title-pattern": {
           "description": "When grouping multiple release pull requests use this pattern for the title.",
           "type": "string"
@@ -407,6 +442,10 @@
         "release-label": {
           "description": "Comma-separated list of labels to add to a pull request that has been released/tagged",
           "type": "string"
+        },
+        "component-no-space": {
+          "description": "release-please automatically adds ` ` (space) in front of parsed ${component}. This option indicates whether that behaviour should be disabled. Defaults to `false`",
+          "type": "boolean"
         }
       },
       "required": ["packages"]
@@ -419,6 +458,7 @@
     "last-release-sha": true,
     "always-link-local": true,
     "plugins": true,
+    "signoff": true,
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,
     "commit-search-depth": true,
@@ -445,12 +485,15 @@
     "pull-request-header": true,
     "pull-request-footer": true,
     "separate-pull-requests": true,
+    "always-update": true,
     "tag-separator": true,
+    "date-format": true,
     "extra-files": true,
     "version-file": true,
     "snapshot-label": true,
     "initial-version": true,
     "exclude-paths": true,
-    "additional-paths": true
+    "additional-paths": true,
+    "component-no-space": false
   }
 }

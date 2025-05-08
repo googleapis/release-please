@@ -101,7 +101,13 @@ title or body format).
 
 The default pull request title uses this pattern:
 `chore${scope}: release${component} ${version}` so a common release pull
-request title would be `chore(main): release foo-bar v1.2.3`.
+request title would be `chore(main): release foo-bar v1.2.3`.  
+Please note that by default `${component}` will be parsed to ` ${component}` (With space in front of). 
+If you wish to avoid that, consider using `component-no-space: true`/`--component-no-space=true` parameter.
+
+> [!WARNING]  
+> Setting `component-no-space` option when release PR already exists might break the parsing
+> resulting in another PR being opened.
 
 | Pattern | Description |
 | ------- | ----------- |
@@ -199,7 +205,7 @@ force the [Generic](/src/updaters/generic.ts) updater, you must use type
 
 ## Updating arbitrary JSON files
 
-For files with the `.xml` extension, the `version` property is updated.
+For files with the `.json` extension, the `version` property is updated.
 
 For most release strategies, you can provide additional files to update
 using the [GenericJson](/src/updaters/generic-json.ts) updater. You can

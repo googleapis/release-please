@@ -140,7 +140,13 @@ export class Java extends BaseStrategy {
       commits: [],
     });
     const updatesWithExtras = mergeUpdates(
-      updates.concat(...(await this.extraFileUpdates(newVersion, versionsMap)))
+      updates.concat(
+        ...(await this.extraFileUpdates(
+          newVersion,
+          versionsMap,
+          this.dateFormat
+        ))
+      )
     );
     return {
       title: pullRequestTitle,
@@ -186,6 +192,7 @@ export class Java extends BaseStrategy {
         PullRequestTitle.parse(
           commit.pullRequest?.title || commit.message,
           this.pullRequestTitlePattern,
+          this.componentNoSpace,
           this.logger
         )
       )

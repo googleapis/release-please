@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,27 +16,22 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
+import {DescriptionUpdater} from '../../src/updaters/r/description';
 import {Version} from '../../src/version';
-import {Generic} from '../../src/updaters/generic';
 
 const fixturesPath = './test/updaters/fixtures';
 
-describe('Generic', () => {
+describe('DESCRIPTION', () => {
   describe('updateContent', () => {
-    it('updates generic version markers', async () => {
+    it('updates version in DESCRIPTION file', async () => {
       const oldContent = readFileSync(
-        resolve(fixturesPath, './Version.java'),
+        resolve(fixturesPath, './r/DESCRIPTION'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const versions = new Map<string, Version>();
-      const currentDate = new Date('2023-12-01T12:00:00Z');
-      const pom = new Generic({
-        versionsMap: versions,
-        version: Version.parse('v2.3.4'),
-        date: currentDate,
-        dateFormat: '%d-%m-%Y',
+      const version = new DescriptionUpdater({
+        version: Version.parse('1.2.3'),
       });
-      const newContent = pom.updateContent(oldContent);
+      const newContent = version.updateContent(oldContent);
       snapshot(newContent);
     });
   });

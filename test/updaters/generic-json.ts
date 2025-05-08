@@ -18,7 +18,7 @@ import * as snapshot from 'snap-shot-it';
 import {describe, it} from 'mocha';
 import {Version} from '../../src/version';
 import {GenericJson} from '../../src/updaters/generic-json';
-import {expect, assert} from 'chai';
+import {expect} from 'chai';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -45,6 +45,15 @@ describe('GenericJson', () => {
       const newContent = updater.updateContent(oldContent);
       snapshot(newContent);
     });
+    it('updates substring in matching entry', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './renovate-shared-preset.json'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new GenericJson('$.extends.*', Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      snapshot(newContent);
+    });
     it('ignores non-matching entry', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './esy.json'),
@@ -54,15 +63,23 @@ describe('GenericJson', () => {
       const newContent = updater.updateContent(oldContent);
       expect(newContent).to.eql(oldContent);
     });
-    it('warns on invalid jsonpath', async () => {
+    it('ignore array entry', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './renovate-shared-preset.json'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const updater = new GenericJson('$.extends', Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      expect(newContent).to.eql(oldContent);
+    });
+    it('ignore non-matching string', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './esy.json'),
         'utf8'
       ).replace(/\r\n/g, '\n');
-      const updater = new GenericJson('bad jsonpath', Version.parse('v2.3.4'));
-      assert.throws(() => {
-        updater.updateContent(oldContent);
-      });
+      const updater = new GenericJson('$.author', Version.parse('v2.3.4'));
+      const newContent = updater.updateContent(oldContent);
+      expect(newContent).to.eql(oldContent);
     });
   });
 });

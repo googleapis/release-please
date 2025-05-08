@@ -116,6 +116,7 @@ interface TaggingArgs {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
+  componentNoSpace?: boolean;
 }
 
 interface CreatePullRequestArgs
@@ -345,6 +346,10 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'Override the detected latest tag name',
       type: 'string',
     })
+    .option('date-format', {
+      describe: 'format in strftime format for updating dates',
+      type: 'string',
+    })
     .middleware(_argv => {
       const argv = _argv as CreatePullRequestArgs;
 
@@ -424,6 +429,12 @@ function taggingOptions(yargs: yargs.Argv): yargs.Argv {
     .option('pull-request-footer', {
       describe: 'Footer for release PR',
       type: 'string',
+    })
+    .option('component-no-space', {
+      describe:
+        'release-please automatically adds ` ` (space) in front of parsed ${component}. Should this be disabled?',
+      type: 'boolean',
+      default: false,
     });
 }
 
@@ -464,6 +475,7 @@ const createReleasePullRequestCommand: yargs.CommandModule<
           pullRequestTitlePattern: argv.pullRequestTitlePattern,
           pullRequestHeader: argv.pullRequestHeader,
           pullRequestFooter: argv.pullRequestFooter,
+          componentNoSpace: argv.componentNoSpace,
           changelogSections: argv.changelogSections,
           releaseAs: argv.releaseAs,
           versioning: argv.versioningStrategy,

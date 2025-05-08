@@ -4,6 +4,117 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.0.0](https://github.com/googleapis/release-please/compare/v16.18.0...v17.0.0) (2025-03-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** update octokit to v20 ([#2490](https://github.com/googleapis/release-please/issues/2490))
+
+### Features
+
+* **deps:** update octokit to v20 ([#2490](https://github.com/googleapis/release-please/issues/2490)) ([9f3b669](https://github.com/googleapis/release-please/commit/9f3b6699474b0ff1987ef3ad4ca5a96ce69d9a6a))
+
+## [16.18.0](https://github.com/googleapis/release-please/compare/v16.17.0...v16.18.0) (2025-02-27)
+
+
+### Features
+
+* Manifest.createRelease to return PR numbers ([#2491](https://github.com/googleapis/release-please/issues/2491)) ([0f07691](https://github.com/googleapis/release-please/commit/0f076910c719b8dc8563936039b0708567811049))
+
+## [16.17.0](https://github.com/googleapis/release-please/compare/v16.16.0...v16.17.0) (2025-02-20)
+
+
+### Features
+
+* allow date updating in generic strategy ([#2440](https://github.com/googleapis/release-please/issues/2440)) ([3099091](https://github.com/googleapis/release-please/commit/3099091bb6787e49fe36e289db36ac01a71af2c3))
+
+## [16.16.0](https://github.com/googleapis/release-please/compare/v16.15.0...v16.16.0) (2025-02-19)
+
+
+### Features
+
+* add strategy for R packages ([#2436](https://github.com/googleapis/release-please/issues/2436)) ([2b5ff3b](https://github.com/googleapis/release-please/commit/2b5ff3b5d7b5c8546bb112149908e150e9eba680))
+
+
+### Bug Fixes
+
+* **deps:** bump dependency versions ([#2486](https://github.com/googleapis/release-please/issues/2486)) ([6db2fb4](https://github.com/googleapis/release-please/commit/6db2fb48adcdf60f1779601fb36f982e2fb7f6f7))
+
+## [16.15.0](https://github.com/googleapis/release-please/compare/v16.14.4...v16.15.0) (2024-11-13)
+
+
+### Features
+
+* add `always-update` option to push to always push to release branch ([72d40df](https://github.com/googleapis/release-please/commit/72d40df677b08fd52654a4c3b320649f63b9c635))
+
+## [16.14.4](https://github.com/googleapis/release-please/compare/v16.14.3...v16.14.4) (2024-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency jsonpath-plus to v10.0.7 [security] ([#2427](https://github.com/googleapis/release-please/issues/2427)) ([f9614e3](https://github.com/googleapis/release-please/commit/f9614e30557a4a0741005f761da87417834d6871))
+
+## [16.14.3](https://github.com/googleapis/release-please/compare/v16.14.2...v16.14.3) (2024-10-15)
+
+
+### Bug Fixes
+
+* **deps:** bump jsonpath-plus from 9.0.0 to 10.0.0 ([ab989e4](https://github.com/googleapis/release-please/commit/ab989e41032ab6eca2938ea46521792440fb0882))
+
+## [16.14.2](https://github.com/googleapis/release-please/compare/v16.14.1...v16.14.2) (2024-10-08)
+
+
+### Bug Fixes
+
+* **java-yoshi:** match full artifact id when updating versions ([#2398](https://github.com/googleapis/release-please/issues/2398)) ([e062dc1](https://github.com/googleapis/release-please/commit/e062dc1b73b336b021f62971c50917d6ca4c266b))
+* make workspace plugin with `separate-pull-request` fine ([#2310](https://github.com/googleapis/release-please/issues/2310)) ([15c75a9](https://github.com/googleapis/release-please/commit/15c75a92761f844dfeb8dec36efbb15af6848e27))
+
+## [16.14.1](https://github.com/googleapis/release-please/compare/v16.14.0...v16.14.1) (2024-10-01)
+
+
+### Bug Fixes
+
+* **deps:** replace jsonpath with jsonpath-plus ([#2391](https://github.com/googleapis/release-please/issues/2391)) ([47db9b5](https://github.com/googleapis/release-please/commit/47db9b5ce447fdc71a169c94e58480b525210679))
+* when parsing multiple messages from a single commit, require 2 newlines ([#2390](https://github.com/googleapis/release-please/issues/2390)) ([bb5e69b](https://github.com/googleapis/release-please/commit/bb5e69b958c9dd4818c30315ae99d3ecc7e41fa1))
+
+## [16.14.0](https://github.com/googleapis/release-please/compare/v16.13.0...v16.14.0) (2024-09-17)
+
+
+### Features
+
+* handle multiple commits in a single message ([#2358](https://github.com/googleapis/release-please/issues/2358)) ([ec41c38](https://github.com/googleapis/release-please/commit/ec41c38422fc23c6671f4ee7e4f09e9e120ab751))
+
+## [16.13.0](https://github.com/googleapis/release-please/compare/v16.12.2...v16.13.0) (2024-09-16)
+
+
+### Features
+
+* Introduce `componentNoSpace` parameter (Removes whitespace character from `${component}` title pattern)  ([#2330](https://github.com/googleapis/release-please/issues/2330)) ([0a2d5c6](https://github.com/googleapis/release-please/commit/0a2d5c6fc53feb01ad66b937bb39c20fa4ba53b0))
+
+## [16.12.2](https://github.com/googleapis/release-please/compare/v16.12.1...v16.12.2) (2024-09-11)
+
+
+### Bug Fixes
+
+* debug log error message of unparsed commits ([#2326](https://github.com/googleapis/release-please/issues/2326)) ([83eb3e4](https://github.com/googleapis/release-please/commit/83eb3e4ead56ad6ef77be57050ba9a4770ae9d20))
+* **deps:** update dependency diff to v7 ([#2372](https://github.com/googleapis/release-please/issues/2372)) ([1491ab6](https://github.com/googleapis/release-please/commit/1491ab69deb445d9909590d2c0e54afc9e77f2eb))
+* support-node-workspace-plugin-prerelease ([#2249](https://github.com/googleapis/release-please/issues/2249)) ([88dc416](https://github.com/googleapis/release-please/commit/88dc41604cb3e1fc764491f246407b00514a6c89))
+* use strategies for rust workspace plugin ([#2320](https://github.com/googleapis/release-please/issues/2320)) ([427db6d](https://github.com/googleapis/release-please/commit/427db6d668d29608fa0c2b9a3fea80a90215ab9f))
+
+## [16.12.1](https://github.com/googleapis/release-please/compare/v16.12.0...v16.12.1) (2024-09-11)
+
+
+### Bug Fixes
+
+* add missing generic updaters in to release please config schema extraFiles ([#2344](https://github.com/googleapis/release-please/issues/2344)) ([050cf93](https://github.com/googleapis/release-please/commit/050cf93f272e76f0fc7a408fc9e85ab02321459c))
+* don't escape html tags inside of inline code in release notes ([#2367](https://github.com/googleapis/release-please/issues/2367)) ([a41d137](https://github.com/googleapis/release-please/commit/a41d13787b6676b73c87b9e03ff952289928c0fd))
+* fix comment at release pr is ugly ([#2348](https://github.com/googleapis/release-please/issues/2348)) ([e562ee2](https://github.com/googleapis/release-please/commit/e562ee21c8820d99007604cd930022816ce6c76c))
+* GenericJSON updater uses regex to find version in matching entry ([#2253](https://github.com/googleapis/release-please/issues/2253)) ([acc3242](https://github.com/googleapis/release-please/commit/acc3242b1e35349ada51e0d41a66e8fad29000f6))
+* prevent open release PRs from being mistaken as current releases ([#2323](https://github.com/googleapis/release-please/issues/2323)) ([3101ab3](https://github.com/googleapis/release-please/commit/3101ab32a1898d265277f543f1fca08793ec9a41))
+* respect `tagSeparator` and `includeVInTag` everywhere ([#2283](https://github.com/googleapis/release-please/issues/2283)) ([dad27e3](https://github.com/googleapis/release-please/commit/dad27e385e4cfdec18c84a1b48c3b45ab65abe5e)), closes [#2282](https://github.com/googleapis/release-please/issues/2282)
+* respect signoff in manifest config ([#2334](https://github.com/googleapis/release-please/issues/2334)) ([eb968c8](https://github.com/googleapis/release-please/commit/eb968c8cbbf666355b87612e3bb704e1611e1747))
+
 ## [16.12.0](https://github.com/googleapis/release-please/compare/v16.11.0...v16.12.0) (2024-06-06)
 
 

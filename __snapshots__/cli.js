@@ -32,6 +32,9 @@ Options:
   --pull-request-title-pattern  Title pattern to make release PR        [string]
   --pull-request-header         Header for release PR                   [string]
   --pull-request-footer         Footer for release PR                   [string]
+  --component-no-space          release-please automatically adds \` \` (space) in
+                                front of parsed \${component}. Should this be
+                                disabled?             [boolean] [default: false]
   --path                        release from path other than root directory
                                                                         [string]
   --component                   name of component release is being minted for
@@ -43,8 +46,8 @@ Options:
   [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi",
           "helm", "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
        "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
-      "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
-                                                   "simple", "terraform-module"]
+         "php-yoshi", "python", "r", "ruby", "ruby-yoshi", "rust", "salesforce",
+                                           "sfdx", "simple", "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
   --manifest-file               where can the manifest file be found in the
@@ -213,6 +216,8 @@ Options:
   --latest-tag-sha                  Override the detected latest tag SHA[string]
   --latest-tag-name                 Override the detected latest tag name
                                                                         [string]
+  --date-format                     format in strftime format for updating dates
+                                                                        [string]
   --label                           comma-separated list of labels to add to
                                     from release PR
                                                [default: "autorelease: pending"]
@@ -233,6 +238,10 @@ Options:
   --pull-request-title-pattern      Title pattern to make release PR    [string]
   --pull-request-header             Header for release PR               [string]
   --pull-request-footer             Footer for release PR               [string]
+  --component-no-space              release-please automatically adds \` \`
+                                    (space) in front of parsed \${component}.
+                                    Should this be disabled?
+                                                      [boolean] [default: false]
   --path                            release from path other than root directory
                                                                         [string]
   --component                       name of component release is being minted
@@ -244,8 +253,8 @@ Options:
   [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi",
           "helm", "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
        "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
-      "php-yoshi", "python", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
-                                                   "simple", "terraform-module"]
+         "php-yoshi", "python", "r", "ruby", "ruby-yoshi", "rust", "salesforce",
+                                           "sfdx", "simple", "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?
                                          [default: "release-please-config.json"]

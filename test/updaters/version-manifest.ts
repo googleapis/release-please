@@ -82,5 +82,37 @@ describe('VersionManifest', () => {
       const newContent = javaAuthVersions.updateContent(oldContent);
       snapshot(newContent);
     });
+
+    it('updates versions.txt with an artifact id is another ones suffix with snapshot', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './versions-suffix-with-snapshot.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      versions.set('google-cloud-admin', Version.parse('2.3.4'));
+      versions.set('admin', Version.parse('3.4.5'));
+      const javaAuthVersions = new VersionsManifest({
+        versionsMap: versions,
+        version: Version.parse('1.2.3'),
+      });
+      const newContent = javaAuthVersions.updateContent(oldContent);
+      snapshot(newContent);
+    });
+
+    it('updates versions.txt with an artifact id is another ones suffix without snapshot', async () => {
+      const oldContent = readFileSync(
+        resolve(fixturesPath, './versions-suffix-without-snapshot.txt'),
+        'utf8'
+      ).replace(/\r\n/g, '\n');
+      const versions = new Map<string, Version>();
+      versions.set('google-cloud-admin', Version.parse('2.3.6'));
+      versions.set('admin', Version.parse('3.4.3'));
+      const javaAuthVersions = new VersionsManifest({
+        versionsMap: versions,
+        version: Version.parse('1.2.3'),
+      });
+      const newContent = javaAuthVersions.updateContent(oldContent);
+      snapshot(newContent);
+    });
   });
 });
