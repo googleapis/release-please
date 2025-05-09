@@ -123,7 +123,6 @@ export class CommitSplit {
       // This is for cases where someone has specified dependencies outside of the
       // package directory. For example, if both packages "foo" and "bar" have additional
       // path "shared", then commits to "shared/foo.txt" should be assigned to both packages.
-      let additionalPkgNames: string[] = [];
       commit.files.forEach(file => {
         if (this.packagePaths) {
           Object.entries(this.packagePaths).forEach(
@@ -132,7 +131,7 @@ export class CommitSplit {
                 additionalPaths.some(path => file.indexOf(`${path}/`) === 0)
               ) {
                 if (dedupe.has(pkgName)) return;
-                additionalPkgNames.push(pkgName);
+                dedupe.add(pkgName);
                 if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
                 splitCommits[pkgName].push(commit);
               }
