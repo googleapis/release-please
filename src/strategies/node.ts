@@ -54,14 +54,15 @@ export class Node extends BaseStrategy {
       }),
     });
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    !this.skipChangelog &&
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
 
     updates.push({
       path: this.addPath('package.json'),
@@ -73,7 +74,7 @@ export class Node extends BaseStrategy {
     });
 
     // If a machine readable changelog.json exists update it:
-    if (options.commits && packageName) {
+    if (options.commits && packageName && !this.skipChangelog) {
       const commits = filterCommits(options.commits, this.changelogSections);
       updates.push({
         path: 'changelog.json',

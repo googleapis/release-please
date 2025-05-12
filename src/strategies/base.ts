@@ -47,6 +47,7 @@ const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
 export interface BuildUpdatesOptions {
   changelogEntry: string;
+  skipChangelog?: boolean;
   commits?: ConventionalCommit[];
   newVersion: Version;
   versionsMap: VersionsMap;
@@ -69,6 +70,7 @@ export interface BaseStrategyOptions {
   mainTemplate?: string;
   tagSeparator?: string;
   skipGitHubRelease?: boolean;
+  skipChangelog?: boolean;
   releaseAs?: string;
   changelogNotes?: ChangelogNotes;
   includeComponentInTag?: boolean;
@@ -104,6 +106,7 @@ export abstract class BaseStrategy implements Strategy {
   protected changelogHost?: string;
   protected tagSeparator?: string;
   private skipGitHubRelease: boolean;
+  protected skipChangelog: boolean;
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
   protected includeVInTag: boolean;
@@ -138,6 +141,7 @@ export abstract class BaseStrategy implements Strategy {
     this.changelogSections = options.changelogSections;
     this.tagSeparator = options.tagSeparator;
     this.skipGitHubRelease = options.skipGitHubRelease || false;
+    this.skipChangelog = options.skipChangelog || false;
     this.releaseAs = options.releaseAs;
     this.changelogNotes =
       options.changelogNotes || new DefaultChangelogNotes(options);
@@ -327,6 +331,7 @@ export abstract class BaseStrategy implements Strategy {
     }
     const updates = await this.buildUpdates({
       changelogEntry: releaseNotesBody,
+      skipChangelog: this.skipChangelog,
       newVersion,
       versionsMap,
       latestVersion: latestRelease?.tag.version,

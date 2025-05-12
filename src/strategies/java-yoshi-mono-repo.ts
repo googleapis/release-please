@@ -199,14 +199,15 @@ export class JavaYoshiMonoRepo extends Java {
     });
 
     if (!options.isSnapshot) {
-      updates.push({
-        path: this.addPath(this.changelogPath),
-        createIfMissing: true,
-        updater: new Changelog({
-          version,
-          changelogEntry: options.changelogEntry,
-        }),
-      });
+      !this.skipChangelog &&
+        updates.push({
+          path: this.addPath(this.changelogPath),
+          createIfMissing: true,
+          updater: new Changelog({
+            version,
+            changelogEntry: options.changelogEntry,
+          }),
+        });
 
       // Bail early if the repository has no root changelog.json.
       // This file is used to opt into machine readable commits.
