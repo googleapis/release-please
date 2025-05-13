@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Go} from '../../src/strategies/go';
 import * as sinon from 'sinon';
-import {assertHasUpdate} from '../helpers';
+import {assertHasUpdate, assertNoHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -95,6 +95,21 @@ describe('Go', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+    });
+    it('omits changelog if requested', async () => {
+      const strategy = new Go({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
     });
   });
 });
