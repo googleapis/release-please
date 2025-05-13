@@ -17,7 +17,12 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {PHPYoshi} from '../../src/strategies/php-yoshi';
 import * as sinon from 'sinon';
-import {assertHasUpdate, buildGitHubFileRaw, dateSafe} from '../helpers';
+import {
+  assertHasUpdate,
+  assertNoHasUpdate,
+  buildGitHubFileRaw,
+  dateSafe,
+} from '../helpers';
 import {buildMockConventionalCommit, buildMockCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -156,6 +161,24 @@ describe('PHPYoshi', () => {
       assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
       assertHasUpdate(updates, 'VERSION', DefaultUpdater);
     });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new PHPYoshi({
+        targetBranch: 'main',
+        github,
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+      assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
+      assertHasUpdate(updates, 'VERSION', DefaultUpdater);
+    });
+
     it('finds touched components', async () => {
       const strategy = new PHPYoshi({
         targetBranch: 'main',

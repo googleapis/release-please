@@ -106,6 +106,23 @@ describe('KRMBlueprint', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
     });
 
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new KRMBlueprint({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      sandbox.stub(github, 'findFilesByExtensionAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+    });
+
     it('finds and updates a yaml files', async () => {
       const strategy = new KRMBlueprint({
         targetBranch: 'main',

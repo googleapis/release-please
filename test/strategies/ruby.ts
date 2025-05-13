@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Ruby} from '../../src/strategies/ruby';
 import * as sinon from 'sinon';
-import {assertHasUpdate} from '../helpers';
+import {assertHasUpdate, assertNoHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -102,6 +102,26 @@ describe('Ruby', () => {
       assertHasUpdate(updates, 'lib/google/cloud/automl/version.rb', VersionRB);
       assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
     });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Ruby({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      expect(updates).lengthOf(2);
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+      assertHasUpdate(updates, 'lib/google/cloud/automl/version.rb', VersionRB);
+      assertHasUpdate(updates, 'Gemfile.lock', GemfileLock);
+    });
+
     it('allows overriding version file', async () => {
       const strategy = new Ruby({
         targetBranch: 'main',

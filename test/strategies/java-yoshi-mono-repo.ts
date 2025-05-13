@@ -214,6 +214,31 @@ describe('JavaYoshiMonoRepo', () => {
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
     });
 
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new JavaYoshiMonoRepo({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'main')
+        .resolves(buildGitHubFileContent(fixturesPath, 'versions.txt'));
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+      assertHasUpdate(updates, 'versions.txt', VersionsManifest);
+    });
+
     it('finds and updates standard files', async () => {
       const strategy = new JavaYoshiMonoRepo({
         targetBranch: 'main',

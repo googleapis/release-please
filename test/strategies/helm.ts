@@ -18,6 +18,7 @@ import {
   buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
+  assertNoHasUpdate,
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
@@ -125,6 +126,25 @@ describe('Helm', () => {
       const updates = release!.updates;
       expect(updates).lengthOf(2);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'Chart.yaml', ChartYaml);
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Helm({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+      expect(updates).lengthOf(1);
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'Chart.yaml', ChartYaml);
     });
   });

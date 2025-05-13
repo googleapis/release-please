@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {GoYoshi} from '../../src/strategies/go-yoshi';
 import * as sinon from 'sinon';
-import {assertHasUpdate, dateSafe} from '../helpers';
+import {assertHasUpdate, dateSafe, assertNoHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -95,6 +95,23 @@ describe('GoYoshi', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGES.md', Changelog);
+      assertHasUpdate(updates, 'internal/version.go', VersionGo);
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new GoYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'iam',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGES.md');
       assertHasUpdate(updates, 'internal/version.go', VersionGo);
     });
   });
