@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.1.0](https://github.com/googleapis/release-please/compare/v17.0.0...v17.1.0) (2025-06-05)
+
+
+### Features
+
+* add skip-changelog flag ([#2535](https://github.com/googleapis/release-please/issues/2535)) ([2492658](https://github.com/googleapis/release-please/commit/2492658b9dd93d765e0bbfa45f41ca8a48af996c))
+
+
+### Bug Fixes
+
+* use version-file if it's set for go projects ([#2542](https://github.com/googleapis/release-please/issues/2542)) ([a015272](https://github.com/googleapis/release-please/commit/a015272b5d900c086f80a674785cf88f2f151f43))
+
 ## [17.0.0](https://github.com/googleapis/release-please/compare/v16.18.0...v17.0.0) (2025-03-11)
 
 
