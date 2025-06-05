@@ -214,13 +214,6 @@ The easiest way to run Release Please is as a GitHub action. Please see [googlea
 
 Please see [Running release-please CLI](docs/cli.md) for all the configuration options.
 
-### Install the GitHub App
-
-There is a probot application available, which allows you to deploy Release
-Please as a GitHub App. Please see 
-[github.com/googleapis/repo-automation-bots](https://github.com/googleapis/repo-automation-bots/tree/main/packages/release-please)
-for installation and configuration instructions.
-
 ## Bootstrapping your Repository
 
 Release Please looks at commits since your last release tag. It may or may not be able to find
