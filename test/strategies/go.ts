@@ -116,5 +116,20 @@ describe('Go', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'internal/version/version.go', VersionGo);
     });
+    it('omits changelog if requested', async () => {
+      const strategy = new Go({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+    });
   });
 });

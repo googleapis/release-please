@@ -170,7 +170,7 @@ export class JavaYoshi extends Java {
       });
     });
 
-    if (!options.isSnapshot) {
+    if (!options.isSnapshot && !this.skipChangelog) {
       updates.push({
         path: this.addPath(this.changelogPath),
         createIfMissing: true,

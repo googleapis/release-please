@@ -110,6 +110,24 @@ describe('OCaml', () => {
       assertHasUpdate(updates, 'dune-project', DuneProject);
     });
 
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new OCaml({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      sandbox.stub(github, 'findFilesByExtension').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+      assertHasUpdate(updates, 'dune-project', DuneProject);
+    });
+
     it('finds and updates a project files', async () => {
       const strategy = new OCaml({
         targetBranch: 'main',

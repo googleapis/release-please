@@ -64,6 +64,7 @@ function releaserConfigToJsonConfig(
     'changelog-sections': config.changelogSections,
     'release-as': config.releaseAs,
     'skip-github-release': config.skipGithubRelease,
+    'skip-changelog': config.skipChangelog,
     draft: config.draft,
     prerelease: config.prerelease,
     'draft-pull-request': config.draftPullRequest,

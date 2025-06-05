@@ -21,7 +21,11 @@ import {ModuleBazel} from '../../src/updaters/bazel/module-bazel';
 import {Changelog} from '../../src/updaters/changelog';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
-import {assertHasUpdate, buildMockConventionalCommit} from '../helpers';
+import {
+  assertHasUpdate,
+  assertNoHasUpdate,
+  buildMockConventionalCommit,
+} from '../helpers';
 
 const sandbox = sinon.createSandbox();
 
@@ -112,6 +116,24 @@ describe('Bazel', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'packages/CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'packages/some-path/MODULE.bazel', ModuleBazel);
+    });
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Bazel({
+        targetBranch: 'main',
+        github,
+        component: 'rules_cc',
+        versionFile: 'some-path/MODULE.bazel',
+        path: 'packages',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'packages/some-path/MODULE.bazel', ModuleBazel);
     });
   });

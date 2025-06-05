@@ -55,14 +55,15 @@ export class Python extends BaseStrategy {
     const updates: Update[] = [];
     const version = options.newVersion;
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    !this.skipChangelog &&
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
 
     updates.push({
       path: this.addPath('setup.cfg'),
@@ -138,7 +139,7 @@ export class Python extends BaseStrategy {
 
     // If a machine readable changelog.json exists update it:
     const artifactName = projectName ?? (await this.getNameFromSetupPy());
-    if (options.commits && artifactName) {
+    if (options.commits && artifactName && !this.skipChangelog) {
       const commits = filterCommits(options.commits, this.changelogSections);
       updates.push({
         path: 'changelog.json',

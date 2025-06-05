@@ -18,6 +18,7 @@ import {
   buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
+  assertNoHasUpdate,
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
@@ -140,6 +141,33 @@ describe('Dart', () => {
       const updates = pullRequest!.updates;
       expect(updates).lengthOf(2);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'pubspec.yaml', PubspecYaml);
+    });
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Dart({
+        targetBranch: 'main',
+        github,
+        component: 'some-dart-package',
+        packageName: 'some-dart-package',
+        skipChangelog: true,
+      });
+      const commits = [
+        ...buildMockConventionalCommit(
+          'fix(deps): update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+        ),
+      ];
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'some-dart-package'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const pullRequest = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = pullRequest!.updates;
+      expect(updates).lengthOf(1);
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'pubspec.yaml', PubspecYaml);
     });
   });
