@@ -447,9 +447,10 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   ) {
     this.logger.debug(`visiting ${name}, path: ${path}`);
     if (path.indexOf(name) !== -1) {
-      throw new Error(
+      this.logger.warn(
         `found cycle in dependency graph: ${path.join(' -> ')} -> ${name}`
       );
+      return;
     }
     const node = graph.get(name);
     if (!node) {
