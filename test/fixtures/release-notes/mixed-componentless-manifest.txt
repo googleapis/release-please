@@ -1,6 +1,6 @@
 :robot: I have created a release \*beep\* \*boop\*
 ---
-<details><summary>3.2.0</summary>
+<details><summary>@google-automation/bot-config-utils: 3.2.0</summary>
 
 
 ### Features
