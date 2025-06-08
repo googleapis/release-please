@@ -29,6 +29,7 @@ import {Helm} from './strategies/helm';
 import {Java} from './strategies/java';
 import {JavaYoshi} from './strategies/java-yoshi';
 import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
+import {Julia} from './strategies/julia';
 import {KRMBlueprint} from './strategies/krm-blueprint';
 import {Maven} from './strategies/maven';
 import {Node} from './strategies/node';
@@ -92,6 +93,7 @@ const releasers: Record<string, ReleaseBuilder> = {
       ...options,
       versioningStrategy: new ServicePackVersioningStrategy(),
     }),
+  julia: options => new Julia(options),
   'krm-blueprint': options => new KRMBlueprint(options),
   node: options => new Node(options),
   expo: options => new Expo(options),
