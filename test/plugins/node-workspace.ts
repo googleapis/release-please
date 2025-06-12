@@ -353,6 +353,7 @@ describe('NodeWorkspace plugin', () => {
             path: 'node1',
             packageName: '@here/pkgA',
             versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
               prereleaseType: 'beta',
             }),
           }),
@@ -362,6 +363,7 @@ describe('NodeWorkspace plugin', () => {
             path: 'node2',
             packageName: '@here/pkgB',
             versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
               prereleaseType: 'beta',
             }),
           }),
@@ -371,6 +373,7 @@ describe('NodeWorkspace plugin', () => {
             path: 'node3',
             packageName: '@here/pkgC',
             versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
               prereleaseType: 'beta',
             }),
           }),
@@ -380,6 +383,7 @@ describe('NodeWorkspace plugin', () => {
             path: 'node4',
             packageName: '@here/pkgD',
             versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
               prereleaseType: 'beta',
             }),
           }),
@@ -389,6 +393,7 @@ describe('NodeWorkspace plugin', () => {
             path: 'node5',
             packageName: '@here/pkgE',
             versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
               prereleaseType: 'beta',
             }),
           }),
