@@ -835,14 +835,16 @@ export class Manifest {
         openPullRequests.find(pr => pr.headBranchName === branchName) ||
         snoozedPullRequests.find(pr => pr.headBranchName === branchName);
 
-      const releasePullRequest = await strategy.buildReleasePullRequest({
-        commits: pathCommits,
-        latestRelease,
-        draft: config.draftPullRequest ?? this.draftPullRequest,
-        labels: this.labels,
-        existingPullRequest: existingPR,
-        manifestPath: this.manifestPath,
-      });
+      const releasePullRequest = commitsPerPath[path]
+        ? await strategy.buildReleasePullRequest({
+            commits: pathCommits,
+            latestRelease,
+            draft: config.draftPullRequest ?? this.draftPullRequest,
+            labels: this.labels,
+            existingPullRequest: existingPR,
+            manifestPath: this.manifestPath,
+          })
+        : undefined;
       this.logger.debug(`path: ${path}`);
       this.logger.debug(
         `releasePullRequest.headRefName: ${releasePullRequest?.headRefName}`

@@ -285,11 +285,7 @@ export abstract class BaseStrategy implements Strategy {
     manifestPath?: string;
   }): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(commits);
-    this.logger.info(`Considering: ${commits.length} commits`);
-    if (commits.length === 0) {
-      this.logger.info(`No commits for path: ${this.path}, skipping`);
-      return undefined;
-    }
+    this.logger.info(`Considering: ${commits.length} conventional commits`);
 
     const component = await this.getComponent();
     this.logger.debug('component:', component);
