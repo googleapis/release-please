@@ -27,7 +27,7 @@ import {
 import {DefaultVersioningStrategy} from '../versioning-strategies/default';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
 import {Update} from '../update';
-import {ConventionalCommit, Commit} from '../commit';
+import {ConventionalCommit, Commit, parseConventionalCommits} from '../commit';
 import {Version, VersionsMap} from '../version';
 import {TagName} from '../util/tag-name';
 import {Release} from '../release';
@@ -277,15 +277,35 @@ export abstract class BaseStrategy implements Strategy {
     draft,
     manifestPath,
   }: {
-    commits: ConventionalCommit[];
+    commits: Commit[];
     latestRelease?: Release;
     draft?: boolean;
     labels?: string[];
     existingPullRequest?: PullRequest;
     manifestPath?: string;
   }): Promise<ReleasePullRequest | undefined> {
-    const conventionalCommits = await this.postProcessCommits(commits);
-    this.logger.info(`Considering: ${commits.length} conventional commits`);
+    this.logger.info(`Considering: ${commits.length} raw commits`);
+
+    const mergeCommitRegex =
+      /^Merge pull request #\d+ from [^/]+\/release-please(--[\w-]+)+$/;
+
+    // if there are no commits that are not release pr merge commits, there's nothing to include in a new release PR
+    if (commits.every(c => mergeCommitRegex.test(c.message))) {
+      this.logger.info(
+        `No commits to consider for ${this.path}, all commits are merges of release PRs`
+      );
+      return;
+    }
+
+    // do not parse commits if they are already conventional commits
+    let conventionalCommits =
+      commits[0] && 'type' in commits[0]
+        ? (commits as ConventionalCommit[])
+        : parseConventionalCommits(commits, this.logger);
+    conventionalCommits = await this.postProcessCommits(conventionalCommits);
+    this.logger.info(
+      `Considering: ${conventionalCommits.length} conventional commits`
+    );
 
     const component = await this.getComponent();
     this.logger.debug('component:', component);
