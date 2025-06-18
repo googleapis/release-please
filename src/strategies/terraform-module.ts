@@ -29,14 +29,15 @@ export class TerraformModule extends BaseStrategy {
     const updates: Update[] = [];
     const version = options.newVersion;
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    !this.skipChangelog &&
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
 
     // Update version in README to current candidate version.
     // A module may have submodules, so find all submodules.

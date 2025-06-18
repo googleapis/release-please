@@ -133,6 +133,7 @@ export async function buildStrategy(
   });
   const strategyOptions: BaseStrategyOptions = {
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
+    skipChangelog: options.skipChangelog,
     ...options,
     targetBranch,
     versioningStrategy,

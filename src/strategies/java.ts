@@ -60,7 +60,6 @@ export class Java extends BaseStrategy {
   protected readonly snapshotVersioning: VersioningStrategy;
   protected readonly snapshotLabels: string[];
   readonly skipSnapshot: boolean;
-
   constructor(options: BaseStrategyOptions) {
     options.changelogSections = options.changelogSections ?? CHANGELOG_SECTIONS;
     // wrap the configured versioning strategy with snapshotting
@@ -135,6 +134,7 @@ export class Java extends BaseStrategy {
     const updates = await this.buildUpdates({
       newVersion,
       versionsMap,
+      skipChangelog: this.skipChangelog,
       changelogEntry: notes,
       isSnapshot: true,
       commits: [],
@@ -226,14 +226,15 @@ export class Java extends BaseStrategy {
       });
 
       // Update changelog
-      updates.push({
-        path: this.addPath(this.changelogPath),
-        createIfMissing: true,
-        updater: new Changelog({
-          version,
-          changelogEntry: options.changelogEntry,
-        }),
-      });
+      !this.skipChangelog &&
+        updates.push({
+          path: this.addPath(this.changelogPath),
+          createIfMissing: true,
+          updater: new Changelog({
+            version,
+            changelogEntry: options.changelogEntry,
+          }),
+        });
     }
 
     return updates;

@@ -205,6 +205,10 @@ defaults (those are documented in comments)
   // have existing infrastructure to tag these releases.
   "skip-github-release": true,
 
+  // Skip updating the changelog.
+  // Absence defaults to false and the changelog will still be updated.
+  "skip-changelog"
+
   // when using the `node-workspace` plugin, package discovery forces all
   // local dependencies to be linked, even if the SemVer ranges don't match.
   // this allows breaking version bumps to update during a release.

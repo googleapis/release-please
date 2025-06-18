@@ -32,14 +32,15 @@ export class Helm extends BaseStrategy {
     const updates: Update[] = [];
     const version = options.newVersion;
 
-    updates.push({
-      path: this.addPath(this.changelogPath),
-      createIfMissing: true,
-      updater: new Changelog({
-        version,
-        changelogEntry: options.changelogEntry,
-      }),
-    });
+    !this.skipChangelog &&
+      updates.push({
+        path: this.addPath(this.changelogPath),
+        createIfMissing: true,
+        updater: new Changelog({
+          version,
+          changelogEntry: options.changelogEntry,
+        }),
+      });
 
     updates.push({
       path: this.addPath('Chart.yaml'),

@@ -18,6 +18,7 @@ import {
   buildMockConventionalCommit,
   buildGitHubFileContent,
   assertHasUpdate,
+  assertNoHasUpdate,
 } from '../helpers';
 import * as nock from 'nock';
 import * as sinon from 'sinon';
@@ -217,6 +218,38 @@ describe('Expo', () => {
       expect(expoSDKVersion.major).to.equal(44);
       expect(expoSDKVersion.minor).to.equal(0);
       expect(expoSDKVersion.patch).to.equal(0);
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('package.json', 'main')
+        .resolves(buildGitHubFileContent(expoFixturesPath, 'package.json'));
+
+      const strategy = new Expo({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        packageName: 'google-cloud-automl-pkg',
+        skipChangelog: true,
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        commits,
+        latestRelease
+      );
+      const updates = release!.updates;
+
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+      assertHasUpdate(updates, 'package-lock.json', PackageLockJson);
+      assertHasUpdate(updates, 'npm-shrinkwrap.json', PackageLockJson);
+      assertHasUpdate(updates, 'samples/package.json', SamplesPackageJson);
+      assertHasUpdate(updates, 'package.json', PackageJson);
+      assertHasUpdate(updates, 'app.json', AppJson);
     });
   });
 });
