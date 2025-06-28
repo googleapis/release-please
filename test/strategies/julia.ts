@@ -91,7 +91,10 @@ describe('Julia', () => {
         .resolves(buildGitHubFileContent(fixturesPath, 'Project.toml'));
       sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
       const latestRelease = {
-        tag: new TagName(Version.parse('0.123.4'), 'ReleasePleaseJuliaStrategy'),
+        tag: new TagName(
+          Version.parse('0.123.4'),
+          'ReleasePleaseJuliaStrategy'
+        ),
         sha: 'abc123',
         notes: 'some notes',
       };

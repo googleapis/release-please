@@ -22,7 +22,6 @@ import {
   parseJuliaProject,
   JuliaProjectToml,
 } from '../updaters/julia/project-toml';
-import {FileNotFoundError} from '../errors';
 import {filterCommits} from '../util/filter-commits';
 
 const CHANGELOG_SECTIONS = [
@@ -88,7 +87,6 @@ export class Julia extends BaseStrategy {
     parsedJuliaProject = await this.getJuliaProject(
       this.addPath('JuliaProject.toml')
     );
-
 
     juliaProject = parsedJuliaProject?.project;
 
