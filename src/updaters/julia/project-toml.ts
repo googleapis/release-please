@@ -52,10 +52,6 @@ export class JuliaProjectToml extends DefaultUpdater {
       throw new Error(msg);
     }
 
-    return replaceTomlValue(
-      content,
-      ['version'],
-      this.version.toString()
-    );
+    return replaceTomlValue(content, ['version'], this.version.toString());
   }
 }

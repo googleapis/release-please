@@ -59,4 +59,3 @@ describe('julia-project.toml', () => {
     });
   });
 });
-
