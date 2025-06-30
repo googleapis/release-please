@@ -164,11 +164,15 @@ export class Java extends BaseStrategy {
     return !version.preRelease || version.preRelease.indexOf('SNAPSHOT') < 0;
   }
 
+  protected canSkipSnapshot(): boolean {
+    return this.skipSnapshot;
+  }
+
   protected async needsSnapshot(
     commits: ConventionalCommit[],
     latestRelease?: Release
   ): Promise<boolean> {
-    if (this.skipSnapshot) {
+    if (this.canSkipSnapshot()) {
       return false;
     }
 
