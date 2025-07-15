@@ -133,6 +133,37 @@ describe('JavaYoshi', () => {
       );
       expect(release!.version?.toString()).to.eql(expectedVersion);
     });
+
+    it('returns a major/minor version bump PR if skipSnapShot is true', async () => {
+      const expectedVersion = '0.123.5';
+      const strategy = new JavaYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipSnapshot: true,
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'versions-released.txt')
+        );
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      expect(release!.version?.toString()).to.eql(expectedVersion);
+    });
+
     it('handles promotion to 1.0.0', async () => {
       const commits = [
         ...buildMockConventionalCommit(

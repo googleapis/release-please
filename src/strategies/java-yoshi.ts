@@ -52,6 +52,9 @@ export class JavaYoshi extends Java {
   }
 
   protected async needsSnapshot(): Promise<boolean> {
+    if (this.canSkipSnapshot()) {
+      return false;
+    }
     return VersionsManifest.needsSnapshot(
       (await this.getVersionsContent()).parsedContent
     );

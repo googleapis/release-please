@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.1.1](https://github.com/googleapis/release-please/compare/v17.1.0...v17.1.1) (2025-06-30)
+
+
+### Bug Fixes
+
+* skipSnapshot is not working for java-yoshi ([#2562](https://github.com/googleapis/release-please/issues/2562)) ([2f04f4f](https://github.com/googleapis/release-please/commit/2f04f4f7ddd0db27d7c0ce40b3a11541d9c3067e))
+
 ## [17.1.0](https://github.com/googleapis/release-please/compare/v17.0.0...v17.1.0) (2025-06-05)
 
 
