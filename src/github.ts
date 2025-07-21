@@ -47,8 +47,13 @@ import {
   FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
 import {Logger} from 'code-suggester/build/src/types';
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {HttpProxyAgent} from 'http-proxy-agent';
+import {
+  fetch as undiciFetch,
+  EnvHttpProxyAgent,
+  RequestInit,
+  RequestInfo,
+  Response,
+} from 'undici';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {mergeUpdates} from './updaters/composite';
 
@@ -68,11 +73,6 @@ export interface GitHubOptions {
   logger?: Logger;
 }
 
-interface ProxyOption {
-  host: string;
-  port: number;
-}
-
 interface GitHubCreateOptions {
   owner: string;
   repo: string;
@@ -82,7 +82,6 @@ interface GitHubCreateOptions {
   octokitAPIs?: OctokitAPIs;
   token?: string;
   logger?: Logger;
-  proxy?: ProxyOption;
   fetch?: any;
 }
 
@@ -220,17 +219,11 @@ export class GitHub {
     this.logger = options.logger ?? defaultLogger;
   }
 
-  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
-    if (!defaultProxy) {
-      return undefined;
-    }
-
-    const {host, port} = defaultProxy;
-    if (new URL(baseUrl).protocol.replace(':', '') === 'http') {
-      return new HttpProxyAgent(`http://${host}:${port}`);
-    } else {
-      return new HttpsProxyAgent(`https://${host}:${port}`);
-    }
+  static fetch(url: RequestInfo, opts: RequestInit): Promise<Response> {
+    return undiciFetch(url, {
+      ...opts,
+      dispatcher: new EnvHttpProxyAgent(),
+    });
   }
 
   /**
@@ -256,8 +249,7 @@ export class GitHub {
         baseUrl: apiUrl,
         auth: options.token,
         request: {
-          agent: this.createDefaultAgent(apiUrl, options.proxy),
-          fetch: options.fetch,
+          fetch: options.fetch ?? this.fetch,
         },
       }),
       request: request.defaults({
@@ -271,8 +263,7 @@ export class GitHub {
       graphql: graphql.defaults({
         baseUrl: graphqlUrl,
         request: {
-          agent: this.createDefaultAgent(graphqlUrl, options.proxy),
-          fetch: options.fetch,
+          fetch: options.fetch ?? this.fetch,
         },
         headers: {
           'user-agent': `release-please/${releasePleaseVersion}`,
