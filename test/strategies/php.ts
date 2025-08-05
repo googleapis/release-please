@@ -95,9 +95,14 @@ describe('PHP', () => {
         latestRelease,
       });
       const updates = release!.updates;
-      expect(updates).lengthOf(2);
+      // Stainless EDIT: we removed updates to the composer.json file
+      expect(updates).lengthOf(1);
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
-      assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
+
+      // Original:
+      // expect(updates).lengthOf(2);
+      // assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      // assertHasUpdate(updates, 'composer.json', RootComposerUpdatePackages);
     });
   });
 });
