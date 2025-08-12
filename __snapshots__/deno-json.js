@@ -1,0 +1,56 @@
+exports['Deno updateContent updates the package version with deno.json 1'] = `
+{
+  "name": "@deno/esbuild-plugin",
+  "version": "2.0.0",
+  "license": "MIT",
+  "imports": {
+    "@deno/loader": "jsr:@deno/loader@^0.3.3",
+    "@std/expect": "jsr:@std/expect@^1.0.16",
+    "@std/path": "jsr:@std/path@^1.1.1",
+    "esbuild": "npm:esbuild@^0.25.5",
+    "fflate": "npm:fflate@^0.8.2",
+    "mime-db": "npm:mime-db@^1.54.0",
+    "preact": "npm:preact@^10.26.8",
+    "mapped": "./tests/fixtures/simple.ts"
+  }
+}
+
+`
+
+exports['Deno updateContent updates the package version with deno.jsonc 1'] = `
+{
+  "name": "@deno/esbuild-plugin",
+  "version": "2.0.0",
+  "license": "MIT",
+  "imports": {
+    "@deno/loader": "jsr:@deno/loader@^0.3.3",
+    "@std/expect": "jsr:@std/expect@^1.0.16",
+    "@std/path": "jsr:@std/path@^1.1.1",
+    "esbuild": "npm:esbuild@^0.25.5",
+    "fflate": "npm:fflate@^0.8.2",
+    "mime-db": "npm:mime-db@^1.54.0",
+    "preact": "npm:preact@^10.26.8",
+    "mapped": "./tests/fixtures/simple.ts"
+  }
+}
+
+`
+
+exports['Deno updateContent updates the package version with jsr.json 1'] = `
+{
+  "name": "@deno/esbuild-plugin",
+  "version": "2.0.0",
+  "license": "MIT",
+  "imports": {
+    "@deno/loader": "jsr:@deno/loader@^0.3.3",
+    "@std/expect": "jsr:@std/expect@^1.0.16",
+    "@std/path": "jsr:@std/path@^1.1.1",
+    "esbuild": "npm:esbuild@^0.25.5",
+    "fflate": "npm:fflate@^0.8.2",
+    "mime-db": "npm:mime-db@^1.54.0",
+    "preact": "npm:preact@^10.26.8",
+    "mapped": "./tests/fixtures/simple.ts"
+  }
+}
+
+`
