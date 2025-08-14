@@ -28,7 +28,7 @@ import {
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
-const MAX_SLEEP_SECONDS = 20;
+const MAX_SLEEP_SECONDS = 60;
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
@@ -593,8 +593,8 @@ export class GitHub {
         maxRetries?: number;
       }
     ) => {
-      let maxRetries = options?.maxRetries ?? 5;
-      let seconds = 1;
+      let maxRetries = 100;
+      let seconds = 10;
       while (maxRetries >= 0) {
         try {
           const response = await this.graphql(opts);
