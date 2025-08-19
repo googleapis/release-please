@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {RubyYoshi} from '../../src/strategies/ruby-yoshi';
 import * as sinon from 'sinon';
-import {assertHasUpdate, safeSnapshot} from '../helpers';
+import {assertHasUpdate, safeSnapshot, assertNoHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -102,6 +102,25 @@ describe('RubyYoshi', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'lib/google/cloud/automl/version.rb', VersionRB);
     });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new RubyYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const pullRequest = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = pullRequest!.updates;
+      expect(updates).lengthOf(1);
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
+      assertHasUpdate(updates, 'lib/google/cloud/automl/version.rb', VersionRB);
+    });
+
     it('does not add summary to changelog', async () => {
       const strategy = new RubyYoshi({
         targetBranch: 'main',

@@ -17,7 +17,11 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {TerraformModule} from '../../src/strategies/terraform-module';
 import * as sinon from 'sinon';
-import {assertHasUpdate, buildMockConventionalCommit} from '../helpers';
+import {
+  assertHasUpdate,
+  buildMockConventionalCommit,
+  assertNoHasUpdate,
+} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
@@ -100,6 +104,23 @@ describe('TerraformModule', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+    });
+
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new TerraformModule({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
     });
 
     it('finds and updates README files', async () => {

@@ -58,6 +58,10 @@
           "description": "Skip tagging GitHub releases for this package. Release-Please still requires releases to be tagged, so this option should only be used if you have existing infrastructure to tag these releases.Defaults to `false`.",
           "type": "boolean"
         },
+        "skip-changelog": {
+          "description": "Skip generating a changelog for this package. Defaults to `false`.",
+          "type": "boolean"
+        },
         "draft": {
           "description": "Create the GitHub release in draft mode. Defaults to `false`.",
           "type": "boolean"
@@ -336,10 +340,7 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": [
-                      "cargo-workspace",
-                      "maven-workspace"
-                    ]
+                    "enum": ["cargo-workspace", "maven-workspace"]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -362,9 +363,7 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": [
-                      "node-workspace"
-                    ]
+                    "enum": ["node-workspace"]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -470,6 +469,7 @@
     "changelog-sections": true,
     "release-as": true,
     "skip-github-release": true,
+    "skip-changelog": true,
     "draft": true,
     "prerelease": true,
     "draft-pull-request": true,

@@ -17,7 +17,7 @@ import {expect} from 'chai';
 import {GitHub} from '../../src/github';
 import {Simple} from '../../src/strategies/simple';
 import * as sinon from 'sinon';
-import {assertHasUpdate} from '../helpers';
+import {assertHasUpdate, assertNoHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
@@ -96,6 +96,22 @@ describe('Simple', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'version.txt', DefaultUpdater);
+    });
+    it('omits changelog if skipChangelog=true', async () => {
+      const strategy = new Simple({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        skipChangelog: true,
+      });
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      const updates = release!.updates;
+      assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'version.txt', DefaultUpdater);
     });
     it('allows configuring the version file', async () => {

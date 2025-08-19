@@ -63,5 +63,5 @@ export const configSchema = require('../../schemas/config.json');
 export const manifestSchema = require('../../schemas/manifest.json');
 
 // x-release-please-start-version
-export const VERSION = '17.0.0';
+export const VERSION = '17.1.2';
 // x-release-please-end

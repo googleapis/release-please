@@ -52,6 +52,9 @@ export class JavaYoshi extends Java {
   }
 
   protected async needsSnapshot(): Promise<boolean> {
+    if (this.canSkipSnapshot()) {
+      return false;
+    }
     return VersionsManifest.needsSnapshot(
       (await this.getVersionsContent()).parsedContent
     );
@@ -170,7 +173,7 @@ export class JavaYoshi extends Java {
       });
     });
 
-    if (!options.isSnapshot) {
+    if (!options.isSnapshot && !this.skipChangelog) {
       updates.push({
         path: this.addPath(this.changelogPath),
         createIfMissing: true,

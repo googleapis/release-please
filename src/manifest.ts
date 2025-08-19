@@ -104,7 +104,8 @@ export interface ReleaserConfig {
 
   // Strategy options
   releaseAs?: string;
-  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release
+  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release\
+  skipChangelog?: boolean;
   draft?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
@@ -163,6 +164,7 @@ interface ReleaserConfigJson {
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
+  'skip-changelog'?: boolean;
   draft?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
@@ -1388,6 +1390,7 @@ function extractReleaserConfig(
     changelogHost: config['changelog-host'],
     releaseAs: config['release-as'],
     skipGithubRelease: config['skip-github-release'],
+    skipChangelog: config['skip-changelog'],
     draft: config.draft,
     prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
@@ -1743,6 +1746,7 @@ function mergeReleaserConfig(
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
     skipGithubRelease:
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
+    skipChangelog: pathConfig.skipChangelog ?? defaultConfig.skipChangelog,
     draft: pathConfig.draft ?? defaultConfig.draft,
     draftPullRequest:
       pathConfig.draftPullRequest ?? defaultConfig.draftPullRequest,
