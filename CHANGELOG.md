@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.1.2](https://github.com/googleapis/release-please/compare/v17.1.1...v17.1.2) (2025-08-19)
+
+
+### Bug Fixes
+
+* reduce graphQL pagination size to 10 ([#2579](https://github.com/googleapis/release-please/issues/2579)) ([05e31e4](https://github.com/googleapis/release-please/commit/05e31e402b850952f7ded53c816679865d9ba42c))
+
 ## [17.1.1](https://github.com/googleapis/release-please/compare/v17.1.0...v17.1.1) (2025-06-30)
 
 
