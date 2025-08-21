@@ -62,9 +62,34 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       linkCompare: !!options.previousTag,
     };
 
+    // Prepare types config, supporting regex-like "type" patterns by mapping
+    // them to synthetic types that conventional-changelog can group by.
     const config: {[key: string]: ChangelogSection[]} = {};
+    const regexMatchers: Array<{regex: RegExp; syntheticType: string; hidden?: boolean}> = [];
+    const hasRegexMeta = (pattern: string): boolean => /[.*+?^${}()|[\]\\]/.test(pattern);
+    const toRegex = (pattern: string): RegExp | undefined => {
+      try {
+        return new RegExp(pattern);
+      } catch (_err) {
+        return undefined;
+      }
+    };
     if (options.changelogSections) {
-      config.types = options.changelogSections;
+      const remappedTypes: ChangelogSection[] = [];
+      let regexIndex = 0;
+      for (const section of options.changelogSections) {
+        if (hasRegexMeta(section.type)) {
+          const rx = toRegex(section.type);
+          if (rx) {
+            const syntheticType = `regex-${regexIndex++}`;
+            regexMatchers.push({regex: rx, syntheticType, hidden: section.hidden});
+            remappedTypes.push({type: syntheticType, section: section.section, hidden: section.hidden});
+          }
+        } else {
+          remappedTypes.push(section);
+        }
+      }
+      config.types = remappedTypes;
     }
     const preset = await presetFactory(config);
     preset.writerOpts.commitPartial =
@@ -74,6 +99,16 @@ export class DefaultChangelogNotes implements ChangelogNotes {
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
     const changelogCommits = commits.map(commit => {
+      // If regex types are configured, override the type used for grouping
+      // when the commit subject matches a configured regex pattern.
+      let mappedType = commit.type;
+      if (regexMatchers.length > 0) {
+        const subject = commit.bareMessage || commit.message;
+        const matcher = regexMatchers.find(m => m.regex.test(subject));
+        if (matcher) {
+          mappedType = matcher.syntheticType;
+        }
+      }
       const notes = commit.notes
         .filter(note => note.title === 'BREAKING CHANGE')
         .map(note =>
@@ -87,7 +122,7 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       return {
         body: '', // commit.body,
         subject: htmlEscape(commit.bareMessage),
-        type: commit.type,
+        type: mappedType,
         scope: commit.scope,
         notes,
         references: commit.references,

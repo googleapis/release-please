@@ -328,6 +328,26 @@ defaults (those are documented in comments)
 }
 ```
 
+### Regex matching for changelog sections
+
+You can also map commits to changelog sections using regular expressions that match the commit subject. To do this, set the `type` field to a regex pattern. For example, to group Jira-like commit subjects such as `INFRA-123: ...` or `OPS-456: ...` under the same section:
+
+```json
+{
+  "packages": { ".": {} },
+  "changelog-sections": [
+    { "section": "♻️ OPS", "type": "^INFRA-\\d+:" },
+    { "section": "♻️ OPS", "type": "^OPS-\\d+:" },
+    { "section": "✨ Features", "type": "feat" },
+    { "section": "🐛 Bugfixes", "type": "fix" }
+  ]
+}
+```
+
+Notes:
+- Regex patterns are matched against the commit subject (the message after any `type(scope):` prefix, if present).
+- Version bump semantics still follow Conventional Commits (`feat`, `fix`, `BREAKING CHANGE`, etc.). Regex rules only affect how commits are displayed/grouped in the changelog.
+
 ## Subsequent Versions
 
 release-please tries to determine the next release based on the previous tagged

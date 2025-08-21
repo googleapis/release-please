@@ -45,19 +45,57 @@ export function filterCommits(
   changelogSections?: ChangelogSection[]
 ): ConventionalCommit[] {
   changelogSections = changelogSections ?? DEFAULT_CHANGELOG_SECTIONS;
-  const hiddenSections: Array<string> = [];
-  const visibleSections: Array<string> = [];
+
+  const visibleExactTypes: string[] = [];
+  const hiddenExactTypes: string[] = [];
+  const visibleRegexTypes: RegExp[] = [];
+  const hiddenRegexTypes: RegExp[] = [];
+
+  const hasRegexMeta = (pattern: string): boolean => /[.*+?^${}()|[\]\\]/.test(pattern);
+  const toRegex = (pattern: string): RegExp | undefined => {
+    try {
+      return new RegExp(pattern);
+    } catch (_err) {
+      return undefined;
+    }
+  };
+
   for (const section of changelogSections) {
-    if (!section.hidden) visibleSections.push(section.type);
-    else hiddenSections.push(section.type);
+    const isRegex = hasRegexMeta(section.type);
+    if (!section.hidden) {
+      if (isRegex) {
+        const rx = toRegex(section.type);
+        if (rx) visibleRegexTypes.push(rx);
+      } else {
+        visibleExactTypes.push(section.type);
+      }
+    } else {
+      if (isRegex) {
+        const rx = toRegex(section.type);
+        if (rx) hiddenRegexTypes.push(rx);
+      } else {
+        hiddenExactTypes.push(section.type);
+      }
+    }
   }
+
   return commits.filter(commit => {
-    const isBreaking = commit.notes.find(note => {
-      return note.title === BREAKING_CHANGE_NOTE;
-    });
-    return (
-      visibleSections.includes(commit.type) ||
-      (isBreaking && hiddenSections.includes(commit.type))
-    );
+    const isBreaking = commit.notes.find(note => note.title === BREAKING_CHANGE_NOTE);
+    const subject = commit.bareMessage || commit.message;
+
+    const matchesVisible =
+      visibleExactTypes.includes(commit.type) ||
+      visibleRegexTypes.some(rx => rx.test(subject));
+
+    if (matchesVisible) return true;
+
+    if (isBreaking) {
+      const matchesHidden =
+        hiddenExactTypes.includes(commit.type) ||
+        hiddenRegexTypes.some(rx => rx.test(subject));
+      if (matchesHidden) return true;
+    }
+
+    return false;
   });
 }
