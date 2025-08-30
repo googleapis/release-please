@@ -2,7 +2,7 @@
 
 # [Release Please](https://github.com/googleapis/release-please)
 
-[![npm version](https://img.shields.io/npm/v/release-please.svg)](https://www.npmjs.org/package/release-please)
+[![npm version](https://img.shields.io/npm/v/release-please.svg)](https://www.npmjs.org/package/release-please) 
 [![codecov](https://img.shields.io/codecov/c/github/googleapis/release-please/main.svg?style=flat)](https://codecov.io/gh/googleapis/release-please)
 
 Release Please automates CHANGELOG generation, the creation of GitHub releases,
