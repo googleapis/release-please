@@ -26,8 +26,8 @@ import {
 const RENOVATE_DEPENDENCY_UPDATE_REGEX =
   /^deps: update dependency (.*) to (v[^\s]*)(\s\(#\d+\))?$/m;
 
-const DEPENDABOT_DEPENDANCY_UPDATE_REGEX =
-  /^chore(deps): bump (.*) from [^\s]* to ([^\s]*)(\s\(#\d+\))?$/m;
+const DEPENDABOT_DEPENDENCY_UPDATE_REGEX =
+  /^(?:chore|build)\(deps\): bump (.*) from [^\s]* to ([^\s]*)(\s\(#\d+\))?$/m;
 
 /**
  * This VersioningStrategy looks at `deps` type commits and tries to
@@ -91,7 +91,7 @@ export class DependencyManifest extends DefaultVersioningStrategy {
 function matchCommit(commit: ConventionalCommit): RegExpMatchArray | null {
   return (
     commit.message.match(RENOVATE_DEPENDENCY_UPDATE_REGEX) ||
-    commit.message.match(DEPENDABOT_DEPENDANCY_UPDATE_REGEX)
+    commit.message.match(DEPENDABOT_DEPENDENCY_UPDATE_REGEX)
   );
 }
 
