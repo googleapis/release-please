@@ -327,7 +327,9 @@ describe('DependencyManifest', () => {
           breaking: false,
         },
       ];
-      const strategy = new DependencyManifest({ bumpPatchForMinorPreMajor: true });
+      const strategy = new DependencyManifest({
+        bumpPatchForMinorPreMajor: true,
+      });
       const oldVersion = Version.parse('0.1.2');
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('0.1.3');
@@ -347,7 +349,9 @@ describe('DependencyManifest', () => {
           breaking: false,
         },
       ];
-      const strategy = new DependencyManifest({ bumpMinorPreMajor: true });
+      const strategy = new DependencyManifest({
+        bumpMinorPreMajor: true,
+      });
       const oldVersion = Version.parse('0.1.2');
       const newVersion = await strategy.bump(oldVersion, commits);
       expect(newVersion.toString()).to.equal('0.2.0');
