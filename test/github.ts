@@ -37,6 +37,7 @@ import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
 import * as codeSuggester from 'code-suggester';
 import {RawContent} from '../src/updaters/raw-content';
+import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {Commit} from '../src/commit';
@@ -1059,6 +1060,64 @@ describe('GitHub', () => {
       expect(changes).to.not.be.undefined;
       expect(changes!.size).to.eql(1);
       expect(changes!.get('missing-file')).to.not.be.undefined;
+    });
+  });
+
+  describe('buildChangeSet', () => {
+    it('should merge updates for the same file', async () => {
+      const manifestPath = '.release-please-manifest.json';
+      const initialContent = JSON.stringify(
+        {
+          path1: '1.0.0',
+          path2: '2.0.0',
+        },
+        null,
+        2
+      );
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs(manifestPath, 'main')
+        .resolves({
+          sha: 'abc123',
+          content: Buffer.from(initialContent).toString('base64'),
+          parsedContent: initialContent,
+          mode: '100644',
+        });
+
+      const updates = [
+        {
+          path: manifestPath,
+          createIfMissing: false,
+          updater: new ReleasePleaseManifest({
+            version: Version.parse('1.1.0'),
+            versionsMap: new Map([['path1', Version.parse('1.1.0')]]),
+          }),
+        },
+        {
+          path: manifestPath,
+          createIfMissing: false,
+          updater: new ReleasePleaseManifest({
+            version: Version.parse('1.1.0'),
+            versionsMap: new Map(),
+          }),
+        },
+      ];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const changes = await (github as any).buildChangeSet(updates, 'main');
+
+      expect(changes).to.not.be.undefined;
+      expect(changes!.size).to.eql(1);
+      const updatedContent = changes!.get(manifestPath)!.content;
+      const expectedContent = JSON.stringify(
+        {
+          path1: '1.1.0',
+          path2: '2.0.0',
+        },
+        null,
+        2
+      );
+      expect(updatedContent).to.eql(expectedContent);
     });
   });
 
