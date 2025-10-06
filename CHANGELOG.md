@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.1.3](https://github.com/googleapis/release-please/compare/v17.1.2...v17.1.3) (2025-10-06)
+
+
+### Bug Fixes
+
+* fixing bug with major version generic updater ([#2422](https://github.com/googleapis/release-please/issues/2422)) ([2ec56e7](https://github.com/googleapis/release-please/commit/2ec56e7c9b3fd36b2c7cabfbad9eb949197224ba))
+* merge updates when creating a changeset ([#2601](https://github.com/googleapis/release-please/issues/2601)) ([3208848](https://github.com/googleapis/release-please/commit/320884894f59ea434a63e3a9c8b9f3552c9ccda4))
+
 ## [17.1.2](https://github.com/googleapis/release-please/compare/v17.1.1...v17.1.2) (2025-08-19)
 
 
