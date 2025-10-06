@@ -50,6 +50,7 @@ import {Logger} from 'code-suggester/build/src/types';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
+import {mergeUpdates} from './updaters/composite';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -1287,8 +1288,12 @@ export class GitHub {
     updates: Update[],
     defaultBranch: string
   ): Promise<ChangeSet> {
+    // Sometimes multiple updates are proposed for the same file,
+    // such as when the manifest file is additionally changed by the
+    // node-workspace plugin. We need to merge these updates.
+    const mergedUpdates = mergeUpdates(updates);
     const changes = new Map();
-    for (const update of updates) {
+    for (const update of mergedUpdates) {
       let content: GitHubFileContents | undefined;
       try {
         content = await this.getFileContentsOnBranch(
