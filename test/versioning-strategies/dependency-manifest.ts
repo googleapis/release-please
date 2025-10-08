@@ -271,4 +271,130 @@ describe('DependencyManifest', () => {
       expect(newVersion.toString()).to.equal('2.0.0');
     });
   });
+
+  describe('with a dependabot dependency update', () => {
+    it('can bump a patch (chore)', async () => {
+      const commits = [
+        {
+          sha: 'sha2',
+          message: 'chore(deps): bump foo from 4.5.5 to 4.5.6',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DependencyManifest({});
+      const oldVersion = Version.parse('1.2.3');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('1.2.4');
+    });
+
+    it('can bump a minor (chore)', async () => {
+      const commits = [
+        {
+          sha: 'sha2',
+          message: 'chore(deps): bump foo from 4.4.9 to 4.5.0',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DependencyManifest({});
+      const oldVersion = Version.parse('1.2.3');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('1.3.0');
+    });
+
+    it('can bump a minor as a patch pre-major (chore)', async () => {
+      const commits = [
+        {
+          sha: 'sha2',
+          message: 'chore(deps): bump foo from 0.1.2 to 0.1.3',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DependencyManifest({
+        bumpPatchForMinorPreMajor: true,
+      });
+      const oldVersion = Version.parse('0.1.2');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('0.1.3');
+    });
+
+    it('can bump a major as a minor pre-major (chore)', async () => {
+      const commits = [
+        {
+          sha: 'sha2',
+          message: 'chore(deps): bump foo from 0.1.2 to 1.0.0',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DependencyManifest({
+        bumpMinorPreMajor: true,
+      });
+      const oldVersion = Version.parse('0.1.2');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('0.2.0');
+    });
+
+    it('can bump a major (with PR number, chore)', async () => {
+      const commits = [
+        {
+          sha: 'sha2',
+          message: 'chore(deps): bump foo from 3 to 4 (#1234)',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DependencyManifest({});
+      const oldVersion = Version.parse('1.2.3');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('2.0.0');
+    });
+
+    it('also matches build(deps) variant', async () => {
+      const commits = [
+        {
+          sha: 'sha2',
+          message: 'build(deps): bump bar from v1.2.3 to v1.2.4',
+          files: ['path1/file1.rb'],
+          type: 'fix',
+          scope: null,
+          bareMessage: 'some bugfix',
+          notes: [],
+          references: [],
+          breaking: false,
+        },
+      ];
+      const strategy = new DependencyManifest({});
+      const oldVersion = Version.parse('1.2.3');
+      const newVersion = await strategy.bump(oldVersion, commits);
+      expect(newVersion.toString()).to.equal('1.2.4');
+    });
+  });
 });
