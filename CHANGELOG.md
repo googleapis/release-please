@@ -1095,7 +1095,7 @@
 
 ### Bug Fixes
 
-* fix parsing of tags with major versions higher than 9 ([#1451](https://github.com/googleapis/release-please/issues/1451)) ([5fc402a](https://github.com/googleapis/release-please/commit/5fc402ae41cd5aba4be5155f90fbc39f9369817d))
+* fix parsing of tags with major versions above 9 ([#1451](https://github.com/googleapis/release-please/issues/1451)) ([5fc402a](https://github.com/googleapis/release-please/commit/5fc402ae41cd5aba4be5155f90fbc39f9369817d))
 
 ### [13.17.1](https://github.com/googleapis/release-please/compare/v13.17.0...v13.17.1) (2022-05-27)
 
