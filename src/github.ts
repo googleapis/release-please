@@ -499,7 +499,7 @@ export class GitHub {
             // single merged commit in the PR. This means merge commits and squash
             // merges will be matched, but rebase merged PRs will only be matched
             // if they contain a single commit. This is so PRs that are rebased
-            // and merged will have ßSfiles backfilled from each commit instead of
+            // and merged will have files backfilled from each commit instead of
             // the whole PR.
             pr.mergeCommit &&
             pr.mergeCommit.oid === graphCommit.sha &&
