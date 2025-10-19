@@ -16,7 +16,7 @@ import {logger as defaultLogger, Logger} from '../../util/logger';
 import {DefaultUpdater} from '../default';
 
 /**
- * Updates KMR blueprint yaml file.
+ * Updates KRM blueprint yaml file.
  */
 export class KRMBlueprintVersion extends DefaultUpdater {
   /**
