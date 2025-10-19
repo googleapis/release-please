@@ -103,7 +103,7 @@ The above commit message will contain:
 
 ## How do I change the version number?
 
-When a commit to the main branch has `Release-As: x.x.x` (case insensitive) in the **commit body**, Release Please will open a new pull request for the specified version.
+When a commit to the main branch has `Release-As: x.x.x` (case-insensitive) in the **commit body**, Release Please will open a new pull request for the specified version.
 
 **Empty commit example:**
 
