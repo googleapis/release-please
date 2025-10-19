@@ -188,11 +188,11 @@ Release Please automates releases for the following flavors of repositories:
 | `go`                | A repository with a CHANGELOG.md |
 | `helm`              | A repository with a Chart.yaml and a CHANGELOG.md |
 | `java`              | [A strategy that generates SNAPSHOT version after each release](docs/java.md) |
-| `krm-blueprint`     | [A kpt package, with 1 or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
+| `krm-blueprint`     | [A kpt package, with one or more KRM files and a CHANGELOG.md](https://github.com/GoogleCloudPlatform/blueprints/tree/main/catalog/project) |
 | `maven`             | [Strategy for Maven projects, generates SNAPSHOT version after each release and updates `pom.xml` automatically](docs/java.md) |
 | `node`              | [A Node.js repository, with a package.json and CHANGELOG.md](https://github.com/yargs/yargs) |
 | `expo`              | [An Expo based React Native repository, with a package.json, app.json and CHANGELOG.md](https://github.com/dmi3y/expo-release-please-example) |
-| `ocaml`             | [An OCaml repository, containing 1 or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
+| `ocaml`             | [An OCaml repository, containing one or more opam or esy files and a CHANGELOG.md](https://github.com/grain-lang/binaryen.ml) |
 | `php`               | A repository with a composer.json and a CHANGELOG.md |
 | `python`            | [A Python repository with a pyproject.toml, &lt;project&gt;/\_\_init\_\_.py, CHANGELOG.md or optionally a setup.py, setup.cfg](https://github.com/googleapis/python-storage) |
 | `R`               | A repository with a DESCRIPTION and a NEWS.md |

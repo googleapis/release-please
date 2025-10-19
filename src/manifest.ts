@@ -781,7 +781,7 @@ export class Manifest {
       }
     }
 
-    // Combine pull requests into 1 unless configured for separate
+    // Combine pull requests into one unless configured for separate
     // pull requests
     if (!this.separatePullRequests) {
       const mergeOptions: MergeOptions = {
