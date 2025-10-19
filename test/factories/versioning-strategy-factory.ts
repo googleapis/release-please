@@ -54,7 +54,7 @@ describe('VersioningStrategyFactory', () => {
       expect(() =>
         buildVersioningStrategy({
           github,
-          type: 'non-existent',
+          type: 'nonexistent',
         })
       ).to.throw();
     });

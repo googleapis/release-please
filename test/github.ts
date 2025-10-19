@@ -273,7 +273,7 @@ describe('GitHub', () => {
 
     it('should throw a missing file error', async () => {
       await assert.rejects(async () => {
-        await github.getFileContents('non-existent-file');
+        await github.getFileContents('nonexistent-file');
       }, FileNotFoundError);
     });
   });

@@ -1806,7 +1806,7 @@
 
 ### Bug Fixes
 
-* finding commits to non-existent branch should return empty array ([#956](https://www.github.com/googleapis/release-please/issues/956)) ([6dc3b48](https://www.github.com/googleapis/release-please/commit/6dc3b48549c5beb9f1cc4d5a359fee5dfca591eb)), closes [#944](https://www.github.com/googleapis/release-please/issues/944)
+* finding commits to nonexistent branch should return empty array ([#956](https://www.github.com/googleapis/release-please/issues/956)) ([6dc3b48](https://www.github.com/googleapis/release-please/commit/6dc3b48549c5beb9f1cc4d5a359fee5dfca591eb)), closes [#944](https://www.github.com/googleapis/release-please/issues/944)
 
 ## [11.14.0](https://www.github.com/googleapis/release-please/compare/v11.13.2...v11.14.0) (2021-07-07)
 

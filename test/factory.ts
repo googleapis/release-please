@@ -98,7 +98,7 @@ describe('factory', () => {
       try {
         await buildStrategy({
           github,
-          releaseType: 'non-existent',
+          releaseType: 'nonexistent',
         });
       } catch (err) {
         expect(err).to.be.instanceof(Error);
