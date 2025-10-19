@@ -1546,7 +1546,7 @@
 * releasers are now "strategies", more logic moved into base classes
 * Node 12 is now required
 * manifest is now main entrypoint for release please, and logic is shared between mono-repo/split-repo flow
-* versioning straregy now handled by VersionStrategies rather than regexes
+* versioning strategy now handled by VersionStrategies rather than regexes
 * merge Manifest and standard PR paths (#1104)
 
 ### Features
@@ -1588,7 +1588,7 @@
 * merge Manifest and standard PR paths ([#1104](https://www.github.com/googleapis/release-please/issues/1104)) ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
 * Node 12 is now required ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
 * releasers are now "strategies", more logic moved into base classes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
-* versioning straregy now handled by VersionStrategies rather than regexes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
+* versioning strategy now handled by VersionStrategies rather than regexes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
 
 ## [12.6.0](https://www.github.com/googleapis/release-please/compare/v12.5.0...v12.6.0) (2021-10-11)
 
