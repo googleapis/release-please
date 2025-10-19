@@ -66,7 +66,7 @@ export class TerraformModule extends BaseStrategy {
     });
 
     // Update versions.tf to current candidate version.
-    // A module may have submodules, so find all versions.tfand versions.tf.tmpl to update.
+    // A module may have submodules, so find all versions.tf and versions.tf.tmpl to update.
     const versionFiles = await Promise.all([
       this.github.findFilesByFilenameAndRef(
         'versions.tf',
