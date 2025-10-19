@@ -2118,7 +2118,7 @@
 
 ### Features
 
-* add add GitHub helpers for findFilesByFilenameAndRef and findFilesByExtensionAndRef ([#712](https://www.github.com/googleapis/release-please/issues/712)) ([0258bd6](https://www.github.com/googleapis/release-please/commit/0258bd6fe4aca5e988aa993156bccd37c53130eb))
+* add GitHub helpers for findFilesByFilenameAndRef and findFilesByExtensionAndRef ([#712](https://www.github.com/googleapis/release-please/issues/712)) ([0258bd6](https://www.github.com/googleapis/release-please/commit/0258bd6fe4aca5e988aa993156bccd37c53130eb))
 * **rust:** Update Cargo.lock, preserve formatting in Cargo.{toml,lock} ([#705](https://www.github.com/googleapis/release-please/issues/705)) ([198c327](https://www.github.com/googleapis/release-please/commit/198c32787d5f41104f7d19c59df28bfbdee2d85d))
 
 
