@@ -141,7 +141,7 @@
 
 ### Bug Fixes
 
-* add missing generic updaters in to release please config schema extraFiles ([#2344](https://github.com/googleapis/release-please/issues/2344)) ([050cf93](https://github.com/googleapis/release-please/commit/050cf93f272e76f0fc7a408fc9e85ab02321459c))
+* add missing generic updaters into release please config schema extraFiles ([#2344](https://github.com/googleapis/release-please/issues/2344)) ([050cf93](https://github.com/googleapis/release-please/commit/050cf93f272e76f0fc7a408fc9e85ab02321459c))
 * don't escape html tags inside of inline code in release notes ([#2367](https://github.com/googleapis/release-please/issues/2367)) ([a41d137](https://github.com/googleapis/release-please/commit/a41d13787b6676b73c87b9e03ff952289928c0fd))
 * fix comment at release pr is ugly ([#2348](https://github.com/googleapis/release-please/issues/2348)) ([e562ee2](https://github.com/googleapis/release-please/commit/e562ee21c8820d99007604cd930022816ce6c76c))
 * GenericJSON updater uses regex to find version in matching entry ([#2253](https://github.com/googleapis/release-please/issues/2253)) ([acc3242](https://github.com/googleapis/release-please/commit/acc3242b1e35349ada51e0d41a66e8fad29000f6))
