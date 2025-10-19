@@ -127,7 +127,7 @@ export class RubyYoshi extends BaseStrategy {
         .replace(/(\(\[(\w+)\]\(https:\/\/github\.com\/[^)]*\)\))+\s*$/gm, '')
         // Standardize on h4 for change type subheaders
         .replace(/^### (Features|Bug Fixes|Documentation)$/gm, '#### $1')
-        // Collapse 2 or more blank lines
+        // Collapse two or more blank lines
         .replace(/\n{3,}/g, '\n\n')
     );
   }
