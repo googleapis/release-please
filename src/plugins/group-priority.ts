@@ -68,7 +68,7 @@ export class GroupPriority extends ManifestPlugin {
       }
     }
 
-    // fallback to returning all candidates
+    // fall back to returning all candidates
     this.logger.debug('No preferred group found, returning full set.');
     return pullRequests;
   }

@@ -3274,7 +3274,7 @@ describe('Manifest', () => {
       });
     });
 
-    it('should fallback to tagged version', async () => {
+    it('should fall back to tagged version', async () => {
       mockReleases(sandbox, github, []);
       mockTags(sandbox, github, [
         {

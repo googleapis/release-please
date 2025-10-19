@@ -131,7 +131,7 @@ defaults (those are documented in comments)
   // for conventional commit parsing. Once release-please has generated
   // at least one release PR, this setting will subsequently be ignored.
   // release-please will check for a manifest file at the bootstrap-sha
-  // and if it doesn't find one it will fallback to checking at HEAD.
+  // and if it doesn't find one it will fall back to checking at HEAD.
   // Notes:
   //   - full sha required.
   //   - only applicable at top-level config.
