@@ -1,4 +1,4 @@
-exports['PubspecYaml updateContent leaves malformatted build numbers alone in pubspec.yaml file 1'] = `
+exports['PubspecYaml updateContent leaves malformed build numbers alone in pubspec.yaml file 1'] = `
 name: hello_world
 description: Hello World
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

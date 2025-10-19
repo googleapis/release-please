@@ -47,7 +47,7 @@ describe('PubspecYaml', () => {
       snapshot(newContent);
     });
 
-    it('leaves malformatted build numbers alone in pubspec.yaml file', async () => {
+    it('leaves malformed build numbers alone in pubspec.yaml file', async () => {
       const oldContent = readFileSync(
         resolve(fixturesPath, './pubspec_with_build_no_bad.yaml'),
         'utf8'
