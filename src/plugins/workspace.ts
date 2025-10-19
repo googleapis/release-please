@@ -324,7 +324,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
 
   /**
    * Collect all packages being managed in this workspace.
-   * @param {CanididateReleasePullRequest[]} candidates Existing candidate pull
+   * @param {CandidateReleasePullRequest[]} candidates Existing candidate pull
    *   requests
    * @returns {AllPackages<T>} The list of packages and candidates grouped by package name
    */
