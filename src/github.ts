@@ -1303,7 +1303,7 @@ export class GitHub {
       } catch (err) {
         if (!(err instanceof FileNotFoundError)) throw err;
         // if the file is missing and create = false, just continue
-        // to the next update, otherwise create the file.
+        // to the next update; otherwise, create the file.
         if (!update.createIfMissing) {
           this.logger.warn(`file ${update.path} did not exist`);
           continue;
