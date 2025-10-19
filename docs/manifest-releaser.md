@@ -165,7 +165,7 @@ defaults (those are documented in comments)
   // manually set next version to be "1.2.3" ignoring conventional commits.
   // absence defaults to conventional commits derived next version.
   // Note: once the release PR is merged you should either remove this or
-  // update it to a higher version. Otherwise subsequent `manifest-pr` runs
+  // update it to a higher version. Otherwise, subsequent `manifest-pr` runs
   // will continue to use this version even though it was already set in the
   // last release.
   "release-as": "1.2.3",
