@@ -243,7 +243,7 @@ export class GitHub {
    *   Defaults to the value fetched via the API.
    * @param {string} options.apiUrl Optional. The base url of the GitHub API.
    * @param {string} options.graphqlUrl Optional. The base url of the GraphQL API.
-   * @param {OctokitAPISs} options.octokitAPIs Optional. Override the internal
+   * @param {OctokitAPIs} options.octokitAPIs Optional. Override the internal
    *   client instances with a pre-authenticated instance.
    * @param {string} token Optional. A GitHub API token used for authentication.
    */
