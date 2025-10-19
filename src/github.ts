@@ -1615,7 +1615,7 @@ export class GitHub {
     }
     // see if newBranchName exists
     if (await this.getBranchSha(targetBranchName)) {
-      // branch already exists, update it to the match the base branch
+      // branch already exists, update it to match the base branch
       const branchSha = await this.updateBranchSha(
         targetBranchName,
         baseBranchSha
