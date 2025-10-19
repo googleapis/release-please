@@ -34,7 +34,7 @@ export interface AppJsonOptions extends UpdateOptions {
 }
 
 /**
- * This updates a React Natve Expo project app.json file's main, ios and android
+ * This updates a React Native Expo project app.json file's main, ios and android
  * versions. All values except the `android.versionCode` are standard semver
  * version numbers. For the `android.versionCode`, the semver number is used as
  * the basis for the `versionCode`.
