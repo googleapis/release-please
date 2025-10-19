@@ -227,7 +227,7 @@ your release process. Please see [customizing.md](docs/customizing.md) for more 
 
 ## Supporting Monorepos via Manifest Configuration
 
-Release Please also supports releasing multiple artifacts from the same repository.
+Release Please supports releasing multiple artifacts from the same repository.
 See more at [manifest-releaser.md](docs/manifest-releaser.md).
 
 ## Supported Node.js Versions
