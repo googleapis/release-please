@@ -292,7 +292,7 @@ we correctly build the manifest configuration from the config JSON.
 We heavily rely on unit testing to ensure `release-please` is behaving as expected. This is
 a very complex codebase and we try to avoid breaking changes.
 
-**Contributor note**: If you implement a new bugfix, please also add a new corresponding
+**Contributor note**: If you implement a new bugfix, please add a new corresponding
 test to ensure we don't regress in the future.
 
 ## Public interface
