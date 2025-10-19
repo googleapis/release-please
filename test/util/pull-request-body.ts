@@ -122,7 +122,7 @@ describe('PullRequestBody', () => {
       expect(releaseData[0].notes).matches(/Database operations/);
     });
 
-    it('can parse initial release pull rqeuest body', () => {
+    it('can parse initial release pull request body', () => {
       const body = readFileSync(
         resolve(fixturesPath, './initial-version.txt'),
         'utf8'
