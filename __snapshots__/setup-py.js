@@ -51,7 +51,7 @@ setuptools.setup(
     description=description,
     long_description=readme,
     author="Google LLC",
-    author_email="googleapis-packages@oogle.com",
+    author_email="googleapis-packages@google.com",
     license="Apache 2.0",
     url="https://github.com/GoogleCloudPlatform/google-cloud-python",
     classifiers=[
