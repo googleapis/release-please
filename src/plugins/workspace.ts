@@ -128,7 +128,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         candidatesByPackage
       );
       if (existingCandidate) {
-        // if already has an pull request, update the changelog and update
+        // if already has a pull request, update the changelog and update
         this.logger.info(
           `Updating existing candidate pull request for ${this.packageNameFromPackage(
             pkg
