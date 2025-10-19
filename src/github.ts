@@ -321,7 +321,7 @@ export class GitHub {
 
   /**
    * Returns the list of commits to the default branch after the provided filter
-   * query has been satified.
+   * query has been satisfied.
    *
    * @param {string} targetBranch Target branch of commit
    * @param {CommitFilter} filter Callback function that returns whether a
