@@ -684,7 +684,7 @@ describe('GitHub', () => {
       expect(drafts).eq(1);
     });
 
-    it('iterates through a result withouth releases', async () => {
+    it('iterates through a result without releases', async () => {
       req.post('/graphql').reply(200, {
         data: {
           repository: {
