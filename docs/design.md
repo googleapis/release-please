@@ -302,7 +302,7 @@ as part of the public interface. Other classes' interfaces are not considered pa
 public API and are subject to modification without requiring a new major release of
 `release-please`.
 
-Typescript/Javascript has limitations in its visibility scopes. If you choose to organize
+Typescript/JavaScript has limitations in its visibility scopes. If you choose to organize
 source across many files, you cannot mark things as private if you use them in other files.
 For example, you could have a file `src/internal/private-class.ts` which exports `PrivateClass`
 for use as an implementation detail or for testability. An external developer could use
