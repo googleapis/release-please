@@ -1431,7 +1431,7 @@ export class GitHub {
   );
 
   /**
-   * Makes a comment on a issue/pull request.
+   * Makes a comment on an issue/pull request.
    *
    * @param {string} comment - The body of the comment to post.
    * @param {number} number - The issue or pull request number.
