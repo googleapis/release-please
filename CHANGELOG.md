@@ -474,7 +474,7 @@
 
 ### Bug Fixes
 
-* Github issues link ([#1849](https://github.com/googleapis/release-please/issues/1849)) ([68e6759](https://github.com/googleapis/release-please/commit/68e67591bbae5db51ce0ce7591898a2adf49be96))
+* GitHub issues link ([#1849](https://github.com/googleapis/release-please/issues/1849)) ([68e6759](https://github.com/googleapis/release-please/commit/68e67591bbae5db51ce0ce7591898a2adf49be96))
 
 ## [15.7.0](https://github.com/googleapis/release-please/compare/v15.6.0...v15.7.0) (2023-02-07)
 
@@ -1503,7 +1503,7 @@
 
 ### Features
 
-* allow prerelease releases on Github ([#1181](https://github.com/googleapis/release-please/issues/1181)) ([267dbfc](https://github.com/googleapis/release-please/commit/267dbfc58a50cde7ffa378b357df62066a1218c9))
+* allow prerelease releases on GitHub ([#1181](https://github.com/googleapis/release-please/issues/1181)) ([267dbfc](https://github.com/googleapis/release-please/commit/267dbfc58a50cde7ffa378b357df62066a1218c9))
 
 
 ### Bug Fixes
@@ -1595,7 +1595,7 @@
 
 ### Features
 
-* add GraphQL URL option for Github ([#1083](https://www.github.com/googleapis/release-please/issues/1083)) ([ec661e2](https://www.github.com/googleapis/release-please/commit/ec661e22c7f5fa80e26d32d4cf0d93a4a90af4be)), closes [#1082](https://www.github.com/googleapis/release-please/issues/1082)
+* add GraphQL URL option for GitHub ([#1083](https://www.github.com/googleapis/release-please/issues/1083)) ([ec661e2](https://www.github.com/googleapis/release-please/commit/ec661e22c7f5fa80e26d32d4cf0d93a4a90af4be)), closes [#1082](https://www.github.com/googleapis/release-please/issues/1082)
 
 ## [12.5.0](https://www.github.com/googleapis/release-please/compare/v12.4.0...v12.5.0) (2021-09-29)
 
@@ -2371,7 +2371,7 @@
 ### Features
 
 * add option to create PR from fork ([#547](https://www.github.com/googleapis/release-please/issues/547)) ([5057818](https://www.github.com/googleapis/release-please/commit/5057818c9029cb2054c2279183044c17c607699f))
-* adds support for Data API in Github#getFileContents ([#551](https://www.github.com/googleapis/release-please/issues/551)) ([40a9c68](https://www.github.com/googleapis/release-please/commit/40a9c684347331756aae87639e0fa18d218ce16b)), closes [#546](https://www.github.com/googleapis/release-please/issues/546)
+* adds support for Data API in GitHub#getFileContents ([#551](https://www.github.com/googleapis/release-please/issues/551)) ([40a9c68](https://www.github.com/googleapis/release-please/commit/40a9c684347331756aae87639e0fa18d218ce16b)), closes [#546](https://www.github.com/googleapis/release-please/issues/546)
 * support pre-releases ([#550](https://www.github.com/googleapis/release-please/issues/550)) ([320448b](https://www.github.com/googleapis/release-please/commit/320448b22eb5c3c7c7a6eaa96ac77b8cc73bc48a))
 
 

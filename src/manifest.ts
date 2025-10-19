@@ -104,7 +104,7 @@ export interface ReleaserConfig {
 
   // Strategy options
   releaseAs?: string;
-  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release\
+  skipGitHubRelease?: boolean;
   skipChangelog?: boolean;
   draft?: boolean;
   prerelease?: boolean;
@@ -862,7 +862,7 @@ export class Manifest {
       } else {
         if (
           strategiesByPath[ROOT_PROJECT_PATH] &&
-          this.repositoryConfig[path].skipGithubRelease
+          this.repositoryConfig[path].skipGitHubRelease
         ) {
           this.logger.debug('could not find release, checking root package');
           const rootComponent = await strategiesByPath[
@@ -1382,7 +1382,7 @@ function extractReleaserConfig(
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
     releaseAs: config['release-as'],
-    skipGithubRelease: config['skip-github-release'],
+    skipGitHubRelease: config['skip-github-release'],
     skipChangelog: config['skip-changelog'],
     draft: config.draft,
     prerelease: config.prerelease,
@@ -1736,8 +1736,8 @@ function mergeReleaserConfig(
     changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
-    skipGithubRelease:
-      pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
+    skipGitHubRelease:
+      pathConfig.skipGitHubRelease ?? defaultConfig.skipGitHubRelease,
     skipChangelog: pathConfig.skipChangelog ?? defaultConfig.skipChangelog,
     draft: pathConfig.draft ?? defaultConfig.draft,
     draftPullRequest:

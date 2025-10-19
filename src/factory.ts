@@ -132,7 +132,7 @@ export async function buildStrategy(
     changelogSections: options.changelogSections,
   });
   const strategyOptions: BaseStrategyOptions = {
-    skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
+    skipGitHubRelease: options.skipGitHubRelease,
     skipChangelog: options.skipChangelog,
     ...options,
     targetBranch,
