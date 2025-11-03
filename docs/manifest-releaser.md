@@ -1,7 +1,7 @@
 # Manifest Driven release-please
 
 release-please can be setup to use source-controlled files containing releaser
-specific configuration (the `release-please-config.json`) as well package
+specific configuration (the `release-please-config.json`) as well as package
 version tracking (the `.release-please-manifest.json`).
 
 The motivation of the manifest-based releaser is support for monorepos:
