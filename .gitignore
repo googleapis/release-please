@@ -8,3 +8,15 @@ __pycache__
 package-lock.json
 debug.sh
 .idea/
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.lock
+devenv.nix
+devenv.yaml
+.envrc
+
+# direnv
+.direnv
+
