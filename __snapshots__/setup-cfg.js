@@ -24,7 +24,7 @@ author = Google LLC
 author_email = googleapis-packages@google.com
 
 license = Apache 2.0
-platforms = Posix, MacOS X, Windows
+platforms = POSIX, MacOS X, Windows
 classifiers =
     Development Status :: 4 - Beta
     Intended Audience :: Developers
@@ -72,7 +72,7 @@ author = Google LLC
 author_email = googleapis-packages@google.com
 
 license = Apache 2.0
-platforms = Posix, MacOS X, Windows
+platforms = POSIX, MacOS X, Windows
 classifiers =
     Development Status :: 4 - Beta
     Intended Audience :: Developers

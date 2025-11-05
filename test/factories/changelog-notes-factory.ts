@@ -49,7 +49,7 @@ describe('ChangelogNotesFactory', () => {
     }
     it('should throw for unknown type', () => {
       expect(() =>
-        buildChangelogNotes({github, type: 'non-existent'})
+        buildChangelogNotes({github, type: 'nonexistent'})
       ).to.throw();
     });
   });

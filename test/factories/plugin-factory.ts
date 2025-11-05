@@ -63,7 +63,7 @@ describe('PluginFactory', () => {
       expect(() =>
         buildPlugin({
           github,
-          type: 'non-existent',
+          type: 'nonexistent',
           targetBranch: 'target-branch',
           repositoryConfig,
           manifestPath: '.manifest.json',

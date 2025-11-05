@@ -32,7 +32,7 @@ import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const parseGithubRepoUrl = require('parse-github-repo-url');
+const parseGitHubRepoUrl = require('parse-github-repo-url');
 
 interface ErrorObject {
   body?: object;
@@ -209,7 +209,7 @@ function releaseOptions(yargs: yargs.Argv): yargs.Argv {
     .option('prerelease', {
       describe:
         'mark release that have prerelease versions ' +
-        'as as a prerelease on Github',
+        'as as a prerelease on GitHub',
       type: 'boolean',
       default: false,
     })
@@ -810,7 +810,7 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
 };
 
 async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
-  const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
+  const [owner, repo] = parseGitHubRepoUrl(argv.repoUrl);
   const github = await GitHub.create({
     owner,
     repo,

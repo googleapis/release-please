@@ -23,7 +23,7 @@ export function coerceOption(option: string): string {
       if (stat.isDirectory()) return option;
       else return readFileSync(option, 'utf8').trim();
     } catch (err) {
-      // simply fallback to returning the original option.
+      // simply fall back to returning the original option.
     }
   }
   return option;

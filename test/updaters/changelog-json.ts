@@ -69,7 +69,7 @@ describe('changelog.json', () => {
         .replace(ISO_DATE_REGEX, '2023-01-05T16:42:33.446Z')
     );
   });
-  // In discussion with downstream implementers, we decideed that it would
+  // In discussion with downstream implementers, we decided that it would
   // make it easier to customize the CHANGELOG generated if we pre-parsed
   // the PR # suffix that GitHub adds to squashed commits.
   it('adds PR # suffix to issues array', async () => {

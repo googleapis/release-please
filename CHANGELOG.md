@@ -141,7 +141,7 @@
 
 ### Bug Fixes
 
-* add missing generic updaters in to release please config schema extraFiles ([#2344](https://github.com/googleapis/release-please/issues/2344)) ([050cf93](https://github.com/googleapis/release-please/commit/050cf93f272e76f0fc7a408fc9e85ab02321459c))
+* add missing generic updaters into release please config schema extraFiles ([#2344](https://github.com/googleapis/release-please/issues/2344)) ([050cf93](https://github.com/googleapis/release-please/commit/050cf93f272e76f0fc7a408fc9e85ab02321459c))
 * don't escape html tags inside of inline code in release notes ([#2367](https://github.com/googleapis/release-please/issues/2367)) ([a41d137](https://github.com/googleapis/release-please/commit/a41d13787b6676b73c87b9e03ff952289928c0fd))
 * fix comment at release pr is ugly ([#2348](https://github.com/googleapis/release-please/issues/2348)) ([e562ee2](https://github.com/googleapis/release-please/commit/e562ee21c8820d99007604cd930022816ce6c76c))
 * GenericJSON updater uses regex to find version in matching entry ([#2253](https://github.com/googleapis/release-please/issues/2253)) ([acc3242](https://github.com/googleapis/release-please/commit/acc3242b1e35349ada51e0d41a66e8fad29000f6))
@@ -474,7 +474,7 @@
 
 ### Bug Fixes
 
-* Github issues link ([#1849](https://github.com/googleapis/release-please/issues/1849)) ([68e6759](https://github.com/googleapis/release-please/commit/68e67591bbae5db51ce0ce7591898a2adf49be96))
+* GitHub issues link ([#1849](https://github.com/googleapis/release-please/issues/1849)) ([68e6759](https://github.com/googleapis/release-please/commit/68e67591bbae5db51ce0ce7591898a2adf49be96))
 
 ## [15.7.0](https://github.com/googleapis/release-please/compare/v15.6.0...v15.7.0) (2023-02-07)
 
@@ -1095,7 +1095,7 @@
 
 ### Bug Fixes
 
-* fix parsing of tags with major versions higher than 9 ([#1451](https://github.com/googleapis/release-please/issues/1451)) ([5fc402a](https://github.com/googleapis/release-please/commit/5fc402ae41cd5aba4be5155f90fbc39f9369817d))
+* fix parsing of tags with major versions above 9 ([#1451](https://github.com/googleapis/release-please/issues/1451)) ([5fc402a](https://github.com/googleapis/release-please/commit/5fc402ae41cd5aba4be5155f90fbc39f9369817d))
 
 ### [13.17.1](https://github.com/googleapis/release-please/compare/v13.17.0...v13.17.1) (2022-05-27)
 
@@ -1400,7 +1400,7 @@
 
 ### Bug Fixes
 
-* php-yoshi strategy should handle custom changelog secctions ([#1277](https://github.com/googleapis/release-please/issues/1277)) ([bd74a5b](https://github.com/googleapis/release-please/commit/bd74a5b7b622a6cec0d64cbf9b9e01102dc835b2))
+* php-yoshi strategy should handle custom changelog sections ([#1277](https://github.com/googleapis/release-please/issues/1277)) ([bd74a5b](https://github.com/googleapis/release-please/commit/bd74a5b7b622a6cec0d64cbf9b9e01102dc835b2))
 
 ### [13.4.6](https://github.com/googleapis/release-please/compare/v13.4.5...v13.4.6) (2022-02-01)
 
@@ -1503,7 +1503,7 @@
 
 ### Features
 
-* allow prerelease releases on Github ([#1181](https://github.com/googleapis/release-please/issues/1181)) ([267dbfc](https://github.com/googleapis/release-please/commit/267dbfc58a50cde7ffa378b357df62066a1218c9))
+* allow prerelease releases on GitHub ([#1181](https://github.com/googleapis/release-please/issues/1181)) ([267dbfc](https://github.com/googleapis/release-please/commit/267dbfc58a50cde7ffa378b357df62066a1218c9))
 
 
 ### Bug Fixes
@@ -1546,7 +1546,7 @@
 * releasers are now "strategies", more logic moved into base classes
 * Node 12 is now required
 * manifest is now main entrypoint for release please, and logic is shared between mono-repo/split-repo flow
-* versioning straregy now handled by VersionStrategies rather than regexes
+* versioning strategy now handled by VersionStrategies rather than regexes
 * merge Manifest and standard PR paths (#1104)
 
 ### Features
@@ -1569,8 +1569,8 @@
 * backfill latest release with version found in manifest ([#1131](https://www.github.com/googleapis/release-please/issues/1131)) ([94859a0](https://www.github.com/googleapis/release-please/commit/94859a0cfbc58724016daaefaca03f34a43e0473))
 * **cli:** pass pull-request-title-pattern ([#1128](https://www.github.com/googleapis/release-please/issues/1128)) ([28d7727](https://www.github.com/googleapis/release-please/commit/28d7727bc827612b02a8fde58d13cd87f962a399))
 * combined manifest PR should include labels ([#1137](https://www.github.com/googleapis/release-please/issues/1137)) ([d8bb7ca](https://www.github.com/googleapis/release-please/commit/d8bb7caddfa14aabd3bfa19008c10ed911638a66))
-* fallback to look at releases when looking for latest release ([#1146](https://www.github.com/googleapis/release-please/issues/1146)) ([76ed1a7](https://www.github.com/googleapis/release-please/commit/76ed1a77e64f28b0af7d8125dce457b885f80e52))
-* fallback to look at tags when looking for latest release ([#1160](https://www.github.com/googleapis/release-please/issues/1160)) ([e06c6ba](https://www.github.com/googleapis/release-please/commit/e06c6ba5c3ce29689275e495934d4a6785962d5b))
+* fall back to look at releases when looking for latest release ([#1146](https://www.github.com/googleapis/release-please/issues/1146)) ([76ed1a7](https://www.github.com/googleapis/release-please/commit/76ed1a77e64f28b0af7d8125dce457b885f80e52))
+* fall back to look at tags when looking for latest release ([#1160](https://www.github.com/googleapis/release-please/issues/1160)) ([e06c6ba](https://www.github.com/googleapis/release-please/commit/e06c6ba5c3ce29689275e495934d4a6785962d5b))
 * GitHub#findFilesByExtension should treat prefix as a directory ([#1165](https://www.github.com/googleapis/release-please/issues/1165)) ([b48ec5b](https://www.github.com/googleapis/release-please/commit/b48ec5bc285233436d7cb1b367326a3c6dd555a9))
 * **github:** correctly return maxResults releases ([#1134](https://www.github.com/googleapis/release-please/issues/1134)) ([25f6811](https://www.github.com/googleapis/release-please/commit/25f68113d0e0bfa5a181d616c11bfd5e573cfaf5))
 * make PullRequest, ReleasePullRequest, Version fields readonly ([#1150](https://www.github.com/googleapis/release-please/issues/1150)) ([9659c1c](https://www.github.com/googleapis/release-please/commit/9659c1c868395394a40ff8f6caf9aaa7998fb8b8))
@@ -1588,14 +1588,14 @@
 * merge Manifest and standard PR paths ([#1104](https://www.github.com/googleapis/release-please/issues/1104)) ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
 * Node 12 is now required ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
 * releasers are now "strategies", more logic moved into base classes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
-* versioning straregy now handled by VersionStrategies rather than regexes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
+* versioning strategy now handled by VersionStrategies rather than regexes ([fd8f9fc](https://www.github.com/googleapis/release-please/commit/fd8f9fc82838f3a3a05470dfe4dab4d3b47c6fa1))
 
 ## [12.6.0](https://www.github.com/googleapis/release-please/compare/v12.5.0...v12.6.0) (2021-10-11)
 
 
 ### Features
 
-* add GraphQL URL option for Github ([#1083](https://www.github.com/googleapis/release-please/issues/1083)) ([ec661e2](https://www.github.com/googleapis/release-please/commit/ec661e22c7f5fa80e26d32d4cf0d93a4a90af4be)), closes [#1082](https://www.github.com/googleapis/release-please/issues/1082)
+* add GraphQL URL option for GitHub ([#1083](https://www.github.com/googleapis/release-please/issues/1083)) ([ec661e2](https://www.github.com/googleapis/release-please/commit/ec661e22c7f5fa80e26d32d4cf0d93a4a90af4be)), closes [#1082](https://www.github.com/googleapis/release-please/issues/1082)
 
 ## [12.5.0](https://www.github.com/googleapis/release-please/compare/v12.4.0...v12.5.0) (2021-09-29)
 
@@ -1806,7 +1806,7 @@
 
 ### Bug Fixes
 
-* finding commits to non-existent branch should return empty array ([#956](https://www.github.com/googleapis/release-please/issues/956)) ([6dc3b48](https://www.github.com/googleapis/release-please/commit/6dc3b48549c5beb9f1cc4d5a359fee5dfca591eb)), closes [#944](https://www.github.com/googleapis/release-please/issues/944)
+* finding commits to nonexistent branch should return empty array ([#956](https://www.github.com/googleapis/release-please/issues/956)) ([6dc3b48](https://www.github.com/googleapis/release-please/commit/6dc3b48549c5beb9f1cc4d5a359fee5dfca591eb)), closes [#944](https://www.github.com/googleapis/release-please/issues/944)
 
 ## [11.14.0](https://www.github.com/googleapis/release-please/compare/v11.13.2...v11.14.0) (2021-07-07)
 
@@ -2026,7 +2026,7 @@
 * move fork down to GitHub (#770)
 * factory.run becomes factory.call
 * remove GitHubRelease.labels in favor of ReleasePR.labels
-* normalize configuration accross classes (#763)
+* normalize configuration across classes (#763)
 * move latestTag logic to ReleasePR (#758)
 
 ### Features
@@ -2054,7 +2054,7 @@
 * move changelogPath down to ReleasePR ([#790](https://www.github.com/googleapis/release-please/issues/790)) ([65c4147](https://www.github.com/googleapis/release-please/commit/65c41479c0a12c900b0850591f5223d436062e45))
 * move fork down to GitHub ([#770](https://www.github.com/googleapis/release-please/issues/770)) ([d25f490](https://www.github.com/googleapis/release-please/commit/d25f49028092602190535bd94c5b17d0e984a3bc))
 * move latestTag logic to ReleasePR ([#758](https://www.github.com/googleapis/release-please/issues/758)) ([746d1c8](https://www.github.com/googleapis/release-please/commit/746d1c893a95894420a5fe65706a438492e6605c))
-* normalize configuration accross classes ([#763](https://www.github.com/googleapis/release-please/issues/763)) ([44a3fd2](https://www.github.com/googleapis/release-please/commit/44a3fd2ef61b7083f6bbc88d20c51d57b4f7998e))
+* normalize configuration across classes ([#763](https://www.github.com/googleapis/release-please/issues/763)) ([44a3fd2](https://www.github.com/googleapis/release-please/commit/44a3fd2ef61b7083f6bbc88d20c51d57b4f7998e))
 * remove GitHubRelease.labels in favor of ReleasePR.labels ([44a3fd2](https://www.github.com/googleapis/release-please/commit/44a3fd2ef61b7083f6bbc88d20c51d57b4f7998e))
 * rename factory.run -> call ([#767](https://www.github.com/googleapis/release-please/issues/767)) ([24ecc3e](https://www.github.com/googleapis/release-please/commit/24ecc3e1a1e986cfdd10f069f4705ce869297787))
 
@@ -2104,7 +2104,7 @@
 
 ### Bug Fixes
 
-* **revert:** use resolove to find imports in tests [#715](https://www.github.com/googleapis/release-please/issues/715) ([#731](https://www.github.com/googleapis/release-please/issues/731)) ([ab74aea](https://www.github.com/googleapis/release-please/commit/ab74aea90dd131a994a192dacceefa8fd8414146))
+* **revert:** use resolve to find imports in tests [#715](https://www.github.com/googleapis/release-please/issues/715) ([#731](https://www.github.com/googleapis/release-please/issues/731)) ([ab74aea](https://www.github.com/googleapis/release-please/commit/ab74aea90dd131a994a192dacceefa8fd8414146))
 
 ## [9.4.0](https://www.github.com/googleapis/release-please/compare/v9.3.0...v9.4.0) (2021-02-01)
 
@@ -2118,7 +2118,7 @@
 
 ### Features
 
-* add add GitHub helpers for findFilesByFilenameAndRef and findFilesByExtensionAndRef ([#712](https://www.github.com/googleapis/release-please/issues/712)) ([0258bd6](https://www.github.com/googleapis/release-please/commit/0258bd6fe4aca5e988aa993156bccd37c53130eb))
+* add GitHub helpers for findFilesByFilenameAndRef and findFilesByExtensionAndRef ([#712](https://www.github.com/googleapis/release-please/issues/712)) ([0258bd6](https://www.github.com/googleapis/release-please/commit/0258bd6fe4aca5e988aa993156bccd37c53130eb))
 * **rust:** Update Cargo.lock, preserve formatting in Cargo.{toml,lock} ([#705](https://www.github.com/googleapis/release-please/issues/705)) ([198c327](https://www.github.com/googleapis/release-please/commit/198c32787d5f41104f7d19c59df28bfbdee2d85d))
 
 
@@ -2145,7 +2145,7 @@
 
 ### Bug Fixes
 
-* **github-release:** increasae page size finding release ([#698](https://www.github.com/googleapis/release-please/issues/698)) ([c156950](https://www.github.com/googleapis/release-please/commit/c1569508bf2d5b9071df0c7bebe75f3322ff1b4a))
+* **github-release:** increase page size finding release ([#698](https://www.github.com/googleapis/release-please/issues/698)) ([c156950](https://www.github.com/googleapis/release-please/commit/c1569508bf2d5b9071df0c7bebe75f3322ff1b4a))
 * **monorepos:** github-release not created ([#669](https://www.github.com/googleapis/release-please/issues/669)) ([9f69f41](https://www.github.com/googleapis/release-please/commit/9f69f416ad4d228b40ac6d7f7d86c652d01e57d6)), closes [#668](https://www.github.com/googleapis/release-please/issues/668)
 
 ## [9.0.0](https://www.github.com/googleapis/release-please/compare/v8.2.0...v9.0.0) (2021-01-08)
@@ -2371,7 +2371,7 @@
 ### Features
 
 * add option to create PR from fork ([#547](https://www.github.com/googleapis/release-please/issues/547)) ([5057818](https://www.github.com/googleapis/release-please/commit/5057818c9029cb2054c2279183044c17c607699f))
-* adds support for Data API in Github#getFileContents ([#551](https://www.github.com/googleapis/release-please/issues/551)) ([40a9c68](https://www.github.com/googleapis/release-please/commit/40a9c684347331756aae87639e0fa18d218ce16b)), closes [#546](https://www.github.com/googleapis/release-please/issues/546)
+* adds support for Data API in GitHub#getFileContents ([#551](https://www.github.com/googleapis/release-please/issues/551)) ([40a9c68](https://www.github.com/googleapis/release-please/commit/40a9c684347331756aae87639e0fa18d218ce16b)), closes [#546](https://www.github.com/googleapis/release-please/issues/546)
 * support pre-releases ([#550](https://www.github.com/googleapis/release-please/issues/550)) ([320448b](https://www.github.com/googleapis/release-please/commit/320448b22eb5c3c7c7a6eaa96ac77b8cc73bc48a))
 
 
@@ -3047,7 +3047,7 @@
 
 ### Features
 
-* introduce detect-checked command, a quick check for whether a release has been requested ([#93](https://www.github.com/googleapis/release-please/issues/93)) ([d835335](https://www.github.com/googleapis/release-please/commit/d835335))
+* introduce detect-checked command: a quick check for whether a release has been requested ([#93](https://www.github.com/googleapis/release-please/issues/93)) ([d835335](https://www.github.com/googleapis/release-please/commit/d835335))
 
 ## [1.3.0](https://www.github.com/googleapis/release-please/compare/v1.2.0...v1.3.0) (2019-05-15)
 

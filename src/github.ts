@@ -243,7 +243,7 @@ export class GitHub {
    *   Defaults to the value fetched via the API.
    * @param {string} options.apiUrl Optional. The base url of the GitHub API.
    * @param {string} options.graphqlUrl Optional. The base url of the GraphQL API.
-   * @param {OctokitAPISs} options.octokitAPIs Optional. Override the internal
+   * @param {OctokitAPIs} options.octokitAPIs Optional. Override the internal
    *   client instances with a pre-authenticated instance.
    * @param {string} token Optional. A GitHub API token used for authentication.
    */
@@ -321,7 +321,7 @@ export class GitHub {
 
   /**
    * Returns the list of commits to the default branch after the provided filter
-   * query has been satified.
+   * query has been satisfied.
    *
    * @param {string} targetBranch Target branch of commit
    * @param {CommitFilter} filter Callback function that returns whether a
@@ -499,7 +499,7 @@ export class GitHub {
             // single merged commit in the PR. This means merge commits and squash
             // merges will be matched, but rebase merged PRs will only be matched
             // if they contain a single commit. This is so PRs that are rebased
-            // and merged will have ßSfiles backfilled from each commit instead of
+            // and merged will have files backfilled from each commit instead of
             // the whole PR.
             pr.mergeCommit &&
             pr.mergeCommit.oid === graphCommit.sha &&
@@ -1303,7 +1303,7 @@ export class GitHub {
       } catch (err) {
         if (!(err instanceof FileNotFoundError)) throw err;
         // if the file is missing and create = false, just continue
-        // to the next update, otherwise create the file.
+        // to the next update; otherwise, create the file.
         if (!update.createIfMissing) {
           this.logger.warn(`file ${update.path} did not exist`);
           continue;
@@ -1431,7 +1431,7 @@ export class GitHub {
   );
 
   /**
-   * Makes a comment on a issue/pull request.
+   * Makes a comment on an issue/pull request.
    *
    * @param {string} comment - The body of the comment to post.
    * @param {number} number - The issue or pull request number.
@@ -1615,7 +1615,7 @@ export class GitHub {
     }
     // see if newBranchName exists
     if (await this.getBranchSha(targetBranchName)) {
-      // branch already exists, update it to the match the base branch
+      // branch already exists, update it to match the base branch
       const branchSha = await this.updateBranchSha(
         targetBranchName,
         baseBranchSha
