@@ -235,6 +235,8 @@ defaults (those are documented in comments)
   // Template values (i.e. ${scope}, ${component} and ${version}) are inherited
   // from the root path's (i.e. '.') package, if present
   // absence defaults to "chore: release ${branch}"
+  // Note: When used with the `linked-versions` plugin, ${component} will be
+  // replaced with the plugin's groupName.
   "group-pull-request-title-pattern": "chore: release ${branch}",
 
   // When searching for the latest release SHAs, only consider the last N releases.
@@ -568,7 +570,49 @@ Note: when combining the `linked-versions` plugin with a `workspace` plugin,
 you will need to tell the `workspace` plugin to skip its own internal merge.
 See #1457 for context.
 
-Example:
+#### Pull Request Title Configuration
+
+By default, the `linked-versions` plugin generates pull request titles with
+the format `chore(scope): release <groupName> libraries`. You can customize
+this by using the `group-pull-request-title-pattern` option:
+
+```json
+{
+  "release-type": "rust",
+  "group-pull-request-title-pattern": "chore${scope}: release ${component} ${version}",
+  "packages": {
+    "packages/rustA": {
+      "component": "pkgA"
+    },
+    "packages/rustB": {
+      "component": "pkgB"
+    }
+  },
+  "plugins": [
+    {
+      "type": "cargo-workspace",
+      "merge": false
+    },
+    {
+      "type": "linked-versions",
+      "groupName": "my-sdk",
+      "components": [
+        "pkgA", "pkgB"
+      ]
+    }
+  ]
+}
+```
+
+With this configuration, the pull request title will be
+`chore(main): release my-sdk v1.2.3` instead of the default
+`chore(main): release my-sdk libraries`.
+
+The `${component}` placeholder in the pattern will be replaced with the
+`groupName` from the plugin configuration. Other available placeholders are
+`${scope}`, `${version}`, and `${branch}`.
+
+Example without configuration (backward compatibility):
 
 ```json
 {
@@ -596,6 +640,8 @@ Example:
   ]
 }
 ```
+
+This will use the default title: `chore(main): release my group libraries`.
 
 ### sentence-case
 
