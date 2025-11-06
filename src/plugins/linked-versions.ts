@@ -26,6 +26,7 @@ import {BranchName} from '../util/branch-name';
 
 interface LinkedVersionsPluginOptions {
   merge?: boolean;
+  groupPullRequestTitlePattern?: string;
   logger?: Logger;
 }
 
@@ -39,6 +40,7 @@ export class LinkedVersions extends ManifestPlugin {
   readonly groupName: string;
   readonly components: Set<string>;
   readonly merge: boolean;
+  private groupPullRequestTitlePattern?: string;
 
   constructor(
     github: GitHub,
@@ -52,6 +54,7 @@ export class LinkedVersions extends ManifestPlugin {
     this.groupName = groupName;
     this.components = new Set(components);
     this.merge = options.merge ?? true;
+    this.groupPullRequestTitlePattern = options.groupPullRequestTitlePattern;
   }
 
   /**
@@ -173,12 +176,23 @@ export class LinkedVersions extends ManifestPlugin {
 
     // delegate to the merge plugin and add merged pull request
     if (inScopeCandidates.length > 0) {
+      // Use configured pattern if available, otherwise default to "libraries" for backward compatibility
+      let pullRequestTitlePattern = this.groupPullRequestTitlePattern
+        ? this.groupPullRequestTitlePattern
+        : `chore\${scope}: release ${this.groupName} libraries`;
+
+      // Replace ${component} placeholder with the actual group name
+      pullRequestTitlePattern = pullRequestTitlePattern.replace(
+        '${component}',
+        this.groupName
+      );
+
       const merge = new Merge(
         this.github,
         this.targetBranch,
         this.repositoryConfig,
         {
-          pullRequestTitlePattern: `chore\${scope}: release ${this.groupName} libraries`,
+          pullRequestTitlePattern,
           forceMerge: true,
           headBranchName: BranchName.ofGroupTargetBranch(
             this.groupName,

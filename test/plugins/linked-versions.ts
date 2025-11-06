@@ -346,4 +346,147 @@ describe('LinkedVersions plugin', () => {
     expect(groupPullRequest1.headRefName).to.not.include(' ');
     expect(groupPullRequest2.headRefName).to.not.include(' ');
   });
+
+  it('should use "libraries" in title by default for backward compatibility', async () => {
+    const manifest = new Manifest(
+      github,
+      'target-branch',
+      {
+        'path/a': {
+          releaseType: 'simple',
+          component: 'pkg1',
+        },
+        'path/b': {
+          releaseType: 'simple',
+          component: 'pkg2',
+        },
+        'path/c': {
+          releaseType: 'simple',
+          component: 'pkg3',
+        },
+      },
+      {
+        'path/a': Version.parse('1.0.0'),
+        'path/b': Version.parse('0.2.3'),
+        'path/c': Version.parse('0.2.3'),
+      },
+      {
+        separatePullRequests: true,
+        plugins: [
+          {
+            type: 'linked-versions',
+            groupName: 'my-group',
+            components: ['pkg2', 'pkg3'],
+          },
+        ],
+      }
+    );
+    const pullRequests = await manifest.buildPullRequests();
+    expect(pullRequests).lengthOf(2);
+    const groupedPullRequest = pullRequests.find(pr =>
+      pr.title.toString().includes('my-group')
+    );
+    expect(groupedPullRequest).to.not.be.undefined;
+    expect(groupedPullRequest!.title.toString()).to.include('libraries');
+    expect(groupedPullRequest!.title.toString()).to.equal(
+      'chore(target-branch): release my-group libraries'
+    );
+  });
+
+  it('should respect groupPullRequestTitlePattern with version', async () => {
+    const manifest = new Manifest(
+      github,
+      'target-branch',
+      {
+        'path/a': {
+          releaseType: 'simple',
+          component: 'pkg1',
+        },
+        'path/b': {
+          releaseType: 'simple',
+          component: 'pkg2',
+        },
+        'path/c': {
+          releaseType: 'simple',
+          component: 'pkg3',
+        },
+      },
+      {
+        'path/a': Version.parse('1.0.0'),
+        'path/b': Version.parse('0.2.3'),
+        'path/c': Version.parse('0.2.3'),
+      },
+      {
+        separatePullRequests: true,
+        groupPullRequestTitlePattern:
+          'chore${scope}: release ${component} ${version}',
+        plugins: [
+          {
+            type: 'linked-versions',
+            groupName: 'my-sdk',
+            components: ['pkg2', 'pkg3'],
+          },
+        ],
+      }
+    );
+    const pullRequests = await manifest.buildPullRequests();
+    expect(pullRequests).lengthOf(2);
+    // Find the grouped PR (pkg2+pkg3) - it should have multiple release data entries
+    const groupedPullRequest = pullRequests.find(
+      pr => pr.body.releaseData.length > 1
+    );
+    expect(groupedPullRequest).to.not.be.undefined;
+    expect(groupedPullRequest!.title.toString()).to.not.include('libraries');
+    expect(groupedPullRequest!.title.toString()).to.include('0.2.4');
+    expect(groupedPullRequest!.title.toString()).to.equal(
+      'chore(target-branch): release my-sdk 0.2.4'
+    );
+  });
+
+  it('should respect custom groupPullRequestTitlePattern', async () => {
+    const manifest = new Manifest(
+      github,
+      'target-branch',
+      {
+        'path/a': {
+          releaseType: 'simple',
+          component: 'pkg1',
+        },
+        'path/b': {
+          releaseType: 'simple',
+          component: 'pkg2',
+        },
+        'path/c': {
+          releaseType: 'simple',
+          component: 'pkg3',
+        },
+      },
+      {
+        'path/a': Version.parse('1.0.0'),
+        'path/b': Version.parse('0.2.3'),
+        'path/c': Version.parse('0.2.3'),
+      },
+      {
+        separatePullRequests: true,
+        groupPullRequestTitlePattern: 'feat${scope}: ${component} v${version}',
+        plugins: [
+          {
+            type: 'linked-versions',
+            groupName: 'core-libs',
+            components: ['pkg2', 'pkg3'],
+          },
+        ],
+      }
+    );
+    const pullRequests = await manifest.buildPullRequests();
+    expect(pullRequests).lengthOf(2);
+    // Find the grouped PR (pkg2+pkg3) - it should have multiple release data entries
+    const groupedPullRequest = pullRequests.find(
+      pr => pr.body.releaseData.length > 1
+    );
+    expect(groupedPullRequest).to.not.be.undefined;
+    expect(groupedPullRequest!.title.toString()).to.equal(
+      'feat(target-branch): core-libs v0.2.4'
+    );
+  });
 });
