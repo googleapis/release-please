@@ -116,6 +116,35 @@ If you wish to avoid that, consider using `component-no-space: true`/`--componen
 | `${version}` | The version of the component being released |
 | `${branch?}` | The target branch of the pull request. If you have multiple release branches, this helps identify which release branch we are working on |
 
+#### Group Pull Request Title
+
+For grouped/merged pull requests (when using plugins like `linked-versions` or when `separate-pull-requests` is `false`), you can use the `group-pull-request-title-pattern` option instead:
+
+```json
+{
+  "group-pull-request-title-pattern": "chore${scope}: release ${component} ${version}"
+}
+```
+
+This pattern uses the same placeholders as `pull-request-title-pattern`. When used with the `linked-versions` plugin, the `${component}` placeholder will be replaced with the plugin's `groupName`.
+
+For example, with the configuration:
+
+```json
+{
+  "group-pull-request-title-pattern": "chore${scope}: release ${component} ${version}",
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "groupName": "my-sdk",
+      "components": ["pkgA", "pkgB"]
+    }
+  ]
+}
+```
+
+The resulting pull request title will be: `chore(main): release my-sdk v1.2.3`
+
 ### Pull Request Header
 
 If you would like to customize the pull request header, you can use the
