@@ -17,7 +17,8 @@ import {readFileSync, statSync, Stats} from 'fs';
 // if an option looks like a file path, assume it's a
 // path to a key and load it.
 export function coerceOption(option: string): string {
-  if (option.match(/[\\/]/)) {
+  // Only check .match if option is a string, to avoid TypeError
+  if (typeof option === 'string' && option.match(/[\\/]/)) {
     try {
       const stat: Stats = statSync(option);
       if (stat.isDirectory()) return option;
