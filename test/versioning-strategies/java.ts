@@ -145,7 +145,7 @@ describe('JavaVersioningStrategy', () => {
       describe('with release candidate qualifier', () => {
         it('can bump a major', async () => {
           const strategy = new JavaSnapshot(new DefaultVersioningStrategy({}));
-          const oldVersion = Version.parse('1.2.3-rc1-SNAPSHOT');
+          const oldVersion = Version.parse('1.2.0-rc1-SNAPSHOT');
           const newVersion = await strategy.bump(oldVersion, breakingCommits);
           expect(newVersion.toString()).to.equal('2.0.0-rc1');
         });
