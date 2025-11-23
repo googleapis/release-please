@@ -197,7 +197,11 @@ defaults (those are documented in comments)
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Prerelease" releases that have pre-major or prerelease versions.
   // absence defaults to false and all versions are fully Published.
-  "prerelease": true
+  "prerelease": true,
+
+  // explicitly create a git tag for the release. useful if draft is set to true.
+  // absence defaults to false.
+  "force-tag": true
 
   // Skip creating GitHub Releases
   // Absence defaults to false and Releases will be created. Release-Please still
