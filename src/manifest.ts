@@ -107,6 +107,7 @@ export interface ReleaserConfig {
   skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release\
   skipChangelog?: boolean;
   draft?: boolean;
+  forceTag?: boolean;
   prerelease?: boolean;
   draftPullRequest?: boolean;
   component?: string;
@@ -151,6 +152,7 @@ export interface CandidateRelease extends Release {
   pullRequest: PullRequest;
   path: string;
   draft?: boolean;
+  forceTag?: boolean;
   prerelease?: boolean;
 }
 
@@ -165,6 +167,7 @@ interface ReleaserConfigJson {
   'skip-github-release'?: boolean;
   'skip-changelog'?: boolean;
   draft?: boolean;
+  'force-tag'?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
@@ -1184,6 +1187,7 @@ export class Manifest {
             path,
             pullRequest,
             draft: config.draft ?? this.draft,
+            forceTag: config.forceTag,
             prerelease:
               config.prerelease &&
               (!!release.tag.version.preRelease ||
@@ -1311,6 +1315,7 @@ export class Manifest {
     const githubRelease = await this.github.createRelease(release, {
       draft: release.draft,
       prerelease: release.prerelease,
+      forceTag: release.forceTag,
     });
 
     return {
@@ -1385,6 +1390,7 @@ function extractReleaserConfig(
     skipGithubRelease: config['skip-github-release'],
     skipChangelog: config['skip-changelog'],
     draft: config.draft,
+    forceTag: config['force-tag'],
     prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
     component: config['component'],
@@ -1740,6 +1746,7 @@ function mergeReleaserConfig(
       pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
     skipChangelog: pathConfig.skipChangelog ?? defaultConfig.skipChangelog,
     draft: pathConfig.draft ?? defaultConfig.draft,
+    forceTag: pathConfig.forceTag ?? defaultConfig.forceTag,
     draftPullRequest:
       pathConfig.draftPullRequest ?? defaultConfig.draftPullRequest,
     prerelease: pathConfig.prerelease ?? defaultConfig.prerelease,

@@ -58,6 +58,9 @@ Options:
                                 with the release for future tag creation upon
                                 "un-drafting" the release.
                                                       [boolean] [default: false]
+  --force-tag                   explicitly create a git tag for the release.
+                                useful if draft is set to true.
+                                                      [boolean] [default: false]
   --prerelease                  mark release that have prerelease versions as as
                                 a prerelease on Github[boolean] [default: false]
   --label                       comma-separated list of labels to remove to from
@@ -140,6 +143,8 @@ Options:
                     target_commitish are associated with the release for future
                     tag creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
+  --force-tag       explicitly create a git tag for the release. useful if draft
+                    is set to true.                   [boolean] [default: false]
   --prerelease      mark release that have prerelease versions as as a
                     prerelease on Github              [boolean] [default: false]
   --label           comma-separated list of labels to remove to from release PR

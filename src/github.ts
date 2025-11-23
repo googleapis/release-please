@@ -173,6 +173,7 @@ interface TagIteratorOptions {
 export interface ReleaseOptions {
   draft?: boolean;
   prerelease?: boolean;
+  forceTag?: boolean;
 }
 
 export interface GitHubRelease {
@@ -1391,6 +1392,21 @@ export class GitHub {
       release: Release,
       options: ReleaseOptions = {}
     ): Promise<GitHubRelease> => {
+      if (options.forceTag) {
+        try {
+          await this.octokit.git.createRef({
+            owner: this.repository.owner,
+            repo: this.repository.repo,
+            ref: `refs/tags/${release.tag.toString()}`,
+            sha: release.sha,
+          });
+        } catch (err: any) {
+          // ignore if tag already exists
+          if (err.status !== 422) {
+            throw err;
+          }
+        }
+      }
       const resp = await this.octokit.repos.createRelease({
         name: release.name,
         owner: this.repository.owner,

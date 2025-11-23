@@ -66,6 +66,10 @@
           "description": "Create the GitHub release in draft mode. Defaults to `false`.",
           "type": "boolean"
         },
+        "force-tag": {
+          "description": "Force creation of the git tag for the release. Useful if `draft` is true and you want the tag created immediately. Defaults to `false`.",
+          "type": "boolean"
+        },
         "prerelease": {
           "description": "Create the GitHub release as prerelease. Defaults to `false`.",
           "type": "boolean"
@@ -464,6 +468,7 @@
     "skip-github-release": true,
     "skip-changelog": true,
     "draft": true,
+    "force-tag": true,
     "prerelease": true,
     "draft-pull-request": true,
     "label": true,
