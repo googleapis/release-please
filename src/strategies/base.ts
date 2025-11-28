@@ -87,6 +87,7 @@ export interface BaseStrategyOptions {
   initialVersion?: string;
   extraLabels?: string[];
   dateFormat?: string;
+  includeCommitAuthors?: boolean;
 }
 
 /**
@@ -118,6 +119,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly extraFiles: ExtraFile[];
   readonly extraLabels: string[];
   protected dateFormat: string;
+  protected includeCommitAuthors?: boolean;
 
   readonly changelogNotes: ChangelogNotes;
 
@@ -155,6 +157,7 @@ export abstract class BaseStrategy implements Strategy {
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
     this.dateFormat = options.dateFormat || DEFAULT_DATE_FORMAT;
+    this.includeCommitAuthors = options.includeCommitAuthors;
   }
 
   /**
@@ -229,6 +232,7 @@ export abstract class BaseStrategy implements Strategy {
       targetBranch: this.targetBranch,
       changelogSections: this.changelogSections,
       commits: commits,
+      includeCommitAuthors: this.includeCommitAuthors,
     });
   }
 
