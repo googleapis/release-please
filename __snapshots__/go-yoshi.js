@@ -8,7 +8,7 @@ exports['GoYoshi buildReleasePullRequest combines google-api-go-client autogener
 
 ### Features
 
-* **all:** auto-regenerate discovery clients, refs [#1281](https://github.com/googleapis/google-api-go-client/issues/1281) [#1280](https://github.com/googleapis/google-api-go-client/issues/1280) [#1279](https://github.com/googleapis/google-api-go-client/issues/1279) [#1278](https://github.com/googleapis/google-api-go-client/issues/1278)
+* **all:** auto-regenerate discovery clients, refs [#1281](https://www.github.com/googleapis/google-api-go-client/issues/1281) [#1280](https://www.github.com/googleapis/google-api-go-client/issues/1280) [#1279](https://www.github.com/googleapis/google-api-go-client/issues/1279) [#1278](https://www.github.com/googleapis/google-api-go-client/issues/1278)
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -24,7 +24,7 @@ exports['GoYoshi buildReleasePullRequest filters out submodule commits 1'] = `
 
 ### Bug Fixes
 
-* **translate:** some translate fix ([a74c6a3](https://github.com/googleapis/google-cloud-go/commit/a74c6a3c43273a62de7e47bef2e11fb0))
+* **translate:** some translate fix ([a74c6a3](https://www.github.com/googleapis/google-cloud-go/commit/a74c6a3c43273a62de7e47bef2e11fb0))
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -40,7 +40,7 @@ exports['GoYoshi buildReleasePullRequest filters out touched files not matching 
 
 ### Bug Fixes
 
-* **iam/apiv1:** some firestore fix ([6daedf3](https://github.com/googleapis/google-cloud-go/commit/6daedf3971d9e1b4c99ff1b3a52c94a5))
+* **iam/apiv1:** some firestore fix ([6daedf3](https://www.github.com/googleapis/google-cloud-go/commit/6daedf3971d9e1b4c99ff1b3a52c94a5))
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).

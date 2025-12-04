@@ -23,10 +23,38 @@ import {
   DEFAULT_RELEASE_PLEASE_MANIFEST,
 } from '../src/manifest';
 import snapshot = require('snap-shot-it');
-import {GitHub} from '../src/github';
-import {ParseCallback} from 'yargs';
+import {GitHub, GH_API_URL, GH_GRAPHQL_URL, GH_URL} from '../src/github';
+import {GL_API_URL} from '../src/gitlab';
+import ProviderFactory, {ProviderOptions} from '../src/provider';
+import {logger} from '../src/util/logger';
 
 const sandbox = sinon.createSandbox();
+
+let providerCreateStub: sinon.SinonStub;
+
+const DEFAULT_PROVIDER_OPTIONS: ProviderOptions = {
+  owner: 'googleapis',
+  repo: 'release-please-cli',
+  token: undefined,
+  apiUrl: GH_API_URL,
+  graphqlUrl: GH_GRAPHQL_URL,
+  host: undefined,
+  hostUrl: GH_URL,
+};
+
+function expectProviderCall(
+  overrides: Partial<ProviderOptions> = {},
+  provider = 'github'
+) {
+  sinon.assert.calledOnce(providerCreateStub);
+  const [providerName, options] = providerCreateStub.getCall(0).args;
+  expect(providerName).to.equal(provider);
+  const expected: ProviderOptions = {
+    ...DEFAULT_PROVIDER_OPTIONS,
+    ...overrides,
+  };
+  expect(options).to.deep.equal(expected);
+}
 
 // function callStub(
 //   instance: Manifest,
@@ -52,7 +80,6 @@ const sandbox = sinon.createSandbox();
 describe('CLI', () => {
   let fakeGitHub: GitHub;
   let fakeManifest: Manifest;
-  let gitHubCreateStub: sinon.SinonStub;
   beforeEach(async () => {
     fakeGitHub = await GitHub.create({
       owner: 'googleapis',
@@ -60,7 +87,9 @@ describe('CLI', () => {
       defaultBranch: 'main',
     });
     fakeManifest = new Manifest(fakeGitHub, 'main', {}, {});
-    gitHubCreateStub = sandbox.stub(GitHub, 'create').resolves(fakeGitHub);
+    providerCreateStub = sandbox
+      .stub(ProviderFactory, 'create')
+      .resolves(fakeGitHub);
   });
   afterEach(() => {
     sandbox.restore();
@@ -117,13 +146,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -140,13 +163,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -163,13 +180,7 @@ describe('CLI', () => {
           `manifest-pr --repo-url=googleapis/release-please-cli ${flag}=1.x`
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -191,13 +202,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli --dry-run'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -214,13 +219,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli --fork'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -237,13 +236,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli --label=foo,bar'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -260,13 +253,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli --label='
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -283,13 +270,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli --skip-labeling'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -306,7 +287,7 @@ describe('CLI', () => {
     //     'manifest-pr --repo-url=googleapis/release-please-cli --draft'
     //   );
 
-    //   sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+    //   expectProviderCall();
     //     owner: 'googleapis',
     //     repo: 'release-please-cli',
     //     token: undefined,
@@ -329,13 +310,7 @@ describe('CLI', () => {
         'manifest-pr --repo-url=googleapis/release-please-cli --signoff="Alice <alice@example.com>"'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -343,6 +318,60 @@ describe('CLI', () => {
         DEFAULT_RELEASE_PLEASE_CONFIG,
         DEFAULT_RELEASE_PLEASE_MANIFEST,
         sinon.match({signoff: 'Alice <alice@example.com>'})
+      );
+      sinon.assert.calledOnce(createPullRequestsStub);
+    });
+
+    it('supports gitlab provider with https repo URL', async () => {
+      await parser.parseAsync(
+        'manifest-pr --provider=gitlab --repo-url=https://gitlab.example.com/group/subgroup/project.git'
+      );
+
+      expectProviderCall(
+        {
+          owner: 'group/subgroup',
+          repo: 'project',
+          host: 'https://gitlab.example.com',
+          hostUrl: 'https://gitlab.example.com',
+          apiUrl: GL_API_URL,
+          graphqlUrl: undefined,
+        },
+        'gitlab'
+      );
+      sinon.assert.calledOnceWithExactly(
+        fromManifestStub,
+        fakeGitHub,
+        'main',
+        DEFAULT_RELEASE_PLEASE_CONFIG,
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        sinon.match.any
+      );
+      sinon.assert.calledOnce(createPullRequestsStub);
+    });
+
+    it('supports gitlab provider with SSH repo URL', async () => {
+      await parser.parseAsync(
+        'manifest-pr --provider=gitlab --repo-url=git@gitlab.example.com:group/project.git'
+      );
+
+      expectProviderCall(
+        {
+          owner: 'group',
+          repo: 'project',
+          host: 'https://gitlab.example.com',
+          hostUrl: 'https://gitlab.example.com',
+          apiUrl: GL_API_URL,
+          graphqlUrl: undefined,
+        },
+        'gitlab'
+      );
+      sinon.assert.calledOnceWithExactly(
+        fromManifestStub,
+        fakeGitHub,
+        'main',
+        DEFAULT_RELEASE_PLEASE_CONFIG,
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        sinon.match.any
       );
       sinon.assert.calledOnce(createPullRequestsStub);
     });
@@ -378,13 +407,7 @@ describe('CLI', () => {
         'manifest-release --repo-url=googleapis/release-please-cli'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -401,13 +424,7 @@ describe('CLI', () => {
         'manifest-release --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -424,13 +441,7 @@ describe('CLI', () => {
           `manifest-release --repo-url=googleapis/release-please-cli ${flag}=1.x`
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -452,13 +463,7 @@ describe('CLI', () => {
         'manifest-release --repo-url=googleapis/release-please-cli --dry-run'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -475,13 +480,7 @@ describe('CLI', () => {
         'manifest-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -498,13 +497,7 @@ describe('CLI', () => {
         'manifest-release --repo-url=googleapis/release-please-cli --draft'
       );
 
-      sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-        owner: 'googleapis',
-        repo: 'release-please-cli',
-        token: undefined,
-        apiUrl: 'https://api.github.com',
-        graphqlUrl: 'https://api.github.com',
-      });
+      expectProviderCall();
       sinon.assert.calledOnceWithExactly(
         fromManifestStub,
         fakeGitHub,
@@ -521,7 +514,7 @@ describe('CLI', () => {
     //     'manifest-release --repo-url=googleapis/release-please-cli --release-as=2.3.4'
     //   );
 
-    //   sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
+    //   expectProviderCall();
     //     owner: 'googleapis',
     //     repo: 'release-please-cli',
     //     token: undefined,
@@ -567,13 +560,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -592,13 +579,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -617,13 +598,7 @@ describe('CLI', () => {
             `release-pr --repo-url=googleapis/release-please-cli ${flag}=1.x`
           );
 
-          sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-            owner: 'googleapis',
-            repo: 'release-please-cli',
-            token: undefined,
-            apiUrl: 'https://api.github.com',
-            graphqlUrl: 'https://api.github.com',
-          });
+          expectProviderCall();
           sinon.assert.calledOnceWithExactly(
             fromManifestStub,
             fakeGitHub,
@@ -647,13 +622,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --dry-run'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -694,13 +663,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -718,13 +681,7 @@ describe('CLI', () => {
             `release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi ${flag}=1.x`
           );
 
-          sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-            owner: 'googleapis',
-            repo: 'release-please-cli',
-            token: undefined,
-            apiUrl: 'https://api.github.com',
-            graphqlUrl: 'https://api.github.com',
-          });
+          expectProviderCall();
           sinon.assert.calledOnceWithExactly(
             fromConfigStub,
             fakeGitHub,
@@ -746,13 +703,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --dry-run'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -769,13 +720,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --release-as=2.3.4'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -792,13 +737,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --versioning-strategy=always-bump-patch'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -818,13 +757,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --bump-minor-pre-major --bump-patch-for-minor-pre-major'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -845,13 +778,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --prerelease-type=alpha'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -871,13 +798,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --extra-files=foo/bar.java,asdf/qwer.java'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -897,13 +818,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=ruby-yoshi --version-file=lib/foo/version.rb'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -923,13 +838,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --signoff="Alice <alice@example.com>"'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -946,13 +855,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --changelog-path=docs/changes.md'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -972,13 +875,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --changelog-type=github'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -998,13 +895,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --changelog-host=https://example.com'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1023,13 +914,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --draft-pull-request'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1046,13 +931,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --fork'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1069,13 +948,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --path=submodule'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1092,13 +965,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --component=pkg1'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1115,13 +982,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --package-name=@foo/bar'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1138,13 +999,7 @@ describe('CLI', () => {
           'release-pr --repo-url=googleapis/release-please-cli --release-type=java-yoshi --monorepo-tags'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1157,7 +1012,7 @@ describe('CLI', () => {
       });
     });
   });
-  describe('github-release', () => {
+  describe('release', () => {
     describe('with manifest options', () => {
       let fromManifestStub: sinon.SinonStub;
       let createReleasesStub: sinon.SinonStub;
@@ -1186,16 +1041,10 @@ describe('CLI', () => {
 
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli'
+          'release --repo-url=googleapis/release-please-cli'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -1209,16 +1058,10 @@ describe('CLI', () => {
 
       it('instantiates Manifest with custom config/manifest', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
+          'release --repo-url=googleapis/release-please-cli --config-file=foo.json --manifest-file=.bar.json'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -1232,16 +1075,10 @@ describe('CLI', () => {
       for (const flag of ['--target-branch', '--default-branch']) {
         it(`handles ${flag}`, async () => {
           await parser.parseAsync(
-            `github-release --repo-url=googleapis/release-please-cli ${flag}=1.x`
+            `release --repo-url=googleapis/release-please-cli ${flag}=1.x`
           );
 
-          sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-            owner: 'googleapis',
-            repo: 'release-please-cli',
-            token: undefined,
-            apiUrl: 'https://api.github.com',
-            graphqlUrl: 'https://api.github.com',
-          });
+          expectProviderCall();
           sinon.assert.calledOnceWithExactly(
             fromManifestStub,
             fakeGitHub,
@@ -1260,16 +1097,10 @@ describe('CLI', () => {
           .resolves([]);
 
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --dry-run'
+          'release --repo-url=googleapis/release-please-cli --dry-run'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -1283,16 +1114,10 @@ describe('CLI', () => {
 
       it('handles --label and --release-label', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer'
+          'release --repo-url=googleapis/release-please-cli --label=foo,bar --release-label=asdf,qwer'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -1306,16 +1131,10 @@ describe('CLI', () => {
 
       it('handles --draft', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --draft'
+          'release --repo-url=googleapis/release-please-cli --draft'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromManifestStub,
           fakeGitHub,
@@ -1329,7 +1148,7 @@ describe('CLI', () => {
 
       // it('handles --release-as', async () => {
       //   await parser.parseAsync(
-      //     'github-release --repo-url=googleapis/release-please-cli --release-as=2.3.4'
+      //     'release --repo-url=googleapis/release-please-cli --release-as=2.3.4'
       //   );
       // });
     });
@@ -1361,16 +1180,10 @@ describe('CLI', () => {
 
       it('instantiates a basic Manifest', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1387,16 +1200,10 @@ describe('CLI', () => {
           .stub(fakeManifest, 'buildReleases')
           .resolves([]);
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --dry-run'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --dry-run'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1410,16 +1217,10 @@ describe('CLI', () => {
 
       it('handles --draft', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --draft'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --draft'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1433,16 +1234,10 @@ describe('CLI', () => {
 
       it('handles --prerelease', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --prerelease'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --prerelease'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1456,16 +1251,10 @@ describe('CLI', () => {
 
       it('handles --label and --release-label', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --label=foo,bar --release-label=asdf,qwer'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --label=foo,bar --release-label=asdf,qwer'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1482,16 +1271,10 @@ describe('CLI', () => {
 
       it('handles --path', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --path=submodule'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --path=submodule'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1505,16 +1288,10 @@ describe('CLI', () => {
 
       it('handles --component', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --component=pkg1'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --component=pkg1'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1528,16 +1305,10 @@ describe('CLI', () => {
 
       it('handles --package-name', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --package-name=@foo/bar'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --package-name=@foo/bar'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1551,16 +1322,10 @@ describe('CLI', () => {
 
       it('handles --monorepo-tags', async () => {
         await parser.parseAsync(
-          'github-release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --monorepo-tags'
+          'release --repo-url=googleapis/release-please-cli --release-type=java-yoshi --monorepo-tags'
         );
 
-        sinon.assert.calledOnceWithExactly(gitHubCreateStub, {
-          owner: 'googleapis',
-          repo: 'release-please-cli',
-          token: undefined,
-          apiUrl: 'https://api.github.com',
-          graphqlUrl: 'https://api.github.com',
-        });
+        expectProviderCall();
         sinon.assert.calledOnceWithExactly(
           fromConfigStub,
           fakeGitHub,
@@ -1573,6 +1338,38 @@ describe('CLI', () => {
       });
     });
   });
+
+  describe('github-release (deprecated alias)', () => {
+    it('warns and delegates to release', async () => {
+      const warnStub = sandbox.stub(logger, 'warn');
+      const fromManifestStub = sandbox
+        .stub(Manifest, 'fromManifest')
+        .resolves(fakeManifest);
+      const createReleasesStub = sandbox
+        .stub(fakeManifest, 'createReleases')
+        .resolves([]);
+
+      await parser.parseAsync(
+        'github-release --repo-url=googleapis/release-please-cli'
+      );
+
+      sinon.assert.calledOnceWithExactly(
+        warnStub,
+        'github-release is deprecated. Please use release instead.'
+      );
+      expectProviderCall();
+      sinon.assert.calledOnceWithExactly(
+        fromManifestStub,
+        fakeGitHub,
+        'main',
+        DEFAULT_RELEASE_PLEASE_CONFIG,
+        DEFAULT_RELEASE_PLEASE_MANIFEST,
+        sinon.match.any
+      );
+      sinon.assert.calledOnce(createReleasesStub);
+    });
+  });
+
   describe('bootstrap', () => {
     it('defaults path to .', async () => {
       const createPullStub = sandbox
@@ -1606,18 +1403,49 @@ describe('CLI', () => {
   describe('--help', () => {
     for (const cmd of [
       'release-pr',
-      'github-release',
+      'release',
       'manifest-pr',
       'manifest-release',
+      'github-release',
     ]) {
-      it(cmd, async done => {
-        const parseCallback: ParseCallback = (_err, _argv, output) => {
-          snapshot(output);
-          done();
-        };
-        const foo = await parser.parseAsync(`${cmd} --help`, parseCallback);
-        console.log(foo);
+      it(cmd, () => {
+        const freshParser = getFreshParser();
+        freshParser.exitProcess(false);
+        freshParser.showHelpOnFail(false);
+        let stdout = '';
+        let stderr = '';
+        const stdoutStub = sandbox
+          .stub(process.stdout, 'write')
+          // coerce chunk into string while preserving yargs formatting
+          .callsFake((chunk: string | Uint8Array) => {
+            stdout += chunk.toString();
+            return true;
+          });
+        const stderrStub = sandbox
+          .stub(process.stderr, 'write')
+          .callsFake((chunk: string | Uint8Array) => {
+            stderr += chunk.toString();
+            return true;
+          });
+        try {
+          freshParser.parse([cmd, '--help']);
+        } finally {
+          stdoutStub.restore();
+          stderrStub.restore();
+        }
+        snapshot(stdout);
+        expect(stderr).to.equal('');
       });
     }
   });
 });
+
+function getFreshParser() {
+  const modulePath = require.resolve('../src/bin/release-please');
+  delete require.cache[modulePath];
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const freshModule = require('../src/bin/release-please') as {
+    parser: typeof parser;
+  };
+  return freshModule.parser;
+}

@@ -22,7 +22,8 @@ import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
 
-import {GH_API_URL, GitHub, GitHubRelease} from '../src/github';
+import {GH_API_URL, GitHub} from '../src/github';
+import {GitHubRelease} from '../src/provider-interfaces';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';

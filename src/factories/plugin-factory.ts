@@ -19,7 +19,7 @@ import {
   SentenceCasePluginConfig,
   GroupPriorityPluginConfig,
 } from '../manifest';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {ManifestPlugin} from '../plugin';
 import {LinkedVersions} from '../plugins/linked-versions';
 import {CargoWorkspace} from '../plugins/cargo-workspace';
@@ -34,7 +34,7 @@ import {WorkspacePluginOptions} from '../plugins/workspace';
 
 export interface PluginFactoryOptions {
   type: PluginType;
-  github: GitHub;
+  github: HostedGitClient;
   targetBranch: string;
   repositoryConfig: RepositoryConfig;
   manifestPath: string;

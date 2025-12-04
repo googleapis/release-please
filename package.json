@@ -6,6 +6,7 @@
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
     "test": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --node-option no-experimental-fetch --recursive --timeout=5000 build/test",
+    "test25": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --recursive --timeout=5000 build/test",
     "docs": "echo add docs tests",
     "test:snap": "cross-env SNAPSHOT_UPDATE=1 LC_ALL=en npm test",
     "clean": "gts clean",
@@ -68,6 +69,7 @@
   },
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
+    "@gitbeaker/rest": "^40.0.0",
     "@google-automations/git-file-utils": "^3.0.0",
     "@iarna/toml": "^3.0.0",
     "@octokit/graphql": "^7.1.0",

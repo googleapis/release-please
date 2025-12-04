@@ -18,7 +18,7 @@ import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
 import {AlwaysBumpMinor} from '../versioning-strategies/always-bump-minor';
 import {AlwaysBumpMajor} from '../versioning-strategies/always-bump-major';
 import {ServicePackVersioningStrategy} from '../versioning-strategies/service-pack';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {ConfigurationError} from '../errors';
 import {PrereleaseVersioningStrategy} from '../versioning-strategies/prerelease';
 
@@ -30,7 +30,7 @@ export interface VersioningStrategyFactoryOptions {
   bumpPatchForMinorPreMajor?: boolean;
   prereleaseType?: string;
   prerelease?: boolean;
-  github: GitHub;
+  github: HostedGitClient;
 }
 
 export type VersioningStrategyBuilder = (

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Strategy, BuildReleaseOptions, BumpReleaseOptions} from '../strategy';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {VersioningStrategy} from '../versioning-strategy';
 import {Repository} from '../repository';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
@@ -57,7 +57,7 @@ export interface BaseStrategyOptions {
   path?: string;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
-  github: GitHub;
+  github: HostedGitClient;
   component?: string;
   packageName?: string;
   versioningStrategy?: VersioningStrategy;
@@ -69,6 +69,8 @@ export interface BaseStrategyOptions {
   headerPartial?: string;
   mainTemplate?: string;
   tagSeparator?: string;
+  skipRelease?: boolean;
+  /** @deprecated use skipRelease */
   skipGitHubRelease?: boolean;
   skipChangelog?: boolean;
   releaseAs?: string;
@@ -95,7 +97,7 @@ export interface BaseStrategyOptions {
  */
 export abstract class BaseStrategy implements Strategy {
   readonly path: string;
-  protected github: GitHub;
+  protected github: HostedGitClient;
   protected logger: Logger;
   protected component?: string;
   private packageName?: string;
@@ -105,7 +107,7 @@ export abstract class BaseStrategy implements Strategy {
   protected changelogPath: string;
   protected changelogHost?: string;
   protected tagSeparator?: string;
-  private skipGitHubRelease: boolean;
+  private skipRelease: boolean;
   protected skipChangelog: boolean;
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
@@ -140,7 +142,9 @@ export abstract class BaseStrategy implements Strategy {
     this.changelogHost = options.changelogHost;
     this.changelogSections = options.changelogSections;
     this.tagSeparator = options.tagSeparator;
-    this.skipGitHubRelease = options.skipGitHubRelease || false;
+    const skipRelease =
+      options.skipRelease ?? options.skipGitHubRelease ?? false;
+    this.skipRelease = skipRelease;
     this.skipChangelog = options.skipChangelog || false;
     this.releaseAs = options.releaseAs;
     this.changelogNotes =
@@ -220,7 +224,8 @@ export abstract class BaseStrategy implements Strategy {
     commits?: Commit[]
   ): Promise<string> {
     return await this.changelogNotes.buildNotes(conventionalCommits, {
-      host: this.changelogHost,
+      host:
+        this.changelogHost || (await this.github.getProviderDetails()).hostUrl,
       owner: this.repository.owner,
       repository: this.repository.repo,
       version: newVersion.toString(),
@@ -229,6 +234,10 @@ export abstract class BaseStrategy implements Strategy {
       targetBranch: this.targetBranch,
       changelogSections: this.changelogSections,
       commits: commits,
+      commitTemplateUri: (
+        await this.github.getProviderDetails()
+      ).commitFormatUrl,
+      issueTemplateUri: (await this.github.getProviderDetails()).issueFormatUrl,
     });
   }
 
@@ -588,7 +597,7 @@ export abstract class BaseStrategy implements Strategy {
     mergedPullRequest: PullRequest,
     options?: BuildReleaseOptions
   ): Promise<Release | undefined> {
-    if (this.skipGitHubRelease) {
+    if (this.skipRelease) {
       this.logger.info('Release skipped from strategy config');
       return;
     }

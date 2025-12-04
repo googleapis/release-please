@@ -5,17 +5,17 @@ exports['Plugin compatibility linked-versions and workspace should version bump 
 
 <details><summary>pkgA: 1.1.0</summary>
 
-## [1.1.0](https://github.com/fake-owner/fake-repo/compare/pkgA-v1.0.0...pkgA-v1.1.0) (1983-10-10)
+## [1.1.0](https://www.github.com/fake-owner/fake-repo/compare/pkgA-v1.0.0...pkgA-v1.1.0) (1983-10-10)
 
 
 ### Features
 
-* some feature ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+* some feature ([aaaaaa](https://www.github.com/fake-owner/fake-repo/commit/aaaaaa))
 </details>
 
 <details><summary>pkgB: 1.1.0</summary>
 
-## [1.1.0](https://github.com/fake-owner/fake-repo/compare/pkgB-v1.0.0...pkgB-v1.1.0) (1983-10-10)
+## [1.1.0](https://www.github.com/fake-owner/fake-repo/compare/pkgB-v1.0.0...pkgB-v1.1.0) (1983-10-10)
 
 
 ### Miscellaneous Chores

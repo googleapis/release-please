@@ -1,7 +1,7 @@
 exports['CLI --help github-release 1'] = `
 release-please github-release
 
-create a GitHub release from a release PR
+create a release from a release PR/MR
 
 Options:
   --help                        Show help                              [boolean]
@@ -12,17 +12,26 @@ Options:
                                 debugging).           [boolean] [default: false]
   --plugin                      load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
-  --token                       GitHub token with repo write permissions
+  --token                       GitHub/GitLab token with repo write permissions
   --api-url                     URL to use when making API requests
-                                    [string] [default: "https://api.github.com"]
-  --graphql-url                 URL to use when making GraphQL requests
-                                    [string] [default: "https://api.github.com"]
-  --default-branch              The branch to open release PRs against and tag
-                                releases on
+                      [string] [default: GitHub: https://api.github.com; GitLab:
+                                                      https://gitlab.com/api/v4]
+  --host-url                    URL to use when building changelog and release
+                                requests
+  [string] [default: GitHub: https://www.github.com; GitLab: https://gitlab.com]
+  --graphql-url                 URL to use when making GraphQL requests (ignored
+                                for GitLab)
+                              [string] [default: GitHub: https://api.github.com]
+  --provider                    Which provider to use (default 'github')
+                                                    [string] [default: "github"]
+  --default-branch              The branch to open release PR/MRs against and
+                                tag releases on
                               [deprecated: use --target-branch instead] [string]
-  --target-branch               The branch to open release PRs against and tag
-                                releases on                             [string]
-  --repo-url                    GitHub URL to generate release for    [required]
+  --target-branch               The branch to open release PR/MRs against and
+                                tag releases on                         [string]
+  --repo-url                    Repository URL to generate release for (e.g.
+                                GitHub: <org/repo>, GitLab: <group/project>)
+                                                                      [required]
   --dry-run                     Prepare but do not take action
                                                       [boolean] [default: false]
   --include-v-in-tags           include "v" in tag versions
@@ -68,6 +77,7 @@ Options:
   --snapshot-label              set a java snapshot pull request label other
                                 than "autorelease: snapshot"
                                      [string] [default: "autorelease: snapshot"]
+
 `
 
 exports['CLI --help manifest-pr 1'] = `
@@ -84,16 +94,24 @@ Options:
                         debugging).                   [boolean] [default: false]
   --plugin              load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
-  --token               GitHub token with repo write permissions
+  --token               GitHub/GitLab token with repo write permissions
   --api-url             URL to use when making API requests
-                                    [string] [default: "https://api.github.com"]
-  --graphql-url         URL to use when making GraphQL requests
-                                    [string] [default: "https://api.github.com"]
-  --default-branch      The branch to open release PRs against and tag releases
-                        on    [deprecated: use --target-branch instead] [string]
-  --target-branch       The branch to open release PRs against and tag releases
-                        on                                              [string]
-  --repo-url            GitHub URL to generate release for            [required]
+                      [string] [default: GitHub: https://api.github.com; GitLab:
+                                                      https://gitlab.com/api/v4]
+  --host-url            URL to use when building changelog and release requests
+  [string] [default: GitHub: https://www.github.com; GitLab: https://gitlab.com]
+  --graphql-url         URL to use when making GraphQL requests (ignored for
+                        GitLab)
+                              [string] [default: GitHub: https://api.github.com]
+  --provider            Which provider to use (default 'github')
+                                                    [string] [default: "github"]
+  --default-branch      The branch to open release PR/MRs against and tag
+                        releases on
+                              [deprecated: use --target-branch instead] [string]
+  --target-branch       The branch to open release PR/MRs against and tag
+                        releases on                                     [string]
+  --repo-url            Repository URL to generate release for (e.g. GitHub:
+                        <org/repo>, GitLab: <group/project>)          [required]
   --dry-run             Prepare but do not take action[boolean] [default: false]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
@@ -109,6 +127,7 @@ Options:
                                          [default: "release-please-config.json"]
   --manifest-file       where can the manifest file be found in the project?
                                       [default: ".release-please-manifest.json"]
+
 `
 
 exports['CLI --help manifest-release 1'] = `
@@ -125,16 +144,22 @@ Options:
                                                       [boolean] [default: false]
   --plugin          load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
-  --token           GitHub token with repo write permissions
+  --token           GitHub/GitLab token with repo write permissions
   --api-url         URL to use when making API requests
-                                    [string] [default: "https://api.github.com"]
-  --graphql-url     URL to use when making GraphQL requests
-                                    [string] [default: "https://api.github.com"]
-  --default-branch  The branch to open release PRs against and tag releases on
-                              [deprecated: use --target-branch instead] [string]
-  --target-branch   The branch to open release PRs against and tag releases on
-                                                                        [string]
-  --repo-url        GitHub URL to generate release for                [required]
+                      [string] [default: GitHub: https://api.github.com; GitLab:
+                                                      https://gitlab.com/api/v4]
+  --host-url        URL to use when building changelog and release requests
+  [string] [default: GitHub: https://www.github.com; GitLab: https://gitlab.com]
+  --graphql-url     URL to use when making GraphQL requests (ignored for GitLab)
+                              [string] [default: GitHub: https://api.github.com]
+  --provider        Which provider to use (default 'github')
+                                                    [string] [default: "github"]
+  --default-branch  The branch to open release PR/MRs against and tag releases
+                    on        [deprecated: use --target-branch instead] [string]
+  --target-branch   The branch to open release PR/MRs against and tag releases
+                    on                                                  [string]
+  --repo-url        Repository URL to generate release for (e.g. GitHub:
+                    <org/repo>, GitLab: <group/project>)              [required]
   --dry-run         Prepare but do not take action    [boolean] [default: false]
   --draft           mark release as a draft. no tag is created but tag_name and
                     target_commitish are associated with the release for future
@@ -153,6 +178,89 @@ Options:
                                          [default: "release-please-config.json"]
   --manifest-file   where can the manifest file be found in the project?
                                       [default: ".release-please-manifest.json"]
+
+`
+
+exports['CLI --help release 1'] = `
+release-please release
+
+create a release from a release PR/MR
+
+Options:
+  --help                        Show help                              [boolean]
+  --version                     Show version number                    [boolean]
+  --debug                       print verbose errors (use only for local
+                                debugging).           [boolean] [default: false]
+  --trace                       print extra verbose errors (use only for local
+                                debugging).           [boolean] [default: false]
+  --plugin                      load plugin named release-please-<plugin-name>
+                                                           [array] [default: []]
+  --token                       GitHub/GitLab token with repo write permissions
+  --api-url                     URL to use when making API requests
+                      [string] [default: GitHub: https://api.github.com; GitLab:
+                                                      https://gitlab.com/api/v4]
+  --host-url                    URL to use when building changelog and release
+                                requests
+  [string] [default: GitHub: https://www.github.com; GitLab: https://gitlab.com]
+  --graphql-url                 URL to use when making GraphQL requests (ignored
+                                for GitLab)
+                              [string] [default: GitHub: https://api.github.com]
+  --provider                    Which provider to use (default 'github')
+                                                    [string] [default: "github"]
+  --default-branch              The branch to open release PR/MRs against and
+                                tag releases on
+                              [deprecated: use --target-branch instead] [string]
+  --target-branch               The branch to open release PR/MRs against and
+                                tag releases on                         [string]
+  --repo-url                    Repository URL to generate release for (e.g.
+                                GitHub: <org/repo>, GitLab: <group/project>)
+                                                                      [required]
+  --dry-run                     Prepare but do not take action
+                                                      [boolean] [default: false]
+  --include-v-in-tags           include "v" in tag versions
+                                                       [boolean] [default: true]
+  --monorepo-tags               include library name in tags and release
+                                branches              [boolean] [default: false]
+  --pull-request-title-pattern  Title pattern to make release PR        [string]
+  --pull-request-header         Header for release PR                   [string]
+  --pull-request-footer         Footer for release PR                   [string]
+  --component-no-space          release-please automatically adds \` \` (space) in
+                                front of parsed \${component}. Should this be
+                                disabled?             [boolean] [default: false]
+  --path                        release from path other than root directory
+                                                                        [string]
+  --component                   name of component release is being minted for
+                                                                        [string]
+  --package-name                name of package release is being minted for
+                                                                        [string]
+  --release-type                what type of repo is a release being created
+                                for?
+  [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go", "go-yoshi",
+          "helm", "java", "java-backport", "java-bom", "java-lts", "java-yoshi",
+       "java-yoshi-mono-repo", "krm-blueprint", "maven", "node", "ocaml", "php",
+         "php-yoshi", "python", "r", "ruby", "ruby-yoshi", "rust", "salesforce",
+                                           "sfdx", "simple", "terraform-module"]
+  --config-file                 where can the config file be found in the
+                                project? [default: "release-please-config.json"]
+  --manifest-file               where can the manifest file be found in the
+                                project?
+                                      [default: ".release-please-manifest.json"]
+  --draft                       mark release as a draft. no tag is created but
+                                tag_name and target_commitish are associated
+                                with the release for future tag creation upon
+                                "un-drafting" the release.
+                                                      [boolean] [default: false]
+  --prerelease                  mark release that have prerelease versions as as
+                                a prerelease on Github[boolean] [default: false]
+  --label                       comma-separated list of labels to remove to from
+                                release PR     [default: "autorelease: pending"]
+  --release-label               set a pull request label other than
+                                "autorelease: tagged"
+                                       [string] [default: "autorelease: tagged"]
+  --snapshot-label              set a java snapshot pull request label other
+                                than "autorelease: snapshot"
+                                     [string] [default: "autorelease: snapshot"]
+
 `
 
 exports['CLI --help release-pr 1'] = `
@@ -170,17 +278,27 @@ Options:
   --plugin                          load plugin named
                                     release-please-<plugin-name>
                                                            [array] [default: []]
-  --token                           GitHub token with repo write permissions
+  --token                           GitHub/GitLab token with repo write
+                                    permissions
   --api-url                         URL to use when making API requests
-                                    [string] [default: "https://api.github.com"]
+                      [string] [default: GitHub: https://api.github.com; GitLab:
+                                                      https://gitlab.com/api/v4]
+  --host-url                        URL to use when building changelog and
+                                    release requests
+  [string] [default: GitHub: https://www.github.com; GitLab: https://gitlab.com]
   --graphql-url                     URL to use when making GraphQL requests
-                                    [string] [default: "https://api.github.com"]
-  --default-branch                  The branch to open release PRs against and
-                                    tag releases on
+                                    (ignored for GitLab)
+                              [string] [default: GitHub: https://api.github.com]
+  --provider                        Which provider to use (default 'github')
+                                                    [string] [default: "github"]
+  --default-branch                  The branch to open release PR/MRs against
+                                    and tag releases on
                               [deprecated: use --target-branch instead] [string]
-  --target-branch                   The branch to open release PRs against and
-                                    tag releases on                     [string]
-  --repo-url                        GitHub URL to generate release for[required]
+  --target-branch                   The branch to open release PR/MRs against
+                                    and tag releases on                 [string]
+  --repo-url                        Repository URL to generate release for (e.g.
+                                    GitHub: <org/repo>, GitLab: <group/project>)
+                                                                      [required]
   --dry-run                         Prepare but do not take action
                                                       [boolean] [default: false]
   --release-as                      override the semantically determined release
@@ -261,6 +379,7 @@ Options:
   --manifest-file                   where can the manifest file be found in the
                                     project?
                                       [default: ".release-please-manifest.json"]
+
 `
 
 exports['CLI handleError handles an error 1'] = [

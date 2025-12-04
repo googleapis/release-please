@@ -22,13 +22,14 @@ import {graphql} from '@octokit/graphql';
 import {RequestError} from '@octokit/request-error';
 import {
   GitHubAPIError,
-  DuplicateReleaseError,
   FileNotFoundError,
   ConfigurationError,
+  DuplicateReleaseError,
 } from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 const MAX_SLEEP_SECONDS = 20;
+export const GH_URL = 'https://www.github.com';
 export const GH_API_URL = 'https://api.github.com';
 export const GH_GRAPHQL_URL = 'https://api.github.com';
 type OctokitType = InstanceType<typeof Octokit>;
@@ -51,6 +52,8 @@ import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {mergeUpdates} from './updaters/composite';
+import {GitHubRelease} from './provider-interfaces';
+import {HostedGitClient} from './provider';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -66,6 +69,7 @@ export interface GitHubOptions {
   repository: Repository;
   octokitAPIs: OctokitAPIs;
   logger?: Logger;
+  hostUrl?: string;
 }
 
 interface ProxyOption {
@@ -73,7 +77,7 @@ interface ProxyOption {
   port: number;
 }
 
-interface GitHubCreateOptions {
+export interface GitHubCreateOptions {
   owner: string;
   repo: string;
   defaultBranch?: string;
@@ -84,9 +88,10 @@ interface GitHubCreateOptions {
   logger?: Logger;
   proxy?: ProxyOption;
   fetch?: any;
+  hostUrl?: string;
 }
 
-type CommitFilter = (commit: Commit) => boolean;
+export type CommitFilter = (commit: Commit) => boolean;
 
 interface GraphQLCommit {
   sha: string;
@@ -157,38 +162,22 @@ interface ReleaseHistory {
   data: GitHubRelease[];
 }
 
-interface CommitIteratorOptions {
+export interface CommitIteratorOptions {
   maxResults?: number;
   backfillFiles?: boolean;
 }
 
-interface ReleaseIteratorOptions {
+export interface ReleaseIteratorOptions {
   maxResults?: number;
 }
 
-interface TagIteratorOptions {
+export interface TagIteratorOptions {
   maxResults?: number;
 }
 
 export interface ReleaseOptions {
   draft?: boolean;
   prerelease?: boolean;
-}
-
-export interface GitHubRelease {
-  id: number;
-  name?: string;
-  tagName: string;
-  sha: string;
-  notes?: string;
-  url: string;
-  draft?: boolean;
-  uploadUrl?: string;
-}
-
-export interface GitHubTag {
-  name: string;
-  sha: string;
 }
 
 interface FileDiff {
@@ -198,18 +187,19 @@ interface FileDiff {
 }
 export type ChangeSet = Map<string, FileDiff>;
 
-interface CreatePullRequestOptions {
+export interface CreatePullRequestOptions {
   fork?: boolean;
   draft?: boolean;
 }
 
-export class GitHub {
+export class GitHub implements HostedGitClient {
   readonly repository: Repository;
   private octokit: OctokitType;
   private request: RequestFunctionType;
   private graphql: Function;
   private fileCache: RepositoryFileCache;
   private logger: Logger;
+  private hostUrl?: string;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
@@ -218,6 +208,7 @@ export class GitHub {
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
+    this.hostUrl = options.hostUrl;
   }
 
   static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
@@ -295,6 +286,7 @@ export class GitHub {
       },
       octokitAPIs: apis,
       logger: options.logger,
+      hostUrl: options.hostUrl,
     };
     return new GitHub(opts);
   }
@@ -1558,6 +1550,19 @@ export class GitHub {
     }
 
     return content.html_url;
+  }
+
+  async getProviderDetails(): Promise<{
+    hostUrl: string;
+    issueFormatUrl: string;
+    commitFormatUrl: string;
+  }> {
+    const hostUrl = this.hostUrl || GH_URL;
+    return {
+      hostUrl,
+      issueFormatUrl: `${hostUrl}/${this.repository.owner}/${this.repository.repo}/issues/{{id}}`,
+      commitFormatUrl: `${hostUrl}/${this.repository.owner}/${this.repository.repo}/commit/{{sha}}`,
+    };
   }
 
   /**

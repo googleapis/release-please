@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from './github';
+import {HostedGitClient} from './provider';
 import {CandidateReleasePullRequest, RepositoryConfig} from './manifest';
 import {Strategy} from './strategy';
 import {Commit, ConventionalCommit} from './commit';
@@ -26,12 +26,12 @@ import {logger as defaultLogger, Logger} from './util/logger';
  * or update existing files.
  */
 export abstract class ManifestPlugin {
-  readonly github: GitHub;
+  readonly github: HostedGitClient;
   readonly targetBranch: string;
   readonly repositoryConfig: RepositoryConfig;
   protected logger: Logger;
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     logger: Logger = defaultLogger

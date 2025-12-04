@@ -24,7 +24,7 @@ import {PullRequestBody, ReleaseData} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {Update} from '../update';
 import {mergeUpdates} from '../updaters/composite';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 
 export interface MergeOptions {
   pullRequestTitlePattern?: string;
@@ -50,7 +50,7 @@ export class Merge extends ManifestPlugin {
   private forceMerge: boolean;
 
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     options: MergeOptions = {}

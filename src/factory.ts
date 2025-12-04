@@ -15,7 +15,7 @@
 import {ConfigurationError} from './errors';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
-import {GitHub} from './github';
+import {HostedGitClient} from './provider';
 import {ReleaserConfig} from './manifest';
 import {BaseStrategyOptions} from './strategies/base';
 import {Bazel} from './strategies/bazel';
@@ -61,7 +61,7 @@ export type ReleaseType = string;
 export type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 
 export interface StrategyFactoryOptions extends ReleaserConfig {
-  github: GitHub;
+  github: HostedGitClient;
   path?: string;
   targetBranch?: string;
 }
@@ -118,6 +118,7 @@ export async function buildStrategy(
 ): Promise<Strategy> {
   const targetBranch =
     options.targetBranch ?? options.github.repository.defaultBranch;
+  const skipRelease = options.skipRelease ?? options.skipGithubRelease ?? false;
   const versioningStrategy = buildVersioningStrategy({
     github: options.github,
     type: options.versioning,
@@ -132,9 +133,10 @@ export async function buildStrategy(
     changelogSections: options.changelogSections,
   });
   const strategyOptions: BaseStrategyOptions = {
-    skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
-    skipChangelog: options.skipChangelog,
     ...options,
+    skipRelease,
+    skipGitHubRelease: options.skipGithubRelease ?? skipRelease, // Deprecated alias retains behaviour
+    skipChangelog: options.skipChangelog,
     targetBranch,
     versioningStrategy,
     changelogNotes,
