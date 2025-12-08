@@ -75,6 +75,7 @@ export interface BaseStrategyOptions {
   changelogNotes?: ChangelogNotes;
   includeComponentInTag?: boolean;
   includeVInTag?: boolean;
+  includeVInReleaseName?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
@@ -110,6 +111,7 @@ export abstract class BaseStrategy implements Strategy {
   private releaseAs?: string;
   protected includeComponentInTag: boolean;
   protected includeVInTag: boolean;
+  protected includeVInReleaseName: boolean;
   protected initialVersion?: string;
   readonly pullRequestTitlePattern?: string;
   readonly pullRequestHeader?: string;
@@ -147,6 +149,7 @@ export abstract class BaseStrategy implements Strategy {
       options.changelogNotes || new DefaultChangelogNotes(options);
     this.includeComponentInTag = options.includeComponentInTag ?? true;
     this.includeVInTag = options.includeVInTag ?? true;
+    this.includeVInReleaseName = options.includeVInReleaseName ?? true;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
     this.pullRequestFooter = options.pullRequestFooter;
@@ -698,10 +701,11 @@ export abstract class BaseStrategy implements Strategy {
       this.tagSeparator,
       this.includeVInTag
     );
+    const versionPrefix = this.includeVInReleaseName ? 'v' : '';
     const releaseName =
       component && this.includeComponentInTag
-        ? `${component}: v${version.toString()}`
-        : `v${version.toString()}`;
+        ? `${component}: ${versionPrefix}${version.toString()}`
+        : `${versionPrefix}${version.toString()}`;
     return {
       name: releaseName,
       tag,

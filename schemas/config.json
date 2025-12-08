@@ -86,6 +86,10 @@
           "description": "When tagging a release, include `v` in the tag. Defaults to `false`.",
           "type": "boolean"
         },
+        "include-v-in-release-name": {
+          "description": "Include `v` in the GitHub release name. Defaults to `true`.",
+          "type": "boolean"
+        },
         "changelog-type": {
           "description": "The type of changelog to use. Defaults to `default`.",
           "type": "string",
@@ -471,6 +475,7 @@
     "extra-label": true,
     "include-component-in-tag": true,
     "include-v-in-tag": true,
+    "include-v-in-release-name": true,
     "changelog-type": true,
     "changelog-host": true,
     "changelog-path": true,
