@@ -281,16 +281,17 @@ class CalVerVersionUpdate implements VersionUpdater {
 
       if (isDateSegment(tokenType)) {
         const newDateValue = formatSegment(tokenType, this.currentDate);
-        const oldValue = oldSegment?.originalString ?? '0';
+        const oldNumericValue = oldSegment?.value ?? 0;
+        const newNumericValue = Number(newDateValue);
 
-        if (newDateValue !== oldValue) {
+        if (newNumericValue !== oldNumericValue) {
           dateChanged = true;
           shouldResetLower = true;
         }
 
         newSegments.push({
           type: tokenType,
-          value: Number(newDateValue),
+          value: newNumericValue,
           originalString: newDateValue,
         });
       } else if (isSemanticSegment(tokenType)) {
@@ -298,7 +299,14 @@ class CalVerVersionUpdate implements VersionUpdater {
         const oldValue = oldSegment?.value ?? 0;
 
         if (shouldResetLower) {
-          if (tokenType === 'MAJOR' && this.bumpType === 'major') {
+          const isBumpedSegment =
+            (tokenType === 'MAJOR' && this.bumpType === 'major') ||
+            (tokenType === 'MINOR' && this.bumpType === 'minor') ||
+            (tokenType === 'MICRO' && this.bumpType === 'micro');
+
+          if (dateChanged) {
+            newValue = isBumpedSegment ? 1 : 0;
+          } else if (tokenType === 'MAJOR' && this.bumpType === 'major') {
             newValue = 1;
           } else if (
             tokenType === 'MINOR' &&
@@ -306,11 +314,7 @@ class CalVerVersionUpdate implements VersionUpdater {
           ) {
             newValue = this.bumpType === 'minor' ? 1 : 0;
           } else if (tokenType === 'MICRO') {
-            if (this.bumpType === 'micro' && !dateChanged) {
-              newValue = 1;
-            } else {
-              newValue = 0;
-            }
+            newValue = this.bumpType === 'micro' ? 1 : 0;
           } else {
             newValue = 0;
           }
@@ -437,11 +441,17 @@ export class CalVerVersioningStrategy implements VersioningStrategy {
     const hasMINOR = tokens.includes('MINOR');
     const hasMICRO = tokens.includes('MICRO');
 
+    const parsed = parseVersionString(version.toString(), this.dateFormat);
+    const majorIndex = tokens.indexOf('MAJOR');
+    const majorValue =
+      majorIndex >= 0 ? parsed?.segments[majorIndex]?.value ?? 0 : 0;
+    const isPreMajor = hasMAJOR && majorValue < 1;
+
     let bumpType: BumpType = 'micro';
 
     if (breaking > 0) {
       if (hasMAJOR) {
-        if (version.isPreMajor && this.bumpMinorPreMajor && hasMINOR) {
+        if (isPreMajor && this.bumpMinorPreMajor && hasMINOR) {
           bumpType = 'minor';
         } else {
           bumpType = 'major';
@@ -453,7 +463,7 @@ export class CalVerVersioningStrategy implements VersioningStrategy {
       }
     } else if (features > 0) {
       if (hasMINOR) {
-        if (version.isPreMajor && this.bumpPatchForMinorPreMajor && hasMICRO) {
+        if (isPreMajor && this.bumpPatchForMinorPreMajor && hasMICRO) {
           bumpType = 'micro';
         } else {
           bumpType = 'minor';
