@@ -1,0 +1,472 @@
+// Copyright 2021 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import {Version} from '../version';
+import {ConventionalCommit} from '../commit';
+import {
+  VersioningStrategy,
+  VersionUpdater,
+  CustomVersionUpdate,
+} from '../versioning-strategy';
+import {logger as defaultLogger, Logger} from '../util/logger';
+
+export class CalVerVersion extends Version {
+  private readonly formattedString: string;
+
+  constructor(
+    major: number,
+    minor: number,
+    patch: number,
+    preRelease?: string,
+    build?: string,
+    formattedString?: string
+  ) {
+    super(major, minor, patch, preRelease, build);
+    this.formattedString = formattedString ?? `${major}.${minor}.${patch}`;
+  }
+
+  toString(): string {
+    const preReleasePart = this.preRelease ? `-${this.preRelease}` : '';
+    const buildPart = this.build ? `+${this.build}` : '';
+    return `${this.formattedString}${preReleasePart}${buildPart}`;
+  }
+}
+
+export interface CalVerVersioningStrategyOptions {
+  dateFormat?: string;
+  bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
+  logger?: Logger;
+}
+
+/**
+ * CalVer format tokens:
+ *
+ * Date segments:
+ * - YYYY: Full year (2006, 2016, 2106)
+ * - YY: Short year without zero-padding (6, 16, 106) - relative to 2000
+ * - 0Y: Zero-padded year (06, 16, 106) - relative to 2000
+ * - MM: Short month (1, 2 ... 11, 12)
+ * - 0M: Zero-padded month (01, 02 ... 11, 12)
+ * - WW: Short week of year (1, 2, 33, 52)
+ * - 0W: Zero-padded week (01, 02, 33, 52)
+ * - DD: Short day (1, 2 ... 30, 31)
+ * - 0D: Zero-padded day (01, 02 ... 30, 31)
+ *
+ * Semantic segments (incremented based on commits):
+ * - MAJOR: Major version number (breaking changes)
+ * - MINOR: Minor version number (features)
+ * - MICRO: Micro/patch version number (fixes)
+ */
+
+const DEFAULT_DATE_FORMAT = 'YYYY.0M.0D';
+
+type BumpType = 'major' | 'minor' | 'micro';
+
+interface ParsedCalVer {
+  segments: CalVerSegment[];
+  preRelease?: string;
+  build?: string;
+}
+
+interface CalVerSegment {
+  type:
+    | 'YYYY'
+    | 'YY'
+    | '0Y'
+    | 'MM'
+    | '0M'
+    | 'WW'
+    | '0W'
+    | 'DD'
+    | '0D'
+    | 'MAJOR'
+    | 'MINOR'
+    | 'MICRO';
+  value: number;
+  originalString: string;
+}
+
+function isDateSegment(
+  type: string
+): type is 'YYYY' | 'YY' | '0Y' | 'MM' | '0M' | 'WW' | '0W' | 'DD' | '0D' {
+  return ['YYYY', 'YY', '0Y', 'MM', '0M', 'WW', '0W', 'DD', '0D'].includes(
+    type
+  );
+}
+
+function isSemanticSegment(type: string): type is 'MAJOR' | 'MINOR' | 'MICRO' {
+  return ['MAJOR', 'MINOR', 'MICRO'].includes(type);
+}
+
+function getWeekOfYear(date: Date): number {
+  const target = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  );
+  const dayNum = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  return Math.ceil(
+    ((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
+  );
+}
+
+function formatSegment(type: CalVerSegment['type'], date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + 1;
+  const day = date.getUTCDate();
+  const week = getWeekOfYear(date);
+  const shortYear = year - 2000;
+
+  switch (type) {
+    case 'YYYY':
+      return year.toString();
+    case 'YY':
+      return shortYear.toString();
+    case '0Y':
+      return shortYear.toString().padStart(2, '0');
+    case 'MM':
+      return month.toString();
+    case '0M':
+      return month.toString().padStart(2, '0');
+    case 'WW':
+      return week.toString();
+    case '0W':
+      return week.toString().padStart(2, '0');
+    case 'DD':
+      return day.toString();
+    case '0D':
+      return day.toString().padStart(2, '0');
+    default:
+      return '';
+  }
+}
+
+function parseFormat(format: string): CalVerSegment['type'][] {
+  const tokens: CalVerSegment['type'][] = [];
+  const tokenRegex = /YYYY|0Y|YY|0M|MM|0W|WW|0D|DD|MAJOR|MINOR|MICRO/g;
+  let match;
+  while ((match = tokenRegex.exec(format)) !== null) {
+    tokens.push(match[0] as CalVerSegment['type']);
+  }
+  return tokens;
+}
+
+function parseVersionString(
+  versionString: string,
+  format: string
+): ParsedCalVer | null {
+  const tokens = parseFormat(format);
+  if (tokens.length === 0) {
+    return null;
+  }
+
+  let regexPattern = format;
+  for (const token of [
+    'YYYY',
+    '0Y',
+    'YY',
+    '0M',
+    'MM',
+    '0W',
+    'WW',
+    '0D',
+    'DD',
+    'MAJOR',
+    'MINOR',
+    'MICRO',
+  ]) {
+    regexPattern = regexPattern.replace(new RegExp(token, 'g'), '(\\d+)');
+  }
+  regexPattern = regexPattern.replace(/\./g, '\\.');
+  regexPattern = `^${regexPattern}(?:-([^+]+))?(?:\\+(.*))?$`;
+
+  const regex = new RegExp(regexPattern);
+  const match = versionString.match(regex);
+
+  if (!match) {
+    return null;
+  }
+
+  const segments: CalVerSegment[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const originalString = match[i + 1];
+    segments.push({
+      type: tokens[i],
+      value: Number(originalString),
+      originalString,
+    });
+  }
+
+  return {
+    segments,
+    preRelease: match[tokens.length + 1],
+    build: match[tokens.length + 2],
+  };
+}
+
+function formatVersion(parsed: ParsedCalVer, format: string): string {
+  let result = format;
+
+  const tokenOrder = [
+    'YYYY',
+    '0Y',
+    'YY',
+    '0M',
+    'MM',
+    '0W',
+    'WW',
+    '0D',
+    'DD',
+    'MAJOR',
+    'MINOR',
+    'MICRO',
+  ];
+
+  const segmentsByType = new Map<string, CalVerSegment>();
+  for (const segment of parsed.segments) {
+    segmentsByType.set(segment.type, segment);
+  }
+
+  for (const token of tokenOrder) {
+    const segment = segmentsByType.get(token);
+    if (segment) {
+      result = result.replace(token, segment.originalString);
+    }
+  }
+
+  if (parsed.preRelease) {
+    result += `-${parsed.preRelease}`;
+  }
+  if (parsed.build) {
+    result += `+${parsed.build}`;
+  }
+
+  return result;
+}
+
+class CalVerVersionUpdate implements VersionUpdater {
+  private format: string;
+  private currentDate: Date;
+  private bumpType: BumpType;
+
+  constructor(format: string, bumpType: BumpType, currentDate?: Date) {
+    this.format = format;
+    this.bumpType = bumpType;
+    this.currentDate = currentDate ?? new Date();
+  }
+
+  bump(version: Version): Version {
+    const tokens = parseFormat(this.format);
+    const parsed = parseVersionString(version.toString(), this.format);
+
+    const newSegments: CalVerSegment[] = [];
+    let dateChanged = false;
+    let shouldResetLower = false;
+
+    for (let i = 0; i < tokens.length; i++) {
+      const tokenType = tokens[i];
+      const oldSegment = parsed?.segments[i];
+
+      if (isDateSegment(tokenType)) {
+        const newDateValue = formatSegment(tokenType, this.currentDate);
+        const oldValue = oldSegment?.originalString ?? '0';
+
+        if (newDateValue !== oldValue) {
+          dateChanged = true;
+          shouldResetLower = true;
+        }
+
+        newSegments.push({
+          type: tokenType,
+          value: Number(newDateValue),
+          originalString: newDateValue,
+        });
+      } else if (isSemanticSegment(tokenType)) {
+        let newValue: number;
+        const oldValue = oldSegment?.value ?? 0;
+
+        if (shouldResetLower) {
+          if (tokenType === 'MAJOR' && this.bumpType === 'major') {
+            newValue = 1;
+          } else if (
+            tokenType === 'MINOR' &&
+            (this.bumpType === 'major' || this.bumpType === 'minor')
+          ) {
+            newValue = this.bumpType === 'minor' ? 1 : 0;
+          } else if (tokenType === 'MICRO') {
+            if (this.bumpType === 'micro' && !dateChanged) {
+              newValue = 1;
+            } else {
+              newValue = 0;
+            }
+          } else {
+            newValue = 0;
+          }
+        } else {
+          const shouldBump =
+            (tokenType === 'MAJOR' && this.bumpType === 'major') ||
+            (tokenType === 'MINOR' && this.bumpType === 'minor') ||
+            (tokenType === 'MICRO' && this.bumpType === 'micro');
+
+          if (shouldBump) {
+            newValue = oldValue + 1;
+            shouldResetLower = true;
+          } else if (shouldResetLower) {
+            newValue = 0;
+          } else {
+            newValue = oldValue;
+          }
+        }
+
+        newSegments.push({
+          type: tokenType,
+          value: newValue,
+          originalString: newValue.toString(),
+        });
+      }
+    }
+
+    const newParsed: ParsedCalVer = {
+      segments: newSegments,
+      preRelease: undefined,
+      build: parsed?.build,
+    };
+
+    const newVersionString = formatVersion(newParsed, this.format);
+
+    const versionMatch = newVersionString.match(
+      /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+    );
+    if (versionMatch) {
+      const baseString = `${versionMatch[1]}.${versionMatch[2]}.${versionMatch[3]}`;
+      return new CalVerVersion(
+        Number(versionMatch[1]),
+        Number(versionMatch[2]),
+        Number(versionMatch[3]),
+        versionMatch[4],
+        versionMatch[5],
+        baseString
+      );
+    }
+
+    const twoPartMatch = newVersionString.match(
+      /^(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+    );
+    if (twoPartMatch) {
+      const baseString = `${twoPartMatch[1]}.${twoPartMatch[2]}.0`;
+      return new CalVerVersion(
+        Number(twoPartMatch[1]),
+        Number(twoPartMatch[2]),
+        0,
+        twoPartMatch[3],
+        twoPartMatch[4],
+        baseString
+      );
+    }
+
+    return Version.parse(newVersionString);
+  }
+}
+
+/**
+ * CalVer versioning strategy that supports calendar-based versioning
+ * combined with semantic versioning concepts.
+ *
+ * Supports formats like:
+ * - YYYY.0M.0D (e.g., 2024.01.15)
+ * - YY.MM.MICRO (e.g., 24.1.0, 24.1.1)
+ * - YYYY.MINOR.MICRO (e.g., 2024.1.0)
+ * - YY.0M.0D (e.g., 24.01.15)
+ */
+export class CalVerVersioningStrategy implements VersioningStrategy {
+  readonly dateFormat: string;
+  readonly bumpMinorPreMajor: boolean;
+  readonly bumpPatchForMinorPreMajor: boolean;
+  protected logger: Logger;
+  private currentDate?: Date;
+
+  constructor(options: CalVerVersioningStrategyOptions = {}) {
+    this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
+    this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
+    this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
+    this.logger = options.logger ?? defaultLogger;
+  }
+
+  setCurrentDate(date: Date): void {
+    this.currentDate = date;
+  }
+
+  determineReleaseType(
+    version: Version,
+    commits: ConventionalCommit[]
+  ): VersionUpdater {
+    let breaking = 0;
+    let features = 0;
+
+    for (const commit of commits) {
+      const releaseAs = commit.notes.find(note => note.title === 'RELEASE AS');
+      if (releaseAs) {
+        this.logger.debug(
+          `found Release-As: ${releaseAs.text}, forcing version`
+        );
+        return new CustomVersionUpdate(
+          Version.parse(releaseAs.text).toString()
+        );
+      }
+      if (commit.breaking) {
+        breaking++;
+      } else if (commit.type === 'feat' || commit.type === 'feature') {
+        features++;
+      }
+    }
+
+    const tokens = parseFormat(this.dateFormat);
+    const hasMAJOR = tokens.includes('MAJOR');
+    const hasMINOR = tokens.includes('MINOR');
+    const hasMICRO = tokens.includes('MICRO');
+
+    let bumpType: BumpType = 'micro';
+
+    if (breaking > 0) {
+      if (hasMAJOR) {
+        if (version.isPreMajor && this.bumpMinorPreMajor && hasMINOR) {
+          bumpType = 'minor';
+        } else {
+          bumpType = 'major';
+        }
+      } else if (hasMINOR) {
+        bumpType = 'minor';
+      } else {
+        bumpType = 'micro';
+      }
+    } else if (features > 0) {
+      if (hasMINOR) {
+        if (version.isPreMajor && this.bumpPatchForMinorPreMajor && hasMICRO) {
+          bumpType = 'micro';
+        } else {
+          bumpType = 'minor';
+        }
+      } else {
+        bumpType = 'micro';
+      }
+    }
+
+    return new CalVerVersionUpdate(this.dateFormat, bumpType, this.currentDate);
+  }
+
+  bump(version: Version, commits: ConventionalCommit[]): Version {
+    return this.determineReleaseType(version, commits).bump(version);
+  }
+}
