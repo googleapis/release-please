@@ -142,3 +142,21 @@ issues). To support multiple releases per day, include a semantic segment:
 ```
 
 This produces versions like `2024.01.15.0`, `2024.01.15.1`, etc.
+
+## Four-Segment Versions
+
+CalVer supports formats with four segments, such as `YY.MM.MINOR.MICRO` which might
+produce versions like `24.6.5.123`. However, there's an important limitation to be
+aware of:
+
+**Version Object Mapping**: Internally, Release Please uses a `Version` object that
+only has three semantic fields: `major`, `minor`, and `patch`. When using four-segment
+formats:
+
+- The first three segments map to `major.minor.patch`
+- The fourth segment is preserved only in the string representation
+- The fourth segment is not accessible via the Version object's properties
+
+This limitation doesn't affect version bumping or comparison, but it's important to
+understand if you're programmatically accessing version properties.
+
