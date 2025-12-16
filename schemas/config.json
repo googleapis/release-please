@@ -135,6 +135,10 @@
           "description": "Date format given as a strftime expression for the generic strategy.",
           "type": "string"
         },
+        "calver-scheme": {
+          "description": "CalVer scheme format for calendar versioning (e.g., YYYY.0M.MICRO).",
+          "type": "string"
+        },
         "extra-files": {
           "description": "Specify extra generic files to replace versions.",
           "type": "array",
@@ -491,6 +495,7 @@
     "always-update": true,
     "tag-separator": true,
     "date-format": true,
+    "calver-scheme": true,
     "extra-files": true,
     "version-file": true,
     "snapshot-label": true,
