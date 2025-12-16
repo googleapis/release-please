@@ -484,13 +484,9 @@ const PLACEHOLDER_PATTERN = new RegExp(
 );
 
 function parseFormat(format: string): CalVerSegment['type'][] {
-  const tokens: CalVerSegment['type'][] = [];
-  let match;
-  while ((match = PLACEHOLDER_PATTERN.exec(format)) !== null) {
-    tokens.push(match[0] as CalVerSegment['type']);
-  }
-  PLACEHOLDER_PATTERN.lastIndex = 0;
-  return tokens;
+  return [...format.matchAll(PLACEHOLDER_PATTERN)].map(
+    m => m[0] as CalVerSegment['type']
+  );
 }
 
 function parseVersionString(
