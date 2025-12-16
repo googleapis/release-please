@@ -337,62 +337,76 @@ function isDateSegment(
 
 const SHORT_YEAR_EPOCH = 2000;
 
+const YEAR_TOKENS = new Set(['YYYY', 'YY', '0Y']);
+const SHORT_YEAR_TOKENS = new Set(['YY', '0Y']);
+const MONTH_TOKENS = new Set(['MM', '0M']);
+const DAY_TOKENS = new Set(['DD', '0D']);
+const WEEK_TOKENS = new Set(['WW', '0W']);
+
 function extractDateFromSegments(
   segments: CalVerSegment[],
   tokens: CalVerSegment['type'][]
 ): Date | null {
-  let year: number | null = null;
-  let month: number | null = null;
-  let day: number | null = null;
-  let week: number | null = null;
+  const values = extractDateValues(segments, tokens);
+
+  if (values.year === null) {
+    return null;
+  }
+
+  return buildDate(values);
+}
+
+interface DateValues {
+  year: number | null;
+  month: number | null;
+  day: number | null;
+  week: number | null;
+}
+
+function extractDateValues(
+  segments: CalVerSegment[],
+  tokens: CalVerSegment['type'][]
+): DateValues {
+  const values: DateValues = {year: null, month: null, day: null, week: null};
 
   for (let i = 0; i < segments.length; i++) {
     const token = tokens[i];
     const value = segments[i].value;
 
-    switch (token) {
-      case 'YYYY':
-        year = value;
-        break;
-      case 'YY':
-      case '0Y':
-        year = value + SHORT_YEAR_EPOCH;
-        break;
-      case 'MM':
-      case '0M':
-        month = value;
-        break;
-      case 'DD':
-      case '0D':
-        day = value;
-        break;
-      case 'WW':
-      case '0W':
-        week = value;
-        break;
+    if (YEAR_TOKENS.has(token)) {
+      values.year = SHORT_YEAR_TOKENS.has(token) ? value + SHORT_YEAR_EPOCH : value;
+    } else if (MONTH_TOKENS.has(token)) {
+      values.month = value;
+    } else if (DAY_TOKENS.has(token)) {
+      values.day = value;
+    } else if (WEEK_TOKENS.has(token)) {
+      values.week = value;
     }
   }
 
-  if (year === null) {
-    return null;
+  return values;
+}
+
+function buildDate(values: DateValues): Date {
+  const year = values.year!;
+
+  if (values.month !== null) {
+    const day = values.day ?? 1;
+    return new Date(Date.UTC(year, values.month - 1, day));
   }
 
-  if (month !== null && day !== null) {
-    return new Date(Date.UTC(year, month - 1, day));
-  }
-
-  if (month !== null) {
-    return new Date(Date.UTC(year, month - 1, 1));
-  }
-
-  if (week !== null) {
-    const jan1 = new Date(Date.UTC(year, 0, 1));
-    const jan1DayOfWeek = (jan1.getUTCDay() + 6) % 7;
-    const daysToAdd = (week - 1) * 7 - jan1DayOfWeek;
-    return new Date(Date.UTC(year, 0, 1 + daysToAdd));
+  if (values.week !== null) {
+    return buildDateFromWeek(year, values.week);
   }
 
   return new Date(Date.UTC(year, 0, 1));
+}
+
+function buildDateFromWeek(year: number, week: number): Date {
+  const jan1 = new Date(Date.UTC(year, 0, 1));
+  const jan1DayOfWeek = (jan1.getUTCDay() + 6) % 7;
+  const daysToAdd = (week - 1) * 7 - jan1DayOfWeek;
+  return new Date(Date.UTC(year, 0, 1 + daysToAdd));
 }
 
 // Week of year where January 1 is always in week 1.
