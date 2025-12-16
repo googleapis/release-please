@@ -93,26 +93,9 @@ export class CalendarVersioningStrategy implements VersioningStrategy {
     }
 
     const tokens = parseFormat(this.calverScheme);
-    const hasMAJOR = tokens.includes('MAJOR');
-    const hasMINOR = tokens.includes('MINOR');
-
-    let bumpType: BumpType = 'micro';
-
-    if (breaking > 0) {
-      if (hasMAJOR) {
-        bumpType = 'major';
-      } else if (hasMINOR) {
-        bumpType = 'minor';
-      } else {
-        bumpType = 'micro';
-      }
-    } else if (features > 0) {
-      if (hasMINOR) {
-        bumpType = 'minor';
-      } else {
-        bumpType = 'micro';
-      }
-    }
+    const hasBreaking = breaking > 0;
+    const hasFeatures = features > 0;
+    const bumpType = determineBumpType(tokens, hasBreaking, hasFeatures);
 
     return new CalendarVersionUpdate(
       this.calverScheme,
@@ -151,6 +134,23 @@ export class CalendarVersion extends Version {
 const DEFAULT_SCHEME = 'YYYY.0M.0D';
 
 type BumpType = 'major' | 'minor' | 'micro';
+
+function determineBumpType(
+  tokens: CalVerSegment['type'][],
+  hasBreaking: boolean,
+  hasFeatures: boolean
+): BumpType {
+  const availableTokens = new Set(tokens);
+
+  if (hasBreaking) {
+    if (availableTokens.has('MAJOR')) return 'major';
+    if (availableTokens.has('MINOR')) return 'minor';
+  } else if (hasFeatures) {
+    if (availableTokens.has('MINOR')) return 'minor';
+  }
+
+  return 'micro';
+}
 
 interface ParsedCalVer {
   segments: CalVerSegment[];
@@ -374,7 +374,9 @@ function extractDateValues(
     const value = segments[i].value;
 
     if (YEAR_TOKENS.has(token)) {
-      values.year = SHORT_YEAR_TOKENS.has(token) ? value + SHORT_YEAR_EPOCH : value;
+      values.year = SHORT_YEAR_TOKENS.has(token)
+        ? value + SHORT_YEAR_EPOCH
+        : value;
     } else if (MONTH_TOKENS.has(token)) {
       values.month = value;
     } else if (DAY_TOKENS.has(token)) {
