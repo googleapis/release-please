@@ -657,5 +657,57 @@ describe('CalendarVersioningStrategy', () => {
         expect(newVersion.toString()).to.equal('24.7.0');
       });
     });
+
+    describe('missing semantic placeholders', () => {
+      it('bumps MINOR for breaking change when no MAJOR placeholder exists', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.MINOR.MICRO',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+        const oldVersion = Version.parse('2024.2.5');
+        const newVersion = await strategy.bump(oldVersion, breakingCommits);
+        expect(newVersion.toString()).to.equal('2024.3.0');
+      });
+
+      it('bumps MICRO for breaking change when no MAJOR or MINOR placeholder exists', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.0M.MICRO',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+        const oldVersion = Version.parse('2024.06.5');
+        const newVersion = await strategy.bump(oldVersion, breakingCommits);
+        expect(newVersion.toString()).to.equal('2024.06.6');
+      });
+
+      it('bumps MICRO for feature when no MINOR placeholder exists', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.MAJOR.MICRO',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+        const oldVersion = Version.parse('2024.1.5');
+        const newVersion = await strategy.bump(oldVersion, featureCommits);
+        expect(newVersion.toString()).to.equal('2024.1.6');
+      });
+
+      it('bumps MICRO for feature when no MAJOR or MINOR placeholder exists', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.0M.MICRO',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+        const oldVersion = Version.parse('2024.06.5');
+        const newVersion = await strategy.bump(oldVersion, featureCommits);
+        expect(newVersion.toString()).to.equal('2024.06.6');
+      });
+
+      it('updates only date when no semantic placeholders exist', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.0M.0D',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+        const oldVersion = Version.parse('2024.05.14');
+        const newVersion = await strategy.bump(oldVersion, breakingCommits);
+        expect(newVersion.toString()).to.equal('2024.05.15');
+      });
+    });
   });
 });
