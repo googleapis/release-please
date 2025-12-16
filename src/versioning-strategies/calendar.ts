@@ -135,7 +135,11 @@ export class CalendarVersioningStrategy implements VersioningStrategy {
       }
     }
 
-    return new CalendarVersionUpdate(this.dateFormat, bumpType, this.currentDate);
+    return new CalendarVersionUpdate(
+      this.dateFormat,
+      bumpType,
+      this.currentDate
+    );
   }
 
   bump(version: Version, commits: ConventionalCommit[]): Version {
@@ -194,9 +198,9 @@ interface CalVerSegment {
 }
 
 class CalendarVersionUpdate implements VersionUpdater {
-  private format: string;
-  private currentDate: Date;
-  private bumpType: BumpType;
+  private readonly format: string;
+  private readonly currentDate: Date;
+  private readonly bumpType: BumpType;
 
   constructor(format: string, bumpType: BumpType, currentDate?: Date) {
     this.format = format;
