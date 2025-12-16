@@ -71,7 +71,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 10, 15)));
-        const oldVersion = Version.parse('2023.11.01');
+        const oldVersion = new CalendarVersion(
+          2023,
+          11,
+          1,
+          undefined,
+          undefined,
+          '2023.11.01'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.11.15');
       });
@@ -105,7 +112,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: '0Y.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2006, 0, 5)));
-        const oldVersion = Version.parse('05.12.01');
+        const oldVersion = new CalendarVersion(
+          5,
+          12,
+          1,
+          undefined,
+          undefined,
+          '05.12.01'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('06.01.05');
       });
@@ -129,7 +143,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
-        const oldVersion = Version.parse('2024.01.2');
+        const oldVersion = new CalendarVersion(
+          2024,
+          1,
+          2,
+          undefined,
+          undefined,
+          '2024.01.2'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.01.5');
       });
@@ -224,7 +245,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0W.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 7, 15)));
-        const oldVersion = Version.parse('2024.01.0');
+        const oldVersion = new CalendarVersion(
+          2024,
+          1,
+          0,
+          undefined,
+          undefined,
+          '2024.01.0'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.33.0');
       });
@@ -248,7 +276,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.MM.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
-        const oldVersion = Version.parse('2023.1.01');
+        const oldVersion = new CalendarVersion(
+          2023,
+          1,
+          1,
+          undefined,
+          undefined,
+          '2023.1.01'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.1.05');
       });
@@ -352,7 +387,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 10, 15)));
-        const oldVersion = Version.parse('2024.11.01');
+        const oldVersion = new CalendarVersion(
+          2024,
+          11,
+          1,
+          undefined,
+          undefined,
+          '2024.11.01'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.11.15');
       });
@@ -577,6 +619,67 @@ describe('CalendarVersioningStrategy', () => {
     });
   });
 
+  describe('error handling for invalid version strings', () => {
+    it('throws error when version has fewer segments than format requires', async () => {
+      const strategy = new CalendarVersioningStrategy({
+        dateFormat: 'YYYY.0M.0D.MICRO',
+      });
+      strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+      const wrongSegmentsVersion = Version.parse('2024.6.15');
+      try {
+        await strategy.bump(wrongSegmentsVersion, fixCommits);
+        expect.fail('Expected an error to be thrown');
+      } catch (error) {
+        expect((error as Error).message).to.include('Failed to parse version');
+        expect((error as Error).message).to.include('YYYY.0M.0D.MICRO');
+      }
+    });
+
+    it('throws error in determineReleaseType when version does not match format', () => {
+      const strategy = new CalendarVersioningStrategy({
+        dateFormat: 'YYYY.0M.0D.MICRO',
+      });
+      strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
+      const mismatchedVersion = Version.parse('2024.1.0');
+      try {
+        strategy.determineReleaseType(mismatchedVersion, fixCommits);
+        expect.fail('Expected an error to be thrown');
+      } catch (error) {
+        expect((error as Error).message).to.include('Failed to parse version');
+        expect((error as Error).message).to.include('2024.1.0');
+        expect((error as Error).message).to.include('YYYY.0M.0D.MICRO');
+      }
+    });
+
+    it('throws error in CalendarVersionUpdate.bump for mismatched version', () => {
+      const strategy = new CalendarVersioningStrategy({
+        dateFormat: 'YYYY.0M.0D.MICRO',
+      });
+      strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
+      const validVersion = new CalendarVersion(
+        2024,
+        1,
+        15,
+        undefined,
+        undefined,
+        '2024.01.15.0'
+      );
+      const versionUpdater = strategy.determineReleaseType(
+        validVersion,
+        fixCommits
+      );
+
+      const mismatchedVersion = Version.parse('2024.1.0');
+      try {
+        versionUpdater.bump(mismatchedVersion);
+        expect.fail('Expected an error to be thrown');
+      } catch (error) {
+        expect((error as Error).message).to.include('Failed to parse version');
+        expect((error as Error).message).to.include('2024.1.0');
+      }
+    });
+  });
+
   describe('edge cases', () => {
     describe('multiple date segments changing', () => {
       it('resets MICRO to 0 when year changes', async () => {
@@ -594,7 +697,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 1, 15)));
-        const oldVersion = Version.parse('2024.01.5');
+        const oldVersion = new CalendarVersion(
+          2024,
+          1,
+          5,
+          undefined,
+          undefined,
+          '2024.01.5'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.02.0');
       });
@@ -628,7 +738,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-        const oldVersion = Version.parse('2024.06.3');
+        const oldVersion = new CalendarVersion(
+          2024,
+          6,
+          3,
+          undefined,
+          undefined,
+          '2024.06.3'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.06.4');
       });
@@ -650,7 +767,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 1, 29)));
-        const oldVersion = Version.parse('2024.02.28');
+        const oldVersion = new CalendarVersion(
+          2024,
+          2,
+          28,
+          undefined,
+          undefined,
+          '2024.02.28'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.02.29');
       });
@@ -684,7 +808,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: '0Y.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2009, 0, 5)));
-        const oldVersion = Version.parse('08.12.31');
+        const oldVersion = new CalendarVersion(
+          8,
+          12,
+          31,
+          undefined,
+          undefined,
+          '08.12.31'
+        );
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('09.01.05');
       });
@@ -696,7 +827,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YY.MM.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-        const oldVersion = new CalendarVersion(24, 6, 5, undefined, undefined, '24.6.5.123');
+        const oldVersion = new CalendarVersion(
+          24,
+          6,
+          5,
+          undefined,
+          undefined,
+          '24.6.5.123'
+        );
         const newVersion = await strategy.bump(oldVersion, featureCommits);
         expect(newVersion.toString()).to.equal('24.6.6.0');
       });
@@ -728,7 +866,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-        const oldVersion = Version.parse('2024.06.5');
+        const oldVersion = new CalendarVersion(
+          2024,
+          6,
+          5,
+          undefined,
+          undefined,
+          '2024.06.5'
+        );
         const newVersion = await strategy.bump(oldVersion, breakingCommits);
         expect(newVersion.toString()).to.equal('2024.06.6');
       });
@@ -748,7 +893,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-        const oldVersion = Version.parse('2024.06.5');
+        const oldVersion = new CalendarVersion(
+          2024,
+          6,
+          5,
+          undefined,
+          undefined,
+          '2024.06.5'
+        );
         const newVersion = await strategy.bump(oldVersion, featureCommits);
         expect(newVersion.toString()).to.equal('2024.06.6');
       });
@@ -758,7 +910,14 @@ describe('CalendarVersioningStrategy', () => {
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-        const oldVersion = Version.parse('2024.06.14');
+        const oldVersion = new CalendarVersion(
+          2024,
+          6,
+          14,
+          undefined,
+          undefined,
+          '2024.06.14'
+        );
         const newVersion = await strategy.bump(oldVersion, breakingCommits);
         expect(newVersion.toString()).to.equal('2024.06.15');
       });
