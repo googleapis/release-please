@@ -327,14 +327,6 @@ class CalendarVersionUpdate implements VersionUpdater {
   }
 }
 
-function isDateSegment(
-  type: string
-): type is 'YYYY' | 'YY' | '0Y' | 'MM' | '0M' | 'WW' | '0W' | 'DD' | '0D' {
-  return ['YYYY', 'YY', '0Y', 'MM', '0M', 'WW', '0W', 'DD', '0D'].includes(
-    type
-  );
-}
-
 const SHORT_YEAR_EPOCH = 2000;
 
 const YEAR_TOKENS = new Set(['YYYY', 'YY', '0Y']);
@@ -342,6 +334,18 @@ const SHORT_YEAR_TOKENS = new Set(['YY', '0Y']);
 const MONTH_TOKENS = new Set(['MM', '0M']);
 const DAY_TOKENS = new Set(['DD', '0D']);
 const WEEK_TOKENS = new Set(['WW', '0W']);
+const DATE_TOKENS = new Set([
+  ...YEAR_TOKENS,
+  ...MONTH_TOKENS,
+  ...DAY_TOKENS,
+  ...WEEK_TOKENS,
+]);
+
+function isDateSegment(
+  type: string
+): type is 'YYYY' | 'YY' | '0Y' | 'MM' | '0M' | 'WW' | '0W' | 'DD' | '0D' {
+  return DATE_TOKENS.has(type);
+}
 
 function extractDateFromSegments(
   segments: CalVerSegment[],
