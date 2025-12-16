@@ -536,31 +536,8 @@ function parseVersionString(
 function formatVersion(parsed: ParsedCalVer, format: string): string {
   let result = format;
 
-  const tokenOrder = [
-    'YYYY',
-    '0Y',
-    'YY',
-    '0M',
-    'MM',
-    '0W',
-    'WW',
-    '0D',
-    'DD',
-    'MAJOR',
-    'MINOR',
-    'MICRO',
-  ];
-
-  const segmentsByType = new Map<string, CalVerSegment>();
   for (const segment of parsed.segments) {
-    segmentsByType.set(segment.type, segment);
-  }
-
-  for (const token of tokenOrder) {
-    const segment = segmentsByType.get(token);
-    if (segment) {
-      result = result.replace(token, segment.originalString);
-    }
+    result = result.replace(segment.type, segment.originalString);
   }
 
   if (parsed.preRelease) {
