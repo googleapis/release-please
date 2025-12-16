@@ -176,6 +176,11 @@ interface CalVerSegment {
   originalString: string;
 }
 
+interface SegmentProcessingState {
+  dateChanged: boolean;
+  shouldResetLower: boolean;
+}
+
 class CalendarVersionUpdate implements VersionUpdater {
   private readonly format: string;
   private readonly currentDate: Date;
@@ -189,6 +194,22 @@ class CalendarVersionUpdate implements VersionUpdater {
 
   bump(version: Version): Version {
     const tokens = parseFormat(this.format);
+    const parsed = this.parseAndValidate(version, tokens);
+
+    const newSegments = this.buildNewSegments(tokens, parsed.segments);
+
+    const newVersionString = formatVersion(
+      {segments: newSegments, preRelease: undefined, build: parsed.build},
+      this.format
+    );
+
+    return createVersionFromString(newVersionString);
+  }
+
+  private parseAndValidate(
+    version: Version,
+    tokens: CalVerSegment['type'][]
+  ): ParsedCalVer {
     const parsed = parseVersionString(version.toString(), this.format);
     if (!parsed) {
       throw new Error(
@@ -204,126 +225,133 @@ class CalendarVersionUpdate implements VersionUpdater {
       );
     }
 
-    const newSegments: CalVerSegment[] = [];
-    let dateChanged = false;
-    let shouldResetLower = false;
+    return parsed;
+  }
 
-    for (let i = 0; i < tokens.length; i++) {
-      const tokenType = tokens[i];
-      const oldSegment = parsed.segments[i];
-
-      if (isDateSegment(tokenType)) {
-        const newDateValue = formatSegment(tokenType, this.currentDate);
-        const oldNumericValue = oldSegment?.value ?? 0;
-        const newNumericValue = Number(newDateValue);
-
-        if (newNumericValue !== oldNumericValue) {
-          dateChanged = true;
-          shouldResetLower = true;
-        }
-
-        newSegments.push({
-          type: tokenType,
-          value: newNumericValue,
-          originalString: newDateValue,
-        });
-      } else if (isSemanticSegment(tokenType)) {
-        let newValue: number;
-        const oldValue = oldSegment?.value ?? 0;
-
-        if (shouldResetLower) {
-          if (dateChanged) {
-            newValue = 0;
-          } else if (tokenType === 'MAJOR' && this.bumpType === 'major') {
-            newValue = 1;
-          } else if (
-            tokenType === 'MINOR' &&
-            (this.bumpType === 'major' || this.bumpType === 'minor')
-          ) {
-            newValue = this.bumpType === 'minor' ? 1 : 0;
-          } else if (tokenType === 'MICRO') {
-            newValue = this.bumpType === 'micro' ? 1 : 0;
-          } else {
-            newValue = 0;
-          }
-        } else {
-          const shouldBump =
-            (tokenType === 'MAJOR' && this.bumpType === 'major') ||
-            (tokenType === 'MINOR' && this.bumpType === 'minor') ||
-            (tokenType === 'MICRO' && this.bumpType === 'micro');
-
-          if (shouldBump) {
-            newValue = oldValue + 1;
-            shouldResetLower = true;
-          } else if (shouldResetLower) {
-            newValue = 0;
-          } else {
-            newValue = oldValue;
-          }
-        }
-
-        newSegments.push({
-          type: tokenType,
-          value: newValue,
-          originalString: newValue.toString(),
-        });
-      }
-    }
-
-    const newParsed: ParsedCalVer = {
-      segments: newSegments,
-      preRelease: undefined,
-      build: parsed?.build,
+  private buildNewSegments(
+    tokens: CalVerSegment['type'][],
+    oldSegments: CalVerSegment[]
+  ): CalVerSegment[] {
+    const state: SegmentProcessingState = {
+      dateChanged: false,
+      shouldResetLower: false,
     };
 
-    const newVersionString = formatVersion(newParsed, this.format);
+    return tokens.map((tokenType, i) => {
+      const oldSegment = oldSegments[i];
 
-    const fourPartMatch = newVersionString.match(
-      /^(\d+)\.(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-    );
-    if (fourPartMatch) {
-      return new CalendarVersion(
-        Number(fourPartMatch[1]),
-        Number(fourPartMatch[2]),
-        Number(fourPartMatch[3]),
-        fourPartMatch[5],
-        fourPartMatch[6],
-        `${fourPartMatch[1]}.${fourPartMatch[2]}.${fourPartMatch[3]}.${fourPartMatch[4]}`
-      );
-    }
-
-    const versionMatch = newVersionString.match(
-      /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-    );
-    if (versionMatch) {
-      const baseString = `${versionMatch[1]}.${versionMatch[2]}.${versionMatch[3]}`;
-      return new CalendarVersion(
-        Number(versionMatch[1]),
-        Number(versionMatch[2]),
-        Number(versionMatch[3]),
-        versionMatch[4],
-        versionMatch[5],
-        baseString
-      );
-    }
-
-    const twoPartMatch = newVersionString.match(
-      /^(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-    );
-    if (twoPartMatch) {
-      const baseString = `${twoPartMatch[1]}.${twoPartMatch[2]}.0`;
-      return new CalendarVersion(
-        Number(twoPartMatch[1]),
-        Number(twoPartMatch[2]),
-        0,
-        twoPartMatch[3],
-        twoPartMatch[4],
-        baseString
-      );
-    }
-
-    return Version.parse(newVersionString);
+      if (isDateSegment(tokenType)) {
+        return this.processDateSegment(tokenType, oldSegment, state);
+      }
+      return this.processSemanticSegment(tokenType, oldSegment, state);
+    });
   }
+
+  private processDateSegment(
+    tokenType: CalVerSegment['type'],
+    oldSegment: CalVerSegment | undefined,
+    state: SegmentProcessingState
+  ): CalVerSegment {
+    const newDateValue = formatSegment(tokenType, this.currentDate);
+    const oldNumericValue = oldSegment?.value ?? 0;
+    const newNumericValue = Number(newDateValue);
+
+    if (newNumericValue !== oldNumericValue) {
+      state.dateChanged = true;
+      state.shouldResetLower = true;
+    }
+
+    return {
+      type: tokenType,
+      value: newNumericValue,
+      originalString: newDateValue,
+    };
+  }
+
+  private processSemanticSegment(
+    tokenType: CalVerSegment['type'],
+    oldSegment: CalVerSegment | undefined,
+    state: SegmentProcessingState
+  ): CalVerSegment {
+    const oldValue = oldSegment?.value ?? 0;
+    const newValue = state.dateChanged
+      ? 0
+      : this.computeValueSameDate(tokenType, oldValue, state);
+
+    return {
+      type: tokenType,
+      value: newValue,
+      originalString: newValue.toString(),
+    };
+  }
+
+  private computeValueSameDate(
+    tokenType: CalVerSegment['type'],
+    oldValue: number,
+    state: SegmentProcessingState
+  ): number {
+    if (state.shouldResetLower) {
+      return 0;
+    }
+
+    const isTargetSegment = this.isTargetSegmentForBump(tokenType);
+    if (isTargetSegment) {
+      state.shouldResetLower = true;
+      return oldValue + 1;
+    }
+
+    return oldValue;
+  }
+
+  private isTargetSegmentForBump(tokenType: CalVerSegment['type']): boolean {
+    return tokenType.toLowerCase() === this.bumpType;
+  }
+}
+
+function createVersionFromString(versionString: string): Version {
+  const fourPartMatch = versionString.match(
+    /^(\d+)\.(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+  );
+  if (fourPartMatch) {
+    return new CalendarVersion(
+      Number(fourPartMatch[1]),
+      Number(fourPartMatch[2]),
+      Number(fourPartMatch[3]),
+      fourPartMatch[5],
+      fourPartMatch[6],
+      `${fourPartMatch[1]}.${fourPartMatch[2]}.${fourPartMatch[3]}.${fourPartMatch[4]}`
+    );
+  }
+
+  const threePartMatch = versionString.match(
+    /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+  );
+  if (threePartMatch) {
+    return new CalendarVersion(
+      Number(threePartMatch[1]),
+      Number(threePartMatch[2]),
+      Number(threePartMatch[3]),
+      threePartMatch[4],
+      threePartMatch[5],
+      `${threePartMatch[1]}.${threePartMatch[2]}.${threePartMatch[3]}`
+    );
+  }
+
+  const twoPartMatch = versionString.match(
+    /^(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+  );
+  if (twoPartMatch) {
+    return new CalendarVersion(
+      Number(twoPartMatch[1]),
+      Number(twoPartMatch[2]),
+      0,
+      twoPartMatch[3],
+      twoPartMatch[4],
+      `${twoPartMatch[1]}.${twoPartMatch[2]}.0`
+    );
+  }
+
+  return Version.parse(versionString);
 }
 
 function isDateSegment(
@@ -332,10 +360,6 @@ function isDateSegment(
   return ['YYYY', 'YY', '0Y', 'MM', '0M', 'WW', '0W', 'DD', '0D'].includes(
     type
   );
-}
-
-function isSemanticSegment(type: string): type is 'MAJOR' | 'MINOR' | 'MICRO' {
-  return ['MAJOR', 'MINOR', 'MICRO'].includes(type);
 }
 
 const SHORT_YEAR_EPOCH = 2000;
