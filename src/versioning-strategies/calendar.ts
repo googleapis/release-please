@@ -286,6 +286,20 @@ class CalendarVersionUpdate implements VersionUpdater {
 
     const newVersionString = formatVersion(newParsed, this.format);
 
+    const fourPartMatch = newVersionString.match(
+      /^(\d+)\.(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+    );
+    if (fourPartMatch) {
+      return new CalendarVersion(
+        Number(fourPartMatch[1]),
+        Number(fourPartMatch[2]),
+        Number(fourPartMatch[3]),
+        fourPartMatch[5],
+        fourPartMatch[6],
+        `${fourPartMatch[1]}.${fourPartMatch[2]}.${fourPartMatch[3]}.${fourPartMatch[4]}`
+      );
+    }
+
     const versionMatch = newVersionString.match(
       /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
     );
