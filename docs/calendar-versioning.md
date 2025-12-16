@@ -15,12 +15,12 @@ release-please configuration:
 }
 ```
 
-You can customize the date format using the `date-format` option:
+You can customize the CalVer scheme using the `calver-scheme` option:
 
 ```json
 {
     "versioning": "calendar",
-    "date-format": "YYYY.0M.MICRO"
+    "calver-scheme": "YYYY.0M.MICRO"
 }
 ```
 
@@ -120,7 +120,7 @@ issues). To support multiple releases per day, include a semantic segment:
 ```json
 {
     "versioning": "calendar",
-    "date-format": "YYYY.0M.0D.MICRO"
+    "calver-scheme": "YYYY.0M.0D.MICRO"
 }
 ```
 

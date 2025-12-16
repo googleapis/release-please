@@ -22,7 +22,7 @@ import {
 import {logger as defaultLogger, Logger} from '../util/logger';
 
 export interface CalendarVersioningStrategyOptions {
-  dateFormat?: string;
+  calverScheme?: string;
   logger?: Logger;
 }
 
@@ -55,12 +55,12 @@ export interface CalendarVersioningStrategyOptions {
  * - MICRO: Micro/patch version number (fixes)
  */
 export class CalendarVersioningStrategy implements VersioningStrategy {
-  readonly dateFormat: string;
+  readonly calverScheme: string;
   protected logger: Logger;
   private currentDate?: Date;
 
   constructor(options: CalendarVersioningStrategyOptions = {}) {
-    this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
+    this.calverScheme = options.calverScheme ?? DEFAULT_SCHEME;
     this.logger = options.logger ?? defaultLogger;
   }
 
@@ -92,7 +92,7 @@ export class CalendarVersioningStrategy implements VersioningStrategy {
       }
     }
 
-    const tokens = parseFormat(this.dateFormat);
+    const tokens = parseFormat(this.calverScheme);
     const hasMAJOR = tokens.includes('MAJOR');
     const hasMINOR = tokens.includes('MINOR');
 
@@ -115,7 +115,7 @@ export class CalendarVersioningStrategy implements VersioningStrategy {
     }
 
     return new CalendarVersionUpdate(
-      this.dateFormat,
+      this.calverScheme,
       bumpType,
       this.currentDate
     );
@@ -148,7 +148,7 @@ export class CalendarVersion extends Version {
   }
 }
 
-const DEFAULT_DATE_FORMAT = 'YYYY.0M.0D';
+const DEFAULT_SCHEME = 'YYYY.0M.0D';
 
 type BumpType = 'major' | 'minor' | 'micro';
 
