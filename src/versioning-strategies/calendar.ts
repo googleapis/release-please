@@ -136,7 +136,7 @@ const DEFAULT_SCHEME = 'YYYY.0M.0D';
 type BumpType = 'major' | 'minor' | 'micro';
 
 function determineBumpType(
-  tokens: CalVerSegment['type'][],
+  tokens: CalVerToken[],
   hasBreaking: boolean,
   hasFeatures: boolean
 ): BumpType {
@@ -158,20 +158,22 @@ interface ParsedCalVer {
   build?: string;
 }
 
+type CalVerToken =
+  | 'YYYY'
+  | 'YY'
+  | '0Y'
+  | 'MM'
+  | '0M'
+  | 'WW'
+  | '0W'
+  | 'DD'
+  | '0D'
+  | 'MAJOR'
+  | 'MINOR'
+  | 'MICRO';
+
 interface CalVerSegment {
-  type:
-    | 'YYYY'
-    | 'YY'
-    | '0Y'
-    | 'MM'
-    | '0M'
-    | 'WW'
-    | '0W'
-    | 'DD'
-    | '0D'
-    | 'MAJOR'
-    | 'MINOR'
-    | 'MICRO';
+  type: CalVerToken;
   value: number;
   originalString: string;
 }
@@ -227,7 +229,7 @@ class CalendarVersionUpdate implements VersionUpdater {
 
   private parseAndValidate(
     version: Version,
-    tokens: CalVerSegment['type'][]
+    tokens: CalVerToken[]
   ): ParsedCalVer {
     const parsed = parseVersionString(version.toString(), this.format);
     if (!parsed) {
@@ -248,7 +250,7 @@ class CalendarVersionUpdate implements VersionUpdater {
   }
 
   private buildNewSegments(
-    tokens: CalVerSegment['type'][],
+    tokens: CalVerToken[],
     oldSegments: CalVerSegment[]
   ): CalVerSegment[] {
     const state: SegmentProcessingState = {
@@ -267,7 +269,7 @@ class CalendarVersionUpdate implements VersionUpdater {
   }
 
   private processDateSegment(
-    tokenType: CalVerSegment['type'],
+    tokenType: CalVerToken,
     oldSegment: CalVerSegment | undefined,
     state: SegmentProcessingState
   ): CalVerSegment {
@@ -288,7 +290,7 @@ class CalendarVersionUpdate implements VersionUpdater {
   }
 
   private processSemanticSegment(
-    tokenType: CalVerSegment['type'],
+    tokenType: CalVerToken,
     oldSegment: CalVerSegment | undefined,
     state: SegmentProcessingState
   ): CalVerSegment {
@@ -305,7 +307,7 @@ class CalendarVersionUpdate implements VersionUpdater {
   }
 
   private computeValueSameDate(
-    tokenType: CalVerSegment['type'],
+    tokenType: CalVerToken,
     oldValue: number,
     state: SegmentProcessingState
   ): number {
@@ -322,7 +324,7 @@ class CalendarVersionUpdate implements VersionUpdater {
     return oldValue;
   }
 
-  private isTargetSegmentForBump(tokenType: CalVerSegment['type']): boolean {
+  private isTargetSegmentForBump(tokenType: CalVerToken): boolean {
     return tokenType.toLowerCase() === this.bumpType;
   }
 }
@@ -349,7 +351,7 @@ function isDateSegment(
 
 function extractDateFromSegments(
   segments: CalVerSegment[],
-  tokens: CalVerSegment['type'][]
+  tokens: CalVerToken[]
 ): Date | null {
   const values = extractDateValues(segments, tokens);
 
@@ -369,7 +371,7 @@ interface DateValues {
 
 function extractDateValues(
   segments: CalVerSegment[],
-  tokens: CalVerSegment['type'][]
+  tokens: CalVerToken[]
 ): DateValues {
   const values: DateValues = {year: null, month: null, day: null, week: null};
 
@@ -460,7 +462,7 @@ const SEGMENT_FORMATTERS: Record<string, SegmentFormatter> = {
   '0D': parts => parts.day.toString().padStart(2, '0'),
 };
 
-function formatSegment(type: CalVerSegment['type'], date: Date): string {
+function formatSegment(type: CalVerToken, date: Date): string {
   const formatter = SEGMENT_FORMATTERS[type];
   return formatter ? formatter(getDateParts(date)) : '';
 }
@@ -487,9 +489,9 @@ const PLACEHOLDER_PATTERN = new RegExp(
   'g'
 );
 
-function parseFormat(format: string): CalVerSegment['type'][] {
+function parseFormat(format: string): CalVerToken[] {
   return [...format.matchAll(PLACEHOLDER_PATTERN)].map(
-    m => m[0] as CalVerSegment['type']
+    m => m[0] as CalVerToken
   );
 }
 
