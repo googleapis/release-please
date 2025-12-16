@@ -21,6 +21,128 @@ import {
 } from '../versioning-strategy';
 import {logger as defaultLogger, Logger} from '../util/logger';
 
+export interface CalendarVersioningStrategyOptions {
+  dateFormat?: string;
+  bumpMinorPreMajor?: boolean;
+  bumpPatchForMinorPreMajor?: boolean;
+  logger?: Logger;
+}
+
+/**
+ * CalVer versioning strategy that supports calendar-based versioning
+ * combined with semantic versioning concepts.
+ *
+ * Supports formats like:
+ * - YYYY.0M.0D (e.g., 2024.01.15)
+ * - YY.MM.MICRO (e.g., 24.1.0, 24.1.1)
+ * - YYYY.MINOR.MICRO (e.g., 2024.1.0)
+ * - YY.0M.0D (e.g., 24.01.15)
+ *
+ * CalVer format tokens:
+ *
+ * Date segments:
+ * - YYYY: Full year (2006, 2016, 2106)
+ * - YY: Short year without zero-padding (6, 16, 106) - relative to 2000
+ * - 0Y: Zero-padded year (06, 16, 106) - relative to 2000
+ * - MM: Short month (1, 2 ... 11, 12)
+ * - 0M: Zero-padded month (01, 02 ... 11, 12)
+ * - WW: Short week of year (1, 2, 33, 52)
+ * - 0W: Zero-padded week (01, 02, 33, 52)
+ * - DD: Short day (1, 2 ... 30, 31)
+ * - 0D: Zero-padded day (01, 02 ... 30, 31)
+ *
+ * Semantic segments (incremented based on commits):
+ * - MAJOR: Major version number (breaking changes)
+ * - MINOR: Minor version number (features)
+ * - MICRO: Micro/patch version number (fixes)
+ */
+export class CalendarVersioningStrategy implements VersioningStrategy {
+  readonly dateFormat: string;
+  readonly bumpMinorPreMajor: boolean;
+  readonly bumpPatchForMinorPreMajor: boolean;
+  protected logger: Logger;
+  private currentDate?: Date;
+
+  constructor(options: CalendarVersioningStrategyOptions = {}) {
+    this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
+    this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
+    this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
+    this.logger = options.logger ?? defaultLogger;
+  }
+
+  setCurrentDate(date: Date): void {
+    this.currentDate = date;
+  }
+
+  determineReleaseType(
+    version: Version,
+    commits: ConventionalCommit[]
+  ): VersionUpdater {
+    let breaking = 0;
+    let features = 0;
+
+    for (const commit of commits) {
+      const releaseAs = commit.notes.find(note => note.title === 'RELEASE AS');
+      if (releaseAs) {
+        this.logger.debug(
+          `found Release-As: ${releaseAs.text}, forcing version`
+        );
+        return new CustomVersionUpdate(
+          Version.parse(releaseAs.text).toString()
+        );
+      }
+      if (commit.breaking) {
+        breaking++;
+      } else if (commit.type === 'feat' || commit.type === 'feature') {
+        features++;
+      }
+    }
+
+    const tokens = parseFormat(this.dateFormat);
+    const hasMAJOR = tokens.includes('MAJOR');
+    const hasMINOR = tokens.includes('MINOR');
+    const hasMICRO = tokens.includes('MICRO');
+
+    const parsed = parseVersionString(version.toString(), this.dateFormat);
+    const majorIndex = tokens.indexOf('MAJOR');
+    const majorValue =
+      majorIndex >= 0 ? parsed?.segments[majorIndex]?.value ?? 0 : 0;
+    const isPreMajor = hasMAJOR && majorValue < 1;
+
+    let bumpType: BumpType = 'micro';
+
+    if (breaking > 0) {
+      if (hasMAJOR) {
+        if (isPreMajor && this.bumpMinorPreMajor && hasMINOR) {
+          bumpType = 'minor';
+        } else {
+          bumpType = 'major';
+        }
+      } else if (hasMINOR) {
+        bumpType = 'minor';
+      } else {
+        bumpType = 'micro';
+      }
+    } else if (features > 0) {
+      if (hasMINOR) {
+        if (isPreMajor && this.bumpPatchForMinorPreMajor && hasMICRO) {
+          bumpType = 'micro';
+        } else {
+          bumpType = 'minor';
+        }
+      } else {
+        bumpType = 'micro';
+      }
+    }
+
+    return new CalendarVersionUpdate(this.dateFormat, bumpType, this.currentDate);
+  }
+
+  bump(version: Version, commits: ConventionalCommit[]): Version {
+    return this.determineReleaseType(version, commits).bump(version);
+  }
+}
+
 export class CalendarVersion extends Version {
   private readonly formattedString: string;
 
@@ -42,33 +164,6 @@ export class CalendarVersion extends Version {
     return `${this.formattedString}${preReleasePart}${buildPart}`;
   }
 }
-
-export interface CalendarVersioningStrategyOptions {
-  dateFormat?: string;
-  bumpMinorPreMajor?: boolean;
-  bumpPatchForMinorPreMajor?: boolean;
-  logger?: Logger;
-}
-
-/**
- * CalVer format tokens:
- *
- * Date segments:
- * - YYYY: Full year (2006, 2016, 2106)
- * - YY: Short year without zero-padding (6, 16, 106) - relative to 2000
- * - 0Y: Zero-padded year (06, 16, 106) - relative to 2000
- * - MM: Short month (1, 2 ... 11, 12)
- * - 0M: Zero-padded month (01, 02 ... 11, 12)
- * - WW: Short week of year (1, 2, 33, 52)
- * - 0W: Zero-padded week (01, 02, 33, 52)
- * - DD: Short day (1, 2 ... 30, 31)
- * - 0D: Zero-padded day (01, 02 ... 30, 31)
- *
- * Semantic segments (incremented based on commits):
- * - MAJOR: Major version number (breaking changes)
- * - MINOR: Minor version number (features)
- * - MICRO: Micro/patch version number (fixes)
- */
 
 const DEFAULT_DATE_FORMAT = 'YYYY.0M.0D';
 
@@ -96,6 +191,129 @@ interface CalVerSegment {
     | 'MICRO';
   value: number;
   originalString: string;
+}
+
+class CalendarVersionUpdate implements VersionUpdater {
+  private format: string;
+  private currentDate: Date;
+  private bumpType: BumpType;
+
+  constructor(format: string, bumpType: BumpType, currentDate?: Date) {
+    this.format = format;
+    this.bumpType = bumpType;
+    this.currentDate = currentDate ?? new Date();
+  }
+
+  bump(version: Version): Version {
+    const tokens = parseFormat(this.format);
+    const parsed = parseVersionString(version.toString(), this.format);
+
+    const newSegments: CalVerSegment[] = [];
+    let dateChanged = false;
+    let shouldResetLower = false;
+
+    for (let i = 0; i < tokens.length; i++) {
+      const tokenType = tokens[i];
+      const oldSegment = parsed?.segments[i];
+
+      if (isDateSegment(tokenType)) {
+        const newDateValue = formatSegment(tokenType, this.currentDate);
+        const oldNumericValue = oldSegment?.value ?? 0;
+        const newNumericValue = Number(newDateValue);
+
+        if (newNumericValue !== oldNumericValue) {
+          dateChanged = true;
+          shouldResetLower = true;
+        }
+
+        newSegments.push({
+          type: tokenType,
+          value: newNumericValue,
+          originalString: newDateValue,
+        });
+      } else if (isSemanticSegment(tokenType)) {
+        let newValue: number;
+        const oldValue = oldSegment?.value ?? 0;
+
+        if (shouldResetLower) {
+          if (dateChanged) {
+            newValue = 0;
+          } else if (tokenType === 'MAJOR' && this.bumpType === 'major') {
+            newValue = 1;
+          } else if (
+            tokenType === 'MINOR' &&
+            (this.bumpType === 'major' || this.bumpType === 'minor')
+          ) {
+            newValue = this.bumpType === 'minor' ? 1 : 0;
+          } else if (tokenType === 'MICRO') {
+            newValue = this.bumpType === 'micro' ? 1 : 0;
+          } else {
+            newValue = 0;
+          }
+        } else {
+          const shouldBump =
+            (tokenType === 'MAJOR' && this.bumpType === 'major') ||
+            (tokenType === 'MINOR' && this.bumpType === 'minor') ||
+            (tokenType === 'MICRO' && this.bumpType === 'micro');
+
+          if (shouldBump) {
+            newValue = oldValue + 1;
+            shouldResetLower = true;
+          } else if (shouldResetLower) {
+            newValue = 0;
+          } else {
+            newValue = oldValue;
+          }
+        }
+
+        newSegments.push({
+          type: tokenType,
+          value: newValue,
+          originalString: newValue.toString(),
+        });
+      }
+    }
+
+    const newParsed: ParsedCalVer = {
+      segments: newSegments,
+      preRelease: undefined,
+      build: parsed?.build,
+    };
+
+    const newVersionString = formatVersion(newParsed, this.format);
+
+    const versionMatch = newVersionString.match(
+      /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+    );
+    if (versionMatch) {
+      const baseString = `${versionMatch[1]}.${versionMatch[2]}.${versionMatch[3]}`;
+      return new CalendarVersion(
+        Number(versionMatch[1]),
+        Number(versionMatch[2]),
+        Number(versionMatch[3]),
+        versionMatch[4],
+        versionMatch[5],
+        baseString
+      );
+    }
+
+    const twoPartMatch = newVersionString.match(
+      /^(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
+    );
+    if (twoPartMatch) {
+      const baseString = `${twoPartMatch[1]}.${twoPartMatch[2]}.0`;
+      return new CalendarVersion(
+        Number(twoPartMatch[1]),
+        Number(twoPartMatch[2]),
+        0,
+        twoPartMatch[3],
+        twoPartMatch[4],
+        baseString
+      );
+    }
+
+    return Version.parse(newVersionString);
+  }
 }
 
 function isDateSegment(
@@ -254,224 +472,4 @@ function formatVersion(parsed: ParsedCalVer, format: string): string {
   }
 
   return result;
-}
-
-class CalendarVersionUpdate implements VersionUpdater {
-  private format: string;
-  private currentDate: Date;
-  private bumpType: BumpType;
-
-  constructor(format: string, bumpType: BumpType, currentDate?: Date) {
-    this.format = format;
-    this.bumpType = bumpType;
-    this.currentDate = currentDate ?? new Date();
-  }
-
-  bump(version: Version): Version {
-    const tokens = parseFormat(this.format);
-    const parsed = parseVersionString(version.toString(), this.format);
-
-    const newSegments: CalVerSegment[] = [];
-    let dateChanged = false;
-    let shouldResetLower = false;
-
-    for (let i = 0; i < tokens.length; i++) {
-      const tokenType = tokens[i];
-      const oldSegment = parsed?.segments[i];
-
-      if (isDateSegment(tokenType)) {
-        const newDateValue = formatSegment(tokenType, this.currentDate);
-        const oldNumericValue = oldSegment?.value ?? 0;
-        const newNumericValue = Number(newDateValue);
-
-        if (newNumericValue !== oldNumericValue) {
-          dateChanged = true;
-          shouldResetLower = true;
-        }
-
-        newSegments.push({
-          type: tokenType,
-          value: newNumericValue,
-          originalString: newDateValue,
-        });
-      } else if (isSemanticSegment(tokenType)) {
-        let newValue: number;
-        const oldValue = oldSegment?.value ?? 0;
-
-        if (shouldResetLower) {
-          if (dateChanged) {
-            newValue = 0;
-          } else if (tokenType === 'MAJOR' && this.bumpType === 'major') {
-            newValue = 1;
-          } else if (
-            tokenType === 'MINOR' &&
-            (this.bumpType === 'major' || this.bumpType === 'minor')
-          ) {
-            newValue = this.bumpType === 'minor' ? 1 : 0;
-          } else if (tokenType === 'MICRO') {
-            newValue = this.bumpType === 'micro' ? 1 : 0;
-          } else {
-            newValue = 0;
-          }
-        } else {
-          const shouldBump =
-            (tokenType === 'MAJOR' && this.bumpType === 'major') ||
-            (tokenType === 'MINOR' && this.bumpType === 'minor') ||
-            (tokenType === 'MICRO' && this.bumpType === 'micro');
-
-          if (shouldBump) {
-            newValue = oldValue + 1;
-            shouldResetLower = true;
-          } else if (shouldResetLower) {
-            newValue = 0;
-          } else {
-            newValue = oldValue;
-          }
-        }
-
-        newSegments.push({
-          type: tokenType,
-          value: newValue,
-          originalString: newValue.toString(),
-        });
-      }
-    }
-
-    const newParsed: ParsedCalVer = {
-      segments: newSegments,
-      preRelease: undefined,
-      build: parsed?.build,
-    };
-
-    const newVersionString = formatVersion(newParsed, this.format);
-
-    const versionMatch = newVersionString.match(
-      /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-    );
-    if (versionMatch) {
-      const baseString = `${versionMatch[1]}.${versionMatch[2]}.${versionMatch[3]}`;
-      return new CalendarVersion(
-        Number(versionMatch[1]),
-        Number(versionMatch[2]),
-        Number(versionMatch[3]),
-        versionMatch[4],
-        versionMatch[5],
-        baseString
-      );
-    }
-
-    const twoPartMatch = newVersionString.match(
-      /^(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-    );
-    if (twoPartMatch) {
-      const baseString = `${twoPartMatch[1]}.${twoPartMatch[2]}.0`;
-      return new CalendarVersion(
-        Number(twoPartMatch[1]),
-        Number(twoPartMatch[2]),
-        0,
-        twoPartMatch[3],
-        twoPartMatch[4],
-        baseString
-      );
-    }
-
-    return Version.parse(newVersionString);
-  }
-}
-
-/**
- * CalVer versioning strategy that supports calendar-based versioning
- * combined with semantic versioning concepts.
- *
- * Supports formats like:
- * - YYYY.0M.0D (e.g., 2024.01.15)
- * - YY.MM.MICRO (e.g., 24.1.0, 24.1.1)
- * - YYYY.MINOR.MICRO (e.g., 2024.1.0)
- * - YY.0M.0D (e.g., 24.01.15)
- */
-export class CalendarVersioningStrategy implements VersioningStrategy {
-  readonly dateFormat: string;
-  readonly bumpMinorPreMajor: boolean;
-  readonly bumpPatchForMinorPreMajor: boolean;
-  protected logger: Logger;
-  private currentDate?: Date;
-
-  constructor(options: CalendarVersioningStrategyOptions = {}) {
-    this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
-    this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
-    this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
-    this.logger = options.logger ?? defaultLogger;
-  }
-
-  setCurrentDate(date: Date): void {
-    this.currentDate = date;
-  }
-
-  determineReleaseType(
-    version: Version,
-    commits: ConventionalCommit[]
-  ): VersionUpdater {
-    let breaking = 0;
-    let features = 0;
-
-    for (const commit of commits) {
-      const releaseAs = commit.notes.find(note => note.title === 'RELEASE AS');
-      if (releaseAs) {
-        this.logger.debug(
-          `found Release-As: ${releaseAs.text}, forcing version`
-        );
-        return new CustomVersionUpdate(
-          Version.parse(releaseAs.text).toString()
-        );
-      }
-      if (commit.breaking) {
-        breaking++;
-      } else if (commit.type === 'feat' || commit.type === 'feature') {
-        features++;
-      }
-    }
-
-    const tokens = parseFormat(this.dateFormat);
-    const hasMAJOR = tokens.includes('MAJOR');
-    const hasMINOR = tokens.includes('MINOR');
-    const hasMICRO = tokens.includes('MICRO');
-
-    const parsed = parseVersionString(version.toString(), this.dateFormat);
-    const majorIndex = tokens.indexOf('MAJOR');
-    const majorValue =
-      majorIndex >= 0 ? parsed?.segments[majorIndex]?.value ?? 0 : 0;
-    const isPreMajor = hasMAJOR && majorValue < 1;
-
-    let bumpType: BumpType = 'micro';
-
-    if (breaking > 0) {
-      if (hasMAJOR) {
-        if (isPreMajor && this.bumpMinorPreMajor && hasMINOR) {
-          bumpType = 'minor';
-        } else {
-          bumpType = 'major';
-        }
-      } else if (hasMINOR) {
-        bumpType = 'minor';
-      } else {
-        bumpType = 'micro';
-      }
-    } else if (features > 0) {
-      if (hasMINOR) {
-        if (isPreMajor && this.bumpPatchForMinorPreMajor && hasMICRO) {
-          bumpType = 'micro';
-        } else {
-          bumpType = 'minor';
-        }
-      } else {
-        bumpType = 'micro';
-      }
-    }
-
-    return new CalendarVersionUpdate(this.dateFormat, bumpType, this.currentDate);
-  }
-
-  bump(version: Version, commits: ConventionalCommit[]): Version {
-    return this.determineReleaseType(version, commits).bump(version);
-  }
 }
