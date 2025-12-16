@@ -454,6 +454,76 @@ describe('CalendarVersioningStrategy', () => {
       });
     });
 
+    describe('MAJOR.YY.0M-MINOR', () => {
+      it('bumps MINOR on feature in same month', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          calverScheme: 'MAJOR.YY.0M-MINOR',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+        const oldVersion = new CalendarVersion(
+          2,
+          24,
+          6,
+          undefined,
+          undefined,
+          '2.24.06-5'
+        );
+        const newVersion = await strategy.bump(oldVersion, featureCommits);
+        expect(newVersion.toString()).to.equal('2.24.06-6');
+      });
+
+      it('keeps MAJOR and resets MINOR to 0 on year change', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          calverScheme: 'MAJOR.YY.0M-MINOR',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 15)));
+        const oldVersion = new CalendarVersion(
+          3,
+          24,
+          12,
+          undefined,
+          undefined,
+          '3.24.12-5'
+        );
+        const newVersion = await strategy.bump(oldVersion, fixCommits);
+        expect(newVersion.toString()).to.equal('3.25.01-0');
+      });
+
+      it('bumps MAJOR on breaking change in same month', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          calverScheme: 'MAJOR.YY.0M-MINOR',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
+        const oldVersion = new CalendarVersion(
+          2,
+          24,
+          6,
+          undefined,
+          undefined,
+          '2.24.06-5'
+        );
+        const newVersion = await strategy.bump(oldVersion, breakingCommits);
+        expect(newVersion.toString()).to.equal('3.24.06-0');
+      });
+
+      it('keeps MAJOR and resets MINOR to 0 on month change', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          calverScheme: 'MAJOR.YY.0M-MINOR',
+        });
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 6, 1)));
+        const oldVersion = new CalendarVersion(
+          5,
+          24,
+          6,
+          undefined,
+          undefined,
+          '5.24.06-3'
+        );
+        const newVersion = await strategy.bump(oldVersion, featureCommits);
+        expect(newVersion.toString()).to.equal('5.24.07-0');
+      });
+    });
+
     describe('YY.MM.MICRO', () => {
       it('bumps MICRO when same month', async () => {
         const strategy = new CalendarVersioningStrategy({
