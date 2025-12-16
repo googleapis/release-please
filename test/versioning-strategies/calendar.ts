@@ -155,6 +155,57 @@ describe('CalendarVersioningStrategy', () => {
         const newVersion = await strategy.bump(oldVersion, fixCommits);
         expect(newVersion.toString()).to.equal('2024.1.0');
       });
+
+      it('January 1 is always in week 1', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.WW.MICRO',
+        });
+        // 2025-01-01 is a Wednesday
+        strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
+        const oldVersion = Version.parse('2024.52.0');
+        const newVersion = await strategy.bump(oldVersion, fixCommits);
+        expect(newVersion.toString()).to.equal('2025.1.0');
+      });
+
+      it('week changes on Monday', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.WW.MICRO',
+        });
+        // 2025-01-05 is Sunday (still week 1)
+        strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 5)));
+        let oldVersion = Version.parse('2024.52.0');
+        let newVersion = await strategy.bump(oldVersion, fixCommits);
+        expect(newVersion.toString()).to.equal('2025.1.0');
+
+        // 2025-01-06 is Monday (week 2 starts)
+        strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 6)));
+        oldVersion = Version.parse('2025.1.0');
+        newVersion = await strategy.bump(oldVersion, fixCommits);
+        expect(newVersion.toString()).to.equal('2025.2.0');
+      });
+
+      it('handles year where Jan 1 is Monday', async () => {
+        const strategy = new CalendarVersioningStrategy({
+          dateFormat: 'YYYY.WW.MICRO',
+        });
+        // 2024-01-01 is a Monday
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
+        const oldVersion = Version.parse('2023.52.0');
+        const newVersion = await strategy.bump(oldVersion, fixCommits);
+        expect(newVersion.toString()).to.equal('2024.1.0');
+
+        // 2024-01-07 is Sunday (still week 1)
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 7)));
+        const oldVersion2 = Version.parse('2024.1.0');
+        const newVersion2 = await strategy.bump(oldVersion2, fixCommits);
+        expect(newVersion2.toString()).to.equal('2024.1.1');
+
+        // 2024-01-08 is Monday (week 2)
+        strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 8)));
+        const oldVersion3 = Version.parse('2024.1.0');
+        const newVersion3 = await strategy.bump(oldVersion3, fixCommits);
+        expect(newVersion3.toString()).to.equal('2024.2.0');
+      });
     });
 
     describe('0W - Zero-padded week', () => {
