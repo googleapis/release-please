@@ -421,35 +421,42 @@ function getWeekOfYear(date: Date): number {
   return Math.floor((daysSinceJan1 + jan1DayOfWeek) / 7) + 1;
 }
 
-function formatSegment(type: CalVerSegment['type'], date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth() + 1;
-  const day = date.getUTCDate();
-  const week = getWeekOfYear(date);
-  const shortYear = year - SHORT_YEAR_EPOCH;
+interface DateParts {
+  year: number;
+  shortYear: number;
+  month: number;
+  day: number;
+  week: number;
+}
 
-  switch (type) {
-    case 'YYYY':
-      return year.toString();
-    case 'YY':
-      return shortYear.toString();
-    case '0Y':
-      return shortYear.toString().padStart(2, '0');
-    case 'MM':
-      return month.toString();
-    case '0M':
-      return month.toString().padStart(2, '0');
-    case 'WW':
-      return week.toString();
-    case '0W':
-      return week.toString().padStart(2, '0');
-    case 'DD':
-      return day.toString();
-    case '0D':
-      return day.toString().padStart(2, '0');
-    default:
-      return '';
-  }
+function getDateParts(date: Date): DateParts {
+  const year = date.getUTCFullYear();
+  return {
+    year,
+    shortYear: year - SHORT_YEAR_EPOCH,
+    month: date.getUTCMonth() + 1,
+    day: date.getUTCDate(),
+    week: getWeekOfYear(date),
+  };
+}
+
+type SegmentFormatter = (parts: DateParts) => string;
+
+const SEGMENT_FORMATTERS: Record<string, SegmentFormatter> = {
+  YYYY: parts => parts.year.toString(),
+  YY: parts => parts.shortYear.toString(),
+  '0Y': parts => parts.shortYear.toString().padStart(2, '0'),
+  MM: parts => parts.month.toString(),
+  '0M': parts => parts.month.toString().padStart(2, '0'),
+  WW: parts => parts.week.toString(),
+  '0W': parts => parts.week.toString().padStart(2, '0'),
+  DD: parts => parts.day.toString(),
+  '0D': parts => parts.day.toString().padStart(2, '0'),
+};
+
+function formatSegment(type: CalVerSegment['type'], date: Date): string {
+  const formatter = SEGMENT_FORMATTERS[type];
+  return formatter ? formatter(getDateParts(date)) : '';
 }
 
 const CALVER_PLACEHOLDERS: Record<string, string> = {
