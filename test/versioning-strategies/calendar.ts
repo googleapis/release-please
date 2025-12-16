@@ -536,76 +536,6 @@ describe('CalendarVersioningStrategy', () => {
     });
   });
 
-  describe('bumpMinorPreMajor option', () => {
-    it('bumps MINOR instead of MAJOR for breaking change on pre-major (same year)', async () => {
-      const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MAJOR.MINOR',
-        bumpMinorPreMajor: true,
-      });
-      strategy.setCurrentDate(new Date(Date.UTC(2024, 1, 15)));
-      const oldVersion = Version.parse('2024.0.5');
-      const newVersion = await strategy.bump(oldVersion, breakingCommits);
-      expect(newVersion.toString()).to.equal('2024.0.6');
-    });
-
-    it('resets MINOR to 0 for breaking change on pre-major when year changes', async () => {
-      const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MAJOR.MINOR',
-        bumpMinorPreMajor: true,
-      });
-      strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
-      const oldVersion = Version.parse('2024.0.5');
-      const newVersion = await strategy.bump(oldVersion, breakingCommits);
-      expect(newVersion.toString()).to.equal('2025.0.0');
-    });
-
-    it('bumps MAJOR normally when not pre-major', async () => {
-      const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MAJOR.MINOR',
-        bumpMinorPreMajor: true,
-      });
-      strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-      const oldVersion = Version.parse('2024.1.5');
-      const newVersion = await strategy.bump(oldVersion, breakingCommits);
-      expect(newVersion.toString()).to.equal('2024.2.0');
-    });
-  });
-
-  describe('bumpPatchForMinorPreMajor option', () => {
-    it('bumps MICRO instead of MINOR for feature on pre-major (same year)', async () => {
-      const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MAJOR.MICRO',
-        bumpPatchForMinorPreMajor: true,
-      });
-      strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-      const oldVersion = Version.parse('2024.0.5');
-      const newVersion = await strategy.bump(oldVersion, featureCommits);
-      expect(newVersion.toString()).to.equal('2024.0.6');
-    });
-
-    it('resets MICRO to 0 for feature on pre-major when year changes', async () => {
-      const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MAJOR.MICRO',
-        bumpPatchForMinorPreMajor: true,
-      });
-      strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
-      const oldVersion = Version.parse('2024.0.5');
-      const newVersion = await strategy.bump(oldVersion, featureCommits);
-      expect(newVersion.toString()).to.equal('2025.0.0');
-    });
-
-    it('bumps MINOR normally when not pre-major', async () => {
-      const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MINOR.MICRO',
-        bumpPatchForMinorPreMajor: true,
-      });
-      strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
-      const oldVersion = Version.parse('2024.5.0');
-      const newVersion = await strategy.bump(oldVersion, featureCommits);
-      expect(newVersion.toString()).to.equal('2024.6.0');
-    });
-  });
-
   describe('determineReleaseType', () => {
     it('returns a VersionUpdater', async () => {
       const strategy = new CalendarVersioningStrategy({
@@ -671,22 +601,6 @@ describe('CalendarVersioningStrategy', () => {
         expect.fail('Expected an error to be thrown');
       } catch (error) {
         expect((error as Error).message).to.include('Failed to parse version');
-        expect((error as Error).message).to.include('YYYY.0M.0D.MICRO');
-      }
-    });
-
-    it('throws error in determineReleaseType when version does not match format', () => {
-      const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.0M.0D.MICRO',
-      });
-      strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
-      const mismatchedVersion = Version.parse('2024.1.0');
-      try {
-        strategy.determineReleaseType(mismatchedVersion, fixCommits);
-        expect.fail('Expected an error to be thrown');
-      } catch (error) {
-        expect((error as Error).message).to.include('Failed to parse version');
-        expect((error as Error).message).to.include('2024.1.0');
         expect((error as Error).message).to.include('YYYY.0M.0D.MICRO');
       }
     });

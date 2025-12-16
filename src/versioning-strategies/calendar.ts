@@ -23,8 +23,6 @@ import {logger as defaultLogger, Logger} from '../util/logger';
 
 export interface CalendarVersioningStrategyOptions {
   dateFormat?: string;
-  bumpMinorPreMajor?: boolean;
-  bumpPatchForMinorPreMajor?: boolean;
   logger?: Logger;
 }
 
@@ -58,15 +56,11 @@ export interface CalendarVersioningStrategyOptions {
  */
 export class CalendarVersioningStrategy implements VersioningStrategy {
   readonly dateFormat: string;
-  readonly bumpMinorPreMajor: boolean;
-  readonly bumpPatchForMinorPreMajor: boolean;
   protected logger: Logger;
   private currentDate?: Date;
 
   constructor(options: CalendarVersioningStrategyOptions = {}) {
     this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
-    this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
-    this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
     this.logger = options.logger ?? defaultLogger;
   }
 
@@ -101,28 +95,12 @@ export class CalendarVersioningStrategy implements VersioningStrategy {
     const tokens = parseFormat(this.dateFormat);
     const hasMAJOR = tokens.includes('MAJOR');
     const hasMINOR = tokens.includes('MINOR');
-    const hasMICRO = tokens.includes('MICRO');
-
-    const parsed = parseVersionString(version.toString(), this.dateFormat);
-    if (!parsed) {
-      throw new Error(
-        `Failed to parse version "${version}" with format "${this.dateFormat}"`
-      );
-    }
-    const majorIndex = tokens.indexOf('MAJOR');
-    const majorValue =
-      majorIndex >= 0 ? parsed.segments[majorIndex]?.value ?? 0 : 0;
-    const isPreMajor = hasMAJOR && majorValue < 1;
 
     let bumpType: BumpType = 'micro';
 
     if (breaking > 0) {
       if (hasMAJOR) {
-        if (isPreMajor && this.bumpMinorPreMajor && hasMINOR) {
-          bumpType = 'minor';
-        } else {
-          bumpType = 'major';
-        }
+        bumpType = 'major';
       } else if (hasMINOR) {
         bumpType = 'minor';
       } else {
@@ -130,11 +108,7 @@ export class CalendarVersioningStrategy implements VersioningStrategy {
       }
     } else if (features > 0) {
       if (hasMINOR) {
-        if (isPreMajor && this.bumpPatchForMinorPreMajor && hasMICRO) {
-          bumpType = 'micro';
-        } else {
-          bumpType = 'minor';
-        }
+        bumpType = 'minor';
       } else {
         bumpType = 'micro';
       }
