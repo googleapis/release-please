@@ -32,6 +32,7 @@ export interface VersioningStrategyFactoryOptions {
   prereleaseType?: string;
   prerelease?: boolean;
   dateFormat?: string;
+  calverScheme?: string;
   github: GitHub;
 }
 
