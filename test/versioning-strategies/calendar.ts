@@ -15,10 +15,10 @@
 import {describe, it} from 'mocha';
 
 import {expect} from 'chai';
-import {CalVerVersioningStrategy} from '../../src/versioning-strategies/calver';
+import {CalendarVersioningStrategy} from '../../src/versioning-strategies/calendar';
 import {Version} from '../../src/version';
 
-describe('CalVerVersioningStrategy', () => {
+describe('CalendarVersioningStrategy', () => {
   const fixCommits = [
     {
       sha: 'sha1',
@@ -64,7 +64,7 @@ describe('CalVerVersioningStrategy', () => {
   describe('date segments', () => {
     describe('YYYY - Full year', () => {
       it('formats full year correctly', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 11, 15)));
@@ -76,7 +76,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('YY - Short year (no padding)', () => {
       it('formats short year without padding', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
@@ -86,7 +86,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('handles year > 99 (relative to 2000)', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2106, 5, 15)));
@@ -98,7 +98,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('0Y - Zero-padded year', () => {
       it('formats zero-padded year', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: '0Y.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2006, 0, 5)));
@@ -110,7 +110,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('MM - Short month (no padding)', () => {
       it('formats month without padding', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
@@ -122,7 +122,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('0M - Zero-padded month', () => {
       it('formats zero-padded month', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
@@ -134,7 +134,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('WW - Short week', () => {
       it('formats week of year without padding', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.WW.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 7, 15)));
@@ -144,7 +144,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('formats first week of year', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.WW.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 3)));
@@ -156,7 +156,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('0W - Zero-padded week', () => {
       it('formats zero-padded week for single digit', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0W.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 3)));
@@ -166,7 +166,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('formats zero-padded week for double digit', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0W.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 7, 15)));
@@ -178,7 +178,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('DD - Short day (no padding)', () => {
       it('formats day without padding', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
@@ -190,7 +190,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('0D - Zero-padded day', () => {
       it('formats zero-padded day', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MM.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
@@ -204,7 +204,7 @@ describe('CalVerVersioningStrategy', () => {
   describe('semantic segments', () => {
     describe('MAJOR - based on breaking changes', () => {
       it('resets MAJOR to 0 on breaking change when date changes', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -214,7 +214,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('bumps MAJOR on breaking change when date is same', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -224,7 +224,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('bumps MINOR for breaking change when no MAJOR in format', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -236,7 +236,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('MINOR - based on features', () => {
       it('resets MINOR to 0 on feature when date changes', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -246,7 +246,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('bumps MINOR on feature when date is same', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -258,7 +258,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('MICRO - based on fixes', () => {
       it('resets MICRO to 0 on fix when date changes', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -268,7 +268,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('bumps MICRO on fix when date is same', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -282,7 +282,7 @@ describe('CalVerVersioningStrategy', () => {
   describe('real-world CalVer schemes', () => {
     describe('YY.0M', () => {
       it('resets MICRO to 0 on new month release', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 3, 1)));
@@ -294,7 +294,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('YYYY.0M.0D', () => {
       it('bumps to new date', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 11, 15)));
@@ -306,7 +306,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('YY.MINOR.MICRO', () => {
       it('bumps MINOR on feature in same year', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
@@ -316,7 +316,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('resets MINOR to 0 on year change', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -326,7 +326,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('bumps MICRO on fix in same year', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
@@ -338,7 +338,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('YYYY.MINOR.MICRO', () => {
       it('bumps MINOR on feature', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
@@ -348,7 +348,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('resets MINOR to 0 on year change', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -360,7 +360,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('YY.MM.MICRO', () => {
       it('bumps MICRO when same month', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MM.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
@@ -370,7 +370,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('resets MICRO to 0 when month changes', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MM.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 6, 1)));
@@ -396,7 +396,7 @@ describe('CalVerVersioningStrategy', () => {
           breaking: false,
         },
       ];
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MINOR.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -430,7 +430,7 @@ describe('CalVerVersioningStrategy', () => {
           breaking: false,
         },
       ];
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MINOR.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -442,7 +442,7 @@ describe('CalVerVersioningStrategy', () => {
 
   describe('bumpMinorPreMajor option', () => {
     it('bumps MINOR instead of MAJOR for breaking change on pre-major (same year)', async () => {
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MAJOR.MINOR',
         bumpMinorPreMajor: true,
       });
@@ -453,7 +453,7 @@ describe('CalVerVersioningStrategy', () => {
     });
 
     it('resets MINOR to 0 for breaking change on pre-major when year changes', async () => {
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MAJOR.MINOR',
         bumpMinorPreMajor: true,
       });
@@ -464,7 +464,7 @@ describe('CalVerVersioningStrategy', () => {
     });
 
     it('bumps MAJOR normally when not pre-major', async () => {
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MAJOR.MINOR',
         bumpMinorPreMajor: true,
       });
@@ -477,7 +477,7 @@ describe('CalVerVersioningStrategy', () => {
 
   describe('bumpPatchForMinorPreMajor option', () => {
     it('bumps MICRO instead of MINOR for feature on pre-major (same year)', async () => {
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MAJOR.MICRO',
         bumpPatchForMinorPreMajor: true,
       });
@@ -488,7 +488,7 @@ describe('CalVerVersioningStrategy', () => {
     });
 
     it('resets MICRO to 0 for feature on pre-major when year changes', async () => {
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MAJOR.MICRO',
         bumpPatchForMinorPreMajor: true,
       });
@@ -499,7 +499,7 @@ describe('CalVerVersioningStrategy', () => {
     });
 
     it('bumps MINOR normally when not pre-major', async () => {
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MINOR.MICRO',
         bumpPatchForMinorPreMajor: true,
       });
@@ -512,7 +512,7 @@ describe('CalVerVersioningStrategy', () => {
 
   describe('determineReleaseType', () => {
     it('returns a VersionUpdater', async () => {
-      const strategy = new CalVerVersioningStrategy({
+      const strategy = new CalendarVersioningStrategy({
         dateFormat: 'YYYY.MINOR.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -526,7 +526,7 @@ describe('CalVerVersioningStrategy', () => {
   describe('edge cases', () => {
     describe('multiple date segments changing', () => {
       it('resets MICRO to 0 when year changes', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 15)));
@@ -536,7 +536,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('resets MICRO to 0 when only month changes', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 1, 15)));
@@ -548,7 +548,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('first release of new period', () => {
       it('resets MINOR to 0 for feature in new year', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -558,7 +558,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('resets MAJOR to 0 for breaking change in new year', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -570,7 +570,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('same date multiple releases', () => {
       it('increments MICRO for multiple fixes on same day', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
@@ -580,7 +580,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('increments MINOR for multiple features on same day', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -592,7 +592,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('leap year handling', () => {
       it('handles February 29 in leap year', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 1, 29)));
@@ -604,7 +604,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('end of year transitions', () => {
       it('handles December 31 to January 1', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -614,7 +614,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('handles last week of year to first week', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YYYY.0W.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 6)));
@@ -626,7 +626,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('zero-padding preservation', () => {
       it('preserves zero-padding for single digit values', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: '0Y.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2009, 0, 5)));
@@ -638,7 +638,7 @@ describe('CalVerVersioningStrategy', () => {
 
     describe('mixing date and semantic segments', () => {
       it('handles YY.MM.MINOR.MICRO style (four segments)', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MM.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
@@ -648,7 +648,7 @@ describe('CalVerVersioningStrategy', () => {
       });
 
       it('resets semantic to 0 when any date part changes', async () => {
-        const strategy = new CalVerVersioningStrategy({
+        const strategy = new CalendarVersioningStrategy({
           dateFormat: 'YY.MM.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 6, 1)));

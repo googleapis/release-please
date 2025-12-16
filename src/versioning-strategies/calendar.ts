@@ -21,7 +21,7 @@ import {
 } from '../versioning-strategy';
 import {logger as defaultLogger, Logger} from '../util/logger';
 
-export class CalVerVersion extends Version {
+export class CalendarVersion extends Version {
   private readonly formattedString: string;
 
   constructor(
@@ -43,7 +43,7 @@ export class CalVerVersion extends Version {
   }
 }
 
-export interface CalVerVersioningStrategyOptions {
+export interface CalendarVersioningStrategyOptions {
   dateFormat?: string;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
@@ -256,7 +256,7 @@ function formatVersion(parsed: ParsedCalVer, format: string): string {
   return result;
 }
 
-class CalVerVersionUpdate implements VersionUpdater {
+class CalendarVersionUpdate implements VersionUpdater {
   private format: string;
   private currentDate: Date;
   private bumpType: BumpType;
@@ -350,7 +350,7 @@ class CalVerVersionUpdate implements VersionUpdater {
     );
     if (versionMatch) {
       const baseString = `${versionMatch[1]}.${versionMatch[2]}.${versionMatch[3]}`;
-      return new CalVerVersion(
+      return new CalendarVersion(
         Number(versionMatch[1]),
         Number(versionMatch[2]),
         Number(versionMatch[3]),
@@ -365,7 +365,7 @@ class CalVerVersionUpdate implements VersionUpdater {
     );
     if (twoPartMatch) {
       const baseString = `${twoPartMatch[1]}.${twoPartMatch[2]}.0`;
-      return new CalVerVersion(
+      return new CalendarVersion(
         Number(twoPartMatch[1]),
         Number(twoPartMatch[2]),
         0,
@@ -389,14 +389,14 @@ class CalVerVersionUpdate implements VersionUpdater {
  * - YYYY.MINOR.MICRO (e.g., 2024.1.0)
  * - YY.0M.0D (e.g., 24.01.15)
  */
-export class CalVerVersioningStrategy implements VersioningStrategy {
+export class CalendarVersioningStrategy implements VersioningStrategy {
   readonly dateFormat: string;
   readonly bumpMinorPreMajor: boolean;
   readonly bumpPatchForMinorPreMajor: boolean;
   protected logger: Logger;
   private currentDate?: Date;
 
-  constructor(options: CalVerVersioningStrategyOptions = {}) {
+  constructor(options: CalendarVersioningStrategyOptions = {}) {
     this.dateFormat = options.dateFormat ?? DEFAULT_DATE_FORMAT;
     this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
     this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
@@ -468,7 +468,7 @@ export class CalVerVersioningStrategy implements VersioningStrategy {
       }
     }
 
-    return new CalVerVersionUpdate(this.dateFormat, bumpType, this.currentDate);
+    return new CalendarVersionUpdate(this.dateFormat, bumpType, this.currentDate);
   }
 
   bump(version: Version, commits: ConventionalCommit[]): Version {
