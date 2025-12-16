@@ -299,13 +299,8 @@ class CalVerVersionUpdate implements VersionUpdater {
         const oldValue = oldSegment?.value ?? 0;
 
         if (shouldResetLower) {
-          const isBumpedSegment =
-            (tokenType === 'MAJOR' && this.bumpType === 'major') ||
-            (tokenType === 'MINOR' && this.bumpType === 'minor') ||
-            (tokenType === 'MICRO' && this.bumpType === 'micro');
-
           if (dateChanged) {
-            newValue = isBumpedSegment ? 1 : 0;
+            newValue = 0;
           } else if (tokenType === 'MAJOR' && this.bumpType === 'major') {
             newValue = 1;
           } else if (
