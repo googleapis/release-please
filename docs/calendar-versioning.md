@@ -101,23 +101,6 @@ When a higher segment is bumped, lower segments reset to 0:
 - Feature commit added
 - Next version: `2024.3.0` (MINOR bumped, MICRO reset)
 
-### Pre-Major Behavior
-
-Similar to the default versioning strategy, you can configure pre-major behavior:
-
-```json
-{
-    "versioning": "calendar",
-    "bump-minor-pre-major": true,
-    "bump-patch-for-minor-pre-major": true
-}
-```
-
-- `bump-minor-pre-major`: When `MAJOR` is 0, bump `MINOR` for breaking changes
-  instead of `MAJOR`
-- `bump-patch-for-minor-pre-major`: When `MAJOR` is 0, bump `MICRO` for features
-  instead of `MINOR`
-
 ### Release-As
 
 You can force a specific version using the `Release-As` footer in commit messages:
