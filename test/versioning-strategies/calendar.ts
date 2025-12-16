@@ -619,6 +619,46 @@ describe('CalendarVersioningStrategy', () => {
     });
   });
 
+  describe('error handling for older date versions', () => {
+    it('throws error when current date is older than version date', async () => {
+      const strategy = new CalendarVersioningStrategy({
+        dateFormat: 'YYYY.0M.0D',
+      });
+      strategy.setCurrentDate(new Date(Date.UTC(2023, 5, 15)));
+      const futureVersion = new CalendarVersion(
+        2024,
+        6,
+        15,
+        undefined,
+        undefined,
+        '2024.06.15'
+      );
+      try {
+        await strategy.bump(futureVersion, fixCommits);
+        expect.fail('Expected an error to be thrown');
+      } catch (error) {
+        expect((error as Error).message).to.include('Cannot bump version');
+        expect((error as Error).message).to.include(
+          'version date is newer than the current date'
+        );
+      }
+    });
+
+    it('throws error when year is older', async () => {
+      const strategy = new CalendarVersioningStrategy({
+        dateFormat: 'YYYY.MINOR.MICRO',
+      });
+      strategy.setCurrentDate(new Date(Date.UTC(2023, 0, 1)));
+      const futureVersion = Version.parse('2024.5.3');
+      try {
+        await strategy.bump(futureVersion, fixCommits);
+        expect.fail('Expected an error to be thrown');
+      } catch (error) {
+        expect((error as Error).message).to.include('Cannot bump version');
+      }
+    });
+  });
+
   describe('error handling for invalid version strings', () => {
     it('throws error when version has fewer segments than format requires', async () => {
       const strategy = new CalendarVersioningStrategy({

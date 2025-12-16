@@ -222,6 +222,14 @@ class CalendarVersionUpdate implements VersionUpdater {
       );
     }
 
+    const versionDate = extractDateFromSegments(parsed.segments, tokens);
+    if (versionDate && versionDate > this.currentDate) {
+      throw new Error(
+        `Cannot bump version "${version}": the version date is newer than the current date. ` +
+          'Ensure the system date is correct or use a release-as override.'
+      );
+    }
+
     const newSegments: CalVerSegment[] = [];
     let dateChanged = false;
     let shouldResetLower = false;
@@ -356,6 +364,66 @@ function isSemanticSegment(type: string): type is 'MAJOR' | 'MINOR' | 'MICRO' {
   return ['MAJOR', 'MINOR', 'MICRO'].includes(type);
 }
 
+const SHORT_YEAR_EPOCH = 2000;
+
+function extractDateFromSegments(
+  segments: CalVerSegment[],
+  tokens: CalVerSegment['type'][]
+): Date | null {
+  let year: number | null = null;
+  let month: number | null = null;
+  let day: number | null = null;
+  let week: number | null = null;
+
+  for (let i = 0; i < segments.length; i++) {
+    const token = tokens[i];
+    const value = segments[i].value;
+
+    switch (token) {
+      case 'YYYY':
+        year = value;
+        break;
+      case 'YY':
+      case '0Y':
+        year = value + SHORT_YEAR_EPOCH;
+        break;
+      case 'MM':
+      case '0M':
+        month = value;
+        break;
+      case 'DD':
+      case '0D':
+        day = value;
+        break;
+      case 'WW':
+      case '0W':
+        week = value;
+        break;
+    }
+  }
+
+  if (year === null) {
+    return null;
+  }
+
+  if (month !== null && day !== null) {
+    return new Date(Date.UTC(year, month - 1, day));
+  }
+
+  if (month !== null) {
+    return new Date(Date.UTC(year, month - 1, 1));
+  }
+
+  if (week !== null) {
+    const jan1 = new Date(Date.UTC(year, 0, 1));
+    const jan1DayOfWeek = (jan1.getUTCDay() + 6) % 7;
+    const daysToAdd = (week - 1) * 7 - jan1DayOfWeek;
+    return new Date(Date.UTC(year, 0, 1 + daysToAdd));
+  }
+
+  return new Date(Date.UTC(year, 0, 1));
+}
+
 // Week of year where January 1 is always in week 1.
 // Weeks align with calendar weeks (starting Monday).
 function getWeekOfYear(date: Date): number {
@@ -373,7 +441,7 @@ function formatSegment(type: CalVerSegment['type'], date: Date): string {
   const month = date.getUTCMonth() + 1;
   const day = date.getUTCDate();
   const week = getWeekOfYear(date);
-  const shortYear = year - 2000;
+  const shortYear = year - SHORT_YEAR_EPOCH;
 
   switch (type) {
     case 'YYYY':
