@@ -18,7 +18,7 @@ import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
 import {AlwaysBumpMinor} from '../versioning-strategies/always-bump-minor';
 import {AlwaysBumpMajor} from '../versioning-strategies/always-bump-major';
 import {ServicePackVersioningStrategy} from '../versioning-strategies/service-pack';
-import {CalVerVersioningStrategy} from '../versioning-strategies/calver';
+import {CalendarVersioningStrategy} from '../versioning-strategies/calendar';
 import {GitHub} from '../github';
 import {ConfigurationError} from '../errors';
 import {PrereleaseVersioningStrategy} from '../versioning-strategies/prerelease';
@@ -46,7 +46,7 @@ const versioningTypes: Record<string, VersioningStrategyBuilder> = {
   'always-bump-major': options => new AlwaysBumpMajor(options),
   'service-pack': options => new ServicePackVersioningStrategy(options),
   prerelease: options => new PrereleaseVersioningStrategy(options),
-  calendar: options => new CalVerVersioningStrategy(options),
+  calendar: options => new CalendarVersioningStrategy(options),
 };
 
 export function buildVersioningStrategy(
