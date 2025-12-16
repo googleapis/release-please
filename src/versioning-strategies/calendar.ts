@@ -346,16 +346,16 @@ function isSemanticSegment(type: string): type is 'MAJOR' | 'MINOR' | 'MICRO' {
   return ['MAJOR', 'MINOR', 'MICRO'].includes(type);
 }
 
+// Week of year where January 1 is always in week 1.
+// Weeks align with calendar weeks (starting Monday).
 function getWeekOfYear(date: Date): number {
-  const target = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  const jan1 = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  // Days since Monday: Monday = 0, Tuesday = 1, ..., Sunday = 6
+  const jan1DayOfWeek = (jan1.getUTCDay() + 6) % 7;
+  const daysSinceJan1 = Math.floor(
+    (date.getTime() - jan1.getTime()) / 86400000
   );
-  const dayNum = target.getUTCDay() || 7;
-  target.setUTCDate(target.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
-  return Math.ceil(
-    ((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
-  );
+  return Math.floor((daysSinceJan1 + jan1DayOfWeek) / 7) + 1;
 }
 
 function formatSegment(type: CalVerSegment['type'], date: Date): string {

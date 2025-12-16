@@ -46,6 +46,10 @@ created.
 | `DD`   | Day without zero-padding                           | 1, 31   |
 | `0D`   | Zero-padded day                                    | 01, 31  |
 
+Week numbers are calculated such that January 1 is always in week 1, and weeks roll
+over on Monday. This differs from ISO 8601 week numbering where January 1 may fall in
+week 52/53 of the previous year.
+
 ### Semantic Segments
 
 Semantic segments work like traditional semver and are incremented based on commit
