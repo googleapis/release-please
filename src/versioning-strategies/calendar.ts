@@ -198,12 +198,31 @@ class CalendarVersionUpdate implements VersionUpdater {
 
     const newSegments = this.buildNewSegments(tokens, parsed.segments);
 
-    const newVersionString = formatVersion(
-      {segments: newSegments, preRelease: undefined, build: parsed.build},
+    return this.createVersion(newSegments, parsed.build);
+  }
+
+  private createVersion(
+    segments: CalVerSegment[],
+    build?: string
+  ): CalendarVersion {
+    const formattedString = formatVersion(
+      {segments, preRelease: undefined, build},
       this.format
     );
 
-    return createVersionFromString(newVersionString);
+    const values = segments.map(s => s.value);
+    const major = values[0] ?? 0;
+    const minor = values[1] ?? 0;
+    const patch = values[2] ?? 0;
+
+    return new CalendarVersion(
+      major,
+      minor,
+      patch,
+      undefined,
+      build,
+      formattedString
+    );
   }
 
   private parseAndValidate(
@@ -306,52 +325,6 @@ class CalendarVersionUpdate implements VersionUpdater {
   private isTargetSegmentForBump(tokenType: CalVerSegment['type']): boolean {
     return tokenType.toLowerCase() === this.bumpType;
   }
-}
-
-function createVersionFromString(versionString: string): Version {
-  const fourPartMatch = versionString.match(
-    /^(\d+)\.(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-  );
-  if (fourPartMatch) {
-    return new CalendarVersion(
-      Number(fourPartMatch[1]),
-      Number(fourPartMatch[2]),
-      Number(fourPartMatch[3]),
-      fourPartMatch[5],
-      fourPartMatch[6],
-      `${fourPartMatch[1]}.${fourPartMatch[2]}.${fourPartMatch[3]}.${fourPartMatch[4]}`
-    );
-  }
-
-  const threePartMatch = versionString.match(
-    /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-  );
-  if (threePartMatch) {
-    return new CalendarVersion(
-      Number(threePartMatch[1]),
-      Number(threePartMatch[2]),
-      Number(threePartMatch[3]),
-      threePartMatch[4],
-      threePartMatch[5],
-      `${threePartMatch[1]}.${threePartMatch[2]}.${threePartMatch[3]}`
-    );
-  }
-
-  const twoPartMatch = versionString.match(
-    /^(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.*))?$/
-  );
-  if (twoPartMatch) {
-    return new CalendarVersion(
-      Number(twoPartMatch[1]),
-      Number(twoPartMatch[2]),
-      0,
-      twoPartMatch[3],
-      twoPartMatch[4],
-      `${twoPartMatch[1]}.${twoPartMatch[2]}.0`
-    );
-  }
-
-  return Version.parse(versionString);
 }
 
 function isDateSegment(
