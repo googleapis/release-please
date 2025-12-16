@@ -104,9 +104,14 @@ export class CalendarVersioningStrategy implements VersioningStrategy {
     const hasMICRO = tokens.includes('MICRO');
 
     const parsed = parseVersionString(version.toString(), this.dateFormat);
+    if (!parsed) {
+      throw new Error(
+        `Failed to parse version "${version}" with format "${this.dateFormat}"`
+      );
+    }
     const majorIndex = tokens.indexOf('MAJOR');
     const majorValue =
-      majorIndex >= 0 ? parsed?.segments[majorIndex]?.value ?? 0 : 0;
+      majorIndex >= 0 ? parsed.segments[majorIndex]?.value ?? 0 : 0;
     const isPreMajor = hasMAJOR && majorValue < 1;
 
     let bumpType: BumpType = 'micro';
@@ -211,6 +216,11 @@ class CalendarVersionUpdate implements VersionUpdater {
   bump(version: Version): Version {
     const tokens = parseFormat(this.format);
     const parsed = parseVersionString(version.toString(), this.format);
+    if (!parsed) {
+      throw new Error(
+        `Failed to parse version "${version}" with format "${this.format}"`
+      );
+    }
 
     const newSegments: CalVerSegment[] = [];
     let dateChanged = false;
@@ -218,7 +228,7 @@ class CalendarVersionUpdate implements VersionUpdater {
 
     for (let i = 0; i < tokens.length; i++) {
       const tokenType = tokens[i];
-      const oldSegment = parsed?.segments[i];
+      const oldSegment = parsed.segments[i];
 
       if (isDateSegment(tokenType)) {
         const newDateValue = formatSegment(tokenType, this.currentDate);
@@ -389,13 +399,35 @@ function formatSegment(type: CalVerSegment['type'], date: Date): string {
   }
 }
 
+const CALVER_PLACEHOLDERS: Record<string, string> = {
+  YYYY: '\\d{4}',
+  '0Y': '\\d{2,3}',
+  YY: '\\d{1,3}',
+  '0M': '\\d{2}',
+  MM: '\\d{1,2}',
+  '0W': '\\d{2}',
+  WW: '\\d{1,2}',
+  '0D': '\\d{2}',
+  DD: '\\d{1,2}',
+  MAJOR: '\\d+',
+  MINOR: '\\d+',
+  MICRO: '\\d+',
+};
+
+const PLACEHOLDER_PATTERN = new RegExp(
+  Object.keys(CALVER_PLACEHOLDERS)
+    .sort((a, b) => b.length - a.length)
+    .join('|'),
+  'g'
+);
+
 function parseFormat(format: string): CalVerSegment['type'][] {
   const tokens: CalVerSegment['type'][] = [];
-  const tokenRegex = /YYYY|0Y|YY|0M|MM|0W|WW|0D|DD|MAJOR|MINOR|MICRO/g;
   let match;
-  while ((match = tokenRegex.exec(format)) !== null) {
+  while ((match = PLACEHOLDER_PATTERN.exec(format)) !== null) {
     tokens.push(match[0] as CalVerSegment['type']);
   }
+  PLACEHOLDER_PATTERN.lastIndex = 0;
   return tokens;
 }
 
@@ -408,24 +440,11 @@ function parseVersionString(
     return null;
   }
 
-  let regexPattern = format;
-  for (const token of [
-    'YYYY',
-    '0Y',
-    'YY',
-    '0M',
-    'MM',
-    '0W',
-    'WW',
-    '0D',
-    'DD',
-    'MAJOR',
-    'MINOR',
-    'MICRO',
-  ]) {
-    regexPattern = regexPattern.replace(new RegExp(token, 'g'), '(\\d+)');
-  }
-  regexPattern = regexPattern.replace(/\./g, '\\.');
+  let regexPattern = format.replace(/\./g, '\\.');
+  regexPattern = regexPattern.replace(PLACEHOLDER_PATTERN, match => {
+    const pattern = CALVER_PLACEHOLDERS[match];
+    return pattern ? `(${pattern})` : match;
+  });
   regexPattern = `^${regexPattern}(?:-([^+]+))?(?:\\+(.*))?$`;
 
   const regex = new RegExp(regexPattern);
