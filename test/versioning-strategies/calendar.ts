@@ -68,7 +68,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('YYYY - Full year', () => {
       it('formats full year correctly', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.0D',
+          calverScheme: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 10, 15)));
         const oldVersion = new CalendarVersion(
@@ -87,7 +87,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('YY - Short year (no padding)', () => {
       it('formats short year without padding', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MM.DD',
+          calverScheme: 'YY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
         const oldVersion = Version.parse('23.12.1');
@@ -97,7 +97,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('handles year > 99 (relative to 2000)', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MM.DD',
+          calverScheme: 'YY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2106, 4, 15)));
         const oldVersion = Version.parse('24.1.1');
@@ -109,7 +109,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('0Y - Zero-padded year', () => {
       it('formats zero-padded year', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: '0Y.0M.0D',
+          calverScheme: '0Y.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2006, 0, 5)));
         const oldVersion = new CalendarVersion(
@@ -128,7 +128,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('MM - Short month (no padding)', () => {
       it('formats month without padding', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MM.DD',
+          calverScheme: 'YYYY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
         const oldVersion = Version.parse('2023.12.1');
@@ -140,7 +140,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('0M - Zero-padded month', () => {
       it('formats zero-padded month', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.DD',
+          calverScheme: 'YYYY.0M.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
         const oldVersion = new CalendarVersion(
@@ -159,7 +159,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('WW - Short week', () => {
       it('formats week of year without padding', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.WW.MICRO',
+          calverScheme: 'YYYY.WW.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 7, 15)));
         const oldVersion = Version.parse('2024.4.0');
@@ -169,7 +169,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('formats first week of year', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.WW.MICRO',
+          calverScheme: 'YYYY.WW.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 3)));
         const oldVersion = Version.parse('2023.52.0');
@@ -179,7 +179,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('January 1 is always in week 1', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.WW.MICRO',
+          calverScheme: 'YYYY.WW.MICRO',
         });
         // 2025-01-01 is a Wednesday
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
@@ -190,7 +190,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('week changes on Monday', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.WW.MICRO',
+          calverScheme: 'YYYY.WW.MICRO',
         });
         // 2025-01-05 is Sunday (still week 1)
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 5)));
@@ -207,7 +207,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('handles year where Jan 1 is Monday', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.WW.MICRO',
+          calverScheme: 'YYYY.WW.MICRO',
         });
         // 2024-01-01 is a Monday
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
@@ -232,7 +232,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('0W - Zero-padded week', () => {
       it('formats zero-padded week for single digit', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0W.MICRO',
+          calverScheme: 'YYYY.0W.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 3)));
         const oldVersion = Version.parse('2023.52.0');
@@ -242,7 +242,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('formats zero-padded week for double digit', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0W.MICRO',
+          calverScheme: 'YYYY.0W.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 7, 15)));
         const oldVersion = new CalendarVersion(
@@ -261,7 +261,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('DD - Short day (no padding)', () => {
       it('formats day without padding', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MM.DD',
+          calverScheme: 'YYYY.MM.DD',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
         const oldVersion = Version.parse('2023.12.31');
@@ -273,7 +273,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('0D - Zero-padded day', () => {
       it('formats zero-padded day', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MM.0D',
+          calverScheme: 'YYYY.MM.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 5)));
         const oldVersion = new CalendarVersion(
@@ -294,7 +294,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('MAJOR - based on breaking changes', () => {
       it('resets MAJOR to 0 on breaking change when date changes', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MAJOR.MINOR',
+          calverScheme: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
@@ -304,7 +304,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MAJOR on breaking change when date is same', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MAJOR.MINOR',
+          calverScheme: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
@@ -314,7 +314,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MINOR for breaking change when no MAJOR in format', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
@@ -326,7 +326,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('MINOR - based on features', () => {
       it('resets MINOR to 0 on feature when date changes', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
@@ -336,7 +336,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MINOR on feature when date is same', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
@@ -348,7 +348,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('MICRO - based on fixes', () => {
       it('resets MICRO to 0 on fix when date changes', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
@@ -358,7 +358,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MICRO on fix when date is same', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
@@ -372,7 +372,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('YY.0M', () => {
       it('resets MICRO to 0 on new month release', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.0M.MICRO',
+          calverScheme: 'YY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 2, 1)));
         const oldVersion = Version.parse('23.10.0');
@@ -384,7 +384,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('YYYY.0M.0D', () => {
       it('bumps to new date', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.0D',
+          calverScheme: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 10, 15)));
         const oldVersion = new CalendarVersion(
@@ -403,7 +403,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('YY.MINOR.MICRO', () => {
       it('bumps MINOR on feature in same year', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MINOR.MICRO',
+          calverScheme: 'YY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = Version.parse('24.1.0');
@@ -413,7 +413,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('resets MINOR to 0 on year change', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MINOR.MICRO',
+          calverScheme: 'YY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('23.5.3');
@@ -423,7 +423,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MICRO on fix in same year', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MINOR.MICRO',
+          calverScheme: 'YY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = Version.parse('24.1.2');
@@ -435,7 +435,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('YYYY.MINOR.MICRO', () => {
       it('bumps MINOR on feature', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = Version.parse('2024.1.5');
@@ -445,7 +445,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('resets MINOR to 0 on year change', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.3.5');
@@ -457,7 +457,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('YY.MM.MICRO', () => {
       it('bumps MICRO when same month', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MM.MICRO',
+          calverScheme: 'YY.MM.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = Version.parse('24.6.0');
@@ -467,7 +467,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('resets MICRO to 0 when month changes', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MM.MICRO',
+          calverScheme: 'YY.MM.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 6, 1)));
         const oldVersion = Version.parse('24.6.5');
@@ -493,7 +493,7 @@ describe('CalendarVersioningStrategy', () => {
         },
       ];
       const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MINOR.MICRO',
+        calverScheme: 'YYYY.MINOR.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
       const oldVersion = Version.parse('2024.1.0');
@@ -527,7 +527,7 @@ describe('CalendarVersioningStrategy', () => {
         },
       ];
       const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MINOR.MICRO',
+        calverScheme: 'YYYY.MINOR.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
       const oldVersion = Version.parse('2024.1.0');
@@ -539,7 +539,7 @@ describe('CalendarVersioningStrategy', () => {
   describe('determineReleaseType', () => {
     it('returns a VersionUpdater', async () => {
       const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MINOR.MICRO',
+        calverScheme: 'YYYY.MINOR.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
       const oldVersion = Version.parse('2024.1.0');
@@ -552,7 +552,7 @@ describe('CalendarVersioningStrategy', () => {
   describe('error handling for older date versions', () => {
     it('throws error when current date is older than version date', async () => {
       const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.0M.0D',
+        calverScheme: 'YYYY.0M.0D',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2023, 5, 15)));
       const futureVersion = new CalendarVersion(
@@ -576,7 +576,7 @@ describe('CalendarVersioningStrategy', () => {
 
     it('throws error when year is older', async () => {
       const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.MINOR.MICRO',
+        calverScheme: 'YYYY.MINOR.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2023, 0, 1)));
       const futureVersion = Version.parse('2024.5.3');
@@ -592,7 +592,7 @@ describe('CalendarVersioningStrategy', () => {
   describe('error handling for invalid version strings', () => {
     it('throws error when version has fewer segments than format requires', async () => {
       const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.0M.0D.MICRO',
+        calverScheme: 'YYYY.0M.0D.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
       const wrongSegmentsVersion = Version.parse('2024.6.15');
@@ -607,7 +607,7 @@ describe('CalendarVersioningStrategy', () => {
 
     it('throws error in CalendarVersionUpdate.bump for mismatched version', () => {
       const strategy = new CalendarVersioningStrategy({
-        dateFormat: 'YYYY.0M.0D.MICRO',
+        calverScheme: 'YYYY.0M.0D.MICRO',
       });
       strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
       const validVersion = new CalendarVersion(
@@ -638,7 +638,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('multiple date segments changing', () => {
       it('resets MICRO to 0 when year changes', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.MICRO',
+          calverScheme: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 15)));
         const oldVersion = Version.parse('2024.12.5');
@@ -648,7 +648,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('resets MICRO to 0 when only month changes', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.MICRO',
+          calverScheme: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 1, 15)));
         const oldVersion = new CalendarVersion(
@@ -667,7 +667,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('first release of new period', () => {
       it('resets MINOR to 0 for feature in new year', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.10.5');
@@ -677,7 +677,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('resets MAJOR to 0 for breaking change in new year', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MAJOR.MINOR',
+          calverScheme: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.5.3');
@@ -689,7 +689,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('same date multiple releases', () => {
       it('increments MICRO for multiple fixes on same day', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.MICRO',
+          calverScheme: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = new CalendarVersion(
@@ -706,7 +706,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('increments MINOR for multiple features on same day', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 0, 1)));
         const oldVersion = Version.parse('2024.3.0');
@@ -718,7 +718,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('leap year handling', () => {
       it('handles February 29 in leap year', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.0D',
+          calverScheme: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 1, 29)));
         const oldVersion = new CalendarVersion(
@@ -737,7 +737,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('end of year transitions', () => {
       it('handles December 31 to January 1', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.0D',
+          calverScheme: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.12.31');
@@ -747,7 +747,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('handles last week of year to first week', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0W.MICRO',
+          calverScheme: 'YYYY.0W.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 3)));
         const oldVersion = Version.parse('2024.52.5');
@@ -759,7 +759,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('zero-padding preservation', () => {
       it('preserves zero-padding for single digit values', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: '0Y.0M.0D',
+          calverScheme: '0Y.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2009, 0, 5)));
         const oldVersion = new CalendarVersion(
@@ -778,7 +778,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('mixing date and semantic segments', () => {
       it('handles YY.MM.MINOR.MICRO style (four segments)', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MM.MINOR.MICRO',
+          calverScheme: 'YY.MM.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = new CalendarVersion(
@@ -795,7 +795,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('resets semantic to 0 when any date part changes', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YY.MM.MINOR',
+          calverScheme: 'YY.MM.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 6, 1)));
         const oldVersion = Version.parse('24.6.5');
@@ -807,7 +807,7 @@ describe('CalendarVersioningStrategy', () => {
     describe('missing semantic placeholders', () => {
       it('bumps MINOR for breaking change when no MAJOR placeholder exists', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MINOR.MICRO',
+          calverScheme: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = Version.parse('2024.2.5');
@@ -817,7 +817,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MICRO for breaking change when no MAJOR or MINOR placeholder exists', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.MICRO',
+          calverScheme: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = new CalendarVersion(
@@ -834,7 +834,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MICRO for feature when no MINOR placeholder exists', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.MAJOR.MICRO',
+          calverScheme: 'YYYY.MAJOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = Version.parse('2024.1.5');
@@ -844,7 +844,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('bumps MICRO for feature when no MAJOR or MINOR placeholder exists', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.MICRO',
+          calverScheme: 'YYYY.0M.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = new CalendarVersion(
@@ -861,7 +861,7 @@ describe('CalendarVersioningStrategy', () => {
 
       it('updates only date when no semantic placeholders exist', async () => {
         const strategy = new CalendarVersioningStrategy({
-          dateFormat: 'YYYY.0M.0D',
+          calverScheme: 'YYYY.0M.0D',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 5, 15)));
         const oldVersion = new CalendarVersion(
