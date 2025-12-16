@@ -203,14 +203,14 @@ describe('CalVerVersioningStrategy', () => {
 
   describe('semantic segments', () => {
     describe('MAJOR - based on breaking changes', () => {
-      it('bumps MAJOR on breaking change when date changes', async () => {
+      it('resets MAJOR to 0 on breaking change when date changes', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
         const newVersion = await strategy.bump(oldVersion, breakingCommits);
-        expect(newVersion.toString()).to.equal('2025.1.0');
+        expect(newVersion.toString()).to.equal('2025.0.0');
       });
 
       it('bumps MAJOR on breaking change when date is same', async () => {
@@ -223,7 +223,7 @@ describe('CalVerVersioningStrategy', () => {
         expect(newVersion.toString()).to.equal('2024.3.0');
       });
 
-      it('bumps MINOR for feature when no MAJOR in format', async () => {
+      it('bumps MINOR for breaking change when no MAJOR in format', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
@@ -235,14 +235,14 @@ describe('CalVerVersioningStrategy', () => {
     });
 
     describe('MINOR - based on features', () => {
-      it('bumps MINOR on feature when date changes', async () => {
+      it('resets MINOR to 0 on feature when date changes', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.2.5');
         const newVersion = await strategy.bump(oldVersion, featureCommits);
-        expect(newVersion.toString()).to.equal('2025.1.0');
+        expect(newVersion.toString()).to.equal('2025.0.0');
       });
 
       it('bumps MINOR on feature when date is same', async () => {
@@ -257,7 +257,7 @@ describe('CalVerVersioningStrategy', () => {
     });
 
     describe('MICRO - based on fixes', () => {
-      it('bumps MICRO on fix when date changes', async () => {
+      it('resets MICRO to 0 on fix when date changes', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
@@ -281,7 +281,7 @@ describe('CalVerVersioningStrategy', () => {
 
   describe('real-world CalVer schemes', () => {
     describe('YY.0M', () => {
-      it('bumps to new month release', async () => {
+      it('resets MICRO to 0 on new month release', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YY.0M.MICRO',
         });
@@ -315,14 +315,14 @@ describe('CalVerVersioningStrategy', () => {
         expect(newVersion.toString()).to.equal('24.2.0');
       });
 
-      it('resets MINOR on year change', async () => {
+      it('resets MINOR to 0 on year change', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('24.5.3');
         const newVersion = await strategy.bump(oldVersion, featureCommits);
-        expect(newVersion.toString()).to.equal('25.1.0');
+        expect(newVersion.toString()).to.equal('25.0.0');
       });
 
       it('bumps MICRO on fix in same year', async () => {
@@ -347,14 +347,14 @@ describe('CalVerVersioningStrategy', () => {
         expect(newVersion.toString()).to.equal('2024.2.0');
       });
 
-      it('resets on year change', async () => {
+      it('resets MINOR to 0 on year change', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.3.5');
         const newVersion = await strategy.bump(oldVersion, featureCommits);
-        expect(newVersion.toString()).to.equal('2025.1.0');
+        expect(newVersion.toString()).to.equal('2025.0.0');
       });
     });
 
@@ -369,7 +369,7 @@ describe('CalVerVersioningStrategy', () => {
         expect(newVersion.toString()).to.equal('24.6.1');
       });
 
-      it('resets MICRO when month changes', async () => {
+      it('resets MICRO to 0 when month changes', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YY.MM.MICRO',
         });
@@ -452,7 +452,7 @@ describe('CalVerVersioningStrategy', () => {
       expect(newVersion.toString()).to.equal('2024.0.6');
     });
 
-    it('bumps MINOR instead of MAJOR for breaking change on pre-major (year change)', async () => {
+    it('resets MINOR to 0 for breaking change on pre-major when year changes', async () => {
       const strategy = new CalVerVersioningStrategy({
         dateFormat: 'YYYY.MAJOR.MINOR',
         bumpMinorPreMajor: true,
@@ -460,7 +460,7 @@ describe('CalVerVersioningStrategy', () => {
       strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
       const oldVersion = Version.parse('2024.0.5');
       const newVersion = await strategy.bump(oldVersion, breakingCommits);
-      expect(newVersion.toString()).to.equal('2025.0.1');
+      expect(newVersion.toString()).to.equal('2025.0.0');
     });
 
     it('bumps MAJOR normally when not pre-major', async () => {
@@ -525,7 +525,7 @@ describe('CalVerVersioningStrategy', () => {
 
   describe('edge cases', () => {
     describe('multiple date segments changing', () => {
-      it('resets all semantic segments when year changes', async () => {
+      it('resets MICRO to 0 when year changes', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.0M.MICRO',
         });
@@ -535,7 +535,7 @@ describe('CalVerVersioningStrategy', () => {
         expect(newVersion.toString()).to.equal('2025.01.0');
       });
 
-      it('resets MICRO when only month changes', async () => {
+      it('resets MICRO to 0 when only month changes', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.0M.MICRO',
         });
@@ -547,24 +547,24 @@ describe('CalVerVersioningStrategy', () => {
     });
 
     describe('first release of new period', () => {
-      it('starts MINOR at 1 for feature in new year', async () => {
+      it('resets MINOR to 0 for feature in new year', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.MINOR.MICRO',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.10.5');
         const newVersion = await strategy.bump(oldVersion, featureCommits);
-        expect(newVersion.toString()).to.equal('2025.1.0');
+        expect(newVersion.toString()).to.equal('2025.0.0');
       });
 
-      it('starts MAJOR at 1 for breaking change in new year', async () => {
+      it('resets MAJOR to 0 for breaking change in new year', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YYYY.MAJOR.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2025, 0, 1)));
         const oldVersion = Version.parse('2024.5.3');
         const newVersion = await strategy.bump(oldVersion, breakingCommits);
-        expect(newVersion.toString()).to.equal('2025.1.0');
+        expect(newVersion.toString()).to.equal('2025.0.0');
       });
     });
 
@@ -647,14 +647,14 @@ describe('CalVerVersioningStrategy', () => {
         expect(newVersion.toString()).to.equal('24.6.6');
       });
 
-      it('resets semantic when any date part changes', async () => {
+      it('resets semantic to 0 when any date part changes', async () => {
         const strategy = new CalVerVersioningStrategy({
           dateFormat: 'YY.MM.MINOR',
         });
         strategy.setCurrentDate(new Date(Date.UTC(2024, 6, 1)));
         const oldVersion = Version.parse('24.6.5');
         const newVersion = await strategy.bump(oldVersion, featureCommits);
-        expect(newVersion.toString()).to.equal('24.7.1');
+        expect(newVersion.toString()).to.equal('24.7.0');
       });
     });
   });
