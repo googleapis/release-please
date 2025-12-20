@@ -199,9 +199,16 @@ defaults (those are documented in comments)
   // absence defaults to false and all versions are fully Published.
   "prerelease": true,
 
-  // explicitly create a git tag for the release. useful if draft is set to true.
-  // absence defaults to false.
-  "force-tag": true
+  // Force the creation of a Git tag for the release. This is particularly
+  // useful when `draft` is enabled. By default, GitHub does not create a Git
+  // tag for draft releases until they are published. This "lazy tag creation"
+  // behavior causes release-please to fail to find the previous release when
+  // running subsequent `release-pr` commands, potentially generating incorrect
+  // changelogs that include the entire commit history. Setting `force-tag-creation` to
+  // true ensures the tag is created immediately, allowing release-please to
+  // correctly identify the previous release.
+  // Absence defaults to false.
+  "force-tag-creation": true
 
   // Skip creating GitHub Releases
   // Absence defaults to false and Releases will be created. Release-Please still

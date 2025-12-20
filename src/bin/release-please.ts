@@ -207,9 +207,8 @@ function releaseOptions(yargs: yargs.Argv): yargs.Argv {
       type: 'boolean',
       default: false,
     })
-    .option('force-tag', {
-      describe:
-        'explicitly create a git tag for the release. useful if draft is set to true.',
+    .option('force-tag-creation', {
+      describe: 'Force the creation of a Git tag for the release.',
       type: 'boolean',
       default: false,
     })

@@ -167,7 +167,7 @@ interface ReleaserConfigJson {
   'skip-github-release'?: boolean;
   'skip-changelog'?: boolean;
   draft?: boolean;
-  'force-tag'?: boolean;
+  'force-tag-creation'?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
   label?: string;
@@ -1390,7 +1390,7 @@ function extractReleaserConfig(
     skipGithubRelease: config['skip-github-release'],
     skipChangelog: config['skip-changelog'],
     draft: config.draft,
-    forceTag: config['force-tag'],
+    forceTag: config['force-tag-creation'],
     prerelease: config.prerelease,
     draftPullRequest: config['draft-pull-request'],
     component: config['component'],
