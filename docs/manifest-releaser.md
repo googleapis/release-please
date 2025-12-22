@@ -199,10 +199,13 @@ defaults (those are documented in comments)
   // absence defaults to false and all versions are fully Published.
   "prerelease": true
 
-  // Skip creating GitHub Releases
-  // Absence defaults to false and Releases will be created. Release-Please still
+  // Skip creating releases
+  // Absence defaults to false and releases will be created. Release-Please still
   // requires releases to be tagged, so this option should only be used if you
   // have existing infrastructure to tag these releases.
+  "skip-release": true,
+
+  // [DEPRECATED] Legacy option for skipping GitHub releases. Prefer "skip-release".
   "skip-github-release": true,
 
   // Skip updating the changelog.

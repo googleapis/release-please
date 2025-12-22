@@ -54,9 +54,14 @@
           "description": "[DEPRECATED] Override the next version of this package. Consider using a `Release-As` commit instead.",
           "type": "string"
         },
-        "skip-github-release": {
-          "description": "Skip tagging GitHub releases for this package. Release-Please still requires releases to be tagged, so this option should only be used if you have existing infrastructure to tag these releases.Defaults to `false`.",
+        "skip-release": {
+          "description": "Skip creating releases for this package. Release-Please still requires releases to be tagged, so this option should only be used if you have existing infrastructure to tag these releases. Defaults to `false`.",
           "type": "boolean"
+        },
+        "skip-github-release": {
+          "description": "[DEPRECATED] Use `skip-release` instead.",
+          "type": "boolean",
+          "deprecated": true
         },
         "skip-changelog": {
           "description": "Skip generating a changelog for this package. Defaults to `false`.",
@@ -465,6 +470,7 @@
     "versioning": true,
     "changelog-sections": true,
     "release-as": true,
+    "skip-release": true,
     "skip-github-release": true,
     "skip-changelog": true,
     "draft": true,

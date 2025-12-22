@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ManifestPlugin} from '../plugin';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
 
 /**
@@ -33,7 +33,7 @@ export class GroupPriority extends ManifestPlugin {
    * @param {string[]} groups List of group names ordered with highest priority first
    */
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     groups: string[]

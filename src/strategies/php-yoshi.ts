@@ -140,6 +140,8 @@ export class PHPYoshi extends BaseStrategy {
             currentTag: newVersionTag.toString(),
             targetBranch: this.targetBranch,
             changelogSections: this.changelogSections,
+            commitTemplateUri: '',
+            issueTemplateUri: '',
           }
         );
         releaseNotesBody = updatePHPChangelogEntry(

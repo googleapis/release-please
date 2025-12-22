@@ -16,9 +16,11 @@
 
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
-import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
+import {GH_API_URL, GH_GRAPHQL_URL, GH_URL} from '../github';
+import {GL_API_URL, GL_URL} from '../gitlab';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
+import ProviderFactory, {HostedGitClient} from '../provider';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
 import {
   getReleaserTypes,
@@ -34,6 +36,62 @@ import {createPatch} from 'diff';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
 
+interface RepoCoordinates {
+  owner: string;
+  repo: string;
+  host?: string;
+}
+
+function parseGitLabRepoUrl(repoUrl: string): RepoCoordinates {
+  let raw = repoUrl.trim();
+  if (!raw) {
+    throw new Error('repo-url is required');
+  }
+  let host: string | undefined;
+  // Handle HTTP(S) URLs
+  if (/^https?:\/\//i.test(raw)) {
+    const url = new URL(raw);
+    host = url.origin;
+    raw = url.pathname;
+  } else if (raw.includes('@') && raw.includes(':')) {
+    // Basic SSH form git@gitlab.com:group/project.git
+    const sshParts = raw.split(':');
+    raw = sshParts[sshParts.length - 1];
+    const hostSource = sshParts[0];
+    if (hostSource.includes('@')) {
+      const [, hostCandidate] = hostSource.split('@');
+      if (hostCandidate) {
+        host = `https://${hostCandidate.replace(/:\d+$/, '')}`;
+      }
+    }
+  }
+  raw = raw.replace(/^\/+/, '').replace(/\.git$/i, '');
+  const segments = raw.split('/').filter(Boolean);
+  if (segments.length < 2) {
+    throw new Error('GitLab repo URL must include a group and project');
+  }
+  const repo = segments.pop()!;
+  const owner = segments.join('/');
+  return {owner, repo, host};
+}
+
+function parseRepoCoordinates(
+  providerName: string,
+  repoUrl?: string
+): RepoCoordinates {
+  if (!repoUrl) {
+    throw new Error('repo-url must be provided');
+  }
+  if (providerName === 'gitlab') {
+    return parseGitLabRepoUrl(repoUrl);
+  }
+  const [owner, repo] = parseGithubRepoUrl(repoUrl);
+  if (!owner || !repo) {
+    throw new Error(`Could not parse repository from ${repoUrl}`);
+  }
+  return {owner, repo};
+}
+
 interface ErrorObject {
   body?: object;
   status?: number;
@@ -41,9 +99,10 @@ interface ErrorObject {
   stack: string;
 }
 
-interface GitHubArgs {
+interface ProviderArgs {
   dryRun?: boolean;
   trace?: boolean;
+  hostUrl?: string;
   repoUrl?: string;
   token?: string;
   apiUrl?: string;
@@ -52,6 +111,7 @@ interface GitHubArgs {
 
   // deprecated in favor of targetBranch
   defaultBranch?: string;
+  provider?: string; // Which provider to use (github, gitlab, ...)
   targetBranch?: string;
 }
 
@@ -120,7 +180,7 @@ interface TaggingArgs {
 }
 
 interface CreatePullRequestArgs
-  extends GitHubArgs,
+  extends ProviderArgs,
     ManifestArgs,
     ManifestConfigArgs,
     VersioningArgs,
@@ -130,21 +190,21 @@ interface CreatePullRequestArgs
   changelogType?: ChangelogNotesType;
 }
 interface CreateReleaseArgs
-  extends GitHubArgs,
+  extends ProviderArgs,
     ManifestArgs,
     ManifestConfigArgs,
     ReleaseArgs,
     TaggingArgs {}
 interface CreateManifestPullRequestArgs
-  extends GitHubArgs,
+  extends ProviderArgs,
     ManifestArgs,
     PullRequestArgs {}
 interface CreateManifestReleaseArgs
-  extends GitHubArgs,
+  extends ProviderArgs,
     ManifestArgs,
     ReleaseArgs {}
 interface BootstrapArgs
-  extends GitHubArgs,
+  extends ProviderArgs,
     ManifestArgs,
     ManifestConfigArgs,
     VersioningArgs,
@@ -153,32 +213,45 @@ interface BootstrapArgs
     ReleaseArgs {
   initialVersion?: string;
 }
-interface DebugConfigArgs extends GitHubArgs, ManifestArgs {}
+interface DebugConfigArgs extends ProviderArgs, ManifestArgs {}
 
-function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
+function standardOptions(yargs: yargs.Argv): yargs.Argv {
   return yargs
-    .option('token', {describe: 'GitHub token with repo write permissions'})
+    .option('token', {
+      describe: 'GitHub/GitLab token with repo write permissions',
+    })
     .option('api-url', {
       describe: 'URL to use when making API requests',
-      default: GH_API_URL,
       type: 'string',
+      defaultDescription: `GitHub: ${GH_API_URL}; GitLab: ${GL_API_URL}`,
+    })
+    .option('host-url', {
+      describe: 'URL to use when building changelog and release requests',
+      type: 'string',
+      defaultDescription: `GitHub: ${GH_URL}; GitLab: ${GL_URL}`,
     })
     .option('graphql-url', {
-      describe: 'URL to use when making GraphQL requests',
-      default: GH_GRAPHQL_URL,
+      describe: 'URL to use when making GraphQL requests (ignored for GitLab)',
+      type: 'string',
+      defaultDescription: `GitHub: ${GH_GRAPHQL_URL}`,
+    })
+    .option('provider', {
+      describe: "Which provider to use (default 'github')",
+      default: 'github',
       type: 'string',
     })
     .option('default-branch', {
-      describe: 'The branch to open release PRs against and tag releases on',
+      describe: 'The branch to open release PR/MRs against and tag releases on',
       type: 'string',
       deprecated: 'use --target-branch instead',
     })
     .option('target-branch', {
-      describe: 'The branch to open release PRs against and tag releases on',
+      describe: 'The branch to open release PR/MRs against and tag releases on',
       type: 'string',
     })
     .option('repo-url', {
-      describe: 'GitHub URL to generate release for',
+      describe:
+        'Repository URL to generate release for (e.g. GitHub: <org/repo>, GitLab: <group/project>)',
       demand: true,
     })
     .option('dry-run', {
@@ -187,12 +260,20 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       default: false,
     })
     .middleware(_argv => {
-      const argv = _argv as GitHubArgs;
+      const argv = _argv as ProviderArgs;
       // allow secrets to be loaded from file path
       // rather than being passed directly to the bin.
       if (argv.token) argv.token = coerceOption(argv.token);
       if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
+      if (argv.hostUrl) argv.hostUrl = coerceOption(argv.hostUrl);
       if (argv.graphqlUrl) argv.graphqlUrl = coerceOption(argv.graphqlUrl);
+      const provider = (argv.provider || 'github').toLowerCase();
+      if (!argv.apiUrl) {
+        argv.apiUrl = provider === 'gitlab' ? GL_API_URL : GH_API_URL;
+      }
+      if (!argv.graphqlUrl && provider === 'github') {
+        argv.graphqlUrl = GH_GRAPHQL_URL;
+      }
     });
 }
 
@@ -448,13 +529,13 @@ const createReleasePullRequestCommand: yargs.CommandModule<
     return manifestOptions(
       manifestConfigOptions(
         taggingOptions(
-          pullRequestOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+          pullRequestOptions(pullRequestStrategyOptions(standardOptions(yargs)))
         )
       )
     );
   },
   async handler(argv) {
-    const github = await buildGitHub(argv);
+    const github = await buildProvider(argv);
     const targetBranch = argv.targetBranch || github.repository.defaultBranch;
     let manifest: Manifest;
     if (argv.releaseType) {
@@ -542,68 +623,98 @@ const createReleasePullRequestCommand: yargs.CommandModule<
   },
 };
 
-const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
-  command: 'github-release',
-  describe: 'create a GitHub release from a release PR',
+async function handleReleaseCommand(
+  argv: CreateReleaseArgs,
+  options: {deprecatedCommandName?: string} = {}
+): Promise<void> {
+  if (options.deprecatedCommandName) {
+    logger.warn(
+      `${options.deprecatedCommandName} is deprecated. Please use release instead.`
+    );
+  }
+
+  const github = await buildProvider(argv);
+  const targetBranch =
+    argv.targetBranch || argv.defaultBranch || github.repository.defaultBranch;
+  let manifest: Manifest;
+  if (argv.releaseType) {
+    manifest = await Manifest.fromConfig(
+      github,
+      targetBranch,
+      {
+        releaseType: argv.releaseType,
+        component: argv.component,
+        packageName: argv.packageName,
+        draft: argv.draft,
+        prerelease: argv.prerelease,
+        includeComponentInTag: argv.monorepoTags,
+        includeVInTag: argv.includeVInTags,
+      },
+      extractManifestOptions(argv),
+      argv.path
+    );
+  } else {
+    const manifestOptions = extractManifestOptions(argv);
+    manifest = await Manifest.fromManifest(
+      github,
+      targetBranch,
+      argv.configFile,
+      argv.manifestFile,
+      manifestOptions
+    );
+  }
+
+  if (argv.dryRun) {
+    const releases = await manifest.buildReleases();
+    logger.info(`Would tag ${releases.length} releases:`);
+    for (const release of releases) {
+      logger.info({
+        name: release.name,
+        tag: release.tag.toString(),
+        notes: release.notes,
+        sha: release.sha,
+        draft: release.draft,
+        prerelease: release.prerelease,
+        pullNumber: release.pullRequest.number,
+      });
+    }
+  } else {
+    const releaseNumbers = await manifest.createReleases();
+    console.log(releaseNumbers);
+  }
+}
+
+const releaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
+  command: 'release',
+  describe: 'create a release from a release PR/MR',
   builder(yargs) {
     return releaseOptions(
       manifestOptions(
-        manifestConfigOptions(taggingOptions(gitHubOptions(yargs)))
+        manifestConfigOptions(taggingOptions(standardOptions(yargs)))
       )
     );
   },
   async handler(argv) {
-    const github = await buildGitHub(argv);
-    const targetBranch =
-      argv.targetBranch ||
-      argv.defaultBranch ||
-      github.repository.defaultBranch;
-    let manifest: Manifest;
-    if (argv.releaseType) {
-      manifest = await Manifest.fromConfig(
-        github,
-        targetBranch,
-        {
-          releaseType: argv.releaseType,
-          component: argv.component,
-          packageName: argv.packageName,
-          draft: argv.draft,
-          prerelease: argv.prerelease,
-          includeComponentInTag: argv.monorepoTags,
-          includeVInTag: argv.includeVInTags,
-        },
-        extractManifestOptions(argv),
-        argv.path
-      );
-    } else {
-      const manifestOptions = extractManifestOptions(argv);
-      manifest = await Manifest.fromManifest(
-        github,
-        targetBranch,
-        argv.configFile,
-        argv.manifestFile,
-        manifestOptions
-      );
-    }
+    await handleReleaseCommand(argv);
+  },
+};
 
-    if (argv.dryRun) {
-      const releases = await manifest.buildReleases();
-      logger.info(`Would tag ${releases.length} releases:`);
-      for (const release of releases) {
-        logger.info({
-          name: release.name,
-          tag: release.tag.toString(),
-          notes: release.notes,
-          sha: release.sha,
-          draft: release.draft,
-          prerelease: release.prerelease,
-          pullNumber: release.pullRequest.number,
-        });
-      }
-    } else {
-      const releaseNumbers = await manifest.createReleases();
-      console.log(releaseNumbers);
-    }
+const deprecatedGithubReleaseCommand: yargs.CommandModule<
+  {},
+  CreateReleaseArgs
+> = {
+  command: 'github-release',
+  describe: 'create a release from a release PR/MR',
+  deprecated: 'use release instead',
+  builder(yargs) {
+    return releaseOptions(
+      manifestOptions(
+        manifestConfigOptions(taggingOptions(standardOptions(yargs)))
+      )
+    );
+  },
+  async handler(argv) {
+    await handleReleaseCommand(argv, {deprecatedCommandName: 'github-release'});
   },
 };
 
@@ -615,11 +726,11 @@ const createManifestPullRequestCommand: yargs.CommandModule<
   describe: 'create a release-PR using a manifest file',
   deprecated: 'use release-pr instead.',
   builder(yargs) {
-    return manifestOptions(pullRequestOptions(gitHubOptions(yargs)));
+    return manifestOptions(pullRequestOptions(standardOptions(yargs)));
   },
   async handler(argv) {
     logger.warn('manifest-pr is deprecated. Please use release-pr instead.');
-    const github = await buildGitHub(argv);
+    const github = await buildProvider(argv);
     const targetBranch =
       argv.targetBranch ||
       argv.defaultBranch ||
@@ -664,15 +775,13 @@ const createManifestReleaseCommand: yargs.CommandModule<
 > = {
   command: 'manifest-release',
   describe: 'create releases/tags from last release-PR using a manifest file',
-  deprecated: 'use github-release instead',
+  deprecated: 'use release instead',
   builder(yargs) {
-    return manifestOptions(releaseOptions(gitHubOptions(yargs)));
+    return manifestOptions(releaseOptions(standardOptions(yargs)));
   },
   async handler(argv) {
-    logger.warn(
-      'manifest-release is deprecated. Please use github-release instead.'
-    );
-    const github = await buildGitHub(argv);
+    logger.warn('manifest-release is deprecated. Please use release instead.');
+    const github = await buildProvider(argv);
     const targetBranch =
       argv.targetBranch ||
       argv.defaultBranch ||
@@ -702,7 +811,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
   builder(yargs) {
     return manifestConfigOptions(
       manifestOptions(
-        releaseOptions(pullRequestStrategyOptions(gitHubOptions(yargs)))
+        releaseOptions(pullRequestStrategyOptions(standardOptions(yargs)))
       )
     )
       .option('initial-version', {
@@ -713,7 +822,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       });
   },
   async handler(argv) {
-    const github = await buildGitHub(argv);
+    const github = await buildProvider(argv);
     const targetBranch =
       argv.targetBranch ||
       argv.defaultBranch ||
@@ -789,10 +898,10 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
   command: 'debug-config',
   describe: 'debug manifest config',
   builder(yargs) {
-    return manifestConfigOptions(manifestOptions(gitHubOptions(yargs)));
+    return manifestConfigOptions(manifestOptions(standardOptions(yargs)));
   },
   async handler(argv) {
-    const github = await buildGitHub(argv);
+    const github = await buildProvider(argv);
     const manifestOptions = extractManifestOptions(argv);
     const targetBranch =
       argv.targetBranch ||
@@ -809,21 +918,29 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
   },
 };
 
-async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
-  const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
-  const github = await GitHub.create({
+async function buildProvider(argv: ProviderArgs): Promise<HostedGitClient> {
+  const providerName = (argv.provider || 'github').toLowerCase();
+  const {owner, repo, host} = parseRepoCoordinates(providerName, argv.repoUrl);
+  let hostUrl = argv.hostUrl;
+  if (!hostUrl) {
+    hostUrl = host ?? (providerName === 'gitlab' ? GL_URL : GH_URL);
+  }
+  const provider = await ProviderFactory.create(providerName, {
     owner,
     repo,
-    token: argv.token!,
+    token: argv.token,
     apiUrl: argv.apiUrl,
     graphqlUrl: argv.graphqlUrl,
+    host,
+    hostUrl,
   });
-  return github;
+  return provider;
 }
 
 export const parser = yargs
   .command(createReleasePullRequestCommand)
-  .command(createReleaseCommand)
+  .command(releaseCommand)
+  .command(deprecatedGithubReleaseCommand)
   .command(createManifestPullRequestCommand)
   .command(createManifestReleaseCommand)
   .command(bootstrapCommand)
@@ -878,7 +995,7 @@ interface HandleError {
 }
 
 function extractManifestOptions(
-  argv: GitHubArgs & (PullRequestArgs | ReleaseArgs)
+  argv: ProviderArgs & (PullRequestArgs | ReleaseArgs)
 ): ManifestOptions {
   const manifestOptions: ManifestOptions = {};
   if ('fork' in argv && argv.fork !== undefined) {

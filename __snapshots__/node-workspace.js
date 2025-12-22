@@ -150,7 +150,7 @@ Release notes for path: node1, releaseType: node
 
 <details><summary>pkgB: 2.2.3</summary>
 
-## [2.2.3](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
+## [2.2.3](https://www.github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
 
 
 ### Dependencies
@@ -193,7 +193,7 @@ other notes
 `
 
 exports['NodeWorkspace plugin run includes headers for packages with configured strategies 3'] = `
-## [2.2.3](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
+## [2.2.3](https://www.github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2...pkgB-v2.2.3) (1983-10-10)
 
 
 ### Dependencies
@@ -250,7 +250,7 @@ Release notes for path: node1, releaseType: node
 
 <details><summary>pkgB: 2.2.3-beta</summary>
 
-## [2.2.3-beta](https://github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2-beta...pkgB-v2.2.3-beta) (1983-10-10)
+## [2.2.3-beta](https://www.github.com/googleapis/node-test-repo/compare/pkgB-v2.2.2-beta...pkgB-v2.2.3-beta) (1983-10-10)
 
 
 ### Dependencies

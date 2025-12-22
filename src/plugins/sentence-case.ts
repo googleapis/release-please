@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ManifestPlugin} from '../plugin';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {RepositoryConfig} from '../manifest';
 import {ConventionalCommit} from '../commit';
 
@@ -27,7 +27,7 @@ const SPECIAL_WORDS = ['gRPC', 'npm'];
 export class SentenceCase extends ManifestPlugin {
   specialWords: Set<string>;
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     specialWords?: Array<string>

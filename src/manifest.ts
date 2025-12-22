@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease, GitHubTag} from './github';
+import {GitHubRelease, GitHubTag} from './provider-interfaces';
 import {Version, VersionsMap} from './version';
 import {Commit, parseConventionalCommits} from './commit';
 import {PullRequest} from './pull-request';
@@ -47,6 +47,7 @@ import {
 } from './util/pull-request-overflow-handler';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {CommitExclude} from './util/commit-exclude';
+import {HostedGitClient} from './provider';
 
 type ExtraGenericFile = {
   type: 'generic';
@@ -104,7 +105,9 @@ export interface ReleaserConfig {
 
   // Strategy options
   releaseAs?: string;
-  skipGithubRelease?: boolean; // Note this should be renamed to skipGitHubRelease in next major release\
+  skipRelease?: boolean;
+  /** @deprecated use skipRelease */
+  skipGithubRelease?: boolean;
   skipChangelog?: boolean;
   draft?: boolean;
   prerelease?: boolean;
@@ -164,6 +167,7 @@ interface ReleaserConfigJson {
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
+  'skip-release'?: boolean;
   'skip-changelog'?: boolean;
   draft?: boolean;
   prerelease?: boolean;
@@ -288,6 +292,8 @@ const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
+let hasWarnedDeprecatedSkipGithubRelease = false;
+
 export interface CreatedRelease extends GitHubRelease {
   id: number;
   path: string;
@@ -300,7 +306,7 @@ export interface CreatedRelease extends GitHubRelease {
 
 export class Manifest {
   private repository: Repository;
-  private github: GitHub;
+  private github: HostedGitClient;
   readonly repositoryConfig: RepositoryConfig;
   readonly releasedVersions: ReleasedVersions;
   private targetBranch: string;
@@ -358,7 +364,7 @@ export class Manifest {
    *   pull request. Defaults to `[autorelease: tagged]`
    */
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     releasedVersions: ReleasedVersions,
@@ -422,7 +428,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromManifest(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,
     manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
@@ -478,7 +484,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromConfig(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     config: ReleaserConfig,
     manifestOptions?: ManifestOptions,
@@ -864,7 +870,7 @@ export class Manifest {
       } else {
         if (
           strategiesByPath[ROOT_PROJECT_PATH] &&
-          this.repositoryConfig[path].skipGithubRelease
+          isReleaseSkipped(this.repositoryConfig[path])
         ) {
           this.logger.debug('could not find release, checking root package');
           const rootComponent = await strategiesByPath[
@@ -1374,6 +1380,32 @@ export class Manifest {
 function extractReleaserConfig(
   config: ReleaserPackageConfig
 ): Partial<ReleaserConfig> {
+  const skipReleaseValue = config['skip-release'];
+  const deprecatedSkipGithubRelease = config['skip-github-release'];
+  const skipRelease =
+    skipReleaseValue === undefined
+      ? deprecatedSkipGithubRelease
+      : skipReleaseValue;
+
+  if (
+    skipReleaseValue === undefined &&
+    deprecatedSkipGithubRelease !== undefined &&
+    !hasWarnedDeprecatedSkipGithubRelease
+  ) {
+    defaultLogger.warn(
+      'The "skip-github-release" option is deprecated; use "skip-release" instead.'
+    );
+    hasWarnedDeprecatedSkipGithubRelease = true;
+  } else if (
+    skipReleaseValue !== undefined &&
+    deprecatedSkipGithubRelease !== undefined &&
+    skipReleaseValue !== deprecatedSkipGithubRelease
+  ) {
+    defaultLogger.warn(
+      'The "skip-release" option overrides the deprecated "skip-github-release" value. Remove the deprecated option.'
+    );
+  }
+
   return {
     releaseType: config['release-type'],
     bumpMinorPreMajor: config['bump-minor-pre-major'],
@@ -1384,7 +1416,8 @@ function extractReleaserConfig(
     changelogPath: config['changelog-path'],
     changelogHost: config['changelog-host'],
     releaseAs: config['release-as'],
-    skipGithubRelease: config['skip-github-release'],
+    skipRelease,
+    skipGithubRelease: deprecatedSkipGithubRelease ?? skipRelease,
     skipChangelog: config['skip-changelog'],
     draft: config.draft,
     prerelease: config.prerelease,
@@ -1424,7 +1457,7 @@ function extractReleaserConfig(
  * @param {string} releaseAs Optional. Override release-as and use the given version
  */
 async function parseConfig(
-  github: GitHub,
+  github: HostedGitClient,
   configFile: string,
   branch: string,
   onlyPath?: string,
@@ -1477,7 +1510,7 @@ async function parseConfig(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchManifestConfig(
-  github: GitHub,
+  github: HostedGitClient,
   configFile: string,
   branch: string
 ): Promise<ManifestConfig> {
@@ -1510,7 +1543,7 @@ async function fetchManifestConfig(
  * @returns {Record<string, string>}
  */
 async function parseReleasedVersions(
-  github: GitHub,
+  github: HostedGitClient,
   manifestFile: string,
   branch: string
 ): Promise<ReleasedVersions> {
@@ -1535,7 +1568,7 @@ async function parseReleasedVersions(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchReleasedVersions(
-  github: GitHub,
+  github: HostedGitClient,
   manifestFile: string,
   branch: string
 ): Promise<Record<string, string>> {
@@ -1578,7 +1611,7 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * @param {string} prefix Limit the release to a specific component.
  */
 async function latestReleaseVersion(
-  github: GitHub,
+  github: HostedGitClient,
   targetBranch: string,
   releaseFilter: (version: Version) => boolean,
   config: ReleaserConfig,
@@ -1724,6 +1757,7 @@ function mergeReleaserConfig(
   defaultConfig: Partial<ReleaserConfig>,
   pathConfig: Partial<ReleaserConfig>
 ): ReleaserConfig {
+  const skipRelease = selectSkipRelease(pathConfig, defaultConfig);
   return {
     releaseType: pathConfig.releaseType ?? defaultConfig.releaseType ?? 'node',
     bumpMinorPreMajor:
@@ -1739,8 +1773,11 @@ function mergeReleaserConfig(
     changelogHost: pathConfig.changelogHost ?? defaultConfig.changelogHost,
     changelogType: pathConfig.changelogType ?? defaultConfig.changelogType,
     releaseAs: pathConfig.releaseAs ?? defaultConfig.releaseAs,
+    skipRelease,
     skipGithubRelease:
-      pathConfig.skipGithubRelease ?? defaultConfig.skipGithubRelease,
+      pathConfig.skipGithubRelease ??
+      defaultConfig.skipGithubRelease ??
+      skipRelease,
     skipChangelog: pathConfig.skipChangelog ?? defaultConfig.skipChangelog,
     draft: pathConfig.draft ?? defaultConfig.draft,
     draftPullRequest:
@@ -1773,6 +1810,32 @@ function mergeReleaserConfig(
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
     dateFormat: pathConfig.dateFormat ?? defaultConfig.dateFormat,
   };
+}
+
+function selectSkipRelease(
+  pathConfig: Partial<ReleaserConfig>,
+  defaultConfig: Partial<ReleaserConfig>
+): boolean | undefined {
+  if (pathConfig.skipRelease !== undefined) {
+    return pathConfig.skipRelease;
+  }
+  if (pathConfig.skipGithubRelease !== undefined) {
+    return pathConfig.skipGithubRelease;
+  }
+  if (defaultConfig.skipRelease !== undefined) {
+    return defaultConfig.skipRelease;
+  }
+  if (defaultConfig.skipGithubRelease !== undefined) {
+    return defaultConfig.skipGithubRelease;
+  }
+  return undefined;
+}
+
+function isReleaseSkipped(config?: ReleaserConfig): boolean {
+  if (!config) {
+    return false;
+  }
+  return Boolean(config.skipRelease ?? config.skipGithubRelease);
 }
 
 /**

@@ -14,7 +14,7 @@
 
 import {ManifestPlugin} from '../plugin';
 import {RepositoryConfig, CandidateReleasePullRequest} from '../manifest';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {Logger} from '../util/logger';
 import {Strategy} from '../strategy';
 import {Commit, parseConventionalCommits} from '../commit';
@@ -41,7 +41,7 @@ export class LinkedVersions extends ManifestPlugin {
   readonly merge: boolean;
 
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     groupName: string,

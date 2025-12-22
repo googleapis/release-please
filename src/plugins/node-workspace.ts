@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {CandidateReleasePullRequest, RepositoryConfig} from '../manifest';
 import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {Version, VersionsMap} from '../version';
@@ -77,7 +77,7 @@ export class NodeWorkspace extends WorkspacePlugin<Package> {
 
   readonly updatePeerDependencies: boolean;
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     options: NodeWorkspaceOptions = {}

@@ -22,7 +22,7 @@ import {
 import {logger as defaultLogger, Logger} from '../util/logger';
 import {VersionsMap, Version} from '../version';
 import {Merge} from './merge';
-import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {ReleasePleaseManifest} from '../updaters/release-please-manifest';
 
 export type DependencyGraph<T> = Map<string, DependencyNode<T>>;
@@ -59,7 +59,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   private manifestPath: string;
   private merge: boolean;
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     options: WorkspacePluginOptions = {}

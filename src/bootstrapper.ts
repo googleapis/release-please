@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from './github';
+import {HostedGitClient} from './provider';
 import {
   DEFAULT_RELEASE_PLEASE_MANIFEST,
   DEFAULT_RELEASE_PLEASE_CONFIG,
@@ -30,13 +30,13 @@ interface BootstrapPullRequest extends PullRequest {
 }
 
 export class Bootstrapper {
-  private github: GitHub;
+  private github: HostedGitClient;
   private targetBranch: string;
   private manifestFile: string;
   private configFile: string;
   private initialVersion: Version;
   constructor(
-    github: GitHub,
+    github: HostedGitClient,
     targetBranch: string,
     manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
     configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,

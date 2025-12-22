@@ -25,7 +25,8 @@ import {
   ConventionalCommit,
   parseConventionalCommits,
 } from '../src/commit';
-import {GitHub, GitHubTag, GitHubRelease} from '../src/github';
+import {GitHub} from '../src/github';
+import {GitHubRelease, GitHubTag} from '../src/provider-interfaces';
 import {Update} from '../src/update';
 import {expect} from 'chai';
 import {CandidateReleasePullRequest} from '../src/manifest';

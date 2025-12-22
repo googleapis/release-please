@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import {GitHub} from '../github';
+import {HostedGitClient} from '../provider';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
 import {GitHubChangelogNotes} from '../changelog-notes/github';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
@@ -22,7 +23,7 @@ export type ChangelogNotesType = string;
 
 export interface ChangelogNotesFactoryOptions {
   type: ChangelogNotesType;
-  github: GitHub;
+  github: HostedGitClient;
   changelogSections?: ChangelogSection[];
   commitPartial?: string;
   headerPartial?: string;
@@ -34,7 +35,16 @@ export type ChangelogNotesBuilder = (
 ) => ChangelogNotes;
 
 const changelogNotesFactories: Record<string, ChangelogNotesBuilder> = {
-  github: options => new GitHubChangelogNotes(options.github),
+  github: options => {
+    if (!(options.github instanceof GitHub)) {
+      throw new ConfigurationError(
+        'GitHub changelog notes are only supported when using the GitHub provider',
+        'core',
+        `${options.github.repository.owner}/${options.github.repository.repo}`
+      );
+    }
+    return new GitHubChangelogNotes(options.github);
+  },
   default: options => new DefaultChangelogNotes(options),
 };
 
