@@ -72,6 +72,7 @@ function releaserConfigToJsonConfig(
     'release-label': config.releaseLabels?.join(','),
     'include-component-in-tag': config.includeComponentInTag,
     'include-v-in-tag': config.includeVInTag,
+    'include-v-in-release-name': config.includeVInReleaseName,
     'changelog-type': config.changelogType,
     'changelog-host': config.changelogHost,
     'pull-request-title-pattern': config.pullRequestTitlePattern,
