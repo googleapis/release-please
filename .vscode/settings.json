@@ -1,0 +1,5 @@
+{
+    "github-actions.workflows.pinned.workflows": [
+        "dynamic/github-code-scanning/codeql"
+    ]
+}
