@@ -452,5 +452,67 @@ describe('Strategy', () => {
       expect(release, 'Release').to.not.be.undefined;
       expect(release!.tag.toString()).to.eql('1.2.3');
     });
+    it('skips v in release name', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: false,
+        includeVInReleaseName: false,
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release v1.2.3',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release, 'Release').to.not.be.undefined;
+      expect(release!.name).to.eql('1.2.3');
+    });
+    it('skips v in release name with component', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: true,
+        includeVInReleaseName: false,
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release v1.2.3',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release, 'Release').to.not.be.undefined;
+      expect(release!.name).to.eql('google-cloud-automl: 1.2.3');
+    });
+    it('includes v in release name by default', async () => {
+      const strategy = new TestStrategy({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        includeComponentInTag: false,
+      });
+      const release = await strategy.buildRelease({
+        title: 'chore(main): release v1.2.3',
+        headBranchName: 'release-please/branches/main',
+        baseBranchName: 'main',
+        number: 1234,
+        body: new PullRequestBody([]).toString(),
+        labels: [],
+        files: [],
+        sha: 'abc123',
+      });
+      expect(release, 'Release').to.not.be.undefined;
+      expect(release!.name).to.eql('v1.2.3');
+    });
   });
 });
