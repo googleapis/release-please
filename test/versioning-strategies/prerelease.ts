@@ -132,7 +132,9 @@ describe('PrereleaseVersioningStrategy', () => {
     describe('without prerelease property', () => {
       const expectedBumps: Record<string, string> = {
         '1.2.3': '2.0.0',
-        '1.0.0-beta01': '1.0.0',
+        // beta01 indicates that there had to be a breaking change with prerelease=true.
+        // e.g. coong from 0.1.0 -> feat! (prerelease=True) -> 1.0.0-beta01 -> prerelease=False -> 1.0.0
+        '1.0.0-beta01': '1.0.0', 
         '1.1.0-beta01': '2.0.0',
         '1.3.0-alpha': '2.0.0',
         '1.3.0-alpha.1': '2.0.0',
