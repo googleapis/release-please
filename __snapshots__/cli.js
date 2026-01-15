@@ -58,6 +58,8 @@ Options:
                                 with the release for future tag creation upon
                                 "un-drafting" the release.
                                                       [boolean] [default: false]
+  --force-tag-creation          Force the creation of a Git tag for the
+                                release.              [boolean] [default: false]
   --prerelease                  mark release that have prerelease versions as as
                                 a prerelease on Github[boolean] [default: false]
   --label                       comma-separated list of labels to remove to from
@@ -139,6 +141,9 @@ Options:
   --draft           mark release as a draft. no tag is created but tag_name and
                     target_commitish are associated with the release for future
                     tag creation upon "un-drafting" the release.
+                                                      [boolean] [default: false]
+  --force-tag-creation
+                    Force the creation of a Git tag for the release.
                                                       [boolean] [default: false]
   --prerelease      mark release that have prerelease versions as as a
                     prerelease on Github              [boolean] [default: false]

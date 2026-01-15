@@ -84,6 +84,7 @@ interface ManifestConfigArgs {
 
 interface ReleaseArgs {
   draft?: boolean;
+  forceTag?: boolean;
   prerelease?: boolean;
   releaseLabel?: string;
   snapshotLabel?: string;
@@ -203,6 +204,11 @@ function releaseOptions(yargs: yargs.Argv): yargs.Argv {
         'mark release as a draft. no tag is created but tag_name and ' +
         'target_commitish are associated with the release for future ' +
         'tag creation upon "un-drafting" the release.',
+      type: 'boolean',
+      default: false,
+    })
+    .option('force-tag-creation', {
+      describe: 'Force the creation of a Git tag for the release.',
       type: 'boolean',
       default: false,
     })
@@ -568,6 +574,7 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
           component: argv.component,
           packageName: argv.packageName,
           draft: argv.draft,
+          forceTag: argv.forceTag,
           prerelease: argv.prerelease,
           includeComponentInTag: argv.monorepoTags,
           includeVInTag: argv.includeVInTags,
@@ -731,6 +738,7 @@ const bootstrapCommand: yargs.CommandModule<{}, BootstrapArgs> = {
       component: argv.component,
       packageName: argv.packageName,
       draft: argv.draft,
+      forceTag: argv.forceTag,
       prerelease: argv.prerelease,
       draftPullRequest: argv.draftPullRequest,
       bumpMinorPreMajor: argv.bumpMinorPreMajor,

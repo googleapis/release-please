@@ -483,6 +483,22 @@ exports['GitHub createRelease should create a draft release 1'] = {
   "target_commitish": "abc123"
 }
 
+exports['GitHub createRelease should create a draft release with forced tag (already exists) 1'] = {
+  "tag_name": "v1.2.3",
+  "body": "Some release notes",
+  "draft": true,
+  "prerelease": false,
+  "target_commitish": "abc123"
+}
+
+exports['GitHub createRelease should create a draft release with forced tag 1'] = {
+  "tag_name": "v1.2.3",
+  "body": "Some release notes",
+  "draft": true,
+  "prerelease": false,
+  "target_commitish": "abc123"
+}
+
 exports['GitHub createRelease should create a prerelease release 1'] = {
   "tag_name": "v1.2.3",
   "body": "Some release notes",
