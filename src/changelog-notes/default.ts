@@ -84,9 +84,17 @@ export class DefaultChangelogNotes implements ChangelogNotes {
             context.repository
           )
         );
+      let subject = htmlEscape(commit.bareMessage);
+      // Append author info if enabled and author is available
+      if (options.includeCommitAuthors && commit.author) {
+        const authorDisplay = commit.author.username
+          ? `@${commit.author.username}`
+          : commit.author.name;
+        subject = `${subject} (${authorDisplay})`;
+      }
       return {
         body: '', // commit.body,
-        subject: htmlEscape(commit.bareMessage),
+        subject,
         type: commit.type,
         scope: commit.scope,
         notes,
