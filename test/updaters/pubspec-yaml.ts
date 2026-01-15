@@ -21,42 +21,40 @@ import {Version} from '../../src/version';
 
 const fixturesPath = './test/updaters/fixtures';
 
+interface TestCase {
+  filePath: string;
+  versionString: string;
+}
+
+const testCases: TestCase[] = [
+  {filePath: './pubspec.yaml', versionString: '0.6.0'},
+  {filePath: './pubspec_with_build_no.yaml', versionString: '0.6.0'},
+  {filePath: './pubspec_with_build_no_bad.yaml', versionString: '0.6.0'},
+  {filePath: './pubspec_with_prerelease.yaml', versionString: '0.5.0-dev02'},
+  {
+    filePath: './pubspec_with_prerelease_and_build_no.yaml',
+    versionString: '0.5.0-dev02',
+  },
+  {
+    filePath: './pubspec_with_prerelease_and_build_no_bad.yaml',
+    versionString: '0.5.0-dev02',
+  },
+];
+
 describe('PubspecYaml', () => {
   describe('updateContent', () => {
-    it('updates version in pubspec.yaml file', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './pubspec.yaml'),
-        'utf8'
-      ).replace(/\r\n/g, '\n'); // required for windows
-      const version = new PubspecYaml({
-        version: Version.parse('0.6.0'),
+    testCases.forEach(({filePath, versionString}) => {
+      it(`updates version in ${filePath}`, async () => {
+        const oldContent = readFileSync(
+          resolve(fixturesPath, filePath),
+          'utf8'
+        ).replace(/\r\n/g, '\n'); // required for windows
+        const version = new PubspecYaml({
+          version: Version.parse(versionString),
+        });
+        const newContent = version.updateContent(oldContent);
+        snapshot(newContent);
       });
-      const newContent = version.updateContent(oldContent);
-      snapshot(newContent);
-    });
-
-    it('updates version with build number in pubspec.yaml file', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './pubspec_with_build_no.yaml'),
-        'utf8'
-      ).replace(/\r\n/g, '\n'); // required for windows
-      const version = new PubspecYaml({
-        version: Version.parse('0.6.0'),
-      });
-      const newContent = version.updateContent(oldContent);
-      snapshot(newContent);
-    });
-
-    it('leaves malformatted build numbers alone in pubspec.yaml file', async () => {
-      const oldContent = readFileSync(
-        resolve(fixturesPath, './pubspec_with_build_no_bad.yaml'),
-        'utf8'
-      ).replace(/\r\n/g, '\n'); // required for windows
-      const version = new PubspecYaml({
-        version: Version.parse('0.6.0'),
-      });
-      const newContent = version.updateContent(oldContent);
-      snapshot(newContent);
     });
   });
 });
