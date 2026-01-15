@@ -125,6 +125,7 @@ export interface ReleaserConfig {
   extraLabels?: string[];
   initialVersion?: string;
   dateFormat?: string;
+  calverScheme?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -189,6 +190,7 @@ interface ReleaserConfigJson {
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
   'date-format'?: string;
+  'calver-scheme'?: string;
 }
 
 export interface ManifestOptions {
@@ -214,6 +216,7 @@ export interface ManifestOptions {
   commitSearchDepth?: number;
   logger?: Logger;
   dateFormat?: string;
+  calverScheme?: string;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -1410,6 +1413,7 @@ function extractReleaserConfig(
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
     dateFormat: config['date-format'],
+    calverScheme: config['calver-scheme'],
   };
 }
 
@@ -1772,6 +1776,7 @@ function mergeReleaserConfig(
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
     dateFormat: pathConfig.dateFormat ?? defaultConfig.dateFormat,
+    calverScheme: pathConfig.calverScheme ?? defaultConfig.calverScheme,
   };
 }
 

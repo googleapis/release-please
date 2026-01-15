@@ -41,10 +41,11 @@ version given a list of parsed commits.
 |---------------------|-------------------------------------------------------------------------------------------------------------|
 | `default`           | Breaking changes bump the major version, features bump the minor version, bugfixes bump the patch version   |
 | `always-bump-patch` | Always bump patch version. This is useful for backporting bugfixes to previous major/minor release branches |
-| `always-bump-minor` | Always bump minor version |                                                                                                                                                                    |
-| `always-bump-major` | Always bump major version |                                                                                  
+| `always-bump-minor` | Always bump minor version |
+| `always-bump-major` | Always bump major version |
+| `calendar`          | [Calendar-based versioning (CalVer)](calendar-versioning.md) with customizable date formats                  |
 | `service-pack`      | Designed for Java backport fixes. Uses Maven's specification for service pack versions (e.g. 1.2.3-sp.1)    |
-| `prerelease`      | Bumping prerelease number (eg. 1.2.0-beta01 to 1.2.0-beta02) or if prerelease type is set, using that in the prerelease part (eg. 1.2.1 to 1.3.0-beta)  |
+| `prerelease`        | Bumping prerelease number (eg. 1.2.0-beta01 to 1.2.0-beta02) or if prerelease type is set, using that in the prerelease part (eg. 1.2.1 to 1.3.0-beta)  |
 
 ### Adding additional versioning strategy types
 
@@ -101,11 +102,11 @@ title or body format).
 
 The default pull request title uses this pattern:
 `chore${scope}: release${component} ${version}` so a common release pull
-request title would be `chore(main): release foo-bar v1.2.3`.  
-Please note that by default `${component}` will be parsed to ` ${component}` (With space in front of). 
+request title would be `chore(main): release foo-bar v1.2.3`.
+Please note that by default `${component}` will be parsed to ` ${component}` (With space in front of).
 If you wish to avoid that, consider using `component-no-space: true`/`--component-no-space=true` parameter.
 
-> [!WARNING]  
+> [!WARNING]
 > Setting `component-no-space` option when release PR already exists might break the parsing
 > resulting in another PR being opened.
 
