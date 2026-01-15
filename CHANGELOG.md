@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.2.0](https://github.com/googleapis/release-please/compare/v17.1.3...v17.2.0) (2026-01-15)
+
+
+### Features
+
+* add include-v-in-release-name config option ([#2633](https://github.com/googleapis/release-please/issues/2633)) ([84a43ef](https://github.com/googleapis/release-please/commit/84a43efcae8dc1028d132377fb387b816113f5cb))
+* **dependency-manifest.ts:** add support for Dependabot commit messages ([#2584](https://github.com/googleapis/release-please/issues/2584)) ([6a9ddb7](https://github.com/googleapis/release-please/commit/6a9ddb7112984f89a89c8856a0edd385e662aa9a))
+
 ## [17.1.3](https://github.com/googleapis/release-please/compare/v17.1.2...v17.1.3) (2025-10-06)
 
 
