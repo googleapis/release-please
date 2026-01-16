@@ -918,6 +918,61 @@ describe('Manifest', () => {
       expect(manifest.repositoryConfig['node-packages'].draftPullRequest).to.be
         .false;
     });
+    it('should override releasedVersions with latestTagVersion', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/simple.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileRaw('{".":" 0.0.0"}')
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch,
+        undefined,
+        undefined,
+        {latestTagVersion: '1.2.3'}
+      );
+      expect(manifest.releasedVersions['.']).to.not.be.undefined;
+      expect(manifest.releasedVersions['.'].toString()).to.eql('1.2.3');
+    });
+    it('should override releasedVersions for specific path with latestTagVersion', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(fixturesPath, 'manifest/config/config.json')
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch,
+        undefined,
+        undefined,
+        {latestTagVersion: '5.0.0'},
+        'packages/gcf-utils'
+      );
+      expect(manifest.releasedVersions['packages/gcf-utils']).to.not.be
+        .undefined;
+      expect(
+        manifest.releasedVersions['packages/gcf-utils'].toString()
+      ).to.eql('5.0.0');
+    });
   });
 
   describe('fromConfig', () => {
@@ -1524,6 +1579,22 @@ describe('Manifest', () => {
       );
       scope.done();
       sinon.assert.callCount(sleepStub, 5);
+    });
+    it('should use latestTagVersion from manifestOptions if provided', async () => {
+      // No mocks for commits/releases needed since latestTagVersion bypasses discovery
+      const manifest = await Manifest.fromConfig(
+        github,
+        'target-branch',
+        {
+          releaseType: 'simple',
+        },
+        {
+          latestTagVersion: '2.3.4',
+        }
+      );
+      expect(Object.keys(manifest.repositoryConfig)).lengthOf(1);
+      expect(Object.keys(manifest.releasedVersions)).lengthOf(1);
+      expect(manifest.releasedVersions['.'].toString()).to.equal('2.3.4');
     });
   });
 
