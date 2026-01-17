@@ -128,7 +128,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
         candidatesByPackage
       );
       if (existingCandidate) {
-        // if already has an pull request, update the changelog and update
+        // if already has a pull request, update the changelog and update
         this.logger.info(
           `Updating existing candidate pull request for ${this.packageNameFromPackage(
             pkg
@@ -324,7 +324,7 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
 
   /**
    * Collect all packages being managed in this workspace.
-   * @param {CanididateReleasePullRequest[]} candidates Existing candidate pull
+   * @param {CandidateReleasePullRequest[]} candidates Existing candidate pull
    *   requests
    * @returns {AllPackages<T>} The list of packages and candidates grouped by package name
    */
@@ -364,12 +364,12 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   protected abstract pathFromPackage(pkg: T): string;
 
   /**
-   * Amend any or all in-scope candidates once all other processing has occured.
+   * Amend any or all in-scope candidates once all other processing has occurred.
    *
    * This gives the workspace plugin once last chance to tweak the pull-requests
    * once all the underlying information has been collated.
    * @param {CandidateReleasePullRequest[]} candidates - The list of candidates
-   *   once all other workspace processing has occured.
+   *   once all other workspace processing has occurred.
    * @param {VersionMap} updatedVersions - Map containing any component versions
    *   that have changed.
    * @returns {CandidateReleasePullRequest[]} potentially amended list of

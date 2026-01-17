@@ -243,7 +243,7 @@ describe('GitHub', () => {
         .get('/repos/fake/fake/git/trees/main?recursive=true')
         .reply(200, dataAPITreesResponse);
     });
-    it('should support Github Data API in case of a big file', async () => {
+    it('should support GitHub Data API in case of a big file', async () => {
       const dataAPIBlobResponse = JSON.parse(
         readFileSync(
           resolve(
@@ -273,7 +273,7 @@ describe('GitHub', () => {
 
     it('should throw a missing file error', async () => {
       await assert.rejects(async () => {
-        await github.getFileContents('non-existent-file');
+        await github.getFileContents('nonexistent-file');
       }, FileNotFoundError);
     });
   });
@@ -684,7 +684,7 @@ describe('GitHub', () => {
       expect(drafts).eq(1);
     });
 
-    it('iterates through a result withouth releases', async () => {
+    it('iterates through a result without releases', async () => {
       req.post('/graphql').reply(200, {
         data: {
           repository: {

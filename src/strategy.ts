@@ -96,7 +96,7 @@ export interface Strategy {
   /**
    * Validate whether version is a valid release.
    * @param version Released version.
-   * @returns true of release is valid, false if it should be skipped.
+   * @returns true if release is valid, false if it should be skipped.
    */
   isPublishedVersion?(version: Version): boolean;
 }

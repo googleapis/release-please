@@ -14,7 +14,7 @@
 
 import {Version} from '../../version';
 
-// Ruby gem semver strings using `.` seperator for prereleases rather then `-`
+// Ruby gem semver strings using `.` separator for prereleases rather than `-`
 // See https://guides.rubygems.org/patterns/
 
 export const RUBY_VERSION_REGEX = /((\d+).(\d)+.(\d+)(.\w+.*)?)/g;
@@ -23,14 +23,14 @@ export const RUBY_VERSION_REGEX = /((\d+).(\d)+.(\d+)(.\w+.*)?)/g;
  * Stringify a version to a ruby compatible version string
  *
  * @param version The version to stringify
- * @param useDotPrePreleaseSeperator Use a `.` seperator for prereleases rather then `-`
+ * @param useDotPrePreleaseSeparator Use a `.` separator for prereleases rather than `-`
  * @returns a ruby compatible version string
  */
 export function stringifyRubyVersion(
   version: Version,
-  useDotPrePreleaseSeperator = false
+  useDotPrePreleaseSeparator = false
 ) {
-  if (!useDotPrePreleaseSeperator) {
+  if (!useDotPrePreleaseSeparator) {
     return version.toString();
   }
 

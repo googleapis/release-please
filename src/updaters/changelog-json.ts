@@ -37,7 +37,7 @@ interface Change {
 }
 
 /**
- * Maintains a machine readable CHANGELOG in chnagelog.json.
+ * Maintains a machine readable CHANGELOG in changelog.json.
  * See: https://gist.github.com/bcoe/50ef0a0024bbf107cd5bc0adbdc04758
  */
 export class ChangelogJson extends DefaultUpdater {
@@ -69,7 +69,7 @@ export class ChangelogJson extends DefaultUpdater {
       const issues = new Set<string>();
       // The commit.message field contains the type/scope prefix.
       let message = commit.message.replace(COMMIT_PREFIX, '');
-      // When squashing commits, GitHub adds a suffix refrencing
+      // When squashing commits, GitHub adds a suffix referencing
       // the # of the PR, e.g., chore(main): release 15.5.1 (#1838)
       // this logic removes this suffix and prepends it to the
       // issues array.

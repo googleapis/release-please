@@ -100,7 +100,7 @@ merged into the default/configured branch.
 
 ```
 release-please will now use "1.1.1" as the last-released/current version for
-"path/to/pkg" and suggest the next version according to coventional commits it
+"path/to/pkg" and suggest the next version according to conventional commits it
 has found since the last merged release PR (or "bootstrap-sha" if this is the
 first run).
 
@@ -131,7 +131,7 @@ defaults (those are documented in comments)
   // for conventional commit parsing. Once release-please has generated
   // at least one release PR, this setting will subsequently be ignored.
   // release-please will check for a manifest file at the bootstrap-sha
-  // and if it doesn't find one it will fallback to checking at HEAD.
+  // and if it doesn't find one it will fall back to checking at HEAD.
   // Notes:
   //   - full sha required.
   //   - only applicable at top-level config.
@@ -165,7 +165,7 @@ defaults (those are documented in comments)
   // manually set next version to be "1.2.3" ignoring conventional commits.
   // absence defaults to conventional commits derived next version.
   // Note: once the release PR is merged you should either remove this or
-  // update it to a higher version. Otherwise subsequent `manifest-pr` runs
+  // update it to a higher version. Otherwise, subsequent `manifest-pr` runs
   // will continue to use this version even though it was already set in the
   // last release.
   "release-as": "1.2.3",

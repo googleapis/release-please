@@ -2973,13 +2973,13 @@ describe('Manifest', () => {
             releaseType: 'simple',
             component: 'b',
             extraFiles: ['pkg.properties', 'src/version', '/bbb.properties'],
-            skipGithubRelease: true,
+            skipGitHubRelease: true,
           },
           'pkg/c': {
             releaseType: 'simple',
             component: 'c',
             extraFiles: ['/pkg/pkg-c.properties', 'ccc.properties'],
-            skipGithubRelease: true,
+            skipGitHubRelease: true,
           },
         },
         {
@@ -3274,7 +3274,7 @@ describe('Manifest', () => {
       });
     });
 
-    it('should fallback to tagged version', async () => {
+    it('should fall back to tagged version', async () => {
       mockReleases(sandbox, github, []);
       mockTags(sandbox, github, [
         {
@@ -5098,7 +5098,7 @@ describe('Manifest', () => {
           },
           'packages/object-selector': {
             releaseType: 'node',
-            skipGithubRelease: true,
+            skipGitHubRelease: true,
           },
           'packages/datastore-lock': {
             releaseType: 'node',

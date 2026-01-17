@@ -52,8 +52,8 @@ describe('Bootstrapper', () => {
         number: 123,
       });
 
-    const bootstapper = new Bootstrapper(github, 'main');
-    const pullRequest = await bootstapper.bootstrap('.', {
+    const bootstrapper = new Bootstrapper(github, 'main');
+    const pullRequest = await bootstrapper.bootstrap('.', {
       releaseType: 'node',
     });
     expect(pullRequest.number).to.eql(123);

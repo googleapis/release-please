@@ -37,7 +37,7 @@ describe('Gemfile.lock', () => {
       ['foo', '2.0.22', 'foo (1.0.0)', 'foo (2.0.22)', true, 'major bump with long patch'],
       ['foo', '2.0.22', 'foo (1.0.0-alpha1)', 'foo (2.0.22)', true, 'update semantic version'],
       ['foo', '1.0.0', 'something', 'something', false, 'text to ignore'],
-      ['foo', '1.0.0', 'foo 1.0.0', 'foo 1.0.0', false, 'no parantheses around version'],
+      ['foo', '1.0.0', 'foo 1.0.0', 'foo 1.0.0', false, 'no parentheses around version'],
       ['foo', '1.0.0', 'barfoo (1.0.0)', 'barfoo (1.0.0)', false, 'prefixed gem name'],
       ['foo', '1.0.0', 'foobar (0.1.0)', 'foobar (0.1.0)', false, 'suffixed gem name'],
       ['', '1.0.0', 'foobar (0.1.0)', 'foobar (0.1.0)', false, 'empty gem name'],

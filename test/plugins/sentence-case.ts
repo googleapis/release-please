@@ -78,7 +78,7 @@ describe('SentenceCase Plugin', () => {
     const commits = await plugin.processCommits([
       ...buildMockConventionalCommit('hello world goodnight moon'),
     ]);
-    // Ensure there's no exception, a commit without a <type> is not
+    // Ensure there's no exception: a commit without a <type> is not
     // a conventional commit, and will not show up in CHANGELOG. We
     // Do not bother sentence-casing:
     console.info(commits);

@@ -21,7 +21,7 @@ interface SamplesPackageJsonOptions extends UpdateOptions {
 }
 
 /**
- * Updates the a Node.js package.json file with the library in the
+ * Updates the Node.js package.json file with the library in the
  * dependencies section.
  */
 export class SamplesPackageJson extends DefaultUpdater {

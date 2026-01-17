@@ -81,7 +81,7 @@ describe('ruby-common', () => {
       });
     });
 
-    describe('with dot prelease seperator', () => {
+    describe('with dot prelease separator', () => {
       const testTable: [string, string][] = [
         ['0.2.0', '0.2.0'],
         ['1.2.3', '1.2.3'],

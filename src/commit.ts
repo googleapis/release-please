@@ -198,7 +198,7 @@ function toConventionalChangelogFormat(
       action: '',
       issue: '',
     };
-    let hasRefSepartor = false;
+    let hasRefSeparator = false;
     visit(
       node,
       ['type', 'separator', 'text'],
@@ -212,12 +212,12 @@ function toConventionalChangelogFormat(
             break;
           case 'separator':
             // Footer of the form "Refs #99":
-            if (node.value.includes('#')) hasRefSepartor = true;
+            if (node.value.includes('#')) hasRefSeparator = true;
             break;
           case 'text':
             // Footer of the form "Refs: #99"
             if (node.value.charAt(0) === '#') {
-              hasRefSepartor = true;
+              hasRefSeparator = true;
               reference.issue = node.value.substring(1);
               // TODO(@bcoe): what about references like "Refs: #99, #102"?
             } else {
@@ -228,7 +228,7 @@ function toConventionalChangelogFormat(
       }
     );
     // TODO(@bcoe): how should references like "Refs: v8:8940" work.
-    if (hasRefSepartor && reference.issue.match(NUMBER_REGEX)) {
+    if (hasRefSeparator && reference.issue.match(NUMBER_REGEX)) {
       headerCommit.references.push(reference);
     }
   });
