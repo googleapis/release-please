@@ -47,7 +47,10 @@
                 "type": "boolean"
               }
             },
-            "required": ["type", "section"]
+            "required": [
+              "type",
+              "section"
+            ]
           }
         },
         "release-as": {
@@ -93,7 +96,10 @@
         "changelog-type": {
           "description": "The type of changelog to use. Defaults to `default`.",
           "type": "string",
-          "enum": ["default", "github"]
+          "enum": [
+            "default",
+            "github"
+          ]
         },
         "changelog-host": {
           "description": "Generate changelog links to this GitHub host. Useful for running against GitHub Enterprise.",
@@ -146,7 +152,11 @@
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["json", "toml", "yaml"]
+                    "enum": [
+                      "json",
+                      "toml",
+                      "yaml"
+                    ]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -159,9 +169,25 @@
                   "jsonpath": {
                     "description": "The jsonpath to the version entry in the file.",
                     "type": "string"
+                  },
+                  "component": {
+                    "description": "The component name to reference for the version. If specified, uses that component's version instead of the current component's version.",
+                    "type": "string"
+                  },
+                  "template": {
+                    "description": "Template string for formatting the version. Supports {{version}}, {{major}}, {{minor}}, {{patch}}, {{prerelease}}, {{component}}.",
+                    "type": "string"
+                  },
+                  "bumpDependents": {
+                    "description": "Whether changes to the referenced component should trigger a version bump of this component. Defaults to `true`.",
+                    "type": "boolean"
                   }
                 },
-                "required": ["type", "path", "jsonpath"]
+                "required": [
+                  "type",
+                  "path",
+                  "jsonpath"
+                ]
               },
               {
                 "description": "An extra XML file with a targeted update via xpath.",
@@ -169,7 +195,9 @@
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["xml"]
+                    "enum": [
+                      "xml"
+                    ]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -182,9 +210,25 @@
                   "xpath": {
                     "description": "The xpath to the version entry in the file.",
                     "type": "string"
+                  },
+                  "component": {
+                    "description": "The component name to reference for the version. If specified, uses that component's version instead of the current component's version.",
+                    "type": "string"
+                  },
+                  "template": {
+                    "description": "Template string for formatting the version. Supports {{version}}, {{major}}, {{minor}}, {{patch}}, {{prerelease}}, {{component}}.",
+                    "type": "string"
+                  },
+                  "bumpDependents": {
+                    "description": "Whether changes to the referenced component should trigger a version bump of this component. Defaults to `true`.",
+                    "type": "boolean"
                   }
                 },
-                "required": ["type", "path", "xpath"]
+                "required": [
+                  "type",
+                  "path",
+                  "xpath"
+                ]
               },
               {
                 "description": "An extra pom.xml file.",
@@ -192,7 +236,9 @@
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["pom"]
+                    "enum": [
+                      "pom"
+                    ]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -201,9 +247,24 @@
                   "glob": {
                     "description": "Whether to treat the path as a glob. Defaults to `false`.",
                     "type": "boolean"
+                  },
+                  "component": {
+                    "description": "The component name to reference for the version. If specified, uses that component's version instead of the current component's version.",
+                    "type": "string"
+                  },
+                  "template": {
+                    "description": "Template string for formatting the version. Supports {{version}}, {{major}}, {{minor}}, {{patch}}, {{prerelease}}, {{component}}.",
+                    "type": "string"
+                  },
+                  "bumpDependents": {
+                    "description": "Whether changes to the referenced component should trigger a version bump of this component. Defaults to `true`.",
+                    "type": "boolean"
                   }
                 },
-                "required": ["type", "path"]
+                "required": [
+                  "type",
+                  "path"
+                ]
               },
               {
                 "description": "An extra arbitrary file that includes release-please generic updater's annotation.",
@@ -211,7 +272,9 @@
                 "properties": {
                   "type": {
                     "description": "The file format type.",
-                    "enum": ["generic"]
+                    "enum": [
+                      "generic"
+                    ]
                   },
                   "path": {
                     "description": "The path to the file.",
@@ -220,9 +283,24 @@
                   "glob": {
                     "description": "Whether to treat the path as a glob. Defaults to `false`.",
                     "type": "boolean"
+                  },
+                  "component": {
+                    "description": "The component name to reference for the version. If specified, uses that component's version instead of the current component's version.",
+                    "type": "string"
+                  },
+                  "template": {
+                    "description": "Template string for formatting the version. Supports {{version}}, {{major}}, {{minor}}, {{patch}}, {{prerelease}}, {{component}}.",
+                    "type": "string"
+                  },
+                  "bumpDependents": {
+                    "description": "Whether changes to the referenced component should trigger a version bump of this component. Defaults to `true`.",
+                    "type": "boolean"
                   }
                 },
-                "required": ["type", "path"]
+                "required": [
+                  "type",
+                  "path"
+                ]
               }
             ]
           }
@@ -303,7 +381,9 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["linked-versions"]
+                    "enum": [
+                      "linked-versions"
+                    ]
                   },
                   "groupName": {
                     "description": "The name of the group of components.",
@@ -328,7 +408,11 @@
                     }
                   }
                 },
-                "required": ["type", "groupName", "components"]
+                "required": [
+                  "type",
+                  "groupName",
+                  "components"
+                ]
               },
               {
                 "description": "Configuration for various `workspace` plugins.",
@@ -337,7 +421,10 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["cargo-workspace", "maven-workspace"]
+                    "enum": [
+                      "cargo-workspace",
+                      "maven-workspace"
+                    ]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -360,7 +447,9 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["node-workspace"]
+                    "enum": [
+                      "node-workspace"
+                    ]
                   },
                   "updateAllPackages": {
                     "description": "Whether to force updating all packages regardless of the dependency tree. Defaults to `false`.",
@@ -387,7 +476,9 @@
                   "type": {
                     "description": "The name of the plugin.",
                     "type": "string",
-                    "enum": ["group-priority"]
+                    "enum": [
+                      "group-priority"
+                    ]
                   },
                   "groups": {
                     "description": "Group names ordered with highest priority first.",
@@ -444,7 +535,9 @@
           "type": "boolean"
         }
       },
-      "required": ["packages"]
+      "required": [
+        "packages"
+      ]
     }
   ],
   "properties": {
