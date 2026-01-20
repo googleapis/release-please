@@ -1400,9 +1400,13 @@ export class GitHub {
             ref: `refs/tags/${release.tag.toString()}`,
             sha: release.sha,
           });
-        } catch (err: any) {
+        } catch (err) {
           // ignore if tag already exists
-          if (err.status !== 422) {
+          if ((err as RequestError).status === 422) {
+            this.logger.debug(
+              `Tag ${release.tag.toString()} already exists, skipping tag creation`
+            );
+          } else {
             throw err;
           }
         }
