@@ -58,8 +58,8 @@ Options:
                                 with the release for future tag creation upon
                                 "un-drafting" the release.
                                                       [boolean] [default: false]
-  --force-tag-creation          Force the creation of a Git tag for the
-                                release.              [boolean] [default: false]
+  --force-tag-creation          Force the creation of a Git tag for the release.
+                                                      [boolean] [default: false]
   --prerelease                  mark release that have prerelease versions as as
                                 a prerelease on Github[boolean] [default: false]
   --label                       comma-separated list of labels to remove to from
@@ -119,44 +119,43 @@ release-please manifest-release
 create releases/tags from last release-PR using a manifest file
 
 Options:
-  --help            Show help                                          [boolean]
-  --version         Show version number                                [boolean]
-  --debug           print verbose errors (use only for local debugging).
+  --help                Show help                                      [boolean]
+  --version             Show version number                            [boolean]
+  --debug               print verbose errors (use only for local debugging).
                                                       [boolean] [default: false]
-  --trace           print extra verbose errors (use only for local debugging).
-                                                      [boolean] [default: false]
-  --plugin          load plugin named release-please-<plugin-name>
+  --trace               print extra verbose errors (use only for local
+                        debugging).                   [boolean] [default: false]
+  --plugin              load plugin named release-please-<plugin-name>
                                                            [array] [default: []]
-  --token           GitHub token with repo write permissions
-  --api-url         URL to use when making API requests
+  --token               GitHub token with repo write permissions
+  --api-url             URL to use when making API requests
                                     [string] [default: "https://api.github.com"]
-  --graphql-url     URL to use when making GraphQL requests
+  --graphql-url         URL to use when making GraphQL requests
                                     [string] [default: "https://api.github.com"]
-  --default-branch  The branch to open release PRs against and tag releases on
-                              [deprecated: use --target-branch instead] [string]
-  --target-branch   The branch to open release PRs against and tag releases on
-                                                                        [string]
-  --repo-url        GitHub URL to generate release for                [required]
-  --dry-run         Prepare but do not take action    [boolean] [default: false]
-  --draft           mark release as a draft. no tag is created but tag_name and
-                    target_commitish are associated with the release for future
-                    tag creation upon "un-drafting" the release.
+  --default-branch      The branch to open release PRs against and tag releases
+                        on    [deprecated: use --target-branch instead] [string]
+  --target-branch       The branch to open release PRs against and tag releases
+                        on                                              [string]
+  --repo-url            GitHub URL to generate release for            [required]
+  --dry-run             Prepare but do not take action[boolean] [default: false]
+  --draft               mark release as a draft. no tag is created but tag_name
+                        and target_commitish are associated with the release for
+                        future tag creation upon "un-drafting" the release.
                                                       [boolean] [default: false]
-  --force-tag-creation
-                    Force the creation of a Git tag for the release.
+  --force-tag-creation  Force the creation of a Git tag for the release.
                                                       [boolean] [default: false]
-  --prerelease      mark release that have prerelease versions as as a
-                    prerelease on Github              [boolean] [default: false]
-  --label           comma-separated list of labels to remove to from release PR
-                                               [default: "autorelease: pending"]
-  --release-label   set a pull request label other than "autorelease: tagged"
-                                       [string] [default: "autorelease: tagged"]
-  --snapshot-label  set a java snapshot pull request label other than
-                    "autorelease: snapshot"
+  --prerelease          mark release that have prerelease versions as as a
+                        prerelease on Github          [boolean] [default: false]
+  --label               comma-separated list of labels to remove to from release
+                        PR                     [default: "autorelease: pending"]
+  --release-label       set a pull request label other than "autorelease:
+                        tagged"        [string] [default: "autorelease: tagged"]
+  --snapshot-label      set a java snapshot pull request label other than
+                        "autorelease: snapshot"
                                      [string] [default: "autorelease: snapshot"]
-  --config-file     where can the config file be found in the project?
+  --config-file         where can the config file be found in the project?
                                          [default: "release-please-config.json"]
-  --manifest-file   where can the manifest file be found in the project?
+  --manifest-file       where can the manifest file be found in the project?
                                       [default: ".release-please-manifest.json"]
 `
 
