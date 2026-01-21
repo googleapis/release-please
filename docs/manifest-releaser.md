@@ -100,7 +100,7 @@ merged into the default/configured branch.
 
 ```
 release-please will now use "1.1.1" as the last-released/current version for
-"path/to/pkg" and suggest the next version according to coventional commits it
+"path/to/pkg" and suggest the next version according to conventional commits it
 has found since the last merged release PR (or "bootstrap-sha" if this is the
 first run).
 
