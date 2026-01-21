@@ -197,6 +197,11 @@ defaults (those are documented in comments)
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Prerelease" releases that have pre-major or prerelease versions.
   // absence defaults to false and all versions are fully Published.
+  // Works together with the "prerelease" versioning strategy, which creates a 
+  // prerelease-version (like 1.0.0-alpha.1) only if this setting is set to true.
+  // This allows to create prerelease-versions while working on pre-release branches - 
+  // once the development is done and the branch gets merged to main/release-branch
+  // a full-release can be done.
   "prerelease": true,
 
   // Force the creation of a Git tag for the release. This is particularly
