@@ -664,3 +664,185 @@ will only open pull requests for snapshot pull requests if there are any. This w
 mix/match of snapshot and non-snapshot version bumps.
 
 The `groups` option is a list of group names sorted with the highest priority first.
+
+## Component References in extra-files
+
+The `extra-files` configuration option allows you to specify additional files that should be updated when a component is released. By default, these files are updated with the component's own version. However, you can use **component references** to update files with versions from other components in your monorepo.
+
+This is particularly useful for scenarios like:
+- Helm charts that reference container image versions
+- Applications that embed library versions
+- Documentation that needs to track dependency versions
+- Docker Compose files that reference multiple service versions
+
+### Configuration Options
+
+When configuring `extra-files`, you can use the following options:
+
+#### `component`
+
+Specifies which component's version to use for the update. If omitted, uses the current component's version.
+
+```json
+{
+  "packages": {
+    "containers/app1": {
+      "component": "app1",
+      "release-type": "simple"
+    },
+    "charts/my-chart": {
+      "component": "my-chart",
+      "release-type": "helm",
+      "extra-files": [
+        {
+          "type": "yaml",
+          "path": "charts/my-chart/values.yaml",
+          "jsonpath": "$.image.app1.tag",
+          "component": "app1"
+        }
+      ]
+    }
+  }
+}
+```
+
+#### `template`
+
+Formats the version using a template string. Supports the following variables:
+
+- `{{version}}` - Full version (e.g., `1.2.3`)
+- `{{major}}` - Major version number (e.g., `1`)
+- `{{minor}}` - Minor version number (e.g., `2`)
+- `{{patch}}` - Patch version number (e.g., `3`)
+- `{{prerelease}}` - Prerelease suffix (e.g., `beta.1`)
+- `{{component}}` - Component name
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "yaml",
+      "path": "values.yaml",
+      "jsonpath": "$.image.tag",
+      "component": "app1",
+      "template": "v{{version}}"
+    },
+    {
+      "type": "yaml",
+      "path": "values.yaml",
+      "jsonpath": "$.image.repository",
+      "component": "app1",
+      "template": "ghcr.io/myorg/{{component}}:{{version}}"
+    },
+    {
+      "type": "yaml",
+      "path": "Chart.yaml",
+      "jsonpath": "$.appVersion",
+      "component": "app1",
+      "template": "{{major}}.{{minor}}"
+    }
+  ]
+}
+```
+
+#### `bumpDependents`
+
+Determines whether changes to the referenced component should trigger a version bump of the current component. Defaults to `true`.
+
+When `bumpDependents` is `true`, release-please will automatically:
+- Track which components depend on other components
+- Create patch bumps for dependent components when their dependencies change
+- Update extra-files in dependents with the new dependency versions
+- Add dependency update notes to the PR body
+
+```json
+{
+  "extra-files": [
+    {
+      "type": "yaml",
+      "path": "values.yaml",
+      "jsonpath": "$.image.tag",
+      "component": "app1",
+      "bumpDependents": true
+    }
+  ]
+}
+```
+
+In this example, when `app1` is released, any component that references `app1` in its extra-files will automatically get a patch version bump.
+
+### Complete Example
+
+Here's a complete example of a monorepo with two containers and a Helm chart that depends on them:
+
+```json
+{
+  "packages": {
+    "containers/app1": {
+      "component": "app1",
+      "release-type": "simple"
+    },
+    "containers/app2": {
+      "component": "app2",
+      "release-type": "simple"
+    },
+    "charts/my-chart": {
+      "component": "my-chart",
+      "release-type": "helm",
+      "extra-files": [
+        {
+          "type": "yaml",
+          "path": "charts/my-chart/values.yaml",
+          "jsonpath": "$.images.app1.tag",
+          "component": "app1",
+          "template": "{{version}}"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/my-chart/values.yaml",
+          "jsonpath": "$.images.app1.repository",
+          "component": "app1",
+          "template": "ghcr.io/myorg/{{component}}"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/my-chart/values.yaml",
+          "jsonpath": "$.images.app2.tag",
+          "component": "app2",
+          "template": "{{version}}"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/my-chart/Chart.yaml",
+          "jsonpath": "$.appVersion",
+          "component": "app1",
+          "template": "{{major}}.{{minor}}",
+          "bumpDependents": false
+        }
+      ]
+    }
+  }
+}
+```
+
+### Behavior
+
+When a release is created:
+
+1. **Component Version Resolution**: If an `extra-file` specifies a `component`, release-please looks up that component's version from the versions map
+2. **Template Rendering**: If a `template` is specified, the version is formatted using the template variables
+3. **File Update**: The resolved and formatted value is written to the specified file path using the appropriate updater (JSON, YAML, TOML, or XML)
+
+### Differences from linked-versions Plugin
+
+The `component` reference feature differs from the `linked-versions` plugin:
+
+| Feature | Component References | linked-versions Plugin |
+|---------|---------------------|------------------------|
+| **Version Synchronization** | Components maintain independent versions | All components forced to same version |
+| **Use Case** | Dependencies that need to track other component versions | Components that must always share the same version |
+| **Version Updates** | Only updates file references, not component versions | Updates all component versions to highest in group |
+| **Flexibility** | High - can reference any component's version | Low - all components must move together |
+
+Use component references when you want independent versioning with dependency tracking. Use `linked-versions` when you want components to always share the same version number.
+

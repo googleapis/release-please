@@ -32,7 +32,7 @@ import {
   ChangelogNotesType,
 } from './factory';
 import {Release} from './release';
-import {Strategy} from './strategy';
+import {Strategy, BumpReleaseOptions} from './strategy';
 import {MergeOptions, Merge} from './plugins/merge';
 import {ReleasePleaseManifest} from './updaters/release-please-manifest';
 import {
@@ -52,35 +52,53 @@ type ExtraGenericFile = {
   type: 'generic';
   path: string;
   glob?: boolean;
+  component?: string;
+  template?: string;
+  bumpDependents?: boolean;
 };
 type ExtraJsonFile = {
   type: 'json';
   path: string;
   jsonpath: string;
   glob?: boolean;
+  component?: string;
+  template?: string;
+  bumpDependents?: boolean;
 };
 type ExtraYamlFile = {
   type: 'yaml';
   path: string;
   jsonpath: string;
   glob?: boolean;
+  component?: string;
+  template?: string;
+  bumpDependents?: boolean;
 };
 type ExtraXmlFile = {
   type: 'xml';
   path: string;
   xpath: string;
   glob?: boolean;
+  component?: string;
+  template?: string;
+  bumpDependents?: boolean;
 };
 type ExtraPomFile = {
   type: 'pom';
   path: string;
   glob?: boolean;
+  component?: string;
+  template?: string;
+  bumpDependents?: boolean;
 };
 type ExtraTomlFile = {
   type: 'toml';
   path: string;
   jsonpath: string;
   glob?: boolean;
+  component?: string;
+  template?: string;
+  bumpDependents?: boolean;
 };
 export type ExtraFile =
   | string
@@ -728,6 +746,72 @@ export class Manifest {
       );
     }
 
+    // Build dependency graph and track which paths need dependency bumps
+    this.logger.info('Building component dependency graph');
+    const dependencyGraph = this.buildComponentDependencyGraph();
+    const componentsWithChanges = new Set<string>();
+    const dependencyBumps = new Map<string, Set<string>>(); // path -> set of changed dependency components
+
+    // Build a complete versionsMap with all component versions for extra-files resolution
+    const completeVersionsMap = new Map<string, Version>();
+    for (const path in this.repositoryConfig) {
+      const strategy = strategies[path];
+      const component = await strategy.getComponent();
+      if (component) {
+        // Use latest release version or current manifest version
+        const latestRelease = releasesByPath[path];
+        const version =
+          latestRelease?.tag.version || this.releasedVersions[path];
+        if (version) {
+          completeVersionsMap.set(component, version);
+          this.logger.debug(
+            `Added ${component} version ${version.toString()} to versionsMap`
+          );
+        }
+      }
+    }
+
+    // First pass: identify components with actual commits
+    for (const path in commitsPerPath) {
+      if (commitsPerPath[path].length > 0) {
+        const strategy = strategies[path];
+        const component = await strategy.getComponent();
+        if (component) {
+          componentsWithChanges.add(component);
+          this.logger.info(
+            `Component ${component} has ${commitsPerPath[path].length} commit(s)`
+          );
+        }
+      }
+    }
+
+    // Second pass: determine which paths need dependency bumps
+    for (const changedComponent of componentsWithChanges) {
+      const dependentPaths = this.getDependentPaths(
+        changedComponent,
+        dependencyGraph
+      );
+
+      for (const dependentPath of dependentPaths) {
+        // Only trigger dependency bump if the dependent has no commits or doesn't exist in commitsPerPath
+        const pathCommits = commitsPerPath[dependentPath] || [];
+        if (pathCommits.length === 0) {
+          if (!dependencyBumps.has(dependentPath)) {
+            dependencyBumps.set(dependentPath, new Set());
+          }
+          dependencyBumps.get(dependentPath)!.add(changedComponent);
+
+          this.logger.info(
+            `${dependentPath} will be bumped due to ${changedComponent} dependency change`
+          );
+        } else {
+          this.logger.debug(
+            `${dependentPath} already has commits, no dependency bump needed for ${changedComponent}`
+          );
+        }
+      }
+    }
+
     let newReleasePullRequests: CandidateReleasePullRequest[] = [];
     for (const path in this.repositoryConfig) {
       const config = this.repositoryConfig[path];
@@ -737,7 +821,7 @@ export class Manifest {
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
       let pathCommits = parseConventionalCommits(
-        commitsPerPath[path],
+        commitsPerPath[path] || [],
         this.logger
       );
       // The processCommits hook can be implemented by plugins to
@@ -755,13 +839,94 @@ export class Manifest {
 
       const strategy = strategies[path];
       const latestRelease = releasesByPath[path];
+
+      // Determine if this path needs a dependency bump  
+      // Provide completeVersionsMap for extra-files component references
+      let bumpOnlyOptions: BumpReleaseOptions | undefined;
+      
+      // Check if this component's extra-files have component references
+      const hasComponentReferences = config.extraFiles?.some(
+        file => typeof file === 'object' && 'component' in file && file.component
+      );
+      
+      if (dependencyBumps.has(path) && pathCommits.length === 0) {
+        // This path has no commits but has dependency changes
+        // Calculate the new version as a patch bump
+        const changedDeps = Array.from(dependencyBumps.get(path)!);
+
+        this.logger.info(
+          `Forcing patch bump for ${path} due to dependency updates: ${changedDeps.join(
+            ', '
+          )}`
+        );
+
+        // Calculate the new version as a patch bump
+        const currentVersion =
+          latestRelease?.tag.version || new Version(0, 0, 0);
+        const newVersion = new Version(
+          currentVersion.major,
+          currentVersion.minor,
+          currentVersion.patch + 1,
+          currentVersion.preRelease,
+          currentVersion.build
+        );
+
+        bumpOnlyOptions = {
+          newVersion,
+          versionsMap: completeVersionsMap,
+          forceBump: true,
+        };
+        
+        this.logger.debug(
+          `Passing versionsMap to ${path} (dependency bump) with ${completeVersionsMap.size} components: ${Array.from(completeVersionsMap.keys()).join(', ')}`
+        );
+      } else if (hasComponentReferences && completeVersionsMap.size > 0 && pathCommits.length > 0) {
+        // Provide versionsMap for components with commits AND component references in extra-files
+        // This allows extra-files with component references to be updated
+        bumpOnlyOptions = {
+          versionsMap: completeVersionsMap,
+          forceBump: false,
+        };
+        
+        this.logger.debug(
+          `Passing versionsMap to ${path} (has component refs) with ${completeVersionsMap.size} components: ${Array.from(completeVersionsMap.keys()).join(', ')}`
+        );
+      }
+
       const releasePullRequest = await strategy.buildReleasePullRequest(
         pathCommits,
         latestRelease,
         config.draftPullRequest ?? this.draftPullRequest,
-        this.labels
+        this.labels,
+        bumpOnlyOptions
       );
       if (releasePullRequest) {
+        // Update completeVersionsMap with the new version for this component
+        const component = await strategy.getComponent();
+        if (component) {
+          completeVersionsMap.set(
+            component,
+            releasePullRequest.version || latestRelease?.tag.version
+          );
+          this.logger.info(
+            `Added ${component} version ${releasePullRequest.version?.toString()} to versionsMap`
+          );
+        }
+
+        // Add dependency update note if this was a dependency bump
+        if (bumpOnlyOptions && dependencyBumps.has(path)) {
+          const changedDeps = Array.from(dependencyBumps.get(path)!);
+          const depNote = `\n### Dependencies\n\n* Updated dependencies: ${changedDeps.join(
+            ', '
+          )}\n`;
+
+          // Add to the release notes
+          if (releasePullRequest.body.releaseData.length > 0) {
+            const releaseData = releasePullRequest.body.releaseData[0];
+            releaseData.notes = (releaseData.notes || '') + depNote;
+          }
+        }
+
         // Update manifest, but only for valid release version - this will skip SNAPSHOT from java strategy
         if (
           releasePullRequest.version &&
@@ -1366,6 +1531,49 @@ export class Manifest {
       }
     }
     return this._pathsByComponent;
+  }
+
+  /**
+   * Build a dependency graph from extra-files component references.
+   * Returns a map of component -> list of paths that depend on it.
+   */
+  private buildComponentDependencyGraph(): Map<string, Set<string>> {
+    const dependencyGraph = new Map<string, Set<string>>();
+
+    for (const path in this.repositoryConfig) {
+      const config = this.repositoryConfig[path];
+      const extraFiles = config.extraFiles || [];
+
+      for (const extraFile of extraFiles) {
+        if (typeof extraFile === 'object' && extraFile.component) {
+          // Default bumpDependents to true
+          const bumpOnChange = extraFile.bumpDependents ?? true;
+
+          if (bumpOnChange) {
+            if (!dependencyGraph.has(extraFile.component)) {
+              dependencyGraph.set(extraFile.component, new Set());
+            }
+            dependencyGraph.get(extraFile.component)!.add(path);
+
+            this.logger.debug(
+              `Dependency: ${path} depends on component ${extraFile.component}`
+            );
+          }
+        }
+      }
+    }
+
+    return dependencyGraph;
+  }
+
+  /**
+   * Get all paths that depend on the given component.
+   */
+  private getDependentPaths(
+    component: string,
+    dependencyGraph: Map<string, Set<string>>
+  ): Set<string> {
+    return dependencyGraph.get(component) || new Set();
   }
 }
 
