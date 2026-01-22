@@ -197,6 +197,7 @@ interface ReleaserConfigJson {
 export interface ManifestOptions {
   bootstrapSha?: string;
   lastReleaseSha?: string;
+  latestTagVersion?: string;
   alwaysLinkLocal?: boolean;
   separatePullRequests?: boolean;
   plugins?: PluginType[];
@@ -440,6 +441,15 @@ export class Manifest {
       parseConfig(github, configFile, targetBranch, path, releaseAs),
       parseReleasedVersions(github, manifestFile, targetBranch),
     ]);
+
+    // Override releasedVersions if latestTagVersion is provided via CLI
+    if (manifestOptionOverrides?.latestTagVersion) {
+      const targetPath = path || ROOT_PROJECT_PATH;
+      releasedVersions[targetPath] = Version.parse(
+        manifestOptionOverrides.latestTagVersion
+      );
+    }
+
     return new Manifest(
       github,
       targetBranch,
@@ -495,14 +505,19 @@ export class Manifest {
     });
     const component = await strategy.getBranchComponent();
     const releasedVersions: ReleasedVersions = {};
-    const latestVersion = await latestReleaseVersion(
-      github,
-      targetBranch,
-      version => isPublishedVersion(strategy, version),
-      config,
-      component,
-      manifestOptions?.logger
-    );
+    let latestVersion: Version | undefined;
+    if (manifestOptions?.latestTagVersion) {
+      latestVersion = Version.parse(manifestOptions.latestTagVersion);
+    } else {
+      latestVersion = await latestReleaseVersion(
+        github,
+        targetBranch,
+        version => isPublishedVersion(strategy, version),
+        config,
+        component,
+        manifestOptions?.logger
+      );
+    }
     if (latestVersion) {
       releasedVersions[path] = latestVersion;
     }
