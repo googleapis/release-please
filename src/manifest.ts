@@ -492,6 +492,7 @@ export class Manifest {
     const strategy = await buildStrategy({
       github,
       ...config,
+      path
     });
     const component = await strategy.getBranchComponent();
     const releasedVersions: ReleasedVersions = {};
