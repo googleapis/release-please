@@ -528,7 +528,8 @@ export class Manifest {
    */
   async buildPullRequests(): Promise<ReleasePullRequest[]> {
     this.logger.info('Building pull requests');
-    const pathsByComponent = await this.getPathsByComponent();
+    const pathsByComponent =
+      (await this.getPathsByComponent()) || this.getComponentlessPackage();
     const strategiesByPath = await this.getStrategiesByPath();
 
     // Collect all the SHAs of the latest release packages
@@ -833,6 +834,15 @@ export class Manifest {
     return newReleasePullRequests.map(
       pullRequestWithConfig => pullRequestWithConfig.pullRequest
     );
+  }
+
+  private getComponentlessPackage(): string {
+    for (const path in this.repositoryConfig) {
+      if (!this.repositoryConfig[path].includeComponentInTag) {
+        return path;
+      }
+    }
+    return '';
   }
 
   private async backfillReleasesFromTags(
