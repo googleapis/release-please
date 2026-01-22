@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.2.1](https://github.com/googleapis/release-please/compare/v17.2.0...v17.2.1) (2026-01-22)
+
+
+### Bug Fixes
+
+* "prerelease" versioning strategy ([#2516](https://github.com/googleapis/release-please/issues/2516)) ([95a6568](https://github.com/googleapis/release-please/commit/95a65681a591c39ed7b2e55db0064bb8839575b4))
+
 ## [17.2.0](https://github.com/googleapis/release-please/compare/v17.1.3...v17.2.0) (2026-01-20)
 
 
