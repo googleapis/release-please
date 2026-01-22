@@ -20,6 +20,13 @@
           "description": "Feature changes only bump semver patch if version < 1.0.0",
           "type": "boolean"
         },
+        "extra-prefix-mapping": {
+          "description": "Map custom commit prefixes to conventional commit types. Use empty string (\"\") to map non-conventional commits. Example: {\"change\": \"fix\", \"\": \"chore\"}",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "prerelease-type": {
           "description": "Configuration option for the prerelease versioning strategy. If prerelease strategy used and type set, will set the prerelease part of the version to the provided value in case prerelease part is not present.",
           "type": "string"
