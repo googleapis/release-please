@@ -290,6 +290,90 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.is.string;
         safeSnapshot(notes);
       });
+      it('should include commit authors when enabled with username', async () => {
+        const commits = [
+          {
+            sha: 'sha1',
+            message: 'feat: some feature',
+            files: ['path1/file1.txt'],
+            type: 'feat',
+            scope: null,
+            bareMessage: 'some feature',
+            notes: [],
+            references: [],
+            breaking: false,
+            author: {
+              name: 'Test User',
+              email: 'test@example.com',
+              username: 'testuser',
+            },
+          },
+        ];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(commits, {
+          ...notesOptions,
+          includeCommitAuthors: true,
+        });
+        expect(notes).to.is.string;
+        expect(notes).to.include('@testuser');
+        safeSnapshot(notes);
+      });
+      it('should include commit authors when enabled without username', async () => {
+        const commits = [
+          {
+            sha: 'sha1',
+            message: 'feat: some feature',
+            files: ['path1/file1.txt'],
+            type: 'feat',
+            scope: null,
+            bareMessage: 'some feature',
+            notes: [],
+            references: [],
+            breaking: false,
+            author: {
+              name: 'Test User',
+              email: 'test@example.com',
+            },
+          },
+        ];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(commits, {
+          ...notesOptions,
+          includeCommitAuthors: true,
+        });
+        expect(notes).to.is.string;
+        expect(notes).to.include('Test User');
+        safeSnapshot(notes);
+      });
+      it('should not include commit authors when disabled', async () => {
+        const commits = [
+          {
+            sha: 'sha1',
+            message: 'feat: some feature',
+            files: ['path1/file1.txt'],
+            type: 'feat',
+            scope: null,
+            bareMessage: 'some feature',
+            notes: [],
+            references: [],
+            breaking: false,
+            author: {
+              name: 'Test User',
+              email: 'test@example.com',
+              username: 'testuser',
+            },
+          },
+        ];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(commits, {
+          ...notesOptions,
+          includeCommitAuthors: false,
+        });
+        expect(notes).to.is.string;
+        expect(notes).to.not.include('@testuser');
+        expect(notes).to.not.include('Test User');
+        safeSnapshot(notes);
+      });
       // it('ignores reverted commits', async () => {
       //   const commits = [buildCommitFromFixture('multiple-messages')];
       //   const changelogNotes = new DefaultChangelogNotes();

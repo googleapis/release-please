@@ -88,9 +88,18 @@ interface GitHubCreateOptions {
 
 type CommitFilter = (commit: Commit) => boolean;
 
+interface GraphQLCommitAuthor {
+  name?: string;
+  email?: string;
+  user?: {
+    login: string;
+  } | null;
+}
+
 interface GraphQLCommit {
   sha: string;
   message: string;
+  author?: GraphQLCommitAuthor;
   associatedPullRequests: {
     nodes: GraphQLPullRequest[];
   };
@@ -434,6 +443,13 @@ export class GitHub {
                   }
                   sha: oid
                   message
+                  author {
+                    name
+                    email
+                    user {
+                      login
+                    }
+                  }
                 }
                 pageInfo {
                   hasNextPage
@@ -492,6 +508,13 @@ export class GitHub {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
+        author: graphCommit.author
+          ? {
+              name: graphCommit.author.name || 'Unknown',
+              email: graphCommit.author.email,
+              username: graphCommit.author.user?.login,
+            }
+          : undefined,
       };
       const mergePullRequest = graphCommit.associatedPullRequests.nodes.find(
         pr => {

@@ -24,6 +24,7 @@ export interface BuildNotesOptions {
   targetBranch: string;
   changelogSections?: ChangelogSection[];
   commits?: Commit[];
+  includeCommitAuthors?: boolean;
 }
 
 export interface ChangelogNotes {

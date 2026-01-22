@@ -218,6 +218,33 @@ exports['DefaultChangelogNotes buildNotes with commit parsing should handle mult
 * upgrade to Node 7 ([8916be7](https://github.com/googleapis/java-asset/commit/8916be74596394c27516696b957fd0d7))
 `
 
+exports['DefaultChangelogNotes buildNotes with commit parsing should include commit authors when enabled with username 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Features
+
+* some feature ([@testuser](https://github.com/testuser)) ([sha1](https://github.com/googleapis/java-asset/commit/sha1))
+`
+
+exports['DefaultChangelogNotes buildNotes with commit parsing should include commit authors when enabled without username 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Features
+
+* some feature (Test User) ([sha1](https://github.com/googleapis/java-asset/commit/sha1))
+`
+
+exports['DefaultChangelogNotes buildNotes with commit parsing should not include commit authors when disabled 1'] = `
+## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
+
+
+### Features
+
+* some feature ([sha1](https://github.com/googleapis/java-asset/commit/sha1))
+`
+
 exports['DefaultChangelogNotes buildNotes with commit parsing should not include content two newlines after BREAKING CHANGE 1'] = `
 ## [1.2.3](https://github.com/googleapis/java-asset/compare/v1.2.2...v1.2.3) (1983-10-10)
 
