@@ -100,7 +100,7 @@ merged into the default/configured branch.
 
 ```
 release-please will now use "1.1.1" as the last-released/current version for
-"path/to/pkg" and suggest the next version according to coventional commits it
+"path/to/pkg" and suggest the next version according to conventional commits it
 has found since the last merged release PR (or "bootstrap-sha" if this is the
 first run).
 
@@ -197,7 +197,23 @@ defaults (those are documented in comments)
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Prerelease" releases that have pre-major or prerelease versions.
   // absence defaults to false and all versions are fully Published.
-  "prerelease": true
+  // Works together with the "prerelease" versioning strategy, which creates a 
+  // prerelease-version (like 1.0.0-alpha.1) only if this setting is set to true.
+  // This allows to create prerelease-versions while working on pre-release branches - 
+  // once the development is done and the branch gets merged to main/release-branch
+  // a full-release can be done.
+  "prerelease": true,
+
+  // Force the creation of a Git tag for the release. This is particularly
+  // useful when `draft` is enabled. By default, GitHub does not create a Git
+  // tag for draft releases until they are published. This "lazy tag creation"
+  // behavior causes release-please to fail to find the previous release when
+  // running subsequent `release-pr` commands, potentially generating incorrect
+  // changelogs that include the entire commit history. Setting `force-tag-creation` to
+  // true ensures the tag is created immediately, allowing release-please to
+  // correctly identify the previous release.
+  // Absence defaults to false.
+  "force-tag-creation": true
 
   // Skip creating GitHub Releases
   // Absence defaults to false and Releases will be created. Release-Please still
