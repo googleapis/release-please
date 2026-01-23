@@ -12,6 +12,18 @@
           "description": "The strategy to use for this component.",
           "type": "string"
         },
+        "path": {
+          "description": "Path to the package directory in a monorepo. Used to identify which package this configuration applies to.",
+          "type": "string"
+        },
+        "component": {
+          "description": "Name of the component used for branch naming and release tagging. If not provided, the component may be automatically detected from the package manifest (e.g., package.json for Node, pyproject.toml for Python).",
+          "type": "string"
+        },
+        "package-name": {
+          "description": "Name of the package. If not provided, it may be automatically detected from the package manifest.",
+          "type": "string"
+        },
         "bump-minor-pre-major": {
           "description": "Breaking changes only bump semver minor if version < 1.0.0",
           "type": "boolean"
