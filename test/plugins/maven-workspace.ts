@@ -102,6 +102,14 @@ describe('MavenWorkspace plugin', () => {
       expect(newCandidates).length(1);
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
       expect(newCandidates[0].pullRequest.body.releaseData).length(1);
+      const updates = newCandidates[0].pullRequest.updates;
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.size).to.eql(1);
+      expect(updater.versionsMap?.get('maven4')?.toString()).to.eql('4.4.5');
     });
     it('appends to existing candidate', async () => {
       const candidates: CandidateReleasePullRequest[] = [
@@ -145,6 +153,15 @@ describe('MavenWorkspace plugin', () => {
       expect(newCandidates).length(1);
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
       expect(newCandidates[0].pullRequest.body.releaseData).length(2);
+      const updates = newCandidates[0].pullRequest.updates;
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.size).to.eql(2);
+      expect(updater.versionsMap?.get('maven3')?.toString()).to.eql('3.3.4');
+      expect(updater.versionsMap?.get('maven4')?.toString()).to.eql('4.4.5');
     });
     it('appends to existing candidate with special updater', async () => {
       const customUpdater = new RawContent('some content');
@@ -245,6 +262,17 @@ describe('MavenWorkspace plugin', () => {
       expect(newCandidates).length(1);
       safeSnapshot(newCandidates[0].pullRequest.body.toString());
       expect(newCandidates[0].pullRequest.body.releaseData).length(4);
+      const updates = newCandidates[0].pullRequest.updates;
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.size).to.eql(4);
+      expect(updater.versionsMap?.get('maven1')?.toString()).to.eql('1.1.2');
+      expect(updater.versionsMap?.get('maven2')?.toString()).to.eql('2.2.3');
+      expect(updater.versionsMap?.get('maven3')?.toString()).to.eql('3.3.4');
+      expect(updater.versionsMap?.get('maven4')?.toString()).to.eql('4.4.5');
     });
     it('skips pom files not configured for release', async () => {
       plugin = new MavenWorkspace(
