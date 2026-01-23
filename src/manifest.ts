@@ -121,6 +121,7 @@ export interface ReleaserConfig {
   componentNoSpace?: boolean;
   tagSeparator?: string;
   separatePullRequests?: boolean;
+  alwaysUpdate?: boolean;
   labels?: string[];
   releaseLabels?: string[];
   extraLabels?: string[];
@@ -184,6 +185,7 @@ interface ReleaserConfigJson {
   'pull-request-footer'?: string;
   'component-no-space'?: boolean;
   'separate-pull-requests'?: boolean;
+  'always-update'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
   'version-file'?: string;
@@ -1409,6 +1411,7 @@ function extractReleaserConfig(
     componentNoSpace: config['component-no-space'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
+    alwaysUpdate: config['always-update'],
     labels: config['label']?.split(','),
     releaseLabels: config['release-label']?.split(','),
     extraLabels: config['extra-label']?.split(','),
