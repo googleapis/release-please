@@ -24,7 +24,7 @@
           "description": "Configuration option for the prerelease versioning strategy. If prerelease strategy used and type set, will set the prerelease part of the version to the provided value in case prerelease part is not present.",
           "type": "string"
         },
-        "versioning": {
+        "versioning-strategy": {
           "description": "Versioning strategy. Defaults to `default`",
           "type": "string"
         },
@@ -466,7 +466,7 @@
     "release-type": true,
     "bump-minor-pre-major": true,
     "bump-patch-for-minor-pre-major": true,
-    "versioning": true,
+    "versioning-strategy": true,
     "changelog-sections": true,
     "release-as": true,
     "skip-github-release": true,
@@ -474,6 +474,7 @@
     "draft": true,
     "force-tag-creation": true,
     "prerelease": true,
+    "prerelease-type": true,
     "draft-pull-request": true,
     "label": true,
     "release-label": true,
