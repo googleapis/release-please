@@ -48,6 +48,9 @@ export interface PluginFactoryOptions {
   updateAllPackages?: boolean;
   considerAllArtifacts?: boolean;
 
+  // linked-versions options
+  groupPullRequestTitlePattern?: string;
+
   logger?: Logger;
 }
 
