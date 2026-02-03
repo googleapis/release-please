@@ -5,6 +5,10 @@ on:
   pull_request:
   merge_group:
 name: ci
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
