@@ -178,7 +178,7 @@ export class LinkedVersions extends ManifestPlugin {
         this.targetBranch,
         this.repositoryConfig,
         {
-          pullRequestTitlePattern: `chore\\${scope}: release ${this.groupName} libraries`,
+          pullRequestTitlePattern: `chore\\\\\${scope}: release ${this.groupName} libraries`,
           forceMerge: true,
           headBranchName: BranchName.ofGroupTargetBranch(
             this.groupName,
