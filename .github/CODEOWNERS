@@ -6,7 +6,7 @@
 
 
 # The yoshi-nodejs team is the default owner for nodejs repositories.
-*     @googleapis/yoshi-nodejs @googleapis/github-automation
+*     @googleapis/cloud-sdk-nodejs-team @googleapis/cloud-sdk-platform-team
 
 # The github automation team is the default owner for the auto-approve file.
-.github/auto-approve.yml @googleapis/github-automation
+.github/auto-approve.yml @googleapis/cloud-sdk-platform-team
