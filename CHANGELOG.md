@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.2.1](https://github.com/googleapis/release-please/compare/v17.2.0...v17.2.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* "prerelease" versioning strategy ([#2516](https://github.com/googleapis/release-please/issues/2516)) ([95a6568](https://github.com/googleapis/release-please/commit/95a65681a591c39ed7b2e55db0064bb8839575b4))
+* a bug where a reference to an missing variable in PowerShell would cause an exception ([#2619](https://github.com/googleapis/release-please/issues/2619)) ([0279fcf](https://github.com/googleapis/release-please/commit/0279fcf19c6ef73633a02b45e9cd31e78d8df77e))
+
 ## [17.2.0](https://github.com/googleapis/release-please/compare/v17.1.3...v17.2.0) (2026-01-20)
 
 
