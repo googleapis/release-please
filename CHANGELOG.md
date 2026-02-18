@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.3.0](https://github.com/googleapis/release-please/compare/v17.2.1...v17.3.0) (2026-02-18)
+
+
+### Features
+
+* add ability to configure how many commits we retrieve when iterating through repo history ([#2679](https://github.com/googleapis/release-please/issues/2679)) ([fee210a](https://github.com/googleapis/release-please/commit/fee210a14777ee17b6993ec276b7ac768bfd4253))
+
 ## [17.2.1](https://github.com/googleapis/release-please/compare/v17.2.0...v17.2.1) (2026-02-13)
 
 
