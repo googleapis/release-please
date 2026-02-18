@@ -160,6 +160,7 @@ interface ReleaseHistory {
 interface CommitIteratorOptions {
   maxResults?: number;
   backfillFiles?: boolean;
+  batchSize?: number;
 }
 
 interface ReleaseIteratorOptions {
@@ -449,7 +450,7 @@ export class GitHub {
       cursor,
       owner: this.repository.owner,
       repo: this.repository.repo,
-      num: 10,
+      num: options.batchSize ?? 10,
       targetBranch,
       maxFilesChanged: 100, // max is 100
     };
