@@ -431,6 +431,10 @@
           "description": "When considering commit history, only look this many commits deep.",
           "type": "number"
         },
+        "commit-batch-size": {
+          "description": "Number of commits to fetch per API request when searching commit history. Lower values result in more API calls but may help avoid timeouts. Defaults to 10.",
+          "type": "number"
+        },
         "sequential-calls": {
           "description": "Whether to open pull requests/releases sequentially rather than concurrently. If you have many components, you may want to set this to avoid secondary rate limits.",
           "type": "boolean"
@@ -462,6 +466,7 @@
     "group-pull-request-title-pattern": true,
     "release-search-depth": true,
     "commit-search-depth": true,
+    "commit-batch-size": true,
     "sequential-calls": true,
     "release-type": true,
     "bump-minor-pre-major": true,
