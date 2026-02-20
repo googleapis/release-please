@@ -246,6 +246,9 @@ export interface WorkspacePluginConfig extends ConfigurablePluginType {
 export interface NodeWorkspacePluginConfig extends WorkspacePluginConfig {
   updatePeerDependencies?: boolean;
 }
+export interface CargoWorkspacePluginConfig extends WorkspacePluginConfig {
+  cargoWorkspacePath?: string;
+}
 export interface GroupPriorityPluginConfig extends ConfigurablePluginType {
   groups: string[];
 }
@@ -256,7 +259,8 @@ export type PluginType =
   | LinkedVersionPluginConfig
   | SentenceCasePluginConfig
   | WorkspacePluginConfig
-  | NodeWorkspacePluginConfig;
+  | NodeWorkspacePluginConfig
+  | CargoWorkspacePluginConfig;
 
 /**
  * This is the schema of the manifest config json
