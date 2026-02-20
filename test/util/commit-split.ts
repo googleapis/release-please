@@ -144,8 +144,12 @@ describe('CommitSplit', () => {
       });
       const splitCommits = commitSplit.split(testCommits);
       expect(splitCommits['pkg1'].map(c => c.sha)).to.include('abc123');
-      expect(splitCommits['pkg1'].map(c => c.sha)).to.include('empty-release-as');
-      expect(splitCommits['pkg2'].map(c => c.sha)).to.include('empty-release-as');
+      expect(splitCommits['pkg1'].map(c => c.sha)).to.include(
+        'empty-release-as'
+      );
+      expect(splitCommits['pkg2'].map(c => c.sha)).to.include(
+        'empty-release-as'
+      );
     });
   });
 
