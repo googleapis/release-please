@@ -106,7 +106,7 @@ export class CommitSplit {
         if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
         splitCommits[pkgName].push(commit);
       }
-      if (commit.files.length === 0 && this.includeEmpty) {
+      if (commit.files.length === 0 && this.includeEmpty && commit.message.includes('release-as')) {
         if (this.packagePaths) {
           for (const pkgName of this.packagePaths) {
             splitCommits[pkgName] = splitCommits[pkgName] || [];

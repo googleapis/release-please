@@ -77,14 +77,41 @@ describe('CommitSplit', () => {
     expect(splitCommits['core/subpackage']).lengthOf(1);
   });
   describe('including empty commits', () => {
+    it('should only include empty commits with release-as in message', () => {
+      const testCommits: Commit[] = [
+        {
+          sha: 'abc123',
+          message: 'commit abc123',
+          files: ['pkg1/foo.txt'],
+        },
+        {
+          sha: 'empty1',
+          message: 'empty commit without version bump',
+          files: [],
+        },
+        {
+          sha: 'empty2',
+          message: 'chore: bump all the versions\n\nrelease-as: 7.7.7',
+          files: [],
+        },
+      ];
+      const commitSplit = new CommitSplit({
+        includeEmpty: true,
+      });
+      const splitCommits = commitSplit.split(testCommits);
+      expect(splitCommits['pkg1']).lengthOf(2);
+      expect(splitCommits['pkg1'].map(c => c.sha)).to.include('abc123');
+      expect(splitCommits['pkg1'].map(c => c.sha)).to.include('empty2');
+      expect(splitCommits['pkg1'].map(c => c.sha)).to.not.include('empty1');
+    });
     it('should separate commits', () => {
       const commitSplit = new CommitSplit({
         includeEmpty: true,
       });
       const splitCommits = commitSplit.split(commits);
-      expect(splitCommits['pkg1']).lengthOf(3);
-      expect(splitCommits['pkg2']).lengthOf(2);
-      expect(splitCommits['pkg3']).lengthOf(2);
+      expect(splitCommits['pkg1']).lengthOf(2);
+      expect(splitCommits['pkg2']).lengthOf(1);
+      expect(splitCommits['pkg3']).lengthOf(1);
       expect(splitCommits['pkg4']).to.be.undefined;
     });
     it('should separate commits with limited list of paths', () => {
@@ -93,10 +120,32 @@ describe('CommitSplit', () => {
         packagePaths: ['pkg1', 'pkg4'],
       });
       const splitCommits = commitSplit.split(commits);
-      expect(splitCommits['pkg1']).lengthOf(3);
+      expect(splitCommits['pkg1']).lengthOf(2);
       expect(splitCommits['pkg2']).to.be.undefined;
       expect(splitCommits['pkg3']).to.be.undefined;
-      expect(splitCommits['pkg4']).lengthOf(1);
+      expect(splitCommits['pkg4']).to.be.undefined;
+    });
+    it('should apply empty commits with release-as to all packagePaths', () => {
+      const testCommits: Commit[] = [
+        {
+          sha: 'abc123',
+          message: 'commit abc123',
+          files: ['pkg1/foo.txt'],
+        },
+        {
+          sha: 'empty-release-as',
+          message: 'chore: bump versions\n\nrelease-as: 2.0.0',
+          files: [],
+        },
+      ];
+      const commitSplit = new CommitSplit({
+        includeEmpty: true,
+        packagePaths: ['pkg1', 'pkg2'],
+      });
+      const splitCommits = commitSplit.split(testCommits);
+      expect(splitCommits['pkg1'].map(c => c.sha)).to.include('abc123');
+      expect(splitCommits['pkg1'].map(c => c.sha)).to.include('empty-release-as');
+      expect(splitCommits['pkg2'].map(c => c.sha)).to.include('empty-release-as');
     });
   });
 
