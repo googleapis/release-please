@@ -143,6 +143,7 @@ exports['Manifest buildPullRequests should handle mixing componentless configs 1
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
 </details>
 
 <details><summary>pkg2: 0.2.4</summary>
@@ -172,6 +173,7 @@ exports['Manifest buildPullRequests with multiple packages should handle multipl
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
 </details>
 
 <details><summary>pkg2: 0.2.4</summary>

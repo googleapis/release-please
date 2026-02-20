@@ -9,6 +9,7 @@ exports['LinkedVersions plugin can skip grouping pull requests 1'] = `
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -59,6 +60,7 @@ exports['LinkedVersions plugin should allow multiple groups of linked versions 1
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
 </details>
 
 <details><summary>pkg4: 1.0.1</summary>
@@ -115,6 +117,7 @@ exports['LinkedVersions plugin should group pull requests 1'] = `
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
 
 ---
 This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).
@@ -162,6 +165,7 @@ exports['LinkedVersions plugin should sync versions pull requests 1'] = `
 ### Bug Fixes
 
 * some bugfix ([aaaaaa](https://github.com/fake-owner/fake-repo/commit/aaaaaa))
+* some bugfix ([cccccc](https://github.com/fake-owner/fake-repo/commit/cccccc))
 </details>
 
 <details><summary>pkg2: 0.2.4</summary>

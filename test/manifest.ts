@@ -1954,7 +1954,7 @@ describe('Manifest', () => {
         {
           sha: 'abc123',
           message: 'chore: release 1.0.0',
-          files: [],
+          files: ['path/a/readme.md'],
           pullRequest: {
             headBranchName: 'release-please/branches/main/components/pkg1',
             baseBranchName: 'main',
@@ -1979,7 +1979,7 @@ describe('Manifest', () => {
         {
           sha: 'def234',
           message: 'chore: release 0.2.3',
-          files: [],
+          files: ['path/b/readme.md'],
           pullRequest: {
             headBranchName: 'release-please/branches/main/components/pkg2',
             baseBranchName: 'main',
