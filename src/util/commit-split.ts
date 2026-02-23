@@ -109,7 +109,7 @@ export class CommitSplit {
       if (
         commit.files.length === 0 &&
         this.includeEmpty &&
-        commit.message.includes('release-as')
+        commit.message.toLowerCase().includes('release-as')
       ) {
         if (this.packagePaths) {
           for (const pkgName of this.packagePaths) {
