@@ -268,6 +268,12 @@ defaults (those are documented in comments)
   // value, but it will increase the number of API calls used.
   "commit-search-depth": 500,
 
+  // Number of commits to fetch per API request when searching commit history.
+  // This controls the batch size for GraphQL pagination. Lower values result in
+  // more API calls but may help avoid timeouts. Higher values reduce API calls
+  // but each request takes longer. Defaults to 10.
+  "commit-batch-size": 10,
+
   // when creating multiple pull requests or releases, issue GitHub API requests
   // sequentially rather than concurrently, waiting for the previous request to
   // complete before issuing the next one.

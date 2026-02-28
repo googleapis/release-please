@@ -215,6 +215,7 @@ export interface ManifestOptions {
   groupPullRequestTitlePattern?: string;
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
+  commitBatchSize?: number;
   logger?: Logger;
   dateFormat?: string;
 }
@@ -270,6 +271,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
+  'commit-batch-size'?: number;
   'sequential-calls'?: boolean;
   'always-update'?: boolean;
 }
@@ -288,6 +290,7 @@ export const DEFAULT_SNAPSHOT_LABELS = ['autorelease: snapshot'];
 export const SNOOZE_LABEL = 'autorelease: snooze';
 const DEFAULT_RELEASE_SEARCH_DEPTH = 400;
 const DEFAULT_COMMIT_SEARCH_DEPTH = 500;
+const DEFAULT_COMMIT_BATCH_SIZE = 10;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
@@ -328,6 +331,7 @@ export class Manifest {
   private groupPullRequestTitlePattern?: string;
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
+  readonly commitBatchSize: number;
   readonly logger: Logger;
   private pullRequestOverflowHandler: PullRequestOverflowHandler;
 
@@ -397,6 +401,8 @@ export class Manifest {
       manifestOptions?.releaseSearchDepth || DEFAULT_RELEASE_SEARCH_DEPTH;
     this.commitSearchDepth =
       manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
+    this.commitBatchSize =
+      manifestOptions?.commitBatchSize || DEFAULT_COMMIT_BATCH_SIZE;
     this.logger = manifestOptions?.logger ?? defaultLogger;
     this.plugins = (manifestOptions?.plugins || []).map(pluginType =>
       buildPlugin({
@@ -626,6 +632,7 @@ export class Manifest {
     const commitGenerator = this.github.mergeCommitIterator(this.targetBranch, {
       maxResults: this.commitSearchDepth,
       backfillFiles: true,
+      batchSize: this.commitBatchSize,
     });
     const releaseShas = new Set(Object.values(releaseShasByPath));
     this.logger.debug(releaseShas);
@@ -1468,6 +1475,7 @@ async function parseConfig(
     extraLabels: configExtraLabel?.split(','),
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
+    commitBatchSize: config['commit-batch-size'],
     sequentialCalls: config['sequential-calls'],
   };
   return {config: repositoryConfig, options: manifestOptions};
