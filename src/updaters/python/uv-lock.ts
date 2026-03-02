@@ -1,0 +1,100 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import * as TOML from '@iarna/toml';
+import {replaceTomlValue} from '../../util/toml-edit';
+import {logger as defaultLogger, Logger} from '../../util/logger';
+import {Updater} from '../../update';
+import {Version} from '../../version';
+
+interface UvLockfile {
+  // sic. the key is singular, but it's an array
+  package?: UvLockfilePackage[];
+}
+
+interface UvLockfilePackage {
+  name?: string;
+  version?: string;
+}
+
+function parseUvLockfile(content: string): UvLockfile {
+  return TOML.parse(content) as UvLockfile;
+}
+
+/**
+ * Normalizes a Python package name per PEP 508: lowercased, with runs of
+ * `-`, `_`, or `.` collapsed to a single `-`.
+ */
+function normalizePackageName(name: string): string {
+  return name.toLowerCase().replace(/[-_.]+/g, '-');
+}
+
+/**
+ * Updates `uv.lock` lockfiles, preserving formatting and comments.
+ */
+export class UvLock implements Updater {
+  private packageName: string;
+  private version: Version;
+
+  constructor(options: {packageName: string; version: Version}) {
+    this.packageName = options.packageName;
+    this.version = options.version;
+  }
+
+  /**
+   * Given initial file contents, return updated contents.
+   * @param {string} content The initial content
+   * @returns {string} The updated content
+   */
+  updateContent(content: string, logger: Logger = defaultLogger): string {
+    let payload = content;
+
+    const parsed = parseUvLockfile(payload);
+    if (!parsed.package) {
+      logger.warn('uv.lock has no [[package]] entries');
+      return payload;
+    }
+
+    const normalizedTarget = normalizePackageName(this.packageName);
+
+    // n.b for `replaceTomlValue`, we need to keep track of the index
+    // (position) of the package we're considering.
+    for (let i = 0; i < parsed.package.length; i++) {
+      const pkg = parsed.package[i];
+      if (!pkg.name || !pkg.version) {
+        // Virtual packages (workspace members without a version) have no
+        // `version` field; skip them silently.
+        continue;
+      }
+
+      if (normalizePackageName(pkg.name) !== normalizedTarget) {
+        continue;
+      }
+
+      // note: in ECMAScript, using strings to index arrays is perfectly valid,
+      // which is lucky because `replaceTomlValue` expects "all strings" in its
+      // `path` argument.
+      const packageIndex = i.toString();
+
+      logger.info(`updating ${pkg.name} in uv.lock`);
+      payload = replaceTomlValue(
+        payload,
+        ['package', packageIndex, 'version'],
+        this.version.toString()
+      );
+    }
+
+    return payload;
+  }
+}
