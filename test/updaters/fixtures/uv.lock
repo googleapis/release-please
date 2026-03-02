@@ -24,6 +24,11 @@ wheels = [
 ]
 
 [[package]]
+name = "my-cool-package"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
 name = "virtual-workspace-member"
 source = { virtual = "." }
 

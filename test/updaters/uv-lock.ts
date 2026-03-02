@@ -74,6 +74,36 @@ describe('UvLock', () => {
       expect(newContent).to.eql(oldContent);
     });
 
+    it('normalizes underscores in package name when matching', () => {
+      const oldContent = loadFixture();
+      // 'my-cool-package' in the lockfile should match 'my_cool_package'
+      // after PEP 503 normalization (runs of [-_.] collapse to '-')
+      const uvLock = new UvLock({
+        packageName: 'my_cool_package',
+        version: Version.parse('2.0.0'),
+      });
+      const newContent = uvLock.updateContent(oldContent);
+      const pkg = parsedPackages(newContent).find(
+        p => p.name === 'my-cool-package'
+      );
+      expect(pkg?.version).to.eql('2.0.0');
+    });
+
+    it('normalizes dots in package name when matching', () => {
+      const oldContent = loadFixture();
+      // 'my-cool-package' in the lockfile should match 'my.cool.package'
+      // after PEP 503 normalization
+      const uvLock = new UvLock({
+        packageName: 'my.cool.package',
+        version: Version.parse('2.0.0'),
+      });
+      const newContent = uvLock.updateContent(oldContent);
+      const pkg = parsedPackages(newContent).find(
+        p => p.name === 'my-cool-package'
+      );
+      expect(pkg?.version).to.eql('2.0.0');
+    });
+
     it('does not update unrelated dependency entries', () => {
       const oldContent = loadFixture();
       const uvLock = new UvLock({
@@ -85,6 +115,26 @@ describe('UvLock', () => {
         p => p.name === 'aiohttp'
       );
       expect(aiohttp?.version).to.eql('3.13.3');
+    });
+
+    it('returns content unchanged when uv.lock has no packages', () => {
+      const emptyLockfile = 'version = 1\nrequires-python = ">=3.11"\n';
+      const uvLock = new UvLock({
+        packageName: 'socketry',
+        version: Version.parse('0.3.0'),
+      });
+      const newContent = uvLock.updateContent(emptyLockfile);
+      expect(newContent).to.eql(emptyLockfile);
+    });
+
+    it('returns content unchanged when target package is not found', () => {
+      const oldContent = loadFixture();
+      const uvLock = new UvLock({
+        packageName: 'nonexistent-package',
+        version: Version.parse('1.0.0'),
+      });
+      const newContent = uvLock.updateContent(oldContent);
+      expect(newContent).to.eql(oldContent);
     });
   });
 });
