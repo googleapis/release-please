@@ -29,6 +29,7 @@ import {Version} from '../../src/version';
 import {PyProjectToml} from '../../src/updaters/python/pyproject-toml';
 import {SetupCfg} from '../../src/updaters/python/setup-cfg';
 import {SetupPy} from '../../src/updaters/python/setup-py';
+import {UvLock} from '../../src/updaters/python/uv-lock';
 import {Changelog} from '../../src/updaters/changelog';
 import {ChangelogJson} from '../../src/updaters/changelog-json';
 import * as snapshot from 'snap-shot-it';
@@ -208,6 +209,7 @@ describe('Python', () => {
       );
       const updates = release!.updates;
       assertHasUpdate(updates, 'pyproject.toml', PyProjectToml);
+      assertHasUpdate(updates, 'uv.lock', UvLock);
     });
 
     it('finds and updates a version.py file', async () => {
