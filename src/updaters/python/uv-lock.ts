@@ -42,6 +42,11 @@ function normalizePackageName(name: string): string {
 
 /**
  * Updates `uv.lock` lockfiles, preserving formatting and comments.
+ *
+ * Note: the content is parsed twice — once here to find the matching package
+ * index, and again inside `replaceTomlValue` (which uses a position-tracking
+ * parser for byte-accurate string splicing). This is inherent to the
+ * `replaceTomlValue` API design and is consistent with how `CargoLock` works.
  */
 export class UvLock implements Updater {
   private packageName: string;
@@ -62,6 +67,9 @@ export class UvLock implements Updater {
 
     const parsed = parseUvLockfile(payload);
     if (!parsed.package) {
+      // Unlike CargoLock (which throws here), we only warn. A uv.lock without
+      // [[package]] entries can exist for a freshly-initialized project before
+      // its first `uv lock` run; crashing the release would be unhelpful.
       logger.warn('uv.lock has no [[package]] entries');
       return payload;
     }
@@ -70,6 +78,7 @@ export class UvLock implements Updater {
 
     // n.b for `replaceTomlValue`, we need to keep track of the index
     // (position) of the package we're considering.
+    let found = false;
     for (let i = 0; i < parsed.package.length; i++) {
       const pkg = parsed.package[i];
       if (!pkg.name || !pkg.version) {
@@ -87,12 +96,17 @@ export class UvLock implements Updater {
       // `path` argument.
       const packageIndex = i.toString();
 
+      found = true;
       logger.info(`updating ${pkg.name} in uv.lock`);
       payload = replaceTomlValue(
         payload,
         ['package', packageIndex, 'version'],
         this.version.toString()
       );
+    }
+
+    if (!found) {
+      logger.warn(`package ${this.packageName} not found in uv.lock`);
     }
 
     return payload;
