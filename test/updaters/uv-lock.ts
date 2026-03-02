@@ -20,6 +20,7 @@ import {expect} from 'chai';
 import * as TOML from '@iarna/toml';
 import {UvLock} from '../../src/updaters/python/uv-lock';
 import {Version} from '../../src/version';
+import {Logger} from '../../src/util/logger';
 
 const fixturesPath = './test/updaters/fixtures';
 
@@ -63,15 +64,26 @@ describe('UvLock', () => {
       expect(pkg?.version).to.eql('0.3.0');
     });
 
-    it('silently skips packages without a version field', () => {
+    it('warns and returns unchanged content for virtual packages without a version field', () => {
       const oldContent = loadFixture();
       // 'virtual-workspace-member' has no version field in the fixture
+      const warnings: string[] = [];
+      const mockLogger: Logger = {
+        warn: (msg: string) => warnings.push(msg),
+        info: () => {},
+        error: () => {},
+        debug: () => {},
+        trace: () => {},
+      };
       const uvLock = new UvLock({
         packageName: 'virtual-workspace-member',
         version: Version.parse('1.0.0'),
       });
-      const newContent = uvLock.updateContent(oldContent);
+      const newContent = uvLock.updateContent(oldContent, mockLogger);
       expect(newContent).to.eql(oldContent);
+      expect(warnings).to.deep.include(
+        'virtual-workspace-member is in uv.lock but has no version field (virtual package); skipping'
+      );
     });
 
     it('normalizes underscores in package name when matching', () => {
