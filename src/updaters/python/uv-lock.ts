@@ -33,7 +33,7 @@ function parseUvLockfile(content: string): UvLockfile {
 }
 
 /**
- * Normalizes a Python package name per PEP 508: lowercased, with runs of
+ * Normalizes a Python package name per PEP 503: lowercased, with runs of
  * `-`, `_`, or `.` collapsed to a single `-`.
  */
 function normalizePackageName(name: string): string {
@@ -78,16 +78,22 @@ export class UvLock implements Updater {
 
     // n.b for `replaceTomlValue`, we need to keep track of the index
     // (position) of the package we're considering.
-    let found = false;
+    let foundVersioned = false;
+    let foundVersionless = false;
     for (let i = 0; i < parsed.package.length; i++) {
       const pkg = parsed.package[i];
-      if (!pkg.name || !pkg.version) {
-        // Virtual packages (workspace members without a version) have no
-        // `version` field; skip them silently.
+      if (!pkg.name) {
         continue;
       }
 
       if (normalizePackageName(pkg.name) !== normalizedTarget) {
+        continue;
+      }
+
+      if (!pkg.version) {
+        // Virtual packages (workspace members without a version) have no
+        // `version` field; record that we found the package but cannot bump it.
+        foundVersionless = true;
         continue;
       }
 
@@ -96,8 +102,12 @@ export class UvLock implements Updater {
       // `path` argument.
       const packageIndex = i.toString();
 
-      found = true;
+      foundVersioned = true;
       logger.info(`updating ${pkg.name} in uv.lock`);
+      // Note: replaceTomlValue may throw if the lockfile is structurally
+      // malformed (e.g., the `version` field is not a plain string). This is
+      // consistent with the CargoLock updater and is intentional — a corrupt
+      // lockfile should surface as an error rather than be silently skipped.
       payload = replaceTomlValue(
         payload,
         ['package', packageIndex, 'version'],
@@ -105,8 +115,14 @@ export class UvLock implements Updater {
       );
     }
 
-    if (!found) {
-      logger.warn(`package ${this.packageName} not found in uv.lock`);
+    if (!foundVersioned) {
+      if (foundVersionless) {
+        logger.warn(
+          `${this.packageName} is in uv.lock but has no version field (virtual package); skipping`
+        );
+      } else {
+        logger.warn(`package ${this.packageName} not found in uv.lock`);
+      }
     }
 
     return payload;

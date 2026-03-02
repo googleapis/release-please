@@ -126,6 +126,7 @@ describe('Python', () => {
       assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
       assertHasUpdate(updates, 'setup.cfg', SetupCfg);
       assertHasUpdate(updates, 'setup.py', SetupPy);
+      assertHasUpdate(updates, 'uv.lock', UvLock);
       assertHasUpdate(
         updates,
         'google-cloud-automl/__init__.py',
@@ -168,6 +169,7 @@ describe('Python', () => {
       assertNoHasUpdate(updates, 'CHANGELOG.md');
       assertHasUpdate(updates, 'setup.cfg', SetupCfg);
       assertHasUpdate(updates, 'setup.py', SetupPy);
+      assertHasUpdate(updates, 'uv.lock', UvLock);
       assertHasUpdate(
         updates,
         'google-cloud-automl/__init__.py',
