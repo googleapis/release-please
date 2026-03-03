@@ -42,6 +42,11 @@ import {GenericXml} from '../updaters/generic-xml';
 import {PomXml} from '../updaters/java/pom-xml';
 import {GenericYaml} from '../updaters/generic-yaml';
 import {GenericToml} from '../updaters/generic-toml';
+import {renderTemplate} from '../util/template-renderer';
+import {GenericJsonTemplated} from '../updaters/generic-json-templated';
+import {GenericYamlTemplated} from '../updaters/generic-yaml-templated';
+import {GenericTomlTemplated} from '../updaters/generic-toml-templated';
+import {GenericXmlTemplated} from '../updaters/generic-xml-templated';
 
 const DEFAULT_CHANGELOG_PATH = 'CHANGELOG.md';
 
@@ -279,7 +284,10 @@ export abstract class BaseStrategy implements Strategy {
   ): Promise<ReleasePullRequest | undefined> {
     const conventionalCommits = await this.postProcessCommits(commits);
     this.logger.info(`Considering: ${conventionalCommits.length} commits`);
-    if (!bumpOnlyOptions && conventionalCommits.length === 0) {
+    if (
+      !bumpOnlyOptions?.forceBump &&
+      conventionalCommits.length === 0
+    ) {
       this.logger.info(`No commits for path: ${this.path}, skipping`);
       return undefined;
     }
@@ -287,11 +295,25 @@ export abstract class BaseStrategy implements Strategy {
     const newVersion =
       bumpOnlyOptions?.newVersion ??
       (await this.buildNewVersion(conventionalCommits, latestRelease));
-    const versionsMap = await this.updateVersionsMap(
-      await this.buildVersionsMap(conventionalCommits),
-      conventionalCommits,
-      newVersion
-    );
+    let versionsMap =
+      bumpOnlyOptions?.versionsMap ??
+      (await this.updateVersionsMap(
+        await this.buildVersionsMap(conventionalCommits),
+        conventionalCommits,
+        newVersion
+      ));
+    
+    // If we have a provided versionsMap from manifest, merge it with the local one
+    // The provided versionsMap has precedence for component references in extra-files
+    if (bumpOnlyOptions?.versionsMap) {
+      // Start with provided versionsMap and add/override with local versionsMap
+      const mergedVersionsMap = new Map(bumpOnlyOptions.versionsMap);
+      for (const [component, version] of versionsMap.entries()) {
+        mergedVersionsMap.set(component, version);
+      }
+      versionsMap = mergedVersionsMap;
+    }
+    
     const component = await this.getComponent();
     this.logger.debug('component:', component);
 
@@ -414,6 +436,30 @@ export abstract class BaseStrategy implements Strategy {
     for (const extraFile of this.extraFiles) {
       if (typeof extraFile === 'object') {
         const paths = await this.extraFilePaths(extraFile);
+
+        // Resolve version: use component reference if specified, otherwise current version
+        let resolvedVersion = version;
+        if (extraFile.component) {
+          const componentVersion = versionsMap.get(extraFile.component);
+          if (componentVersion) {
+            resolvedVersion = componentVersion;
+          } else {
+            this.logger.warn(
+              `Component ${extraFile.component} not found in versionsMap. Using current version.`
+            );
+          }
+        }
+
+        // Apply template if specified
+        const shouldUseTemplate = extraFile.template !== undefined;
+        const formattedValue = shouldUseTemplate
+          ? renderTemplate(
+              extraFile.template!,
+              resolvedVersion,
+              extraFile.component
+            )
+          : undefined;
+
         for (const path of paths) {
           switch (extraFile.type) {
             case 'generic':
@@ -421,7 +467,7 @@ export abstract class BaseStrategy implements Strategy {
                 path: this.addPath(path),
                 createIfMissing: false,
                 updater: new Generic({
-                  version,
+                  version: resolvedVersion,
                   versionsMap,
                   dateFormat: dateFormat,
                 }),
@@ -431,35 +477,52 @@ export abstract class BaseStrategy implements Strategy {
               extraFileUpdates.push({
                 path: this.addPath(path),
                 createIfMissing: false,
-                updater: new GenericJson(extraFile.jsonpath, version),
+                updater: shouldUseTemplate
+                  ? new GenericJsonTemplated(
+                      extraFile.jsonpath,
+                      formattedValue!
+                    )
+                  : new GenericJson(extraFile.jsonpath, resolvedVersion),
               });
               break;
             case 'yaml':
               extraFileUpdates.push({
                 path: this.addPath(path),
                 createIfMissing: false,
-                updater: new GenericYaml(extraFile.jsonpath, version),
+                updater: shouldUseTemplate
+                  ? new GenericYamlTemplated(
+                      extraFile.jsonpath,
+                      formattedValue!
+                    )
+                  : new GenericYaml(extraFile.jsonpath, resolvedVersion),
               });
               break;
             case 'toml':
               extraFileUpdates.push({
                 path: this.addPath(path),
                 createIfMissing: false,
-                updater: new GenericToml(extraFile.jsonpath, version),
+                updater: shouldUseTemplate
+                  ? new GenericTomlTemplated(
+                      extraFile.jsonpath,
+                      formattedValue!
+                    )
+                  : new GenericToml(extraFile.jsonpath, resolvedVersion),
               });
               break;
             case 'xml':
               extraFileUpdates.push({
                 path: this.addPath(path),
                 createIfMissing: false,
-                updater: new GenericXml(extraFile.xpath, version),
+                updater: shouldUseTemplate
+                  ? new GenericXmlTemplated(extraFile.xpath, formattedValue!)
+                  : new GenericXml(extraFile.xpath, resolvedVersion),
               });
               break;
             case 'pom':
               extraFileUpdates.push({
                 path: this.addPath(path),
                 createIfMissing: false,
-                updater: new PomXml(version),
+                updater: new PomXml(resolvedVersion),
               });
               break;
             default:

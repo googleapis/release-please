@@ -6766,4 +6766,398 @@ describe('Manifest', () => {
       sinon.assert.calledOnce(removeLabelsStub);
     });
   });
+
+  describe('dependency tracking', () => {
+    describe('buildComponentDependencyGraph', () => {
+      it('should build dependency graph from extra-files', async () => {
+        const github = await GitHub.create({
+          owner: 'googleapis',
+          repo: 'release-please-test-repo',
+          defaultBranch: 'main',
+          token: 'fake-token',
+        });
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'packages/container-a': {
+              releaseType: 'simple',
+              component: 'container-a',
+            },
+            'helm/chart': {
+              releaseType: 'simple',
+              component: 'my-chart',
+              extraFiles: [
+                {
+                  type: 'yaml',
+                  path: 'helm/chart/values.yaml',
+                  jsonpath: '$.containerA.image.tag',
+                  component: 'container-a',
+                },
+                {
+                  type: 'yaml',
+                  path: 'helm/chart/values.yaml',
+                  jsonpath: '$.containerB.image.tag',
+                  component: 'container-b',
+                },
+              ],
+            },
+          },
+          {
+            'packages/container-a': Version.parse('1.0.0'),
+            'helm/chart': Version.parse('1.0.0'),
+          }
+        );
+        const graph = manifest['buildComponentDependencyGraph']();
+        expect(graph.get('container-a')).to.deep.equal(
+          new Set(['helm/chart'])
+        );
+        expect(graph.get('container-b')).to.deep.equal(
+          new Set(['helm/chart'])
+        );
+      });
+
+      it('should handle multiple dependents for same component', async () => {
+        const github = await GitHub.create({
+          owner: 'googleapis',
+          repo: 'release-please-test-repo',
+          defaultBranch: 'main',
+          token: 'fake-token',
+        });
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'packages/lib': {
+              releaseType: 'simple',
+              component: 'lib',
+            },
+            'packages/service-a': {
+              releaseType: 'simple',
+              extraFiles: [
+                {
+                  type: 'json',
+                  path: 'packages/service-a/package.json',
+                  jsonpath: '$.dependencies.lib',
+                  component: 'lib',
+                },
+              ],
+            },
+            'packages/service-b': {
+              releaseType: 'simple',
+              extraFiles: [
+                {
+                  type: 'json',
+                  path: 'packages/service-b/package.json',
+                  jsonpath: '$.dependencies.lib',
+                  component: 'lib',
+                },
+              ],
+            },
+          },
+          {
+            'packages/lib': Version.parse('1.0.0'),
+            'packages/service-a': Version.parse('1.0.0'),
+            'packages/service-b': Version.parse('1.0.0'),
+          }
+        );
+        const graph = manifest['buildComponentDependencyGraph']();
+        expect(graph.get('lib')).to.deep.equal(
+          new Set(['packages/service-a', 'packages/service-b'])
+        );
+      });
+
+      it('should skip components with bumpDependents: false', async () => {
+        const github = await GitHub.create({
+          owner: 'googleapis',
+          repo: 'release-please-test-repo',
+          defaultBranch: 'main',
+          token: 'fake-token',
+        });
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'packages/lib': {
+              releaseType: 'simple',
+              component: 'lib',
+            },
+            'packages/service': {
+              releaseType: 'simple',
+              extraFiles: [
+                {
+                  type: 'json',
+                  path: 'packages/service/package.json',
+                  jsonpath: '$.dependencies.lib',
+                  component: 'lib',
+                  bumpDependents: false,
+                },
+              ],
+            },
+          },
+          {
+            'packages/lib': Version.parse('1.0.0'),
+            'packages/service': Version.parse('1.0.0'),
+          }
+        );
+        const graph = manifest['buildComponentDependencyGraph']();
+        expect(graph.get('lib')).to.be.undefined;
+      });
+    });
+
+    describe('getDependentPaths', () => {
+      it('should return all paths that depend on a component', async () => {
+        const github = await GitHub.create({
+          owner: 'googleapis',
+          repo: 'release-please-test-repo',
+          defaultBranch: 'main',
+          token: 'fake-token',
+        });
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'packages/lib': {
+              releaseType: 'simple',
+              component: 'lib',
+            },
+            'packages/service-a': {
+              releaseType: 'simple',
+              extraFiles: [
+                {
+                  type: 'json',
+                  path: 'packages/service-a/package.json',
+                  jsonpath: '$.dependencies.lib',
+                  component: 'lib',
+                },
+              ],
+            },
+            'packages/service-b': {
+              releaseType: 'simple',
+              extraFiles: [
+                {
+                  type: 'json',
+                  path: 'packages/service-b/package.json',
+                  jsonpath: '$.dependencies.lib',
+                  component: 'lib',
+                },
+              ],
+            },
+          },
+          {
+            'packages/lib': Version.parse('1.0.0'),
+            'packages/service-a': Version.parse('1.0.0'),
+            'packages/service-b': Version.parse('1.0.0'),
+          }
+        );
+        const graph = manifest['buildComponentDependencyGraph']();
+        const dependents = manifest['getDependentPaths']('lib', graph);
+        expect(Array.from(dependents).sort()).to.deep.equal([
+          'packages/service-a',
+          'packages/service-b',
+        ]);
+      });
+
+      it('should return empty set for component with no dependents', async () => {
+        const github = await GitHub.create({
+          owner: 'googleapis',
+          repo: 'release-please-test-repo',
+          defaultBranch: 'main',
+          token: 'fake-token',
+        });
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'packages/lib': {
+              releaseType: 'simple',
+              component: 'lib',
+            },
+          },
+          {
+            'packages/lib': Version.parse('1.0.0'),
+          }
+        );
+        const graph = manifest['buildComponentDependencyGraph']();
+        const dependents = manifest['getDependentPaths']('lib', graph);
+        expect(dependents.size).to.equal(0);
+      });
+    });
+
+    describe('automatic dependency bumping', () => {
+      beforeEach(() => {
+        mockReleases(sandbox, github, [
+          {
+            id: 123456,
+            sha: 'abc123',
+            tagName: 'container-a-v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/container-a-v1.0.0',
+          },
+          {
+            id: 654321,
+            sha: 'def456',
+            tagName: 'my-chart-v1.0.0',
+            url: 'https://github.com/fake-owner/fake-repo/releases/tag/my-chart-v1.0.0',
+          },
+        ]);
+        mockTags(sandbox, github, [
+          {name: 'container-a-v1.0.0', sha: 'abc123'},
+          {name: 'my-chart-v1.0.0', sha: 'def456'},
+        ]);
+      });
+
+      it('should bump dependent when dependency changes', async () => {
+        mockCommits(sandbox, github, [
+          {
+            sha: 'aaaaaa',
+            message: 'fix: container bug',
+            files: ['packages/container-a/src/main.ts'],
+          },
+        ]);
+        sandbox
+          .stub(github, 'getFileContentsOnBranch')
+          .withArgs('release-please-config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/config/dependency-tracking.json'
+            )
+          )
+          .withArgs('.release-please-manifest.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/versions/dependency-tracking.json'
+            )
+          );
+
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'packages/container-a': {
+              releaseType: 'simple',
+              component: 'container-a',
+            },
+            'helm/chart': {
+              releaseType: 'simple',
+              component: 'my-chart',
+              extraFiles: [
+                {
+                  type: 'yaml',
+                  path: 'helm/chart/values.yaml',
+                  jsonpath: '$.containerA.image.tag',
+                  component: 'container-a',
+                },
+              ],
+            },
+          },
+          {
+            'packages/container-a': Version.parse('1.0.0'),
+            'helm/chart': Version.parse('1.0.0'),
+          },
+          {
+            separatePullRequests: true,
+          }
+        );
+
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).to.have.lengthOf(2);
+
+        // Container should have a PR with the fix
+        const containerPR = pullRequests.find(pr =>
+          pr.title.toString().includes('container-a')
+        );
+        expect(containerPR).to.not.be.undefined;
+        expect(containerPR!.version?.toString()).to.equal('1.0.1');
+
+        // Chart should have a PR with dependency bump
+        const chartPR = pullRequests.find(pr =>
+          pr.title.toString().includes('my-chart')
+        );
+        expect(chartPR).to.not.be.undefined;
+        expect(chartPR!.version?.toString()).to.equal('1.0.1');
+
+        // Chart PR body should mention dependency
+        const bodyString = chartPR!.body.toString();
+        expect(bodyString).to.include('Dependencies');
+        expect(bodyString).to.include('container-a');
+      });
+
+      it('should not bump dependent if it has its own changes', async () => {
+        mockCommits(sandbox, github, [
+          {
+            sha: 'aaaaaa',
+            message: 'fix: container bug',
+            files: ['packages/container-a/src/main.ts'],
+          },
+          {
+            sha: 'bbbbbb',
+            message: 'feat: chart feature',
+            files: ['helm/chart/templates/deployment.yaml'],
+          },
+        ]);
+        sandbox
+          .stub(github, 'getFileContentsOnBranch')
+          .withArgs('release-please-config.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/config/dependency-tracking.json'
+            )
+          )
+          .withArgs('.release-please-manifest.json', 'main')
+          .resolves(
+            buildGitHubFileContent(
+              fixturesPath,
+              'manifest/versions/dependency-tracking.json'
+            )
+          );
+
+        const manifest = new Manifest(
+          github,
+          'main',
+          {
+            'packages/container-a': {
+              releaseType: 'simple',
+              component: 'container-a',
+            },
+            'helm/chart': {
+              releaseType: 'simple',
+              component: 'my-chart',
+              extraFiles: [
+                {
+                  type: 'yaml',
+                  path: 'helm/chart/values.yaml',
+                  jsonpath: '$.containerA.image.tag',
+                  component: 'container-a',
+                },
+              ],
+            },
+          },
+          {
+            'packages/container-a': Version.parse('1.0.0'),
+            'helm/chart': Version.parse('1.0.0'),
+          },
+          {
+            separatePullRequests: true,
+          }
+        );
+
+        const pullRequests = await manifest.buildPullRequests();
+        expect(pullRequests).to.have.lengthOf(2);
+
+        const chartPR = pullRequests.find(pr =>
+          pr.title.toString().includes('my-chart')
+        );
+        expect(chartPR).to.not.be.undefined;
+        // Chart should get minor bump (feat), not patch
+        expect(chartPR!.version?.toString()).to.equal('1.1.0');
+
+        // Chart PR body should NOT mention dependencies since it has real changes
+        const bodyString = chartPR!.body.toString();
+        expect(bodyString).to.not.include('Dependencies');
+      });
+    });
+  });
 });
