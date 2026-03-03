@@ -104,7 +104,7 @@ export class Java extends BaseStrategy {
   ): Promise<ReleasePullRequest> {
     const component = await this.getComponent();
     const newVersion = latestRelease
-      ? await this.snapshotVersioning.bump(latestRelease.tag.version, [])
+      ? this.snapshotVersioning.bump(latestRelease.tag.version, [])
       : this.initialReleaseVersion();
     const versionsMap = await this.buildVersionsMap([]);
     for (const [component, version] of versionsMap.entries()) {
