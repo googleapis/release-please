@@ -16,6 +16,7 @@
 
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
+import {writeFile} from 'fs';
 import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
@@ -406,6 +407,10 @@ function manifestOptions(yargs: yargs.Argv): yargs.Argv {
       default: 'release-please-config.json',
       describe: 'where can the config file be found in the project?',
     })
+    .option('json', {
+      default: null,
+      describe: 'save json output to a file',
+    })
     .option('manifest-file', {
       default: '.release-please-manifest.json',
       describe: 'where can the manifest file be found in the project?',
@@ -543,6 +548,17 @@ const createReleasePullRequestCommand: yargs.CommandModule<
       }
     } else {
       const pullRequestNumbers = await manifest.createPullRequests();
+      if (argv.json) {
+        writeFile(
+          argv.json.toString(),
+          JSON.stringify(pullRequestNumbers, null, 2),
+          err => {
+            if (err) {
+              console.error('Error writing file:', err);
+            }
+          }
+        );
+      }
       console.log(pullRequestNumbers);
     }
   },
@@ -609,6 +625,17 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
       }
     } else {
       const releaseNumbers = await manifest.createReleases();
+      if (argv.json) {
+        writeFile(
+	  argv.json.toString(),
+          JSON.stringify(releaseNumbers, null, 2),
+          err => {
+            if (err) {
+              console.error('Error writing file:', err);
+            }
+          }
+        );
+      }
       console.log(releaseNumbers);
     }
   },
