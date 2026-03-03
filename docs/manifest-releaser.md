@@ -189,6 +189,11 @@ defaults (those are documented in comments)
   // absence defaults to https://github.com
   "changelog-host": "https://example.com",
 
+  // include commit authors in changelog entries
+  // when true, appends (@username) or author name to each entry
+  // absence defaults to false
+  "include-commit-authors": true,
+
   // when `manifest-release` creates GitHub Releases per package, create
   // those as "Draft" releases (which can later be manually published).
   // absence defaults to false and Releases are created as already Published.
