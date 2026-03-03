@@ -567,6 +567,20 @@ does _not_ update the dependencies, and the `cargo-workspace` plug-in must be
 used to update dependencies and bump all dependents — this is the recommended
 way of managing a Rust monorepo with release-please.
 
+If your Cargo workspace `Cargo.toml` is not at the repository root (e.g. it is
+in a `crates/` subdirectory), you can specify the `cargoWorkspacePath` option:
+
+```json
+{
+  "plugins": [
+    {
+      "type": "cargo-workspace",
+      "cargoWorkspacePath": "crates"
+    }
+  ]
+}
+```
+
 ### maven-workspace
 
 The `maven-workspace` plugin operates similarly to the `node-workspace` plugin,
