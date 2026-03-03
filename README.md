@@ -144,11 +144,11 @@ recommend using squash-merge instead](#linear-git-commit-history-use-squash-merg
 Release Please creates a release pull request after it notices the default branch
 contains "releasable units" since the last release.
 A releasable unit is a commit to the branch with one of the following
-prefixes: "feat", "fix", and "deps".
+prefixes: "feat", "fix", "perf", and "revert".
 (A "chore" or "build" commit is not a releasable unit.)
 
 Some languages have their specific releasable unit configuration. For example,
-"docs" is a prefix for releasable units in Java and Python.
+"deps" and "docs" is a prefix for releasable units in Java and Python.
 
 ### Step 2: Ensure no `autorelease: pending` or `autorelease: triggered` label in an old PR
 
