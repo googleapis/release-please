@@ -40,7 +40,7 @@
   "devDependencies": {
     "@octokit/types": "^9.0.0",
     "@types/chai": "^4.1.7",
-    "@types/diff": "^5.0.2",
+    "@types/diff": "^8.0.0",
     "@types/iarna__toml": "^2.0.1",
     "@types/inquirer": "^9.0.3",
     "@types/js-yaml": "^4.0.0",
