@@ -537,6 +537,34 @@ describe('Manifest', () => {
         'path-ignore',
       ]);
     });
+    it('should read additional paths from manifest', async () => {
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('release-please-config.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/config/additional-paths.json'
+          )
+        )
+        .withArgs('.release-please-manifest.json', 'main')
+        .resolves(
+          buildGitHubFileContent(
+            fixturesPath,
+            'manifest/versions/versions.json'
+          )
+        );
+      const manifest = await Manifest.fromManifest(
+        github,
+        github.repository.defaultBranch
+      );
+      expect(
+        manifest.repositoryConfig['apps/my-app'].additionalPaths
+      ).to.deep.equal(['libs/my-lib']);
+    });
     it('should build simple plugins from manifest', async () => {
       const getFileContentsStub = sandbox.stub(
         github,
@@ -3737,6 +3765,59 @@ describe('Manifest', () => {
           'release-please--branches--main--components--d'
         );
       });
+    });
+
+    it('should update manifest for commits in additionalPaths', async () => {
+      mockReleases(sandbox, github, []);
+      mockTags(sandbox, github, [
+        {
+          name: 'apps-myapp-v1.0.0',
+          sha: 'abc123',
+        },
+      ]);
+      mockCommits(sandbox, github, [
+        {
+          sha: 'aaaaaa',
+          message: 'fix: my-lib bugfix',
+          files: ['libs/my-lib/test.txt'],
+        },
+        {
+          sha: 'abc123',
+          message: 'chore: release main',
+          files: [],
+          pullRequest: {
+            headBranchName: 'release-please/branches/main/components/myapp',
+            baseBranchName: 'main',
+            number: 123,
+            title: 'chore: release main',
+            body: '',
+            labels: [],
+            files: [],
+            sha: 'abc123',
+          },
+        },
+      ]);
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          'apps/my-app': {
+            releaseType: 'simple',
+            component: 'myapp',
+            additionalPaths: ['libs/my-lib'],
+          },
+        },
+        {
+          'apps/my-app': Version.parse('1.0.0'),
+        }
+      );
+      const pullRequests = await manifest.buildPullRequests();
+      expect(pullRequests).lengthOf(1);
+      const pullRequest = pullRequests[0];
+      expect(pullRequest.version?.toString()).to.eql('1.0.1');
+      expect(pullRequest.headRefName).to.eql(
+        'release-please--branches--main--components--myapp'
+      );
     });
   });
 
