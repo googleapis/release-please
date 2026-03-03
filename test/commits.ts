@@ -282,6 +282,91 @@ describe('parseConventionalCommits', () => {
   //   expect(conventionalCommits[0].type).to.equal('docs');
   //   expect(conventionalCommits[0].scope).is.null;
   // });
+
+  it('ignores non-conventional commits by default', async () => {
+    const commits = [
+      buildMockCommit('feat: some feature'),
+      buildMockCommit('this is a non-conventional commit'),
+      buildMockCommit('fix: some bugfix'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits);
+    expect(conventionalCommits).lengthOf(2);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[1].type).to.equal('fix');
+  });
+
+  it('treats non-conventional commits as fix when mapped with empty string', async () => {
+    const commits = [
+      buildMockCommit('feat: some feature'),
+      buildMockCommit('this is a non-conventional commit'),
+      buildMockCommit('fix: some bugfix'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits, undefined, {
+      '': 'fix',
+    });
+    expect(conventionalCommits).lengthOf(3);
+    expect(conventionalCommits[0].type).to.equal('feat');
+    expect(conventionalCommits[1].type).to.equal('fix');
+    expect(conventionalCommits[1].bareMessage).to.equal(
+      'this is a non-conventional commit'
+    );
+    expect(conventionalCommits[1].scope).is.null;
+    expect(conventionalCommits[1].breaking).to.be.false;
+    expect(conventionalCommits[2].type).to.equal('fix');
+  });
+
+  it('preserves files, empty notes and references when using prefix mapping', async () => {
+    const commits = [
+      buildMockCommit('non-conventional commit', [
+        'path1/file1.txt',
+        'path2/file2.txt',
+      ]),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits, undefined, {
+      '': 'fix',
+    });
+    expect(conventionalCommits).lengthOf(1);
+    expect(conventionalCommits[0].type).to.equal('fix');
+    expect(conventionalCommits[0].files).to.deep.equal([
+      'path1/file1.txt',
+      'path2/file2.txt',
+    ]);
+    expect(conventionalCommits[0].notes).to.be.empty;
+    expect(conventionalCommits[0].references).to.be.empty;
+    expect(conventionalCommits[0].breaking).to.be.false;
+  });
+
+  it('maps custom prefix "change" to "fix"', async () => {
+    const commits = [
+      buildMockCommit('change: update documentation'),
+      buildMockCommit('feat: add new feature'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits, undefined, {
+      change: 'fix',
+    });
+    expect(conventionalCommits).lengthOf(2);
+    expect(conventionalCommits[0].type).to.equal('fix');
+    expect(conventionalCommits[0].bareMessage).to.equal('update documentation');
+    expect(conventionalCommits[1].type).to.equal('feat');
+  });
+
+  it('maps emoji prefix to conventional commit type', async () => {
+    const commits = [
+      buildMockCommit('🐛: fix the bug'),
+      buildMockCommit('✨: add new feature'),
+      buildMockCommit('feat: regular feature'),
+    ];
+    const conventionalCommits = parseConventionalCommits(commits, undefined, {
+      '🐛': 'fix',
+      '✨': 'feat',
+    });
+    expect(conventionalCommits).lengthOf(3);
+    expect(conventionalCommits[0].type).to.equal('fix');
+    expect(conventionalCommits[0].bareMessage).to.equal('fix the bug');
+    expect(conventionalCommits[1].type).to.equal('feat');
+    expect(conventionalCommits[1].bareMessage).to.equal('add new feature');
+    expect(conventionalCommits[2].type).to.equal('feat');
+  });
 });
 
 function assertHasCommit(
