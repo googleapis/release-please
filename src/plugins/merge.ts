@@ -104,11 +104,15 @@ export class Merge extends ManifestPlugin {
     }
     const updates = mergeUpdates(rawUpdates);
 
+    // Fall back to the first in-scope candidate when there is no root-path
+    // candidate (common in monorepos where all packages live in subdirectories)
+    const primaryRelease = rootRelease ?? inScopeCandidates[0] ?? null;
+
     const pullRequest = {
       title: PullRequestTitle.ofComponentTargetBranchVersion(
-        rootRelease?.pullRequest.title.component,
+        primaryRelease?.pullRequest.title.component,
         this.targetBranch,
-        rootRelease?.pullRequest.title.version,
+        primaryRelease?.pullRequest.title.version,
         this.pullRequestTitlePattern,
         this.componentNoSpace
       ),
@@ -122,6 +126,7 @@ export class Merge extends ManifestPlugin {
       headRefName:
         this.headBranchName ??
         BranchName.ofTargetBranch(this.targetBranch).toString(),
+      version: primaryRelease?.pullRequest.version,
       draft: !candidates.some(candidate => !candidate.pullRequest.draft),
     };
 
