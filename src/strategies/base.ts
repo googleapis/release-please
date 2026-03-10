@@ -424,6 +424,7 @@ export abstract class BaseStrategy implements Strategy {
                   version,
                   versionsMap,
                   dateFormat: dateFormat,
+                  component: this.component,
                 }),
               });
               break;
