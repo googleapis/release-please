@@ -83,7 +83,7 @@ interface GitHubCreateOptions {
   token?: string;
   logger?: Logger;
   proxy?: ProxyOption;
-  fetch?: any;
+  fetch?: unknown;
 }
 
 type CommitFilter = (commit: Commit) => boolean;
@@ -574,7 +574,7 @@ export class GitHub {
       }
     )) {
       // Paginate plugin doesn't have types for listing files on a commit
-      const data = resp.data as any as {files: {filename: string}[]};
+      const data = resp.data as unknown as {files: {filename: string}[]};
       for (const f of data.files || []) {
         if (f.filename) {
           files.push(f.filename);
