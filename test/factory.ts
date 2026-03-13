@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {beforeEach, describe, it} from 'mocha';
+import {afterEach, beforeEach, describe, it} from 'mocha';
 import {
   buildStrategy,
   getReleaserTypes,
@@ -33,9 +33,13 @@ import {GitHubChangelogNotes} from '../src/changelog-notes/github';
 import {DefaultChangelogNotes} from '../src/changelog-notes/default';
 import {Java} from '../src/strategies/java';
 import {PrereleaseVersioningStrategy} from '../src/versioning-strategies/prerelease';
+import * as sinon from 'sinon';
+import {buildGitHubFileRaw, buildMockCommit} from './helpers';
+import {parseConventionalCommits} from '../src/commit';
 
 describe('factory', () => {
   let github: GitHub;
+  const sandbox = sinon.createSandbox();
   beforeEach(async () => {
     github = await GitHub.create({
       owner: 'fake-owner',
@@ -43,6 +47,9 @@ describe('factory', () => {
       defaultBranch: 'main',
       token: 'fake-token',
     });
+  });
+  afterEach(() => {
+    sandbox.restore();
   });
   describe('buildStrategy', () => {
     it('should build a basic strategy', async () => {
@@ -134,6 +141,41 @@ describe('factory', () => {
       });
       expect(strategy).instanceof(Simple);
       expect(strategy.changelogNotes).instanceof(GitHubChangelogNotes);
+    });
+    it('should build with custom changelog templates from the repository', async () => {
+      sandbox
+        .stub(github, 'getFileContentsOnBranch')
+        .withArgs('.release-please/commit.hbs', 'main')
+        .resolves(buildGitHubFileRaw('* {{subject}}'))
+        .withArgs('.release-please/header.hbs', 'main')
+        .resolves(buildGitHubFileRaw('## {{version}}'))
+        .withArgs('.release-please/template.hbs', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            '{{> header}}\n{{#each commitGroups}}\n{{#each commits}}\n{{> commit root=@root}}\n{{/each}}\n{{/each}}'
+          )
+        );
+      const strategy = await buildStrategy({
+        github,
+        releaseType: 'simple',
+        commitPartialPath: '.release-please/commit.hbs',
+        headerPartialPath: '.release-please/header.hbs',
+        mainTemplatePath: '.release-please/template.hbs',
+      });
+      expect(strategy).instanceof(Simple);
+      expect(strategy.changelogNotes).instanceof(DefaultChangelogNotes);
+      const notes = await strategy.changelogNotes.buildNotes(
+        parseConventionalCommits([buildMockCommit('fix: some bugfix')]),
+        {
+          owner: 'fake-owner',
+          repository: 'fake-repo',
+          version: '1.2.3',
+          previousTag: 'v1.2.2',
+          currentTag: 'v1.2.3',
+          targetBranch: 'main',
+        }
+      );
+      expect(notes).to.eql('## 1.2.3* some bugfix');
     });
     it('should build a ruby strategy', async () => {
       const strategy = await buildStrategy({

@@ -42,24 +42,28 @@ const CHANGELOG_SECTIONS = [
   {type: 'ci', section: 'Continuous Integration', hidden: true},
 ];
 
+const DEFAULT_COMMIT_PARTIAL = readFileSync(
+  resolve(__dirname, '../../../templates/commit.hbs'),
+  'utf8'
+);
+const DEFAULT_HEADER_PARTIAL = readFileSync(
+  resolve(__dirname, '../../../templates/header.hbs'),
+  'utf8'
+);
+const DEFAULT_MAIN_TEMPLATE = readFileSync(
+  resolve(__dirname, '../../../templates/template.hbs'),
+  'utf8'
+);
+
 export class RubyYoshi extends BaseStrategy {
   readonly versionFile: string;
   constructor(options: BaseStrategyOptions) {
     super({
       ...options,
       changelogSections: CHANGELOG_SECTIONS,
-      commitPartial: readFileSync(
-        resolve(__dirname, '../../../templates/commit.hbs'),
-        'utf8'
-      ),
-      headerPartial: readFileSync(
-        resolve(__dirname, '../../../templates/header.hbs'),
-        'utf8'
-      ),
-      mainTemplate: readFileSync(
-        resolve(__dirname, '../../../templates/template.hbs'),
-        'utf8'
-      ),
+      commitPartial: options.commitPartial ?? DEFAULT_COMMIT_PARTIAL,
+      headerPartial: options.headerPartial ?? DEFAULT_HEADER_PARTIAL,
+      mainTemplate: options.mainTemplate ?? DEFAULT_MAIN_TEMPLATE,
       tagSeparator: '/',
     });
     this.versionFile = options.versionFile ?? '';
