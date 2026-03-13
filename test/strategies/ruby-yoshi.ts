@@ -84,6 +84,30 @@ describe('RubyYoshi', () => {
       expect(pullRequest!.version?.toString()).to.eql(expectedVersion);
       safeSnapshot(pullRequest!.body.toString());
     });
+    it('uses custom changelog templates when configured', async () => {
+      const strategy = new RubyYoshi({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+        commitPartial: '* {{subject}}\n',
+        headerPartial: '## {{version}}\n',
+        mainTemplate:
+          '{{> header}}{{#each commitGroups}}{{#each commits}}{{> commit root=@root}}{{/each}}{{/each}}',
+      });
+      const latestRelease = {
+        tag: new TagName(Version.parse('0.123.4'), 'google-cloud-automl'),
+        sha: 'abc123',
+        notes: 'some notes',
+      };
+      const pullRequest = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      expect(pullRequest!.body.toString()).to.contain('## 0.123.5');
+      expect(pullRequest!.body.toString()).to.contain(
+        '* update dependency com.google.cloud:google-cloud-storage to v1.120.0'
+      );
+    });
   });
   describe('buildUpdates', () => {
     it('builds common files', async () => {

@@ -103,6 +103,18 @@
           "description": "Generate changelog links to this GitHub host. Useful for running against GitHub Enterprise.",
           "type": "string"
         },
+        "commit-partial": {
+          "description": "Path to a custom changelog commit partial Handlebars template in the repository.",
+          "type": "string"
+        },
+        "header-partial": {
+          "description": "Path to a custom changelog header partial Handlebars template in the repository.",
+          "type": "string"
+        },
+        "main-template": {
+          "description": "Path to a custom changelog main Handlebars template in the repository.",
+          "type": "string"
+        },
         "changelog-path": {
           "description": "Path to the file that tracks release note changes. Defaults to `CHANGELOG.md`.",
           "type": "string"
