@@ -1279,6 +1279,8 @@ export class Manifest {
     }
 
     if (githubReleases.length > 0) {
+      await this.maybeRegisterJuliaReleases(githubReleases);
+
       // comment on pull request about the successful releases
       const releaseList = githubReleases
         .map(({tagName, url}) => `- [${tagName}](${url})`)
@@ -1315,6 +1317,22 @@ export class Manifest {
     }
 
     return githubReleases;
+  }
+
+  private async maybeRegisterJuliaReleases(
+    releases: CreatedRelease[]
+  ): Promise<void> {
+    for (const release of releases) {
+      const config = this.repositoryConfig[release.path];
+      if (config.releaseType !== 'julia') continue;
+
+      const subdir =
+        release.path === ROOT_PROJECT_PATH ? '' : ` subdir=${release.path}`;
+      await this.github.commentOnCommit(
+        `@JuliaRegistrator register${subdir}`,
+        release.sha
+      );
+    }
   }
 
   private async createRelease(

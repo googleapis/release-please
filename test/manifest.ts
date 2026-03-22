@@ -6765,5 +6765,103 @@ describe('Manifest', () => {
       sinon.assert.calledOnce(addLabelsStub);
       sinon.assert.calledOnce(removeLabelsStub);
     });
+    it('should auto-register Julia releases with Registrator commit comments', async () => {
+      mockPullRequests(
+        github,
+        [],
+        [
+          {
+            headBranchName: 'release-please/branches/main',
+            baseBranchName: 'main',
+            number: 1234,
+            title: 'chore: release main',
+            body: `:robot: I have created a release *beep* *boop*
+---
+<details><summary>RootPkg: 0.3.5</summary>
+
+### Bug Fixes
+
+* root fix
+</details>
+<details><summary>SubPkg: 1.2.4</summary>
+
+### Bug Fixes
+
+* sub fix
+</details>
+
+This PR was generated with [Release Please](https://github.com/googleapis/release-please).`,
+            labels: ['autorelease: pending'],
+            files: ['Project.toml', 'packages/SubPkg/Project.toml'],
+            sha: 'abc123',
+          },
+        ]
+      );
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('Project.toml', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            'name = "RootPkg"\nuuid = "12345678-1234-1234-1234-123456789abc"\nversion = "0.3.4"\n'
+          )
+        )
+        .withArgs('packages/SubPkg/Project.toml', 'main')
+        .resolves(
+          buildGitHubFileRaw(
+            'name = "SubPkg"\nuuid = "12345678-1234-1234-1234-123456789abd"\nversion = "1.2.3"\n'
+          )
+        );
+      mockCreateRelease(github, [
+        {id: 1, sha: 'abc123', tagName: 'RootPkg-v0.3.5'},
+        {id: 2, sha: 'def456', tagName: 'SubPkg-v1.2.4'},
+      ]);
+      const commitCommentStub = sandbox
+        .stub(github, 'commentOnCommit')
+        .resolves(
+          'https://github.com/googleapis/example/commit/abc123#commitcomment-1'
+        );
+      const issueCommentStub = sandbox
+        .stub(github, 'commentOnIssue')
+        .resolves();
+      const addLabelsStub = sandbox.stub(github, 'addIssueLabels').resolves();
+      const removeLabelsStub = sandbox
+        .stub(github, 'removeIssueLabels')
+        .resolves();
+      const manifest = new Manifest(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'julia',
+          },
+          'packages/SubPkg': {
+            releaseType: 'julia',
+          },
+        },
+        {
+          '.': Version.parse('0.3.5'),
+          'packages/SubPkg': Version.parse('1.2.4'),
+        }
+      );
+      const releases = await manifest.createReleases();
+      expect(releases).lengthOf(2);
+      sinon.assert.calledTwice(commitCommentStub);
+      sinon.assert.calledWithExactly(
+        commitCommentStub.firstCall,
+        '@JuliaRegistrator register',
+        'abc123'
+      );
+      sinon.assert.calledWithExactly(
+        commitCommentStub.secondCall,
+        '@JuliaRegistrator register subdir=packages/SubPkg',
+        'def456'
+      );
+      sinon.assert.calledOnce(issueCommentStub);
+      sinon.assert.calledOnce(addLabelsStub);
+      sinon.assert.calledOnce(removeLabelsStub);
+    });
   });
 });

@@ -1474,6 +1474,28 @@ export class GitHub {
   );
 
   /**
+   * Makes a comment on a commit.
+   *
+   * @param {string} comment - The body of the comment to post.
+   * @param {string} sha - The commit SHA.
+   * @throws {GitHubAPIError} on an API error
+   */
+  commentOnCommit = wrapAsync(
+    async (comment: string, sha: string): Promise<string> => {
+      this.logger.debug(
+        `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/commit/${sha}`
+      );
+      const resp = await this.octokit.repos.createCommitComment({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        commit_sha: sha,
+        body: comment,
+      });
+      return resp.data.html_url;
+    }
+  );
+
+  /**
    * Removes labels from an issue/pull request.
    *
    * @param {string[]} labels The labels to remove.
