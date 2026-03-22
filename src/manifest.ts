@@ -1319,6 +1319,16 @@ export class Manifest {
     return githubReleases;
   }
 
+  private buildJuliaRegistratorComment(release: CreatedRelease): string {
+    const subdir =
+      release.path === ROOT_PROJECT_PATH ? '' : ` subdir=${release.path}`;
+    const releaseNotes = release.notes?.trim() ?? '';
+    if (!releaseNotes) {
+      return `@JuliaRegistrator register${subdir}`;
+    }
+    return `@JuliaRegistrator register${subdir}\n\nRelease notes:\n\nSee changelog below.\n\n${releaseNotes}`;
+  }
+
   private async maybeRegisterJuliaReleases(
     releases: CreatedRelease[]
   ): Promise<void> {
@@ -1326,10 +1336,8 @@ export class Manifest {
       const config = this.repositoryConfig[release.path];
       if (config.releaseType !== 'julia') continue;
 
-      const subdir =
-        release.path === ROOT_PROJECT_PATH ? '' : ` subdir=${release.path}`;
       await this.github.commentOnCommit(
-        `@JuliaRegistrator register${subdir}`,
+        this.buildJuliaRegistratorComment(release),
         release.sha
       );
     }

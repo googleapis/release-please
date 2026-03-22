@@ -6851,12 +6851,12 @@ This PR was generated with [Release Please](https://github.com/googleapis/releas
       sinon.assert.calledTwice(commitCommentStub);
       sinon.assert.calledWithExactly(
         commitCommentStub.firstCall,
-        '@JuliaRegistrator register',
+        '@JuliaRegistrator register\n\nRelease notes:\n\nSee changelog below.\n\nsome release notes',
         'abc123'
       );
       sinon.assert.calledWithExactly(
         commitCommentStub.secondCall,
-        '@JuliaRegistrator register subdir=packages/SubPkg',
+        '@JuliaRegistrator register subdir=packages/SubPkg\n\nRelease notes:\n\nSee changelog below.\n\nsome release notes',
         'def456'
       );
       sinon.assert.calledOnce(issueCommentStub);
