@@ -1,4 +1,5 @@
 import {BaseStrategy, BuildUpdatesOptions} from './base';
+import {FileNotFoundError} from '../errors';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
 import {Version} from '../version';
@@ -60,8 +61,11 @@ export class Julia extends BaseStrategy {
         this.targetBranch
       );
       return parseProjectToml(content.parsedContent);
-    } catch {
-      return null;
+    } catch (e) {
+      if (e instanceof FileNotFoundError) {
+        return null;
+      }
+      throw e;
     }
   }
 }
