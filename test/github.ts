@@ -1142,6 +1142,33 @@ describe('GitHub', () => {
     });
   });
 
+  describe('createPullRequest', () => {
+    it('should not call getPullRequest when no code changes detected', async () => {
+      const createPullRequestStub = sandbox
+        .stub(codeSuggester, 'createPullRequest')
+        .resolves(0);
+      const getPullRequestStub = sandbox.stub(github, 'getPullRequest');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pullRequest = await (github as any).createPullRequest(
+        {
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          title: 'Release v1.0.0',
+          body: 'Release body',
+          labels: ['release-please'],
+        },
+        'main',
+        'commit message',
+        []
+      );
+
+      expect(pullRequest.number).to.eql(0);
+      sinon.assert.calledOnce(createPullRequestStub);
+      sinon.assert.notCalled(getPullRequestStub);
+    });
+  });
+
   describe('buildChangeSet', () => {
     it('should merge updates for the same file', async () => {
       const manifestPath = '.release-please-manifest.json';
