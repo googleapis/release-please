@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: node --version
-      - run: npm install
+      - run: npm ci
       - run: npm test
         env:
           MOCHA_THROW_DEPRECATION: false
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: npm install
+      - run: npm ci
       - run: npm test
         env:
           MOCHA_THROW_DEPRECATION: false
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: npm install
+      - run: npm ci
       - run: npm run lint
   docs:
     runs-on: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: npm install
+      - run: npm ci
       - run: npm run docs
       - uses: JustinBeckwith/linkinator-action@v1
         with:
