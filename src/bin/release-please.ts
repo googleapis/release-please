@@ -30,8 +30,8 @@ import {
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
-import { Scm } from '../scm';
-import { LocalGitHub } from '../local-github';
+import {Scm} from '../scm';
+import {LocalGitHub} from '../local-github';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
