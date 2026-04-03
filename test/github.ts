@@ -1026,15 +1026,18 @@ describe('GitHub', () => {
           parsedContent: 'somecontent',
           mode: '100644',
         });
-      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
+      sandbox
+        .stub((github as any).apiDelegate, 'getPullRequest')
+        .withArgs(1)
+        .resolves({
+          title: 'created title',
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          number: 1,
+          body: 'some body',
+          labels: [],
+          files: [],
+        });
       const pullRequest = await github.createReleasePullRequest(
         {
           title: PullRequestTitle.ofTargetBranch('main'),
@@ -1067,15 +1070,18 @@ describe('GitHub', () => {
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
         .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
+      sandbox
+        .stub((github as any).apiDelegate, 'getPullRequest')
+        .withArgs(1)
+        .resolves({
+          title: 'created title',
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          number: 1,
+          body: 'some body',
+          labels: [],
+          files: [],
+        });
       const pullRequest = await github.createReleasePullRequest(
         {
           title: PullRequestTitle.ofTargetBranch('main'),
@@ -1107,15 +1113,18 @@ describe('GitHub', () => {
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
         .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
+      sandbox
+        .stub((github as any).apiDelegate, 'getPullRequest')
+        .withArgs(1)
+        .resolves({
+          title: 'created title',
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          number: 1,
+          body: 'some body',
+          labels: [],
+          files: [],
+        });
       const pullRequest = await github.createReleasePullRequest(
         {
           title: PullRequestTitle.ofTargetBranch('main'),

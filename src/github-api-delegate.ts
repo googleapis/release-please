@@ -12,22 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Octokit } from '@octokit/rest';
-import { request } from '@octokit/request';
-import { RequestError } from '@octokit/request-error';
-import { createPullRequest as suggesterCreatePullRequest } from 'code-suggester';
-import { Logger } from 'code-suggester/build/src/types';
+import {Octokit} from '@octokit/rest';
+import {request} from '@octokit/request';
+import {RequestError} from '@octokit/request-error';
+import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
+import {Logger} from 'code-suggester/build/src/types';
 
-import { PullRequest } from './pull-request';
-import { Repository } from './repository';
-import { ReleasePullRequest } from './release-pull-request';
-import { Update } from './update';
-import { Release } from './release';
-import { ScmRelease, ScmReleaseIteratorOptions, ScmCreatePullRequestOptions, ScmUpdatePullRequestOptions, ScmReleaseOptions, ScmCommitIteratorOptions, ScmChangeSet } from './scm';
-import { GitHubAPIError, DuplicateReleaseError, FileNotFoundError, ConfigurationError } from './errors';
-import { logger as defaultLogger } from './util/logger';
-import { signoffCommitMessage } from './util/signoff-commit-message';
-import { PullRequestOverflowHandler } from './util/pull-request-overflow-handler';
+import {PullRequest} from './pull-request';
+import {Repository} from './repository';
+import {ReleasePullRequest} from './release-pull-request';
+import {Release} from './release';
+import {
+  ScmRelease,
+  ScmReleaseIteratorOptions,
+  ScmCreatePullRequestOptions,
+  ScmReleaseOptions,
+  ScmCommitIteratorOptions,
+  ScmChangeSet,
+} from './scm';
+import {
+  GitHubAPIError,
+  DuplicateReleaseError,
+  ConfigurationError,
+} from './errors';
+import {logger as defaultLogger} from './util/logger';
+import {signoffCommitMessage} from './util/signoff-commit-message';
+import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 
 export type OctokitType = InstanceType<typeof Octokit>;
 
@@ -256,7 +266,7 @@ export class GitHubApiDelegate {
       MERGED: 'closed',
     };
     let results = 0;
-    for await (const { data: pulls } of this.octokit.paginate.iterator(
+    for await (const {data: pulls} of this.octokit.paginate.iterator(
       'GET /repos/{owner}/{repo}/pulls',
       {
         state: statusMap[status],
@@ -545,8 +555,8 @@ export class GitHubApiDelegate {
       const body = (
         options?.pullRequestOverflowHandler
           ? await options.pullRequestOverflowHandler.handleOverflow(
-            releasePullRequest
-          )
+              releasePullRequest
+            )
           : releasePullRequest.body
       )
         .toString()
@@ -772,7 +782,7 @@ export class GitHubApiDelegate {
 
     // use the single file upload API
     const {
-      data: { content },
+      data: {content},
     } = await this.octokit.repos.createOrUpdateFileContents({
       owner: this.repository.owner,
       repo: this.repository.repo,
@@ -829,7 +839,7 @@ export class GitHubApiDelegate {
     try {
       const {
         data: {
-          object: { sha },
+          object: {sha},
         },
       } = await this.octokit.git.getRef({
         owner: this.repository.owner,
@@ -857,7 +867,7 @@ export class GitHubApiDelegate {
     this.logger.debug(`Creating new branch: ${branchName} at ${branchSha}`);
     const {
       data: {
-        object: { sha },
+        object: {sha},
       },
     } = await this.octokit.git.createRef({
       owner: this.repository.owner,
@@ -879,7 +889,7 @@ export class GitHubApiDelegate {
     this.logger.debug(`Updating branch ${branchName} to ${branchSha}`);
     const {
       data: {
-        object: { sha },
+        object: {sha},
       },
     } = await this.octokit.git.updateRef({
       owner: this.repository.owner,

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createPullRequest} from 'code-suggester';
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 
@@ -20,12 +19,7 @@ import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {graphql} from '@octokit/graphql';
 import {RequestError} from '@octokit/request-error';
-import {
-  GitHubAPIError,
-  DuplicateReleaseError,
-  FileNotFoundError,
-  ConfigurationError,
-} from './errors';
+import {GitHubAPIError, FileNotFoundError, ConfigurationError} from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 const MAX_SLEEP_SECONDS = 20;
@@ -54,13 +48,11 @@ import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {mergeUpdates} from './updaters/composite';
 import {
   Scm,
-  ScmFileDiff,
   ScmChangeSet,
   ScmCommitIteratorOptions,
   ScmReleaseIteratorOptions,
   ScmTagIteratorOptions,
   ScmCreatePullRequestOptions,
-  ScmUpdatePullRequestOptions,
   ScmReleaseOptions,
   ScmRelease,
   ScmTag,
@@ -134,19 +126,6 @@ interface GraphQLPullRequest {
   };
 }
 
-interface GraphQLRelease {
-  name: string;
-  tag: {
-    name: string;
-  };
-  tagCommit: {
-    oid: string;
-  };
-  url: string;
-  description: string;
-  isDraft: boolean;
-}
-
 interface CommitHistory {
   pageInfo: {
     hasNextPage: boolean;
@@ -163,14 +142,6 @@ interface PullRequestHistory {
   data: PullRequest[];
 }
 
-interface ReleaseHistory {
-  pageInfo: {
-    hasNextPage: boolean;
-    endCursor: string | undefined;
-  };
-  data: GitHubRelease[];
-}
-
 type CommitIteratorOptions = ScmCommitIteratorOptions;
 type ReleaseIteratorOptions = ScmReleaseIteratorOptions;
 type TagIteratorOptions = ScmTagIteratorOptions;
@@ -178,8 +149,6 @@ type TagIteratorOptions = ScmTagIteratorOptions;
 export type ReleaseOptions = ScmReleaseOptions;
 export type GitHubRelease = ScmRelease;
 export type GitHubTag = ScmTag;
-
-type FileDiff = ScmFileDiff;
 export type ChangeSet = ScmChangeSet;
 
 type CreatePullRequestOptions = ScmCreatePullRequestOptions;

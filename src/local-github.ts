@@ -41,7 +41,10 @@ import {PullRequest} from './pull-request';
 import {ReleasePullRequest} from './release-pull-request';
 import {Update} from './update';
 import {Release} from './release';
-import {GitHubFileContents, DEFAULT_FILE_MODE} from '@google-automations/git-file-utils';
+import {
+  GitHubFileContents,
+  DEFAULT_FILE_MODE,
+} from '@google-automations/git-file-utils';
 import {mergeUpdates} from './updaters/composite';
 import {GitHubApiDelegate} from './github-api-delegate';
 
@@ -95,22 +98,22 @@ export class LocalGitHub implements Scm {
     branch: string
   ): Promise<GitHubFileContents> {
     const cloneDir = await this.getCloneDir();
-    
+
     const lsTreeResult = await exec(`git ls-tree ${branch} ${path}`, {
       cwd: cloneDir,
     });
-    
+
     if (!lsTreeResult.stdout.trim()) {
       throw new FileNotFoundError(path);
     }
-    
+
     const [info] = lsTreeResult.stdout.split('\t');
     const [mode, , sha] = info.split(' ');
 
     const {stdout} = await exec(`git show ${branch}:${path}`, {
       cwd: cloneDir,
     });
-    
+
     return {
       content: Buffer.from(stdout).toString('base64'),
       parsedContent: stdout,
@@ -141,31 +144,41 @@ export class LocalGitHub implements Scm {
     prefix?: string
   ): Promise<string[]> {
     const cloneDir = await this.getCloneDir();
-    
-    let normalizedPrefix = prefix ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '') : '';
+
+    let normalizedPrefix = prefix
+      ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '')
+      : '';
     if (normalizedPrefix === ROOT_PROJECT_PATH) {
       normalizedPrefix = '';
     }
-    
+
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
-    
-    const {stdout} = await exec(`git ls-tree -r --name-only ${ref} ${treePath}`, {
-      cwd: cloneDir,
-      maxBuffer: 10 * 1024 * 1024,
-    });
-    
-    const matchedPaths = stdout.split('\n').map(line => line.trim()).filter(line => {
-      return line && path.posix.basename(line) === filename;
-    });
+
+    const {stdout} = await exec(
+      `git ls-tree -r --name-only ${ref} ${treePath}`,
+      {
+        cwd: cloneDir,
+        maxBuffer: 10 * 1024 * 1024,
+      }
+    );
+
+    const matchedPaths = stdout
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => {
+        return line && path.posix.basename(line) === filename;
+      });
 
     if (normalizedPrefix) {
-      return matchedPaths.map(p => {
-        if (p === normalizedPrefix) return '';
-        if (p.startsWith(`${normalizedPrefix}/`)) {
-          return p.slice(normalizedPrefix.length + 1);
-        }
-        return p;
-      }).filter(p => p !== '');
+      return matchedPaths
+        .map(p => {
+          if (p === normalizedPrefix) return '';
+          if (p.startsWith(`${normalizedPrefix}/`)) {
+            return p.slice(normalizedPrefix.length + 1);
+          }
+          return p;
+        })
+        .filter(p => p !== '');
     }
     return matchedPaths;
   }
@@ -184,22 +197,30 @@ export class LocalGitHub implements Scm {
     prefix?: string
   ): Promise<string[]> {
     const cloneDir = await this.getCloneDir();
-    
-    let normalizedPrefix = prefix ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '') : '';
+
+    let normalizedPrefix = prefix
+      ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '')
+      : '';
     if (normalizedPrefix === ROOT_PROJECT_PATH) {
       normalizedPrefix = '';
     }
-    
+
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
-    
+
     // Increase maxBuffer to 10MB to handle large repositories
-    const {stdout} = await exec(`git ls-tree -r --name-only ${ref} ${treePath}`, {
-      cwd: cloneDir,
-      maxBuffer: 10 * 1024 * 1024,
-    });
-    
-    const files = stdout.split('\n').map(line => line.trim()).filter(Boolean);
-    
+    const {stdout} = await exec(
+      `git ls-tree -r --name-only ${ref} ${treePath}`,
+      {
+        cwd: cloneDir,
+        maxBuffer: 10 * 1024 * 1024,
+      }
+    );
+
+    const files = stdout
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean);
+
     // Derive directories
     const dirs = new Set<string>();
     for (const file of files) {
@@ -209,21 +230,23 @@ export class LocalGitHub implements Scm {
         dir = path.posix.dirname(dir);
       }
     }
-    
+
     const allPaths = [...files, ...dirs];
-    
+
     // Make paths relative to prefix if provided
     let relativePaths = allPaths;
     if (normalizedPrefix) {
-      relativePaths = allPaths.map(p => {
-        if (p === normalizedPrefix) return '';
-        if (p.startsWith(`${normalizedPrefix}/`)) {
-          return p.slice(normalizedPrefix.length + 1);
-        }
-        return p;
-      }).filter(p => p !== '');
+      relativePaths = allPaths
+        .map(p => {
+          if (p === normalizedPrefix) return '';
+          if (p.startsWith(`${normalizedPrefix}/`)) {
+            return p.slice(normalizedPrefix.length + 1);
+          }
+          return p;
+        })
+        .filter(p => p !== '');
     }
-    
+
     const regex = globToRegex(glob);
     return relativePaths.filter(p => regex.test(p));
   }
@@ -245,31 +268,41 @@ export class LocalGitHub implements Scm {
     prefix?: string
   ): Promise<string[]> {
     const cloneDir = await this.getCloneDir();
-    
-    let normalizedPrefix = prefix ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '') : '';
+
+    let normalizedPrefix = prefix
+      ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '')
+      : '';
     if (normalizedPrefix === ROOT_PROJECT_PATH) {
       normalizedPrefix = '';
     }
-    
+
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
-    
-    const {stdout} = await exec(`git ls-tree -r --name-only ${ref} ${treePath}`, {
-      cwd: cloneDir,
-      maxBuffer: 10 * 1024 * 1024,
-    });
-    
-    const matchedPaths = stdout.split('\n').map(line => line.trim()).filter(line => {
-      return line && line.endsWith(`.${extension}`);
-    });
+
+    const {stdout} = await exec(
+      `git ls-tree -r --name-only ${ref} ${treePath}`,
+      {
+        cwd: cloneDir,
+        maxBuffer: 10 * 1024 * 1024,
+      }
+    );
+
+    const matchedPaths = stdout
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => {
+        return line && line.endsWith(`.${extension}`);
+      });
 
     if (normalizedPrefix) {
-      return matchedPaths.map(p => {
-        if (p === normalizedPrefix) return '';
-        if (p.startsWith(`${normalizedPrefix}/`)) {
-          return p.slice(normalizedPrefix.length + 1);
-        }
-        return p;
-      }).filter(p => p !== '');
+      return matchedPaths
+        .map(p => {
+          if (p === normalizedPrefix) return '';
+          if (p.startsWith(`${normalizedPrefix}/`)) {
+            return p.slice(normalizedPrefix.length + 1);
+          }
+          return p;
+        })
+        .filter(p => p !== '');
     }
     return matchedPaths;
   }
@@ -296,12 +329,12 @@ export class LocalGitHub implements Scm {
   ): AsyncGenerator<Commit, void, void> {
     const cloneDir = await this.getCloneDir();
     const backfillFiles = options?.backfillFiles ?? true;
-    
+
     let format = '---COMMIT_START---%n%H%n%B';
     if (backfillFiles) {
       format += '%n---FILES_START---';
     }
-    
+
     let command = `git log ${targetBranch} --pretty=format:"${format}"`;
     if (backfillFiles) {
       command += ' --name-only';
@@ -326,7 +359,10 @@ export class LocalGitHub implements Scm {
         const parts = block.split('\n---FILES_START---\n');
         commitInfo = parts[0];
         if (parts[1]) {
-          files = parts[1].split('\n').map(f => f.trim()).filter(f => f);
+          files = parts[1]
+            .split('\n')
+            .map(f => f.trim())
+            .filter(f => f);
         }
       }
 
@@ -345,10 +381,10 @@ export class LocalGitHub implements Scm {
       const subject = lines[1] ? lines[1].trim() : '';
       let prNumber: number | undefined;
       let headBranchName = '';
-      
+
       const squashMatch = subject.match(/\s\(#(\d+)\)$/);
       const mergeMatch = subject.match(/^Merge pull request #(\d+) from (.*)$/);
-      
+
       if (squashMatch) {
         prNumber = parseInt(squashMatch[1], 10);
       } else if (mergeMatch) {
@@ -556,7 +592,9 @@ function globToRegex(glob: string): RegExp {
       }
     } else if (c === '?') {
       reg += '[^/]';
-    } else if (['.', '+', '^', '$', '{', '}', '(', ')', '|', '[', ']', '\\'].includes(c)) {
+    } else if (
+      ['.', '+', '^', '$', '{', '}', '(', ')', '|', '[', ']', '\\'].includes(c)
+    ) {
       reg += '\\' + c;
     } else {
       reg += c;
