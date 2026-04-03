@@ -3776,7 +3776,7 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content'));
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
-      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(22).resolves({
         number: 22,
         title: 'pr title1',
         body: 'pr body1',
@@ -3840,7 +3840,7 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content-2'));
       mockPullRequests(github, []);
       sandbox
-        .stub(github, 'getPullRequest')
+        .stub((github as any).apiDelegate, 'getPullRequest')
         .withArgs(123)
         .resolves({
           number: 123,
@@ -3968,7 +3968,7 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content'));
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
-      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(22).resolves({
         number: 22,
         title: 'pr title1',
         body: 'pr body1',
@@ -4031,7 +4031,7 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content'));
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
-      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
+      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(22).resolves({
         number: 22,
         title: 'pr title1',
         body: 'pr body1',

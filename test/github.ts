@@ -1026,7 +1026,7 @@ describe('GitHub', () => {
           parsedContent: 'somecontent',
           mode: '100644',
         });
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
+      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(1).resolves({
         title: 'created title',
         headBranchName: 'release-please--branches--main',
         baseBranchName: 'main',
@@ -1067,7 +1067,7 @@ describe('GitHub', () => {
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
         .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
+      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(1).resolves({
         title: 'created title',
         headBranchName: 'release-please--branches--main',
         baseBranchName: 'main',
@@ -1107,7 +1107,7 @@ describe('GitHub', () => {
         .stub(github, 'getFileContentsOnBranch')
         .withArgs('missing-file', 'main')
         .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
+      sandbox.stub((github as any).apiDelegate, 'getPullRequest').withArgs(1).resolves({
         title: 'created title',
         headBranchName: 'release-please--branches--main',
         baseBranchName: 'main',
