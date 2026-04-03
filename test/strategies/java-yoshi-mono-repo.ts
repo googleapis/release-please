@@ -258,6 +258,9 @@ describe('JavaYoshiMonoRepo', () => {
       findFilesStub
         .withArgs('README.md', 'main', '.')
         .resolves(['path1/README.md', 'path2/README.md']);
+      findFilesStub
+        .withArgs('Version.java', 'main', '.')
+        .resolves(['path1/Version.java']);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -285,6 +288,7 @@ describe('JavaYoshiMonoRepo', () => {
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
       assertHasUpdate(updates, 'path1/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path2/README.md', JavaUpdate);
+      assertHasUpdate(updates, 'path1/Version.java', JavaUpdate);
     });
 
     it('finds and updates extra files', async () => {
@@ -333,6 +337,9 @@ describe('JavaYoshiMonoRepo', () => {
       findFilesStub
         .withArgs('README.md', 'main', '.')
         .resolves(['path1/README.md', 'path2/README.md']);
+      findFilesStub
+        .withArgs('Version.java', 'main', '.')
+        .resolves(['path1/Version.java']);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -362,6 +369,7 @@ describe('JavaYoshiMonoRepo', () => {
       assertHasUpdate(updates, 'versions.txt', VersionsManifest);
       assertHasUpdate(updates, 'path1/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path2/README.md', JavaUpdate);
+      assertHasUpdate(updates, 'path1/Version.java', JavaUpdate);
     });
 
     it('updates changelog.json', async () => {
