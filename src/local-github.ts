@@ -141,17 +141,25 @@ export class LocalGitHub implements Scm {
     
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
     
-    // Increase maxBuffer to 10MB to handle large repositories
     const {stdout} = await exec(`git ls-tree -r --name-only ${ref} ${treePath}`, {
       cwd: cloneDir,
       maxBuffer: 10 * 1024 * 1024,
     });
     
-    const lines = stdout.split('\n');
-    return lines.filter(line => {
-      const trimmed = line.trim();
-      return trimmed && path.posix.basename(trimmed) === filename;
+    const matchedPaths = stdout.split('\n').map(line => line.trim()).filter(line => {
+      return line && path.posix.basename(line) === filename;
     });
+
+    if (normalizedPrefix) {
+      return matchedPaths.map(p => {
+        if (p === normalizedPrefix) return '';
+        if (p.startsWith(`${normalizedPrefix}/`)) {
+          return p.slice(normalizedPrefix.length + 1);
+        }
+        return p;
+      }).filter(p => p !== '');
+    }
+    return matchedPaths;
   }
 
   async findFilesByGlob(glob: string, prefix?: string): Promise<string[]> {
@@ -216,7 +224,11 @@ export class LocalGitHub implements Scm {
     extension: string,
     prefix?: string
   ): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    return this.findFilesByExtensionAndRef(
+      extension,
+      this.repository.defaultBranch,
+      prefix
+    );
   }
 
   async findFilesByExtensionAndRef(
@@ -224,7 +236,34 @@ export class LocalGitHub implements Scm {
     ref: string,
     prefix?: string
   ): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    const cloneDir = await this.getCloneDir();
+    
+    let normalizedPrefix = prefix ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '') : '';
+    if (normalizedPrefix === ROOT_PROJECT_PATH) {
+      normalizedPrefix = '';
+    }
+    
+    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
+    
+    const {stdout} = await exec(`git ls-tree -r --name-only ${ref} ${treePath}`, {
+      cwd: cloneDir,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    
+    const matchedPaths = stdout.split('\n').map(line => line.trim()).filter(line => {
+      return line && line.endsWith(`.${extension}`);
+    });
+
+    if (normalizedPrefix) {
+      return matchedPaths.map(p => {
+        if (p === normalizedPrefix) return '';
+        if (p.startsWith(`${normalizedPrefix}/`)) {
+          return p.slice(normalizedPrefix.length + 1);
+        }
+        return p;
+      }).filter(p => p !== '');
+    }
+    return matchedPaths;
   }
 
   async commitsSince(
