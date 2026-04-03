@@ -403,7 +403,25 @@ export class LocalGitHub implements Scm {
   async *tagIterator(
     options?: ScmTagIteratorOptions
   ): AsyncGenerator<ScmTag, void, void> {
-    throw new Error('Method not implemented.');
+    const cloneDir = await this.getCloneDir();
+    const {stdout} = await exec(
+      'git for-each-ref --sort=-version:refname refs/tags --format="%(refname:short)|%(objectname)|%(*objectname)"',
+      {cwd: cloneDir}
+    );
+
+    const maxResults = options?.maxResults || Number.MAX_SAFE_INTEGER;
+    let results = 0;
+
+    for (const line of stdout.split('\n')) {
+      if (!line) continue;
+      const [name, objectSha, commitSha] = line.split('|');
+      const sha = commitSha || objectSha;
+      if (sha) {
+        yield {name, sha};
+        results++;
+        if (results >= maxResults) break;
+      }
+    }
   }
 
   async createPullRequest(
