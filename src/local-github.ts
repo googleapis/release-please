@@ -544,12 +544,15 @@ export class LocalGitHub implements Scm {
     }
 
     // Commit changes
-    const msgFile = path.join(this.cloneDir, '.git_commit_msg');
+    const msgFile = path.join(
+      os.tmpdir(),
+      `release-please-commit-msg-${process.pid}-${Date.now()}`
+    );
     await fs.promises.writeFile(msgFile, message);
     await exec('git add .', {cwd: this.cloneDir});
 
     try {
-      await exec('git commit -F .git_commit_msg', {cwd: this.cloneDir});
+      await exec(`git commit -F ${msgFile}`, {cwd: this.cloneDir});
     } catch (err) {
       const error = err as {stdout?: string; stderr?: string};
       if (error.stdout && error.stdout.includes('nothing to commit')) {
@@ -579,13 +582,24 @@ export class LocalGitHub implements Scm {
       message,
       changes
     );
-    return await this.apiDelegate.createPullRequestFromChanges(
-      pullRequest,
-      targetBranch,
-      message,
-      new Map(),
-      options
+    this.logger.info('Creating pull request via GitHub API...');
+    const pullResponseData = (
+      await this.apiDelegate.octokit.pulls.create({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        title: pullRequest.title,
+        head: `${this.repository.owner}:${pullRequest.headBranchName}`,
+        base: targetBranch,
+        body: pullRequest.body,
+        maintainer_can_modify: true,
+        draft: !!options?.draft,
+      })
+    ).data;
+
+    this.logger.info(
+      `Successfully opened pull request available at url: ${pullResponseData.html_url}.`
     );
+    return await this.apiDelegate.getPullRequest(pullResponseData.number);
   }
 
   async updatePullRequest(

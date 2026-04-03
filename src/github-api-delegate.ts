@@ -135,7 +135,7 @@ export const MAX_ISSUE_BODY_SIZE = 65536;
 
 export class GitHubApiDelegate {
   readonly repository: Repository;
-  private octokit: OctokitType;
+  octokit: OctokitType;
   private graphql: Function;
   private logger: Logger;
 
