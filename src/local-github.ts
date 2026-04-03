@@ -53,15 +53,16 @@ export class LocalGitHub implements Scm {
   readonly repository: Repository;
   private cloneDir?: string;
   private cloneDepth?: number;
-  private apiDelegate?: GitHubApiDelegate;
+  private apiDelegate: GitHubApiDelegate;
 
   constructor(
     repository: Repository,
-    options?: {cloneDepth?: number; apiDelegate?: GitHubApiDelegate}
+    apiDelegate: GitHubApiDelegate,
+    options?: {cloneDepth?: number}
   ) {
     this.repository = repository;
+    this.apiDelegate = apiDelegate;
     this.cloneDepth = options?.cloneDepth;
-    this.apiDelegate = options?.apiDelegate;
   }
 
   private async getCloneDir(): Promise<string> {
@@ -378,26 +379,18 @@ export class LocalGitHub implements Scm {
     maxResults?: number,
     includeFiles?: boolean
   ): AsyncGenerator<PullRequest, void, void> {
-    if (this.apiDelegate) {
-      yield* this.apiDelegate.pullRequestIterator(
-        targetBranch,
-        status,
-        maxResults,
-        includeFiles
-      );
-      return;
-    }
-    throw new Error('Method not implemented or no API delegate');
+    yield* this.apiDelegate.pullRequestIterator(
+      targetBranch,
+      status,
+      maxResults,
+      includeFiles
+    );
   }
 
   async *releaseIterator(
     options?: ScmReleaseIteratorOptions
   ): AsyncGenerator<ScmRelease, void, void> {
-    if (this.apiDelegate) {
-      yield* this.apiDelegate.releaseIterator(options);
-      return;
-    }
-    throw new Error('Method not implemented or no API delegate');
+    yield* this.apiDelegate.releaseIterator(options);
   }
 
   async *tagIterator(
@@ -431,17 +424,14 @@ export class LocalGitHub implements Scm {
     updates: Update[],
     options?: ScmCreatePullRequestOptions
   ): Promise<PullRequest> {
-    if (this.apiDelegate) {
-      const changes = await this.buildChangeSet(updates, targetBranch);
-      return await this.apiDelegate.createPullRequestFromChanges(
-        pullRequest,
-        targetBranch,
-        message,
-        changes,
-        options
-      );
-    }
-    throw new Error('Method not implemented or no API delegate');
+    const changes = await this.buildChangeSet(updates, targetBranch);
+    return await this.apiDelegate.createPullRequestFromChanges(
+      pullRequest,
+      targetBranch,
+      message,
+      changes,
+      options
+    );
   }
 
   async updatePullRequest(
@@ -450,58 +440,40 @@ export class LocalGitHub implements Scm {
     targetBranch: string,
     options?: ScmUpdatePullRequestOptions
   ): Promise<PullRequest> {
-    if (this.apiDelegate) {
-      const changes = await this.buildChangeSet(
-        pullRequest.updates,
-        targetBranch
-      );
-      return await this.apiDelegate.updatePullRequestFromChanges(
-        number,
-        pullRequest,
-        targetBranch,
-        changes,
-        options
-      );
-    }
-    throw new Error('Method not implemented or no API delegate');
+    const changes = await this.buildChangeSet(
+      pullRequest.updates,
+      targetBranch
+    );
+    return await this.apiDelegate.updatePullRequestFromChanges(
+      number,
+      pullRequest,
+      targetBranch,
+      changes,
+      options
+    );
   }
 
   async getPullRequest(number: number): Promise<PullRequest> {
-    if (this.apiDelegate) {
-      return await this.apiDelegate.getPullRequest(number);
-    }
-    throw new Error('Method not implemented or no API delegate');
+    return await this.apiDelegate.getPullRequest(number);
   }
 
   async createRelease(
     release: Release,
     options?: ScmReleaseOptions
   ): Promise<ScmRelease> {
-    if (this.apiDelegate) {
-      return await this.apiDelegate.createRelease(release, options);
-    }
-    throw new Error('Method not implemented or no API delegate');
+    return await this.apiDelegate.createRelease(release, options);
   }
 
   async commentOnIssue(comment: string, number: number): Promise<string> {
-    if (this.apiDelegate) {
-      return await this.apiDelegate.commentOnIssue(comment, number);
-    }
-    throw new Error('Method not implemented or no API delegate');
+    return await this.apiDelegate.commentOnIssue(comment, number);
   }
 
   async removeIssueLabels(labels: string[], number: number): Promise<void> {
-    if (this.apiDelegate) {
-      return await this.apiDelegate.removeIssueLabels(labels, number);
-    }
-    throw new Error('Method not implemented or no API delegate');
+    return await this.apiDelegate.removeIssueLabels(labels, number);
   }
 
   async addIssueLabels(labels: string[], number: number): Promise<void> {
-    if (this.apiDelegate) {
-      return await this.apiDelegate.addIssueLabels(labels, number);
-    }
-    throw new Error('Method not implemented or no API delegate');
+    return await this.apiDelegate.addIssueLabels(labels, number);
   }
 
   async generateReleaseNotes(
@@ -509,14 +481,11 @@ export class LocalGitHub implements Scm {
     targetCommitish: string,
     previousTag?: string
   ): Promise<string> {
-    if (this.apiDelegate) {
-      return await this.apiDelegate.generateReleaseNotes(
-        tagName,
-        targetCommitish,
-        previousTag
-      );
-    }
-    throw new Error('Method not implemented or no API delegate');
+    return await this.apiDelegate.generateReleaseNotes(
+      tagName,
+      targetCommitish,
+      previousTag
+    );
   }
 
   async createFileOnNewBranch(
@@ -525,15 +494,12 @@ export class LocalGitHub implements Scm {
     newBranchName: string,
     baseBranchName: string
   ): Promise<string> {
-    if (this.apiDelegate) {
-      return await this.apiDelegate.createFileOnNewBranch(
-        filename,
-        contents,
-        newBranchName,
-        baseBranchName
-      );
-    }
-    throw new Error('Method not implemented or no API delegate');
+    return await this.apiDelegate.createFileOnNewBranch(
+      filename,
+      contents,
+      newBranchName,
+      baseBranchName
+    );
   }
 
   async buildChangeSet(
