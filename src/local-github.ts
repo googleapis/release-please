@@ -525,7 +525,9 @@ export class LocalGitHub implements Scm {
 
     // Checkout/Reset PR branch
     await exec(`git fetch origin ${targetBranch}`, {cwd: this.cloneDir});
-    await exec(`git checkout -B ${branch} origin/${targetBranch}`, {cwd: this.cloneDir});
+    await exec(`git checkout -B ${branch} origin/${targetBranch}`, {
+      cwd: this.cloneDir,
+    });
 
     // Write file edits
     for (const [filePath, fileUpdate] of changes.entries()) {
@@ -545,7 +547,7 @@ export class LocalGitHub implements Scm {
     const msgFile = path.join(this.cloneDir, '.git_commit_msg');
     await fs.promises.writeFile(msgFile, message);
     await exec('git add .', {cwd: this.cloneDir});
-    
+
     try {
       await exec('git commit -F .git_commit_msg', {cwd: this.cloneDir});
     } catch (err) {
