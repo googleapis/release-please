@@ -12,6 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import * as child_process from 'child_process';
+import * as util from 'util';
+
+const exec = util.promisify(child_process.exec);
+const mkdtemp = fs.promises.mkdtemp;
+
 import {
   Scm,
   ScmRelease,
@@ -38,9 +47,30 @@ import {GitHubFileContents} from '@google-automations/git-file-utils';
  */
 export class LocalGitHub implements Scm {
   readonly repository: Repository;
+  private cloneDir?: string;
+  private cloneDepth?: number;
 
-  constructor(repository: Repository) {
+  constructor(repository: Repository, options?: {cloneDepth?: number}) {
     this.repository = repository;
+    this.cloneDepth = options?.cloneDepth;
+  }
+
+  private async getCloneDir(): Promise<string> {
+    if (this.cloneDir) {
+      return this.cloneDir;
+    }
+
+    const tempDir = await mkdtemp(path.join(os.tmpdir(), 'release-please-'));
+    const url = `https://github.com/${this.repository.owner}/${this.repository.repo}.git`;
+
+    let cloneCmd = `git clone ${url} ${tempDir}`;
+    if (this.cloneDepth) {
+      cloneCmd = `git clone --depth ${this.cloneDepth} ${url} ${tempDir}`;
+    }
+
+    await exec(cloneCmd);
+    this.cloneDir = tempDir;
+    return tempDir;
   }
 
   async getFileContents(path: string): Promise<GitHubFileContents> {
