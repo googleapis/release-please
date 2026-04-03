@@ -120,7 +120,11 @@ export class LocalGitHub implements Scm {
     filename: string,
     prefix?: string
   ): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    return this.findFilesByFilenameAndRef(
+      filename,
+      this.repository.defaultBranch,
+      prefix
+    );
   }
 
   async findFilesByFilenameAndRef(
@@ -151,7 +155,11 @@ export class LocalGitHub implements Scm {
   }
 
   async findFilesByGlob(glob: string, prefix?: string): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    return this.findFilesByGlobAndRef(
+      glob,
+      this.repository.defaultBranch,
+      prefix
+    );
   }
 
   async findFilesByGlobAndRef(
@@ -159,7 +167,49 @@ export class LocalGitHub implements Scm {
     ref: string,
     prefix?: string
   ): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    const cloneDir = await this.getCloneDir();
+    
+    let normalizedPrefix = prefix ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '') : '';
+    if (normalizedPrefix === ROOT_PROJECT_PATH) {
+      normalizedPrefix = '';
+    }
+    
+    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
+    
+    // Increase maxBuffer to 10MB to handle large repositories
+    const {stdout} = await exec(`git ls-tree -r --name-only ${ref} ${treePath}`, {
+      cwd: cloneDir,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    
+    const files = stdout.split('\n').map(line => line.trim()).filter(Boolean);
+    
+    // Derive directories
+    const dirs = new Set<string>();
+    for (const file of files) {
+      let dir = path.posix.dirname(file);
+      while (dir !== '.' && dir !== '/') {
+        dirs.add(dir);
+        dir = path.posix.dirname(dir);
+      }
+    }
+    
+    const allPaths = [...files, ...dirs];
+    
+    // Make paths relative to prefix if provided
+    let relativePaths = allPaths;
+    if (normalizedPrefix) {
+      relativePaths = allPaths.map(p => {
+        if (p === normalizedPrefix) return '';
+        if (p.startsWith(`${normalizedPrefix}/`)) {
+          return p.slice(normalizedPrefix.length + 1);
+        }
+        return p;
+      }).filter(p => p !== '');
+    }
+    
+    const regex = globToRegex(glob);
+    return relativePaths.filter(p => regex.test(p));
   }
 
   async findFilesByExtension(
@@ -278,4 +328,33 @@ export class LocalGitHub implements Scm {
   ): Promise<ScmChangeSet> {
     throw new Error('Method not implemented.');
   }
+}
+
+function globToRegex(glob: string): RegExp {
+  let reg = '';
+  let i = 0;
+  while (i < glob.length) {
+    const c = glob[i];
+    if (c === '*') {
+      if (i + 1 < glob.length && glob[i + 1] === '*') {
+        if (i + 2 < glob.length && glob[i + 2] === '/') {
+          reg += '(?:.*\\/)?';
+          i += 2;
+        } else {
+          reg += '.*';
+          i++;
+        }
+      } else {
+        reg += '[^/]*';
+      }
+    } else if (c === '?') {
+      reg += '[^/]';
+    } else if (['.', '+', '^', '$', '{', '}', '(', ')', '|', '[', ']', '\\'].includes(c)) {
+      reg += '\\' + c;
+    } else {
+      reg += c;
+    }
+    i++;
+  }
+  return new RegExp(`^${reg}$`);
 }
