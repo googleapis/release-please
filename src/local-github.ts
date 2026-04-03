@@ -53,6 +53,7 @@ import {logger as defaultLogger} from './util/logger';
 
 export interface LocalGitHubCreateOptions extends GitHubCreateOptions {
   cloneDepth?: number;
+  localRepoPath?: string;
 }
 
 /**
@@ -79,24 +80,41 @@ export class LocalGitHub implements Scm {
 
   static async create(options: LocalGitHubCreateOptions): Promise<LocalGitHub> {
     const github = await GitHub.create(options);
-
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), 'release-please-'));
     const logger = options.logger ?? defaultLogger;
-    logger.info(`Cloning repository to ${tempDir}...`);
-    const url = `https://github.com/${github.repository.owner}/${github.repository.repo}.git`;
 
-    let cloneCmd = `git clone ${url} ${tempDir}`;
-    if (options.cloneDepth) {
-      cloneCmd = `git clone --depth ${options.cloneDepth} ${url} ${tempDir}`;
+    let repoDir: string;
+    if (options.localRepoPath) {
+      repoDir = options.localRepoPath;
+      logger.info(`Using existing local repository at ${repoDir}...`);
+      const branch = github.repository.defaultBranch;
+
+      logger.debug('Executing: git fetch origin');
+      await exec('git fetch origin', {cwd: repoDir});
+
+      logger.debug(`Executing: git checkout ${branch}`);
+      await exec(`git checkout ${branch}`, {cwd: repoDir});
+
+      logger.debug(`Executing: git reset --hard origin/${branch}`);
+      await exec(`git reset --hard origin/${branch}`, {cwd: repoDir});
+    } else {
+      const tempDir = await mkdtemp(path.join(os.tmpdir(), 'release-please-'));
+      logger.info(`Cloning repository to ${tempDir}...`);
+      const url = `https://github.com/${github.repository.owner}/${github.repository.repo}.git`;
+
+      let cloneCmd = `git clone ${url} ${tempDir}`;
+      if (options.cloneDepth) {
+        cloneCmd = `git clone --depth ${options.cloneDepth} ${url} ${tempDir}`;
+      }
+
+      logger.debug(`Executing: ${cloneCmd}`);
+      await exec(cloneCmd);
+      repoDir = tempDir;
     }
-
-    logger.debug(`Executing: ${cloneCmd}`);
-    await exec(cloneCmd);
 
     return new LocalGitHub(
       github.repository,
       github.getApiDelegate(),
-      tempDir,
+      repoDir,
       {
         logger: options.logger,
       }
