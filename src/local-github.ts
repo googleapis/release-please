@@ -33,6 +33,7 @@ import {
   ScmReleaseOptions,
   ScmChangeSet,
 } from './scm';
+import {FileNotFoundError} from './errors';
 import {Repository} from './repository';
 import {Commit} from './commit';
 import {PullRequest} from './pull-request';
@@ -74,18 +75,44 @@ export class LocalGitHub implements Scm {
   }
 
   async getFileContents(path: string): Promise<GitHubFileContents> {
-    throw new Error('Method not implemented.');
+    return await this.getFileContentsOnBranch(
+      path,
+      this.repository.defaultBranch
+    );
   }
 
   async getFileContentsOnBranch(
     path: string,
     branch: string
   ): Promise<GitHubFileContents> {
-    throw new Error('Method not implemented.');
+    const cloneDir = await this.getCloneDir();
+    
+    const lsTreeResult = await exec(`git ls-tree ${branch} ${path}`, {
+      cwd: cloneDir,
+    });
+    
+    if (!lsTreeResult.stdout.trim()) {
+      throw new FileNotFoundError(path);
+    }
+    
+    const [info] = lsTreeResult.stdout.split('\t');
+    const [mode, , sha] = info.split(' ');
+
+    const {stdout} = await exec(`git show ${branch}:${path}`, {
+      cwd: cloneDir,
+    });
+    
+    return {
+      content: Buffer.from(stdout).toString('base64'),
+      parsedContent: stdout,
+      sha,
+      mode,
+    };
   }
 
   async getFileJson<T>(path: string, branch: string): Promise<T> {
-    throw new Error('Method not implemented.');
+    const content = await this.getFileContentsOnBranch(path, branch);
+    return JSON.parse(content.parsedContent);
   }
 
   async findFilesByFilename(
