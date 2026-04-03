@@ -35,6 +35,7 @@ import {
 } from './scm';
 import {FileNotFoundError} from './errors';
 import {Repository} from './repository';
+import {ROOT_PROJECT_PATH} from './manifest';
 import {Commit} from './commit';
 import {PullRequest} from './pull-request';
 import {ReleasePullRequest} from './release-pull-request';
@@ -127,7 +128,26 @@ export class LocalGitHub implements Scm {
     ref: string,
     prefix?: string
   ): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    const cloneDir = await this.getCloneDir();
+    
+    let normalizedPrefix = prefix ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '') : '';
+    if (normalizedPrefix === ROOT_PROJECT_PATH) {
+      normalizedPrefix = '';
+    }
+    
+    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
+    
+    // Increase maxBuffer to 10MB to handle large repositories
+    const {stdout} = await exec(`git ls-tree -r --name-only ${ref} ${treePath}`, {
+      cwd: cloneDir,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    
+    const lines = stdout.split('\n');
+    return lines.filter(line => {
+      const trimmed = line.trim();
+      return trimmed && path.posix.basename(trimmed) === filename;
+    });
   }
 
   async findFilesByGlob(glob: string, prefix?: string): Promise<string[]> {
