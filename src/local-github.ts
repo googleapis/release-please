@@ -271,14 +271,98 @@ export class LocalGitHub implements Scm {
     filter: (commit: Commit) => boolean,
     options?: ScmCommitIteratorOptions
   ): Promise<Commit[]> {
-    throw new Error('Method not implemented.');
+    const commits: Commit[] = [];
+    const generator = this.mergeCommitIterator(targetBranch, options);
+    for await (const commit of generator) {
+      if (filter(commit)) {
+        break;
+      }
+      commits.push(commit);
+    }
+    return commits;
   }
 
   async *mergeCommitIterator(
     targetBranch: string,
     options?: ScmCommitIteratorOptions
   ): AsyncGenerator<Commit, void, void> {
-    throw new Error('Method not implemented.');
+    const cloneDir = await this.getCloneDir();
+    const backfillFiles = options?.backfillFiles ?? true;
+    
+    let format = '---COMMIT_START---%n%H%n%B';
+    if (backfillFiles) {
+      format += '%n---FILES_START---';
+    }
+    
+    let command = `git log ${targetBranch} --pretty=format:"${format}"`;
+    if (backfillFiles) {
+      command += ' --name-only';
+    }
+    if (options?.maxResults) {
+      command += ` -n ${options.maxResults}`;
+    }
+
+    const {stdout} = await exec(command, {
+      cwd: cloneDir,
+      maxBuffer: 100 * 1024 * 1024,
+    });
+
+    const blocks = stdout.split('---COMMIT_START---\n');
+    for (const block of blocks) {
+      if (!block.trim()) continue;
+
+      let commitInfo = block;
+      let files: string[] = [];
+
+      if (backfillFiles) {
+        const parts = block.split('\n---FILES_START---\n');
+        commitInfo = parts[0];
+        if (parts[1]) {
+          files = parts[1].split('\n').map(f => f.trim()).filter(f => f);
+        }
+      }
+
+      const lines = commitInfo.split('\n');
+      const sha = lines[0].trim();
+      const message = lines.slice(1).join('\n').trim();
+
+      if (!sha) continue;
+
+      const commit: Commit = {
+        sha,
+        message,
+        files: backfillFiles ? files : undefined,
+      };
+
+      const subject = lines[1] ? lines[1].trim() : '';
+      let prNumber: number | undefined;
+      let headBranchName = '';
+      
+      const squashMatch = subject.match(/\s\(#(\d+)\)$/);
+      const mergeMatch = subject.match(/^Merge pull request #(\d+) from (.*)$/);
+      
+      if (squashMatch) {
+        prNumber = parseInt(squashMatch[1], 10);
+      } else if (mergeMatch) {
+        prNumber = parseInt(mergeMatch[1], 10);
+        headBranchName = mergeMatch[2].trim();
+      }
+
+      if (prNumber) {
+        commit.pullRequest = {
+          sha,
+          number: prNumber,
+          title: subject.replace(/\s\(#(\d+)\)$/, ''),
+          body: message,
+          labels: [],
+          files: backfillFiles ? files : [],
+          baseBranchName: targetBranch,
+          headBranchName,
+        };
+      }
+
+      yield commit;
+    }
   }
 
   async *pullRequestIterator(
