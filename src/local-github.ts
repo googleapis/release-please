@@ -515,6 +515,54 @@ export class LocalGitHub implements Scm {
     }
   }
 
+  private async applyEditsAndPush(
+    branch: string,
+    targetBranch: string,
+    message: string,
+    changes: ScmChangeSet
+  ): Promise<void> {
+    this.logger.debug(`Applying edits and pushing to ${branch}`);
+
+    // Checkout/Reset PR branch
+    await exec(`git fetch origin ${targetBranch}`, {cwd: this.cloneDir});
+    await exec(`git checkout -B ${branch} origin/${targetBranch}`, {cwd: this.cloneDir});
+
+    // Write file edits
+    for (const [filePath, fileUpdate] of changes.entries()) {
+      const fullPath = path.join(this.cloneDir, filePath);
+      await fs.promises.mkdir(path.dirname(fullPath), {recursive: true});
+      if (fileUpdate.content !== null) {
+        await fs.promises.writeFile(fullPath, fileUpdate.content);
+      } else {
+        await fs.promises.unlink(fullPath).catch(() => {});
+      }
+      if (fileUpdate.mode) {
+        await fs.promises.chmod(fullPath, parseInt(fileUpdate.mode, 8));
+      }
+    }
+
+    // Commit changes
+    const msgFile = path.join(this.cloneDir, '.git_commit_msg');
+    await fs.promises.writeFile(msgFile, message);
+    await exec('git add .', {cwd: this.cloneDir});
+    
+    try {
+      await exec('git commit -F .git_commit_msg', {cwd: this.cloneDir});
+    } catch (err) {
+      const error = err as {stdout?: string; stderr?: string};
+      if (error.stdout && error.stdout.includes('nothing to commit')) {
+        this.logger.debug('Nothing to commit');
+      } else {
+        throw err;
+      }
+    } finally {
+      await fs.promises.unlink(msgFile).catch(() => {});
+    }
+
+    // Push transit
+    await exec(`git push -f origin ${branch}`, {cwd: this.cloneDir});
+  }
+
   async createPullRequest(
     pullRequest: PullRequest,
     targetBranch: string,
@@ -523,11 +571,17 @@ export class LocalGitHub implements Scm {
     options?: ScmCreatePullRequestOptions
   ): Promise<PullRequest> {
     const changes = await this.buildChangeSet(updates, targetBranch);
+    await this.applyEditsAndPush(
+      pullRequest.headBranchName,
+      targetBranch,
+      message,
+      changes
+    );
     return await this.apiDelegate.createPullRequestFromChanges(
       pullRequest,
       targetBranch,
       message,
-      changes,
+      new Map(),
       options
     );
   }
@@ -542,11 +596,18 @@ export class LocalGitHub implements Scm {
       pullRequest.updates,
       targetBranch
     );
+    const message = pullRequest.title.toString();
+    await this.applyEditsAndPush(
+      pullRequest.headRefName,
+      targetBranch,
+      message,
+      changes
+    );
     return await this.apiDelegate.updatePullRequestFromChanges(
       number,
       pullRequest,
       targetBranch,
-      changes,
+      new Map(),
       options
     );
   }
