@@ -177,6 +177,7 @@ export class LocalGitHub implements Scm {
 
     const {stdout} = await exec(`git show ${branch}:${path}`, {
       cwd: this.cloneDir,
+      maxBuffer: 100 * 1024 * 1024,
     });
 
     return {
@@ -273,7 +274,7 @@ export class LocalGitHub implements Scm {
       normalizedPrefix = '';
     }
 
-    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
+    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '.';
 
     const files: string[] = [];
     const dirs = new Set<string>();
@@ -624,7 +625,7 @@ export class LocalGitHub implements Scm {
       );
       if (newContents) {
         changes.set(update.path, {
-          content: Buffer.from(newContents).toString('base64'),
+          content: newContents,
           originalContent: content ? content.parsedContent : null,
           mode: content ? content.mode : DEFAULT_FILE_MODE,
         });
