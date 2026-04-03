@@ -47,7 +47,7 @@ import {
   DEFAULT_FILE_MODE,
 } from '@google-automations/git-file-utils';
 import {mergeUpdates} from './updaters/composite';
-import {GitHubApiDelegate} from './github-api-delegate';
+import { GitHubApiDelegate, MAX_ISSUE_BODY_SIZE } from './github-api-delegate';
 import {GitHub, GitHubCreateOptions} from './github';
 import {Logger} from 'code-suggester/build/src/types';
 import {logger as defaultLogger} from './util/logger';
@@ -619,13 +619,34 @@ export class LocalGitHub implements Scm {
       message,
       changes
     );
-    return await this.apiDelegate.updatePullRequestFromChanges(
-      number,
-      pullRequest,
-      targetBranch,
-      new Map(),
-      options
-    );
+    const body = (
+      options?.pullRequestOverflowHandler
+        ? await options.pullRequestOverflowHandler.handleOverflow(pullRequest)
+        : pullRequest.body
+    )
+      .toString()
+      .slice(0, MAX_ISSUE_BODY_SIZE);
+    const pullResponseData = (
+      await this.apiDelegate.octokit.pulls.update({
+        owner: this.repository.owner,
+        repo: this.repository.repo,
+        pull_number: number,
+        title: pullRequest.title.toString(),
+        body,
+        state: 'open',
+      })
+    ).data;
+    return {
+      headBranchName: pullResponseData.head.ref,
+      baseBranchName: pullResponseData.base.ref,
+      number: pullResponseData.number,
+      title: pullResponseData.title,
+      body: pullResponseData.body || '',
+      files: [],
+      labels: pullResponseData.labels
+        .map((label: any) => label.name)
+        .filter((name: any) => !!name) as string[],
+    };
   }
 
   async getPullRequest(number: number): Promise<PullRequest> {
