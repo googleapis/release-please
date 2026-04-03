@@ -61,48 +61,46 @@ export interface LocalGitHubCreateOptions extends GitHubCreateOptions {
  */
 export class LocalGitHub implements Scm {
   readonly repository: Repository;
-  private cloneDir?: string;
-  private cloneDepth?: number;
+  private cloneDir: string;
   private apiDelegate: GitHubApiDelegate;
   private logger: Logger;
 
   constructor(
     repository: Repository,
     apiDelegate: GitHubApiDelegate,
-    options?: {cloneDepth?: number; logger?: Logger}
+    cloneDir: string,
+    options?: {logger?: Logger}
   ) {
     this.repository = repository;
     this.apiDelegate = apiDelegate;
-    this.cloneDepth = options?.cloneDepth;
+    this.cloneDir = cloneDir;
     this.logger = options?.logger ?? defaultLogger;
   }
 
   static async create(options: LocalGitHubCreateOptions): Promise<LocalGitHub> {
     const github = await GitHub.create(options);
-    return new LocalGitHub(github.repository, github.getApiDelegate(), {
-      cloneDepth: options.cloneDepth,
-      logger: options.logger,
-    });
-  }
-
-  private async getCloneDir(): Promise<string> {
-    if (this.cloneDir) {
-      return this.cloneDir;
-    }
 
     const tempDir = await mkdtemp(path.join(os.tmpdir(), 'release-please-'));
-    this.logger.info(`Cloning repository to ${tempDir}...`);
-    const url = `https://github.com/${this.repository.owner}/${this.repository.repo}.git`;
+    const logger = options.logger ?? defaultLogger;
+    logger.info(`Cloning repository to ${tempDir}...`);
+    const url = `https://github.com/${github.repository.owner}/${github.repository.repo}.git`;
 
     let cloneCmd = `git clone ${url} ${tempDir}`;
-    if (this.cloneDepth) {
-      cloneCmd = `git clone --depth ${this.cloneDepth} ${url} ${tempDir}`;
+    if (options.cloneDepth) {
+      cloneCmd = `git clone --depth ${options.cloneDepth} ${url} ${tempDir}`;
     }
 
-    this.logger.debug(`Executing: ${cloneCmd}`);
+    logger.debug(`Executing: ${cloneCmd}`);
     await exec(cloneCmd);
-    this.cloneDir = tempDir;
-    return tempDir;
+
+    return new LocalGitHub(
+      github.repository,
+      github.getApiDelegate(),
+      tempDir,
+      {
+        logger: options.logger,
+      }
+    );
   }
 
   async getFileContents(path: string): Promise<GitHubFileContents> {
@@ -119,10 +117,8 @@ export class LocalGitHub implements Scm {
     this.logger.debug(
       `Looking in local clone for file ${path} on branch ${branch}`
     );
-    const cloneDir = await this.getCloneDir();
-
     const lsTreeResult = await exec(`git ls-tree ${branch} ${path}`, {
-      cwd: cloneDir,
+      cwd: this.cloneDir,
     });
 
     if (!lsTreeResult.stdout.trim()) {
@@ -133,7 +129,7 @@ export class LocalGitHub implements Scm {
     const [mode, , sha] = info.split(' ');
 
     const {stdout} = await exec(`git show ${branch}:${path}`, {
-      cwd: cloneDir,
+      cwd: this.cloneDir,
     });
 
     return {
@@ -168,7 +164,6 @@ export class LocalGitHub implements Scm {
     this.logger.debug(
       `Looking in local clone for file ${filename} with ref ${ref} and prefix '${prefix}'`
     );
-    const cloneDir = await this.getCloneDir();
 
     let normalizedPrefix = prefix
       ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '')
@@ -182,7 +177,7 @@ export class LocalGitHub implements Scm {
     const {stdout} = await exec(
       `git ls-tree -r --name-only ${ref} ${treePath}`,
       {
-        cwd: cloneDir,
+        cwd: this.cloneDir,
         maxBuffer: 10 * 1024 * 1024,
       }
     );
@@ -224,7 +219,6 @@ export class LocalGitHub implements Scm {
     this.logger.debug(
       `Looking in local clone for file matching glob ${glob} with ref ${ref} and prefix '${prefix}'`
     );
-    const cloneDir = await this.getCloneDir();
 
     let normalizedPrefix = prefix
       ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '')
@@ -239,7 +233,7 @@ export class LocalGitHub implements Scm {
     const {stdout} = await exec(
       `git ls-tree -r --name-only ${ref} ${treePath}`,
       {
-        cwd: cloneDir,
+        cwd: this.cloneDir,
         maxBuffer: 10 * 1024 * 1024,
       }
     );
@@ -298,7 +292,6 @@ export class LocalGitHub implements Scm {
     this.logger.debug(
       `Looking in local clone for file matching extension ${extension} with ref ${ref} and prefix '${prefix}'`
     );
-    const cloneDir = await this.getCloneDir();
 
     let normalizedPrefix = prefix
       ? prefix.replace(/^[/\\]/, '').replace(/[/\\]$/, '')
@@ -312,7 +305,7 @@ export class LocalGitHub implements Scm {
     const {stdout} = await exec(
       `git ls-tree -r --name-only ${ref} ${treePath}`,
       {
-        cwd: cloneDir,
+        cwd: this.cloneDir,
         maxBuffer: 10 * 1024 * 1024,
       }
     );
@@ -361,7 +354,7 @@ export class LocalGitHub implements Scm {
     this.logger.debug(
       `Looking in local clone for commits on branch ${targetBranch}`
     );
-    const cloneDir = await this.getCloneDir();
+
     const backfillFiles = options?.backfillFiles ?? true;
 
     let format = '---COMMIT_START---%n%H%n%B';
@@ -378,7 +371,7 @@ export class LocalGitHub implements Scm {
     }
 
     const {stdout} = await exec(command, {
-      cwd: cloneDir,
+      cwd: this.cloneDir,
       maxBuffer: 100 * 1024 * 1024,
     });
 
@@ -466,10 +459,9 @@ export class LocalGitHub implements Scm {
   async *tagIterator(
     options?: ScmTagIteratorOptions
   ): AsyncGenerator<ScmTag, void, void> {
-    const cloneDir = await this.getCloneDir();
     const {stdout} = await exec(
       'git for-each-ref --sort=-version:refname refs/tags --format="%(refname:short)|%(objectname)|%(*objectname)"',
-      {cwd: cloneDir}
+      {cwd: this.cloneDir}
     );
 
     const maxResults = options?.maxResults || Number.MAX_SAFE_INTEGER;
