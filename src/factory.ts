@@ -15,7 +15,7 @@
 import {ConfigurationError} from './errors';
 import {buildChangelogNotes} from './factories/changelog-notes-factory';
 import {buildVersioningStrategy} from './factories/versioning-strategy-factory';
-import {GitHub} from './github';
+import {Scm} from './scm';
 import {ReleaserConfig} from './manifest';
 import {BaseStrategyOptions} from './strategies/base';
 import {Bazel} from './strategies/bazel';
@@ -61,7 +61,7 @@ export type ReleaseType = string;
 export type ReleaseBuilder = (options: BaseStrategyOptions) => Strategy;
 
 export interface StrategyFactoryOptions extends ReleaserConfig {
-  github: GitHub;
+  github: Scm;
   path?: string;
   targetBranch?: string;
 }

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {PullRequestBody} from './pull-request-body';
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 import {PullRequest} from '../pull-request';
 import {Logger, logger as defaultLogger} from './logger';
 import {URL} from 'url';
@@ -62,9 +62,9 @@ export interface PullRequestOverflowHandler {
 export class FilePullRequestOverflowHandler
   implements PullRequestOverflowHandler
 {
-  private github: GitHub;
+  private github: Scm;
   private logger: Logger;
-  constructor(github: GitHub, logger: Logger = defaultLogger) {
+  constructor(github: Scm, logger: Logger = defaultLogger) {
     this.github = github;
     this.logger = logger;
   }

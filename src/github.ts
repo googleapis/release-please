@@ -51,6 +51,19 @@ import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {mergeUpdates} from './updaters/composite';
+import {
+  Scm,
+  ScmFileDiff,
+  ScmChangeSet,
+  ScmCommitIteratorOptions,
+  ScmReleaseIteratorOptions,
+  ScmTagIteratorOptions,
+  ScmCreatePullRequestOptions,
+  ScmUpdatePullRequestOptions,
+  ScmReleaseOptions,
+  ScmRelease,
+  ScmTag,
+} from './scm';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -157,55 +170,20 @@ interface ReleaseHistory {
   data: GitHubRelease[];
 }
 
-interface CommitIteratorOptions {
-  maxResults?: number;
-  backfillFiles?: boolean;
-  batchSize?: number;
-}
+type CommitIteratorOptions = ScmCommitIteratorOptions;
+type ReleaseIteratorOptions = ScmReleaseIteratorOptions;
+type TagIteratorOptions = ScmTagIteratorOptions;
 
-interface ReleaseIteratorOptions {
-  maxResults?: number;
-}
+export type ReleaseOptions = ScmReleaseOptions;
+export type GitHubRelease = ScmRelease;
+export type GitHubTag = ScmTag;
 
-interface TagIteratorOptions {
-  maxResults?: number;
-}
+type FileDiff = ScmFileDiff;
+export type ChangeSet = ScmChangeSet;
 
-export interface ReleaseOptions {
-  draft?: boolean;
-  prerelease?: boolean;
-  forceTag?: boolean;
-}
+type CreatePullRequestOptions = ScmCreatePullRequestOptions;
 
-export interface GitHubRelease {
-  id: number;
-  name?: string;
-  tagName: string;
-  sha: string;
-  notes?: string;
-  url: string;
-  draft?: boolean;
-  uploadUrl?: string;
-}
-
-export interface GitHubTag {
-  name: string;
-  sha: string;
-}
-
-interface FileDiff {
-  readonly mode: '100644' | '100755' | '040000' | '160000' | '120000';
-  readonly content: string | null;
-  readonly originalContent: string | null;
-}
-export type ChangeSet = Map<string, FileDiff>;
-
-interface CreatePullRequestOptions {
-  fork?: boolean;
-  draft?: boolean;
-}
-
-export class GitHub {
+export class GitHub implements Scm {
   readonly repository: Repository;
   private octokit: OctokitType;
   private request: RequestFunctionType;

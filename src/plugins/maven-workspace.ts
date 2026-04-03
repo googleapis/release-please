@@ -33,7 +33,7 @@ import {PullRequestTitle} from '../util/pull-request-title';
 import {PullRequestBody} from '../util/pull-request-body';
 import {BranchName} from '../util/branch-name';
 import {logger as defaultLogger, Logger} from '../util/logger';
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 import {JavaSnapshot} from '../versioning-strategies/java-snapshot';
 import {AlwaysBumpPatch} from '../versioning-strategies/always-bump-patch';
 import {ConventionalCommit} from '../commit';
@@ -79,7 +79,7 @@ const XPATH_PROJECT_DEPENDENCY_MANAGEMENT_DEPENDENCIES =
 export class MavenWorkspace extends WorkspacePlugin<MavenArtifact> {
   readonly considerAllArtifacts: boolean;
   constructor(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     options: MavenWorkspacePluginOptions = {}
