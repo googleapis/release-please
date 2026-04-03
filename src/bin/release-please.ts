@@ -30,6 +30,8 @@ import {
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
+import { Scm } from '../scm';
+import { LocalGitHub } from '../local-github';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -49,6 +51,7 @@ interface GitHubArgs {
   apiUrl?: string;
   graphqlUrl?: string;
   fork?: boolean;
+  local?: boolean;
 
   // deprecated in favor of targetBranch
   defaultBranch?: string;
@@ -184,6 +187,11 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
     })
     .option('dry-run', {
       describe: 'Prepare but do not take action',
+      type: 'boolean',
+      default: false,
+    })
+    .option('local', {
+      describe: 'Whether to use local clone',
       type: 'boolean',
       default: false,
     })
@@ -817,16 +825,27 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
   },
 };
 
-async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
+async function buildGitHub(argv: GitHubArgs): Promise<Scm> {
   const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
-  const github = await GitHub.create({
-    owner,
-    repo,
-    token: argv.token!,
-    apiUrl: argv.apiUrl,
-    graphqlUrl: argv.graphqlUrl,
-  });
-  return github;
+  if (argv.local) {
+    const localGitHub = await LocalGitHub.create({
+      owner,
+      repo,
+      token: argv.token!,
+      apiUrl: argv.apiUrl,
+      graphqlUrl: argv.graphqlUrl,
+    });
+    return localGitHub;
+  } else {
+    const github = await GitHub.create({
+      owner,
+      repo,
+      token: argv.token!,
+      apiUrl: argv.apiUrl,
+      graphqlUrl: argv.graphqlUrl,
+    });
+    return github;
+  }
 }
 
 export const parser = yargs

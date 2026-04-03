@@ -79,7 +79,7 @@ interface ProxyOption {
   port: number;
 }
 
-interface GitHubCreateOptions {
+export interface GitHubCreateOptions {
   owner: string;
   repo: string;
   defaultBranch?: string;
@@ -174,6 +174,10 @@ export class GitHub implements Scm {
       octokitAPIs: options.octokitAPIs,
       logger: this.logger,
     });
+  }
+
+  getApiDelegate(): GitHubApiDelegate {
+    return this.apiDelegate;
   }
 
   static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {

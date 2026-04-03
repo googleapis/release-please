@@ -25,6 +25,8 @@ Options:
   --repo-url                    GitHub URL to generate release for    [required]
   --dry-run                     Prepare but do not take action
                                                       [boolean] [default: false]
+  --local                       Whether to use local clone
+                                                      [boolean] [default: false]
   --include-v-in-tags           include "v" in tag versions
                                                        [boolean] [default: true]
   --monorepo-tags               include library name in tags and release
@@ -97,6 +99,7 @@ Options:
                         on                                              [string]
   --repo-url            GitHub URL to generate release for            [required]
   --dry-run             Prepare but do not take action[boolean] [default: false]
+  --local               Whether to use local clone    [boolean] [default: false]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
   --skip-labeling       skip application of labels to pull requests
@@ -138,6 +141,7 @@ Options:
                         on                                              [string]
   --repo-url            GitHub URL to generate release for            [required]
   --dry-run             Prepare but do not take action[boolean] [default: false]
+  --local               Whether to use local clone    [boolean] [default: false]
   --draft               mark release as a draft. no tag is created but tag_name
                         and target_commitish are associated with the release for
                         future tag creation upon "un-drafting" the release.
@@ -186,6 +190,8 @@ Options:
                                     tag releases on                     [string]
   --repo-url                        GitHub URL to generate release for[required]
   --dry-run                         Prepare but do not take action
+                                                      [boolean] [default: false]
+  --local                           Whether to use local clone
                                                       [boolean] [default: false]
   --release-as                      override the semantically determined release
                                     version                             [string]

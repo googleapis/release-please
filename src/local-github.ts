@@ -47,6 +47,11 @@ import {
 } from '@google-automations/git-file-utils';
 import {mergeUpdates} from './updaters/composite';
 import {GitHubApiDelegate} from './github-api-delegate';
+import {GitHub, GitHubCreateOptions} from './github';
+
+export interface LocalGitHubCreateOptions extends GitHubCreateOptions {
+  cloneDepth?: number;
+}
 
 /**
  * LocalGitHub implements the Scm interface using a local git clone
@@ -66,6 +71,13 @@ export class LocalGitHub implements Scm {
     this.repository = repository;
     this.apiDelegate = apiDelegate;
     this.cloneDepth = options?.cloneDepth;
+  }
+
+  static async create(options: LocalGitHubCreateOptions): Promise<LocalGitHub> {
+    const github = await GitHub.create(options);
+    return new LocalGitHub(github.repository, github.getApiDelegate(), {
+      cloneDepth: options.cloneDepth,
+    });
   }
 
   private async getCloneDir(): Promise<string> {
