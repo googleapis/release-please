@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as child_process from 'child_process';
 import * as util from 'util';
+import * as readline from 'readline';
 
 const exec = util.promisify(child_process.exec);
 const mkdtemp = fs.promises.mkdtemp;
@@ -128,12 +129,40 @@ export class LocalGitHub implements Scm {
     );
   }
 
+  private async execGitStream(
+    args: string[],
+    callback: (line: string) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const child = child_process.spawn('git', args, {cwd: this.cloneDir});
+      let stderr = '';
+      child.stderr.on('data', data => {
+        stderr += data;
+      });
+
+      const rl = readline.createInterface({
+        input: child.stdout,
+        crlfDelay: Infinity,
+      });
+
+      rl.on('line', callback);
+
+      child.on('close', code => {
+        if (code !== 0) {
+          reject(new Error(`Command failed ${code}: ${stderr}`));
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
   async getFileContentsOnBranch(
     path: string,
     branch: string
   ): Promise<GitHubFileContents> {
     this.logger.debug(
-      `Looking in local clone for file ${path} on branch ${branch}`
+      `Fetching file contents for file ${path} on branch ${branch}`
     );
     const lsTreeResult = await exec(`git ls-tree ${branch} ${path}`, {
       cwd: this.cloneDir,
@@ -190,22 +219,21 @@ export class LocalGitHub implements Scm {
       normalizedPrefix = '';
     }
 
-    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
+    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '.';
 
-    const {stdout} = await exec(
-      `git ls-tree -r --name-only ${ref} ${treePath}`,
-      {
-        cwd: this.cloneDir,
-        maxBuffer: 10 * 1024 * 1024,
+    this.logger.trace(
+      `Executing stream: git ls-tree -r --name-only ${ref} ${treePath}`
+    );
+    const matchedPaths: string[] = [];
+    await this.execGitStream(
+      ['ls-tree', '-r', '--name-only', ref, treePath],
+      line => {
+        const trimmed = line.trim();
+        if (trimmed && path.posix.basename(trimmed) === filename) {
+          matchedPaths.push(trimmed);
+        }
       }
     );
-
-    const matchedPaths = stdout
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => {
-        return line && path.posix.basename(line) === filename;
-      });
 
     if (normalizedPrefix) {
       return matchedPaths
@@ -247,29 +275,22 @@ export class LocalGitHub implements Scm {
 
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
 
-    // Increase maxBuffer to 10MB to handle large repositories
-    const {stdout} = await exec(
-      `git ls-tree -r --name-only ${ref} ${treePath}`,
-      {
-        cwd: this.cloneDir,
-        maxBuffer: 10 * 1024 * 1024,
+    const files: string[] = [];
+    const dirs = new Set<string>();
+    await this.execGitStream(
+      ['ls-tree', '-r', '--name-only', ref, treePath],
+      line => {
+        const trimmed = line.trim();
+        if (trimmed) {
+          files.push(trimmed);
+          let dir = path.posix.dirname(trimmed);
+          while (dir !== '.' && dir !== '/') {
+            dirs.add(dir);
+            dir = path.posix.dirname(dir);
+          }
+        }
       }
     );
-
-    const files = stdout
-      .split('\n')
-      .map(line => line.trim())
-      .filter(Boolean);
-
-    // Derive directories
-    const dirs = new Set<string>();
-    for (const file of files) {
-      let dir = path.posix.dirname(file);
-      while (dir !== '.' && dir !== '/') {
-        dirs.add(dir);
-        dir = path.posix.dirname(dir);
-      }
-    }
 
     const allPaths = [...files, ...dirs];
 
@@ -320,20 +341,16 @@ export class LocalGitHub implements Scm {
 
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
 
-    const {stdout} = await exec(
-      `git ls-tree -r --name-only ${ref} ${treePath}`,
-      {
-        cwd: this.cloneDir,
-        maxBuffer: 10 * 1024 * 1024,
+    const matchedPaths: string[] = [];
+    await this.execGitStream(
+      ['ls-tree', '-r', '--name-only', ref, treePath],
+      line => {
+        const trimmed = line.trim();
+        if (trimmed && trimmed.endsWith(`.${extension}`)) {
+          matchedPaths.push(trimmed);
+        }
       }
     );
-
-    const matchedPaths = stdout
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => {
-        return line && line.endsWith(`.${extension}`);
-      });
 
     if (normalizedPrefix) {
       return matchedPaths
