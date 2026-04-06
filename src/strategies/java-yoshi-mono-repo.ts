@@ -130,6 +130,11 @@ export class JavaYoshiMonoRepo extends Java {
       this.targetBranch,
       this.path
     );
+    const versionFilesSearch = this.github.findFilesByFilenameAndRef(
+      'Version.java',
+      this.targetBranch,
+      this.path
+    );
 
     const pomFiles = await pomFilesSearch;
     pomFiles.forEach(path => {
@@ -172,6 +177,19 @@ export class JavaYoshiMonoRepo extends Java {
 
     const readmeFiles = await readmeFilesSearch;
     readmeFiles.forEach(path => {
+      updates.push({
+        path: this.addPath(path),
+        createIfMissing: false,
+        updater: new JavaUpdate({
+          version,
+          versionsMap,
+          isSnapshot: options.isSnapshot,
+        }),
+      });
+    });
+
+    const versionFiles = await versionFilesSearch;
+    versionFiles.forEach(path => {
       updates.push({
         path: this.addPath(path),
         createIfMissing: false,
