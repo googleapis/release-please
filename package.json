@@ -63,7 +63,7 @@
     "nock": "^13.0.0",
     "node-fetch": "^2.6.0",
     "sinon": "18.0.1",
-    "snap-shot-it": "^7.0.0"
+    "snap-shot-it": "^7.9.10"
   },
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
@@ -99,9 +99,10 @@
     "yargs": "^17.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "overrides": {
-    "tmp": "0.2.5"
+    "tmp": "0.2.5",
+    "serialize-javascript": "^7.0.4"
   }
 }
