@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.4.0](https://github.com/googleapis/release-please/compare/v17.3.0...v17.4.0) (2026-04-06)
+
+
+### Features
+
+* **java-yoshi-mono-repo:** look for Version.java files ([#2730](https://github.com/googleapis/release-please/issues/2730)) ([5126fee](https://github.com/googleapis/release-please/commit/5126feefac4cee1fb02142e2f515fda4d9f345d4))
+* resolve Dependabot security alerts ([#2709](https://github.com/googleapis/release-please/issues/2709)) ([7f2e4ec](https://github.com/googleapis/release-please/commit/7f2e4ec0fee60fb14f279218102ea8b07032b956))
+
 ## [17.3.0](https://github.com/googleapis/release-please/compare/v17.2.1...v17.3.0) (2026-02-18)
 
 
