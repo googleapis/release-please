@@ -103,6 +103,6 @@
   },
   "overrides": {
     "tmp": "0.2.5",
-    "serialize-javascript": "^7.0.4"
+    "serialize-javascript": "^7.0.5"
   }
 }
