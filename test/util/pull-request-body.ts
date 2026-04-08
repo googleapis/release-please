@@ -239,4 +239,174 @@ describe('PullRequestBody', () => {
       snapshot(pullRequestBody.toString());
     });
   });
+  describe('customReleaseNotes', () => {
+    it('should parse custom release notes from body', () => {
+      const body = [
+        ':robot: I have created a release *beep* *boop*',
+        '---',
+        '<!-- BEGIN CUSTOM RELEASE NOTES -->',
+        'Please read the [migration guide](https://example.com).',
+        '<!-- END CUSTOM RELEASE NOTES -->',
+        '## [1.2.3](https://github.com/fake/repo/compare/v1.2.2...v1.2.3) (2024-01-01)',
+        '',
+        '### Features',
+        '',
+        '* some feature',
+        '---',
+        'This PR was generated with Release Please.',
+      ].join('\n');
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      expect(pullRequestBody!.customReleaseNotes).to.eql(
+        'Please read the [migration guide](https://example.com).'
+      );
+      expect(pullRequestBody!.releaseData).lengthOf(1);
+      expect(pullRequestBody!.releaseData[0].version?.toString()).to.eql(
+        '1.2.3'
+      );
+      expect(pullRequestBody!.releaseData[0].notes).to.not.include(
+        'BEGIN CUSTOM RELEASE NOTES'
+      );
+    });
+
+    it('should parse custom release notes placed after version heading', () => {
+      const body = [
+        ':robot: I have created a release *beep* *boop*',
+        '---',
+        '## [2.0.0](https://github.com/fake/repo/compare/v1.0.0...v2.0.0) (2024-01-01)',
+        '',
+        '<!-- BEGIN CUSTOM RELEASE NOTES -->',
+        'Breaking: new API',
+        '<!-- END CUSTOM RELEASE NOTES -->',
+        '',
+        '### Features',
+        '',
+        '* big change',
+        '---',
+        'This PR was generated with Release Please.',
+      ].join('\n');
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      expect(pullRequestBody!.customReleaseNotes).to.eql('Breaking: new API');
+      expect(pullRequestBody!.releaseData[0].notes).to.not.include(
+        'BEGIN CUSTOM RELEASE NOTES'
+      );
+    });
+
+    it('should return undefined when no custom release notes', () => {
+      const body = [
+        ':robot: I have created a release *beep* *boop*',
+        '---',
+        '## [1.0.0](https://github.com/fake/repo/compare/v0.9.0...v1.0.0) (2024-01-01)',
+        '',
+        '### Features',
+        '',
+        '* init',
+        '---',
+        'This PR was generated with Release Please.',
+      ].join('\n');
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      expect(pullRequestBody!.customReleaseNotes).to.be.undefined;
+    });
+
+    it('should round-trip custom release notes through toString and parse', () => {
+      const data = [
+        {
+          component: 'pkg1',
+          version: Version.parse('1.2.3'),
+          notes: '### Features\n\n* some feature',
+        },
+        {
+          component: 'pkg2',
+          version: Version.parse('2.0.0'),
+          notes: '### Bug Fixes\n\n* some fix',
+        },
+      ];
+      const body1 = new PullRequestBody(data, {
+        customReleaseNotes: 'Check the upgrade guide!',
+      });
+      const output = body1.toString();
+      expect(output).to.include('BEGIN CUSTOM RELEASE NOTES');
+      expect(output).to.include('Check the upgrade guide!');
+
+      const body2 = PullRequestBody.parse(output);
+      expect(body2).to.not.be.undefined;
+      expect(body2!.customReleaseNotes).to.eql('Check the upgrade guide!');
+      expect(body2!.releaseData).lengthOf(2);
+      expect(body2!.releaseData[0].version?.toString()).to.eql('1.2.3');
+      expect(body2!.releaseData[0].notes).to.not.include(
+        'BEGIN CUSTOM RELEASE NOTES'
+      );
+    });
+
+    it('should concatenate multiple custom release notes blocks', () => {
+      const body = [
+        ':robot: I have created a release *beep* *boop*',
+        '---',
+        '<!-- BEGIN CUSTOM RELEASE NOTES -->',
+        'First block',
+        '<!-- END CUSTOM RELEASE NOTES -->',
+        '## [1.0.0](https://github.com/fake/repo/compare/v0.9.0...v1.0.0) (2024-01-01)',
+        '',
+        '<!-- BEGIN CUSTOM RELEASE NOTES -->',
+        'Second block',
+        '<!-- END CUSTOM RELEASE NOTES -->',
+        '',
+        '### Features',
+        '',
+        '* init',
+        '---',
+        'This PR was generated with Release Please.',
+      ].join('\n');
+      const pullRequestBody = PullRequestBody.parse(body);
+      expect(pullRequestBody).to.not.be.undefined;
+      expect(pullRequestBody!.customReleaseNotes).to.eql(
+        'First block\n\nSecond block'
+      );
+      expect(pullRequestBody!.releaseData[0].notes).to.not.include(
+        'BEGIN CUSTOM RELEASE NOTES'
+      );
+    });
+
+    it('should carry forward custom notes when rebuilding', () => {
+      // Simulate: existing PR has custom notes, new PR is built without them
+      const existingBody = [
+        ':robot: I have created a release *beep* *boop*',
+        '---',
+        '<!-- BEGIN CUSTOM RELEASE NOTES -->',
+        'My custom notes',
+        '<!-- END CUSTOM RELEASE NOTES -->',
+        '## [1.0.0](https://github.com/fake/repo/compare/v0.9.0...v1.0.0) (2024-01-01)',
+        '',
+        '### Features',
+        '',
+        '* init',
+        '---',
+        'This PR was generated with Release Please.',
+      ].join('\n');
+      const parsed = PullRequestBody.parse(existingBody);
+      expect(parsed!.customReleaseNotes).to.eql('My custom notes');
+
+      // Build a new PR body (as release-please would on update)
+      const newData = [
+        {
+          version: Version.parse('1.0.0'),
+          notes:
+            '## [1.0.0](https://github.com/fake/repo/compare/v0.9.0...v1.0.0) (2024-01-01)\n\n### Features\n\n* init\n* another feature',
+        },
+      ];
+      const newBody = new PullRequestBody(newData);
+      // Carry forward
+      newBody.customReleaseNotes = parsed!.customReleaseNotes;
+
+      const output = newBody.toString();
+      expect(output).to.include('My custom notes');
+
+      // Verify it parses cleanly
+      const reparsed = PullRequestBody.parse(output);
+      expect(reparsed!.customReleaseNotes).to.eql('My custom notes');
+      expect(reparsed!.releaseData[0].notes).to.not.include('My custom notes');
+    });
+  });
 });

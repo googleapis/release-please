@@ -23,6 +23,7 @@ import {TagName} from './util/tag-name';
 import {Repository} from './repository';
 import {BranchName} from './util/branch-name';
 import {PullRequestTitle} from './util/pull-request-title';
+import {PullRequestBody} from './util/pull-request-body';
 import {ReleasePullRequest} from './release-pull-request';
 import {
   buildStrategy,
@@ -1125,6 +1126,11 @@ export class Manifest {
     existing: PullRequest,
     pullRequest: ReleasePullRequest
   ): Promise<PullRequest> {
+    // Carry forward any custom release notes from the existing PR body
+    const existingBody = PullRequestBody.parse(existing.body, this.logger);
+    if (existingBody?.customReleaseNotes) {
+      pullRequest.body.customReleaseNotes = existingBody.customReleaseNotes;
+    }
     return await this.github.updatePullRequest(
       existing.number,
       pullRequest,

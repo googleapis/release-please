@@ -20,12 +20,15 @@ const DEFAULT_HEADER = ':robot: I have created a release *beep* *boop*';
 const DEFAULT_FOOTER =
   'This PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).';
 const NOTES_DELIMITER = '---';
+const CUSTOM_NOTES_BEGIN = '<!-- BEGIN CUSTOM RELEASE NOTES -->';
+const CUSTOM_NOTES_END = '<!-- END CUSTOM RELEASE NOTES -->';
 
 interface PullRequestBodyOptions {
   header?: string;
   footer?: string;
   extra?: string;
   useComponents?: boolean;
+  customReleaseNotes?: string;
 }
 
 export class PullRequestBody {
@@ -34,12 +37,14 @@ export class PullRequestBody {
   extra?: string;
   releaseData: ReleaseData[];
   useComponents: boolean;
+  customReleaseNotes?: string;
   constructor(releaseData: ReleaseData[], options?: PullRequestBodyOptions) {
     this.header = options?.header || DEFAULT_HEADER;
     this.footer = options?.footer || DEFAULT_FOOTER;
     this.extra = options?.extra;
     this.releaseData = releaseData;
     this.useComponents = options?.useComponents ?? this.releaseData.length > 1;
+    this.customReleaseNotes = options?.customReleaseNotes;
   }
   static parse(
     body: string,
@@ -50,10 +55,12 @@ export class PullRequestBody {
       logger.error('Pull request body did not match');
       return undefined;
     }
-    let data = extractMultipleReleases(parts.content, logger);
+    const {notes: customReleaseNotes, rest: content} =
+      parseCustomReleaseNotes(parts.content);
+    let data = extractMultipleReleases(content, logger);
     let useComponents = true;
     if (data.length === 0) {
-      data = extractSingleRelease(parts.content, logger);
+      data = extractSingleRelease(content, logger);
       useComponents = false;
       if (data.length === 0) {
         logger.warn('Failed to parse releases.');
@@ -63,11 +70,16 @@ export class PullRequestBody {
       header: parts.header,
       footer: parts.footer,
       useComponents,
+      customReleaseNotes,
     });
   }
   notes(): string {
+    const customSection = this.customReleaseNotes
+      ? `${CUSTOM_NOTES_BEGIN}\n${this.customReleaseNotes}\n${CUSTOM_NOTES_END}\n\n`
+      : '';
+    let generatedNotes: string;
     if (this.useComponents) {
-      return this.releaseData
+      generatedNotes = this.releaseData
         .map(release => {
           return `<details><summary>${
             release.component ? `${release.component}: ` : ''
@@ -76,8 +88,12 @@ export class PullRequestBody {
           }\n</details>`;
         })
         .join('\n\n');
+    } else {
+      generatedNotes = this.releaseData
+        .map(release => release.notes)
+        .join('\n\n');
     }
-    return this.releaseData.map(release => release.notes).join('\n\n');
+    return customSection + generatedNotes;
   }
   toString(): string {
     const notes = this.notes();
@@ -152,6 +168,29 @@ function extractMultipleReleases(notes: string, logger: Logger): ReleaseData[] {
   }
   return data;
 }
+function parseCustomReleaseNotes(content: string): {
+  notes: string | undefined;
+  rest: string;
+} {
+  const sections: string[] = [];
+  let rest = content;
+  while (true) {
+    const beginIndex = rest.indexOf(CUSTOM_NOTES_BEGIN);
+    const endIndex = rest.indexOf(CUSTOM_NOTES_END);
+    if (beginIndex === -1 || endIndex === -1 || endIndex <= beginIndex) break;
+    const notes = rest
+      .slice(beginIndex + CUSTOM_NOTES_BEGIN.length, endIndex)
+      .trim();
+    if (notes) sections.push(notes);
+    rest =
+      rest.slice(0, beginIndex) + rest.slice(endIndex + CUSTOM_NOTES_END.length);
+  }
+  return {
+    notes: sections.length > 0 ? sections.join('\n\n') : undefined,
+    rest: rest.trim(),
+  };
+}
+
 const COMPARE_REGEX = /^#{2,} \[?(?<version>\d+\.\d+\.\d+[^\]]*)\]?/;
 function extractSingleRelease(body: string, logger: Logger): ReleaseData[] {
   body = body.trim();
