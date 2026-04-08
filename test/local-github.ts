@@ -39,6 +39,16 @@ describe('LocalGitHub', () => {
       expect(contents.sha).to.not.be.undefined;
     });
 
+    it('reads file content correctly from a branch', async () => {
+      const contents = await localGitHub.getFileContentsOnBranch(
+        'package.json',
+        '12.x'
+      );
+      expect(contents).to.not.be.undefined;
+      expect(contents.parsedContent).to.include('"name": "release-please"');
+      expect(contents.sha).to.not.be.undefined;
+    });
+
     it('throws FileNotFoundError when file does not exist', async () => {
       try {
         await localGitHub.getFileContentsOnBranch(

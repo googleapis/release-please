@@ -162,9 +162,30 @@ export class LocalGitHub implements Scm {
     this.logger.debug(
       `Fetching file contents for file ${path} on branch ${branch}`
     );
-    const lsTreeResult = await exec(`git ls-tree ${branch} ${path}`, {
-      cwd: this.cloneDir,
-    });
+    
+    let lsTreeResult;
+    let ref = branch;
+    try {
+      lsTreeResult = await exec(`git ls-tree ${ref} ${path}`, {
+        cwd: this.cloneDir,
+      });
+    } catch (err) {
+      const error = err as {stderr?: string};
+      if (error.stderr && error.stderr.includes('Not a valid object name')) {
+        this.logger.debug(`Branch ${branch} not found locally, trying to fetch from origin...`);
+        try {
+          await exec(`git fetch origin ${branch}`, {cwd: this.cloneDir});
+          ref = 'FETCH_HEAD';
+          lsTreeResult = await exec(`git ls-tree ${ref} ${path}`, {
+            cwd: this.cloneDir,
+          });
+        } catch (fetchErr) {
+          throw err; // Throw original error if fetch fails or still fails after fetch
+        }
+      } else {
+        throw err;
+      }
+    }
 
     if (!lsTreeResult.stdout.trim()) {
       throw new FileNotFoundError(path);
@@ -173,7 +194,7 @@ export class LocalGitHub implements Scm {
     const [info] = lsTreeResult.stdout.split('\t');
     const [mode, , sha] = info.split(' ');
 
-    const {stdout} = await exec(`git show ${branch}:${path}`, {
+    const {stdout} = await exec(`git show ${ref}:${path}`, {
       cwd: this.cloneDir,
       maxBuffer: 100 * 1024 * 1024,
     });
