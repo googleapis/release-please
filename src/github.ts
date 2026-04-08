@@ -19,7 +19,7 @@ import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {RequestError} from '@octokit/request-error';
 import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
-import {GitHubAPIError, FileNotFoundError, ConfigurationError} from './errors';
+import {GitHubAPIError, FileNotFoundError} from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 const MAX_SLEEP_SECONDS = 20;
@@ -41,7 +41,6 @@ import {
   FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
 import {Logger} from 'code-suggester/build/src/types';
-import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {mergeUpdates} from './updaters/composite';
 import {
   Scm,
@@ -53,6 +52,7 @@ import {
   ScmReleaseOptions,
   ScmRelease,
   ScmTag,
+  ScmUpdatePullRequestOptions,
 } from './scm';
 
 // Extract some types from the `request` package.
@@ -111,14 +111,6 @@ interface CommitHistory {
     endCursor: string | undefined;
   };
   data: Commit[];
-}
-
-interface PullRequestHistory {
-  pageInfo: {
-    hasNextPage: boolean;
-    endCursor: string | undefined;
-  };
-  data: PullRequest[];
 }
 
 type CommitIteratorOptions = ScmCommitIteratorOptions;
@@ -507,183 +499,6 @@ export class GitHub implements Scm {
   }
 
   /**
-   * Helper implementation of pullRequestIterator that includes files via
-   * the graphQL API.
-   *
-   * @param {string} targetBranch The base branch of the pull request
-   * @param {string} status The status of the pull request
-   * @param {number} maxResults Limit the number of results searched
-   */
-  private async *pullRequestIteratorWithFiles(
-    targetBranch: string,
-    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
-    maxResults: number = Number.MAX_SAFE_INTEGER
-  ): AsyncGenerator<PullRequest, void, void> {
-    let cursor: string | undefined = undefined;
-    let results = 0;
-    while (results < maxResults) {
-      const response: PullRequestHistory | null =
-        await this.pullRequestsGraphQL(targetBranch, status, cursor);
-      // no response usually means we ran out of results
-      if (!response) {
-        break;
-      }
-      for (let i = 0; i < response.data.length; i++) {
-        results += 1;
-        yield response.data[i];
-      }
-      if (!response.pageInfo.hasNextPage) {
-        break;
-      }
-      cursor = response.pageInfo.endCursor;
-    }
-  }
-
-  /**
-   * Helper implementation of pullRequestIterator that excludes files
-   * via the REST API.
-   *
-   * @param {string} targetBranch The base branch of the pull request
-   * @param {string} status The status of the pull request
-   * @param {number} maxResults Limit the number of results searched
-   */
-  private async *pullRequestIteratorWithoutFiles(
-    targetBranch: string,
-    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
-    maxResults: number = Number.MAX_SAFE_INTEGER
-  ): AsyncGenerator<PullRequest, void, void> {
-    const statusMap: Record<string, 'open' | 'closed'> = {
-      OPEN: 'open',
-      CLOSED: 'closed',
-      MERGED: 'closed',
-    };
-    let results = 0;
-    for await (const {data: pulls} of this.octokit.paginate.iterator(
-      'GET /repos/{owner}/{repo}/pulls',
-      {
-        state: statusMap[status],
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        base: targetBranch,
-        sort: 'updated',
-        direction: 'desc',
-      }
-    )) {
-      for (const pull of pulls) {
-        // The REST API does not have an option for "merged"
-        // pull requests - they are closed with a `merged_at` timestamp
-        if (status !== 'MERGED' || pull.merged_at) {
-          results += 1;
-          yield {
-            headBranchName: pull.head.ref,
-            baseBranchName: pull.base.ref,
-            number: pull.number,
-            title: pull.title,
-            body: pull.body || '',
-            labels: pull.labels.map(label => label.name),
-            files: [],
-            sha: pull.merge_commit_sha || undefined,
-          };
-          if (results >= maxResults) {
-            break;
-          }
-        }
-      }
-
-      if (results >= maxResults) {
-        break;
-      }
-    }
-  }
-
-  /**
-   * Return a list of merged pull requests. The list is not guaranteed to be sorted
-   * by merged_at, but is generally most recent first.
-   *
-   * @param {string} targetBranch - Base branch of the pull request. Defaults to
-   *   the configured default branch.
-   * @param {number} page - Page of results. Defaults to 1.
-   * @param {number} perPage - Number of results per page. Defaults to 100.
-   * @returns {PullRequestHistory | null} - List of merged pull requests
-   * @throws {GitHubAPIError} on an API error
-   */
-  private async pullRequestsGraphQL(
-    targetBranch: string,
-    states: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
-    cursor?: string
-  ): Promise<PullRequestHistory | null> {
-    this.logger.debug(
-      `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
-    );
-    const response = await this.graphqlRequest({
-      query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
-        repository(owner: $owner, name: $repo) {
-          pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
-            nodes {
-              number
-              title
-              baseRefName
-              headRefName
-              labels(first: 10) {
-                nodes {
-                  name
-                }
-              }
-              body
-              mergeCommit {
-                oid
-              }
-              files(first: $maxFilesChanged) {
-                nodes {
-                  path
-                }
-                pageInfo {
-                  endCursor
-                  hasNextPage
-                }
-              }
-            }
-            pageInfo {
-              endCursor
-              hasNextPage
-            }
-          }
-        }
-      }`,
-      cursor,
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      num: 25,
-      targetBranch,
-      states,
-      maxFilesChanged: 64,
-    });
-    if (!response?.repository?.pullRequests) {
-      this.logger.warn(
-        `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
-      );
-      return null;
-    }
-    const pullRequests = (response.repository.pullRequests.nodes ||
-      []) as GraphQLPullRequest[];
-    return {
-      pageInfo: response.repository.pullRequests.pageInfo,
-      data: pullRequests.map(pullRequest => {
-        return {
-          sha: pullRequest.mergeCommit?.oid, // already filtered non-merged
-          number: pullRequest.number,
-          baseBranchName: pullRequest.baseRefName,
-          headBranchName: pullRequest.headRefName,
-          labels: (pullRequest.labels?.nodes || []).map(l => l.name),
-          title: pullRequest.title,
-          body: pullRequest.body + '',
-          files: (pullRequest.files?.nodes || []).map(node => node.path),
-        };
-      }),
-    };
-  }
-
-  /**
    * Iterate through releases with a max number of results scanned.
    *
    * @param {ReleaseIteratorOptions} options Query options
@@ -838,6 +653,7 @@ export class GitHub implements Scm {
       prefix
     );
   }
+
   /**
    * Returns a list of paths to all files matching a glob pattern.
    *
@@ -920,11 +736,7 @@ export class GitHub implements Scm {
     number: number,
     releasePullRequest: ReleasePullRequest,
     targetBranch: string,
-    options?: {
-      signoffUser?: string;
-      fork?: boolean;
-      pullRequestOverflowHandler?: PullRequestOverflowHandler;
-    }
+    options?: ScmUpdatePullRequestOptions
   ): Promise<PullRequest> {
     const changes = await this.buildChangeSet(
       releasePullRequest.updates,
@@ -1154,128 +966,6 @@ export class GitHub implements Scm {
       newBranchName,
       baseBranchName
     );
-  }
-
-  /**
-   * Helper to fetch the SHA of a branch
-   * @param {string} branchName The name of the branch
-   * @return {string | undefined} Returns the SHA of the branch
-   *   or undefined if it can't be found.
-   */
-  private async getBranchSha(branchName: string): Promise<string | undefined> {
-    this.logger.debug(`Looking up SHA for branch: ${branchName}`);
-    try {
-      const {
-        data: {
-          object: {sha},
-        },
-      } = await this.octokit.git.getRef({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        ref: `heads/${branchName}`,
-      });
-      this.logger.debug(`SHA for branch: ${sha}`);
-      return sha;
-    } catch (e) {
-      if (e instanceof RequestError && e.status === 404) {
-        this.logger.debug(`Branch: ${branchName} does not exist`);
-        return undefined;
-      }
-      throw e;
-    }
-  }
-
-  /**
-   * Helper to fork a branch from an existing branch. Uses `force` so
-   * it will overwrite the contents of `targetBranchName` to match
-   * the current contents of `baseBranchName`.
-   *
-   * @param {string} targetBranchName The name of the new forked branch
-   * @param {string} baseBranchName The base branch from which to fork.
-   * @returns {string} The branch SHA
-   * @throws {ConfigurationError} if the base branch cannot be found.
-   */
-  private async forkBranch(
-    targetBranchName: string,
-    baseBranchName: string
-  ): Promise<string> {
-    const baseBranchSha = await this.getBranchSha(baseBranchName);
-    if (!baseBranchSha) {
-      // this is highly unlikely to be thrown as we will have
-      // already attempted to read from the branch
-      throw new ConfigurationError(
-        `Unable to find base branch: ${baseBranchName}`,
-        'core',
-        `${this.repository.owner}/${this.repository.repo}`
-      );
-    }
-    // see if newBranchName exists
-    if (await this.getBranchSha(targetBranchName)) {
-      // branch already exists, update it to the match the base branch
-      const branchSha = await this.updateBranchSha(
-        targetBranchName,
-        baseBranchSha
-      );
-      this.logger.debug(
-        `Updated ${targetBranchName} to match ${baseBranchName} at ${branchSha}`
-      );
-      return branchSha;
-    } else {
-      // branch does not exist, create a new branch from the base branch
-      const branchSha = await this.createNewBranch(
-        targetBranchName,
-        baseBranchSha
-      );
-      this.logger.debug(
-        `Forked ${targetBranchName} from ${baseBranchName} at ${branchSha}`
-      );
-      return branchSha;
-    }
-  }
-
-  /**
-   * Helper to create a new branch from a given SHA.
-   * @param {string} branchName The new branch name
-   * @param {string} branchSha The SHA of the branch
-   * @returns {string} The SHA of the new branch
-   */
-  private async createNewBranch(
-    branchName: string,
-    branchSha: string
-  ): Promise<string> {
-    this.logger.debug(`Creating new branch: ${branchName} at ${branchSha}`);
-    const {
-      data: {
-        object: {sha},
-      },
-    } = await this.octokit.git.createRef({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      ref: `refs/heads/${branchName}`,
-      sha: branchSha,
-    });
-    this.logger.debug(`New branch: ${branchName} at ${sha}`);
-    return sha;
-  }
-
-  private async updateBranchSha(
-    branchName: string,
-    branchSha: string
-  ): Promise<string> {
-    this.logger.debug(`Updating branch ${branchName} to ${branchSha}`);
-    const {
-      data: {
-        object: {sha},
-      },
-    } = await this.octokit.git.updateRef({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      ref: `heads/${branchName}`,
-      sha: branchSha,
-      force: true,
-    });
-    this.logger.debug(`Updated branch: ${branchName} to ${sha}`);
-    return sha;
   }
 }
 
