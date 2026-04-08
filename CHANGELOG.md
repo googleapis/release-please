@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.4.1](https://github.com/googleapis/release-please/compare/v17.4.0...v17.4.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* do not attempt to create pull request when no changes detected ([#2722](https://github.com/googleapis/release-please/issues/2722)) ([9ecabc4](https://github.com/googleapis/release-please/commit/9ecabc40a724e1ba64158844fc9b27ee5d6ed0a2))
+
 ## [17.4.0](https://github.com/googleapis/release-please/compare/v17.3.0...v17.4.0) (2026-04-06)
 
 
