@@ -19,7 +19,7 @@ import * as child_process from 'child_process';
 import * as util from 'util';
 import * as readline from 'readline';
 
-const exec = util.promisify(child_process.exec);
+const execFile = util.promisify(child_process.execFile);
 const mkdtemp = fs.promises.mkdtemp;
 
 import {
@@ -93,25 +93,27 @@ export class LocalGitHub implements Scm {
       const branch = gitHubApi.repository.defaultBranch;
 
       logger.debug('Executing: git fetch origin');
-      await exec('git fetch origin', {cwd: repoDir});
+      await execFile('git', ['fetch', 'origin'], {cwd: repoDir});
 
       logger.debug(`Executing: git checkout ${branch}`);
-      await exec(`git checkout ${branch}`, {cwd: repoDir});
+      await execFile('git', ['checkout', branch], {cwd: repoDir});
 
       logger.debug(`Executing: git reset --hard origin/${branch}`);
-      await exec(`git reset --hard origin/${branch}`, {cwd: repoDir});
+      await execFile('git', ['reset', '--hard', `origin/${branch}`], {
+        cwd: repoDir,
+      });
     } else {
       const tempDir = await mkdtemp(path.join(os.tmpdir(), 'release-please-'));
       logger.info(`Cloning repository to ${tempDir}...`);
       const url = `https://github.com/${gitHubApi.repository.owner}/${gitHubApi.repository.repo}.git`;
 
-      let cloneCmd = `git clone ${url} ${tempDir}`;
+      const args = ['clone', url, tempDir];
       if (options.cloneDepth) {
-        cloneCmd = `git clone --depth ${options.cloneDepth} ${url} ${tempDir}`;
+        args.splice(1, 0, '--depth', options.cloneDepth.toString());
       }
 
-      logger.debug(`Executing: ${cloneCmd}`);
-      await exec(cloneCmd);
+      logger.debug(`Executing: git ${args.join(' ')}`);
+      await execFile('git', args);
       repoDir = tempDir;
     }
 
@@ -164,14 +166,16 @@ export class LocalGitHub implements Scm {
 
   private async ensureRef(ref: string): Promise<string> {
     try {
-      await exec(`git rev-parse --verify ${ref}`, {cwd: this.cloneDir});
+      await execFile('git', ['rev-parse', '--verify', ref], {
+        cwd: this.cloneDir,
+      });
       return ref;
     } catch (err) {
       this.logger.debug(
         `Ref ${ref} not found locally, trying to fetch from origin...`
       );
       try {
-        await exec(`git fetch origin ${ref}`, {cwd: this.cloneDir});
+        await execFile('git', ['fetch', 'origin', ref], {cwd: this.cloneDir});
         return 'FETCH_HEAD';
       } catch (fetchErr) {
         throw err; // Throw original error if fetch fails
@@ -197,7 +201,7 @@ export class LocalGitHub implements Scm {
     );
 
     const ref = await this.ensureRef(branch);
-    const lsTreeResult = await exec(`git ls-tree ${ref} ${path}`, {
+    const lsTreeResult = await execFile('git', ['ls-tree', ref, path], {
       cwd: this.cloneDir,
     });
 
@@ -208,7 +212,7 @@ export class LocalGitHub implements Scm {
     const [info] = lsTreeResult.stdout.split('\t');
     const [mode, , sha] = info.split(' ');
 
-    const {stdout} = await exec(`git show ${ref}:${path}`, {
+    const {stdout} = await execFile('git', ['show', `${ref}:${path}`], {
       cwd: this.cloneDir,
       maxBuffer: 100 * 1024 * 1024,
     });
@@ -533,15 +537,15 @@ export class LocalGitHub implements Scm {
     }
 
     const ref = await this.ensureRef(targetBranch);
-    let command = `git log ${ref} --pretty=format:"${format}"`;
+    const args = ['log', ref, `--pretty=format:${format}`];
     if (backfillFiles) {
-      command += ' --name-only';
+      args.push('--name-only');
     }
     if (options?.maxResults) {
-      command += ` -n ${options.maxResults}`;
+      args.push('-n', options.maxResults.toString());
     }
 
-    const {stdout} = await exec(command, {
+    const {stdout} = await execFile('git', args, {
       cwd: this.cloneDir,
       maxBuffer: 100 * 1024 * 1024,
     });
@@ -559,8 +563,8 @@ export class LocalGitHub implements Scm {
         if (parts[1]) {
           files = parts[1]
             .split('\n')
-            .map(f => f.trim())
-            .filter(f => f);
+            .map((f: string) => f.trim())
+            .filter((f: string) => f);
         }
       }
 
@@ -660,8 +664,14 @@ export class LocalGitHub implements Scm {
   async *tagIterator(
     options?: ScmTagIteratorOptions
   ): AsyncGenerator<ScmTag, void, void> {
-    const {stdout} = await exec(
-      'git for-each-ref --sort=-version:refname refs/tags --format="%(refname:short)|%(objectname)|%(*objectname)"',
+    const {stdout} = await execFile(
+      'git',
+      [
+        'for-each-ref',
+        '--sort=-version:refname',
+        'refs/tags',
+        '--format=%(refname:short)|%(objectname)|%(*objectname)',
+      ],
       {cwd: this.cloneDir}
     );
 
@@ -689,10 +699,16 @@ export class LocalGitHub implements Scm {
     this.logger.debug(`Applying edits and pushing to ${branch}`);
 
     // Checkout/Reset PR branch
-    await exec(`git fetch origin ${targetBranch}`, {cwd: this.cloneDir});
-    await exec(`git checkout -B ${branch} origin/${targetBranch}`, {
+    await execFile('git', ['fetch', 'origin', targetBranch], {
       cwd: this.cloneDir,
     });
+    await execFile(
+      'git',
+      ['checkout', '-B', branch, `origin/${targetBranch}`],
+      {
+        cwd: this.cloneDir,
+      }
+    );
 
     // Write file edits
     for (const [filePath, fileUpdate] of changes.entries()) {
@@ -714,10 +730,10 @@ export class LocalGitHub implements Scm {
       `release-please-commit-msg-${process.pid}-${Date.now()}`
     );
     await fs.promises.writeFile(msgFile, message);
-    await exec('git add .', {cwd: this.cloneDir});
+    await execFile('git', ['add', '.'], {cwd: this.cloneDir});
 
     try {
-      await exec(`git commit -F ${msgFile}`, {cwd: this.cloneDir});
+      await execFile('git', ['commit', '-F', msgFile], {cwd: this.cloneDir});
     } catch (err) {
       const error = err as {stdout?: string; stderr?: string};
       if (error.stdout && error.stdout.includes('nothing to commit')) {
@@ -730,7 +746,9 @@ export class LocalGitHub implements Scm {
     }
 
     // Push transit
-    await exec(`git push -f origin ${branch}`, {cwd: this.cloneDir});
+    await execFile('git', ['push', '-f', 'origin', branch], {
+      cwd: this.cloneDir,
+    });
   }
 
   /**
