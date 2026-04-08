@@ -290,6 +290,23 @@ describe('DefaultChangelogNotes', () => {
         expect(notes).to.is.string;
         safeSnapshot(notes);
       });
+      it('should preserve mention-like tokens in inline code', async () => {
+        const commits = [
+          buildMockCommit(
+            'feat: keep `@spawn` and `@unsafe` literal for @bcoe'
+          ),
+        ];
+        const changelogNotes = new DefaultChangelogNotes();
+        const notes = await changelogNotes.buildNotes(
+          parseConventionalCommits(commits),
+          notesOptions
+        );
+        expect(notes).to.include('`@spawn`');
+        expect(notes).to.include('`@unsafe`');
+        expect(notes).to.include('[@bcoe](https://github.com/bcoe)');
+        expect(notes).to.not.include('[`@spawn`](https://github.com/spawn)');
+        expect(notes).to.not.include('[`@unsafe`](https://github.com/unsafe)');
+      });
       // it('ignores reverted commits', async () => {
       //   const commits = [buildCommitFromFixture('multiple-messages')];
       //   const changelogNotes = new DefaultChangelogNotes();

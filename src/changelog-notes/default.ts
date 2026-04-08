@@ -36,6 +36,8 @@ interface Note {
   text: string;
 }
 
+const INLINE_CODE_PATTERN = /``[^`].*[^`]``|`[^`]*`/g;
+
 export class DefaultChangelogNotes implements ChangelogNotes {
   // allow for customized commit template.
   private commitPartial?: string;
@@ -73,6 +75,8 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       this.headerPartial || preset.writerOpts.headerPartial;
     preset.writerOpts.mainTemplate =
       this.mainTemplate || preset.writerOpts.mainTemplate;
+    const protectedInlineCode = new Map<string, string>();
+    let inlineCodeTokenIndex = 0;
     const changelogCommits = commits.map(commit => {
       const notes = commit.notes
         .filter(note => note.title === 'BREAKING CHANGE')
@@ -84,9 +88,14 @@ export class DefaultChangelogNotes implements ChangelogNotes {
             context.repository
           )
         );
+      const subject = protectInlineCode(
+        htmlEscape(commit.bareMessage),
+        protectedInlineCode,
+        () => buildInlineCodeToken(inlineCodeTokenIndex++)
+      );
       return {
         body: '', // commit.body,
-        subject: htmlEscape(commit.bareMessage),
+        subject,
         type: commit.type,
         scope: commit.scope,
         notes,
@@ -103,9 +112,12 @@ export class DefaultChangelogNotes implements ChangelogNotes {
       };
     });
 
-    return conventionalChangelogWriter
-      .parseArray(changelogCommits, context, preset.writerOpts)
-      .trim();
+    return restoreInlineCode(
+      conventionalChangelogWriter
+        .parseArray(changelogCommits, context, preset.writerOpts)
+        .trim(),
+      protectedInlineCode
+    );
   }
 }
 
@@ -123,7 +135,34 @@ function replaceIssueLink(
 }
 
 function htmlEscape(message: string): string {
-  return message.replace(/``[^`].*[^`]``|`[^`]*`|<|>/g, match =>
-    match.length > 1 ? match : match === '<' ? '&lt;' : '&gt;'
+  return message.replace(
+    new RegExp(`${INLINE_CODE_PATTERN.source}|<|>`, 'g'),
+    match => (match.length > 1 ? match : match === '<' ? '&lt;' : '&gt;')
   );
+}
+
+function buildInlineCodeToken(index: number): string {
+  return `INLINE_CODE_TOKEN_${index}`;
+}
+
+function protectInlineCode(
+  message: string,
+  protectedInlineCode: Map<string, string>,
+  nextToken: () => string
+): string {
+  return message.replace(INLINE_CODE_PATTERN, match => {
+    const token = nextToken();
+    protectedInlineCode.set(token, match);
+    return token;
+  });
+}
+
+function restoreInlineCode(
+  message: string,
+  protectedInlineCode: Map<string, string>
+): string {
+  for (const [token, inlineCode] of protectedInlineCode.entries()) {
+    message = message.replace(new RegExp(token, 'g'), inlineCode);
+  }
+  return message;
 }
