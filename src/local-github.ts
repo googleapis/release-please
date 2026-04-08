@@ -107,7 +107,7 @@ export class LocalGitHub implements Scm {
       logger.info(`Cloning repository to ${tempDir}...`);
       const url = `https://github.com/${gitHubApi.repository.owner}/${gitHubApi.repository.repo}.git`;
 
-      const args = ['clone', url, tempDir];
+      const args = ['clone', '--', url, tempDir];
       if (options.cloneDepth) {
         args.splice(1, 0, '--depth', options.cloneDepth.toString());
       }
@@ -175,7 +175,9 @@ export class LocalGitHub implements Scm {
         `Ref ${ref} not found locally, trying to fetch from origin...`
       );
       try {
-        await execFile('git', ['fetch', 'origin', ref], {cwd: this.cloneDir});
+        await execFile('git', ['fetch', 'origin', '--', ref], {
+          cwd: this.cloneDir,
+        });
         return 'FETCH_HEAD';
       } catch (fetchErr) {
         throw err; // Throw original error if fetch fails
@@ -699,7 +701,7 @@ export class LocalGitHub implements Scm {
     this.logger.debug(`Applying edits and pushing to ${branch}`);
 
     // Checkout/Reset PR branch
-    await execFile('git', ['fetch', 'origin', targetBranch], {
+    await execFile('git', ['fetch', 'origin', '--', targetBranch], {
       cwd: this.cloneDir,
     });
     await execFile(
