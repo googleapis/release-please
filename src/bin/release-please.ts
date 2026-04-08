@@ -54,6 +54,7 @@ interface GitHubArgs {
   fork?: boolean;
   local?: boolean;
   localPath?: string;
+  localCloneDepth?: number;
 
   // deprecated in favor of targetBranch
   defaultBranch?: string;
@@ -200,6 +201,10 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
     .option('local-path', {
       describe: 'Path to existing local clone',
       type: 'string',
+    })
+    .option('local-clone-depth', {
+      describe: 'Depth of local clone',
+      type: 'number',
     })
     .middleware(_argv => {
       const argv = _argv as GitHubArgs;
@@ -841,6 +846,7 @@ async function buildGitHub(argv: GitHubArgs): Promise<Scm> {
       apiUrl: argv.apiUrl,
       graphqlUrl: argv.graphqlUrl,
       localRepoPath: argv.localPath,
+      cloneDepth: argv.localCloneDepth,
     });
     return localGitHub;
   } else {

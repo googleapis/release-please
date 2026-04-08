@@ -28,6 +28,7 @@ Options:
   --local                       Whether to use local clone
                                                       [boolean] [default: false]
   --local-path                  Path to existing local clone            [string]
+  --local-clone-depth           Depth of local clone                    [number]
   --include-v-in-tags           include "v" in tag versions
                                                        [boolean] [default: true]
   --monorepo-tags               include library name in tags and release
@@ -102,6 +103,7 @@ Options:
   --dry-run             Prepare but do not take action[boolean] [default: false]
   --local               Whether to use local clone    [boolean] [default: false]
   --local-path          Path to existing local clone                    [string]
+  --local-clone-depth   Depth of local clone                            [number]
   --label               comma-separated list of labels to add to from release PR
                                                [default: "autorelease: pending"]
   --skip-labeling       skip application of labels to pull requests
@@ -145,6 +147,7 @@ Options:
   --dry-run             Prepare but do not take action[boolean] [default: false]
   --local               Whether to use local clone    [boolean] [default: false]
   --local-path          Path to existing local clone                    [string]
+  --local-clone-depth   Depth of local clone                            [number]
   --draft               mark release as a draft. no tag is created but tag_name
                         and target_commitish are associated with the release for
                         future tag creation upon "un-drafting" the release.
@@ -197,6 +200,7 @@ Options:
   --local                           Whether to use local clone
                                                       [boolean] [default: false]
   --local-path                      Path to existing local clone        [string]
+  --local-clone-depth               Depth of local clone                [number]
   --release-as                      override the semantically determined release
                                     version                             [string]
   --bump-minor-pre-major            should we bump the semver minor prior to the
