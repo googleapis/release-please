@@ -18,6 +18,7 @@ import {Commit} from './commit';
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {RequestError} from '@octokit/request-error';
+import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
 import {GitHubAPIError, FileNotFoundError, ConfigurationError} from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
@@ -924,13 +925,21 @@ export class GitHub implements Scm {
     options?: CreatePullRequestOptions
   ): Promise<PullRequest> {
     const changes = await this.buildChangeSet(updates, targetBranch);
-    return await this.gitHubApi.createPullRequestFromChanges(
-      pullRequest,
-      targetBranch,
+    const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
+      upstreamOwner: this.repository.owner,
+      upstreamRepo: this.repository.repo,
+      title: pullRequest.title,
+      branch: pullRequest.headBranchName,
+      description: pullRequest.body,
+      primary: targetBranch,
+      force: true,
+      fork: !!options?.fork,
       message,
-      changes,
-      options
-    );
+      logger: this.logger,
+      draft: !!options?.draft,
+      labels: pullRequest.labels,
+    });
+    return await this.getPullRequest(prNumber);
   }
 
   /**
@@ -967,13 +976,40 @@ export class GitHub implements Scm {
       releasePullRequest.updates,
       targetBranch
     );
-    return await this.gitHubApi.updatePullRequestFromChanges(
-      number,
-      releasePullRequest,
-      targetBranch,
-      changes,
-      options
-    );
+
+    let message = releasePullRequest.title.toString();
+    if (options?.signoffUser) {
+      message = signoffCommitMessage(message, options.signoffUser);
+    }
+    const title = releasePullRequest.title.toString();
+    const body = (
+      options?.pullRequestOverflowHandler
+        ? await options.pullRequestOverflowHandler.handleOverflow(
+            releasePullRequest
+          )
+        : releasePullRequest.body
+    )
+      .toString()
+      .slice(0, MAX_ISSUE_BODY_SIZE);
+    const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
+      upstreamOwner: this.repository.owner,
+      upstreamRepo: this.repository.repo,
+      title,
+      branch: releasePullRequest.headRefName,
+      description: body,
+      primary: targetBranch,
+      force: true,
+      fork: options?.fork === false ? false : true,
+      message,
+      logger: this.logger,
+      draft: releasePullRequest.draft,
+    });
+    if (prNumber !== number) {
+      this.logger.warn(
+        `updated code for ${prNumber}, but update requested for ${number}`
+      );
+    }
+    return this.gitHubApi.updatePullRequest(number, title, body);
   }
 
   /**

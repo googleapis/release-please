@@ -581,23 +581,11 @@ export class LocalGitHub implements Scm {
       changes
     );
     this.logger.info('Creating pull request via GitHub API...');
-    const pullResponseData = (
-      await this.gitHubApi.octokit.pulls.create({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        title: pullRequest.title,
-        head: `${this.repository.owner}:${pullRequest.headBranchName}`,
-        base: targetBranch,
-        body: pullRequest.body,
-        maintainer_can_modify: true,
-        draft: !!options?.draft,
-      })
-    ).data;
-
-    this.logger.info(
-      `Successfully opened pull request available at url: ${pullResponseData.html_url}.`
+    return await this.gitHubApi.createPullRequest(
+      pullRequest,
+      targetBranch,
+      options
     );
-    return await this.gitHubApi.getPullRequest(pullResponseData.number);
   }
 
   async updatePullRequest(

@@ -25,7 +25,6 @@ import {Release} from './release';
 import {
   ScmRelease,
   ScmReleaseIteratorOptions,
-  ScmCreatePullRequestOptions,
   ScmReleaseOptions,
   ScmCommitIteratorOptions,
   ScmChangeSet,
@@ -583,32 +582,29 @@ export class GitHubApi {
     } as ReleaseHistory;
   }
 
-  /**
-   * Create a pull request given a changeset.
-   */
-  createPullRequestFromChanges = wrapAsync(
+  createPullRequest = wrapAsync(
     async (
       pullRequest: PullRequest,
       targetBranch: string,
-      message: string,
-      changes: ScmChangeSet,
-      options?: ScmCreatePullRequestOptions
-    ): Promise<PullRequest> => {
-      const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title: pullRequest.title,
-        branch: pullRequest.headBranchName,
-        description: pullRequest.body,
-        primary: targetBranch,
-        force: true,
-        fork: !!options?.fork,
-        message,
-        logger: this.logger,
-        draft: !!options?.draft,
-        labels: pullRequest.labels,
-      });
-      return await this.getPullRequest(prNumber);
+      options?: {draft?: boolean}
+    ) => {
+      const pullResponseData = (
+        await this.octokit.pulls.create({
+          owner: this.repository.owner,
+          repo: this.repository.repo,
+          title: pullRequest.title,
+          head: `${this.repository.owner}:${pullRequest.headBranchName}`,
+          base: targetBranch,
+          body: pullRequest.body,
+          maintainer_can_modify: true,
+          draft: !!options?.draft,
+        })
+      ).data;
+
+      this.logger.info(
+        `Successfully opened pull request available at url: ${pullResponseData.html_url}.`
+      );
+      return await this.getPullRequest(pullResponseData.number);
     }
   );
 
@@ -636,58 +632,13 @@ export class GitHubApi {
     };
   });
 
-  /**
-   * Update a pull request's title and body given a changeset.
-   */
-  updatePullRequestFromChanges = wrapAsync(
-    async (
-      number: number,
-      releasePullRequest: ReleasePullRequest,
-      targetBranch: string,
-      changes: ScmChangeSet,
-      options?: {
-        signoffUser?: string;
-        fork?: boolean;
-        pullRequestOverflowHandler?: PullRequestOverflowHandler;
-      }
-    ): Promise<PullRequest> => {
-      let message = releasePullRequest.title.toString();
-      if (options?.signoffUser) {
-        message = signoffCommitMessage(message, options.signoffUser);
-      }
-      const title = releasePullRequest.title.toString();
-      const body = (
-        options?.pullRequestOverflowHandler
-          ? await options.pullRequestOverflowHandler.handleOverflow(
-              releasePullRequest
-            )
-          : releasePullRequest.body
-      )
-        .toString()
-        .slice(0, MAX_ISSUE_BODY_SIZE);
-      const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title,
-        branch: releasePullRequest.headRefName,
-        description: body,
-        primary: targetBranch,
-        force: true,
-        fork: options?.fork === false ? false : true,
-        message,
-        logger: this.logger,
-        draft: releasePullRequest.draft,
-      });
-      if (prNumber !== number) {
-        this.logger.warn(
-          `updated code for ${prNumber}, but update requested for ${number}`
-        );
-      }
+  updatePullRequest = wrapAsync(
+    async (number: number, title: string, body: string) => {
       const response = await this.octokit.pulls.update({
         owner: this.repository.owner,
         repo: this.repository.repo,
         pull_number: number,
-        title: releasePullRequest.title.toString(),
+        title,
         body,
         state: 'open',
       });
