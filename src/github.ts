@@ -707,6 +707,20 @@ export class GitHub implements Scm {
       draft: !!options?.draft,
       labels: pullRequest.labels,
     });
+    if (prNumber === 0) {
+      this.logger.warn(
+        'no code changes detected, skipping pull request creation'
+      );
+      return {
+        headBranchName: pullRequest.headBranchName,
+        baseBranchName: targetBranch,
+        number: 0,
+        title: pullRequest.title,
+        body: pullRequest.body,
+        labels: pullRequest.labels,
+        files: [],
+      };
+    }
     return await this.getPullRequest(prNumber);
   }
 

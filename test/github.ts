@@ -21,6 +21,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
+import * as codeSuggester from 'code-suggester';
 
 import {GitHub, GitHubRelease} from '../src/github';
 import {GitHubApi, GH_API_URL} from '../src/github-api';
@@ -1008,6 +1009,33 @@ describe('GitHub', () => {
       expect(notes).to.eql(
         '##Changes in Release v1.0.0 ... ##Contributors @monalisa'
       );
+    });
+  });
+
+  describe('createPullRequest', () => {
+    it('should not call getPullRequest when no code changes detected', async () => {
+      const createPullRequestStub = sandbox
+        .stub(codeSuggester, 'createPullRequest')
+        .resolves(0);
+      const getPullRequestStub = sandbox.stub(github, 'getPullRequest');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pullRequest = await (github as any).createPullRequest(
+        {
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          title: 'Release v1.0.0',
+          body: 'Release body',
+          labels: ['release-please'],
+        },
+        'main',
+        'commit message',
+        []
+      );
+
+      expect(pullRequest.number).to.eql(0);
+      sinon.assert.calledOnce(createPullRequestStub);
+      sinon.assert.notCalled(getPullRequestStub);
     });
   });
 
