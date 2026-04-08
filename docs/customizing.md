@@ -80,6 +80,32 @@ release notes appear.
 To add a new changelog type, create a new class that implements the
 [`ChangelogNotes` interface](/src/changelog-notes.ts).
 
+### Custom changelog templates
+
+If you want to override the Handlebars templates used by the default changelog
+renderer, set one or more of these manifest options:
+
+* `commit-partial`
+* `header-partial`
+* `main-template`
+
+Each value should be a path to a template file in the repository. Paths are
+resolved relative to the configured package `path` when using manifest-based
+releases.
+
+```json
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "main-template": ".release-please/main-template.hbs",
+      "header-partial": ".release-please/header.hbs",
+      "commit-partial": ".release-please/commit.hbs"
+    }
+  }
+}
+```
+
 ## Pull Requests
 
 ### Opening as a draft pull request

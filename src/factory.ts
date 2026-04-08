@@ -66,6 +66,57 @@ export interface StrategyFactoryOptions extends ReleaserConfig {
   targetBranch?: string;
 }
 
+function resolveReleaserPath(path: string | undefined, file: string): string {
+  if (!path || path === '.' || file.startsWith('/')) {
+    file = file.replace(/^\/+/, '');
+  } else {
+    file = `${path.replace(/\/+$/, '')}/${file}`;
+  }
+  if (/((^|\/)\.{1,2}|^~|^\/*)+\//.test(file)) {
+    throw new Error(`illegal pathing characters in path: ${file}`);
+  }
+  return file.replace(/\/+$/, '');
+}
+
+async function buildTemplateOptions(
+  options: StrategyFactoryOptions,
+  targetBranch: string
+): Promise<
+  Pick<BaseStrategyOptions, 'commitPartial' | 'headerPartial' | 'mainTemplate'>
+> {
+  const [commitPartial, headerPartial, mainTemplate] = await Promise.all([
+    options.commitPartialPath
+      ? options.github
+          .getFileContentsOnBranch(
+            resolveReleaserPath(options.path, options.commitPartialPath),
+            targetBranch
+          )
+          .then(contents => contents.parsedContent)
+      : undefined,
+    options.headerPartialPath
+      ? options.github
+          .getFileContentsOnBranch(
+            resolveReleaserPath(options.path, options.headerPartialPath),
+            targetBranch
+          )
+          .then(contents => contents.parsedContent)
+      : undefined,
+    options.mainTemplatePath
+      ? options.github
+          .getFileContentsOnBranch(
+            resolveReleaserPath(options.path, options.mainTemplatePath),
+            targetBranch
+          )
+          .then(contents => contents.parsedContent)
+      : undefined,
+  ]);
+  return {
+    commitPartial,
+    headerPartial,
+    mainTemplate,
+  };
+}
+
 const releasers: Record<string, ReleaseBuilder> = {
   'dotnet-yoshi': options => new DotnetYoshi(options),
   go: options => new Go(options),
@@ -118,6 +169,7 @@ export async function buildStrategy(
 ): Promise<Strategy> {
   const targetBranch =
     options.targetBranch ?? options.github.repository.defaultBranch;
+  const templateOptions = await buildTemplateOptions(options, targetBranch);
   const versioningStrategy = buildVersioningStrategy({
     github: options.github,
     type: options.versioning,
@@ -130,11 +182,13 @@ export async function buildStrategy(
     type: options.changelogType || 'default',
     github: options.github,
     changelogSections: options.changelogSections,
+    ...templateOptions,
   });
   const strategyOptions: BaseStrategyOptions = {
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
     skipChangelog: options.skipChangelog,
     ...options,
+    ...templateOptions,
     targetBranch,
     versioningStrategy,
     changelogNotes,
