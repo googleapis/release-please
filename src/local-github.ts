@@ -155,6 +155,21 @@ export class LocalGitHub implements Scm {
     });
   }
 
+  private async ensureRef(ref: string): Promise<string> {
+    try {
+      await exec(`git rev-parse --verify ${ref}`, {cwd: this.cloneDir});
+      return ref;
+    } catch (err) {
+      this.logger.debug(`Ref ${ref} not found locally, trying to fetch from origin...`);
+      try {
+        await exec(`git fetch origin ${ref}`, {cwd: this.cloneDir});
+        return 'FETCH_HEAD';
+      } catch (fetchErr) {
+        throw err; // Throw original error if fetch fails
+      }
+    }
+  }
+
   async getFileContentsOnBranch(
     path: string,
     branch: string
@@ -163,29 +178,10 @@ export class LocalGitHub implements Scm {
       `Fetching file contents for file ${path} on branch ${branch}`
     );
     
-    let lsTreeResult;
-    let ref = branch;
-    try {
-      lsTreeResult = await exec(`git ls-tree ${ref} ${path}`, {
-        cwd: this.cloneDir,
-      });
-    } catch (err) {
-      const error = err as {stderr?: string};
-      if (error.stderr && error.stderr.includes('Not a valid object name')) {
-        this.logger.debug(`Branch ${branch} not found locally, trying to fetch from origin...`);
-        try {
-          await exec(`git fetch origin ${branch}`, {cwd: this.cloneDir});
-          ref = 'FETCH_HEAD';
-          lsTreeResult = await exec(`git ls-tree ${ref} ${path}`, {
-            cwd: this.cloneDir,
-          });
-        } catch (fetchErr) {
-          throw err; // Throw original error if fetch fails or still fails after fetch
-        }
-      } else {
-        throw err;
-      }
-    }
+    const ref = await this.ensureRef(branch);
+    const lsTreeResult = await exec(`git ls-tree ${ref} ${path}`, {
+      cwd: this.cloneDir,
+    });
 
     if (!lsTreeResult.stdout.trim()) {
       throw new FileNotFoundError(path);
@@ -241,12 +237,13 @@ export class LocalGitHub implements Scm {
 
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '.';
 
+    const resolvedRef = await this.ensureRef(ref);
     this.logger.trace(
-      `Executing stream: git ls-tree -r --name-only ${ref} ${treePath}`
+      `Executing stream: git ls-tree -r --name-only ${resolvedRef} ${treePath}`
     );
     const matchedPaths: string[] = [];
     await this.execGitStream(
-      ['ls-tree', '-r', '--name-only', ref, treePath],
+      ['ls-tree', '-r', '--name-only', resolvedRef, treePath],
       line => {
         const trimmed = line.trim();
         if (trimmed && path.posix.basename(trimmed) === filename) {
@@ -295,10 +292,11 @@ export class LocalGitHub implements Scm {
 
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '.';
 
+    const resolvedRef = await this.ensureRef(ref);
     const files: string[] = [];
     const dirs = new Set<string>();
     await this.execGitStream(
-      ['ls-tree', '-r', '--name-only', ref, treePath],
+      ['ls-tree', '-r', '--name-only', resolvedRef, treePath],
       line => {
         const trimmed = line.trim();
         if (trimmed) {
@@ -361,9 +359,10 @@ export class LocalGitHub implements Scm {
 
     const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '.';
 
+    const resolvedRef = await this.ensureRef(ref);
     const matchedPaths: string[] = [];
     await this.execGitStream(
-      ['ls-tree', '-r', '--name-only', ref, treePath],
+      ['ls-tree', '-r', '--name-only', resolvedRef, treePath],
       line => {
         const trimmed = line.trim();
         if (trimmed && trimmed.endsWith(`.${extension}`)) {
@@ -417,7 +416,8 @@ export class LocalGitHub implements Scm {
       format += '%n---FILES_START---';
     }
 
-    let command = `git log ${targetBranch} --pretty=format:"${format}"`;
+    const ref = await this.ensureRef(targetBranch);
+    let command = `git log ${ref} --pretty=format:"${format}"`;
     if (backfillFiles) {
       command += ' --name-only';
     }

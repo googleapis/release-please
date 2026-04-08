@@ -71,6 +71,19 @@ describe('LocalGitHub', () => {
         expect(error.name).to.equal('FileNotFoundError');
       }
     });
+
+    it('throws FileNotFoundError when file does not exist on a branch', async () => {
+      try {
+        await localGitHub.getFileContentsOnBranch(
+          'non-existent-file.txt',
+          '12.x'
+        );
+        throw new Error('Expected FileNotFoundError to be thrown');
+      } catch (err) {
+        const error = err as Error;
+        expect(error.name).to.equal('FileNotFoundError');
+      }
+    });
   });
 
   describe('findFilesByFilenameAndRef', () => {
@@ -81,11 +94,24 @@ describe('LocalGitHub', () => {
       );
       expect(files).to.include('package.json');
     });
+
+    it('finds files by filename on a branch', async () => {
+      const files = await localGitHub.findFilesByFilenameAndRef(
+        'package.json',
+        '12.x'
+      );
+      expect(files).to.include('package.json');
+    });
   });
 
   describe('findFilesByGlobAndRef', () => {
     it('finds files by glob', async () => {
       const files = await localGitHub.findFilesByGlobAndRef('*.json', 'main');
+      expect(files).to.include('package.json');
+    });
+
+    it('finds files by glob on a branch', async () => {
+      const files = await localGitHub.findFilesByGlobAndRef('*.json', '12.x');
       expect(files).to.include('package.json');
     });
   });
@@ -95,6 +121,14 @@ describe('LocalGitHub', () => {
       const files = await localGitHub.findFilesByExtensionAndRef(
         'json',
         'main'
+      );
+      expect(files).to.include('package.json');
+    });
+
+    it('finds files by extension on a branch', async () => {
+      const files = await localGitHub.findFilesByExtensionAndRef(
+        'json',
+        '12.x'
       );
       expect(files).to.include('package.json');
     });
