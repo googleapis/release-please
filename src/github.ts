@@ -127,7 +127,6 @@ type CreatePullRequestOptions = ScmCreatePullRequestOptions;
 export class GitHub implements Scm {
   readonly repository: Repository;
   private octokit: OctokitType;
-  private request: RequestFunctionType;
   private graphql: Function;
   private fileCache: RepositoryFileCache;
   private logger: Logger;
@@ -136,7 +135,6 @@ export class GitHub implements Scm {
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
     this.octokit = options.octokitAPIs.octokit;
-    this.request = options.octokitAPIs.request;
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
