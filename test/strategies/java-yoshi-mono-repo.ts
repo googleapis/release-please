@@ -19,6 +19,7 @@ import {JavaYoshiMonoRepo} from '../../src/strategies/java-yoshi-mono-repo';
 import * as sinon from 'sinon';
 import {
   buildGitHubFileContent,
+  buildGitHubFileRaw,
   assertHasUpdate,
   assertNoHasUpdate,
 } from '../helpers';
@@ -289,6 +290,60 @@ describe('JavaYoshiMonoRepo', () => {
       assertHasUpdate(updates, 'path1/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path2/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path1/Version.java', JavaUpdate);
+    });
+
+    it('updates Version.java file content correctly with typical bump', async () => {
+      const strategy = new JavaYoshiMonoRepo({
+        targetBranch: 'main',
+        github,
+        component: 'google-cloud-automl',
+      });
+      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
+      findFilesStub
+        .withArgs('Version.java', 'main', '.')
+        .resolves(['path1/Version.java']);
+      findFilesStub
+        .withArgs('pom.xml', 'main', '.')
+        .resolves([]);
+      findFilesStub
+        .withArgs('build.gradle', 'main', '.')
+        .resolves([]);
+      findFilesStub
+        .withArgs('dependencies.properties', 'main', '.')
+        .resolves([]);
+      findFilesStub
+        .withArgs('README.md', 'main', '.')
+        .resolves([]);
+      
+      const getFileContentsStub = sandbox.stub(
+        github,
+        'getFileContentsOnBranch'
+      );
+      getFileContentsStub
+        .withArgs('versions.txt', 'main')
+        .resolves(buildGitHubFileRaw('google-cloud-automl:1.0.0:1.0.1-SNAPSHOT'));
+      
+      const latestRelease = undefined;
+      const release = await strategy.buildReleasePullRequest(
+        COMMITS,
+        latestRelease
+      );
+      
+      const updates = release!.updates;
+      const update = assertHasUpdate(updates, 'path1/Version.java', JavaUpdate);
+      
+      const oldContent = `
+      package com.google.cloud.automl.v1.stub;
+      public class Version {
+        // {x-version-update-start:google-cloud-automl:current}
+        public static final String STRING = "1.0.0";
+        // {x-version-update-end}
+      }
+      `;
+      
+      const newContent = update.updater.updateContent(oldContent);
+      expect(newContent).to.contain('1.0.1');
+      expect(newContent).to.not.contain('beta');
     });
 
     it('finds and updates extra files', async () => {
