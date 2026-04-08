@@ -15,19 +15,16 @@
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {RequestError} from '@octokit/request-error';
-import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
 import {Logger} from 'code-suggester/build/src/types';
 
 import {PullRequest} from './pull-request';
 import {Repository} from './repository';
-import {ReleasePullRequest} from './release-pull-request';
 import {Release} from './release';
 import {
   ScmRelease,
   ScmReleaseIteratorOptions,
   ScmReleaseOptions,
   ScmCommitIteratorOptions,
-  ScmChangeSet,
 } from './scm';
 import {
   GitHubAPIError,
@@ -35,8 +32,6 @@ import {
   ConfigurationError,
 } from './errors';
 import {logger as defaultLogger} from './util/logger';
-import {signoffCommitMessage} from './util/signoff-commit-message';
-import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 
 import {graphql} from '@octokit/graphql';
 import {HttpsProxyAgent} from 'https-proxy-agent';
