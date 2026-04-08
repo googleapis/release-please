@@ -338,7 +338,7 @@ export class LocalGitHub implements Scm {
       normalizedPrefix = '';
     }
 
-    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '';
+    const treePath = normalizedPrefix ? `${normalizedPrefix}/` : '.';
 
     const matchedPaths: string[] = [];
     await this.execGitStream(
