@@ -39,6 +39,13 @@ import {logger as defaultLogger} from './util/logger';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 
+import {graphql} from '@octokit/graphql';
+import {HttpsProxyAgent} from 'https-proxy-agent';
+import {HttpProxyAgent} from 'http-proxy-agent';
+
+export const GH_API_URL = 'https://api.github.com';
+export const GH_GRAPHQL_URL = 'https://api.github.com';
+
 export type OctokitType = InstanceType<typeof Octokit>;
 
 // Extract some types from the `request` package.
@@ -50,6 +57,24 @@ export interface OctokitAPIs {
   graphql: Function;
   request: RequestFunctionType;
   octokit: OctokitType;
+}
+
+export interface ProxyOption {
+  host: string;
+  port: number;
+}
+
+export interface GitHubCreateOptions {
+  owner: string;
+  repo: string;
+  defaultBranch?: string;
+  apiUrl?: string;
+  graphqlUrl?: string;
+  octokitAPIs?: OctokitAPIs;
+  token?: string;
+  logger?: Logger;
+  proxy?: ProxyOption;
+  fetch?: any;
 }
 
 export interface GitHubApiOptions {
@@ -135,15 +160,94 @@ export const MAX_ISSUE_BODY_SIZE = 65536;
 
 export class GitHubApi {
   readonly repository: Repository;
+  readonly octokitAPIs: OctokitAPIs;
   octokit: OctokitType;
   private graphql: Function;
   private logger: Logger;
 
   constructor(options: GitHubApiOptions) {
     this.repository = options.repository;
+    this.octokitAPIs = options.octokitAPIs;
     this.octokit = options.octokitAPIs.octokit;
     this.graphql = options.octokitAPIs.graphql;
     this.logger = options.logger ?? defaultLogger;
+  }
+
+  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
+    if (!defaultProxy) {
+      return undefined;
+    }
+
+    const {host, port} = defaultProxy;
+    if (new URL(baseUrl).protocol.replace(':', '') === 'http') {
+      return new HttpProxyAgent(`http://${host}:${port}`);
+    } else {
+      return new HttpsProxyAgent(`https://${host}:${port}`);
+    }
+  }
+
+  static async create(options: GitHubCreateOptions): Promise<GitHubApi> {
+    const apiUrl = options.apiUrl ?? GH_API_URL;
+    const graphqlUrl = options.graphqlUrl ?? GH_GRAPHQL_URL;
+    const releasePleaseVersion = require('../../package.json').version;
+    const apis = options.octokitAPIs ?? {
+      octokit: new Octokit({
+        baseUrl: apiUrl,
+        auth: options.token,
+        request: {
+          agent: this.createDefaultAgent(apiUrl, options.proxy),
+          fetch: options.fetch,
+        },
+      }),
+      request: request.defaults({
+        baseUrl: apiUrl,
+        headers: {
+          'user-agent': `release-please/${releasePleaseVersion}`,
+          Authorization: `token ${options.token}`,
+        },
+        fetch: options.fetch,
+      }),
+      graphql: graphql.defaults({
+        baseUrl: graphqlUrl,
+        request: {
+          agent: this.createDefaultAgent(graphqlUrl, options.proxy),
+          fetch: options.fetch,
+        },
+        headers: {
+          'user-agent': `release-please/${releasePleaseVersion}`,
+          Authorization: `token ${options.token}`,
+          'content-type': 'application/vnd.github.v3+json',
+        },
+      }),
+    };
+    const opts = {
+      repository: {
+        owner: options.owner,
+        repo: options.repo,
+        defaultBranch:
+          options.defaultBranch ??
+          (await GitHubApi.defaultBranch(
+            options.owner,
+            options.repo,
+            apis.octokit
+          )),
+      },
+      octokitAPIs: apis,
+      logger: options.logger,
+    };
+    return new GitHubApi(opts);
+  }
+
+  static async defaultBranch(
+    owner: string,
+    repo: string,
+    octokit: OctokitType
+  ): Promise<string> {
+    const {data} = await octokit.repos.get({
+      repo,
+      owner,
+    });
+    return data.default_branch;
   }
 
   private graphqlRequest = wrapAsync(

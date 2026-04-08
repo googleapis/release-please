@@ -47,8 +47,11 @@ import {
   DEFAULT_FILE_MODE,
 } from '@google-automations/git-file-utils';
 import {mergeUpdates} from './updaters/composite';
-import { GitHubApi, MAX_ISSUE_BODY_SIZE } from './github-api';
-import {GitHub, GitHubCreateOptions} from './github';
+import {
+  GitHubApi,
+  MAX_ISSUE_BODY_SIZE,
+  GitHubCreateOptions,
+} from './github-api';
 import {Logger} from 'code-suggester/build/src/types';
 import {logger as defaultLogger} from './util/logger';
 
@@ -80,14 +83,14 @@ export class LocalGitHub implements Scm {
   }
 
   static async create(options: LocalGitHubCreateOptions): Promise<LocalGitHub> {
-    const github = await GitHub.create(options);
+    const gitHubApi = await GitHubApi.create(options);
     const logger = options.logger ?? defaultLogger;
 
     let repoDir: string;
     if (options.localRepoPath) {
       repoDir = options.localRepoPath;
       logger.info(`Using existing local repository at ${repoDir}...`);
-      const branch = github.repository.defaultBranch;
+      const branch = gitHubApi.repository.defaultBranch;
 
       logger.debug('Executing: git fetch origin');
       await exec('git fetch origin', {cwd: repoDir});
@@ -100,7 +103,7 @@ export class LocalGitHub implements Scm {
     } else {
       const tempDir = await mkdtemp(path.join(os.tmpdir(), 'release-please-'));
       logger.info(`Cloning repository to ${tempDir}...`);
-      const url = `https://github.com/${github.repository.owner}/${github.repository.repo}.git`;
+      const url = `https://github.com/${gitHubApi.repository.owner}/${gitHubApi.repository.repo}.git`;
 
       let cloneCmd = `git clone ${url} ${tempDir}`;
       if (options.cloneDepth) {
@@ -112,14 +115,9 @@ export class LocalGitHub implements Scm {
       repoDir = tempDir;
     }
 
-    return new LocalGitHub(
-      github.repository,
-      github.getGitHubApi(),
-      repoDir,
-      {
-        logger: options.logger,
-      }
-    );
+    return new LocalGitHub(gitHubApi.repository, gitHubApi, repoDir, {
+      logger: options.logger,
+    });
   }
 
   async getFileContents(path: string): Promise<GitHubFileContents> {
