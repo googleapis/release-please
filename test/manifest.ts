@@ -3777,7 +3777,7 @@ describe('Manifest', () => {
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox
-        .stub((github as any).apiDelegate, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(22)
         .resolves({
           number: 22,
@@ -3843,7 +3843,7 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content-2'));
       mockPullRequests(github, []);
       sandbox
-        .stub((github as any).apiDelegate, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(123)
         .resolves({
           number: 123,
@@ -3972,7 +3972,7 @@ describe('Manifest', () => {
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox
-        .stub((github as any).apiDelegate, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(22)
         .resolves({
           number: 22,
@@ -4038,7 +4038,7 @@ describe('Manifest', () => {
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
       sandbox
-        .stub((github as any).apiDelegate, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(22)
         .resolves({
           number: 22,

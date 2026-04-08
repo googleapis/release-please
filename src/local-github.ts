@@ -47,7 +47,7 @@ import {
   DEFAULT_FILE_MODE,
 } from '@google-automations/git-file-utils';
 import {mergeUpdates} from './updaters/composite';
-import { GitHubApiDelegate, MAX_ISSUE_BODY_SIZE } from './github-api-delegate';
+import { GitHubApi, MAX_ISSUE_BODY_SIZE } from './github-api';
 import {GitHub, GitHubCreateOptions} from './github';
 import {Logger} from 'code-suggester/build/src/types';
 import {logger as defaultLogger} from './util/logger';
@@ -64,17 +64,17 @@ export interface LocalGitHubCreateOptions extends GitHubCreateOptions {
 export class LocalGitHub implements Scm {
   readonly repository: Repository;
   private cloneDir: string;
-  private apiDelegate: GitHubApiDelegate;
+  private gitHubApi: GitHubApi;
   private logger: Logger;
 
   constructor(
     repository: Repository,
-    apiDelegate: GitHubApiDelegate,
+    gitHubApi: GitHubApi,
     cloneDir: string,
     options?: {logger?: Logger}
   ) {
     this.repository = repository;
-    this.apiDelegate = apiDelegate;
+    this.gitHubApi = gitHubApi;
     this.cloneDir = cloneDir;
     this.logger = options?.logger ?? defaultLogger;
   }
@@ -114,7 +114,7 @@ export class LocalGitHub implements Scm {
 
     return new LocalGitHub(
       github.repository,
-      github.getApiDelegate(),
+      github.getGitHubApi(),
       repoDir,
       {
         logger: options.logger,
@@ -478,7 +478,7 @@ export class LocalGitHub implements Scm {
     maxResults?: number,
     includeFiles?: boolean
   ): AsyncGenerator<PullRequest, void, void> {
-    yield* this.apiDelegate.pullRequestIterator(
+    yield* this.gitHubApi.pullRequestIterator(
       targetBranch,
       status,
       maxResults,
@@ -489,7 +489,7 @@ export class LocalGitHub implements Scm {
   async *releaseIterator(
     options?: ScmReleaseIteratorOptions
   ): AsyncGenerator<ScmRelease, void, void> {
-    yield* this.apiDelegate.releaseIterator(options);
+    yield* this.gitHubApi.releaseIterator(options);
   }
 
   async *tagIterator(
@@ -584,7 +584,7 @@ export class LocalGitHub implements Scm {
     );
     this.logger.info('Creating pull request via GitHub API...');
     const pullResponseData = (
-      await this.apiDelegate.octokit.pulls.create({
+      await this.gitHubApi.octokit.pulls.create({
         owner: this.repository.owner,
         repo: this.repository.repo,
         title: pullRequest.title,
@@ -599,7 +599,7 @@ export class LocalGitHub implements Scm {
     this.logger.info(
       `Successfully opened pull request available at url: ${pullResponseData.html_url}.`
     );
-    return await this.apiDelegate.getPullRequest(pullResponseData.number);
+    return await this.gitHubApi.getPullRequest(pullResponseData.number);
   }
 
   async updatePullRequest(
@@ -627,7 +627,7 @@ export class LocalGitHub implements Scm {
       .toString()
       .slice(0, MAX_ISSUE_BODY_SIZE);
     const pullResponseData = (
-      await this.apiDelegate.octokit.pulls.update({
+      await this.gitHubApi.octokit.pulls.update({
         owner: this.repository.owner,
         repo: this.repository.repo,
         pull_number: number,
@@ -650,26 +650,26 @@ export class LocalGitHub implements Scm {
   }
 
   async getPullRequest(number: number): Promise<PullRequest> {
-    return await this.apiDelegate.getPullRequest(number);
+    return await this.gitHubApi.getPullRequest(number);
   }
 
   async createRelease(
     release: Release,
     options?: ScmReleaseOptions
   ): Promise<ScmRelease> {
-    return await this.apiDelegate.createRelease(release, options);
+    return await this.gitHubApi.createRelease(release, options);
   }
 
   async commentOnIssue(comment: string, number: number): Promise<string> {
-    return await this.apiDelegate.commentOnIssue(comment, number);
+    return await this.gitHubApi.commentOnIssue(comment, number);
   }
 
   async removeIssueLabels(labels: string[], number: number): Promise<void> {
-    return await this.apiDelegate.removeIssueLabels(labels, number);
+    return await this.gitHubApi.removeIssueLabels(labels, number);
   }
 
   async addIssueLabels(labels: string[], number: number): Promise<void> {
-    return await this.apiDelegate.addIssueLabels(labels, number);
+    return await this.gitHubApi.addIssueLabels(labels, number);
   }
 
   async generateReleaseNotes(
@@ -677,7 +677,7 @@ export class LocalGitHub implements Scm {
     targetCommitish: string,
     previousTag?: string
   ): Promise<string> {
-    return await this.apiDelegate.generateReleaseNotes(
+    return await this.gitHubApi.generateReleaseNotes(
       tagName,
       targetCommitish,
       previousTag
@@ -690,7 +690,7 @@ export class LocalGitHub implements Scm {
     newBranchName: string,
     baseBranchName: string
   ): Promise<string> {
-    return await this.apiDelegate.createFileOnNewBranch(
+    return await this.gitHubApi.createFileOnNewBranch(
       filename,
       contents,
       newBranchName,

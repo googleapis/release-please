@@ -33,7 +33,7 @@ import {ReleasePullRequest} from './release-pull-request';
 import {Update} from './update';
 import {Release} from './release';
 import {ROOT_PROJECT_PATH} from './manifest';
-import {GitHubApiDelegate} from './github-api-delegate';
+import {GitHubApi} from './github-api';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {
   RepositoryFileCache,
@@ -160,7 +160,7 @@ export class GitHub implements Scm {
   private graphql: Function;
   private fileCache: RepositoryFileCache;
   private logger: Logger;
-  private apiDelegate: GitHubApiDelegate;
+  private gitHubApi: GitHubApi;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
@@ -169,15 +169,15 @@ export class GitHub implements Scm {
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
-    this.apiDelegate = new GitHubApiDelegate({
+    this.gitHubApi = new GitHubApi({
       repository: this.repository,
       octokitAPIs: options.octokitAPIs,
       logger: this.logger,
     });
   }
 
-  getApiDelegate(): GitHubApiDelegate {
-    return this.apiDelegate;
+  getGitHubApi(): GitHubApi {
+    return this.gitHubApi;
   }
 
   static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
@@ -609,7 +609,7 @@ export class GitHub implements Scm {
     maxResults: number = Number.MAX_SAFE_INTEGER,
     includeFiles = true
   ): AsyncGenerator<PullRequest, void, void> {
-    yield* this.apiDelegate.pullRequestIterator(
+    yield* this.gitHubApi.pullRequestIterator(
       targetBranch,
       status,
       maxResults,
@@ -804,7 +804,7 @@ export class GitHub implements Scm {
    * @throws {GitHubAPIError} on an API error
    */
   async *releaseIterator(options: ReleaseIteratorOptions = {}) {
-    yield* this.apiDelegate.releaseIterator(options);
+    yield* this.gitHubApi.releaseIterator(options);
   }
 
   /**
@@ -1036,7 +1036,7 @@ export class GitHub implements Scm {
     options?: CreatePullRequestOptions
   ): Promise<PullRequest> {
     const changes = await this.buildChangeSet(updates, targetBranch);
-    return await this.apiDelegate.createPullRequestFromChanges(
+    return await this.gitHubApi.createPullRequestFromChanges(
       pullRequest,
       targetBranch,
       message,
@@ -1051,7 +1051,7 @@ export class GitHub implements Scm {
    * @returns {PullRequest}
    */
   async getPullRequest(number: number): Promise<PullRequest> {
-    return await this.apiDelegate.getPullRequest(number);
+    return await this.gitHubApi.getPullRequest(number);
   }
 
   /**
@@ -1079,7 +1079,7 @@ export class GitHub implements Scm {
       releasePullRequest.updates,
       targetBranch
     );
-    return await this.apiDelegate.updatePullRequestFromChanges(
+    return await this.gitHubApi.updatePullRequestFromChanges(
       number,
       releasePullRequest,
       targetBranch,
@@ -1202,7 +1202,7 @@ export class GitHub implements Scm {
     release: Release,
     options: ReleaseOptions = {}
   ): Promise<GitHubRelease> {
-    return await this.apiDelegate.createRelease(release, options);
+    return await this.gitHubApi.createRelease(release, options);
   }
 
   /**
@@ -1213,7 +1213,7 @@ export class GitHub implements Scm {
    * @throws {GitHubAPIError} on an API error
    */
   async commentOnIssue(comment: string, number: number): Promise<string> {
-    return await this.apiDelegate.commentOnIssue(comment, number);
+    return await this.gitHubApi.commentOnIssue(comment, number);
   }
 
   /**
@@ -1223,7 +1223,7 @@ export class GitHub implements Scm {
    * @param {number} number The issue/pull request number.
    */
   async removeIssueLabels(labels: string[], number: number): Promise<void> {
-    return await this.apiDelegate.removeIssueLabels(labels, number);
+    return await this.gitHubApi.removeIssueLabels(labels, number);
   }
 
   /**
@@ -1233,7 +1233,7 @@ export class GitHub implements Scm {
    * @param {number} number The issue/pull request number.
    */
   async addIssueLabels(labels: string[], number: number): Promise<void> {
-    return await this.apiDelegate.addIssueLabels(labels, number);
+    return await this.gitHubApi.addIssueLabels(labels, number);
   }
 
   /**
@@ -1247,7 +1247,7 @@ export class GitHub implements Scm {
     targetCommitish: string,
     previousTag?: string
   ): Promise<string> {
-    return await this.apiDelegate.generateReleaseNotes(
+    return await this.gitHubApi.generateReleaseNotes(
       tagName,
       targetCommitish,
       previousTag
@@ -1270,7 +1270,7 @@ export class GitHub implements Scm {
     newBranchName: string,
     baseBranchName: string
   ): Promise<string> {
-    return await this.apiDelegate.createFileOnNewBranch(
+    return await this.gitHubApi.createFileOnNewBranch(
       filename,
       contents,
       newBranchName,

@@ -1027,7 +1027,7 @@ describe('GitHub', () => {
           mode: '100644',
         });
       sandbox
-        .stub((github as any).apiDelegate, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(1)
         .resolves({
           title: 'created title',
@@ -1071,7 +1071,7 @@ describe('GitHub', () => {
         .withArgs('missing-file', 'main')
         .rejects(new FileNotFoundError('missing-file'));
       sandbox
-        .stub((github as any).apiDelegate, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(1)
         .resolves({
           title: 'created title',
@@ -1114,7 +1114,7 @@ describe('GitHub', () => {
         .withArgs('missing-file', 'main')
         .rejects(new FileNotFoundError('missing-file'));
       sandbox
-        .stub((github as any).apiDelegate, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(1)
         .resolves({
           title: 'created title',
