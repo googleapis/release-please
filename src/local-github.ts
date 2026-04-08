@@ -89,9 +89,32 @@ export class LocalGitHub implements Scm {
     let repoDir: string;
     if (options.localRepoPath) {
       repoDir = options.localRepoPath;
-      logger.info(`Using existing local repository at ${repoDir}...`);
-      const branch = gitHubApi.repository.defaultBranch;
+      let isGitRepo = false;
+      try {
+        await execFile('git', ['rev-parse', '--is-inside-work-tree'], {
+          cwd: repoDir,
+        });
+        isGitRepo = true;
+      } catch (err) {
+        isGitRepo = false;
+      }
 
+      if (!isGitRepo) {
+        logger.info(
+          `Path ${repoDir} is not a git clone. Cloning repository...`
+        );
+        const url = `https://github.com/${gitHubApi.repository.owner}/${gitHubApi.repository.repo}.git`;
+        const args = ['clone', '--', url, repoDir];
+        if (options.cloneDepth) {
+          args.splice(1, 0, '--depth', options.cloneDepth.toString());
+        }
+        logger.debug(`Executing: git ${args.join(' ')}`);
+        await execFile('git', args);
+      } else {
+        logger.info(`Using existing local repository at ${repoDir}...`);
+      }
+
+      const branch = gitHubApi.repository.defaultBranch;
       logger.debug('Executing: git fetch origin');
       await execFile('git', ['fetch', 'origin'], {cwd: repoDir});
 
