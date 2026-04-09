@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Strategy, BuildReleaseOptions, BumpReleaseOptions} from '../strategy';
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 import {VersioningStrategy} from '../versioning-strategy';
 import {Repository} from '../repository';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
@@ -57,7 +57,7 @@ export interface BaseStrategyOptions {
   path?: string;
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
-  github: GitHub;
+  github: Scm;
   component?: string;
   packageName?: string;
   versioningStrategy?: VersioningStrategy;
@@ -97,7 +97,7 @@ export interface BaseStrategyOptions {
  */
 export abstract class BaseStrategy implements Strategy {
   readonly path: string;
-  protected github: GitHub;
+  protected github: Scm;
   protected logger: Logger;
   protected component?: string;
   private packageName?: string;

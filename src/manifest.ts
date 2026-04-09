@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {ChangelogSection} from './changelog-notes';
-import {GitHub, GitHubRelease, GitHubTag} from './github';
+import {Scm, ScmRelease, ScmTag} from './scm';
 import {Version, VersionsMap} from './version';
 import {Commit, parseConventionalCommits} from './commit';
 import {PullRequest} from './pull-request';
@@ -296,7 +296,7 @@ const DEFAULT_COMMIT_BATCH_SIZE = 10;
 
 export const MANIFEST_PULL_REQUEST_TITLE_PATTERN = 'chore: release ${branch}';
 
-export interface CreatedRelease extends GitHubRelease {
+export interface CreatedRelease extends ScmRelease {
   id: number;
   path: string;
   version: string;
@@ -308,7 +308,7 @@ export interface CreatedRelease extends GitHubRelease {
 
 export class Manifest {
   private repository: Repository;
-  private github: GitHub;
+  private github: Scm;
   readonly repositoryConfig: RepositoryConfig;
   readonly releasedVersions: ReleasedVersions;
   private targetBranch: string;
@@ -367,7 +367,7 @@ export class Manifest {
    *   pull request. Defaults to `[autorelease: tagged]`
    */
   constructor(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     repositoryConfig: RepositoryConfig,
     releasedVersions: ReleasedVersions,
@@ -433,7 +433,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromManifest(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     configFile: string = DEFAULT_RELEASE_PLEASE_CONFIG,
     manifestFile: string = DEFAULT_RELEASE_PLEASE_MANIFEST,
@@ -489,7 +489,7 @@ export class Manifest {
    * @returns {Manifest}
    */
   static async fromConfig(
-    github: GitHub,
+    github: Scm,
     targetBranch: string,
     config: ReleaserConfig,
     manifestOptions?: ManifestOptions,
@@ -906,8 +906,8 @@ export class Manifest {
     return releasesByPath;
   }
 
-  private async getAllTags(): Promise<Record<string, GitHubTag>> {
-    const allTags: Record<string, GitHubTag> = {};
+  private async getAllTags(): Promise<Record<string, ScmTag>> {
+    const allTags: Record<string, ScmTag> = {};
     for await (const tag of this.github.tagIterator()) {
       allTags[tag.name] = tag;
     }
@@ -1440,7 +1440,7 @@ function extractReleaserConfig(
  * @param {string} releaseAs Optional. Override release-as and use the given version
  */
 async function parseConfig(
-  github: GitHub,
+  github: Scm,
   configFile: string,
   branch: string,
   onlyPath?: string,
@@ -1494,7 +1494,7 @@ async function parseConfig(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchManifestConfig(
-  github: GitHub,
+  github: Scm,
   configFile: string,
   branch: string
 ): Promise<ManifestConfig> {
@@ -1527,7 +1527,7 @@ async function fetchManifestConfig(
  * @returns {Record<string, string>}
  */
 async function parseReleasedVersions(
-  github: GitHub,
+  github: Scm,
   manifestFile: string,
   branch: string
 ): Promise<ReleasedVersions> {
@@ -1552,7 +1552,7 @@ async function parseReleasedVersions(
  * @throws {ConfigurationError} if missing the manifest config file
  */
 async function fetchReleasedVersions(
-  github: GitHub,
+  github: Scm,
   manifestFile: string,
   branch: string
 ): Promise<Record<string, string>> {
@@ -1595,7 +1595,7 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * @param {string} prefix Limit the release to a specific component.
  */
 async function latestReleaseVersion(
-  github: GitHub,
+  github: Scm,
   targetBranch: string,
   releaseFilter: (version: Version) => boolean,
   config: ReleaserConfig,

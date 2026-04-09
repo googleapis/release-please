@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {GitHub} from '../github';
+import {Scm} from '../scm';
 import {ChangelogNotes, ChangelogSection} from '../changelog-notes';
 import {GitHubChangelogNotes} from '../changelog-notes/github';
 import {DefaultChangelogNotes} from '../changelog-notes/default';
@@ -22,7 +22,7 @@ export type ChangelogNotesType = string;
 
 export interface ChangelogNotesFactoryOptions {
   type: ChangelogNotesType;
-  github: GitHub;
+  github: Scm;
   changelogSections?: ChangelogSection[];
   commitPartial?: string;
   headerPartial?: string;
