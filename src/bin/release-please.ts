@@ -199,11 +199,11 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       default: false,
     })
     .option('local-path', {
-      describe: 'Path to existing local clone',
+      describe: 'Path to local clone directory. If not set, uses a temporary directory.',
       type: 'string',
     })
     .option('local-clone-depth', {
-      describe: 'Depth of local clone',
+      describe: 'Depth of local clone. Defaults to the entire repo.',
       type: 'number',
     })
     .middleware(_argv => {
