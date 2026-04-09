@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.5.1](https://github.com/googleapis/release-please/compare/v17.5.0...v17.5.1) (2026-04-09)
+
+
+### Bug Fixes
+
+* adding no-verify option in Git operations ([#2742](https://github.com/googleapis/release-please/issues/2742)) ([51d0c84](https://github.com/googleapis/release-please/commit/51d0c84a71803f17f3a50800f43a1c097ea4b122))
+
 ## [17.5.0](https://github.com/googleapis/release-please/compare/v17.4.1...v17.5.0) (2026-04-09)
 
 
