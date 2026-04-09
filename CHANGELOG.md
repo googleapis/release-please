@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.5.0](https://github.com/googleapis/release-please/compare/v17.4.1...v17.5.0) (2026-04-09)
+
+
+### Features
+
+* add include-commit-authors option to include author info in changelogs ([#2628](https://github.com/googleapis/release-please/issues/2628)) ([77b12ad](https://github.com/googleapis/release-please/commit/77b12adf477fc4de4dea6fead96bc58a9f241be9)), closes [#1716](https://github.com/googleapis/release-please/issues/1716)
+* create Scm abstraction ([#2729](https://github.com/googleapis/release-please/issues/2729)) ([8c5e2ae](https://github.com/googleapis/release-please/commit/8c5e2ae31e8f4eda506fd372eba3c342e7a9ef22))
+
 ## [17.4.1](https://github.com/googleapis/release-please/compare/v17.4.0...v17.4.1) (2026-04-08)
 
 
