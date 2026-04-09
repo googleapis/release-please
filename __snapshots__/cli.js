@@ -222,6 +222,8 @@ Options:
                                                                         [string]
   --date-format                     format in strftime format for updating dates
                                                                         [string]
+  --calver-scheme                   CalVer scheme format for calendar versioning
+                                    (e.g., YYYY.0M.MICRO)               [string]
   --label                           comma-separated list of labels to add to
                                     from release PR
                                                [default: "autorelease: pending"]
