@@ -199,7 +199,8 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       default: false,
     })
     .option('local-path', {
-      describe: 'Path to local clone directory. If not set, uses a temporary directory.',
+      describe:
+        'Path to local clone directory. If not set, uses a temporary directory.',
       type: 'string',
     })
     .option('local-clone-depth', {
