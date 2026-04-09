@@ -758,7 +758,9 @@ export class LocalGitHub implements Scm {
     await execFile('git', ['add', '.'], {cwd: this.cloneDir});
 
     try {
-      await execFile('git', ['commit', '-F', msgFile], {cwd: this.cloneDir});
+      await execFile('git', ['commit', '--no-verify', '-F', msgFile], {
+        cwd: this.cloneDir,
+      });
     } catch (err) {
       const error = err as {stdout?: string; stderr?: string};
       if (error.stdout && error.stdout.includes('nothing to commit')) {
@@ -771,7 +773,7 @@ export class LocalGitHub implements Scm {
     }
 
     // Push transit
-    await execFile('git', ['push', '-f', 'origin', branch], {
+    await execFile('git', ['push', '--no-verify', '-f', 'origin', branch], {
       cwd: this.cloneDir,
     });
   }
