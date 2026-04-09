@@ -16,7 +16,7 @@
 
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
-import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
+import {GitHub, GH_API_URL, GH_GRAPHQL_URL, GH_SERVER_URL} from '../github';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
@@ -44,6 +44,7 @@ interface ErrorObject {
 interface GitHubArgs {
   dryRun?: boolean;
   trace?: boolean;
+  serverUrl?: string;
   repoUrl?: string;
   token?: string;
   apiUrl?: string;
@@ -164,6 +165,11 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       default: GH_API_URL,
       type: 'string',
     })
+    .option('server-url', {
+      describe: 'URL of the GitHub server',
+      default: GH_SERVER_URL,
+      type: 'string',
+    })
     .option('graphql-url', {
       describe: 'URL to use when making GraphQL requests',
       default: GH_GRAPHQL_URL,
@@ -192,6 +198,7 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       // allow secrets to be loaded from file path
       // rather than being passed directly to the bin.
       if (argv.token) argv.token = coerceOption(argv.token);
+      if (argv.serverUrl) argv.serverUrl = coerceOption(argv.serverUrl);
       if (argv.apiUrl) argv.apiUrl = coerceOption(argv.apiUrl);
       if (argv.graphqlUrl) argv.graphqlUrl = coerceOption(argv.graphqlUrl);
     });
@@ -823,6 +830,7 @@ async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
     owner,
     repo,
     token: argv.token!,
+    serverUrl: argv.serverUrl,
     apiUrl: argv.apiUrl,
     graphqlUrl: argv.graphqlUrl,
   });
