@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.5.2](https://github.com/googleapis/release-please/compare/v17.5.1...v17.5.2) (2026-04-10)
+
+
+### Bug Fixes
+
+* limit git fetch to cloneDepth config ([#2744](https://github.com/googleapis/release-please/issues/2744)) ([90c4293](https://github.com/googleapis/release-please/commit/90c4293b7aa567bef0d5679d330a83dda25548c3))
+
 ## [17.5.1](https://github.com/googleapis/release-please/compare/v17.5.0...v17.5.1) (2026-04-09)
 
 
