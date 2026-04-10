@@ -120,7 +120,7 @@ export class LocalGitHub implements Scm {
         fetchArgs.push('--depth', options.cloneDepth.toString());
       }
       logger.debug(`Executing: git ${fetchArgs.join(' ')}`);
-      await execFile('git', fetchArgs, { cwd: repoDir });
+      await execFile('git', fetchArgs, {cwd: repoDir});
 
       logger.debug(`Executing: git checkout ${branch}`);
       await execFile('git', ['checkout', branch], {cwd: repoDir});
