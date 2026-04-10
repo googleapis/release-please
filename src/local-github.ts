@@ -115,8 +115,12 @@ export class LocalGitHub implements Scm {
       }
 
       const branch = gitHubApi.repository.defaultBranch;
-      logger.debug('Executing: git fetch origin');
-      await execFile('git', ['fetch', 'origin'], {cwd: repoDir});
+      const fetchArgs = ['fetch', 'origin'];
+      if (options.cloneDepth) {
+        fetchArgs.push('--depth', options.cloneDepth.toString());
+      }
+      logger.debug(`Executing: git ${fetchArgs.join(' ')}`);
+      await execFile('git', fetchArgs, {cwd: repoDir});
 
       logger.debug(`Executing: git checkout ${branch}`);
       await execFile('git', ['checkout', branch], {cwd: repoDir});
