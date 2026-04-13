@@ -27,6 +27,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {JavaUpdate} from '../../src/updaters/java/java-update';
+import {LibrarianYamlUpdater} from '../../src/updaters/java/librarian-yaml';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
 import {CompositeUpdater} from '../../src/updaters/composite';
 
@@ -261,6 +262,9 @@ describe('JavaYoshiMonoRepo', () => {
       findFilesStub
         .withArgs('Version.java', 'main', '.')
         .resolves(['path1/Version.java']);
+      findFilesStub
+        .withArgs('librarian.yaml', 'main', '.')
+        .resolves(['path1/librarian.yaml']);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -289,6 +293,7 @@ describe('JavaYoshiMonoRepo', () => {
       assertHasUpdate(updates, 'path1/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path2/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path1/Version.java', JavaUpdate);
+      assertHasUpdate(updates, 'path1/librarian.yaml', LibrarianYamlUpdater);
     });
 
     it('finds and updates extra files', async () => {
@@ -340,6 +345,9 @@ describe('JavaYoshiMonoRepo', () => {
       findFilesStub
         .withArgs('Version.java', 'main', '.')
         .resolves(['path1/Version.java']);
+      findFilesStub
+        .withArgs('librarian.yaml', 'main', '.')
+        .resolves(['path1/librarian.yaml']);
       const getFileContentsStub = sandbox.stub(
         github,
         'getFileContentsOnBranch'
@@ -370,6 +378,7 @@ describe('JavaYoshiMonoRepo', () => {
       assertHasUpdate(updates, 'path1/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path2/README.md', JavaUpdate);
       assertHasUpdate(updates, 'path1/Version.java', JavaUpdate);
+      assertHasUpdate(updates, 'path1/librarian.yaml', LibrarianYamlUpdater);
     });
 
     it('updates changelog.json', async () => {
