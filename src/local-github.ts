@@ -18,6 +18,7 @@ import * as os from 'os';
 import * as child_process from 'child_process';
 import * as util from 'util';
 import * as readline from 'readline';
+import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
 
 const execFile = util.promisify(child_process.execFile);
 const mkdtemp = fs.promises.mkdtemp;
@@ -719,69 +720,6 @@ export class LocalGitHub implements Scm {
     }
   }
 
-  private async applyEditsAndPush(
-    branch: string,
-    targetBranch: string,
-    message: string,
-    changes: ScmChangeSet
-  ): Promise<void> {
-    this.logger.debug(`Applying edits and pushing to ${branch}`);
-
-    // Checkout/Reset PR branch
-    await execFile('git', ['fetch', 'origin', '--', targetBranch], {
-      cwd: this.cloneDir,
-    });
-    await execFile(
-      'git',
-      ['checkout', '-B', branch, `origin/${targetBranch}`],
-      {
-        cwd: this.cloneDir,
-      }
-    );
-
-    // Write file edits
-    for (const [filePath, fileUpdate] of changes.entries()) {
-      const fullPath = path.join(this.cloneDir, filePath);
-      await fs.promises.mkdir(path.dirname(fullPath), {recursive: true});
-      if (fileUpdate.content !== null) {
-        await fs.promises.writeFile(fullPath, fileUpdate.content);
-      } else {
-        await fs.promises.unlink(fullPath).catch(() => {});
-      }
-      if (fileUpdate.mode) {
-        await fs.promises.chmod(fullPath, parseInt(fileUpdate.mode, 8));
-      }
-    }
-
-    // Commit changes
-    const msgFile = path.join(
-      os.tmpdir(),
-      `release-please-commit-msg-${process.pid}-${Date.now()}`
-    );
-    await fs.promises.writeFile(msgFile, message);
-    await execFile('git', ['add', '.'], {cwd: this.cloneDir});
-
-    try {
-      await execFile('git', ['commit', '--no-verify', '-F', msgFile], {
-        cwd: this.cloneDir,
-      });
-    } catch (err) {
-      const error = err as {stdout?: string; stderr?: string};
-      if (error.stdout && error.stdout.includes('nothing to commit')) {
-        this.logger.debug('Nothing to commit');
-      } else {
-        throw err;
-      }
-    } finally {
-      await fs.promises.unlink(msgFile).catch(() => {});
-    }
-
-    // Push transit
-    await execFile('git', ['push', '--no-verify', '-f', 'origin', branch], {
-      cwd: this.cloneDir,
-    });
-  }
-
   /**
    * Open a pull request
    *
@@ -800,18 +738,39 @@ export class LocalGitHub implements Scm {
     options?: ScmCreatePullRequestOptions
   ): Promise<PullRequest> {
     const changes = await this.buildChangeSet(updates, targetBranch);
-    await this.applyEditsAndPush(
-      pullRequest.headBranchName,
-      targetBranch,
-      message,
-      changes
+    const prNumber = await suggesterCreatePullRequest(
+      this.gitHubApi.octokit,
+      changes,
+      {
+        upstreamOwner: this.repository.owner,
+        upstreamRepo: this.repository.repo,
+        title: pullRequest.title,
+        branch: pullRequest.headBranchName,
+        description: pullRequest.body,
+        primary: targetBranch,
+        force: true,
+        fork: !!options?.fork,
+        message,
+        logger: this.logger,
+        draft: !!options?.draft,
+        labels: pullRequest.labels,
+      }
     );
-    this.logger.info('Creating pull request via GitHub API...');
-    return await this.gitHubApi.createPullRequest(
-      pullRequest,
-      targetBranch,
-      options
-    );
+    if (prNumber === 0) {
+      this.logger.warn(
+        'no code changes detected, skipping pull request creation'
+      );
+      return {
+        headBranchName: pullRequest.headBranchName,
+        baseBranchName: targetBranch,
+        number: 0,
+        title: pullRequest.title,
+        body: pullRequest.body,
+        labels: pullRequest.labels,
+        files: [],
+      };
+    }
+    return await this.getPullRequest(prNumber);
   }
 
   /**
@@ -836,12 +795,7 @@ export class LocalGitHub implements Scm {
       targetBranch
     );
     const message = pullRequest.title.toString();
-    await this.applyEditsAndPush(
-      pullRequest.headRefName,
-      targetBranch,
-      message,
-      changes
-    );
+    const title = pullRequest.title.toString();
     const body = (
       options?.pullRequestOverflowHandler
         ? await options.pullRequestOverflowHandler.handleOverflow(pullRequest)
@@ -849,27 +803,30 @@ export class LocalGitHub implements Scm {
     )
       .toString()
       .slice(0, MAX_ISSUE_BODY_SIZE);
-    const pullResponseData = (
-      await this.gitHubApi.octokit.pulls.update({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        pull_number: number,
-        title: pullRequest.title.toString(),
-        body,
-        state: 'open',
-      })
-    ).data;
-    return {
-      headBranchName: pullResponseData.head.ref,
-      baseBranchName: pullResponseData.base.ref,
-      number: pullResponseData.number,
-      title: pullResponseData.title,
-      body: pullResponseData.body || '',
-      files: [],
-      labels: pullResponseData.labels
-        .map((label: any) => label.name)
-        .filter((name: any) => !!name) as string[],
-    };
+
+    const prNumber = await suggesterCreatePullRequest(
+      this.gitHubApi.octokit,
+      changes,
+      {
+        upstreamOwner: this.repository.owner,
+        upstreamRepo: this.repository.repo,
+        title,
+        branch: pullRequest.headRefName,
+        description: body,
+        primary: targetBranch,
+        force: true,
+        fork: options?.fork === false ? false : true,
+        message,
+        logger: this.logger,
+        draft: pullRequest.draft,
+      }
+    );
+    if (prNumber !== number) {
+      this.logger.warn(
+        `updated code for ${prNumber}, but update requested for ${number}`
+      );
+    }
+    return this.gitHubApi.updatePullRequest(number, title, body);
   }
 
   async getPullRequest(number: number): Promise<PullRequest> {
