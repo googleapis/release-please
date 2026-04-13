@@ -86,7 +86,7 @@ describe('LibrarianYamlUpdater', () => {
       versionsMap,
     });
     const newContent = updater.updateContent(oldContent);
-
+    // Compare the content to verify librarian.yaml is not reformatted.
     expect(newContent).to.eq(updatedContent);
   });
 

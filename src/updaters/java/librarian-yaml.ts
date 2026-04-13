@@ -48,6 +48,8 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       return content;
     }
 
+    // Use yaml package to make sure librarian.yaml is not reformatted because
+    // we use different tool to format librarian.yaml.
     const doc = yaml.parseDocument(content);
     if (!doc || doc.errors.length > 0) {
       logger.warn('Invalid yaml, cannot be parsed');
