@@ -37,6 +37,9 @@ export interface LibrarianYamlSchema {
  * Updates a librarian.yaml file.
  */
 export class LibrarianYamlUpdater extends DefaultUpdater {
+  specialArtifacts: ReadonlyMap<string, string> = new Map([
+    ['google-cloud-java', 'google-cloud-java'],
+  ]);
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
@@ -84,6 +87,10 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
   }
 
   findArtifactID(library: LibrarianLibrary): string {
+    const artifact = this.specialArtifacts.get(library.name);
+    if (artifact) {
+      return artifact;
+    }
     if (library.java && library.java.distribution_name_override) {
       return library.java.distribution_name_override.split(':')[1];
     }

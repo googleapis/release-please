@@ -26,6 +26,9 @@ default:
   java:
     libraries_bom_version: 26.79.0
 libraries:
+  - name: google-cloud-java
+    version: 1.84.0
+    skip_generate: true
   - name: shopping-css
     version: 0.58.0
     apis:
@@ -55,6 +58,9 @@ default:
   java:
     libraries_bom_version: 26.79.0
 libraries:
+  - name: google-cloud-java
+    version: 1.85.0
+    skip_generate: true
   - name: shopping-css
     version: 0.59.0
     apis:
@@ -80,6 +86,7 @@ describe('LibrarianYamlUpdater', () => {
     const versionsMap = new Map<string, Version>();
     versionsMap.set('google-shopping-css', Version.parse('0.59.0'));
     versionsMap.set('google-cloud-secretmanager', Version.parse('2.2.0'));
+    versionsMap.set('google-cloud-java', Version.parse('1.85.0'));
 
     const updater = new LibrarianYamlUpdater({
       version: Version.parse('1.0.0'), // Unused
