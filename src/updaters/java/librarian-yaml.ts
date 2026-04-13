@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {DefaultUpdater} from '../default';
-import * as yaml from 'js-yaml';
+import * as yaml from 'yaml';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 
 export interface JavaModule {
@@ -48,32 +48,33 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       return content;
     }
 
-    let parsed: LibrarianYamlSchema;
-    try {
-      parsed = yaml.load(content) as LibrarianYamlSchema;
-    } catch (e) {
+    const doc = yaml.parseDocument(content);
+    if (!doc || doc.errors.length > 0) {
       logger.warn('Invalid yaml, cannot be parsed');
       return content;
     }
 
-    if (!parsed || !parsed.libraries || !Array.isArray(parsed.libraries)) {
+    const libraries = doc.get('libraries');
+    if (!libraries || !yaml.isSeq(libraries)) {
       return content;
     }
 
     let modified = false;
-    for (const library of parsed.libraries) {
-      const artifactID = this.findArtifactID(library);
+    for (const library of libraries.items) {
+      if (!yaml.isMap(library)) continue;
+
+      const artifactID = this.findArtifactID(library.toJSON() as LibrarianLibrary);
       if (this.versionsMap.has(artifactID)) {
         const newVersion = this.versionsMap.get(artifactID);
-        if (newVersion && library.version !== newVersion.toString()) {
-          library.version = newVersion.toString();
+        if (newVersion && library.get('version') !== newVersion.toString()) {
+          library.set('version', newVersion.toString());
           modified = true;
         }
       }
     }
 
     if (modified) {
-      return yaml.dump(parsed);
+      return doc.toString({lineWidth: 0});
     }
     return content;
   }
