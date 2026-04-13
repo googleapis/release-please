@@ -17,8 +17,8 @@ import * as yaml from 'yaml';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 
 export interface JavaModule {
-    distribution_name_override: string;
-    [key: string]: any;
+  distribution_name_override: string;
+  [key: string]: any;
 }
 
 export interface LibrarianLibrary {
@@ -63,7 +63,9 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
     for (const library of libraries.items) {
       if (!yaml.isMap(library)) continue;
 
-      const artifactID = this.findArtifactID(library.toJSON() as LibrarianLibrary);
+      const artifactID = this.findArtifactID(
+        library.toJSON() as LibrarianLibrary
+      );
       if (this.versionsMap.has(artifactID)) {
         const newVersion = this.versionsMap.get(artifactID);
         if (newVersion && library.get('version') !== newVersion.toString()) {
@@ -80,9 +82,9 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
   }
 
   findArtifactID(library: LibrarianLibrary): string {
-      if (library.java && library.java.distribution_name_override) {
-          return library.java.distribution_name_override.split(":")[1];
-      }
-      return `google-cloud-${library.name}`
+    if (library.java && library.java.distribution_name_override) {
+      return library.java.distribution_name_override.split(':')[1];
+    }
+    return `google-cloud-${library.name}`;
   }
 }
