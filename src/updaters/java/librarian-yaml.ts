@@ -62,7 +62,7 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
 
     let modified = false;
     for (const library of parsed.libraries) {
-      let artifactID = this.findArtifactID(library);
+      const artifactID = this.findArtifactID(library);
       if (this.versionsMap.has(artifactID)) {
         const newVersion = this.versionsMap.get(artifactID);
         if (newVersion && library.version !== newVersion.toString()) {
