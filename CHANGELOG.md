@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.6.0](https://github.com/googleapis/release-please/compare/v17.5.2...v17.6.0) (2026-04-13)
+
+
+### Features
+
+* **yoshi-java-monorepo:** update library version in librarian.yaml ([#2750](https://github.com/googleapis/release-please/issues/2750)) ([8cd3491](https://github.com/googleapis/release-please/commit/8cd3491874fcb44bcaad4ba4999402deed181d24))
+
+
+### Bug Fixes
+
+* use GitHub API for updating files ([#2751](https://github.com/googleapis/release-please/issues/2751)) ([e53fa6d](https://github.com/googleapis/release-please/commit/e53fa6d9b6c0ab4896168b95ea3eab56221ccf55))
+
 ## [17.5.2](https://github.com/googleapis/release-please/compare/v17.5.1...v17.5.2) (2026-04-10)
 
 
