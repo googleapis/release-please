@@ -198,6 +198,23 @@ describe('PullRequestBody', () => {
       snapshot(pullRequestBody.toString());
     });
 
+    it('respects empty header and footer overrides', () => {
+      const data = [
+        {
+          component: 'pkg1',
+          version: Version.parse('1.2.3'),
+          notes: 'some special notes go here',
+        },
+      ];
+      const pullRequestBody = new PullRequestBody(data, {
+        header: '',
+        footer: '',
+      });
+      expect(pullRequestBody.toString()).to.equal(
+        '\n---\n\n\nsome special notes go here\n\n---\n'
+      );
+    });
+
     it('can parse the generated output', () => {
       const data = [
         {

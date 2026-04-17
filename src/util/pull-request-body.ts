@@ -35,8 +35,8 @@ export class PullRequestBody {
   releaseData: ReleaseData[];
   useComponents: boolean;
   constructor(releaseData: ReleaseData[], options?: PullRequestBodyOptions) {
-    this.header = options?.header || DEFAULT_HEADER;
-    this.footer = options?.footer || DEFAULT_FOOTER;
+    this.header = options?.header ?? DEFAULT_HEADER;
+    this.footer = options?.footer ?? DEFAULT_FOOTER;
     this.extra = options?.extra;
     this.releaseData = releaseData;
     this.useComponents = options?.useComponents ?? this.releaseData.length > 1;
