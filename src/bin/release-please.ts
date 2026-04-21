@@ -16,7 +16,8 @@
 
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
-import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
+import {GitHub} from '../github';
+import {GH_API_URL, GH_GRAPHQL_URL} from '../github-api';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
 import {logger, setLogger, CheckpointLogger} from '../util/logger';
@@ -30,6 +31,8 @@ import {
 } from '../factory';
 import {Bootstrapper} from '../bootstrapper';
 import {createPatch} from 'diff';
+import {Scm} from '../scm';
+import {LocalGitHub} from '../local-github';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const parseGithubRepoUrl = require('parse-github-repo-url');
@@ -49,6 +52,9 @@ interface GitHubArgs {
   apiUrl?: string;
   graphqlUrl?: string;
   fork?: boolean;
+  local?: boolean;
+  localPath?: string;
+  localCloneDepth?: number;
 
   // deprecated in favor of targetBranch
   defaultBranch?: string;
@@ -186,6 +192,20 @@ function gitHubOptions(yargs: yargs.Argv): yargs.Argv {
       describe: 'Prepare but do not take action',
       type: 'boolean',
       default: false,
+    })
+    .option('local', {
+      describe: 'Whether to use local clone',
+      type: 'boolean',
+      default: false,
+    })
+    .option('local-path', {
+      describe:
+        'Path to local clone directory. If not set, uses a temporary directory.',
+      type: 'string',
+    })
+    .option('local-clone-depth', {
+      describe: 'Depth of local clone. Defaults to the entire repo.',
+      type: 'number',
     })
     .middleware(_argv => {
       const argv = _argv as GitHubArgs;
@@ -817,16 +837,29 @@ const debugConfigCommand: yargs.CommandModule<{}, DebugConfigArgs> = {
   },
 };
 
-async function buildGitHub(argv: GitHubArgs): Promise<GitHub> {
+async function buildGitHub(argv: GitHubArgs): Promise<Scm> {
   const [owner, repo] = parseGithubRepoUrl(argv.repoUrl);
-  const github = await GitHub.create({
-    owner,
-    repo,
-    token: argv.token!,
-    apiUrl: argv.apiUrl,
-    graphqlUrl: argv.graphqlUrl,
-  });
-  return github;
+  if (argv.local) {
+    const localGitHub = await LocalGitHub.create({
+      owner,
+      repo,
+      token: argv.token!,
+      apiUrl: argv.apiUrl,
+      graphqlUrl: argv.graphqlUrl,
+      localRepoPath: argv.localPath,
+      cloneDepth: argv.localCloneDepth,
+    });
+    return localGitHub;
+  } else {
+    const github = await GitHub.create({
+      owner,
+      repo,
+      token: argv.token!,
+      apiUrl: argv.apiUrl,
+      graphqlUrl: argv.graphqlUrl,
+    });
+    return github;
+  }
 }
 
 export const parser = yargs

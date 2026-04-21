@@ -12,25 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createPullRequest} from 'code-suggester';
 import {PullRequest} from './pull-request';
 import {Commit} from './commit';
 
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
-import {graphql} from '@octokit/graphql';
 import {RequestError} from '@octokit/request-error';
-import {
-  GitHubAPIError,
-  DuplicateReleaseError,
-  FileNotFoundError,
-  ConfigurationError,
-} from './errors';
+import {createPullRequest as suggesterCreatePullRequest} from 'code-suggester';
+import {GitHubAPIError, FileNotFoundError} from './errors';
 
 const MAX_ISSUE_BODY_SIZE = 65536;
 const MAX_SLEEP_SECONDS = 20;
-export const GH_API_URL = 'https://api.github.com';
-export const GH_GRAPHQL_URL = 'https://api.github.com';
+
 type OctokitType = InstanceType<typeof Octokit>;
 
 import {logger as defaultLogger} from './util/logger';
@@ -39,6 +32,7 @@ import {ReleasePullRequest} from './release-pull-request';
 import {Update} from './update';
 import {Release} from './release';
 import {ROOT_PROJECT_PATH} from './manifest';
+import {GitHubApi, GitHubCreateOptions} from './github-api';
 import {signoffCommitMessage} from './util/signoff-commit-message';
 import {
   RepositoryFileCache,
@@ -47,10 +41,19 @@ import {
   FileNotFoundError as MissingFileError,
 } from '@google-automations/git-file-utils';
 import {Logger} from 'code-suggester/build/src/types';
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {HttpProxyAgent} from 'http-proxy-agent';
-import {PullRequestOverflowHandler} from './util/pull-request-overflow-handler';
 import {mergeUpdates} from './updaters/composite';
+import {
+  Scm,
+  ScmChangeSet,
+  ScmCommitIteratorOptions,
+  ScmReleaseIteratorOptions,
+  ScmTagIteratorOptions,
+  ScmCreatePullRequestOptions,
+  ScmReleaseOptions,
+  ScmRelease,
+  ScmTag,
+  ScmUpdatePullRequestOptions,
+} from './scm';
 
 // Extract some types from the `request` package.
 type RequestBuilderType = typeof request;
@@ -68,10 +71,7 @@ export interface GitHubOptions {
   logger?: Logger;
 }
 
-interface ProxyOption {
-  host: string;
-  port: number;
-}
+type CommitFilter = (commit: Commit) => boolean;
 
 interface GitHubCreateOptions {
   owner: string;
@@ -86,11 +86,10 @@ interface GitHubCreateOptions {
   fetch?: unknown;
 }
 
-type CommitFilter = (commit: Commit) => boolean;
-
 interface GraphQLCommit {
   sha: string;
   message: string;
+  author?: GraphQLCommitAuthor;
   associatedPullRequests: {
     nodes: GraphQLPullRequest[];
   };
@@ -120,19 +119,6 @@ interface GraphQLPullRequest {
   };
 }
 
-interface GraphQLRelease {
-  name: string;
-  tag: {
-    name: string;
-  };
-  tagCommit: {
-    oid: string;
-  };
-  url: string;
-  description: string;
-  isDraft: boolean;
-}
-
 interface CommitHistory {
   pageInfo: {
     hasNextPage: boolean;
@@ -141,184 +127,49 @@ interface CommitHistory {
   data: Commit[];
 }
 
-interface PullRequestHistory {
-  pageInfo: {
-    hasNextPage: boolean;
-    endCursor: string | undefined;
-  };
-  data: PullRequest[];
-}
+type CommitIteratorOptions = ScmCommitIteratorOptions;
+type ReleaseIteratorOptions = ScmReleaseIteratorOptions;
+type TagIteratorOptions = ScmTagIteratorOptions;
 
-interface ReleaseHistory {
-  pageInfo: {
-    hasNextPage: boolean;
-    endCursor: string | undefined;
-  };
-  data: GitHubRelease[];
-}
+export type ReleaseOptions = ScmReleaseOptions;
+export type GitHubRelease = ScmRelease;
+export type GitHubTag = ScmTag;
+export type ChangeSet = ScmChangeSet;
 
-interface CommitIteratorOptions {
-  maxResults?: number;
-  backfillFiles?: boolean;
-  batchSize?: number;
-}
+type CreatePullRequestOptions = ScmCreatePullRequestOptions;
 
-interface ReleaseIteratorOptions {
-  maxResults?: number;
-}
-
-interface TagIteratorOptions {
-  maxResults?: number;
-}
-
-export interface ReleaseOptions {
-  draft?: boolean;
-  prerelease?: boolean;
-  forceTag?: boolean;
-}
-
-export interface GitHubRelease {
-  id: number;
-  name?: string;
-  tagName: string;
-  sha: string;
-  notes?: string;
-  url: string;
-  draft?: boolean;
-  uploadUrl?: string;
-}
-
-export interface GitHubTag {
-  name: string;
-  sha: string;
-}
-
-interface FileDiff {
-  readonly mode: '100644' | '100755' | '040000' | '160000' | '120000';
-  readonly content: string | null;
-  readonly originalContent: string | null;
-}
-export type ChangeSet = Map<string, FileDiff>;
-
-interface CreatePullRequestOptions {
-  fork?: boolean;
-  draft?: boolean;
-}
-
-export class GitHub {
+export class GitHub implements Scm {
   readonly repository: Repository;
   private octokit: OctokitType;
-  private request: RequestFunctionType;
   private graphql: Function;
   private fileCache: RepositoryFileCache;
   private logger: Logger;
+  private gitHubApi: GitHubApi;
 
   private constructor(options: GitHubOptions) {
     this.repository = options.repository;
     this.octokit = options.octokitAPIs.octokit;
-    this.request = options.octokitAPIs.request;
     this.graphql = options.octokitAPIs.graphql;
     this.fileCache = new RepositoryFileCache(this.octokit, this.repository);
     this.logger = options.logger ?? defaultLogger;
-  }
-
-  static createDefaultAgent(baseUrl: string, defaultProxy?: ProxyOption) {
-    if (!defaultProxy) {
-      return undefined;
-    }
-
-    const {host, port} = defaultProxy;
-    if (new URL(baseUrl).protocol.replace(':', '') === 'http') {
-      return new HttpProxyAgent(`http://${host}:${port}`);
-    } else {
-      return new HttpsProxyAgent(`https://${host}:${port}`);
-    }
-  }
-
-  /**
-   * Build a new GitHub client with auto-detected default branch.
-   *
-   * @param {GitHubCreateOptions} options Configuration options
-   * @param {string} options.owner The repository owner.
-   * @param {string} options.repo The repository name.
-   * @param {string} options.defaultBranch Optional. The repository's default branch.
-   *   Defaults to the value fetched via the API.
-   * @param {string} options.apiUrl Optional. The base url of the GitHub API.
-   * @param {string} options.graphqlUrl Optional. The base url of the GraphQL API.
-   * @param {OctokitAPISs} options.octokitAPIs Optional. Override the internal
-   *   client instances with a pre-authenticated instance.
-   * @param {string} token Optional. A GitHub API token used for authentication.
-   */
-  static async create(options: GitHubCreateOptions): Promise<GitHub> {
-    const apiUrl = options.apiUrl ?? GH_API_URL;
-    const graphqlUrl = options.graphqlUrl ?? GH_GRAPHQL_URL;
-    const releasePleaseVersion = require('../../package.json').version;
-    const apis = options.octokitAPIs ?? {
-      octokit: new Octokit({
-        baseUrl: apiUrl,
-        auth: options.token,
-        request: {
-          agent: this.createDefaultAgent(apiUrl, options.proxy),
-          fetch: options.fetch,
-        },
-      }),
-      request: request.defaults({
-        baseUrl: apiUrl,
-        headers: {
-          'user-agent': `release-please/${releasePleaseVersion}`,
-          Authorization: `token ${options.token}`,
-        },
-        fetch: options.fetch,
-      }),
-      graphql: graphql.defaults({
-        baseUrl: graphqlUrl,
-        request: {
-          agent: this.createDefaultAgent(graphqlUrl, options.proxy),
-          fetch: options.fetch,
-        },
-        headers: {
-          'user-agent': `release-please/${releasePleaseVersion}`,
-          Authorization: `token ${options.token}`,
-          'content-type': 'application/vnd.github.v3+json',
-        },
-      }),
-    };
-    const opts = {
-      repository: {
-        owner: options.owner,
-        repo: options.repo,
-        defaultBranch:
-          options.defaultBranch ??
-          (await GitHub.defaultBranch(
-            options.owner,
-            options.repo,
-            apis.octokit
-          )),
-      },
-      octokitAPIs: apis,
-      logger: options.logger,
-    };
-    return new GitHub(opts);
-  }
-
-  /**
-   * Returns the default branch for a given repository.
-   *
-   * @param {string} owner The GitHub repository owner
-   * @param {string} repo The GitHub repository name
-   * @param {OctokitType} octokit An authenticated octokit instance
-   * @returns {string} Name of the default branch
-   */
-  static async defaultBranch(
-    owner: string,
-    repo: string,
-    octokit: OctokitType
-  ): Promise<string> {
-    const {data} = await octokit.repos.get({
-      repo,
-      owner,
+    this.gitHubApi = new GitHubApi({
+      repository: this.repository,
+      octokitAPIs: options.octokitAPIs,
+      logger: this.logger,
     });
-    return data.default_branch;
+  }
+
+  getGitHubApi(): GitHubApi {
+    return this.gitHubApi;
+  }
+
+  static async create(options: GitHubCreateOptions): Promise<GitHub> {
+    const gitHubApi = await GitHubApi.create(options);
+    return new GitHub({
+      repository: gitHubApi.repository,
+      octokitAPIs: gitHubApi.octokitAPIs,
+      logger: options.logger,
+    });
   }
 
   /**
@@ -435,6 +286,13 @@ export class GitHub {
                   }
                   sha: oid
                   message
+                  author {
+                    name
+                    email
+                    user {
+                      login
+                    }
+                  }
                 }
                 pageInfo {
                   hasNextPage
@@ -493,6 +351,13 @@ export class GitHub {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
+        author: graphCommit.author
+          ? {
+              name: graphCommit.author.name || 'Unknown',
+              email: graphCommit.author.email,
+              username: graphCommit.author.user?.login,
+            }
+          : undefined,
       };
       const mergePullRequest = graphCommit.associatedPullRequests.nodes.find(
         pr => {
@@ -651,189 +516,12 @@ export class GitHub {
     maxResults: number = Number.MAX_SAFE_INTEGER,
     includeFiles = true
   ): AsyncGenerator<PullRequest, void, void> {
-    const generator = includeFiles
-      ? this.pullRequestIteratorWithFiles(targetBranch, status, maxResults)
-      : this.pullRequestIteratorWithoutFiles(targetBranch, status, maxResults);
-    for await (const pullRequest of generator) {
-      yield pullRequest;
-    }
-  }
-
-  /**
-   * Helper implementation of pullRequestIterator that includes files via
-   * the graphQL API.
-   *
-   * @param {string} targetBranch The base branch of the pull request
-   * @param {string} status The status of the pull request
-   * @param {number} maxResults Limit the number of results searched
-   */
-  private async *pullRequestIteratorWithFiles(
-    targetBranch: string,
-    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
-    maxResults: number = Number.MAX_SAFE_INTEGER
-  ): AsyncGenerator<PullRequest, void, void> {
-    let cursor: string | undefined = undefined;
-    let results = 0;
-    while (results < maxResults) {
-      const response: PullRequestHistory | null =
-        await this.pullRequestsGraphQL(targetBranch, status, cursor);
-      // no response usually means we ran out of results
-      if (!response) {
-        break;
-      }
-      for (let i = 0; i < response.data.length; i++) {
-        results += 1;
-        yield response.data[i];
-      }
-      if (!response.pageInfo.hasNextPage) {
-        break;
-      }
-      cursor = response.pageInfo.endCursor;
-    }
-  }
-
-  /**
-   * Helper implementation of pullRequestIterator that excludes files
-   * via the REST API.
-   *
-   * @param {string} targetBranch The base branch of the pull request
-   * @param {string} status The status of the pull request
-   * @param {number} maxResults Limit the number of results searched
-   */
-  private async *pullRequestIteratorWithoutFiles(
-    targetBranch: string,
-    status: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
-    maxResults: number = Number.MAX_SAFE_INTEGER
-  ): AsyncGenerator<PullRequest, void, void> {
-    const statusMap: Record<string, 'open' | 'closed'> = {
-      OPEN: 'open',
-      CLOSED: 'closed',
-      MERGED: 'closed',
-    };
-    let results = 0;
-    for await (const {data: pulls} of this.octokit.paginate.iterator(
-      'GET /repos/{owner}/{repo}/pulls',
-      {
-        state: statusMap[status],
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        base: targetBranch,
-        sort: 'updated',
-        direction: 'desc',
-      }
-    )) {
-      for (const pull of pulls) {
-        // The REST API does not have an option for "merged"
-        // pull requests - they are closed with a `merged_at` timestamp
-        if (status !== 'MERGED' || pull.merged_at) {
-          results += 1;
-          yield {
-            headBranchName: pull.head.ref,
-            baseBranchName: pull.base.ref,
-            number: pull.number,
-            title: pull.title,
-            body: pull.body || '',
-            labels: pull.labels.map(label => label.name),
-            files: [],
-            sha: pull.merge_commit_sha || undefined,
-          };
-          if (results >= maxResults) {
-            break;
-          }
-        }
-      }
-
-      if (results >= maxResults) {
-        break;
-      }
-    }
-  }
-
-  /**
-   * Return a list of merged pull requests. The list is not guaranteed to be sorted
-   * by merged_at, but is generally most recent first.
-   *
-   * @param {string} targetBranch - Base branch of the pull request. Defaults to
-   *   the configured default branch.
-   * @param {number} page - Page of results. Defaults to 1.
-   * @param {number} perPage - Number of results per page. Defaults to 100.
-   * @returns {PullRequestHistory | null} - List of merged pull requests
-   * @throws {GitHubAPIError} on an API error
-   */
-  private async pullRequestsGraphQL(
-    targetBranch: string,
-    states: 'OPEN' | 'CLOSED' | 'MERGED' = 'MERGED',
-    cursor?: string
-  ): Promise<PullRequestHistory | null> {
-    this.logger.debug(
-      `Fetching ${states} pull requests on branch ${targetBranch} with cursor ${cursor}`
-    );
-    const response = await this.graphqlRequest({
-      query: `query mergedPullRequests($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $states: [PullRequestState!], $cursor: String) {
-        repository(owner: $owner, name: $repo) {
-          pullRequests(first: $num, after: $cursor, baseRefName: $targetBranch, states: $states, orderBy: {field: CREATED_AT, direction: DESC}) {
-            nodes {
-              number
-              title
-              baseRefName
-              headRefName
-              labels(first: 10) {
-                nodes {
-                  name
-                }
-              }
-              body
-              mergeCommit {
-                oid
-              }
-              files(first: $maxFilesChanged) {
-                nodes {
-                  path
-                }
-                pageInfo {
-                  endCursor
-                  hasNextPage
-                }
-              }
-            }
-            pageInfo {
-              endCursor
-              hasNextPage
-            }
-          }
-        }
-      }`,
-      cursor,
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      num: 25,
+    yield* this.gitHubApi.pullRequestIterator(
       targetBranch,
-      states,
-      maxFilesChanged: 64,
-    });
-    if (!response?.repository?.pullRequests) {
-      this.logger.warn(
-        `Could not find merged pull requests for branch ${targetBranch} - it likely does not exist.`
-      );
-      return null;
-    }
-    const pullRequests = (response.repository.pullRequests.nodes ||
-      []) as GraphQLPullRequest[];
-    return {
-      pageInfo: response.repository.pullRequests.pageInfo,
-      data: pullRequests.map(pullRequest => {
-        return {
-          sha: pullRequest.mergeCommit?.oid, // already filtered non-merged
-          number: pullRequest.number,
-          baseBranchName: pullRequest.baseRefName,
-          headBranchName: pullRequest.headRefName,
-          labels: (pullRequest.labels?.nodes || []).map(l => l.name),
-          title: pullRequest.title,
-          body: pullRequest.body + '',
-          files: (pullRequest.files?.nodes || []).map(node => node.path),
-        };
-      }),
-    };
+      status,
+      maxResults,
+      includeFiles
+    );
   }
 
   /**
@@ -846,82 +534,7 @@ export class GitHub {
    * @throws {GitHubAPIError} on an API error
    */
   async *releaseIterator(options: ReleaseIteratorOptions = {}) {
-    const maxResults = options.maxResults ?? Number.MAX_SAFE_INTEGER;
-    let results = 0;
-    let cursor: string | undefined = undefined;
-    while (true) {
-      const response: ReleaseHistory | null = await this.releaseGraphQL(cursor);
-      if (!response) {
-        break;
-      }
-      for (let i = 0; i < response.data.length; i++) {
-        if ((results += 1) > maxResults) {
-          break;
-        }
-        yield response.data[i];
-      }
-      if (results > maxResults || !response.pageInfo.hasNextPage) {
-        break;
-      }
-      cursor = response.pageInfo.endCursor;
-    }
-  }
-
-  private async releaseGraphQL(
-    cursor?: string
-  ): Promise<ReleaseHistory | null> {
-    this.logger.debug(`Fetching releases with cursor ${cursor}`);
-    const response = await this.graphqlRequest({
-      query: `query releases($owner: String!, $repo: String!, $num: Int!, $cursor: String) {
-        repository(owner: $owner, name: $repo) {
-          releases(first: $num, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
-            nodes {
-              name
-              tag {
-                name
-              }
-              tagCommit {
-                oid
-              }
-              url
-              description
-              isDraft
-            }
-            pageInfo {
-              endCursor
-              hasNextPage
-            }
-          }
-        }
-      }`,
-      cursor,
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      num: 25,
-    });
-    if (!response.repository.releases.nodes.length) {
-      this.logger.warn('Could not find releases.');
-      return null;
-    }
-    const releases = response.repository.releases.nodes as GraphQLRelease[];
-    return {
-      pageInfo: response.repository.releases.pageInfo,
-      data: releases
-        .filter(release => !!release.tagCommit)
-        .map(release => {
-          if (!release.tag || !release.tagCommit) {
-            this.logger.debug(release);
-          }
-          return {
-            name: release.name || undefined,
-            tagName: release.tag ? release.tag.name : 'unknown',
-            sha: release.tagCommit.oid,
-            notes: release.description,
-            url: release.url,
-            draft: release.isDraft,
-          } as GitHubRelease;
-        }),
-    } as ReleaseHistory;
+    yield* this.gitHubApi.releaseIterator(options);
   }
 
   /**
@@ -1066,6 +679,7 @@ export class GitHub {
       prefix
     );
   }
+
   /**
    * Returns a list of paths to all files matching a glob pattern.
    *
@@ -1092,52 +706,6 @@ export class GitHub {
   /**
    * Open a pull request
    *
-   * @deprecated This logic is handled by the Manifest class now as it
-   *   can be more complicated if the release notes are too big
-   * @param {ReleasePullRequest} releasePullRequest Pull request data to update
-   * @param {string} targetBranch The base branch of the pull request
-   * @param {GitHubPR} options The pull request options
-   * @throws {GitHubAPIError} on an API error
-   */
-  async createReleasePullRequest(
-    releasePullRequest: ReleasePullRequest,
-    targetBranch: string,
-    options?: {
-      signoffUser?: string;
-      fork?: boolean;
-      skipLabeling?: boolean;
-    }
-  ): Promise<PullRequest> {
-    let message = releasePullRequest.title.toString();
-    if (options?.signoffUser) {
-      message = signoffCommitMessage(message, options.signoffUser);
-    }
-    const pullRequestLabels: string[] = options?.skipLabeling
-      ? []
-      : releasePullRequest.labels;
-    return await this.createPullRequest(
-      {
-        headBranchName: releasePullRequest.headRefName,
-        baseBranchName: targetBranch,
-        number: -1,
-        title: releasePullRequest.title.toString(),
-        body: releasePullRequest.body.toString().slice(0, MAX_ISSUE_BODY_SIZE),
-        labels: pullRequestLabels,
-        files: [],
-      },
-      targetBranch,
-      message,
-      releasePullRequest.updates,
-      {
-        fork: options?.fork,
-        draft: releasePullRequest.draft,
-      }
-    );
-  }
-
-  /**
-   * Open a pull request
-   *
    * @param {PullRequest} pullRequest Pull request data to update
    * @param {string} targetBranch The base branch of the pull request
    * @param {string} message The commit message for the commit
@@ -1145,57 +713,53 @@ export class GitHub {
    * @param {CreatePullRequestOptions} options The pull request options
    * @throws {GitHubAPIError} on an API error
    */
-  createPullRequest = wrapAsync(
-    async (
-      pullRequest: PullRequest,
-      targetBranch: string,
-      message: string,
-      updates: Update[],
-      options?: CreatePullRequestOptions
-    ): Promise<PullRequest> => {
-      //  Update the files for the release if not already supplied
-      const changes = await this.buildChangeSet(updates, targetBranch);
-      const prNumber = await createPullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
+  async createPullRequest(
+    pullRequest: PullRequest,
+    targetBranch: string,
+    message: string,
+    updates: Update[],
+    options?: CreatePullRequestOptions
+  ): Promise<PullRequest> {
+    const changes = await this.buildChangeSet(updates, targetBranch);
+    const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
+      upstreamOwner: this.repository.owner,
+      upstreamRepo: this.repository.repo,
+      title: pullRequest.title,
+      branch: pullRequest.headBranchName,
+      description: pullRequest.body,
+      primary: targetBranch,
+      force: true,
+      fork: !!options?.fork,
+      message,
+      logger: this.logger,
+      draft: !!options?.draft,
+      labels: pullRequest.labels,
+    });
+    if (prNumber === 0) {
+      this.logger.warn(
+        'no code changes detected, skipping pull request creation'
+      );
+      return {
+        headBranchName: pullRequest.headBranchName,
+        baseBranchName: targetBranch,
+        number: 0,
         title: pullRequest.title,
-        branch: pullRequest.headBranchName,
-        description: pullRequest.body,
-        primary: targetBranch,
-        force: true,
-        fork: !!options?.fork,
-        message,
-        logger: this.logger,
-        draft: !!options?.draft,
+        body: pullRequest.body,
         labels: pullRequest.labels,
-      });
-      return await this.getPullRequest(prNumber);
+        files: [],
+      };
     }
-  );
+    return await this.getPullRequest(prNumber);
+  }
 
   /**
    * Fetch a pull request given the pull number
    * @param {number} number The pull request number
    * @returns {PullRequest}
    */
-  getPullRequest = wrapAsync(async (number: number): Promise<PullRequest> => {
-    const response = await this.octokit.pulls.get({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      pull_number: number,
-    });
-    return {
-      headBranchName: response.data.head.ref,
-      baseBranchName: response.data.base.ref,
-      number: response.data.number,
-      title: response.data.title,
-      body: response.data.body || '',
-      files: [],
-      labels: response.data.labels
-        .map(label => label.name)
-        .filter(name => !!name) as string[],
-    };
-  });
+  async getPullRequest(number: number): Promise<PullRequest> {
+    return await this.gitHubApi.getPullRequest(number);
+  }
 
   /**
    * Update a pull request's title and body.
@@ -1208,75 +772,51 @@ export class GitHub {
    * @param {PullRequestOverflowHandler} options.pullRequestOverflowHandler Optional.
    *   Handles extra large pull request body messages.
    */
-  updatePullRequest = wrapAsync(
-    async (
-      number: number,
-      releasePullRequest: ReleasePullRequest,
-      targetBranch: string,
-      options?: {
-        signoffUser?: string;
-        fork?: boolean;
-        pullRequestOverflowHandler?: PullRequestOverflowHandler;
-      }
-    ): Promise<PullRequest> => {
-      //  Update the files for the release if not already supplied
-      const changes = await this.buildChangeSet(
-        releasePullRequest.updates,
-        targetBranch
-      );
-      let message = releasePullRequest.title.toString();
-      if (options?.signoffUser) {
-        message = signoffCommitMessage(message, options.signoffUser);
-      }
-      const title = releasePullRequest.title.toString();
-      const body = (
-        options?.pullRequestOverflowHandler
-          ? await options.pullRequestOverflowHandler.handleOverflow(
-              releasePullRequest
-            )
-          : releasePullRequest.body
-      )
-        .toString()
-        .slice(0, MAX_ISSUE_BODY_SIZE);
-      const prNumber = await createPullRequest(this.octokit, changes, {
-        upstreamOwner: this.repository.owner,
-        upstreamRepo: this.repository.repo,
-        title,
-        branch: releasePullRequest.headRefName,
-        description: body,
-        primary: targetBranch,
-        force: true,
-        fork: options?.fork === false ? false : true,
-        message,
-        logger: this.logger,
-        draft: releasePullRequest.draft,
-      });
-      if (prNumber !== number) {
-        this.logger.warn(
-          `updated code for ${prNumber}, but update requested for ${number}`
-        );
-      }
-      const response = await this.octokit.pulls.update({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        pull_number: number,
-        title: releasePullRequest.title.toString(),
-        body,
-        state: 'open',
-      });
-      return {
-        headBranchName: response.data.head.ref,
-        baseBranchName: response.data.base.ref,
-        number: response.data.number,
-        title: response.data.title,
-        body: response.data.body || '',
-        files: [],
-        labels: response.data.labels
-          .map(label => label.name)
-          .filter(name => !!name) as string[],
-      };
+  async updatePullRequest(
+    number: number,
+    releasePullRequest: ReleasePullRequest,
+    targetBranch: string,
+    options?: ScmUpdatePullRequestOptions
+  ): Promise<PullRequest> {
+    const changes = await this.buildChangeSet(
+      releasePullRequest.updates,
+      targetBranch
+    );
+
+    let message = releasePullRequest.title.toString();
+    if (options?.signoffUser) {
+      message = signoffCommitMessage(message, options.signoffUser);
     }
-  );
+    const title = releasePullRequest.title.toString();
+    const body = (
+      options?.pullRequestOverflowHandler
+        ? await options.pullRequestOverflowHandler.handleOverflow(
+            releasePullRequest
+          )
+        : releasePullRequest.body
+    )
+      .toString()
+      .slice(0, MAX_ISSUE_BODY_SIZE);
+    const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
+      upstreamOwner: this.repository.owner,
+      upstreamRepo: this.repository.repo,
+      title,
+      branch: releasePullRequest.headRefName,
+      description: body,
+      primary: targetBranch,
+      force: true,
+      fork: options?.fork === false ? false : true,
+      message,
+      logger: this.logger,
+      draft: releasePullRequest.draft,
+    });
+    if (prNumber !== number) {
+      this.logger.warn(
+        `updated code for ${prNumber}, but update requested for ${number}`
+      );
+    }
+    return this.gitHubApi.updatePullRequest(number, title, body);
+  }
 
   /**
    * Given a set of proposed updates, build a changeset to suggest.
@@ -1388,68 +928,12 @@ export class GitHub {
    * @throws {DuplicateReleaseError} if the release tag already exists
    * @throws {GitHubAPIError} on other API errors
    */
-  createRelease = wrapAsync(
-    async (
-      release: Release,
-      options: ReleaseOptions = {}
-    ): Promise<GitHubRelease> => {
-      if (options.forceTag) {
-        try {
-          await this.octokit.git.createRef({
-            owner: this.repository.owner,
-            repo: this.repository.repo,
-            ref: `refs/tags/${release.tag.toString()}`,
-            sha: release.sha,
-          });
-        } catch (err) {
-          // ignore if tag already exists
-          if ((err as RequestError).status === 422) {
-            this.logger.debug(
-              `Tag ${release.tag.toString()} already exists, skipping tag creation`
-            );
-          } else {
-            throw err;
-          }
-        }
-      }
-      const resp = await this.octokit.repos.createRelease({
-        name: release.name,
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        tag_name: release.tag.toString(),
-        body: release.notes,
-        draft: !!options.draft,
-        prerelease: !!options.prerelease,
-        target_commitish: release.sha,
-      });
-      return {
-        id: resp.data.id,
-        name: resp.data.name || undefined,
-        tagName: resp.data.tag_name,
-        sha: resp.data.target_commitish,
-        notes:
-          resp.data.body_text ||
-          resp.data.body ||
-          resp.data.body_html ||
-          undefined,
-        url: resp.data.html_url,
-        draft: resp.data.draft,
-        uploadUrl: resp.data.upload_url,
-      };
-    },
-    e => {
-      if (e instanceof RequestError) {
-        if (
-          e.status === 422 &&
-          GitHubAPIError.parseErrors(e).some(error => {
-            return error.code === 'already_exists';
-          })
-        ) {
-          throw new DuplicateReleaseError(e, 'tagName');
-        }
-      }
-    }
-  );
+  async createRelease(
+    release: Release,
+    options: ReleaseOptions = {}
+  ): Promise<GitHubRelease> {
+    return await this.gitHubApi.createRelease(release, options);
+  }
 
   /**
    * Makes a comment on a issue/pull request.
@@ -1458,20 +942,9 @@ export class GitHub {
    * @param {number} number - The issue or pull request number.
    * @throws {GitHubAPIError} on an API error
    */
-  commentOnIssue = wrapAsync(
-    async (comment: string, number: number): Promise<string> => {
-      this.logger.debug(
-        `adding comment to https://github.com/${this.repository.owner}/${this.repository.repo}/issues/${number}`
-      );
-      const resp = await this.octokit.issues.createComment({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        issue_number: number,
-        body: comment,
-      });
-      return resp.data.html_url;
-    }
-  );
+  async commentOnIssue(comment: string, number: number): Promise<string> {
+    return await this.gitHubApi.commentOnIssue(comment, number);
+  }
 
   /**
    * Removes labels from an issue/pull request.
@@ -1479,24 +952,9 @@ export class GitHub {
    * @param {string[]} labels The labels to remove.
    * @param {number} number The issue/pull request number.
    */
-  removeIssueLabels = wrapAsync(
-    async (labels: string[], number: number): Promise<void> => {
-      if (labels.length === 0) {
-        return;
-      }
-      this.logger.debug(`removing labels: ${labels} from issue/pull ${number}`);
-      await Promise.all(
-        labels.map(label =>
-          this.octokit.issues.removeLabel({
-            owner: this.repository.owner,
-            repo: this.repository.repo,
-            issue_number: number,
-            name: label,
-          })
-        )
-      );
-    }
-  );
+  async removeIssueLabels(labels: string[], number: number): Promise<void> {
+    return await this.gitHubApi.removeIssueLabels(labels, number);
+  }
 
   /**
    * Adds label to an issue/pull request.
@@ -1504,20 +962,9 @@ export class GitHub {
    * @param {string[]} labels The labels to add.
    * @param {number} number The issue/pull request number.
    */
-  addIssueLabels = wrapAsync(
-    async (labels: string[], number: number): Promise<void> => {
-      if (labels.length === 0) {
-        return;
-      }
-      this.logger.debug(`adding labels: ${labels} from issue/pull ${number}`);
-      await this.octokit.issues.addLabels({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        issue_number: number,
-        labels,
-      });
-    }
-  );
+  async addIssueLabels(labels: string[], number: number): Promise<void> {
+    return await this.gitHubApi.addIssueLabels(labels, number);
+  }
 
   /**
    * Generate release notes from GitHub at tag
@@ -1530,14 +977,11 @@ export class GitHub {
     targetCommitish: string,
     previousTag?: string
   ): Promise<string> {
-    const resp = await this.octokit.repos.generateReleaseNotes({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      tag_name: tagName,
-      previous_tag_name: previousTag,
-      target_commitish: targetCommitish,
-    });
-    return resp.data.body;
+    return await this.gitHubApi.generateReleaseNotes(
+      tagName,
+      targetCommitish,
+      previousTag
+    );
   }
 
   /**
@@ -1556,151 +1000,12 @@ export class GitHub {
     newBranchName: string,
     baseBranchName: string
   ): Promise<string> {
-    // create or update new branch to match base branch
-    await this.forkBranch(newBranchName, baseBranchName);
-
-    // use the single file upload API
-    const {
-      data: {content},
-    } = await this.octokit.repos.createOrUpdateFileContents({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      path: filename,
-      // contents need to be base64 encoded
-      content: Buffer.from(contents, 'binary').toString('base64'),
-      message: 'Saving release notes',
-      branch: newBranchName,
-    });
-
-    if (!content?.html_url) {
-      throw new Error(
-        `Failed to write to file: ${filename} on branch: ${newBranchName}`
-      );
-    }
-
-    return content.html_url;
-  }
-
-  /**
-   * Helper to fetch the SHA of a branch
-   * @param {string} branchName The name of the branch
-   * @return {string | undefined} Returns the SHA of the branch
-   *   or undefined if it can't be found.
-   */
-  private async getBranchSha(branchName: string): Promise<string | undefined> {
-    this.logger.debug(`Looking up SHA for branch: ${branchName}`);
-    try {
-      const {
-        data: {
-          object: {sha},
-        },
-      } = await this.octokit.git.getRef({
-        owner: this.repository.owner,
-        repo: this.repository.repo,
-        ref: `heads/${branchName}`,
-      });
-      this.logger.debug(`SHA for branch: ${sha}`);
-      return sha;
-    } catch (e) {
-      if (e instanceof RequestError && e.status === 404) {
-        this.logger.debug(`Branch: ${branchName} does not exist`);
-        return undefined;
-      }
-      throw e;
-    }
-  }
-
-  /**
-   * Helper to fork a branch from an existing branch. Uses `force` so
-   * it will overwrite the contents of `targetBranchName` to match
-   * the current contents of `baseBranchName`.
-   *
-   * @param {string} targetBranchName The name of the new forked branch
-   * @param {string} baseBranchName The base branch from which to fork.
-   * @returns {string} The branch SHA
-   * @throws {ConfigurationError} if the base branch cannot be found.
-   */
-  private async forkBranch(
-    targetBranchName: string,
-    baseBranchName: string
-  ): Promise<string> {
-    const baseBranchSha = await this.getBranchSha(baseBranchName);
-    if (!baseBranchSha) {
-      // this is highly unlikely to be thrown as we will have
-      // already attempted to read from the branch
-      throw new ConfigurationError(
-        `Unable to find base branch: ${baseBranchName}`,
-        'core',
-        `${this.repository.owner}/${this.repository.repo}`
-      );
-    }
-    // see if newBranchName exists
-    if (await this.getBranchSha(targetBranchName)) {
-      // branch already exists, update it to the match the base branch
-      const branchSha = await this.updateBranchSha(
-        targetBranchName,
-        baseBranchSha
-      );
-      this.logger.debug(
-        `Updated ${targetBranchName} to match ${baseBranchName} at ${branchSha}`
-      );
-      return branchSha;
-    } else {
-      // branch does not exist, create a new branch from the base branch
-      const branchSha = await this.createNewBranch(
-        targetBranchName,
-        baseBranchSha
-      );
-      this.logger.debug(
-        `Forked ${targetBranchName} from ${baseBranchName} at ${branchSha}`
-      );
-      return branchSha;
-    }
-  }
-
-  /**
-   * Helper to create a new branch from a given SHA.
-   * @param {string} branchName The new branch name
-   * @param {string} branchSha The SHA of the branch
-   * @returns {string} The SHA of the new branch
-   */
-  private async createNewBranch(
-    branchName: string,
-    branchSha: string
-  ): Promise<string> {
-    this.logger.debug(`Creating new branch: ${branchName} at ${branchSha}`);
-    const {
-      data: {
-        object: {sha},
-      },
-    } = await this.octokit.git.createRef({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      ref: `refs/heads/${branchName}`,
-      sha: branchSha,
-    });
-    this.logger.debug(`New branch: ${branchName} at ${sha}`);
-    return sha;
-  }
-
-  private async updateBranchSha(
-    branchName: string,
-    branchSha: string
-  ): Promise<string> {
-    this.logger.debug(`Updating branch ${branchName} to ${branchSha}`);
-    const {
-      data: {
-        object: {sha},
-      },
-    } = await this.octokit.git.updateRef({
-      owner: this.repository.owner,
-      repo: this.repository.repo,
-      ref: `heads/${branchName}`,
-      sha: branchSha,
-      force: true,
-    });
-    this.logger.debug(`Updated branch: ${branchName} to ${sha}`);
-    return sha;
+    return await this.gitHubApi.createFileOnNewBranch(
+      filename,
+      contents,
+      newBranchName,
+      baseBranchName
+    );
   }
 }
 

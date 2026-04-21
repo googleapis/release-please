@@ -1,11 +1,11 @@
 {
   "name": "release-please",
-  "version": "17.3.0",
+  "version": "17.6.0",
   "description": "generate release PRs based on the conventionalcommits.org spec",
   "main": "./build/src/index.js",
   "bin": "./build/src/bin/release-please.js",
   "scripts": {
-    "test": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --node-option no-experimental-fetch --recursive --timeout=5000 build/test",
+    "test": "cross-env ENVIRONMENT=test LC_ALL=en c8 mocha --recursive --timeout=5000 build/test",
     "docs": "echo add docs tests",
     "test:snap": "cross-env SNAPSHOT_UPDATE=1 LC_ALL=en npm test",
     "clean": "gts clean",
@@ -63,7 +63,7 @@
     "nock": "^13.0.0",
     "node-fetch": "^2.6.0",
     "sinon": "18.0.1",
-    "snap-shot-it": "^7.0.0"
+    "snap-shot-it": "^7.9.10"
   },
   "dependencies": {
     "@conventional-commits/parser": "^0.4.1",
@@ -99,9 +99,10 @@
     "yargs": "^17.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "overrides": {
-    "tmp": "0.2.5"
+    "tmp": "0.2.5",
+    "serialize-javascript": "^7.0.5"
   }
 }

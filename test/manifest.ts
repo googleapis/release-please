@@ -3776,15 +3776,18 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content'));
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
-      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
-        number: 22,
-        title: 'pr title1',
-        body: 'pr body1',
-        headBranchName: 'release-please/branches/main',
-        baseBranchName: 'main',
-        labels: [],
-        files: [],
-      });
+      sandbox
+        .stub((github as any).gitHubApi, 'getPullRequest')
+        .withArgs(22)
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       const manifest = new Manifest(
         github,
         'main',
@@ -3840,7 +3843,7 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content-2'));
       mockPullRequests(github, []);
       sandbox
-        .stub(github, 'getPullRequest')
+        .stub((github as any).gitHubApi, 'getPullRequest')
         .withArgs(123)
         .resolves({
           number: 123,
@@ -3968,15 +3971,18 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content'));
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
-      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
-        number: 22,
-        title: 'pr title1',
-        body: 'pr body1',
-        headBranchName: 'release-please/branches/main',
-        baseBranchName: 'main',
-        labels: [],
-        files: [],
-      });
+      sandbox
+        .stub((github as any).gitHubApi, 'getPullRequest')
+        .withArgs(22)
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       const manifest = new Manifest(
         github,
         'main',
@@ -4031,15 +4037,18 @@ describe('Manifest', () => {
         .resolves(buildGitHubFileRaw('some-content'));
       stubSuggesterWithSnapshot(sandbox, this.test!.fullTitle());
       mockPullRequests(github, []);
-      sandbox.stub(github, 'getPullRequest').withArgs(22).resolves({
-        number: 22,
-        title: 'pr title1',
-        body: 'pr body1',
-        headBranchName: 'release-please/branches/main',
-        baseBranchName: 'main',
-        labels: [],
-        files: [],
-      });
+      sandbox
+        .stub((github as any).gitHubApi, 'getPullRequest')
+        .withArgs(22)
+        .resolves({
+          number: 22,
+          title: 'pr title1',
+          body: 'pr body1',
+          headBranchName: 'release-please/branches/main',
+          baseBranchName: 'main',
+          labels: [],
+          files: [],
+        });
       const manifest = new Manifest(
         github,
         'main',

@@ -4,6 +4,55 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.6.0](https://github.com/googleapis/release-please/compare/v17.5.2...v17.6.0) (2026-04-13)
+
+
+### Features
+
+* **yoshi-java-monorepo:** update library version in librarian.yaml ([#2750](https://github.com/googleapis/release-please/issues/2750)) ([8cd3491](https://github.com/googleapis/release-please/commit/8cd3491874fcb44bcaad4ba4999402deed181d24))
+
+
+### Bug Fixes
+
+* use GitHub API for updating files ([#2751](https://github.com/googleapis/release-please/issues/2751)) ([e53fa6d](https://github.com/googleapis/release-please/commit/e53fa6d9b6c0ab4896168b95ea3eab56221ccf55))
+
+## [17.5.2](https://github.com/googleapis/release-please/compare/v17.5.1...v17.5.2) (2026-04-10)
+
+
+### Bug Fixes
+
+* limit git fetch to cloneDepth config ([#2744](https://github.com/googleapis/release-please/issues/2744)) ([90c4293](https://github.com/googleapis/release-please/commit/90c4293b7aa567bef0d5679d330a83dda25548c3))
+
+## [17.5.1](https://github.com/googleapis/release-please/compare/v17.5.0...v17.5.1) (2026-04-09)
+
+
+### Bug Fixes
+
+* adding no-verify option in Git operations ([#2742](https://github.com/googleapis/release-please/issues/2742)) ([51d0c84](https://github.com/googleapis/release-please/commit/51d0c84a71803f17f3a50800f43a1c097ea4b122))
+
+## [17.5.0](https://github.com/googleapis/release-please/compare/v17.4.1...v17.5.0) (2026-04-09)
+
+
+### Features
+
+* add include-commit-authors option to include author info in changelogs ([#2628](https://github.com/googleapis/release-please/issues/2628)) ([77b12ad](https://github.com/googleapis/release-please/commit/77b12adf477fc4de4dea6fead96bc58a9f241be9)), closes [#1716](https://github.com/googleapis/release-please/issues/1716)
+* create Scm abstraction ([#2729](https://github.com/googleapis/release-please/issues/2729)) ([8c5e2ae](https://github.com/googleapis/release-please/commit/8c5e2ae31e8f4eda506fd372eba3c342e7a9ef22))
+
+## [17.4.1](https://github.com/googleapis/release-please/compare/v17.4.0...v17.4.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* do not attempt to create pull request when no changes detected ([#2722](https://github.com/googleapis/release-please/issues/2722)) ([9ecabc4](https://github.com/googleapis/release-please/commit/9ecabc40a724e1ba64158844fc9b27ee5d6ed0a2))
+
+## [17.4.0](https://github.com/googleapis/release-please/compare/v17.3.0...v17.4.0) (2026-04-06)
+
+
+### Features
+
+* **java-yoshi-mono-repo:** look for Version.java files ([#2730](https://github.com/googleapis/release-please/issues/2730)) ([5126fee](https://github.com/googleapis/release-please/commit/5126feefac4cee1fb02142e2f515fda4d9f345d4))
+* resolve Dependabot security alerts ([#2709](https://github.com/googleapis/release-please/issues/2709)) ([7f2e4ec](https://github.com/googleapis/release-please/commit/7f2e4ec0fee60fb14f279218102ea8b07032b956))
+
 ## [17.3.0](https://github.com/googleapis/release-please/compare/v17.2.1...v17.3.0) (2026-02-18)
 
 

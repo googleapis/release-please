@@ -21,8 +21,10 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
+import * as codeSuggester from 'code-suggester';
 
-import {GH_API_URL, GitHub, GitHubRelease} from '../src/github';
+import {GitHub, GitHubRelease} from '../src/github';
+import {GitHubApi, GH_API_URL} from '../src/github-api';
 import {PullRequest} from '../src/pull-request';
 import {TagName} from '../src/util/tag-name';
 import {Version} from '../src/version';
@@ -35,8 +37,6 @@ import {
 import {fail} from 'assert';
 import {PullRequestBody} from '../src/util/pull-request-body';
 import {PullRequestTitle} from '../src/util/pull-request-title';
-import * as codeSuggester from 'code-suggester';
-import {RawContent} from '../src/updaters/raw-content';
 import {ReleasePleaseManifest} from '../src/updaters/release-please-manifest';
 import {HttpsProxyAgent} from 'https-proxy-agent';
 import {HttpProxyAgent} from 'http-proxy-agent';
@@ -102,12 +102,12 @@ describe('GitHub', () => {
     });
 
     it('default agent is undefined when no proxy option passed ', () => {
-      expect(GitHub.createDefaultAgent('test_url')).eq(undefined);
+      expect(GitHubApi.createDefaultAgent('test_url')).eq(undefined);
     });
 
     it('should return a https agent', () => {
       expect(
-        GitHub.createDefaultAgent(GH_API_URL, {
+        GitHubApi.createDefaultAgent(GH_API_URL, {
           host: 'http://proxy.com',
           port: 3000,
         })
@@ -116,7 +116,7 @@ describe('GitHub', () => {
 
     it('should throw error when baseUrl is an invalid url', () => {
       expect(() => {
-        GitHub.createDefaultAgent('invalid_url', {
+        GitHubApi.createDefaultAgent('invalid_url', {
           host: 'http://proxy.com',
           port: 3000,
         });
@@ -125,7 +125,7 @@ describe('GitHub', () => {
 
     it('should return a http agent', () => {
       expect(
-        GitHub.createDefaultAgent('http://www.github.com', {
+        GitHubApi.createDefaultAgent('http://www.github.com', {
           host: 'http://proxy.com',
           port: 3000,
         })
@@ -1012,133 +1012,30 @@ describe('GitHub', () => {
     });
   });
 
-  describe('createReleasePullRequest', () => {
-    it('should update file', async () => {
+  describe('createPullRequest', () => {
+    it('should not call getPullRequest when no code changes detected', async () => {
       const createPullRequestStub = sandbox
         .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
-      sandbox
-        .stub(github, 'getFileContentsOnBranch')
-        .withArgs('existing-file', 'main')
-        .resolves({
-          sha: 'abc123',
-          content: 'somecontent',
-          parsedContent: 'somecontent',
-          mode: '100644',
-        });
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
-      const pullRequest = await github.createReleasePullRequest(
+        .resolves(0);
+      const getPullRequestStub = sandbox.stub(github, 'getPullRequest');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pullRequest = await (github as any).createPullRequest(
         {
-          title: PullRequestTitle.ofTargetBranch('main'),
-          body: new PullRequestBody([]),
-          labels: [],
-          headRefName: 'release-please--branches--main',
-          draft: false,
-          updates: [
-            {
-              path: 'existing-file',
-              createIfMissing: false,
-              updater: new RawContent('some content'),
-            },
-          ],
+          headBranchName: 'release-please--branches--main',
+          baseBranchName: 'main',
+          title: 'Release v1.0.0',
+          body: 'Release body',
+          labels: ['release-please'],
         },
-        'main'
+        'main',
+        'commit message',
+        []
       );
-      expect(pullRequest.number).to.eql(1);
+
+      expect(pullRequest.number).to.eql(0);
       sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
-      expect(changes).to.not.be.undefined;
-      expect(changes!.size).to.eql(1);
-      expect(changes!.get('existing-file')).to.not.be.undefined;
-    });
-    it('should handle missing files', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
-      sandbox
-        .stub(github, 'getFileContentsOnBranch')
-        .withArgs('missing-file', 'main')
-        .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
-      const pullRequest = await github.createReleasePullRequest(
-        {
-          title: PullRequestTitle.ofTargetBranch('main'),
-          body: new PullRequestBody([]),
-          labels: [],
-          headRefName: 'release-please--branches--main',
-          draft: false,
-          updates: [
-            {
-              path: 'missing-file',
-              createIfMissing: false,
-              updater: new RawContent('some content'),
-            },
-          ],
-        },
-        'main'
-      );
-      expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
-      expect(changes).to.not.be.undefined;
-      expect(changes!.size).to.eql(0);
-    });
-    it('should create missing file', async () => {
-      const createPullRequestStub = sandbox
-        .stub(codeSuggester, 'createPullRequest')
-        .resolves(1);
-      sandbox
-        .stub(github, 'getFileContentsOnBranch')
-        .withArgs('missing-file', 'main')
-        .rejects(new FileNotFoundError('missing-file'));
-      sandbox.stub(github, 'getPullRequest').withArgs(1).resolves({
-        title: 'created title',
-        headBranchName: 'release-please--branches--main',
-        baseBranchName: 'main',
-        number: 1,
-        body: 'some body',
-        labels: [],
-        files: [],
-      });
-      const pullRequest = await github.createReleasePullRequest(
-        {
-          title: PullRequestTitle.ofTargetBranch('main'),
-          body: new PullRequestBody([]),
-          labels: [],
-          headRefName: 'release-please--branches--main',
-          draft: false,
-          updates: [
-            {
-              path: 'missing-file',
-              createIfMissing: true,
-              updater: new RawContent('some content'),
-            },
-          ],
-        },
-        'main'
-      );
-      expect(pullRequest.number).to.eql(1);
-      sinon.assert.calledOnce(createPullRequestStub);
-      const changes = createPullRequestStub.getCall(0).args[1];
-      expect(changes).to.not.be.undefined;
-      expect(changes!.size).to.eql(1);
-      expect(changes!.get('missing-file')).to.not.be.undefined;
+      sinon.assert.notCalled(getPullRequestStub);
     });
   });
 
