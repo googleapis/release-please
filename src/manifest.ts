@@ -142,6 +142,7 @@ export interface ReleaserConfig {
   skipSnapshot?: boolean;
   // Manifest only
   excludePaths?: string[];
+  additionalPaths?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -193,6 +194,7 @@ interface ReleaserConfigJson {
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
+  'additional-paths'?: string[]; // manifest-only
   'date-format'?: string;
 }
 
@@ -686,7 +688,12 @@ export class Manifest {
     this.logger.info(`Splitting ${commits.length} commits by path`);
     const cs = new CommitSplit({
       includeEmpty: true,
-      packagePaths: Object.keys(this.repositoryConfig),
+      packagePaths: Object.fromEntries(
+        Object.entries(this.repositoryConfig).map(([path, config]) => [
+          path,
+          config.additionalPaths || [],
+        ])
+      ),
     });
     const splitCommits = cs.split(commits);
 
@@ -1425,6 +1432,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    additionalPaths: config['additional-paths'],
     dateFormat: config['date-format'],
   };
 }
@@ -1791,6 +1799,8 @@ function mergeReleaserConfig(
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    additionalPaths:
+      pathConfig.additionalPaths ?? defaultConfig.additionalPaths,
     dateFormat: pathConfig.dateFormat ?? defaultConfig.dateFormat,
   };
 }

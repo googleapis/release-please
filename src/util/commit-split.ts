@@ -14,7 +14,7 @@
 
 import {Commit} from '../commit';
 import {ROOT_PROJECT_PATH} from '../manifest';
-import {normalizePaths} from './commit-utils';
+import {normalizePath, normalizePaths} from './commit-utils';
 
 export interface CommitSplitOptions {
   // Include empty git commits: each empty commit is included
@@ -39,7 +39,7 @@ export interface CommitSplitOptions {
   //
   // NOTE: GitHub API always returns paths using the `/` separator, regardless
   // of what platform the client code is running on
-  packagePaths?: string[];
+  packagePaths?: Record<string, string[]>;
 }
 
 /**
@@ -50,19 +50,24 @@ export interface CommitSplitOptions {
  */
 export class CommitSplit {
   includeEmpty: boolean;
-  packagePaths?: string[];
+  packagePaths?: Record<string, string[]>;
   constructor(opts?: CommitSplitOptions) {
     opts = opts || {};
     this.includeEmpty = !!opts.includeEmpty;
     if (opts.packagePaths) {
-      const paths: string[] = normalizePaths(opts.packagePaths);
-      this.packagePaths = paths
-        .filter(path => {
-          // The special "." path, representing the root of the module, should be
-          // ignored by commit-split as it is assigned all commits in manifest.ts
-          return path !== ROOT_PROJECT_PATH;
-        })
-        .sort((a, b) => b.length - a.length); // sort by longest paths first
+      this.packagePaths = Object.fromEntries(
+        Object.entries(opts.packagePaths)
+          .map(([path, additionalPaths]) => [
+            normalizePath(path),
+            normalizePaths(additionalPaths),
+          ])
+          .filter(([path]) => {
+            // The special "." path, representing the root of the module, should be
+            // ignored by commit-split as it is assigned all commits in manifest.ts
+            return path !== ROOT_PROJECT_PATH;
+          })
+          .sort(([a], [b]) => b.length - a.length) // sort by longest paths first
+      );
     }
   }
 
@@ -93,22 +98,51 @@ export class CommitSplit {
         // in this edge-case we should not attempt to update the path.
         if (splitPath.length === 1) continue;
 
-        let pkgName;
+        // first match the file to a primary package.
+        // Each file can match at most one primary package.
+        // Files are sorted by longest path first, so the first
+        // match will be the most specific. ie if there are two packages: ["core", "core/lib"]
+        // then the file "core/lib/foo.txt" should be assigned to "core/lib" and not "core".
+        let primaryPkgName;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
-          pkgName = this.packagePaths.find(p => file.indexOf(`${p}/`) === 0);
+          primaryPkgName = Object.entries(this.packagePaths).find(
+            ([p]) => file.indexOf(`${p}/`) === 0
+          )?.[0];
         } else {
           // track paths by top level folder
-          pkgName = splitPath[0];
+          primaryPkgName = splitPath[0];
         }
-        if (!pkgName || dedupe.has(pkgName)) continue;
-        else dedupe.add(pkgName);
-        if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
-        splitCommits[pkgName].push(commit);
+        if (!primaryPkgName || dedupe.has(primaryPkgName)) continue;
+        else dedupe.add(primaryPkgName);
+        if (!splitCommits[primaryPkgName]) splitCommits[primaryPkgName] = [];
+        splitCommits[primaryPkgName].push(commit);
       }
+
+      // next assign the file to additional packages based on their additional paths.
+      // This is for cases where someone has specified dependencies outside of the
+      // package directory. For example, if both packages "foo" and "bar" have additional
+      // path "shared", then commits to "shared/foo.txt" should be assigned to both packages.
+      commit.files.forEach(file => {
+        if (this.packagePaths) {
+          Object.entries(this.packagePaths).forEach(
+            ([pkgName, additionalPaths]) => {
+              if (
+                additionalPaths.some(path => file.indexOf(`${path}/`) === 0)
+              ) {
+                if (dedupe.has(pkgName)) return;
+                dedupe.add(pkgName);
+                if (!splitCommits[pkgName]) splitCommits[pkgName] = [];
+                splitCommits[pkgName].push(commit);
+              }
+            }
+          );
+        }
+      });
+
       if (commit.files.length === 0 && this.includeEmpty) {
         if (this.packagePaths) {
-          for (const pkgName of this.packagePaths) {
+          for (const pkgName of Object.keys(this.packagePaths)) {
             splitCommits[pkgName] = splitCommits[pkgName] || [];
             splitCommits[pkgName].push(commit);
           }
