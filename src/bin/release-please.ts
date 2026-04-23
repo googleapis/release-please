@@ -919,7 +919,7 @@ interface HandleError {
 }
 
 function extractManifestOptions(
-  argv: GitHubArgs & (PullRequestArgs | ReleaseArgs)
+  argv: GitHubArgs & (PullRequestArgs | ReleaseArgs) & Partial<VersioningArgs>
 ): ManifestOptions {
   const manifestOptions: ManifestOptions = {};
   if ('fork' in argv && argv.fork !== undefined) {
@@ -947,6 +947,12 @@ function extractManifestOptions(
   }
   if ('draftPullRequest' in argv && argv.draftPullRequest !== undefined) {
     manifestOptions.draftPullRequest = argv.draftPullRequest;
+  }
+  if ('latestTagVersion' in argv && argv.latestTagVersion) {
+    manifestOptions.latestTagVersion = argv.latestTagVersion;
+  }
+  if ('latestTagSha' in argv && argv.latestTagSha) {
+    manifestOptions.lastReleaseSha = argv.latestTagSha;
   }
   return manifestOptions;
 }
