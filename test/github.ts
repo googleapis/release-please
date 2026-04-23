@@ -975,6 +975,40 @@ describe('GitHub', () => {
     });
   });
 
+  describe('commentOnCommit', () => {
+    it('creates a commit comment', async () => {
+      const createCommentResponse = JSON.parse(
+        readFileSync(
+          resolve(fixturesPath, 'create-comment-response.json'),
+          'utf8'
+        )
+      );
+      req
+        .post('/repos/fake/fake/commits/abc123/comments', body => {
+          snapshot(body);
+          return true;
+        })
+        .reply(201, createCommentResponse);
+      const url = await github.commentOnCommit('This is a comment', 'abc123');
+      expect(url).to.eql(
+        'https://github.com/fake/fake/issues/1347#issuecomment-1'
+      );
+    });
+
+    it('propagates error', async () => {
+      req.post('/repos/fake/fake/commits/abc123/comments').reply(410, 'Gone');
+      let thrown = false;
+      try {
+        await github.commentOnCommit('This is a comment', 'abc123');
+        fail('should have thrown');
+      } catch (err) {
+        thrown = true;
+        expect((err as GitHubAPIError).status).to.eql(410);
+      }
+      expect(thrown).to.be.true;
+    });
+  });
+
   describe('generateReleaseNotes', () => {
     it('can generate notes with previous tag', async () => {
       req

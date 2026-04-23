@@ -1371,3 +1371,7 @@ exports['GitHub pullRequestIterator uses REST API if files are not needed 1'] = 
     "sha": "abc123"
   }
 ]
+
+exports['GitHub commentOnCommit creates a commit comment 1'] = {
+  "body": "This is a comment"
+}
