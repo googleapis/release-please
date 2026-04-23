@@ -364,12 +364,12 @@ export abstract class WorkspacePlugin<T> extends ManifestPlugin {
   protected abstract pathFromPackage(pkg: T): string;
 
   /**
-   * Amend any or all in-scope candidates once all other processing has occured.
+   * Amend any or all in-scope candidates once all other processing has occurred.
    *
    * This gives the workspace plugin once last chance to tweak the pull-requests
    * once all the underlying information has been collated.
    * @param {CandidateReleasePullRequest[]} candidates - The list of candidates
-   *   once all other workspace processing has occured.
+   *   once all other workspace processing has occurred.
    * @param {VersionMap} updatedVersions - Map containing any component versions
    *   that have changed.
    * @returns {CandidateReleasePullRequest[]} potentially amended list of
