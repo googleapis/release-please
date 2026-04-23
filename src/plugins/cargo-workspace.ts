@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {CandidateReleasePullRequest, ROOT_PROJECT_PATH} from '../manifest';
+import {
+  CandidateReleasePullRequest,
+  RepositoryConfig,
+  ROOT_PROJECT_PATH,
+} from '../manifest';
 import {
   WorkspacePlugin,
   DependencyGraph,
   DependencyNode,
+  WorkspacePluginOptions,
   addPath,
   appendDependenciesSectionToChangelog,
 } from './workspace';
@@ -38,6 +43,7 @@ import {BranchName} from '../util/branch-name';
 import {PatchVersionUpdate} from '../versioning-strategy';
 import {CargoLock} from '../updaters/rust/cargo-lock';
 import {ConfigurationError} from '../errors';
+import {GitHub} from '../github';
 import {Strategy} from '../strategy';
 import {Commit} from '../commit';
 import {Release} from '../release';
@@ -74,6 +80,10 @@ interface CrateInfo {
   manifest: CargoManifest;
 }
 
+interface CargoWorkspaceOptions extends WorkspacePluginOptions {
+  cargoWorkspacePath?: string;
+}
+
 /**
  * The plugin analyzed a cargo workspace and will bump dependencies
  * of managed packages if those dependencies are being updated.
@@ -84,6 +94,25 @@ interface CrateInfo {
 export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
   private strategiesByPath: Record<string, Strategy> = {};
   private releasesByPath: Record<string, Release> = {};
+  private workspacePath: string;
+
+  constructor(
+    github: GitHub,
+    targetBranch: string,
+    repositoryConfig: RepositoryConfig,
+    options: CargoWorkspaceOptions = {}
+  ) {
+    super(github, targetBranch, repositoryConfig, options);
+    // Normalize: strip leading "./" and trailing slashes
+    // so that "./crates/" becomes "crates" for consistent path joining
+    this.workspacePath = (options.cargoWorkspacePath ?? '')
+      .replace(/^\.\//, '')
+      .replace(/\/+$/, '');
+  }
+
+  private resolveWorkspacePath(file: string): string {
+    return this.workspacePath ? `${this.workspacePath}/${file}` : file;
+  }
 
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
@@ -92,7 +121,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     candidatesByPackage: Record<string, CandidateReleasePullRequest>;
   }> {
     const cargoManifestContent = await this.github.getFileContentsOnBranch(
-      'Cargo.toml',
+      this.resolveWorkspacePath('Cargo.toml'),
       this.targetBranch
     );
     const cargoManifest = parseCargoManifest(
@@ -111,11 +140,14 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     const members = (
       await Promise.all(
         cargoManifest.workspace.members.map(member =>
-          this.github.findFilesByGlobAndRef(member, this.targetBranch)
+          this.github.findFilesByGlobAndRef(
+            this.resolveWorkspacePath(member),
+            this.targetBranch
+          )
         )
       )
     ).flat();
-    members.push(ROOT_PROJECT_PATH);
+    members.push(this.workspacePath || ROOT_PROJECT_PATH);
 
     for (const path of members) {
       const manifestPath = addPath(path, 'Cargo.toml');
@@ -332,7 +364,8 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     candidates: CandidateReleasePullRequest[],
     updatedVersions: VersionsMap
   ): CandidateReleasePullRequest[] {
-    let rootCandidate = candidates.find(c => c.path === ROOT_PROJECT_PATH);
+    const rootPath = this.workspacePath || ROOT_PROJECT_PATH;
+    let rootCandidate = candidates.find(c => c.path === rootPath);
     if (!rootCandidate) {
       this.logger.warn('Unable to find root candidate pull request');
       rootCandidate = candidates.find(c => c.config.releaseType === 'rust');
@@ -344,7 +377,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
     // Update the root Cargo.lock if it exists
     rootCandidate.pullRequest.updates.push({
-      path: 'Cargo.lock',
+      path: this.resolveWorkspacePath('Cargo.lock'),
       createIfMissing: false,
       updater: new CargoLock(updatedVersions),
     });
