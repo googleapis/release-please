@@ -16,6 +16,7 @@ import {BaseStrategy, BuildUpdatesOptions} from './base';
 import {Update} from '../update';
 import {ChangelogJson} from '../updaters/changelog-json';
 import {PackageLockJson} from '../updaters/node/package-lock-json';
+import {BunLock} from '../updaters/node/bun-lock';
 import {SamplesPackageJson} from '../updaters/node/samples-package-json';
 import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
@@ -43,6 +44,14 @@ export class Node extends BaseStrategy {
           versionsMap,
         }),
       });
+    });
+
+    updates.push({
+      path: this.addPath('bun.lock'),
+      createIfMissing: false,
+      updater: new BunLock({
+        versionsMap,
+      }),
     });
 
     updates.push({
