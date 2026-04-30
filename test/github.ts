@@ -537,7 +537,11 @@ describe('GitHub', () => {
         .get(
           '/repos/fake/fake/commits/e6daec403626c9987c7af0d97b34f324cd84320a'
         )
-        .reply(200, {files: [{filename: 'abc'}]});
+        .reply(200, {files: [{filename: 'abc'}]})
+        .get(
+          '/repos/fake/fake/commits/b29149f890e6f76ee31ed128585744d4c598924c'
+        )
+        .reply(200, {files: [{filename: 'ghi'}]});
       const targetBranch = 'main';
       const commitsSinceSha = await github.commitsSince(
         targetBranch,
@@ -568,7 +572,11 @@ describe('GitHub', () => {
         .get(
           '/repos/fake/fake/commits/27d7d7232e2e312d1380e906984f0823f5decf61'
         )
-        .reply(200, {files: [{filename: 'def'}]});
+        .reply(200, {files: [{filename: 'def'}]})
+        .get(
+          '/repos/fake/fake/commits/2b4e0b3be2e231cd87cc44c411bd8f84b4587ab5'
+        )
+        .reply(200, {files: [{filename: 'ghi'}]});
       const targetBranch = 'main';
       const commitsSinceSha = await github.commitsSince(
         targetBranch,

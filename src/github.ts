@@ -246,7 +246,7 @@ export class GitHub implements Scm {
     this.logger.debug(
       `Fetching merge commits on branch ${targetBranch} with cursor: ${cursor}`
     );
-    const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $maxFilesChanged: Int, $targetBranch: String!, $cursor: String) {
+    const query = `query pullRequestsSince($owner: String!, $repo: String!, $num: Int!, $targetBranch: String!, $cursor: String) {
       repository(owner: $owner, name: $repo) {
         ref(qualifiedName: $targetBranch) {
           target {
@@ -267,15 +267,6 @@ export class GitHub implements Scm {
                       body
                       mergeCommit {
                         oid
-                      }
-                      files(first: $maxFilesChanged) {
-                        nodes {
-                          path
-                        }
-                        pageInfo {
-                          endCursor
-                          hasNextPage
-                        }
                       }
                     }
                   }
@@ -305,7 +296,6 @@ export class GitHub implements Scm {
       repo: this.repository.repo,
       num: options.batchSize ?? 10,
       targetBranch,
-      maxFilesChanged: 100, // max is 100
     };
     const response = await this.graphqlRequest({
       query,
@@ -381,24 +371,17 @@ export class GitHub implements Scm {
           title: pullRequest.title,
           body: pullRequest.body,
           labels: pullRequest.labels.nodes.map(node => node.name),
-          files: (pullRequest.files?.nodes || []).map(node => node.path),
+          files: [],
         };
       }
       if (mergePullRequest) {
-        if (
-          mergePullRequest.files?.pageInfo?.hasNextPage &&
-          options.backfillFiles
-        ) {
+        if (options.backfillFiles) {
           this.logger.info(
             `PR #${mergePullRequest.number} has many files, backfilling`
           );
           commit.files = await this.getCommitFiles(graphCommit.sha);
         } else {
-          // We cannot directly fetch files on commits via graphql, only provide file
-          // information for commits with associated pull requests
-          commit.files = (mergePullRequest.files?.nodes || []).map(
-            node => node.path
-          );
+          commit.files = [];
         }
       } else if (options.backfillFiles) {
         // In this case, there is no squashed merge commit. This could be a simple
