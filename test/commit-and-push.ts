@@ -285,7 +285,7 @@ describe('Commit and push function', async () => {
     status: 201,
     url: 'http://fake-url.com',
     data: createTreeResponseData,
-    } as unknown as CreateTreeResponse;
+  } as unknown as CreateTreeResponse;
 
   const createCommitResponseData = await import(
     './fixtures/create-commit-response.json'

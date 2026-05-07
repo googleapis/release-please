@@ -20,7 +20,11 @@ import {octokit, setup} from './util';
 import * as sinon from 'sinon';
 import {promises as fsp} from 'fs';
 import {GetResponseTypeFromEndpointMethod} from '@octokit/types';
-import {getBranchHead, branch, createRef} from '../src/util/code-suggester/github/branch';
+import {
+  getBranchHead,
+  branch,
+  createRef,
+} from '../src/util/code-suggester/github/branch';
 
 type GetBranchResponse = GetResponseTypeFromEndpointMethod<
   typeof octokit.repos.getBranch

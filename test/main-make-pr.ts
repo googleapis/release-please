@@ -18,7 +18,11 @@ import * as assert from 'assert';
 import {describe, it, before, afterEach} from 'mocha';
 import {octokit, setup} from './util';
 import * as sinon from 'sinon';
-import {Changes, FileData, CreatePullRequestUserOptions} from '../src/util/code-suggester/types';
+import {
+  Changes,
+  FileData,
+  CreatePullRequestUserOptions,
+} from '../src/util/code-suggester/types';
 import {Octokit} from '@octokit/rest';
 import {createPullRequest} from '../src/util/code-suggester/index';
 import * as branchHandler from '../src/util/code-suggester/github/branch';

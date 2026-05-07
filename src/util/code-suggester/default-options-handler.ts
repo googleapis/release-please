@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  CreatePullRequest,
-  CreatePullRequestUserOptions,
-} from './types';
+import {CreatePullRequest, CreatePullRequestUserOptions} from './types';
 
 const DEFAULT_BRANCH_NAME = 'code-suggestions';
 const DEFAULT_PRIMARY_BRANCH = 'main';

@@ -15,12 +15,8 @@
 import * as assert from 'assert';
 import {describe, it, before} from 'mocha';
 import {setup} from './util';
-import {
-  CreatePullRequestUserOptions,
-} from '../src/util/code-suggester/types';
-import {
-  addPullRequestDefaults,
-} from '../src/util/code-suggester/default-options-handler';
+import {CreatePullRequestUserOptions} from '../src/util/code-suggester/types';
+import {addPullRequestDefaults} from '../src/util/code-suggester/default-options-handler';
 
 before(() => {
   setup();
