@@ -1,0 +1,10 @@
+{
+  "ref": "refs/heads/release-v5.0.0",
+  "node_id": "abc123=",
+  "url": "https://api.github.com/repos/bcoe/test-release-please/git/refs/heads/release-v5.0.0",
+  "object": {
+    "sha": "7fe1012cf4a9f9ada0fde9e6a6111ae2bf390c31",
+    "type": "commit",
+    "url": "https://api.github.com/repos/bcoe/test-release-please/git/commits/7fe1012cf4a9f9ada0fde9e6a6111ae2bf390c31"
+  }
+}
