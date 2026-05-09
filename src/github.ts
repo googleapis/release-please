@@ -792,24 +792,17 @@ export class GitHub implements Scm {
     )
       .toString()
       .slice(0, MAX_ISSUE_BODY_SIZE);
-    const prNumber = await suggesterCreatePullRequest(this.octokit, changes, {
-      upstreamOwner: this.repository.owner,
-      upstreamRepo: this.repository.repo,
-      title,
-      branch: releasePullRequest.headRefName,
-      description: body,
-      primary: targetBranch,
-      force: true,
-      fork: options?.fork === false ? false : true,
+    // Push file changes directly to the existing PR's branch. We deliberately
+    // bypass code-suggester here: it always tries to create-or-find a PR after
+    // pushing, and its existing-PR detection can miss our PR (e.g. on a
+    // case-sensitive comparison of `head.label`), causing it to attempt a
+    // duplicate create that 422s. We already know the PR number, so all we
+    // need is: push branch, then PATCH title/body.
+    await this.gitHubApi.commitAndPushChanges(
+      releasePullRequest.headRefName,
       message,
-      logger: this.logger,
-      draft: releasePullRequest.draft,
-    });
-    if (prNumber !== number) {
-      this.logger.warn(
-        `updated code for ${prNumber}, but update requested for ${number}`
-      );
-    }
+      changes
+    );
     return this.gitHubApi.updatePullRequest(number, title, body);
   }
 
