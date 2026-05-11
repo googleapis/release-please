@@ -792,12 +792,7 @@ export class GitHub implements Scm {
     )
       .toString()
       .slice(0, MAX_ISSUE_BODY_SIZE);
-    // Push file changes directly to the existing PR's branch. We deliberately
-    // bypass code-suggester here: it always tries to create-or-find a PR after
-    // pushing, and its existing-PR detection can miss our PR (e.g. on a
-    // case-sensitive comparison of `head.label`), causing it to attempt a
-    // duplicate create that 422s. We already know the PR number, so all we
-    // need is: push branch, then PATCH title/body.
+    // Force-push the new tree onto the PR's head branch, then PATCH the PR's title/body.
     await this.gitHubApi.commitAndPushChanges(
       releasePullRequest.headRefName,
       message,
