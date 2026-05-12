@@ -81,7 +81,7 @@ libraries:
       api_description_override: allows you to encrypt, store, manage, and audit infrastructure and application-level secrets.
 `;
 
-describe('LibrarianYamlUpdater', () => {
+describe('JavaLibrarianYamlUpdater', () => {
   it('updates librarian.yaml version based on versionsMap', () => {
     const versionsMap = new Map<string, Version>();
     versionsMap.set('google-shopping-css', Version.parse('0.59.0'));
