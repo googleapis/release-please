@@ -42,7 +42,7 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
     super(options);
     this.packagePath = options.packagePath;
   }
-  
+
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
@@ -71,8 +71,8 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       const outputDirectory = this.deriveOutputDirectory(
         library.toJSON() as LibrarianLibrary
       );
-      if (outputDirectory == this.packagePath) {
-        let newVersion = this.version.toString()
+      if (outputDirectory === this.packagePath) {
+        const newVersion = this.version.toString();
         if (library.get('version') !== newVersion) {
           library.set('version', newVersion);
           modified = true;
