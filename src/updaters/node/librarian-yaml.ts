@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {DefaultUpdater} from '../default';
+import {DefaultUpdater, UpdateOptions} from '../default';
 import * as yaml from 'yaml';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 
@@ -28,21 +28,27 @@ export interface LibrarianYamlSchema {
   [key: string]: any;
 }
 
+export interface LibrarianUpdateOptions extends UpdateOptions {
+  packagePath: string;
+}
+
 /**
  * Updates a librarian.yaml file.
  */
 export class LibrarianYamlUpdater extends DefaultUpdater {
+  private readonly packagePath: string;
+
+  constructor(options: LibrarianUpdateOptions) {
+    super(options);
+    this.packagePath = options.packagePath;
+  }
+  
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
   updateContent(content: string, logger: Logger = defaultLogger): string {
-    if (!this.versionsMap) {
-      logger.warn('missing versions map');
-      return content;
-    }
-
     // Use yaml package to make sure librarian.yaml is not reformatted because
     // we use different tool to format librarian.yaml.
     const doc = yaml.parseDocument(content);
@@ -65,10 +71,10 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       const outputDirectory = this.deriveOutputDirectory(
         library.toJSON() as LibrarianLibrary
       );
-      if (this.versionsMap.has(outputDirectory)) {
-        const newVersion = this.versionsMap.get(outputDirectory);
-        if (newVersion && library.get('version') !== newVersion.toString()) {
-          library.set('version', newVersion.toString());
+      if (outputDirectory == this.packagePath) {
+        let newVersion = this.version.toString()
+        if (library.get('version') !== newVersion) {
+          library.set('version', newVersion);
           modified = true;
         }
       }

@@ -232,11 +232,7 @@ describe('NodeLibrarian', () => {
         component: 'google-cloud-automl',
         packageName: 'google-cloud-automl-pkg',
       });
-      const findFilesStub = sandbox.stub(github, 'findFilesByFilenameAndRef');
-      findFilesStub
-        .withArgs('librarian.yaml', 'main', '.')
-        .resolves(['path1/librarian.yaml']);
-      findFilesStub.resolves([]);
+      sandbox.stub(github, 'findFilesByFilenameAndRef').resolves([]);
 
       const latestRelease = undefined;
       const release = await strategy.buildReleasePullRequest(
@@ -255,7 +251,7 @@ describe('NodeLibrarian', () => {
       const updater = update.updater as SamplesPackageJson;
       expect(updater.packageName).to.equal('google-cloud-automl-pkg');
       assertHasUpdate(updates, 'package.json', PackageJson);
-      assertHasUpdate(updates, 'path1/librarian.yaml', LibrarianYamlUpdater);
+      assertHasUpdate(updates, 'librarian.yaml', LibrarianYamlUpdater);
     });
 
     it('omits changelog if skipChangelog=true', async () => {

@@ -35,11 +35,6 @@ export class NodeLibrarian extends BaseStrategy {
     const versionsMap = options.versionsMap;
     const packageName = (await this.getPackageName()) ?? '';
     const lockFiles = ['package-lock.json', 'npm-shrinkwrap.json'];
-    const librarianFilesSearch = this.github.findFilesByFilenameAndRef(
-      'librarian.yaml',
-      this.targetBranch,
-      this.path
-    );
     lockFiles.forEach(lockFile => {
       updates.push({
         path: this.addPath(lockFile),
@@ -94,19 +89,15 @@ export class NodeLibrarian extends BaseStrategy {
       });
     }
 
-    // Update librarian.yaml for every matching library.
-    const librarianFiles = await librarianFilesSearch;
-    librarianFiles.forEach(path => {
-      updates.push({
-        path: this.addPath(path),
-        createIfMissing: false,
-        updater: new LibrarianYamlUpdater({
-          version,
-          versionsMap,
-        }),
-      });
+    // Update librarian.yaml if this package exists within it.
+    updates.push({
+      path: 'librarian.yaml',
+      createIfMissing: false,
+      updater: new LibrarianYamlUpdater({
+        version,
+        packagePath: this.path,
+      }),
     });
-
     return updates;
   }
 
