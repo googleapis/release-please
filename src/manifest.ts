@@ -1422,6 +1422,7 @@ function extractReleaserConfig(
     labels: config['label']?.split(','),
     releaseLabels: config['release-label']?.split(','),
     extraLabels: config['extra-label']?.split(','),
+    snapshotLabels: config['snapshot-label']?.split(','),
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
@@ -1790,6 +1791,7 @@ function mergeReleaserConfig(
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
+    snapshotLabels: pathConfig.snapshotLabels ?? defaultConfig.snapshotLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
     dateFormat: pathConfig.dateFormat ?? defaultConfig.dateFormat,
   };
