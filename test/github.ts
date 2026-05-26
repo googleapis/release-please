@@ -1215,4 +1215,54 @@ describe('GitHub', () => {
       req.done();
     });
   });
+
+  describe('graphqlRequest backoff', () => {
+    let clock: sinon.SinonFakeTimers;
+    let realSetInterval: typeof setInterval;
+    let realClearInterval: typeof clearInterval;
+    beforeEach(() => {
+      realSetInterval = global.setInterval;
+      realClearInterval = global.clearInterval;
+      clock = sandbox.useFakeTimers();
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('should halve the pagination size on 502 error retries, and force to 1 on the last attempt', async () => {
+      let attempt = 0;
+      req = nock('https://api.github.com')
+        .post('/graphql')
+        .times(6)
+        .reply((_uri, requestBody: any) => {
+          attempt++;
+          const body =
+            typeof requestBody === 'string'
+              ? JSON.parse(requestBody)
+              : requestBody;
+          if (attempt === 1) expect(body.variables.num).to.eql(100);
+          if (attempt === 2) expect(body.variables.num).to.eql(50);
+          if (attempt === 3) expect(body.variables.num).to.eql(25);
+          if (attempt === 4) expect(body.variables.num).to.eql(12);
+          if (attempt === 5) expect(body.variables.num).to.eql(6);
+          if (attempt === 6) expect(body.variables.num).to.eql(1);
+          return [502, 'Bad Gateway'];
+        });
+
+      const promise = github.commitsSince('main', () => false, {
+        batchSize: 100,
+      });
+
+      const tickInterval = realSetInterval(() => {
+        clock.tick(10000);
+      }, 10);
+
+      await assert.rejects(promise, (error: Error) => {
+        return error instanceof GitHubAPIError && error.status === 502;
+      });
+      realClearInterval(tickInterval);
+      req.done();
+    });
+  });
 });
