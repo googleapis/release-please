@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.6.1](https://github.com/googleapis/release-please/compare/v17.6.0...v17.6.1) (2026-05-26)
+
+
+### Bug Fixes
+
+* implement dynamic batch size backoff for GraphQL requests ([#2783](https://github.com/googleapis/release-please/issues/2783)) ([e5033c1](https://github.com/googleapis/release-please/commit/e5033c13070a2f702fb06927f92ca198ac18a830)), closes [#2592](https://github.com/googleapis/release-please/issues/2592)
+
 ## [17.6.0](https://github.com/googleapis/release-please/compare/v17.5.2...v17.6.0) (2026-04-13)
 
 
