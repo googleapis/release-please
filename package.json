@@ -38,7 +38,7 @@
     }
   },
   "devDependencies": {
-    "@octokit/types": "^9.0.0",
+    "@octokit/types": "^16.0.0",
     "@types/chai": "^4.1.7",
     "@types/diff": "^5.0.2",
     "@types/iarna__toml": "^2.0.1",
@@ -69,10 +69,10 @@
     "@conventional-commits/parser": "^0.4.1",
     "@google-automations/git-file-utils": "^3.0.0",
     "@iarna/toml": "^3.0.0",
-    "@octokit/graphql": "^7.1.0",
-    "@octokit/request": "^8.3.1",
-    "@octokit/request-error": "^5.1.0",
-    "@octokit/rest": "^20.1.1",
+    "@octokit/graphql": "^9.0.0",
+    "@octokit/request": "^10.0.0",
+    "@octokit/request-error": "^7.0.0",
+    "@octokit/rest": "^22.0.0",
     "@types/npm-package-arg": "^6.1.0",
     "@xmldom/xmldom": "^0.8.4",
     "chalk": "^4.0.0",
