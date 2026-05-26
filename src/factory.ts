@@ -20,6 +20,7 @@ import {ReleaserConfig} from './manifest';
 import {BaseStrategyOptions} from './strategies/base';
 import {Bazel} from './strategies/bazel';
 import {Dart} from './strategies/dart';
+import {Deno} from './strategies/deno';
 import {DotnetYoshi} from './strategies/dotnet-yoshi';
 import {Elixir} from './strategies/elixir';
 import {Expo} from './strategies/expo';
@@ -111,6 +112,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   elixir: options => new Elixir(options),
   dart: options => new Dart(options),
   bazel: options => new Bazel(options),
+  deno: options => new Deno(options),
 };
 
 export async function buildStrategy(

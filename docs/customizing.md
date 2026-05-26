@@ -26,6 +26,7 @@ Release Please automates releases for the following flavors of repositories:
 | `sfdx`              | A repository with a [sfdx-project.json](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) and a CHANGELOG.md |
 | `simple`            | [A repository with a version.txt and a CHANGELOG.md](https://github.com/googleapis/gapic-generator) |
 | `terraform-module`  | [A terraform module, with a version in the README.md, and a CHANGELOG.md](https://github.com/terraform-google-modules/terraform-google-project-factory) |
+| `deno`              | A repository with a deno.json, deno.jsonc, or jsr.json and a CHANGELOG.md |
 
 ### Adding additional strategy types
 

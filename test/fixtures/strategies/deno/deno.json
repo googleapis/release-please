@@ -1,0 +1,7 @@
+{
+  "name": "deno-test-repo",
+  "version": "0.123.4",
+  "repository": {
+    "url": "git@github.com:samples/deno-test-repo.git"
+  }
+}
