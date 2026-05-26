@@ -12,7 +12,7 @@
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0" PrivateAssets="All" />
     <PackageReference Include="Google.Api.Gax.Grpc.GrpcCore" Version="[3.6.0, 4.0.0)" />
     <PackageReference Include="Google.Cloud.Iam.V1" Version="[2.3.0, 3.0.0)" />
-    <PackageReference Include="Google.LongRunning" Version="[2.3.0, 3.0.0)" />
+    <PackageReference Include="Google.LongRunning" Version="[2.3.0,3.5.0]" />
     <PackageReference Include="Grpc.Core" Version="[2.41.0, 3.0.0)" PrivateAssets="None" />
     <PackageReference Include="Microsoft.DotNet.Analyzers.Compatibility" Version="0.2.12-alpha" PrivateAssets="All" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="All" />
