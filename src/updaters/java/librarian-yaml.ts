@@ -17,14 +17,14 @@ import * as yaml from 'yaml';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 
 export interface JavaModule {
-  artifact_id?: string;
+  artifact_id: string;
   [key: string]: any;
 }
 
 export interface LibrarianLibrary {
   name: string;
   version: string;
-  java?: JavaModule;
+  java: JavaModule;
   [key: string]: any;
 }
 
