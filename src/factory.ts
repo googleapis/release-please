@@ -31,6 +31,8 @@ import {JavaYoshi} from './strategies/java-yoshi';
 import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
 import {KRMBlueprint} from './strategies/krm-blueprint';
 import {Maven} from './strategies/maven';
+import {MediaWikiSkin} from './strategies/mediawiki-skin';
+import {MediaWikiExtension} from './strategies/mediawiki-extension';
 import {Node} from './strategies/node';
 import {NodeLibrarian} from './strategies/node-librarian';
 import {OCaml} from './strategies/ocaml';
@@ -73,6 +75,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   'go-yoshi': options => new GoYoshi(options),
   java: options => new Java(options),
   maven: options => new Maven(options),
+  'mediawiki-skin': options => new MediaWikiSkin(options),
   'java-yoshi': options => new JavaYoshi(options),
   'java-yoshi-mono-repo': options => new JavaYoshiMonoRepo(options),
   'java-backport': options =>
