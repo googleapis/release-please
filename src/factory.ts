@@ -32,6 +32,7 @@ import {JavaYoshiMonoRepo} from './strategies/java-yoshi-mono-repo';
 import {KRMBlueprint} from './strategies/krm-blueprint';
 import {Maven} from './strategies/maven';
 import {Node} from './strategies/node';
+import {NodeLibrarian} from './strategies/node-librarian';
 import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
@@ -94,6 +95,7 @@ const releasers: Record<string, ReleaseBuilder> = {
     }),
   'krm-blueprint': options => new KRMBlueprint(options),
   node: options => new Node(options),
+  'node-librarian': options => new NodeLibrarian(options),
   expo: options => new Expo(options),
   ocaml: options => new OCaml(options),
   php: options => new PHP(options),
