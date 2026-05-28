@@ -36,7 +36,8 @@ libraries:
     java:
       api_description_override: The CSS API is used to manage your CSS and control your CSS Products portfolio
       non_cloud_api: true
-      distribution_name_override: com.google.shopping:google-shopping-css
+      artifact_id: google-shopping-css
+      group_id: com.google.shopping
       name_pretty_override: CSS API
       java_apis:
         - additional_protos:
@@ -68,7 +69,8 @@ libraries:
     java:
       api_description_override: The CSS API is used to manage your CSS and control your CSS Products portfolio
       non_cloud_api: true
-      distribution_name_override: com.google.shopping:google-shopping-css
+      artifact_id: google-shopping-css
+      group_id: com.google.shopping
       name_pretty_override: CSS API
       java_apis:
         - additional_protos:
