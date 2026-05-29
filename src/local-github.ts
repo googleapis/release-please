@@ -124,7 +124,11 @@ export class LocalGitHub implements Scm {
       await execFile('git', fetchArgs, {cwd: repoDir});
 
       logger.debug(`Executing: git checkout ${branch}`);
-      await execFile('git', ['checkout', branch], {cwd: repoDir});
+      await execFile(
+        'git',
+        ['-c', 'core.hooksPath=/dev/null', 'checkout', branch],
+        {cwd: repoDir}
+      );
 
       logger.debug(`Executing: git reset --hard origin/${branch}`);
       await execFile('git', ['reset', '--hard', `origin/${branch}`], {
