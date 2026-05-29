@@ -58,7 +58,7 @@ export class GenericYaml implements Updater {
       JSONPath({
         resultType: 'all',
         path: this.jsonpath,
-        json: data as any,
+        json: data as object,
         callback: (payload, _payloadType, _fullPayload) => {
           if (typeof payload.value !== 'string') {
             logger.warn(`No string in ${this.jsonpath}. Skipping.`);
