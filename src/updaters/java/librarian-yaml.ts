@@ -17,7 +17,7 @@ import * as yaml from 'yaml';
 import {logger as defaultLogger, Logger} from '../../util/logger';
 
 export interface JavaModule {
-  distribution_name_override: string;
+  artifact_id: string;
   [key: string]: any;
 }
 
@@ -91,8 +91,8 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
     if (artifact) {
       return artifact;
     }
-    if (library.java && library.java.distribution_name_override) {
-      return library.java.distribution_name_override.split(':')[1];
+    if (library.java && library.java.artifact_id) {
+      return library.java.artifact_id;
     }
     return `google-cloud-${library.name}`;
   }
