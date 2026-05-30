@@ -1,0 +1,20 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "release-please",
+    },
+    "packages/foo": {
+      "name": "release-please-foo",
+      "version": "1.0.0",
+      "dependencies": {
+        "release-please-bar": "workspace:*",
+      },
+    },
+    "packages/bar": {
+      "name": "release-please-bar",
+      "version": "1.0.0",
+    },
+  },
+}
