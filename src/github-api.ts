@@ -15,7 +15,7 @@
 import {Octokit} from '@octokit/rest';
 import {request} from '@octokit/request';
 import {RequestError} from '@octokit/request-error';
-import {Logger} from 'code-suggester/build/src/types';
+import {Logger} from './util/code-suggester/types';
 
 import {PullRequest} from './pull-request';
 import {Repository} from './repository';
