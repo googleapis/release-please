@@ -84,6 +84,7 @@ interface CrateInfo {
 export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
   private strategiesByPath: Record<string, Strategy> = {};
   private releasesByPath: Record<string, Release> = {};
+  private workspaceManifestPaths = new Set<string>();
 
   protected async buildAllPackages(
     candidates: CandidateReleasePullRequest[]
@@ -164,6 +165,7 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
         manifestContent: manifestContent.parsedContent,
         manifestPath,
       });
+      this.workspaceManifestPaths.add(manifestPath);
     }
     return {
       allPackages: allCrates,
@@ -198,22 +200,37 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
     );
 
     existingCandidate.pullRequest.updates =
-      existingCandidate.pullRequest.updates.map(update => {
-        if (update.path === addPath(existingCandidate.path, 'Cargo.toml')) {
-          update.updater = new RawContent(updatedContent);
-        } else if (update.updater instanceof Changelog && dependencyNotes) {
-          update.updater.changelogEntry = appendDependenciesSectionToChangelog(
-            update.updater.changelogEntry,
-            dependencyNotes,
-            this.logger
+      existingCandidate.pullRequest.updates
+        .filter(update => {
+          if (existingCandidate.path !== ROOT_PROJECT_PATH) {
+            return true;
+          }
+          const rootManifestPath = addPath(
+            existingCandidate.path,
+            'Cargo.toml'
           );
-        } else if (
-          update.path === addPath(existingCandidate.path, 'Cargo.lock')
-        ) {
-          update.updater = new CargoLock(updatedVersions);
-        }
-        return update;
-      });
+          return (
+            !this.workspaceManifestPaths.has(update.path) ||
+            update.path === rootManifestPath
+          );
+        })
+        .map(update => {
+          if (update.path === addPath(existingCandidate.path, 'Cargo.toml')) {
+            update.updater = new RawContent(updatedContent);
+          } else if (update.updater instanceof Changelog && dependencyNotes) {
+            update.updater.changelogEntry =
+              appendDependenciesSectionToChangelog(
+                update.updater.changelogEntry,
+                dependencyNotes,
+                this.logger
+              );
+          } else if (
+            update.path === addPath(existingCandidate.path, 'Cargo.lock')
+          ) {
+            update.updater = new CargoLock(updatedVersions);
+          }
+          return update;
+        });
 
     // append dependency notes
     if (dependencyNotes) {
