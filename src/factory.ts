@@ -25,6 +25,7 @@ import {Elixir} from './strategies/elixir';
 import {Expo} from './strategies/expo';
 import {Go} from './strategies/go';
 import {GoYoshi} from './strategies/go-yoshi';
+import {GoLibrarian} from './strategies/go-librarian';
 import {Helm} from './strategies/helm';
 import {Java} from './strategies/java';
 import {JavaYoshi} from './strategies/java-yoshi';
@@ -71,6 +72,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   'dotnet-yoshi': options => new DotnetYoshi(options),
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
+  'go-librarian': options => new GoLibrarian(options),
   java: options => new Java(options),
   maven: options => new Maven(options),
   'java-yoshi': options => new JavaYoshi(options),
