@@ -73,9 +73,27 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       );
       if (this.versionsMap.has(artifactID)) {
         const newVersion = this.versionsMap.get(artifactID);
-        if (newVersion && library.get('version') !== newVersion.toString()) {
-          library.set('version', newVersion.toString());
-          modified = true;
+        if (newVersion) {
+          if (library.get('version') !== newVersion.toString()) {
+            library.set('version', newVersion.toString());
+            modified = true;
+          }
+          const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
+          if (!isSnapshot) {
+            let java = library.get('java');
+            if (!yaml.isMap(java) && library.get('skip_generate') !== true) {
+              const javaNode = doc.createNode({});
+              library.set('java', javaNode);
+              java = javaNode;
+              modified = true;
+            }
+            if (yaml.isMap(java)) {
+              if (java.get('released_version') !== newVersion.toString()) {
+                java.set('released_version', newVersion.toString());
+                modified = true;
+              }
+            }
+          }
         }
       }
     }
