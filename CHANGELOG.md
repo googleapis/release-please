@@ -4,6 +4,19 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.7.0](https://github.com/googleapis/release-please/compare/v17.6.1...v17.7.0) (2026-05-29)
+
+
+### Features
+
+* update librarian.yaml for Node ([#2775](https://github.com/googleapis/release-please/issues/2775)) ([0c8f20a](https://github.com/googleapis/release-please/commit/0c8f20a5a6f297b2996a55d68ddcfb9ced23620f))
+
+
+### Bug Fixes
+
+* upgrade tmp to 0.2.6 to resolve path traversal vulnerability ([#2794](https://github.com/googleapis/release-please/issues/2794)) ([fcec69c](https://github.com/googleapis/release-please/commit/fcec69c81a4c68fb55249e3118ed4b69cd2f5b5d))
+* use `artifact_id` instead of `distribution_name_override` in librarian.yaml ([#2792](https://github.com/googleapis/release-please/issues/2792)) ([9acbc83](https://github.com/googleapis/release-please/commit/9acbc83185e335aaee7f88bb200719976e5b69ac))
+
 ## [17.6.1](https://github.com/googleapis/release-please/compare/v17.6.0...v17.6.1) (2026-05-26)
 
 
