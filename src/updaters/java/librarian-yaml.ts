@@ -81,7 +81,7 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
           const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
           if (!isSnapshot) {
             let java = library.get('java');
-            if (!yaml.isMap(java) && library.get('skip_generate') !== true) {
+            if (!yaml.isMap(java)) {
               const javaNode = doc.createNode({});
               library.set('java', javaNode);
               java = javaNode;

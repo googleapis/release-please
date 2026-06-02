@@ -64,6 +64,8 @@ libraries:
   - name: google-cloud-java
     version: 1.85.0
     skip_generate: true
+    java:
+      released_version: 1.85.0
   - name: shopping-css
     version: 0.59.0
     apis:
