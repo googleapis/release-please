@@ -32,7 +32,25 @@ describe('version.go', () => {
         version: Version.parse('0.59.0'),
       });
       const newContent = version.updateContent(oldContent);
-      snapshot(newContent);
+      snapshot('basic-update', newContent);
+    });
+
+    it('updates prerelease version with dots and dashes in version.go', async () => {
+      const oldContent = 'package api\n\nconst Version = "0.58.0-rc.1"\n';
+      const version = new VersionGo({
+        version: Version.parse('0.58.0-rc.2'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot('prerelease-dots-dashes', newContent);
+    });
+
+    it('updates double digit patch versions in version.go', async () => {
+      const oldContent = 'package api\n\nconst Version = "0.58.12-rc01"\n';
+      const version = new VersionGo({
+        version: Version.parse('0.58.12-rc02'),
+      });
+      const newContent = version.updateContent(oldContent);
+      snapshot('double-digit-patch', newContent);
     });
   });
 });
