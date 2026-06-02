@@ -52,8 +52,9 @@ Options:
               [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go",
         "go-librarian", "go-yoshi", "helm", "java", "java-backport", "java-bom",
      "java-lts", "java-yoshi", "java-yoshi-mono-repo", "krm-blueprint", "maven",
-   "node", "node-librarian", "ocaml", "php", "php-yoshi", "python", "r", "ruby",
-       "ruby-yoshi", "rust", "salesforce", "sfdx", "simple", "terraform-module"]
+                "node", "node-librarian", "ocaml", "php", "php-yoshi", "python",
+    "python-librarian", "r", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
+                                                   "simple", "terraform-module"]
   --config-file                 where can the config file be found in the
                                 project? [default: "release-please-config.json"]
   --manifest-file               where can the manifest file be found in the
@@ -279,8 +280,9 @@ Options:
               [choices: "bazel", "dart", "dotnet-yoshi", "elixir", "expo", "go",
         "go-librarian", "go-yoshi", "helm", "java", "java-backport", "java-bom",
      "java-lts", "java-yoshi", "java-yoshi-mono-repo", "krm-blueprint", "maven",
-   "node", "node-librarian", "ocaml", "php", "php-yoshi", "python", "r", "ruby",
-       "ruby-yoshi", "rust", "salesforce", "sfdx", "simple", "terraform-module"]
+                "node", "node-librarian", "ocaml", "php", "php-yoshi", "python",
+    "python-librarian", "r", "ruby", "ruby-yoshi", "rust", "salesforce", "sfdx",
+                                                   "simple", "terraform-module"]
   --config-file                     where can the config file be found in the
                                     project?
                                          [default: "release-please-config.json"]
