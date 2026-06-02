@@ -22,7 +22,7 @@ import {VersionGo} from '../updaters/go/version-go';
 export class GoLibrarian extends BaseStrategy {
   readonly versionFile: string;
   constructor(options: BaseStrategyOptions) {
-    options.changelogPath = options.changelogPath ?? 'CHANGELOG.md';
+    options.changelogPath = options.changelogPath ?? 'CHANGES.md';
     super(options);
     this.versionFile = options.versionFile ?? 'internal/version.go';
   }

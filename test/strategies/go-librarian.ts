@@ -94,7 +94,7 @@ describe('GoLibrarian', () => {
         latestRelease
       );
       const updates = release!.updates;
-      assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'CHANGES.md', Changelog);
       assertHasUpdate(updates, 'internal/version.go', VersionGo);
       assertHasUpdate(updates, 'librarian.yaml', LibrarianYamlUpdater);
     });
@@ -111,7 +111,7 @@ describe('GoLibrarian', () => {
         latestRelease
       );
       const updates = release!.updates;
-      assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'CHANGES.md', Changelog);
       assertHasUpdate(updates, 'internal/version.go', VersionGo);
       assertHasUpdate(updates, 'librarian.yaml', LibrarianYamlUpdater);
     });
@@ -129,7 +129,7 @@ describe('GoLibrarian', () => {
         latestRelease
       );
       const updates = release!.updates;
-      assertHasUpdate(updates, 'CHANGELOG.md', Changelog);
+      assertHasUpdate(updates, 'CHANGES.md', Changelog);
       assertHasUpdate(updates, 'custom-version.go', VersionGo);
       assertHasUpdate(updates, 'librarian.yaml', LibrarianYamlUpdater);
     });
