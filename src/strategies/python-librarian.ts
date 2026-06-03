@@ -15,7 +15,7 @@
 import {Python} from './python';
 import {BuildUpdatesOptions} from './base';
 import {Update} from '../update';
-import {LibrarianYamlUpdater} from '../updaters/python/librarian-yaml';
+import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 
 export class PythonLibrarian extends Python {
   protected async buildUpdates(

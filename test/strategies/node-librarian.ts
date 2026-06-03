@@ -30,7 +30,7 @@ import {PackageLockJson} from '../../src/updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../../src/updaters/node/samples-package-json';
 import {Changelog} from '../../src/updaters/changelog';
 import {PackageJson} from '../../src/updaters/node/package-json';
-import {LibrarianYamlUpdater} from '../../src/updaters/node/librarian-yaml';
+import {LibrarianYamlUpdater} from '../../src/updaters/librarian-yaml';
 import {ChangelogJson} from '../../src/updaters/changelog-json';
 import * as assert from 'assert';
 import {MissingRequiredFileError, FileNotFoundError} from '../../src/errors';
