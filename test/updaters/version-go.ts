@@ -52,5 +52,16 @@ describe('version.go', () => {
       const newContent = version.updateContent(oldContent);
       snapshot('double-digit-patch', newContent);
     });
+
+    it('does not update versions with consecutive dots in prerelease in version.go', async () => {
+      const oldContent = 'package api\n\nconst Version = "0.58.0-rc..1"\n';
+      const version = new VersionGo({
+        version: Version.parse('0.58.0-rc.2'),
+      });
+      const newContent = version.updateContent(oldContent);
+      if (newContent !== oldContent) {
+        throw new Error(`Content was modified: ${newContent}`);
+      }
+    });
   });
 });
