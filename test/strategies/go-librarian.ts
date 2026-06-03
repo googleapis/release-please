@@ -21,7 +21,7 @@ import {assertHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {Changelog} from '../../src/updaters/changelog';
 import {VersionGo} from '../../src/updaters/go/version-go';
-import {LibrarianYamlUpdater} from '../../src/updaters/go/librarian-yaml';
+import {LibrarianYamlUpdater} from '../../src/updaters/librarian-yaml';
 import {Update} from '../../src/update';
 
 const sandbox = sinon.createSandbox();

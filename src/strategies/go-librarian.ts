@@ -15,7 +15,7 @@
 import {BaseStrategy, BuildUpdatesOptions, BaseStrategyOptions} from './base';
 import {Update} from '../update';
 import {Changelog} from '../updaters/changelog';
-import {LibrarianYamlUpdater} from '../updaters/go/librarian-yaml';
+import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 import {Version} from '../version';
 import {VersionGo} from '../updaters/go/version-go';
 

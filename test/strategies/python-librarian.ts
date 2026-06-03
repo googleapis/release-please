@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 import {buildGitHubFileContent, assertHasUpdate} from '../helpers';
 import {buildMockConventionalCommit} from '../helpers';
 import {SetupPy} from '../../src/updaters/python/setup-py';
-import {LibrarianYamlUpdater} from '../../src/updaters/python/librarian-yaml';
+import {LibrarianYamlUpdater} from '../../src/updaters/librarian-yaml';
 import {Version} from '../../src/version';
 import {TagName} from '../../src/util/tag-name';
 
