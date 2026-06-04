@@ -227,7 +227,6 @@ libraries:
       api_description_override: allows you to encrypt, store, manage, and audit infrastructure and application-level secrets.
 `;
 
-
 describe('LibrarianYamlUpdater', () => {
   describe('Error Handling and Validation', () => {
     it('throws an error if the librarian.yaml is malformed (e.g., uses tabs for block indentation)', () => {
