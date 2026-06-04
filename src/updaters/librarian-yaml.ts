@@ -111,6 +111,24 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
           library.set('version', newVersionStr);
           modified = true;
         }
+        if (this.versionsMap) {
+          const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
+          if (!isSnapshot) {
+            let java = library.get('java');
+            if (!yaml.isMap(java)) {
+              const javaNode = doc.createNode({});
+              library.set('java', javaNode);
+              java = javaNode;
+              modified = true;
+            }
+            if (yaml.isMap(java)) {
+              if (java.get('released_version') !== newVersionStr) {
+                java.set('released_version', newVersionStr);
+                modified = true;
+              }
+            }
+          }
+        }
       }
     }
 
