@@ -27,7 +27,7 @@ import {TagName} from '../../src/util/tag-name';
 import {Version} from '../../src/version';
 import {Changelog} from '../../src/updaters/changelog';
 import {JavaUpdate} from '../../src/updaters/java/java-update';
-import {LibrarianYamlUpdater} from '../../src/updaters/java/librarian-yaml';
+import {LibrarianYamlUpdater} from '../../src/updaters/librarian-yaml';
 import {VersionsManifest} from '../../src/updaters/java/versions-manifest';
 import {CompositeUpdater} from '../../src/updaters/composite';
 

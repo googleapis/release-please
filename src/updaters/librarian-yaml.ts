@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {DefaultUpdater} from '../default';
+import {DefaultUpdater, UpdateOptions} from './default';
 import * as yaml from 'yaml';
-import {logger as defaultLogger, Logger} from '../../util/logger';
+import {logger as defaultLogger, Logger} from '../util/logger';
+import {Version} from '../version';
 
 export interface JavaModule {
   artifact_id: string;
@@ -24,7 +25,8 @@ export interface JavaModule {
 export interface LibrarianLibrary {
   name: string;
   version: string;
-  java: JavaModule;
+  output?: string;
+  java?: JavaModule;
   [key: string]: any;
 }
 
@@ -33,30 +35,41 @@ export interface LibrarianYamlSchema {
   [key: string]: any;
 }
 
+export interface LibrarianUpdateOptions extends UpdateOptions {
+  packagePath?: string;
+  component?: string;
+}
+
 /**
  * Updates a librarian.yaml file.
  */
 export class LibrarianYamlUpdater extends DefaultUpdater {
-  specialArtifacts: ReadonlyMap<string, string> = new Map([
+  private readonly packagePath?: string;
+  private readonly component?: string;
+
+  private readonly specialArtifacts: ReadonlyMap<string, string> = new Map([
     ['google-cloud-java', 'google-cloud-java'],
   ]);
+
+  constructor(options: LibrarianUpdateOptions) {
+    super(options);
+    this.packagePath = options.packagePath;
+    this.component = options.component;
+  }
+
   /**
    * Given initial file contents, return updated contents.
    * @param {string} content The initial content
    * @returns {string} The updated content
    */
-  updateContent(content: string, logger: Logger = defaultLogger): string {
-    if (!this.versionsMap) {
-      logger.warn('missing versions map');
-      return content;
-    }
-
-    // Use yaml package to make sure librarian.yaml is not reformatted because
-    // we use different tool to format librarian.yaml.
+  updateContent(content: string, _logger: Logger = defaultLogger): string {
     const doc = yaml.parseDocument(content);
     if (!doc || doc.errors.length > 0) {
-      logger.warn('Invalid yaml, cannot be parsed');
-      return content;
+      throw new Error(
+        `Invalid yaml, cannot be parsed: ${doc.errors
+          .map(e => e.message)
+          .join(', ')}`
+      );
     }
 
     const libraries = doc.get('libraries');
@@ -68,16 +81,37 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
     for (const library of libraries.items) {
       if (!yaml.isMap(library)) continue;
 
-      const artifactID = this.findArtifactID(
-        library.toJSON() as LibrarianLibrary
-      );
-      if (this.versionsMap.has(artifactID)) {
-        const newVersion = this.versionsMap.get(artifactID);
-        if (newVersion) {
-          if (library.get('version') !== newVersion.toString()) {
-            library.set('version', newVersion.toString());
-            modified = true;
-          }
+      const libraryJSON = library.toJSON() as LibrarianLibrary;
+      let newVersion: Version | undefined = undefined;
+
+      if (this.versionsMap) {
+        // Multi-version (Java style)
+        const artifactID = this.findArtifactID(libraryJSON);
+        if (this.versionsMap.has(artifactID)) {
+          newVersion = this.versionsMap.get(artifactID);
+        }
+      } else {
+        // Single version (Go, Python, Node style)
+        const isGoMatch =
+          (this.packagePath && libraryJSON.name === this.packagePath) ||
+          (this.component && libraryJSON.name === this.component);
+
+        const isPythonNodeMatch =
+          this.packagePath &&
+          this.deriveOutputDirectory(libraryJSON) === this.packagePath;
+
+        if (isGoMatch || isPythonNodeMatch) {
+          newVersion = this.version;
+        }
+      }
+
+      if (newVersion) {
+        const newVersionStr = newVersion.toString();
+        if (library.get('version') !== newVersionStr) {
+          library.set('version', newVersionStr);
+          modified = true;
+        }
+        if (this.versionsMap) {
           const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
           if (!isSnapshot) {
             let java = library.get('java');
@@ -88,8 +122,8 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
               modified = true;
             }
             if (yaml.isMap(java)) {
-              if (java.get('released_version') !== newVersion.toString()) {
-                java.set('released_version', newVersion.toString());
+              if (java.get('released_version') !== newVersionStr) {
+                java.set('released_version', newVersionStr);
                 modified = true;
               }
             }
@@ -104,7 +138,14 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
     return content;
   }
 
-  findArtifactID(library: LibrarianLibrary): string {
+  private deriveOutputDirectory(library: LibrarianLibrary): string {
+    if (library.output) {
+      return library.output;
+    }
+    return `packages/${library.name}`;
+  }
+
+  private findArtifactID(library: LibrarianLibrary): string {
     const artifact = this.specialArtifacts.get(library.name);
     if (artifact) {
       return artifact;

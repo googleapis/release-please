@@ -1,4 +1,4 @@
-exports['version.go updateContent updates version in version.go 1'] = `
+exports['basic-update'] = `
 // Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,4 +16,18 @@ exports['version.go updateContent updates version in version.go 1'] = `
 package api
 
 const Version = "0.59.0"
+`
+
+exports['double-digit-patch'] = `
+package api
+
+const Version = "0.58.12-rc02"
+
+`
+
+exports['prerelease-dots-dashes'] = `
+package api
+
+const Version = "0.58.0-rc.2"
+
 `

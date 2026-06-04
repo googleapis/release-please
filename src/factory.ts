@@ -25,6 +25,7 @@ import {Elixir} from './strategies/elixir';
 import {Expo} from './strategies/expo';
 import {Go} from './strategies/go';
 import {GoYoshi} from './strategies/go-yoshi';
+import {GoLibrarian} from './strategies/go-librarian';
 import {Helm} from './strategies/helm';
 import {Java} from './strategies/java';
 import {JavaYoshi} from './strategies/java-yoshi';
@@ -37,6 +38,7 @@ import {OCaml} from './strategies/ocaml';
 import {PHP} from './strategies/php';
 import {PHPYoshi} from './strategies/php-yoshi';
 import {Python} from './strategies/python';
+import {PythonLibrarian} from './strategies/python-librarian';
 import {R} from './strategies/r';
 import {Ruby} from './strategies/ruby';
 import {RubyYoshi} from './strategies/ruby-yoshi';
@@ -71,6 +73,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   'dotnet-yoshi': options => new DotnetYoshi(options),
   go: options => new Go(options),
   'go-yoshi': options => new GoYoshi(options),
+  'go-librarian': options => new GoLibrarian(options),
   java: options => new Java(options),
   maven: options => new Maven(options),
   'java-yoshi': options => new JavaYoshi(options),
@@ -101,6 +104,7 @@ const releasers: Record<string, ReleaseBuilder> = {
   php: options => new PHP(options),
   'php-yoshi': options => new PHPYoshi(options),
   python: options => new Python(options),
+  'python-librarian': options => new PythonLibrarian(options),
   r: options => new R(options),
   ruby: options => new Ruby(options),
   'ruby-yoshi': options => new RubyYoshi(options),

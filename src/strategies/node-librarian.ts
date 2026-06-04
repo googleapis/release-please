@@ -19,7 +19,7 @@ import {PackageLockJson} from '../updaters/node/package-lock-json';
 import {SamplesPackageJson} from '../updaters/node/samples-package-json';
 import {Changelog} from '../updaters/changelog';
 import {PackageJson} from '../updaters/node/package-json';
-import {LibrarianYamlUpdater} from '../updaters/node/librarian-yaml';
+import {LibrarianYamlUpdater} from '../updaters/librarian-yaml';
 import {GitHubFileContents} from '@google-automations/git-file-utils';
 import {FileNotFoundError, MissingRequiredFileError} from '../errors';
 import {filterCommits} from '../util/filter-commits';
