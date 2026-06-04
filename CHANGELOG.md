@@ -4,6 +4,20 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.8.0](https://github.com/googleapis/release-please/compare/v17.7.0...v17.8.0) (2026-06-04)
+
+
+### Features
+
+* add go-librarian release strategy ([#2799](https://github.com/googleapis/release-please/issues/2799)) ([0e6400b](https://github.com/googleapis/release-please/commit/0e6400b65b8d784e6c635a53b7fc679701c747fd))
+* add python-librarian release strategy ([#2802](https://github.com/googleapis/release-please/issues/2802)) ([03477f5](https://github.com/googleapis/release-please/commit/03477f5d12ccc1f017fb2b42efb975d35e8efdc4))
+* **yoshi-java-monorepo:** update java.released_version in librarian.yaml ([#2800](https://github.com/googleapis/release-please/issues/2800)) ([ed10aa8](https://github.com/googleapis/release-please/commit/ed10aa8e457355c61e33c6b0309d60f81da769d9))
+
+
+### Bug Fixes
+
+* **go:** match semver dot-sep prerelease suffixes ([#2803](https://github.com/googleapis/release-please/issues/2803)) ([d5cc945](https://github.com/googleapis/release-please/commit/d5cc945b673fa169e6996da82f9b12495d0bf1fd))
+
 ## [17.7.0](https://github.com/googleapis/release-please/compare/v17.6.1...v17.7.0) (2026-05-29)
 
 
