@@ -414,6 +414,7 @@ export class Manifest {
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
         separatePullRequests: this.separatePullRequests,
+        groupPullRequestTitlePattern: this.groupPullRequestTitlePattern,
       })
     );
     this.pullRequestOverflowHandler = new FilePullRequestOverflowHandler(
