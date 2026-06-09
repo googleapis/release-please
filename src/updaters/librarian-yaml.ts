@@ -128,39 +128,22 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       if (newVersion) {
         const newVersionStr = newVersion.toString();
         if (isPreview) {
-          let preview = library.get('preview');
-          if (!yaml.isMap(preview)) {
-            const previewNode = doc.createNode({});
-            library.set('preview', previewNode);
-            preview = previewNode;
+          const previewNode = this.getOrCreateSubsection(library, 'preview', doc);
+          if (this.updateValue(previewNode, 'version', newVersionStr)) {
             modified = true;
           }
-          if (yaml.isMap(preview)) {
-            if (preview.get('version') !== newVersionStr) {
-              preview.set('version', newVersionStr);
-              modified = true;
-            }
-          }
         } else {
-          if (library.get('version') !== newVersionStr) {
-            library.set('version', newVersionStr);
+          if (this.updateValue(library, 'version', newVersionStr)) {
             modified = true;
           }
           if (this.versionsMap) {
             const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
             if (!isSnapshot) {
-              let java = library.get('java');
-              if (!yaml.isMap(java)) {
-                const javaNode = doc.createNode({});
-                library.set('java', javaNode);
-                java = javaNode;
+              const javaNode = this.getOrCreateSubsection(library, 'java', doc);
+              if (
+                this.updateValue(javaNode, 'released_version', newVersionStr)
+              ) {
                 modified = true;
-              }
-              if (yaml.isMap(java)) {
-                if (java.get('released_version') !== newVersionStr) {
-                  java.set('released_version', newVersionStr);
-                  modified = true;
-                }
               }
             }
           }
@@ -190,5 +173,30 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       return library.java.artifact_id;
     }
     return `google-cloud-${library.name}`;
+  }
+
+  private getOrCreateSubsection(
+    parent: yaml.YAMLMap,
+    key: string,
+    doc: yaml.Document
+  ): yaml.YAMLMap {
+    let section = parent.get(key);
+    if (!yaml.isMap(section)) {
+      section = doc.createNode({});
+      parent.set(key, section);
+    }
+    return section as yaml.YAMLMap;
+  }
+
+  private updateValue(
+    node: yaml.YAMLMap,
+    key: string,
+    value: string
+  ): boolean {
+    if (node.get(key) !== value) {
+      node.set(key, value);
+      return true;
+    }
+    return false;
   }
 }
