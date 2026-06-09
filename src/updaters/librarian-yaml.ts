@@ -22,11 +22,17 @@ export interface JavaModule {
   [key: string]: any;
 }
 
+export interface PreviewModule {
+  version: string;
+  [key: string]: any;
+}
+
 export interface LibrarianLibrary {
   name: string;
   version: string;
   output?: string;
   java?: JavaModule;
+  preview?: PreviewModule;
   [key: string]: any;
 }
 
@@ -84,6 +90,7 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       const libraryJSON = library.toJSON() as LibrarianLibrary;
       let newVersion: Version | undefined = undefined;
 
+      let isPreview = false;
       if (this.versionsMap) {
         // Multi-version (Java style)
         const artifactID = this.findArtifactID(libraryJSON);
@@ -92,39 +99,68 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
         }
       } else {
         // Single version (Go, Python, Node style)
-        const isGoMatch =
-          (this.packagePath && libraryJSON.name === this.packagePath) ||
-          (this.component && libraryJSON.name === this.component);
-
-        const isPythonNodeMatch =
+        const isGoPreviewMatch =
           this.packagePath &&
-          this.deriveOutputDirectory(libraryJSON) === this.packagePath;
+          this.packagePath === `preview/internal/${libraryJSON.name}`;
 
-        if (isGoMatch || isPythonNodeMatch) {
+        const isPythonPreviewMatch =
+          this.packagePath &&
+          this.packagePath === `preview-packages/${libraryJSON.name}`;
+
+        if (isGoPreviewMatch || isPythonPreviewMatch) {
+          isPreview = true;
           newVersion = this.version;
+        } else {
+          const isGoMatch =
+            (this.packagePath && libraryJSON.name === this.packagePath) ||
+            (this.component && libraryJSON.name === this.component);
+
+          const isPythonNodeMatch =
+            this.packagePath &&
+            this.deriveOutputDirectory(libraryJSON) === this.packagePath;
+
+          if (isGoMatch || isPythonNodeMatch) {
+            newVersion = this.version;
+          }
         }
       }
 
       if (newVersion) {
         const newVersionStr = newVersion.toString();
-        if (library.get('version') !== newVersionStr) {
-          library.set('version', newVersionStr);
-          modified = true;
-        }
-        if (this.versionsMap) {
-          const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
-          if (!isSnapshot) {
-            let java = library.get('java');
-            if (!yaml.isMap(java)) {
-              const javaNode = doc.createNode({});
-              library.set('java', javaNode);
-              java = javaNode;
+        if (isPreview) {
+          let preview = library.get('preview');
+          if (!yaml.isMap(preview)) {
+            const previewNode = doc.createNode({});
+            library.set('preview', previewNode);
+            preview = previewNode;
+            modified = true;
+          }
+          if (yaml.isMap(preview)) {
+            if (preview.get('version') !== newVersionStr) {
+              preview.set('version', newVersionStr);
               modified = true;
             }
-            if (yaml.isMap(java)) {
-              if (java.get('released_version') !== newVersionStr) {
-                java.set('released_version', newVersionStr);
+          }
+        } else {
+          if (library.get('version') !== newVersionStr) {
+            library.set('version', newVersionStr);
+            modified = true;
+          }
+          if (this.versionsMap) {
+            const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
+            if (!isSnapshot) {
+              let java = library.get('java');
+              if (!yaml.isMap(java)) {
+                const javaNode = doc.createNode({});
+                library.set('java', javaNode);
+                java = javaNode;
                 modified = true;
+              }
+              if (yaml.isMap(java)) {
+                if (java.get('released_version') !== newVersionStr) {
+                  java.set('released_version', newVersionStr);
+                  modified = true;
+                }
               }
             }
           }
