@@ -4,6 +4,18 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.9.0](https://github.com/googleapis/release-please/compare/v17.8.0...v17.9.0) (2026-06-09)
+
+
+### Features
+
+* remove dep on code-suggester ([#2770](https://github.com/googleapis/release-please/issues/2770)) ([0e8d1e2](https://github.com/googleapis/release-please/commit/0e8d1e2199b88ef9e1e617219c01617c7819b6c0))
+
+
+### Bug Fixes
+
+* fixup all open GitHub code scanning reports ([#2806](https://github.com/googleapis/release-please/issues/2806)) ([f91614d](https://github.com/googleapis/release-please/commit/f91614d812ca4f2c1b9a705cf60cad319e8189d1))
+
 ## [17.8.0](https://github.com/googleapis/release-please/compare/v17.7.0...v17.8.0) (2026-06-04)
 
 
