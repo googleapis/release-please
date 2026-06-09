@@ -21,7 +21,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import * as snapshot from 'snap-shot-it';
 import * as sinon from 'sinon';
-import * as codeSuggester from 'code-suggester';
+import * as codeSuggester from '../src/util/code-suggester';
 
 import {GitHub, GitHubRelease} from '../src/github';
 import {GitHubApi, GH_API_URL} from '../src/github-api';
