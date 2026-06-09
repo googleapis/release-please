@@ -128,7 +128,11 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
       if (newVersion) {
         const newVersionStr = newVersion.toString();
         if (isPreview) {
-          const previewNode = this.getOrCreateSubsection(library, 'preview', doc);
+          const previewNode = this.getOrCreateSubsection(
+            library,
+            'preview',
+            doc
+          );
           if (this.updateValue(previewNode, 'version', newVersionStr)) {
             modified = true;
           }
@@ -188,11 +192,7 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
     return section as yaml.YAMLMap;
   }
 
-  private updateValue(
-    node: yaml.YAMLMap,
-    key: string,
-    value: string
-  ): boolean {
+  private updateValue(node: yaml.YAMLMap, key: string, value: string): boolean {
     if (node.get(key) !== value) {
       node.set(key, value);
       return true;
