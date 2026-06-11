@@ -47,7 +47,7 @@
     "@types/js-yaml": "^4.0.0",
     "@types/jsonpath": "^0.2.0",
     "@types/mocha": "^10.0.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^22.0.0",
     "@types/npmlog": "^7.0.0",
     "@types/semver": "^7.0.0",
     "@types/sinon": "^17.0.0",
@@ -100,7 +100,7 @@
     "yargs": "^17.0.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "overrides": {
     "tmp": "0.2.6",
