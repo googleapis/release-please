@@ -227,6 +227,64 @@ libraries:
       api_description_override: allows you to encrypt, store, manage, and audit infrastructure and application-level secrets.
 `;
 
+const goContentWithPreview = `language: go
+libraries:
+  - name: accessapproval
+    version: 1.13.0
+    preview:
+      version: 1.13.0-preview.0
+    apis:
+      - path: google/cloud/accessapproval/v1
+`;
+
+const goContentWithPreviewUpdated = `language: go
+libraries:
+  - name: accessapproval
+    version: 1.13.0
+    preview:
+      version: 1.14.0-preview.0
+    apis:
+      - path: google/cloud/accessapproval/v1
+`;
+
+const pythonContentWithPreview = `language: python
+libraries:
+  - name: google-cloud-storage
+    version: 1.42.0
+    preview:
+      version: 1.42.0-preview.0
+    apis:
+      - path: google/storage/v2
+`;
+
+const pythonContentWithPreviewUpdated = `language: python
+libraries:
+  - name: google-cloud-storage
+    version: 1.42.0
+    preview:
+      version: 1.43.0-preview.0
+    apis:
+      - path: google/storage/v2
+`;
+
+const goContentWithPreviewMissing = `language: go
+libraries:
+  - name: accessapproval
+    version: 1.13.0
+    apis:
+      - path: google/cloud/accessapproval/v1
+`;
+
+const goContentWithPreviewCreated = `language: go
+libraries:
+  - name: accessapproval
+    version: 1.13.0
+    apis:
+      - path: google/cloud/accessapproval/v1
+    preview:
+      version: 1.14.0-preview.0
+`;
+
 describe('LibrarianYamlUpdater', () => {
   describe('Error Handling and Validation', () => {
     it('throws an error if the librarian.yaml is malformed (e.g., uses tabs for block indentation)', () => {
@@ -436,6 +494,35 @@ libraries:
       });
       const newContent = updater.updateContent(oldContentMissingJava);
       expect(newContent).to.eq(expectedContent);
+    });
+  });
+
+  describe('Preview Version Match Logic', () => {
+    it('updates Go preview version by matching preview package path', () => {
+      const updater = new LibrarianYamlUpdater({
+        version: Version.parse('1.14.0-preview.0'),
+        packagePath: 'preview/internal/accessapproval',
+      });
+      const newContent = updater.updateContent(goContentWithPreview);
+      expect(newContent).to.eq(goContentWithPreviewUpdated);
+    });
+
+    it('updates Python preview version by matching preview package path', () => {
+      const updater = new LibrarianYamlUpdater({
+        version: Version.parse('1.43.0-preview.0'),
+        packagePath: 'preview-packages/google-cloud-storage',
+      });
+      const newContent = updater.updateContent(pythonContentWithPreview);
+      expect(newContent).to.eq(pythonContentWithPreviewUpdated);
+    });
+
+    it('creates preview section if missing and updates version', () => {
+      const updater = new LibrarianYamlUpdater({
+        version: Version.parse('1.14.0-preview.0'),
+        packagePath: 'preview/internal/accessapproval',
+      });
+      const newContent = updater.updateContent(goContentWithPreviewMissing);
+      expect(newContent).to.eq(goContentWithPreviewCreated);
     });
   });
 });
