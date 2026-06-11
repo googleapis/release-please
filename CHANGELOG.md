@@ -4,6 +4,14 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.0](https://github.com/googleapis/release-please/compare/v17.9.0...v17.10.0) (2026-06-11)
+
+
+### Features
+
+* update librarian preview version ([#2809](https://github.com/googleapis/release-please/issues/2809)) ([d6c840a](https://github.com/googleapis/release-please/commit/d6c840a609045f9967a774d9941ef204333b93d6))
+* upgrade project to Node 22 ([#2812](https://github.com/googleapis/release-please/issues/2812)) ([285b023](https://github.com/googleapis/release-please/commit/285b0231703007e13f99aaaedce0b77f67bf1422))
+
 ## [17.9.0](https://github.com/googleapis/release-please/compare/v17.8.0...v17.9.0) (2026-06-09)
 
 
