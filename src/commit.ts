@@ -406,6 +406,8 @@ function splitMessages(message: string): string[] {
  * Given a list of raw commits, parse and expand into conventional commits.
  *
  * @param commits {Commit[]} The input commits
+ * @param logger {Logger} The logger to use for debug messages
+ * @param extraPrefixMapping {Record<string, string>} Map custom prefixes to conventional commit types. Use empty string ("") for non-conventional commits.
  *
  * @returns {ConventionalCommit[]} Parsed and expanded commits. There may be
  *   more commits returned as a single raw commit may contain multiple release
@@ -413,7 +415,8 @@ function splitMessages(message: string): string[] {
  */
 export function parseConventionalCommits(
   commits: Commit[],
-  logger: Logger = defaultLogger
+  logger: Logger = defaultLogger,
+  extraPrefixMapping?: Record<string, string>
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 
@@ -426,12 +429,22 @@ export function parseConventionalCommits(
           const breaking =
             parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
               .length > 0;
+
+          // Check if the parsed type should be remapped via extraPrefixMapping
+          let finalType = parsedCommit.type;
+          if (extraPrefixMapping && parsedCommit.type in extraPrefixMapping) {
+            finalType = extraPrefixMapping[parsedCommit.type];
+            logger.debug(
+              `remapping commit type '${parsedCommit.type}' to '${finalType}': ${commit.sha}`
+            );
+          }
+
           conventionalCommits.push({
             sha: commit.sha,
             message: parsedCommit.header,
             files: commit.files,
             pullRequest: commit.pullRequest,
-            type: parsedCommit.type,
+            type: finalType,
             scope: parsedCommit.scope,
             bareMessage: parsedCommit.subject,
             notes: parsedCommit.notes,
@@ -446,6 +459,26 @@ export function parseConventionalCommits(
           }`
         );
         logger.debug(`error message: ${_err}`);
+        // Check for empty string mapping (non-conventional commits)
+        if (extraPrefixMapping && '' in extraPrefixMapping) {
+          const mappedType = extraPrefixMapping[''];
+          const bareMessage = commitMessage.split('\n')[0];
+          logger.debug(
+            `treating non-conventional commit as '${mappedType}': ${commit.sha}`
+          );
+          conventionalCommits.push({
+            sha: commit.sha,
+            message: commitMessage,
+            files: commit.files,
+            pullRequest: commit.pullRequest,
+            type: mappedType,
+            scope: null,
+            bareMessage,
+            notes: [],
+            references: [],
+            breaking: false,
+          });
+        }
       }
     }
   }

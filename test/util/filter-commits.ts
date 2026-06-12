@@ -89,4 +89,49 @@ describe('filterCommits', () => {
     ]);
     expect(commits.length).to.equal(1);
   });
+  it('includes commits with fix type', () => {
+    const commits = filterCommits([
+      {
+        type: 'fix',
+        notes: [],
+        references: [],
+        bareMessage: 'update readme',
+        message: 'update readme',
+        scope: null,
+        breaking: false,
+        sha: 'abc123',
+      },
+    ]);
+    expect(commits.length).to.equal(1);
+  });
+  it('includes commits with feat type', () => {
+    const commits = filterCommits([
+      {
+        type: 'feat',
+        notes: [],
+        references: [],
+        bareMessage: 'add new feature',
+        message: 'add new feature',
+        scope: null,
+        breaking: false,
+        sha: 'def456',
+      },
+    ]);
+    expect(commits.length).to.equal(1);
+  });
+  it('excludes commits with chore type', () => {
+    const commits = filterCommits([
+      {
+        type: 'chore',
+        notes: [],
+        references: [],
+        bareMessage: 'update dependencies',
+        message: 'update dependencies',
+        scope: null,
+        breaking: false,
+        sha: 'ghi789',
+      },
+    ]);
+    expect(commits.length).to.equal(0);
+  });
 });
