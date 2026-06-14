@@ -247,7 +247,7 @@
           "type": "string"
         },
         "skip-snapshot": {
-          "description": "If set, do not propose snapshot pull requests. Used by `java` strategies.",
+          "description": "If set, do not propose snapshot pull requests. Used by `java` strategies. Defaults to `false`.",
           "type": "boolean"
         },
         "initial-version": {
@@ -257,6 +257,18 @@
         "component-no-space": {
           "description": "release-please automatically adds ` ` (space) in front of parsed ${component}. This option indicates whether that behaviour should be disabled. Defaults to `false`",
           "type": "boolean"
+        },
+        "include-commit-authors": {
+          "description": "Include commit authors in changelog entries (e.g. `(@username)`). Defaults to `false`.",
+          "type": "boolean"
+        },
+        "component": {
+          "description": "Name of the component for this package. Used in the release pull request title and tag.",
+          "type": "string"
+        },
+        "package-name": {
+          "description": "The name of the package to use when determining the version to release. For Python, this is the distribution name (e.g. from pyproject.toml).",
+          "type": "string"
         }
       }
     }
@@ -501,6 +513,10 @@
     "snapshot-label": true,
     "initial-version": true,
     "exclude-paths": true,
-    "component-no-space": false
+    "component-no-space": false,
+    "include-commit-authors": true,
+    "component": true,
+    "package-name": true,
+    "skip-snapshot": true
   }
 }
