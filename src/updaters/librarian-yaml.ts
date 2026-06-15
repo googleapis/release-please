@@ -141,7 +141,8 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
             modified = true;
           }
           if (this.versionsMap) {
-            const isSnapshot = newVersion.preRelease === 'SNAPSHOT';
+            // Multi-version (Java style): updates released_version for non-SNAPSHOTs
+            const isSnapshot = !!newVersion.preRelease?.includes('SNAPSHOT');
             if (!isSnapshot) {
               const javaNode = this.getOrCreateSubsection(library, 'java', doc);
               if (
