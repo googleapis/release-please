@@ -445,6 +445,35 @@ libraries:
       expect(newContent).to.eq(snapshotUpdatedContent);
     });
 
+    it('does not update released_version for beta-SNAPSHOT versions', () => {
+      const content = `language: java
+libraries:
+  - name: errorreporting
+    version: 0.214.0-beta
+    java:
+      released_version: 0.214.0-beta
+`;
+      const expected = `language: java
+libraries:
+  - name: errorreporting
+    version: 0.215.0-beta-SNAPSHOT
+    java:
+      released_version: 0.214.0-beta
+`;
+      const versionsMap = new Map<string, Version>();
+      versionsMap.set(
+        'google-cloud-errorreporting',
+        Version.parse('0.215.0-beta-SNAPSHOT')
+      );
+
+      const updater = new LibrarianYamlUpdater({
+        version: Version.parse('1.0.0'), // Unused
+        versionsMap,
+      });
+      const newContent = updater.updateContent(content);
+      expect(newContent).to.eq(expected);
+    });
+
     it('adds released_version if it is missing and new version is not SNAPSHOT', () => {
       const oldContentMissing = `language: java
 libraries:
