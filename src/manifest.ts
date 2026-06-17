@@ -323,7 +323,7 @@ export class Manifest {
   private snapshotLabels: string[];
   readonly plugins: ManifestPlugin[];
   private _strategiesByPath?: Record<string, Strategy>;
-  private _pathsByComponent?: Record<string, string>;
+  private _pathsByComponent?: Record<string, string[]>;
   private manifestPath: string;
   private bootstrapSha?: string;
   private lastReleaseSha?: string;
@@ -559,30 +559,34 @@ export class Manifest {
         continue;
       }
       const component = tagName.component || DEFAULT_COMPONENT_NAME;
-      const path = pathsByComponent[component];
-      if (!path) {
+      const paths = pathsByComponent[component] || [];
+      if (paths.length === 0) {
         this.logger.warn(
           `Found release tag with component '${component}', but not configured in manifest`
         );
         continue;
       }
-      const expectedVersion = this.releasedVersions[path];
-      if (!expectedVersion) {
-        this.logger.warn(
-          `Unable to find expected version for path '${path}' in manifest`
-        );
-        continue;
-      }
-      if (expectedVersion.toString() === tagName.version.toString()) {
-        this.logger.debug(`Found release for path ${path}, ${release.tagName}`);
-        releaseShasByPath[path] = release.sha;
-        releasesByPath[path] = {
-          name: release.name,
-          tag: tagName,
-          sha: release.sha,
-          notes: release.notes || '',
-        };
-        releasesFound += 1;
+      for (const path of paths) {
+        const expectedVersion = this.releasedVersions[path];
+        if (!expectedVersion) {
+          this.logger.warn(
+            `Unable to find expected version for path '${path}' in manifest`
+          );
+          continue;
+        }
+        if (expectedVersion.toString() === tagName.version.toString()) {
+          this.logger.debug(
+            `Found release for path ${path}, ${release.tagName}`
+          );
+          releaseShasByPath[path] = release.sha;
+          releasesByPath[path] = {
+            name: release.name,
+            tag: tagName,
+            sha: release.sha,
+            notes: release.notes || '',
+          };
+          releasesFound += 1;
+        }
       }
 
       if (releasesFound >= expectedReleases) {
@@ -1359,19 +1363,17 @@ export class Manifest {
     return this._strategiesByPath;
   }
 
-  private async getPathsByComponent(): Promise<Record<string, string>> {
+  private async getPathsByComponent(): Promise<Record<string, string[]>> {
     if (!this._pathsByComponent) {
       this._pathsByComponent = {};
       const strategiesByPath = await this.getStrategiesByPath();
       for (const path in this.repositoryConfig) {
         const strategy = strategiesByPath[path];
         const component = (await strategy.getComponent()) || '';
-        if (this._pathsByComponent[component]) {
-          this.logger.warn(
-            `Multiple paths for ${component}: ${this._pathsByComponent[component]}, ${path}`
-          );
+        if (!this._pathsByComponent[component]) {
+          this._pathsByComponent[component] = [];
         }
-        this._pathsByComponent[component] = path;
+        this._pathsByComponent[component].push(path);
       }
     }
     return this._pathsByComponent;

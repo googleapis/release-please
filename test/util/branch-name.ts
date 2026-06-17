@@ -150,4 +150,47 @@ describe('BranchName', () => {
       );
     });
   });
+
+  describe('isComponent', () => {
+    it('returns false for default branch name', () => {
+      const branchName = BranchName.parse('release-please--branches--main');
+      expect(branchName?.isComponent()).to.be.false;
+    });
+
+    it('returns true for component branch name', () => {
+      const branchName = BranchName.parse(
+        'release-please--branches--main--components--storage'
+      );
+      expect(branchName?.isComponent()).to.be.true;
+    });
+
+    it('returns false for group branch name', () => {
+      const branchName = BranchName.parse(
+        'release-please--branches--main--groups--my-group'
+      );
+      expect(branchName?.isComponent()).to.be.false;
+    });
+
+    it('returns false for autorelease branch name', () => {
+      const branchName = BranchName.parse('release-v1.2.3');
+      expect(branchName?.isComponent()).to.be.false;
+    });
+
+    it('returns false for autorelease with component branch name', () => {
+      const branchName = BranchName.parse('release-storage-v1.2.3');
+      expect(branchName?.isComponent()).to.be.false;
+    });
+
+    it('returns false for v12 default branch name', () => {
+      const branchName = BranchName.parse('release-please/branches/main');
+      expect(branchName?.isComponent()).to.be.false;
+    });
+
+    it('returns true for v12 component branch name', () => {
+      const branchName = BranchName.parse(
+        'release-please/branches/main/components/storage'
+      );
+      expect(branchName?.isComponent()).to.be.true;
+    });
+  });
 });
