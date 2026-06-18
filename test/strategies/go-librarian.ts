@@ -214,4 +214,38 @@ libraries:
       );
     });
   });
+
+  describe('getComponent and getBranchComponent for v2+ subdirectories', () => {
+    it('returns parent directory for getComponent but full sanitized path for getBranchComponent', async () => {
+      const strategy = new GoLibrarian({
+        targetBranch: 'main',
+        github,
+        component: 'pubsub/v2',
+      });
+      expect(await strategy.getComponent()).to.equal('pubsub');
+      expect(await strategy.getBranchComponent()).to.equal('pubsub-v2');
+    });
+
+    it('does not modify component if it does not end with major version suffix', async () => {
+      const strategy = new GoLibrarian({
+        targetBranch: 'main',
+        github,
+        component: 'pubsub/foo',
+      });
+      expect(await strategy.getComponent()).to.equal('pubsub/foo');
+      expect(await strategy.getBranchComponent()).to.equal('pubsub-foo');
+    });
+
+    it('handles deep v2 paths correctly', async () => {
+      const strategy = new GoLibrarian({
+        targetBranch: 'main',
+        github,
+        component: 'cloud/google/pubsub/v3',
+      });
+      expect(await strategy.getComponent()).to.equal('cloud/google/pubsub');
+      expect(await strategy.getBranchComponent()).to.equal(
+        'cloud-google-pubsub-v3'
+      );
+    });
+  });
 });

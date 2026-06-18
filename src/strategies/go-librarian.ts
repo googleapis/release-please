@@ -27,6 +27,22 @@ export class GoLibrarian extends BaseStrategy {
     this.versionFile = options.versionFile ?? 'internal/version.go';
   }
 
+  async getComponent(): Promise<string | undefined> {
+    const component = await super.getComponent();
+    if (component) {
+      const match = component.match(/^(.*)\/v[2-9]\d*$/);
+      if (match) {
+        return match[1];
+      }
+    }
+    return component;
+  }
+
+  async getBranchComponent(): Promise<string | undefined> {
+    const component = await super.getBranchComponent();
+    return component ? component.replace(/\//g, '-') : undefined;
+  }
+
   protected async buildUpdates(
     options: BuildUpdatesOptions
   ): Promise<Update[]> {

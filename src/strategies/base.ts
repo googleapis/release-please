@@ -632,6 +632,18 @@ export abstract class BaseStrategy implements Strategy {
       this.logger.error(`Bad branch name: ${mergedPullRequest.headBranchName}`);
       return;
     }
+    const branchComponent = await this.getBranchComponent();
+    if (branchName.isComponent()) {
+      if (
+        this.normalizeComponent(branchName.component) !==
+        this.normalizeComponent(branchComponent)
+      ) {
+        this.logger.info(
+          `PR branch component: ${branchName.component} does not match configured branch component: ${branchComponent}`
+        );
+        return;
+      }
+    }
     const pullRequestBody = await this.parsePullRequestBody(
       mergedPullRequest.body
     );
