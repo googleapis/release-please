@@ -50,7 +50,7 @@ describe('GoLibrarian', () => {
   });
   describe('buildReleasePullRequest', () => {
     it('returns release PR changes with defaultInitialVersion', async () => {
-      const expectedVersion = '1.0.0';
+      const expectedVersion = '0.1.0';
       const strategy = new GoLibrarian({
         targetBranch: 'main',
         github,
@@ -178,7 +178,7 @@ libraries:
       const expectedYaml = `language: go
 libraries:
   - name: google-cloud-automl
-    version: 1.0.0
+    version: 0.1.0
 `;
       const updatedYaml = librarianUpdate!.updater.updateContent(originalYaml);
       expect(updatedYaml).to.equal(expectedYaml);
