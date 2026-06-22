@@ -4,6 +4,21 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.0](https://github.com/googleapis/release-please/compare/v17.9.0...v17.10.0) (2026-06-22)
+
+
+### Features
+
+* update librarian preview version ([#2809](https://github.com/googleapis/release-please/issues/2809)) ([d6c840a](https://github.com/googleapis/release-please/commit/d6c840a609045f9967a774d9941ef204333b93d6))
+* upgrade project to Node 22 ([#2812](https://github.com/googleapis/release-please/issues/2812)) ([285b023](https://github.com/googleapis/release-please/commit/285b0231703007e13f99aaaedce0b77f67bf1422))
+
+
+### Bug Fixes
+
+* **go-librarian:** change default version to 0.1.0 ([#2821](https://github.com/googleapis/release-please/issues/2821)) ([ad4603f](https://github.com/googleapis/release-please/commit/ad4603f974c18fe09645184861cccce34e880956))
+* **go-librarian:** support Go v2 subdirectory releases without branch collisions ([#2818](https://github.com/googleapis/release-please/issues/2818)) ([6fb9ee0](https://github.com/googleapis/release-please/commit/6fb9ee0487f076ed8aed736249aa3a94f16c3eb2)), closes [#2817](https://github.com/googleapis/release-please/issues/2817)
+* **yoshi-java-monorepo:** do not update released_version for java beta snapshot ([#2815](https://github.com/googleapis/release-please/issues/2815)) ([a0a80d1](https://github.com/googleapis/release-please/commit/a0a80d1bb775d423bd569906ce4c1f3683e84976))
+
 ## [17.9.0](https://github.com/googleapis/release-please/compare/v17.8.0...v17.9.0) (2026-06-09)
 
 
