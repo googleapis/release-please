@@ -87,6 +87,6 @@ export class GoLibrarian extends BaseStrategy {
     if (this.initialVersion) {
       return Version.parse(this.initialVersion);
     }
-    return Version.parse('1.0.0');
+    return Version.parse('0.1.0');
   }
 }
