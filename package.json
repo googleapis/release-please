@@ -103,7 +103,7 @@
     "node": ">=22.0.0"
   },
   "overrides": {
-    "tmp": "0.2.6",
+    "tmp": "0.2.7",
     "serialize-javascript": "^7.0.5"
   }
 }
