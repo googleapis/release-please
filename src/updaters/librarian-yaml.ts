@@ -112,8 +112,12 @@ export class LibrarianYamlUpdater extends DefaultUpdater {
           newVersion = this.version;
         } else {
           const isGoMatch =
-            (this.packagePath && libraryJSON.name === this.packagePath) ||
-            (this.component && libraryJSON.name === this.component);
+            (this.packagePath &&
+              this.packagePath !== '.' &&
+              libraryJSON.name === this.packagePath) ||
+            ((!this.packagePath || this.packagePath === '.') &&
+              this.component &&
+              libraryJSON.name === this.component);
 
           const isPythonNodeMatch =
             this.packagePath &&
