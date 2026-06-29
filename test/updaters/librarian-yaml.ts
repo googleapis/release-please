@@ -45,6 +45,30 @@ libraries:
     version: 1.10.0
 `;
 
+const goContentMultipleVersions = `language: go
+libraries:
+  - name: accessapproval
+    version: 1.13.0
+    apis:
+      - path: google/cloud/accessapproval/v1
+  - name: accessapproval/v2
+    version: 2.0.0
+    apis:
+      - path: google/cloud/accessapproval/v2
+`;
+
+const goContentMultipleVersionsUpdatedV2 = `language: go
+libraries:
+  - name: accessapproval
+    version: 1.13.0
+    apis:
+      - path: google/cloud/accessapproval/v1
+  - name: accessapproval/v2
+    version: 2.1.0
+    apis:
+      - path: google/cloud/accessapproval/v2
+`;
+
 const pythonContent = `language: python
 sources:
   googleapis:
@@ -373,6 +397,16 @@ libraries:
       });
       const newContent = updater.updateContent(goContent);
       expect(newContent).to.eq(goContentUpdated);
+    });
+
+    it('updates ONLY exact match when multiple versions exist (Go style)', () => {
+      const updater = new LibrarianYamlUpdater({
+        version: Version.parse('2.1.0'),
+        packagePath: 'accessapproval/v2',
+        component: 'accessapproval',
+      });
+      const newContent = updater.updateContent(goContentMultipleVersions);
+      expect(newContent).to.eq(goContentMultipleVersionsUpdatedV2);
     });
 
     it('updates by matching implicit output directory (Python/Node style)', () => {
