@@ -4,6 +4,13 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [17.10.1](https://github.com/googleapis/release-please/compare/v17.10.0...v17.10.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* avoid duplicate updates in librarian.yaml for Go v2+ ([#2830](https://github.com/googleapis/release-please/issues/2830)) ([2cfa196](https://github.com/googleapis/release-please/commit/2cfa1968e0f92ad6c26e84d799d64399b5018d18)), closes [#2826](https://github.com/googleapis/release-please/issues/2826)
+
 ## [17.10.0](https://github.com/googleapis/release-please/compare/v17.9.0...v17.10.0) (2026-06-22)
 
 
