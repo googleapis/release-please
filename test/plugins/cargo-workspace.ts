@@ -36,6 +36,7 @@ import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import {parseCargoManifest} from '../../src/updaters/rust/common';
 import {ConfigurationError} from '../../src/errors';
 import assert = require('assert');
+import {ReleasePleaseManifest} from '../../src/updaters/release-please-manifest';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/cargo-workspace';
@@ -136,6 +137,14 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustA/Cargo.toml');
       assertHasUpdate(updates, 'Cargo.lock');
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('packages/rustA')?.toString()).to.eql(
+        '1.1.2'
+      );
     });
     it('combines rust packages', async () => {
       const candidates: CandidateReleasePullRequest[] = [
@@ -196,6 +205,17 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustA/Cargo.toml');
       assertHasUpdate(updates, 'packages/rustD/Cargo.toml');
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('packages/rustA')?.toString()).to.eql(
+        '1.1.2'
+      );
+      expect(updater.versionsMap?.get('packages/rustD')?.toString()).to.eql(
+        '4.4.5'
+      );
     });
     it('handles glob paths', async () => {
       const candidates: CandidateReleasePullRequest[] = [
@@ -311,6 +331,26 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustD/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustE/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+      const updater = assertHasUpdate(
+        updates,
+        '.release-please-manifest.json',
+        ReleasePleaseManifest
+      ).updater as ReleasePleaseManifest;
+      expect(updater.versionsMap?.get('packages/rustA')?.toString()).to.eql(
+        '1.1.2'
+      );
+      expect(updater.versionsMap?.get('packages/rustB')?.toString()).to.eql(
+        '2.2.3'
+      );
+      expect(updater.versionsMap?.get('packages/rustC')?.toString()).to.eql(
+        '3.3.4'
+      );
+      expect(updater.versionsMap?.get('packages/rustD')?.toString()).to.eql(
+        '4.4.5'
+      );
+      expect(updater.versionsMap?.get('packages/rustE')?.toString()).to.eql(
+        '3.3.4'
+      );
     });
     it('can skip merging rust packages', async () => {
       // This is the same setup as 'walks dependency tree and updates previously untouched packages'
