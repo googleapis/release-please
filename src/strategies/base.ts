@@ -120,6 +120,7 @@ export abstract class BaseStrategy implements Strategy {
   readonly componentNoSpace?: boolean;
   readonly extraFiles: ExtraFile[];
   readonly extraLabels: string[];
+  readonly versionFile?: string;
   protected dateFormat: string;
   protected includeCommitAuthors?: boolean;
 
@@ -159,6 +160,7 @@ export abstract class BaseStrategy implements Strategy {
     this.extraFiles = options.extraFiles || [];
     this.initialVersion = options.initialVersion;
     this.extraLabels = options.extraLabels || [];
+    this.versionFile = options.versionFile;
     this.dateFormat = options.dateFormat || DEFAULT_DATE_FORMAT;
     this.includeCommitAuthors = options.includeCommitAuthors;
   }
