@@ -608,5 +608,86 @@ describe('CargoWorkspace plugin', () => {
         }
       );
     });
+
+    it('removes root rust strategy member updates outside workspace decisions', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('.', 'rust', '2.33.1', {
+          component: 'root',
+          updates: [
+            buildMockPackageUpdate('Cargo.toml', 'packages/rustA/Cargo.toml'),
+            buildMockPackageUpdate(
+              'packages/rustA/Cargo.toml',
+              'packages/rustA/Cargo.toml'
+            ),
+            buildMockPackageUpdate(
+              'packages/rustB/Cargo.toml',
+              'packages/rustB/Cargo.toml'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: [
+          'Cargo.toml',
+          'packages/rustA/Cargo.toml',
+          'packages/rustB/Cargo.toml',
+          'packages/rustC/Cargo.toml',
+          'packages/rustD/Cargo.toml',
+          'packages/rustE/Cargo.toml',
+        ],
+        flatten: false,
+        targetBranch: 'main',
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/rustA', 'main')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB', 'main')
+        .resolves(['packages/rustB'])
+        .withArgs('packages/rustC', 'main')
+        .resolves(['packages/rustC'])
+        .withArgs('packages/rustD', 'main')
+        .resolves(['packages/rustD'])
+        .withArgs('packages/rustE', 'main')
+        .resolves(['packages/rustE']);
+      plugin = new CargoWorkspace(
+        github,
+        'main',
+        {
+          '.': {
+            releaseType: 'rust',
+          },
+          'packages/rustA': {
+            releaseType: 'rust',
+          },
+          'packages/rustB': {
+            releaseType: 'rust',
+          },
+          'packages/rustC': {
+            releaseType: 'rust',
+          },
+          'packages/rustD': {
+            releaseType: 'rust',
+          },
+          'packages/rustE': {
+            releaseType: 'rust',
+          },
+        },
+        {merge: false}
+      );
+      const newCandidates = await plugin.run(candidates);
+      const rustCandidate = newCandidates.find(
+        candidate => candidate.path === '.'
+      );
+      expect(rustCandidate).to.not.be.undefined;
+      const updates = rustCandidate!.pullRequest.updates;
+      assertHasUpdate(updates, 'Cargo.toml', RawContent);
+      assertHasUpdate(updates, 'Cargo.lock');
+      assertNoHasUpdate(updates, 'packages/rustA/Cargo.toml');
+      assertNoHasUpdate(updates, 'packages/rustB/Cargo.toml');
+    });
   });
 });
