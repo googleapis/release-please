@@ -421,31 +421,49 @@ export function parseConventionalCommits(
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {
+      const pushParsedCommit = (
+        parsedCommit: parser.ConventionalChangelogCommit
+      ) => {
+        const breaking =
+          parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
+            .length > 0;
+        conventionalCommits.push({
+          sha: commit.sha,
+          message: parsedCommit.header,
+          files: commit.files,
+          pullRequest: commit.pullRequest,
+          type: parsedCommit.type,
+          scope: parsedCommit.scope,
+          bareMessage: parsedCommit.subject,
+          notes: parsedCommit.notes,
+          references: parsedCommit.references,
+          breaking,
+        });
+      };
       try {
         for (const parsedCommit of parseCommits(commitMessage)) {
-          const breaking =
-            parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
-              .length > 0;
-          conventionalCommits.push({
-            sha: commit.sha,
-            message: parsedCommit.header,
-            files: commit.files,
-            pullRequest: commit.pullRequest,
-            type: parsedCommit.type,
-            scope: parsedCommit.scope,
-            bareMessage: parsedCommit.subject,
-            notes: parsedCommit.notes,
-            references: parsedCommit.references,
-            breaking,
-          });
+          pushParsedCommit(parsedCommit);
         }
       } catch (_err) {
-        logger.debug(
-          `commit could not be parsed: ${commit.sha} ${
-            commit.message.split('\n')[0]
-          }`
-        );
-        logger.debug(`error message: ${_err}`);
+        // Full-message parsing failed. The @conventional-commits/parser
+        // grammar is strict about body content — e.g. an unbalanced `(` on
+        // a wrapped line will throw `unexpected token '\n' ... valid
+        // tokens [)]`. Fall back to parsing just the header so the commit
+        // still appears in the changelog. Footer-derived metadata
+        // (BREAKING CHANGE notes, issue references) is lost on this path.
+        const header = commitMessage.split('\n')[0];
+        try {
+          for (const parsedCommit of parseCommits(header)) {
+            pushParsedCommit(parsedCommit);
+          }
+          logger.warn(
+            `commit body could not be parsed, used header only: ${commit.sha} ${header}`
+          );
+          logger.debug(`error message: ${_err}`);
+        } catch (_headerErr) {
+          logger.debug(`commit could not be parsed: ${commit.sha} ${header}`);
+          logger.debug(`error message: ${_err}`);
+        }
       }
     }
   }
