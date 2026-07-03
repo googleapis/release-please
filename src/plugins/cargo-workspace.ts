@@ -173,6 +173,9 @@ export class CargoWorkspace extends WorkspacePlugin<CrateInfo> {
 
   protected bumpVersion(pkg: CrateInfo): Version {
     const version = Version.parse(pkg.version);
+    const strategy = this.strategiesByPath[pkg.path];
+
+    if (strategy) return strategy.versioningStrategy.bump(version, []);
     return new PatchVersionUpdate().bump(version);
   }
 

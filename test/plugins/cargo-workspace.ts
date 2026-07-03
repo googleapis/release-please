@@ -36,6 +36,9 @@ import {CargoToml} from '../../src/updaters/rust/cargo-toml';
 import {parseCargoManifest} from '../../src/updaters/rust/common';
 import {ConfigurationError} from '../../src/errors';
 import assert = require('assert');
+import {Rust} from '../../src/strategies/rust';
+import {PrereleaseVersioningStrategy} from '../../src/versioning-strategies/prerelease';
+import {TagName} from '../../src/util/tag-name';
 
 const sandbox = sinon.createSandbox();
 const fixturesPath = './test/fixtures/plugins/cargo-workspace';
@@ -311,6 +314,157 @@ describe('CargoWorkspace plugin', () => {
       assertHasUpdate(updates, 'packages/rustD/Cargo.toml', RawContent);
       assertHasUpdate(updates, 'packages/rustE/Cargo.toml', RawContent);
       snapshot(dateSafe(rustCandidate!.pullRequest.body.toString()));
+    });
+    it('walks dependency tree and updates previously untouched packages (prerelease)', async () => {
+      const candidates: CandidateReleasePullRequest[] = [
+        buildMockCandidatePullRequest('packages/rustA', 'rust', '1.1.2-beta', {
+          component: '@here/pkgA',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustA/Cargo.toml',
+              'packages/rustA/Cargo.toml'
+            ),
+          ],
+        }),
+        buildMockCandidatePullRequest('packages/rustD', 'rust', '4.4.5-beta', {
+          component: '@here/pkgD',
+          updates: [
+            buildMockPackageUpdate(
+              'packages/rustD/Cargo.toml',
+              'packages/rustD/Cargo.toml'
+            ),
+          ],
+        }),
+      ];
+      stubFilesFromFixtures({
+        sandbox,
+        github,
+        fixturePath: fixturesPath,
+        files: ['Cargo.toml'],
+        flatten: false,
+        targetBranch: 'main',
+        inlineFiles: [
+          [
+            'packages/rustA/Cargo.toml',
+            '[package]\nname = "pkgA"\nversion = "1.1.1-beta.0"\n\n[dependencies]\ntracing = "1.0.0"',
+          ],
+          [
+            'packages/rustB/Cargo.toml',
+            '[package]\nname = "pkgB"\nversion = "2.2.2-beta.0"\n\n[dependencies]\npkgA = { version = "1.1.1-beta.0", path = "../rustA" }\ntracing = "1.0.0"',
+          ],
+          [
+            'packages/rustC/Cargo.toml',
+            '[package]\nname = "pkgC"\nversion = "1.1.1-beta.0"\n\n[dependencies]\npkgB = { version = "2.2.2-beta.0", path = "../rustB" }\ntracing = "1.0.0"',
+          ],
+          [
+            'packages/rustD/Cargo.toml',
+            '[package]\nname = "pkgD"\nversion = "4.4.4-beta.0"\n\n[dependencies]\ntracing = "1.0.0"',
+          ],
+          [
+            'packages/rustE/Cargo.toml',
+            '[package]\nname = "pkgE"\nversion = "1.0.0-beta.0"\n\n[dependencies]\npkgD = { version = "4.4.4-beta.0", path = "../rustD" }\ntracing = "1.0.0"',
+          ],
+        ],
+      });
+      sandbox
+        .stub(github, 'findFilesByGlobAndRef')
+        .withArgs('packages/rustA', 'main')
+        .resolves(['packages/rustA'])
+        .withArgs('packages/rustB', 'main')
+        .resolves(['packages/rustB'])
+        .withArgs('packages/rustC', 'main')
+        .resolves(['packages/rustC'])
+        .withArgs('packages/rustD', 'main')
+        .resolves(['packages/rustD'])
+        .withArgs('packages/rustE', 'main')
+        .resolves(['packages/rustE']);
+
+      await plugin.preconfigure(
+        {
+          'packages/rustA': new Rust({
+            github,
+            targetBranch: 'main',
+            path: 'packages/rustA',
+            packageName: 'pkgA',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
+              prereleaseType: 'beta',
+            }),
+          }),
+          'packages/rustB': new Rust({
+            github,
+            targetBranch: 'main',
+            path: 'packages/rustB',
+            packageName: 'pkgB',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
+              prereleaseType: 'beta',
+            }),
+          }),
+          'packages/rustC': new Rust({
+            github,
+            targetBranch: 'main',
+            path: 'packages/rustC',
+            packageName: 'pkgC',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
+              prereleaseType: 'beta',
+            }),
+          }),
+          'packages/rustD': new Rust({
+            github,
+            targetBranch: 'main',
+            path: 'packages/rustD',
+            packageName: 'pkgD',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
+              prereleaseType: 'beta',
+            }),
+          }),
+          'packages/rustE': new Rust({
+            github,
+            targetBranch: 'main',
+            path: 'packages/rustE',
+            packageName: 'pkgE',
+            versioningStrategy: new PrereleaseVersioningStrategy({
+              prerelease: true,
+              prereleaseType: 'beta',
+            }),
+          }),
+        },
+        {},
+        {
+          'packages/rustB': {
+            tag: new TagName(new Version(2, 2, 2, 'beta.0'), 'pkgB'),
+            sha: '',
+            notes: '',
+          },
+        }
+      );
+
+      const newCandidates = await plugin.run(candidates);
+      expect(newCandidates).lengthOf(1);
+      const rustCandidate = newCandidates.find(
+        candidate => candidate.config.releaseType === 'rust'
+      );
+      expect(rustCandidate).to.not.be.undefined;
+      const updates = rustCandidate!.pullRequest.updates;
+
+      // Check that cascade-bumped packages get prerelease bumps (e.g., 2.2.2-beta.0 -> 2.2.2-beta.1)
+      // rather than patch bumps (e.g., 2.2.2-beta.0 -> 2.2.3-beta.0)
+      const cargoTomlUpdater = assertHasUpdate(
+        updates,
+        'packages/rustB/Cargo.toml',
+        RawContent
+      );
+      const updatedContent = cargoTomlUpdater.updater.updateContent('');
+      expect(updatedContent).to.include('version = "2.2.2-beta.1"');
+      expect(updatedContent).to.not.include('version = "2.2.3-beta.0"');
+
+      assertHasUpdate(updates, 'packages/rustA/Cargo.toml', RawContent);
+      assertHasUpdate(updates, 'packages/rustC/Cargo.toml', RawContent);
+      assertHasUpdate(updates, 'packages/rustD/Cargo.toml', RawContent);
+      assertHasUpdate(updates, 'packages/rustE/Cargo.toml', RawContent);
     });
     it('can skip merging rust packages', async () => {
       // This is the same setup as 'walks dependency tree and updates previously untouched packages'
