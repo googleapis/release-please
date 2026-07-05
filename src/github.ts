@@ -71,8 +71,6 @@ export interface GitHubOptions {
   logger?: Logger;
 }
 
-type CommitFilter = (commit: Commit) => boolean;
-
 interface GraphQLCommitAuthor {
   name?: string;
   email?: string;
